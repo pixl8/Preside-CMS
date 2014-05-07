@@ -5,7 +5,7 @@
 
 	function pathInfoProvider( event ) output=false {
 		var requestData = GetHttpRequestData();
-		var uri         = ListFirst( requestData.headers['X-Original-URL'], '?' ) ?: cgi.path_info;
+		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: cgi.path_info ), '?' );
 
 		if ( not Len( Trim( uri ) ) ) {
 			uri = ReReplace( ( cgi.request_url ?: "" ), "^https?://(.*?)/(.*?)(\?.*)?$", "/\2" );
