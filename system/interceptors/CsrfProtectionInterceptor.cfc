@@ -1,0 +1,38 @@
+component extends="coldbox.system.Interceptor" output=false {
+	property name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent";
+
+// PUBLIC
+	public void function configure() output=false {}
+
+	public void function preEvent( event ) output=false {
+		var valid   = "";
+		var persist = "";
+
+		if ( _isProtectedAction( event ) and not _isValid( event ) ) {
+			persist = event.getCollectionWithoutSystemVars();
+
+			getPlugin( "MessageBox" ).error(
+				getPlugin( "i18n" ).translateResource( uri="cms:invalidCsrfToken.error" )
+			);
+
+			if ( Len( Trim( cgi.http_referer ) ) ) {
+				setNextEvent( url=cgi.http_referer, persistStruct=persist );
+			}
+
+			// TODO, something better here!
+			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ), persistStruct=persist );
+		}
+	}
+
+// PRIVATE HELPERS
+	private boolean function _isProtectedAction( event ) output=false {
+		return event.isActionRequest();
+	}
+
+	private boolean function _isValid( event ) output=false {
+		var csrfToken = event.getValue( name="csrfToken", defaultValue="" );
+
+		return event.validateCsrfToken( token=csrfToken );
+	}
+
+}

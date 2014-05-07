@@ -1,0 +1,64 @@
+/admin/jquery/*.js
+	/admin/core/*.js
+	/admin/frontend/*.js
+
+/admin/core/jquery-ui*.js
+	/admin/core/bootstrap.js
+	/admin/core/formFields.js
+	/admin/core/jquery.*.js
+
+/admin/core/mustache.js
+	/admin/core/jquery.uber.select.js
+
+/admin/core/jquery.uber.select.js
+	/admin/core/preside.asset.picker.js
+	/admin/core/formFields.js
+	/admin/core/ace.js
+
+/admin/core/preside.asset.picker.js
+	/admin/core/formFields.js
+
+/admin/core/jquery.fuelux.spinner.js
+	/admin/core/formFields.js
+	/admin/core/ace.js
+
+/admin/core/jquery.autosize.js
+	/admin/core/formFields.js
+	/admin/core/ace.js
+
+/admin/core/jquery.inputlimiter.1.3.1.js
+	/admin/core/formFields.js
+	/admin/core/ace.js
+
+/admin/core/bootstrap.*.js
+	/admin/core/formFields.js
+
+/admin/core/bootstrap.js
+	/admin/core/ace.js
+	/admin/core/bootstrap.*.js
+
+/admin/core/ace.js
+	/admin/core/ace-elements.js
+
+/admin/core/jquery.dataTables.js
+	/admin/core/jquery.dataTables.bootstrap.js
+
+/admin/core/jquery.hotkeys.js
+	/admin/core/preside.hotkeys.js
+
+/admin/core/jquery.bootbox.js
+	/admin/core/preside.confirmation.prompts.js
+	/admin/core/preside.bootbox.modal.js
+
+/admin/i18n/*.js
+	/admin/core/i18n.js (conditional)
+
+/admin/core/i18n.js
+	/admin/core/preside.asset.picker.js
+
+/admin/core/jquery.cookies.js
+	/admin/frontend/frontendEditors.js
+
+/admin/core/preside.url.builder.js
+	/admin/core/preside.sitetreepage.picker.js
+	/admin/specific/datamanager/object/listingTable.js

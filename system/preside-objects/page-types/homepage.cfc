@@ -1,0 +1,1 @@
+component output=false extends="preside.system.base.SystemPresideObject" {}

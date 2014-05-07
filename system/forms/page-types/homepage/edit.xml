@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="main">
+		<fieldset id="main">
+			<field name="parent_page" deleted="true" />
+			<field name="active"      deleted="true" />
+			<field name="slug"        deleted="true" />
+			<field name="layout"      deleted="true" />
+		</fieldset>
+	</tab>
+
+	<tab id="dates" deleted="true" />
+</form>

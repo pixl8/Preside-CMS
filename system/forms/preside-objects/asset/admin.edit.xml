@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab>
+		<fieldset>
+			<field binding="asset.label" />
+			<field binding="asset.asset_folder" control="assetFolderPicker" required="true" />
+			<field binding="asset.author" control="textinput" />
+			<field binding="asset.description" control="textarea" />
+		</fieldset>
+	</tab>
+</form>

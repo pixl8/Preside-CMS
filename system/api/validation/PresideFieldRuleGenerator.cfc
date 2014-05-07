@@ -1,0 +1,217 @@
+component output="false" extends="preside.system.base.Service" {
+
+// CONSTRUCTOR
+	public any function init( required any resourceBundleService ) output=false {
+		super.init( argumentCollection = arguments );
+
+		_setResourceBundleService( arguments.resourceBundleService );
+
+		return this;
+	}
+
+// PUBLIC API METHODS
+	public array function generateRulesFromPresideObject( required any presideObject ) {
+		var fields        = presideObject.getObjectProperties();
+		var field         = "";
+		var fieldRules    = "";
+		var rules         = [];
+		var rule          = "";
+
+		for( field in fields ){
+			if ( fields[field].getAttribute( "control", "" ) != "none" ) {
+				fieldRules = getRulesForField(
+					  objectName      = presideObject.getName()
+					, fieldName       = field
+					, fieldAttributes = fields[ field ]
+				);
+
+				for( rule in fieldRules ){
+					ArrayAppend( rules, rule );
+				}
+			}
+		}
+
+		return rules;
+	}
+
+	public array function generateRulesFromPresideForm( required any formObject ) {
+		var tab           = "";
+		var fieldset      = "";
+		var field         = "";
+		var fieldRules    = "";
+		var rule          = "";
+		var rules         = [];
+
+		for( tab in formObject.tabs ){
+			for( fieldset in tab.fieldsets ){
+				for( field in fieldset.fields ){
+					param name="field.name" default="";
+					param name="field.binding" default="";
+
+					fieldRules = getRulesForField(
+						  objectName      = ListFirst( field.binding, "." )
+						, fieldName       = field.name
+						, fieldAttributes = field
+					);
+
+					for( rule in fieldRules ){
+						ArrayAppend( rules, rule );
+					}
+
+					for( rule in field.rules ){
+						rule.fieldName = field.name;
+						ArrayAppend( rules, rule );
+					}
+				}
+			}
+		}
+
+		return rules;
+	}
+
+	public array function getRulesForField( required string objectName, required string fieldName, required struct fieldAttributes ) output=false {
+		param name="arguments.fieldAttributes.required"  default="false";
+		param name="arguments.fieldAttributes.generator" default="";
+		param name="arguments.fieldAttributes.type"     default="string";
+
+		var field = arguments.fieldAttributes;
+		var rules = [];
+		var index = "";
+		var obj   = "";
+		var rule  = "";
+		var conventionBasedMessageKey = "";
+		var poService = _getPresideObjectService();
+
+		// required
+		if ( IsBoolean( field.required ) and field.required
+			 and not ListFindNoCase( "datecreated,datemodified", arguments.fieldName )
+			 and ( not Len( Trim( field.generator ) ) or field.generator eq "none" )
+		) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="required" } );
+		}
+
+		// types
+		switch( field.type ){
+			case "numeric":
+				if ( StructKeyExists( field, "format" ) and field.format eq "integer" ) {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="digits" } );
+				} else {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="number" } );
+				}
+			break;
+
+			case "date":
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="date" } );
+			break;
+
+			case "string":
+				if ( StructKeyExists( field, "format" ) and Len( Trim( field.format ) ) ) {
+					if ( ListFirst( field.format, ":" ) eq "regex" ) {
+						ArrayAppend( rules, { fieldName=arguments.fieldName, validator="match", params={ regex = ListRest( field.format, ":" ) } } );
+					} else {
+						ArrayAppend( rules, { fieldName=arguments.fieldName, validator=Trim( field.format ) } );
+					}
+				}
+			break;
+		}
+
+		// text length
+		if ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) and StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="rangeLength", params={ minLength = Val( field.minLength ), maxLength = Val( field.maxLength ) } } );
+		} elseif ( StructKeyExists( field, "minLength" ) and Val( field.minLength ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="minLength", params={ length = Val( field.minLength ) } } );
+		} elseif ( StructKeyExists( field, "maxLength" ) and Val( field.maxLength ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="maxLength", params={ length = Val( field.maxLength ) } } );
+		}
+
+		// min/max values
+		if ( StructKeyExists( field, "minValue" ) and StructKeyExists( field, "maxValue" ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="range", params={ min = Val( field.minValue ), max = Val( field.maxValue ) } } );
+		} elseif ( StructKeyExists( field, "minValue" ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="min", params={ min = Val( field.minValue ) } } );
+		} elseif ( StructKeyExists( field, "maxValue" ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="max", params={ max = Val( field.maxValue ) } } );
+		}
+
+		// unique indexes
+		if ( StructKeyExists( field, "uniqueindexes" ) ) {
+			obj = poService.getObject( arguments.objectName );
+
+			for( index in ListToArray( field.uniqueindexes ) ) {
+				if ( _isLastFieldInUniqueIndex( index, obj, arguments.fieldName ) ) {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="presideObjectUniqueIndex", params={ objectName=arguments.objectName, fields=_getUniqueIndexFields( index, obj ) } } );
+				}
+			}
+		}
+
+		for( rule in rules ){
+			if ( not StructKeyExists( rule, "message" ) ) {
+				conventionBasedMessageKey =  poService.getResourceBundleUriRoot( arguments.objectName ) & "validation.#arguments.fieldName#.#rule.validator#.message";
+				if ( Len( Trim( _getResourceBundleService().getResource( conventionBasedMessageKey, "" ) ) ) ) {
+					rule.message = conventionBasedMessageKey;
+				}
+			}
+		}
+
+		return rules;
+	}
+
+// PRIVATE UTILITY
+	private boolean function _isLastFieldInUniqueIndex( required string indexDefinition, required any object, required string fieldName ) output=false {
+		if ( ListLen( arguments.indexDefinition, "|" ) eq 1 ) {
+			return true;
+		}
+
+		var position  = Val( ListLast( arguments.indexDefinition, "|" ) );
+		var indexName = ListFirst( arguments.indexDefinition, "|" );
+		var props     = arguments.object.getObjectProperties();
+		var propName  = "";
+		var indexes   = "";
+		var index     = "";
+
+		for( propName in props ){
+			if ( propName eq arguments.fieldName ) {
+				continue;
+			}
+
+			indexes = props[ propName ].getAttribute( name="uniqueindexes", defaultValue="" );
+			for( index in ListToArray( indexes ) ) {
+				if ( ListFirst( index, "|" ) eq indexName and Val( ListLast( index, "|" ) ) gt position ) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private string function _getUniqueIndexFields( required string indexDefinition, required any object ) output=false {
+		var indexName = ListFirst( arguments.indexDefinition, "|" );
+		var props     = arguments.object.getObjectProperties();
+		var propName  = "";
+		var indexes   = "";
+		var index     = "";
+		var fields    = [];
+
+		for( propName in props ){
+			indexes = props[ propName ].getAttribute( name="uniqueindexes", defaultValue="" );
+			for( index in ListToArray( indexes ) ) {
+				if ( ListFirst( index, "|" ) eq indexName ) {
+					ArrayAppend( fields, propName );
+				}
+			}
+		}
+
+		ArraySort( fields, "textnocase" );
+
+		return ArrayToList( fields );
+	}
+
+// GETTERS AND SETTERS
+	private any function _getResourceBundleService() output=false {
+		return _resourceBundleService;
+	}
+	private void function _setResourceBundleService( required any resourceBundleService ) output=false {
+		_resourceBundleService = arguments.resourceBundleService;
+	}
+}

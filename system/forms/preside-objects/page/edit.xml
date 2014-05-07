@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="main" title="preside-objects.page:editform.basictab.title" description="preside-objects.page:editform.basictab.description">
+		<fieldset id="main">
+			<field sortorder="10" binding="page.parent_page" control="sitetreePagePicker" required="true" />
+			<field sortorder="20" binding="page.label" />
+			<field sortorder="30" binding="page.main_image" />
+			<field sortorder="40" binding="page.slug" required="true" />
+			<field sortorder="50" binding="page.layout" />
+			<field sortorder="60" binding="page.main_content" />
+			<field sortorder="70" binding="page.active" />
+		</fieldset>
+	</tab>
+
+	<tab id="meta" title="preside-objects.page:editform.metadatatab.title" description="preside-objects.page:editform.metadatatab.description">
+		<fieldset id="meta">
+			<field sortorder="10" binding="page.browser_title" />
+			<field sortorder="20" binding="page.author" />
+			<field sortorder="30" binding="page.description" />
+			<field sortorder="40" binding="page.keywords" />
+		</fieldset>
+	</tab>
+
+	<tab id="dates" title="preside-objects.page:editform.dateControlTab.title" description="preside-objects.page:editform.dateControlTab.description">
+		<fieldset id="dates">
+			<field sortorder="10" binding="page.embargo_date" control="datepicker" />
+			<field sortorder="20" binding="page.expiry_date"  control="datepicker" />
+		</fieldset>
+	</tab>
+</form>

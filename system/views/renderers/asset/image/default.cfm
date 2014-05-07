@@ -1,0 +1,1 @@
+<cfoutput><img src="#event.buildLink( assetId=args.id ?: "" )#" alt="#( args.label ?: '' )#" title="#( args.label ?: '' )#" /></cfoutput>

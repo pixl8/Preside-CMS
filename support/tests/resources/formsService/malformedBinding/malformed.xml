@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab>
+		<fieldset>
+			<field binding="security_user.label" control="overridenControl" required="false" />
+			<field binding="security_user.id" control="overridenControl" required="false" />
+			<field binding="malformed" control="overridenControl" required="false" />
+		</fieldset>
+	</tab>
+</form>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="basic">
+		<fieldset id="basic" title="preside-objects.security_user:fieldset.details" description="preside-objects.security_user:fieldset.details.description">
+			<field binding="security_user.email_address" required="true" />
+			<field binding="security_user.label" />
+			<field binding="security_user.active" />
+		</fieldset>
+
+		<fieldset id="roles" title="preside-objects.security_user:fieldset.roles" description="preside-objects.security_user:fieldset.roles.description">
+			<field binding="security_user.user_roles" />
+		</fieldset>
+	</tab>
+</form>

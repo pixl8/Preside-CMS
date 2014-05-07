@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<!--
+		This page type form has been scaffolded by the Preside dev tools scaffolder
+
+		Forms for page types are "mixed in" to the core add and edit forms of the "page" object.
+		This has the effect of giving you the ability to alter the add and edit forms of pages for
+		this specific type.
+
+		We have included bare tabs and fieldsets for the existing core form so that you can add fields
+		to them without the need to look them up.
+
+		You can also use this form definition to remove existing tabs, fieldsets and fields, e.g.
+
+			<tab id="idOfExistingTab" deleted="true" />
+			<fieldset id="idOfExistingFieldset" deleted="true" />
+			<field name="nameOfExistingField" deleted="true" />
+
+		Once you're done, do remove this comment :)
+	-->
+
+	<tab id="main">
+		<fieldset id="main">
+			<!-- add / remove / modify fields in the main tab & fieldset here -->
+		</fieldset>
+	</tab>
+
+	<tab id="meta">
+		<fieldset id="meta">
+			<!-- add / remove / modify fields in the main tab & fieldset here -->
+		</fieldset>
+	</tab>
+
+	<tab id="dates">
+		<fieldset id="dates">
+			<!-- add / remove / modify fields in the main tab & fieldset here -->
+		</fieldset>
+	</tab>
+
+	<tab id="${pagetype}" title="page-types.${pagetype}:form.tab.title" description="page-types.${pagetype}:form.tab.description">
+		<fieldset id="${pagetype}" title="page-types.${pagetype}:form.fieldset.title" description="page-types.${pagetype}:form.fieldset.description">
+			<!--
+				we have created this tab and fieldset for you to put in all your custom
+				fields for this page type. You may wish to move the fields to different tabs, remove them from the form
+				or do whatever you will
+			-->
+${custom_fields}
+		</fieldset>
+	</tab>
+</form>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="sometab" title="a new title">
+		<fieldset id="somefieldset" title="another new title" description="A description">
+			<field name="anotherfield" sortorder="5" />
+			<field name="somename" control="overridenControl" required="false" />
+			<field name="afieldthatwillbedeleted" deleted="true" />
+		</fieldset>
+
+		<fieldset>
+			<field name="meh2" blah="blah" />
+		</fieldset>
+
+		<fieldset id="fieldsettobedeleted" deleted="true" />
+	</tab>
+
+	<tab>
+		<fieldset>
+			<field name="intab3" required="false" />
+		</fieldset>
+	</tab>
+
+	<tab id="sometabthatwillbedeleted" deleted="true" />
+</form>

@@ -1,0 +1,44 @@
+html {
+	overflow-y : auto !important;
+}
+
+.widget-image-link {
+	display : block;
+	margin  : 10px 0;
+
+	img {
+		width : 100%;
+	}
+}
+
+.widget-search {
+	.input-icon {
+		width : 100%;
+
+		input {
+			border        : 1px solid #6fb3e0;
+			width         : 100%;
+			border-radius : 4px !important;
+			font-size     : 13px;
+			color         : #666666;
+			padding-left  : 25px;
+		}
+	}
+}
+
+.widget-list {
+	li {
+		border-bottom  : 1px solid #e3e3e3;
+		padding        : 0 5px 5px 5px;
+
+		&:last-child {
+			border-bottom  : none;
+		}
+
+		&:active, &:focus, &:hover {
+			cursor           : pointer;
+			outline          : none;
+			background-color : #f5f5f5;
+		}
+	}
+}

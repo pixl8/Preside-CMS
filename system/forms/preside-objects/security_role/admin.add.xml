@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab>
+		<fieldset id="basic">
+			<field binding="security_role.label" />
+			<field binding="security_role.key" control="autoslug" basedOn="label" />
+			<field binding="security_role.description" />
+		</fieldset>
+
+		<fieldset id="permissions" title="preside-objects.security_role:fieldset.permissions.title" description="preside-objects.security_role:fieldset.permissions.description">
+			<field name="global_permissions" control="globalPermissionPicker" />
+		</fieldset>
+	</tab>
+</form>

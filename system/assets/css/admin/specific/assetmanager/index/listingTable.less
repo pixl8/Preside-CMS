@@ -1,0 +1,39 @@
+.asset-listing-table {
+
+	.edit-folder-form {
+		display : none;
+
+		.form-control {
+			display : inline;
+			width   : 75%
+		}
+	}
+
+	.folder-name {
+		margin-left : 0.3em;
+		color       : #393939;
+	}
+
+	tbody {
+		tr {
+			&.editing {
+				.edit-folder-form {
+					display : inline;
+				}
+
+				.folder-view-link {
+					display : none;
+				}
+			}
+
+			td {
+				height         : 45px;
+				vertical-align : middle;
+			}
+
+			.folder-icon {
+				font-size : 22px;
+			}
+		}
+	}
+}

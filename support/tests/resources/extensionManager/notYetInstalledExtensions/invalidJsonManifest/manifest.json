@@ -1,0 +1,6 @@
+{
+	  "id"      = "validExtension" // the = sign is invalid!
+	, "title"   = "Valid Extension" // the = sign is invalid!
+	, "author"  = "Vladimir Valid" // the = sign is invalid!
+	, "version" = "0.0.1" // the = sign is invalid!
+}

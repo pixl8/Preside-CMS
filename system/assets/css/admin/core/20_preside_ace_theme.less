@@ -1,0 +1,43 @@
+.preside-theme {
+	.navbar  {
+		background-color : #486176;
+	}
+
+	.navbar-brand {
+		width  : 153px;
+		height : 45px;
+		text-indent: -9999px;
+		background : url( ../../../images/logos/logo-preside-admin-header.png ) no-repeat left center;
+	}
+
+	.ace-nav {
+		> li, li.open {
+			border-left : 1px solid #273b4c;
+			> a, a:hover, a:focus, a:active {
+				background-color : #486176 !important;
+				border-left : 1px solid #4e687d;
+			}
+
+			&:last-child {
+				border-right :  1px solid #4e687d;
+				> a {
+					border-right : 1px solid #273b4c;
+				}
+			}
+		}
+	}
+
+	.user-info {
+		max-width      : none;
+		vertical-align : baseline;
+		top            : 2px;
+	}
+
+	.nav-list>li.active:after {
+		border-right: 2px solid #f5962d
+	}
+	.nav-list li.active>a:after {
+		border-right-color : #f5962d;
+	}
+
+}

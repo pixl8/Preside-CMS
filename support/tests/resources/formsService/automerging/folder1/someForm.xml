@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="sometab">
+		<fieldset id="somefieldset">
+			<field name="somename" sortorder="10" />
+			<field name="afieldthatwillbedeleted" sortorder="20" />
+		</fieldset>
+
+		<fieldset>
+			<field name="meh" required="false" />
+		</fieldset>
+
+		<fieldset id="fieldsettobedeleted">
+			<field name="yesiamafield" />
+		</fieldset>
+	</tab>
+
+	<tab>
+		<fieldset>
+			<field name="mehsomemore" required="false" />
+		</fieldset>
+	</tab>
+
+	<tab id="sometabthatwillbedeleted">
+		<fieldset>
+			<field name="yetanotherfield" required="false" />
+		</fieldset>
+	</tab>
+</form>
