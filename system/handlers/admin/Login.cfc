@@ -97,7 +97,6 @@
 		<cfscript>
 			var cleaned = Trim( arguments.postLoginUrl );
 
-			cleaned = ReReplaceNoCase( cleaned, "^(https?://.*?)/.*?[\?&]originalurl=(.*?)&?$", "\1\2" );
 			cleaned = ReReplace( cleaned, "^(https?://.*?)//", "\1/" );
 
 			return cleaned;

@@ -47,7 +47,6 @@
 			StructDelete( collection, "event"       );
 			StructDelete( collection, "handler"     );
 			StructDelete( collection, "module"      );
-			StructDelete( collection, "originalUrl" );
 			StructDelete( collection, "fieldnames"  );
 
 			return collection;
