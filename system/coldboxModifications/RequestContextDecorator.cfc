@@ -85,14 +85,23 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="getCurrentAdminUrl" access="public" returntype="string" output="false">
-		<cfscript>
-			var currentEvent = getRequestContext().getCurrentEvent();
+	<cffunction name="getCurrentUrl" access="public" returntype="string" output="false">
+		<cfargument name="includeQueryString" type="boolean" required="false" default="true" />
 
-			return getBaseUrl() & buildAdminLink(
-				  linkTo      = ListRest( currentEvent, "." )
-				, queryString = _structToQueryString( getCollectionWithoutSystemVars() )
-			);
+		<cfscript>
+			var requestData = GetHttpRequestData();
+			var currentUrl  = requestData.headers['X-Original-URL'] ?: "";
+
+			if ( Len( Trim( currentUrl ) ) ) {
+				return arguments.includeQueryString ? currentUrl : ListFirst( currentUrl, "?" );
+			}
+
+			currentUrl = cgi.path_info ?: "";
+			if ( arguments.includeQueryString && Len( Trim( cgi.query_string ?: "" ) ) ) {
+				currentUrl &= "?" & cgi.query_string;
+			}
+
+			return currentUrl;
 		</cfscript>
 	</cffunction>
 

@@ -47,7 +47,7 @@
 					}
 
 				} else {
-					postLoginUrl = event.getCurrentAdminUrl();
+					postLoginUrl = event.getCurrentUrl();
 				}
 
 				setNextEvent( url=event.buildAdminLink( "login" ), persistStruct={ postLoginUrl = postLoginUrl } );
