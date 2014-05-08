@@ -2,8 +2,7 @@ language: java
 
 env:
   matrix:
-    - PLATFORM=railo40 TESTFRAMEWORK=mxunit
- #   - PLATFORM=railo41 TESTFRAMEWORK=mxunit
+    - PLATFORM=railo41 TESTFRAMEWORK=mxunit
  #   - PLATFORM=railo42beta TESTFRAMEWORK=mxunit
 
 before_script:
