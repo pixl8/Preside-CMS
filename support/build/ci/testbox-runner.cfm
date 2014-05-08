@@ -28,6 +28,6 @@ try {
 	fileWrite(url.reportPath & "/output.txt", results);
 	writeoutput( results );
 } catch ( any e ) {
-	writeoutput( "Fatal error occurred running test suite. Message: #e.message#. Detail: #e.detail#" );
+	fileWrite(url.reportPath & "/output.txt", "Fatal error occurred running test suite. Message: #e.message#. Detail: #e.detail#" );
 }
 </cfscript>
