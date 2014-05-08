@@ -15,7 +15,11 @@ component output=false {
 		, password         = ''
 	};
 
-	application.dsn = "preside_test_suite";
+	function onApplicationStart() output=false {
+		application.dsn = "preside_test_suite";
+
+		return true;
+	}
 
 	setting requesttimeout="600";
 }
