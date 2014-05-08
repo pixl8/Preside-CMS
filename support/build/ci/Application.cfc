@@ -15,5 +15,7 @@ component output=false {
 		, password         = ''
 	};
 
+	application.dsn = "preside_test_suite";
+
 	setting requesttimeout="600";
 }
