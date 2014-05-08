@@ -99,7 +99,7 @@ Valid values are:
 	</target>
 
 	<target name="installcoldbox">
-		<get src="${coldbox.zip}" dest="${output.dir}/coldbox.zip" />
+		<get src="${coldbox.zip}" dest="${output.dir}/coldbox.zip" verbose="true" />
 		<unzip src="${output.dir}/coldbox.zip" dest="${coldbox.installdir}">
 			<mapper>
         		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
@@ -108,7 +108,7 @@ Valid values are:
 	</target>
 
 	<target name="installcfstatic">
-		<get src="${cfstatic.zip}" dest="${output.dir}/cfstatic.zip" />
+		<get src="${cfstatic.zip}" dest="${output.dir}/cfstatic.zip" verbose="true" />
 		<unzip src="${output.dir}/cfstatic.zip" dest="${cfstatic.installdir}">
 			<mapper>
         		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
