@@ -110,7 +110,7 @@ Valid values are:
 		    haltonerror="false" errorproperty="mxunit.error"
 		    failureproperty="mxunit.failed">
 			<directory
-			    componentPath="support.tests.integration"
+			    componentPath="tests.integration"
 			    packageName="${test.project}"
 			    path="/${test.project}/support/tests/integration/"
 			    recurse="true"
