@@ -102,7 +102,7 @@ Valid values are:
 		<taskdef classname="au.com.imagichine.ant.MxunitOutputAntTask" classpath="${mxunit.output.jar}" name="mxunitoutputtask"/>
 
 		<mxunittask
-		    defaultrunner="/${test.project}/support/build/ci/traviscibuild/HttpAntRunner.cfc"
+		    defaultrunner="/${test.project}/support/build/ci/HttpAntRunner.cfc"
 		    outputdir="${mxunit.output.dir}"
 		    port="${server.port}" server="${server.name}"
 		    testResultsSummary="${test.project}.summary"
