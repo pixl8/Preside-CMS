@@ -49,7 +49,9 @@ Valid values are:
 	<property name="output.dir" value="results"/>
 
 	<!-- TestBox Properties -->
-	<property name="testbox.directory" value="support.tests.integration" />
+	<property name="testbox.directory"     value="/tests/integration" />
+	<property name="testbox.componentpath" value="tests.integration" />
+
 
 	<target name="install-ci-deps">
 		<exec executable="/bin/bash" failonerror="true" outputproperty="output.log">
@@ -97,12 +99,12 @@ Valid values are:
 	</target>
 
 	<target name="run-tests-testbox" description="Make output directories and run the TestBox task">
-		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/testbox-runner.cfm?directory=${testbox.directory}&amp;reporter=text&amp;reportPath=${basedir}/${output.dir}" verbose="true" />
+		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/testbox-runner.cfm?directory=${testbox.directory}&amp;componentPath=${testbox.componentpath}&amp;reporter=text&amp;reportPath=${basedir}/${output.dir}" verbose="true" />
 		<concat><path path="${output.dir}/output.txt" /></concat>
 	</target>
 
 	<target name="installcoldbox">
-		<get src="${coldbox.zip}" dest="${output.dir}/coldbox.zip" verbose="true" />
+		<get src="${coldbox.zip}" dest="${output.dir}/coldbox.zip" />
 		<unzip src="${output.dir}/coldbox.zip" dest="${coldbox.installdir}">
 			<mapper>
         		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
@@ -111,7 +113,7 @@ Valid values are:
 	</target>
 
 	<target name="installcfstatic">
-		<get src="${cfstatic.zip}" dest="${output.dir}/cfstatic.zip" verbose="true" />
+		<get src="${cfstatic.zip}" dest="${output.dir}/cfstatic.zip" />
 		<unzip src="${output.dir}/cfstatic.zip" dest="${cfstatic.installdir}">
 			<mapper>
         		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
