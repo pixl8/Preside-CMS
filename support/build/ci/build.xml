@@ -82,14 +82,17 @@ Valid values are:
 		</exec>
 	</target>
 
-	<target name="test-ci" depends="start-server,installcfstatic,installcoldbox,test,stop-server">
+	<target name="test-ci" depends="setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
 		<property file="${output.dir}testbox.properties" />
 		<fail if="testbox.failed" message="At least one test failure!" />
 	</target>
 
-	<target name="test">
+	<target name="setupoutputdir">
 		<delete dir="${output.dir}"/>
 		<mkdir dir="${output.dir}"/>
+	</target>
+
+	<target name="test">
 		<antcall target="run-tests-${test.framework}" />
 	</target>
 
