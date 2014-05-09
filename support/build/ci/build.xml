@@ -57,9 +57,9 @@ Valid values are:
 	</target>
 
 	<target name="setup-railo-settings">
-		<mkdir dir="${work.dir}/WEB-INF" />
-		<mkdir dir="${work.dir}/WEB-INF/railo" />
-		<copy file="railo-web.xml.cfm" todir="${work.dir}/WEB-INF/railo" />
+		<mkdir dir="${build.dir}/WEB-INF" />
+		<mkdir dir="${build.dir}/WEB-INF/railo" />
+		<copy file="railo-web.xml.cfm" todir="${build.dir}/WEB-INF/railo" />
 	</target>
 
 	<target name="start-server" depends="setup-railo-settings">
