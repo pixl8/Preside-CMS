@@ -249,7 +249,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 		FileCopy( "/tests/resources/extensionManager/extensions/extensions.json.bak", "/tests/resources/extensionManager/extensions/extensions.json" );
 		var dirs         = DirectoryList( "/tests/resources/extensionManager/extensions/", false, "Query" );
 		var expectedDirs = [ "anotherExtension", "someExtension", "untracked" ];
-throw( type="debugging", message=SerializeJson(dirs) );
+
 		for( var dir in dirs ){
 			if ( dir.type == "Dir" && !ArrayFind( expectedDirs, dir.name ) ) {
 				DirectoryDelete( "/tests/resources/extensionManager/extensions/" & dir.name, true );
