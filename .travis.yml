@@ -2,7 +2,8 @@ language: java
 
 env:
   matrix:
-    - PLATFORM=railo42beta
+    - PLATFORM=railo41
+ #   - PLATFORM=railo42beta
 
 before_script:
   - mysql -e 'create database preside_test;'

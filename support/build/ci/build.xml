@@ -56,7 +56,13 @@ Valid values are:
 		</exec>
 	</target>
 
-	<target name="start-server">
+	<target name="setup-railo-settings">
+		<mkdir dir="${work.dir}/WEB-INF" />
+		<mkdir dir="${work.dir}/WEB-INF/railo" />
+		<copy file="railo-web.xml.cfm" todir="${work.dir}/WEB-INF/railo" />
+	</target>
+
+	<target name="start-server" depends="setup-railo-settings">
 		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
 			<env key="WORK_DIR" value="${work.dir}" />
 			<env key="BUILD_DIR" value="${build.dir}" />

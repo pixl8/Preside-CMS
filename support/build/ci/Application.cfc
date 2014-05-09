@@ -1,6 +1,4 @@
 component output=false {
-	processingdirective preserveCase=true;
-
 	this.name = "Preside CI Test runner";
 
 	this.mappings['/results']       = ExpandPath( "./results" );
