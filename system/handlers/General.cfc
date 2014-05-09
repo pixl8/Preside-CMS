@@ -4,7 +4,6 @@
 	<cfproperty name="validationEngine"          inject="validationEngine"          />
 	<cfproperty name="presideFieldRuleGenerator" inject="presideFieldRuleGenerator" />
 	<cfproperty name="formsService"              inject="formsService"              />
-	<cfproperty name="pageTemplatesService"      inject="pageTemplatesService"      />
 	<cfproperty name="applicationReloadService"  inject="applicationReloadService"  />
 
 	<cffunction name="applicationStart" access="public" returntype="void" output="false">
@@ -149,7 +148,6 @@
 					, reloadPresideObjects = devSettings
 					, reloadWidgets        = devSettings
 					, reloadPageTypes      = devSettings
-					, reloadPageTemplates  = devSettings
 				};
 			} else {
 				devSettings = {
@@ -160,7 +158,6 @@
 					, reloadPresideObjects = IsBoolean( devSettings.reloadPresideObjects ?: "" ) and devSettings.reloadPresideObjects
 					, reloadWidgets        = IsBoolean( devSettings.reloadWidgets        ?: "" ) and devSettings.reloadWidgets
 					, reloadPageTypes      = IsBoolean( devSettings.reloadPageTypes      ?: "" ) and devSettings.reloadPageTypes
-					, reloadPageTemplates  = IsBoolean( devSettings.reloadPageTemplates  ?: "" ) and devSettings.reloadPageTemplates
 				};
 			}
 
@@ -186,11 +183,6 @@
 
 				if ( devSettings.reloadPageTypes or ( event.valueExists( "fwReinitPageTypes" ) and Hash( rc.fwReinitPageTypes ) eq reloadPassword ) ) {
 					applicationReloadService.reloadPageTypes();
-					anythingReloaded = true;
-				}
-
-				if ( devSettings.reloadPageTemplates or ( event.valueExists( "fwReinitTemplates" ) and Hash( rc.fwReinitTemplates ) eq reloadPassword ) ) {
-					applicationReloadService.reloadPageTemplates();
 					anythingReloaded = true;
 				}
 
