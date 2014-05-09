@@ -65,8 +65,8 @@ Valid values are:
 		<copy file="railo-web.xml.cfm" todir="${work.dir}/railo/webapps/www/WEB-INF/railo" />
 	</target>
 
-	<target name="start-server" depends="setup-railo-settings" outputproperty="output.log">
-		<exec executable="/bin/bash" spawn="false" failonerror="true">
+	<target name="start-server" depends="setup-railo-settings">
+		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
 			<env key="WORK_DIR" value="${work.dir}" />
 			<env key="BUILD_DIR" value="${build.dir}" />
 			<env key="SERVER_PORT" value="${server.port}" />
