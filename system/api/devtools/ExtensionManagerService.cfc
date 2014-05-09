@@ -74,7 +74,7 @@ component output=false {
 			}
 		}
 
-		throw( type="ExtensionManager.missingExtension", message="The extension, [#arguments.extensionName#], could not be found" );
+		throw( type="ExtensionManager.missingExtension", message="The extension, [#arguments.extensionName#], could not be found. Present extensions" );
 	}
 
 	public void function deactivateExtension( required string extensionName ) output=false {
@@ -97,7 +97,7 @@ component output=false {
 			}
 		}
 
-		throw( type="ExtensionManager.missingExtension", message="The extension, [#arguments.extensionName#], could not be found" );
+		throw( type="ExtensionManager.missingExtension", message="The extension, [#arguments.extensionName#], could not be found. Extensions present: #SerializeJson( untrackedExtensions )#" );
 	}
 
 	public void function uninstallExtension( required string extensionName ) output=false {
@@ -220,7 +220,7 @@ component output=false {
 		lock name="extfileop-#extensionsFile#" type="exclusive" timeout="10" {
 
 			if (!directoryExists(extensionsDir)){
-				directorycreate(extensionsDir);	
+				directorycreate(extensionsDir);
 			}
 
 			if ( not FileExists( extensionsFile ) ) {

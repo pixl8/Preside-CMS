@@ -56,7 +56,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 			manager.activateExtension( "nonExinsting" );
 
 		} catch ( "ExtensionManager.missingExtension" e ) {
-			super.assertEquals( "The extension, [nonExinsting], could not be found", e.message );
+			super.assert( e.message.startsWith( "The extension, [nonExinsting], could not be found" ) );
 			errorThrown=true;
 		} catch ( any e ){}
 
@@ -96,7 +96,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 			manager.deactivateExtension( "idonotexist" );
 
 		} catch ( "ExtensionManager.missingExtension" e ) {
-			super.assertEquals( "The extension, [idonotexist], could not be found", e.message );
+			super.assert( e.message.startsWith( "The extension, [idonotexist], could not be found" ) );
 			errorThrown=true;
 		} catch ( any e ){}
 
@@ -146,7 +146,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 			manager.getExtensionInfo( "blah" );
 
 		} catch ( "ExtensionManager.missingExtension" e ) {
-			super.assertEquals( "The extension, [blah], could not be found", e.message );
+			super.assert( e.message.startsWith( "The extension, [blah], could not be found" ) );
 			errorThrown=true;
 		} catch ( any e ){}
 

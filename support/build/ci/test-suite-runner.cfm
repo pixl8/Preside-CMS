@@ -4,7 +4,7 @@
 	try {
 		testbox = new coldbox.system.testing.TestBox( reporter="text", options={}, directory={
 			recurse = true,
-			mapping = "tests.integration",
+			mapping = "tests.integration.api.devtools",
 			filter  = function( required path ){ return true; }
 		} );
 
