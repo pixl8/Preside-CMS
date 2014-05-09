@@ -164,7 +164,7 @@
 			try {
 				_getFormsService( "/tests/resources/formsService/bindingWithMissingObject" );
 			} catch ( "FormsService.BadBinding" e ) {
-				super.assertEquals( "The preside object, [missingObject], referred to in the form field binding, [missingObject.id], could not be found", e.message );
+				super.assertEquals( "The preside object, [missingObject], referred to in the form field binding, [missingObject.id], could not be found. Valid objects are #SerializeJson( poService.listObjects() )#", e.message );
 				errorThrown = true;
 			}
 
@@ -450,11 +450,12 @@
 			mockI18nPlugin              = getMockBox().createMock( "preside.system.coldboxModifications.plugins.i18n" );
 			mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
 			mockValidationRuleGenerator = getMockBox().createEmptyMock( "preside.system.api.validation.PresideFieldRuleGenerator" );
+			poService                   = _getPresideObjectService();
 
 			mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
 
 			return new preside.system.api.forms.FormsService(
-				  presideObjectService = _getPresideObjectService()
+				  presideObjectService = poService
 				, logger               = _getTestLogger()
 				, formDirectories      = ListToArray( arguments.formDirectories )
 				, validationEngine     = new preside.system.api.validation.ValidationEngine()

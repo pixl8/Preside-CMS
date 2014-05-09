@@ -489,7 +489,7 @@ component output=false extends="preside.system.base.Service" {
 			if ( not pobjService.objectExists( boundObject ) ) {
 				throw(
 					  type = "FormsService.BadBinding"
-					, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found"
+					, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
 				);
 			}
 			if ( not pobjService.fieldExists( boundObject, boundField ) ){
