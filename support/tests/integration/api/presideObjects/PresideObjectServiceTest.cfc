@@ -125,7 +125,12 @@
 
 			// load new component definitions (cheating by using a different folder)
 			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields_changed/" ] );
-			poService.dbSync();
+			try {
+				poService.dbSync();
+
+			} catch ( any e ) {
+				super.fail( "DB Sync failed. Error: " & SerializeJson( e ) );
+			}
 
 			tables = _getDbTables();
 
