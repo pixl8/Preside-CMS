@@ -176,7 +176,7 @@ component output=false {
 		if ( StructKeyExists( arguments, "language" ) ) {
 			filePattern &= "_" & LCase( arguments.language );
 			if ( StructKeyExists( arguments, "country" ) ) {
-				filePattern &= "_" & LCase( arguments.country );
+				filePattern &= "_" & UCase( arguments.country );
 			}
 		}
 
