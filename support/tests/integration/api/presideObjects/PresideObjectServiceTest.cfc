@@ -1,3 +1,4 @@
+test04
 <cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
 
 	<cffunction name="setup" access="public" returntype="void" output="false">
@@ -160,7 +161,7 @@
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
-						super.assertEquals( "timestamp", columns.some_date.type_name, "The some_date column was not an int." );
+						super.assertEquals( "varchar", columns.some_date.type_name, "The some_date column was not changed to a text field." );
 
 						if ( table eq "test_test_2" ){
 							super.assertFalse( columns.some_date.nullable, "The some_date column for table 2 was nullable." );
