@@ -75,7 +75,7 @@ Valid values are:
 	</target>
 
 	<target name="test-ci" depends="setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
-		<property file="${output.dir}testbox.properties" />
+		<property file="${output.dir}/testbox.properties" />
 		<fail if="testbox.failed" message="At least one test failure!" />
 	</target>
 
@@ -86,7 +86,6 @@ Valid values are:
 
 	<target name="test">
 		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/test-suite-runner.cfm" verbose="true" />
-    	<concat><path path="${output.dir}testbox.properties" /></concat>
     	<concat><path path="${output.dir}/output.txt" /></concat>
 	</target>
 
