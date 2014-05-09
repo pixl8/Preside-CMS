@@ -1,7 +1,7 @@
 component output=false {
 	this.name = "Preside CI Test runner";
 
-	this.mappings['/mxunit' ]       = ExpandPath( "../../../../mxunit" );
+	this.mappings['/mxunit' ]       = ExpandPath( "../../../system/externals/coldbox/system/testing/compat" );
 	this.mappings['/tests']         = ExpandPath( "../../tests" );
 	this.mappings['/app']           = ExpandPath( "../../tests/resources/testSite" );
 	this.mappings['/preside']       = ExpandPath( "../../../" );
