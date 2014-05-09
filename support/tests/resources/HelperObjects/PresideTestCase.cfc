@@ -31,6 +31,7 @@
 		<cfargument name="objectDirectories" type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
 		<cfargument name="defaultPrefix"     type="string"  required="false" default="pobj_" />
 		<cfargument name="forceNewInstance"  type="boolean" required="false" default="false" />
+		<cfargument name="cachebox"          type="any"     required="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -41,7 +42,7 @@
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 				);
-				var cachebox       = _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
+				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.api.database.Info();
 				var sqlRunner      = new preside.system.api.database.sqlRunner( logger = logger );
 
