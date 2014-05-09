@@ -86,6 +86,7 @@ Valid values are:
 
 	<target name="test">
 		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/test-suite-runner.cfm" verbose="true" />
+    	<concat><path path="${output.dir}testbox.properties" /></concat>
     	<concat><path path="${output.dir}/output.txt" /></concat>
 	</target>
 
