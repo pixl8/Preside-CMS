@@ -387,14 +387,14 @@
 				, joinToProperty   = "id"
 				, joinFromObject   = "obj_b"
 				, joinFromProperty = "obj_d"
-				, tableAlias       = "obj_b__join__obj_d"
+				, tableAlias       = "obj_b$obj_d"
 				, type             = "inner"
 			},{
 				  joinToObject     = "obj_e"
 				, joinToProperty   = "id"
 				, joinFromObject   = "obj_d"
 				, joinFromProperty = "obj_e"
-				, tableAlias       = "obj_b__join__obj_d__join__obj_e"
+				, tableAlias       = "obj_b$obj_d$obj_e"
 				, type             = "inner"
 			},{
 				  joinToObject     = "obj_b"
@@ -408,7 +408,7 @@
 				, joinToProperty   = "id"
 				, joinFromObject   = "obj_b"
 				, joinFromProperty = "obj_a"
-				, tableAlias       = "obj_b_again__join__obj_a"
+				, tableAlias       = "obj_b_again$obj_a"
 				, type             = "inner"
 			}];
 
@@ -426,8 +426,8 @@
 			result = guidanceService.calculateJoins(
 				  objectName    = "obj_c"
 				, joinTargets   = [
-					  "obj_b__join__obj_d__join__obj_e"
-					, "obj_b_again__join__obj_a"
+					  "obj_b$obj_d$obj_e"
+					, "obj_b_again$obj_a"
 				  ]
 			);
 

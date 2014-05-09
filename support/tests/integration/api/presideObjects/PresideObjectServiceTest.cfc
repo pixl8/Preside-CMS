@@ -1905,7 +1905,7 @@
 	<cffunction name="test57_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object__join__an_object_with_versioning", "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object__join__an_object_with_versionin", "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();
