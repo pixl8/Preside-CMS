@@ -63,7 +63,7 @@ Valid values are:
 	</target>
 
 	<target name="start-server" depends="setup-railo-settings">
-		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
+		<exec executable="/bin/bash" spawn="false" failonerror="true">
 			<env key="WORK_DIR" value="${work.dir}" />
 			<env key="BUILD_DIR" value="${build.dir}" />
 			<env key="SERVER_PORT" value="${server.port}" />
