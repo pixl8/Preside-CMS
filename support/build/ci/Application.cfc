@@ -1,4 +1,6 @@
 component output=false {
+	processingdirective preserveCase=true;
+
 	this.name = "Preside CI Test runner";
 
 	this.mappings['/results']       = ExpandPath( "./results" );
@@ -15,6 +17,7 @@ component output=false {
 		, username         = 'root'
 		, password         = ''
 	};
+
 
 	function onApplicationStart() output=false {
 		application.dsn = "preside_test_suite";
