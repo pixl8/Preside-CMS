@@ -2,13 +2,18 @@
 
 <!--- private --->
 	<cffunction name="_getCachebox" access="private" returntype="any" output="false">
-		<cfargument name="key" type="string" required="false" default="_cachebox" />
+		<cfargument name="forceNewInstance" type="boolean" required="false" default="false" />
+		<cfargument name="cacheKey" type="string" required="false" default="_cachebox" />
 		<cfscript>
-			if ( !request.keyExists( arguments.key ) ) {
-				request[ arguments.key ] = new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
+			if ( arguments.forceNewInstance ) {
+				return new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
 			}
 
-			return request[ arguments.key ];
+			if ( !request.keyExists( arguments.cacheKey ) ) {
+				request[ arguments.cacheKey ] = new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
+			}
+
+			return request[ arguments.cacheKey ];
 		</cfscript>
 	</cffunction>
 
@@ -36,7 +41,7 @@
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 				);
-				var cachebox       = _getCachebox( key="_cacheBox" & key );
+				var cachebox       = _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.api.database.Info();
 				var sqlRunner      = new preside.system.api.database.sqlRunner( logger = logger );
 
@@ -73,24 +78,26 @@
 				);
 			}
 
+			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];
+
 			return request[ key ];
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="_insertData" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().insertData( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).insertData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_selectData" access="private" returntype="query" output="false">
-		<cfreturn _getPresideObjectService().selectData( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).selectData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_deleteData" access="private" returntype="numeric" output="false">
-		<cfreturn _getPresideObjectService().deleteData( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).deleteData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_dbSync" access="private" returntype="void" output="false">
-		<cfreturn _getPresideObjectService().dbSync( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).dbSync( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_bCryptPassword" access="private" returntype="string" output="false">
