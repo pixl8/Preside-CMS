@@ -2,11 +2,18 @@ language: java
 
 env:
   matrix:
-    - PLATFORM=railo41
- #   - PLATFORM=railo42beta
+  - PLATFORM=railo41
+  - PLATFORM=railo42beta
 
 before_script:
-  - mysql -e 'create database preside_test;'
+- mysql -e 'create database preside_test;'
 
 install: ant -f support/build/ci/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
 script: ant -f support/build/ci/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM test-ci
+
+notifications:
+  email: false
+  hipchat:
+    format: html
+    rooms:
+      secure: eWOFu4V1aINizgjtldWo6CIA3SuK662eCU4oDTbRgpGnUa1RXSSWhP2aLpnVfJeDdQbZJhAJBIpx60Akm3gECOL40JxSIQ0C3CTrCoqKBdUxII1cVa+9G1xnQZA2ZTPPO7GpRS6ttKhR7mPNb3uMgI71M5xHKrY0y+gGlig754Y=
