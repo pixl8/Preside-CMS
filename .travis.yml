@@ -1,0 +1,12 @@
+language: java
+
+env:
+  matrix:
+    - PLATFORM=railo41 TESTFRAMEWORK=mxunit
+ #   - PLATFORM=railo42beta TESTFRAMEWORK=mxunit
+
+before_script:
+  - mysql -e 'create database preside_test;'
+
+install: ant -f support/build/ci/build.xml -Dtest.framework=$TESTFRAMEWORK -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
+script: ant -f support/build/ci/build.xml -Dtest.framework=$TESTFRAMEWORK -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM test-ci

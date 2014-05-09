@@ -370,6 +370,10 @@ component output=false {
 		return sql;
 	}
 
+	public numeric function getTableNameMaxLength() output=false {
+		return 64;
+	}
+
 	public string function sqlDataTypeToCfSqlDatatype( required string sqlDataType ) output=false {
 		switch( arguments.sqlDataType ){
 			case "bigint signed":

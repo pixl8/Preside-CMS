@@ -164,7 +164,7 @@
 						} else {
 							super.assert( columns.some_date.nullable, "The some_date column for table 3 was not nullable." );
 							super.assert( StructKeyExists( columns, "a_new_column" ), "The a_new_column column does not exist." );
-							super.assertEquals( 21764, columns.a_new_column.column_size, "The column size of the varchar field was not automatically set to 21764." );
+							super.assertEquals( 200, columns.a_new_column.column_size, "The column size of the varchar field was not automatically set to 200." );
 						}
 					break;
 				}
@@ -1905,7 +1905,7 @@
 	<cffunction name="test57_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning", "ptest_vrsn_a_category_object", "ptest_vrsn_a_category_object__join__an_object_with_versioning", "ptest_vrsn_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object__join__an_object_with_versionin", "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();
@@ -1924,7 +1924,7 @@
 
 			poService.dbSync();
 
-			indexes = _getTableIndexes( "ptest_vrsn_an_object_with_versioning" );
+			indexes = _getTableIndexes( "_version_ptest_an_object_with_versioning" );
 
 			for( var ix in indexes ) {
 				super.assertFalse( indexes[ ix ].unique );
@@ -1939,7 +1939,7 @@
 
 			poService.dbSync();
 
-			fks = _getTableForeignKeys( "ptest_vrsn_an_object_with_versioning" );
+			fks = _getTableForeignKeys( "_version_ptest_an_object_with_versioning" );
 
 			super.assert( StructIsEmpty( fks ) );
 		</cfscript>
@@ -1953,7 +1953,7 @@
 
 			poService.dbSync();
 
-			columns     = _getTableColumns( "ptest_vrsn_an_object_with_versioning" );
+			columns     = _getTableColumns( "_version_ptest_an_object_with_versioning" );
 			columnNames = ValueList( columns.column_name );
 
 			super.assert( ListFindNoCase( columnNames, "_version_number" ) );

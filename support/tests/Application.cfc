@@ -9,7 +9,7 @@ component output="false" {
 	this.mappings['/mxunit' ]       = ExpandPath( "/../../system/externals/coldbox/system/testing/compat" );
 	this.mappings['/org/cfstatic']  = ExpandPath( "/../../system/externals/cfstatic/org/cfstatic" );
 
-	setting requesttimeout="600";
+	setting requesttimeout="6000";
 
 	function onApplicationStart() output=false {
 		_loadDsn();

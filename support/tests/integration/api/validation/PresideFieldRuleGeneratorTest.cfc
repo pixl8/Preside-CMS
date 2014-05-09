@@ -5,6 +5,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockLogger               = _getTestLogger();
 		mockResourceBundleSvc    = getMockbox().createEmptyMock( "preside.system.api.i18n.ResourceBundleService" );
 
+		mockPresideObjectService.$( "getResourceBundleUriRoot", "preside-objects.test:" );
 		mockResourceBundleSvc.$( "getResource", "somevalue" );
 
 		generator = new preside.system.api.validation.PresideFieldRuleGenerator(
@@ -91,8 +92,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test09_getRulesForField_shouldReturnUniqueIndexValidators_whenFieldHasUniqueIndexesAttribute(){
 		var expected  = [
-			{ fieldName="somefield", validator="presideObjectUniqueIndex", params={ objectName="test_object", fields="field1,field2,someField" }, message="preside-objects.test_object:validation.somefield.presideObjectUniqueIndex.message" },
-			{ fieldName="somefield", validator="presideObjectUniqueIndex", params={ objectName="test_object", fields="someField" }, message="preside-objects.test_object:validation.somefield.presideObjectUniqueIndex.message" },
+			{ fieldName="somefield", validator="presideObjectUniqueIndex", params={ objectName="test", fields="field1,field2,someField" }, message="preside-objects.test:validation.somefield.presideObjectUniqueIndex.message" },
+			{ fieldName="somefield", validator="presideObjectUniqueIndex", params={ objectName="test", fields="someField" }, message="preside-objects.test:validation.somefield.presideObjectUniqueIndex.message" },
 		];
 		var rules     = "";
 		var mockObject = getMockbox().createStub();
@@ -105,7 +106,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, someField = new preside.system.api.presideObjects.Property( name="someField", uniqueIndexes="index1|3,index2,index3|1" )
 		} );
 
-		rules = generator.getRulesForField( objectName="test_object", fieldName="somefield", fieldAttributes={
+		rules = generator.getRulesForField( objectName="test", fieldName="somefield", fieldAttributes={
 			uniqueIndexes = "index1|3,index2,index3|1"
 		} );
 

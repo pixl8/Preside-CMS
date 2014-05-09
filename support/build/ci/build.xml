@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project basedir="." default="test" name="Preside CI">
+
+	<property file="build.properties" />
+
+	<property name="test.project" value="preside-ci" />
+	<property name="work.dir" value="/tmp/work" />
+	<property name="build.dir" value="" />
+	<property name="test.framework" value="mxunit" />
+
+	<property name="railo40.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.0.4.001-nojre.tar.gz" />
+	<property name="railo41.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.1.2.005-nojre.tar.gz" />
+	<property name="railo42beta.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.2.0.000-nojre.tar.gz" />
+	<property name="mxunit.remote.url" value="https://github.com/marcins/mxunit/archive/fix-railo-nulls.zip" />
+
+	<property name="source" value="remote" />
+
+	<property name="railo40.helper" value="railo" />
+	<property name="railo41.helper" value="railo" />
+	<property name="railo41-osx.helper" value="railo" />
+	<property name="railo42beta.helper" value="railo" />
+
+	<fail unless="platform" message="Platform is not set" />
+	<fail unless="${platform}.${source}.url">Unkown platform ${platform} for source ${source}.
+
+Valid values are:
+ railo40
+ railo41
+ railo41-osx
+ railo42beta
+	</fail>
+
+	<macrodef name="propertycopy">
+		<attribute name="name"/>
+		<attribute name="from"/>
+		<sequential>
+			<property name="@{name}" value="${@{from}}"/>
+		</sequential>
+	</macrodef>
+
+	<propertycopy name="platform.url" from="${platform}.${source}.url" />
+	<propertycopy name="platform.helper" from="${platform}.helper" />
+	<propertycopy name="test.framework.url" from="${test.framework}.${source}.url" />
+
+	<!-- General Properties -->
+	<property name="server.name" value="localhost"/>
+	<property name="server.port" value="8888"/>
+	<property name="stop.port" value="8887"/>
+	<property name="output.dir" value="results"/>
+	<property name="mxunit.output.dir" value="support/build/ci/${output.dir}"/>
+
+	<!-- MXUnit Properties -->
+	<property name="mxunit.jar" value="mxunit-ant.jar"/>
+	<property name="mxunit.output.jar" value="mxunit-output-ant.jar"/>
+
+	<target name="install-ci-deps">
+		<exec executable="/bin/bash" failonerror="true" outputproperty="output.log">
+			<env key="WORK_DIR" value="${work.dir}" />
+			<env key="BUILD_DIR" value="${build.dir}" />
+			<env key="PLATFORM_URL" value="${platform.url}" />
+			<env key="TESTFRAMEWORK" value="${test.framework}" />
+			<env key="TESTFRAMEWORK_URL" value="${test.framework.url}" />
+			<env key="SERVER_PORT" value="${server.port}" />
+			<env key="STOP_PORT" value="${stop.port}" />
+			<arg line="scripts/ci-helper-${platform.helper}.sh install ${test.project}"/>
+		</exec>
+	</target>
+
+	<target name="start-server">
+		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
+			<env key="WORK_DIR" value="${work.dir}" />
+			<env key="BUILD_DIR" value="${build.dir}" />
+			<env key="SERVER_PORT" value="${server.port}" />
+			<arg line="scripts/ci-helper-${platform.helper}.sh start"/>
+		</exec>
+	</target>
+
+	<target name="stop-server">
+		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
+			<env key="WORK_DIR" value="${work.dir}" />
+			<env key="BUILD_DIR" value="${build.dir}" />
+			<env key="SERVER_PORT" value="${server.port}" />
+			<arg line="scripts/ci-helper-${platform.helper}.sh stop"/>
+		</exec>
+	</target>
+
+	<target name="test-ci" depends="setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
+		<fail if="mxunit.failed" message="At least one test failure!"/>
+	</target>
+
+	<target name="setupoutputdir">
+		<delete dir="${output.dir}"/>
+		<mkdir dir="${output.dir}"/>
+	</target>
+
+	<target name="test">
+		<antcall target="run-tests-${test.framework}" />
+	</target>
+
+	<target name="run-tests-mxunit" description="Make output directories and run the MXUnit task">
+		<taskdef classname="org.mxunit.ant.MXUnitAntTask" classpath="${mxunit.jar}" name="mxunittask"/>
+		<taskdef classname="au.com.imagichine.ant.MxunitOutputAntTask" classpath="${mxunit.output.jar}" name="mxunitoutputtask"/>
+
+		<mxunittask
+		    defaultrunner="/${test.project}/support/build/ci/HttpAntRunner.cfc"
+		    outputdir="${mxunit.output.dir}"
+		    port="${server.port}" server="${server.name}"
+		    testResultsSummary="${test.project}.summary"
+		    verbose="true"
+		    haltonerror="false" errorproperty="mxunit.error"
+		    failureproperty="mxunit.failed">
+			<directory
+			    componentPath="tests.integration"
+			    packageName="${test.project}"
+			    path="/${test.project}/support/tests/integration/"
+			    recurse="true"
+			    remoteMethod="run"/>
+		</mxunittask>
+		<mxunitoutputtask resultsdirectory="${mxunit.output.dir}" />
+		<fail if="mxunit.error" message="An error occured running MXUnit" />
+	</target>
+
+	<target name="installcoldbox">
+		<get src="${coldbox.zip}" dest="${output.dir}/coldbox.zip" />
+		<unzip src="${output.dir}/coldbox.zip" dest="${coldbox.installdir}">
+			<mapper>
+        		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
+    		</mapper>
+    	</unzip>
+	</target>
+
+	<target name="installcfstatic">
+		<get src="${cfstatic.zip}" dest="${output.dir}/cfstatic.zip" />
+		<unzip src="${output.dir}/cfstatic.zip" dest="${cfstatic.installdir}">
+			<mapper>
+        		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
+    		</mapper>
+    	</unzip>
+	</target>
+
+</project>

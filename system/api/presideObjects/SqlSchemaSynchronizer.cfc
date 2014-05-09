@@ -27,6 +27,8 @@ component output=false {
 		var tableExists        = "";
 		var tableVersionExists = "";
 
+		_ensureValidDbEntityNames( arguments.objects );
+
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
@@ -416,6 +418,18 @@ component output=false {
 
 	private void function _setDatabaseObjectVersion() output=false {
 		return _getSchemaVersioningService().setVersion( argumentCollection = arguments );
+	}
+
+	private void function _ensureValidDbEntityNames( required struct objects ) output=false {
+		for( var objectName in arguments.objects ) {
+			var objMeta = arguments.objects[ objectName ].meta ?: {};
+			var adapter = _getAdapterFactory().getAdapter( objMeta.dsn ?: "" );
+			var maxTableNameLength = adapter.getTableNameMaxLength();
+
+			if ( Len( objMeta.tableName ?: "" ) > maxTableNameLength ) {
+				objMeta.tableName = Left( objMeta.tableName, maxTableNameLength );
+			}
+		}
 	}
 
 // GETTERS AND SETTERS

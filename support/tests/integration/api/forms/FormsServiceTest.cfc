@@ -199,11 +199,11 @@
 						title="",
 						description="",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
 						},{
-							name="key", control="default", type="string", dbtype="varchar", maxLength="50", uniqueindexes="role_key", relationship="none", relatedTo="none", generator="none", required="true"
+							name="key", control="default", type="string", dbtype="varchar", maxLength="50", uniqueindexes="role_key", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none"
+							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_role"
 						}]
 					}]
 				}]
@@ -254,11 +254,11 @@
 						title="",
 						description="",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
 						},{
-							name="key", control="default", type="string", dbtype="varchar", maxLength="50", uniqueindexes="role_key", relationship="none", relatedTo="none", generator="none", required="true"
+							name="key", control="default", type="string", dbtype="varchar", maxLength="50", uniqueindexes="role_key", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none"
+							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_role"
 						}]
 					}]
 				}]
