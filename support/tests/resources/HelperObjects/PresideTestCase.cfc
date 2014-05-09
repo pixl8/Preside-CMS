@@ -2,12 +2,13 @@
 
 <!--- private --->
 	<cffunction name="_getCachebox" access="private" returntype="any" output="false">
+		<cfargument name="key" type="string" required="false" default="_cachebox" />
 		<cfscript>
-			if ( !request.keyExists( "_cachebox" ) ) {
-				request._cachebox = new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
+			if ( !request.keyExists( arguments.key ) ) {
+				request[ arguments.key ] = new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
 			}
 
-			return request._cachebox;
+			return request[ arguments.key ];
 		</cfscript>
 	</cffunction>
 
@@ -27,7 +28,7 @@
 		<cfargument name="forceNewInstance"  type="boolean" required="false" default="false" />
 
 		<cfscript>
-			var key = "_presideObjectService" & SerializeJson( arguments );
+			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
 
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
@@ -35,7 +36,7 @@
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 				);
-				var cachebox       = _getCachebox();
+				var cachebox       = _getCachebox( key="_cacheBox" & key );
 				var dbInfoService  = new preside.system.api.database.Info();
 				var sqlRunner      = new preside.system.api.database.sqlRunner( logger = logger );
 
