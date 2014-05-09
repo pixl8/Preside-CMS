@@ -1,0 +1,11 @@
+All PresideCMS code is Copyright 2003-2014 Pixl8 Interactive Limited unless otherwise stated
+
+PresideCMS is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License version 2.1
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the License for more details.
+
+You should have received a copy of the license along with this program as the file LICENSE.txt; if not, please see
+https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
