@@ -6,12 +6,10 @@
 	<property name="test.project" value="preside-ci" />
 	<property name="work.dir" value="/tmp/work" />
 	<property name="build.dir" value="" />
-	<property name="test.framework" value="mxunit" />
 
 	<property name="railo40.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.0.4.001-nojre.tar.gz" />
 	<property name="railo41.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.1.2.005-nojre.tar.gz" />
 	<property name="railo42beta.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.2.0.000-nojre.tar.gz" />
-	<property name="mxunit.remote.url" value="https://github.com/marcins/mxunit/archive/fix-railo-nulls.zip" />
 
 	<property name="source" value="remote" />
 
@@ -40,33 +38,34 @@ Valid values are:
 
 	<propertycopy name="platform.url" from="${platform}.${source}.url" />
 	<propertycopy name="platform.helper" from="${platform}.helper" />
-	<propertycopy name="test.framework.url" from="${test.framework}.${source}.url" />
 
 	<!-- General Properties -->
 	<property name="server.name" value="localhost"/>
 	<property name="server.port" value="8888"/>
 	<property name="stop.port" value="8887"/>
 	<property name="output.dir" value="results"/>
-	<property name="mxunit.output.dir" value="support/build/ci/${output.dir}"/>
-
-	<!-- MXUnit Properties -->
-	<property name="mxunit.jar" value="mxunit-ant.jar"/>
-	<property name="mxunit.output.jar" value="mxunit-output-ant.jar"/>
 
 	<target name="install-ci-deps">
 		<exec executable="/bin/bash" failonerror="true" outputproperty="output.log">
 			<env key="WORK_DIR" value="${work.dir}" />
 			<env key="BUILD_DIR" value="${build.dir}" />
 			<env key="PLATFORM_URL" value="${platform.url}" />
-			<env key="TESTFRAMEWORK" value="${test.framework}" />
-			<env key="TESTFRAMEWORK_URL" value="${test.framework.url}" />
 			<env key="SERVER_PORT" value="${server.port}" />
 			<env key="STOP_PORT" value="${stop.port}" />
 			<arg line="scripts/ci-helper-${platform.helper}.sh install ${test.project}"/>
 		</exec>
 	</target>
 
-	<target name="start-server">
+	<target name="setup-railo-settings">
+		<mkdir dir="${work.dir}/railo" />
+		<mkdir dir="${work.dir}/railo/webapps" />
+		<mkdir dir="${work.dir}/railo/webapps/www" />
+		<mkdir dir="${work.dir}/railo/webapps/www/WEB-INF" />
+		<mkdir dir="${work.dir}/railo/webapps/www/WEB-INF/railo" />
+		<copy file="railo-web.xml.cfm" todir="${work.dir}/railo/webapps/www/WEB-INF/railo" />
+	</target>
+
+	<target name="start-server" depends="setup-railo-settings">
 		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
 			<env key="WORK_DIR" value="${work.dir}" />
 			<env key="BUILD_DIR" value="${build.dir}" />
@@ -85,7 +84,8 @@ Valid values are:
 	</target>
 
 	<target name="test-ci" depends="setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
-		<fail if="mxunit.failed" message="At least one test failure!"/>
+		<property file="${output.dir}/testbox.properties" />
+		<fail if="testbox.failed" message="At least one test failure!" />
 	</target>
 
 	<target name="setupoutputdir">
@@ -94,30 +94,8 @@ Valid values are:
 	</target>
 
 	<target name="test">
-		<antcall target="run-tests-${test.framework}" />
-	</target>
-
-	<target name="run-tests-mxunit" description="Make output directories and run the MXUnit task">
-		<taskdef classname="org.mxunit.ant.MXUnitAntTask" classpath="${mxunit.jar}" name="mxunittask"/>
-		<taskdef classname="au.com.imagichine.ant.MxunitOutputAntTask" classpath="${mxunit.output.jar}" name="mxunitoutputtask"/>
-
-		<mxunittask
-		    defaultrunner="/${test.project}/support/build/ci/HttpAntRunner.cfc"
-		    outputdir="${mxunit.output.dir}"
-		    port="${server.port}" server="${server.name}"
-		    testResultsSummary="${test.project}.summary"
-		    verbose="true"
-		    haltonerror="false" errorproperty="mxunit.error"
-		    failureproperty="mxunit.failed">
-			<directory
-			    componentPath="tests.integration"
-			    packageName="${test.project}"
-			    path="/${test.project}/support/tests/integration/"
-			    recurse="true"
-			    remoteMethod="run"/>
-		</mxunittask>
-		<mxunitoutputtask resultsdirectory="${mxunit.output.dir}" />
-		<fail if="mxunit.error" message="An error occured running MXUnit" />
+		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/test-suite-runner.cfm" verbose="true" />
+    	<concat><path path="${output.dir}/output.txt" /></concat>
 	</target>
 
 	<target name="installcoldbox">
@@ -127,6 +105,7 @@ Valid values are:
         		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
     		</mapper>
     	</unzip>
+    	<copy file="testboxpatch/UnitRunner.cfc" todir="${coldbox.installdir}/system/testing/runners" />
 	</target>
 
 	<target name="installcfstatic">

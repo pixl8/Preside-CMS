@@ -15,7 +15,6 @@ component output=false hint="Reload all or part of your preside application" {
 			, objects   = { reloadMethod="reloadPresideObjects", description="Reloads the preside object definitions"                   , successMessage="Preside object definitions reloaded" }
 			, widgets   = { reloadMethod="reloadWidgets"       , description="Reloads the widget definitions"                           , successMessage="Widget definitions reloaded" }
 			, pageTypes = { reloadMethod="reloadPageTypes"     , description="Reloads the page type definitions"                        , successMessage="Page type definitions reloaded" }
-			, templates = { reloadMethod="reloadPageTemplates" , description="Reloads the page template definitions"                    , successMessage="Page templates reloaded" }
 			, static    = { reloadMethod="reloadStatic"        , description="Rescans and compiles JS and CSS"                          , successMessage="Static assets rescanned and recompiled" }
 		};
 

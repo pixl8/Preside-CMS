@@ -1,10 +1,10 @@
+test04
 <cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
 
 	<cffunction name="setup" access="public" returntype="void" output="false">
 		<cfscript>
 			super.setup();
 			_dropAllTables();
-			_getCachebox().clearAll();
 		</cfscript>
 	</cffunction>
 
@@ -126,7 +126,12 @@
 
 			// load new component definitions (cheating by using a different folder)
 			poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields_changed/" ] );
-			poService.dbSync();
+			try {
+				poService.dbSync();
+
+			} catch ( any e ) {
+				super.fail( "DB Sync failed. Error: " & SerializeJson( e ) );
+			}
 
 			tables = _getDbTables();
 
@@ -156,7 +161,7 @@
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
-						super.assertEquals( "timestamp", columns.some_date.type_name, "The some_date column was not an int." );
+						super.assertEquals( "varchar", columns.some_date.type_name, "The some_date column was not changed to a text field." );
 
 						if ( table eq "test_test_2" ){
 							super.assertFalse( columns.some_date.nullable, "The some_date column for table 2 was nullable." );
@@ -413,7 +418,7 @@
 			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
 			q.execute();
 
-			_getCachebox().clearAll();
+			cachebox.clearAll();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "dataExists() returned false when, in fact, data does exist!" );
 		</cfscript>
@@ -1469,7 +1474,7 @@
 
 			super.assertEquals( 2, result );
 
-			_getCachebox().getCache( "defaultQueryCache" ).clearAll();
+			cachebox.getCache( "defaultQueryCache" ).clearAll();
 			super.assertFalse( poService.selectData( objectName="object_d" ).recordCount );
 			super.assert( poService.selectData( objectName="object_e" ).recordCount );
 		</cfscript>
@@ -1518,7 +1523,7 @@
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_1", filter="label is not null" };
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = "";
 			var cacheKeys      = "";
 
@@ -1540,7 +1545,7 @@
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_2", filter="label is not null" };
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = "";
 			var cacheKeys      = "";
 			var report         = "";
@@ -1568,7 +1573,7 @@
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_1", filter="label is not null", useCache=false };
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = "";
 			var cacheKeys      = "";
 
@@ -1587,7 +1592,7 @@
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_2", filter="label is not null" };
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = "";
 			var cacheKeys      = "";
 			var report         = "";
@@ -1615,7 +1620,7 @@
 	<cffunction name="test48_updateData_shouldClearRelatedObjectCaches_whenUpdateClauseIsRelatedToSingleRecord" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = {};
 			var cacheKeys      = "";
 			var report         = "";
@@ -1660,7 +1665,7 @@
 	<cffunction name="test49_deleteData_shouldClearRelatedObjectCaches_whenDeleteClauseIsRelatedToSingleRecord" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = {};
 			var cacheKeys      = "";
 			var report         = "";
@@ -1705,7 +1710,7 @@
 	<cffunction name="test50_updateData_shouldClearAllOfAnObjectsQueryCaches_whenFilterRelatesToMultipleRecords" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = {};
 			var cacheKeys      = "";
 			var report         = "";
@@ -1753,7 +1758,7 @@
 	<cffunction name="test51_deleteData_shouldClearAllOfAnObjectsQueryCaches_whenFilterRelatesToMultipleRecords" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
-			var cache          = _getCachebox().getCache( "defaultQueryCache" );
+			var cache          = cachebox.getCache( "defaultQueryCache" );
 			var data           = {};
 			var cacheKeys      = "";
 			var report         = "";
@@ -1801,7 +1806,7 @@
 	<cffunction name="test52_updateData_shouldClearQueryCaches_forQueriesThatReferenceTheUpdatedObjectThroughJoins" returntype="void">
 		<cfscript>
 			var poService  = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
-			var cache      = _getCachebox().getCache( "defaultQueryCache" );
+			var cache      = cachebox.getCache( "defaultQueryCache" );
 			var data       = {};
 			var cacheKeys  = "";
 			var report     = "";
@@ -2529,11 +2534,16 @@
 		<cfargument name="objectDirectories" type="array"  required="true" />
 		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
 
-		<cfreturn _getPresideObjectService(
-			  objectDirectories = arguments.objectDirectories
-			, defaultPrefix     = arguments.defaultPrefix
-			, forceNewInstance  = true
-		) />
+		<cfscript>
+			cachebox = _getCachebox( forceNewInstance = true );
+
+			return _getPresideObjectService(
+				  objectDirectories = arguments.objectDirectories
+				, defaultPrefix     = arguments.defaultPrefix
+				, forceNewInstance  = true
+				, cacheBox          = cacheBox
+			)
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="_getDbTables" access="private" returntype="string" output="false">

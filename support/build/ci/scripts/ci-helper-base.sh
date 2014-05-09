@@ -71,16 +71,7 @@ case $1 in
 		if [ "$FIRST_DIR" != "$PLATFORM_DIR" ]; then
 			mv $FIRST_DIR $PLATFORM_DIR
 		fi
-		download_and_extract $TESTFRAMEWORK_URL
 
-		case $TESTFRAMEWORK in
-			mxunit)
-				mv mxunit* "$WEBROOT/$TESTFRAMEWORK"
-				;;
-			testbox)
-				mv testbox "$WEBROOT/$TESTFRAMEWORK"
-				;;
-		esac
 		ln -s $BUILD_DIR $WEBROOT/$2
 		;;
 	start)

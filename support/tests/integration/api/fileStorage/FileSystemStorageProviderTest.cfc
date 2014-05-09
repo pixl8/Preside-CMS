@@ -185,20 +185,19 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test16_listObjects_shouldReturnQueryOfObjectsInAGivenPath() output=false {
 		var provider = _getStorageProvider();
-		var expected = QueryNew( "name,path,size,lastmodified" );
 		var actual   = provider.listObjects( "testdir/" );
+		var expected = [
+			  { name="another.txt", path="/testdir/another.txt", size=0, lastmodified="2014-03-17 09:56:11" }
+			, { name="file.txt"   , path="/testdir/file.txt"   , size=0, lastmodified="2014-03-17 09:56:19" }
+			, { name="loading.gif", path="/testdir/loading.gif", size=9427, lastmodified="2013-07-30 16:11:08" }
+		]
 
-		QueryAddRow( expected, { name="another.txt", path="/testdir/another.txt", size=0, lastmodified="2014-03-17 09:56:11" } );
-		QueryAddRow( expected, { name="file.txt"   , path="/testdir/file.txt"   , size=0, lastmodified="2014-03-17 09:56:19" } );
-		QueryAddRow( expected, { name="loading.gif", path="/testdir/loading.gif", size=9427, lastmodified="2013-07-30 16:11:08" } );
+		super.assertEquals( expected.len(), actual.recordCount );
 
-
-		super.assertEquals( expected.recordCount, actual.recordCount );
-		super.assertEquals( expected.columnList , actual.columnList );
-
-		for( var i=1; i lte expected.recordCount; i++ ) {
-			super.assertEquals( expected.name[i], actual.name[i] );
-			super.assertEquals( expected.path[i], actual.path[i] );
+		for( var record in actual ) {
+			super.assert( expected.find( function( item ){
+				return item.name == record.name;
+			} ) );
 		}
 	}
 

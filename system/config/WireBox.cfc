@@ -157,10 +157,6 @@
 			.initArg( name="coldbox", value=getColdbox() )
 			.initArg( name="cache"  , dsl="cachebox:systemCache" );
 
-		map( "pageTemplatesService" ).asSingleton().to( "preside.system.api.pageTemplates.PageTemplatesService" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="configuredTemplates"    , dsl   = "coldbox:setting:templates" )
-			.initArg( name="autoDiscoverDirectories", value = _getApplicationDirectories()  );
-
 		map( "pageTypesService" ).asSingleton().to( "preside.system.api.pageTypes.PageTypesService" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="autoDiscoverDirectories", value = _getApplicationDirectories()  );
 
@@ -186,7 +182,6 @@
 			.initArg( name="cfStaticForPreside"   , dsl   = "coldbox:myPlugin:cfStaticForPreside"  )
 			.initArg( name="widgetsService"       , ref   = "widgetsService"                       )
 			.initArg( name="pageTypesService"     , ref   = "pageTypesService"                     )
-			.initArg( name="pageTemplatesService" , ref   = "pageTemplatesService"                 )
 			.initArg( name="formsService"         , ref   = "formsService"                         );
 
 		map( "extensionManagerService" ).asSingleton().to( "preside.system.api.devtools.ExtensionManagerService" ).noAutoWire()

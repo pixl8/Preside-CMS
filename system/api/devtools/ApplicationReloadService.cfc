@@ -7,7 +7,6 @@ component output=false extends="preside.system.base.Service" {
 		, required any cfStaticForPreside
 		, required any widgetsService
 		, required any pageTypesService
-		, required any pageTemplatesService
 		, required any formsService
 	) output=false {
 		super.init( argumentCollection = arguments );
@@ -17,7 +16,6 @@ component output=false extends="preside.system.base.Service" {
 		_setCfStaticForPreside( arguments.cfStaticForPreside );
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
-		_setPageTemplatesService( arguments.pageTemplatesService );
 		_setFormsService( arguments.formsService );
 
 		return this;
@@ -66,10 +64,6 @@ component output=false extends="preside.system.base.Service" {
 		_getPageTypesService().reload();
 	}
 
-	public void function reloadPageTemplates() output=false {
-		_getPageTemplatesService().reload();
-	}
-
 	public void function reloadForms() output=false {
 		_getFormsService().reload();
 	}
@@ -109,13 +103,6 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setPageTypesService( required any pageTypesService ) output=false {
 		_pageTypesService = arguments.pageTypesService;
-	}
-
-	private any function _getPageTemplatesService() output=false {
-		return _pageTemplatesService;
-	}
-	private void function _setPageTemplatesService( required any pageTemplatesService ) output=false {
-		_pageTemplatesService = arguments.pageTemplatesService;
 	}
 
 	private any function _getFormsService() output=false {

@@ -7,17 +7,17 @@ component output="false" extends="mxunit.framework.TestCase" {
 		_resetTestResources();
 
 		manager = new preside.system.api.devtools.ExtensionManagerService(
-			extensionsDirectory = "/tests/resources/extensionmanager/extensions"
+			extensionsDirectory = "/tests/resources/extensionManager/extensions"
 		);
 	}
 
 // TESTS
 	function test01_listExtensions_shouldReturnArrayOfExtensions_inPriorityOrder_withActiveAndInstalledStatus() output=false {
 		var expected = [
-			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/untracked" }
 		];
 
 		super.assertEquals( expected, manager.listExtensions() );
@@ -25,10 +25,10 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test02_activateExtension_shouldActivateSuppliedExtension() output=false {
 		var expected = [
-			  { name="anotherExtension"   , priority=200, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/untracked" }
 		];
 
 		manager.activateExtension( "anotherExtension" );
@@ -38,10 +38,10 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test03_activateExtension_shouldActivateUntrackedExtension() output=false {
 		var expected = [
-			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="untracked"          , priority=0  , installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="untracked"          , priority=0  , installed=true , active=true , directory="/tests/resources/extensionManager/extensions/untracked" }
 		];
 
 		manager.activateExtension( "untracked" );
@@ -56,7 +56,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 			manager.activateExtension( "nonExinsting" );
 
 		} catch ( "ExtensionManager.missingExtension" e ) {
-			super.assertEquals( "The extension, [nonExinsting], could not be found", e.message );
+			super.assert( e.message.startsWith( "The extension, [nonExinsting], could not be found" ) );
 			errorThrown=true;
 		} catch ( any e ){}
 
@@ -65,10 +65,10 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test05_deactivateExtension_shouldDeactivateSuppliedExtension() output=false {
 		var expected = [
-			  { name="anotherExtension"   , priority=200, installed=true , active=false , directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=false , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false , directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=false , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/untracked" }
 		];
 
 		manager.deactivateExtension( "someExtension" );
@@ -78,10 +78,10 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test06_deactivateExtension_shouldDeactivateUntrackedExtension() output=false {
 		var expected = [
-			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="untracked"          , priority=0  , installed=true , active=false , directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="untracked"          , priority=0  , installed=true , active=false , directory="/tests/resources/extensionManager/extensions/untracked" }
 		];
 
 		manager.deactivateExtension( "untracked" );
@@ -96,7 +96,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 			manager.deactivateExtension( "idonotexist" );
 
 		} catch ( "ExtensionManager.missingExtension" e ) {
-			super.assertEquals( "The extension, [idonotexist], could not be found", e.message );
+			super.assert( e.message.startsWith( "The extension, [idonotexist], could not be found" ) );
 			errorThrown=true;
 		} catch ( any e ){}
 
@@ -104,27 +104,27 @@ component output="false" extends="mxunit.framework.TestCase" {
 	}
 
 	function test08_uninstallExtension_shouldRemoveTrackingInfoAndFiles() output=false {
-		DirectoryCreate( "/tests/resources/extensionmanager/extensions/testExtension" );
+		DirectoryCreate( "/tests/resources/extensionManager/extensions/testExtension" );
 		manager.activateExtension( "testExtension" );
 
 		super.assertEquals([
-			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="testExtension"      , priority=0  , installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/testExtension" }
-			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="testExtension"      , priority=0  , installed=true , active=true , directory="/tests/resources/extensionManager/extensions/testExtension" }
+			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/untracked" }
 		], manager.listExtensions() );
 
 		manager.uninstallExtension( "testExtension" );
 
 		super.assertEquals([
-			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/untracked" }
 		], manager.listExtensions() );
 
-		super.assertFalse( DirectoryExists( "/tests/resources/extensionmanager/extensions/testExtension" ) );
+		super.assertFalse( DirectoryExists( "/tests/resources/extensionManager/extensions/testExtension" ) );
 	}
 
 	function test09_getExtensionInfo_shouldReadExtensionManifestFileAndReturnExtensionDetails() output=false {
@@ -146,7 +146,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 			manager.getExtensionInfo( "blah" );
 
 		} catch ( "ExtensionManager.missingExtension" e ) {
-			super.assertEquals( "The extension, [blah], could not be found", e.message );
+			super.assert( e.message.startsWith( "The extension, [blah], could not be found" ) );
 			errorThrown=true;
 		} catch ( any e ){}
 
@@ -209,11 +209,11 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test15_installExtension_shouldInstallExtensionFromGivenSourcePath() output=false {
 		var expected = [
-			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/anotherExtension" }
-			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			  { name="anotherExtension"   , priority=200, installed=true , active=false, directory="/tests/resources/extensionManager/extensions/anotherExtension" }
+			, { name="someExtension"      , priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 			, { name="yetAnotherExtension", priority=50 , installed=false, active=false, directory="" }
-			, { name="myextension"        , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/myextension" }
-			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionmanager/extensions/untracked" }
+			, { name="myextension"        , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/myextension" }
+			, { name="untracked"          , priority=0  , installed=true , active=false, directory="/tests/resources/extensionManager/extensions/untracked" }
 		];
 
 		manager.installExtension( "/tests/resources/extensionManager/notYetInstalledExtensions/extensionWithDiffIdFromFolder/" );
@@ -237,7 +237,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test17_listExtensions_shouldOnlyReturnActiveAndInstalledExtensions_whenActiveOnlyFlagIsPassedAsTrue() output=false {
 		var expected = [
-			{ name="someExtension", priority=100, installed=true , active=true , directory="/tests/resources/extensionmanager/extensions/someExtension" }
+			{ name="someExtension", priority=100, installed=true , active=true , directory="/tests/resources/extensionManager/extensions/someExtension" }
 		];
 
 		super.assertEquals( expected, manager.listExtensions( activeOnly=true ) );
@@ -246,13 +246,13 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 // PRIVATE HELPERS
 	private void function _resetTestResources() output=false {
-		FileCopy( "/tests/resources/extensionmanager/extensions/extensions.json.bak", "/tests/resources/extensionmanager/extensions/extensions.json" );
-		var dirs         = DirectoryList( "/tests/resources/extensionmanager/extensions/", false, "Query" );
+		FileCopy( "/tests/resources/extensionManager/extensions/extensions.json.bak", "/tests/resources/extensionManager/extensions/extensions.json" );
+		var dirs         = DirectoryList( "/tests/resources/extensionManager/extensions/", false, "Query" );
 		var expectedDirs = [ "anotherExtension", "someExtension", "untracked" ];
 
 		for( var dir in dirs ){
 			if ( dir.type == "Dir" && !ArrayFind( expectedDirs, dir.name ) ) {
-				DirectoryDelete( "/tests/resources/extensionmanager/extensions/" & dir.name, true );
+				DirectoryDelete( "/tests/resources/extensionManager/extensions/" & dir.name, true );
 			}
 		}
 	}

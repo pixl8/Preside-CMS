@@ -2,12 +2,18 @@
 
 <!--- private --->
 	<cffunction name="_getCachebox" access="private" returntype="any" output="false">
+		<cfargument name="forceNewInstance" type="boolean" required="false" default="false" />
+		<cfargument name="cacheKey" type="string" required="false" default="_cachebox" />
 		<cfscript>
-			if ( !request.keyExists( "_cachebox" ) ) {
-				request._cachebox = new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
+			if ( arguments.forceNewInstance ) {
+				return new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
 			}
 
-			return request._cachebox;
+			if ( !request.keyExists( arguments.cacheKey ) ) {
+				request[ arguments.cacheKey ] = new coldbox.system.cache.CacheFactory( config="preside.system.config.Cachebox" );
+			}
+
+			return request[ arguments.cacheKey ];
 		</cfscript>
 	</cffunction>
 
@@ -25,15 +31,18 @@
 		<cfargument name="objectDirectories" type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
 		<cfargument name="defaultPrefix"     type="string"  required="false" default="pobj_" />
 		<cfargument name="forceNewInstance"  type="boolean" required="false" default="false" />
+		<cfargument name="cachebox"          type="any"     required="false" />
 
 		<cfscript>
-			if ( arguments.forceNewInstance || !request.keyExists( "_presideObjectService" ) ) {
+			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
+
+			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
 				var objReader = new preside.system.api.presideObjects.Reader(
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 				);
-				var cachebox       = _getCachebox();
+				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.api.database.Info();
 				var sqlRunner      = new preside.system.api.database.sqlRunner( logger = logger );
 
@@ -57,7 +66,7 @@
 				);
 				var presideObjectDecorator = new preside.system.api.presideObjects.presideObjectDecorator();
 
-				request._presideObjectService = new preside.system.api.presideObjects.PresideObjectService(
+				request[ key ] = new preside.system.api.presideObjects.PresideObjectService(
 					  objectDirectories      = arguments.objectDirectories
 					, objectReader           = objReader
 					, sqlSchemaSynchronizer  = schemaSync
@@ -70,24 +79,26 @@
 				);
 			}
 
-			return request._presideObjectService;
+			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];
+
+			return request[ key ];
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="_insertData" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().insertData( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).insertData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_selectData" access="private" returntype="query" output="false">
-		<cfreturn _getPresideObjectService().selectData( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).selectData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_deleteData" access="private" returntype="numeric" output="false">
-		<cfreturn _getPresideObjectService().deleteData( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).deleteData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_dbSync" access="private" returntype="void" output="false">
-		<cfreturn _getPresideObjectService().dbSync( argumentCollection = arguments ) />
+		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).dbSync( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="_bCryptPassword" access="private" returntype="string" output="false">

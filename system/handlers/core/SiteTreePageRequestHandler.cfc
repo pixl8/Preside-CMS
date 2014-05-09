@@ -1,7 +1,6 @@
 component output=false {
 
 	property name="pageTypesService"     inject="pageTypesService";
-	property name="pageTemplatesService" inject="pageTemplatesService";
 	property name="presideObjectService" inject="presideObjectService";
 
 	public function index( event, rc, prc ) output=false {
