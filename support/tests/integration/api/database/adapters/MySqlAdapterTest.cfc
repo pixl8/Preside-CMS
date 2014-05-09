@@ -38,7 +38,7 @@
 	<cffunction name="test02_1_getColumnDefinitionSql_shouldDefineVarcharWithUtf8Max_whenZeroIsSpecified" returntype="void">
 		<cfscript>
 			var adapter  = _getAdapter();
-			var expected = "`varchar_column` varchar(21764) null";
+			var expected = "`varchar_column` varchar(200) null";
 			var result   = adapter.getColumnDefinitionSql(
 				  columnName = "varchar_column"
 				, dbType     = "varchar"
@@ -418,7 +418,7 @@
 	<cffunction name="test24_getSelectSql_shouldReturnSimpleSelectSql" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter();
-			var expected = "select `id`, label, event_date from `event` where `event_category`.`test` = :event_category__test and `event_date` = :event_date order by `event_category` asc, `sort_order` desc";
+			var expected = "select `id`, label, event_date from `event` where `event_category`.`test` = :event_category__test and `event_date` = :event_date order by event_category, sort_order desc";
 			var result = adapter.getSelectSql(
 				  tableName     = "event"
 				, selectColumns = [ "`id`", "label", "event_date" ]
@@ -433,7 +433,7 @@
 	<cffunction name="test24_1_getSelectSql_shouldWorkWithPlainTextFilter" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter();
-			var expected = "select `id`, label, event_date from `event` where event_category.test = :test and DateDiff( event_date, Now() ) > :date__diff order by `event_category` asc, `sort_order` desc";
+			var expected = "select `id`, label, event_date from `event` where event_category.test = :test and DateDiff( event_date, Now() ) > :date__diff order by event_category, sort_order desc";
 			var result = adapter.getSelectSql(
 				  tableName     = "event"
 				, selectColumns = [ "`id`", "label", "event_date" ]
@@ -480,7 +480,7 @@
 	<cffunction name="test25_1_getSelectSql_shouldAllowGroupBySpecification" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter();
-			var expected = "select `id`, label, Count(*) as counts from `event` where `event_category`.`test` = :event_category__test and `event_date` = :event_date group by `id` order by `event_category` asc, `sort_order` desc";
+			var expected = "select `id`, label, Count(*) as counts from `event` where `event_category`.`test` = :event_category__test and `event_date` = :event_date group by `id` order by event_category, sort_order desc";
 			var result = adapter.getSelectSql(
 				  tableName     = "event"
 				, selectColumns = [ "`id`", "label", "Count(*) as counts" ]

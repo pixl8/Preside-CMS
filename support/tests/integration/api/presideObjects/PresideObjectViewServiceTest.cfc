@@ -103,6 +103,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, filterArgs = { this = "is a test" }
 			, anything = "really"
 			, pageView = false
+			, returnType = "string"
 		};
 		var actualForwardedArgs = "";
 		var expectedArgumemntNames = StructKeyArray( expectedArguments );

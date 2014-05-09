@@ -84,7 +84,7 @@ component output=false {
 							discoveredJoins[ backtraceNode.name ] = 1;
 							relationship = backtraceNode.relationship;
 							join = {
-								  type           = ( StructKeyExists( arguments, "forceJoins" ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
+								  type           = ( Len( Trim ( arguments.forceJoins ?: "" ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
 								, joinToObject   = backtraceNode.name
 								, joinFromObject = backtraceNode.parent
 							};

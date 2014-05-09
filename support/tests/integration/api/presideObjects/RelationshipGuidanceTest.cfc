@@ -273,7 +273,7 @@
 			var expectedObject = {
 				  instance = "auto_generated"
 				, meta = {
-					  dbFieldList = "obj_a,obj_b"
+					  dbFieldList = "obj_a,obj_b,sort_order"
 					, dsn         = "test"
 					, indexes     = { ux_obj_a__join__obj_b = { unique="true", fields="obj_a,obj_b" } }
 					, name        = "obj_a__join__obj_b"
@@ -283,6 +283,7 @@
 					, properties  = {
 						  obj_a = { name="obj_a", control="auto", type="numeric", dbtype="smallint", maxLength="0" , generator="none", relationship="many-to-one", relatedTo="obj_a", required=true, onDelete="cascade", onUpdate="cascade" }
 						, obj_b = { name="obj_b", control="auto", type="string" , dbtype="varchar" , maxLength="35", generator="none", relationship="many-to-one", relatedTo="obj_b", required=true, onDelete="cascade", onUpdate="cascade" }
+						, sort_order = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
 					  }
 					, relationships = {
 						  "fk_#Hash( 'obj_aobj_a__join__obj_bobj_a' )#" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
@@ -386,14 +387,14 @@
 				, joinToProperty   = "id"
 				, joinFromObject   = "obj_b"
 				, joinFromProperty = "obj_d"
-				, tableAlias       = "obj_b$obj_d"
+				, tableAlias       = "obj_b__join__obj_d"
 				, type             = "inner"
 			},{
 				  joinToObject     = "obj_e"
 				, joinToProperty   = "id"
 				, joinFromObject   = "obj_d"
 				, joinFromProperty = "obj_e"
-				, tableAlias       = "obj_b$obj_d$obj_e"
+				, tableAlias       = "obj_b__join__obj_d__join__obj_e"
 				, type             = "inner"
 			},{
 				  joinToObject     = "obj_b"
@@ -407,7 +408,7 @@
 				, joinToProperty   = "id"
 				, joinFromObject   = "obj_b"
 				, joinFromProperty = "obj_a"
-				, tableAlias       = "obj_b_again$obj_a"
+				, tableAlias       = "obj_b_again__join__obj_a"
 				, type             = "inner"
 			}];
 
@@ -425,8 +426,8 @@
 			result = guidanceService.calculateJoins(
 				  objectName    = "obj_c"
 				, joinTargets   = [
-					  "obj_b$obj_d$obj_e"
-					, "obj_b_again$obj_a"
+					  "obj_b__join__obj_d__join__obj_e"
+					, "obj_b_again__join__obj_a"
 				  ]
 			);
 

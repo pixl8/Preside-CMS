@@ -3,7 +3,7 @@
 	<cffunction name="test01_checkpw_shouldReturnFalseForInvalidPassword" returntype="void">
 		<cfscript>
 			var bCrypt       = _getService();
-			var realPassword = "some$St0ngisHpassword";
+			var realPassword = "some__join__St0ngisHpassword";
 			var encrypted    = bCrypt.hashPw( realPassword );
 
 			super.assertFalse( bCrypt.checkPw( "bad password", encrypted ) );
@@ -14,7 +14,7 @@
 	<cffunction name="test02_checkpw_shouldReturnTrueForValidPassword" returntype="void">
 		<cfscript>
 			var bCrypt       = _getService();
-			var realPassword = "some$St0ngisHpassword";
+			var realPassword = "some__join__St0ngisHpassword";
 			var encrypted    = bCrypt.hashPw( realPassword );
 
 			super.assert( bCrypt.checkPw( realPassword, encrypted ) );
