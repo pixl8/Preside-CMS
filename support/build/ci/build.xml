@@ -57,7 +57,6 @@ Valid values are:
 	</target>
 
 	<target name="setup-railo-settings">
-		/home/travis/work/railo/webapps/www/WEB-INF/railo
 		<mkdir dir="${work.dir}/railo" />
 		<mkdir dir="${work.dir}/railo/webapps" />
 		<mkdir dir="${work.dir}/railo/webapps/www" />
