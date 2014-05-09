@@ -102,6 +102,7 @@ Valid values are:
         		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
     		</mapper>
     	</unzip>
+    	<copy file="testboxpatch/UnitRunner.cfc" todir="${coldbox.installdir}/system/testing/runners" />
 	</target>
 
 	<target name="installcfstatic">
