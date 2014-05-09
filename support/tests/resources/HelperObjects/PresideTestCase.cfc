@@ -27,7 +27,9 @@
 		<cfargument name="forceNewInstance"  type="boolean" required="false" default="false" />
 
 		<cfscript>
-			if ( arguments.forceNewInstance || !request.keyExists( "_presideObjectService" ) ) {
+			var key = "_presideObjectService" & SerializeJson( arguments );
+
+			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
 				var objReader = new preside.system.api.presideObjects.Reader(
 					  dsn = application.dsn
@@ -57,7 +59,7 @@
 				);
 				var presideObjectDecorator = new preside.system.api.presideObjects.presideObjectDecorator();
 
-				request._presideObjectService = new preside.system.api.presideObjects.PresideObjectService(
+				request[ key ] = new preside.system.api.presideObjects.PresideObjectService(
 					  objectDirectories      = arguments.objectDirectories
 					, objectReader           = objReader
 					, sqlSchemaSynchronizer  = schemaSync
@@ -70,7 +72,7 @@
 				);
 			}
 
-			return request._presideObjectService;
+			return request[ key ];
 		</cfscript>
 	</cffunction>
 
