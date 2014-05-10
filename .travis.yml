@@ -16,4 +16,4 @@ notifications:
   hipchat:
     format: html
     rooms:
-      secure: eWOFu4V1aINizgjtldWo6CIA3SuK662eCU4oDTbRgpGnUa1RXSSWhP2aLpnVfJeDdQbZJhAJBIpx60Akm3gECOL40JxSIQ0C3CTrCoqKBdUxII1cVa+9G1xnQZA2ZTPPO7GpRS6ttKhR7mPNb3uMgI71M5xHKrY0y+gGlig754Y=
+      secure: hc7ksUd+6XesAHnj3EAs4yyD+hmS+qOjFNx6qGaM+RFIG+KtWl4IpB02wwVYL3RS5g3ZJKXImw13FPlq4y71FBLdCX1Cc9+UR69aZ3QkAq/AG7hAA4tmRPSxgMW7VnEn8N8tzZrwQqaBalPkGiJi8gJXf+ypLh6WP48+7tfTKNQ=
