@@ -228,7 +228,7 @@
 				return editor.getData() != savedDraftValue && editor.getData() != originalValue;
 			};
 			isDirty = function(){
-				return ( isRichEditor ? editor.getData() : $contentInput.val() ) != originalValue;
+				return true; // temporarily always enabling save buttons due to ckeditor bugs, etc. return ( isRichEditor ? editor.getData() : $contentInput.val() ) != originalValue;
 			};
 
 			disableOrEnableSaveButtons = function() {
