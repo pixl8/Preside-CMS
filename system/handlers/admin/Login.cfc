@@ -86,6 +86,10 @@
 				adminSecurityService.logout();
 			}
 
+			if ( ( rc.redirect ?: "" ) == "referer" ) {
+				setNextEvent( url=cgi.http_referer );
+			}
+
 			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
 		</cfscript>
 	</cffunction>

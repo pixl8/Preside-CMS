@@ -37,7 +37,7 @@
 					</a>
 				</li>
 				<li>
-					<a href="#event.buildAdminLink( linkTo="login.logout" )#">
+					<a href="#event.buildAdminLink( linkTo="login.logout", querystring="redirect=referer" )#">
 						<img class="nav-user-photo" src="http://www.gravatar.com/avatar/#LCase( Hash( LCase( event.getAdminUserDetails().emailAddress ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( event.getAdminUserDetails().knownAs )#" />
 						<span class="logout-link"> #translateResource( "cms:logout.link" )# </span>
 					</a>
