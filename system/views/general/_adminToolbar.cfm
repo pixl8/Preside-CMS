@@ -26,10 +26,23 @@
 		<div class="preside-admin-toolbar" id="preside-admin-toolbar">
 			<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
 
-			<div class="preside-admin-toolbar-actions">
-				<input id="edit-mode-options" class="ace ace-switch ace-switch-3" type="checkbox" />
-				<span class="lbl"></span>
-			</div>
+			<ul class="preside-admin-toolbar-actions list-unstyled">
+				<li>
+					<div class="edit-mode-toggle-container">
+						<input id="edit-mode-options" class="ace ace-switch ace-switch-3" type="checkbox" />
+						<span class="lbl"></span>
+					</div>
+					<a class="view-in-tree-link" href="#event.buildAdminLink( linkTo='sitetree', queryString='selected=#event.getCurrentPageId()#' )#" title="#translateResource( 'cms:admintoolbar.view.in.tree' )#">
+						<i class="fa fa-sitemap"></i>
+					</a>
+				</li>
+				<li>
+					<a href="#event.buildAdminLink( linkTo="login.logout" )#">
+						<img class="nav-user-photo" src="http://www.gravatar.com/avatar/#LCase( Hash( LCase( event.getAdminUserDetails().emailAddress ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( event.getAdminUserDetails().knownAs )#" />
+						<span class="logout-link"> #translateResource( "cms:logout.link" )# </span>
+					</a>
+				</li>
+			</ul>
 		</div>
 
 		<cfoutput>
