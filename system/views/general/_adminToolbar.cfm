@@ -27,12 +27,8 @@
 			<h1>#translateResource( "cms:admintoolbar.title" )#</h1>
 
 			<div class="preside-admin-toolbar-actions">
-				<label for="edit-mode-options">#translateResource( 'cms:admintoolbar.editmode.label' )#</label>
-				<select id="edit-mode-options">
-					<option value="disabled">#translateResource( 'cms:admintoolbar.frontendediting.disabled.link' )#</option>
-					<option value="active">#translateResource( 'cms:admintoolbar.frontendediting.active.link' )#</option>
-					<option value="showall">#translateResource( 'cms:admintoolbar.frontendediting.showall.link' )#</option>
-				</select>
+				<input id="edit-mode-options" class="ace ace-switch ace-switch-3" type="checkbox" />
+				<span class="lbl"></span>
 			</div>
 		</div>
 

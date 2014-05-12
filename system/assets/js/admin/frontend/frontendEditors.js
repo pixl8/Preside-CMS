@@ -24,47 +24,29 @@
 	setEditMode = function( mode ){
 		currentEditMode = mode;
 
-		switch( mode ) {
-			case "active":
-				$body.addClass( "frontend-editors-activated" );
-				$body.removeClass( "show-frontend-editors" );
-				setEditorSizes();
-			break;
-			case "showall":
-				$body.removeClass( "frontend-editors-activated" );
-				$body.addClass( "show-frontend-editors" );
-				setEditorSizes();
-			break;
-			default:
-				$body.removeClass( "frontend-editors-activated" );
-				$body.removeClass( "show-frontend-editors" );
-			break;
+		if ( mode ) {
+			$body.addClass( "show-frontend-editors" );
+			setEditorSizes();
+		} else {
+			$body.removeClass( "show-frontend-editors" );
 		}
 
-		$.cookie( "_presideEditMode", mode );
-		$( "#edit-mode-options option[value=" + mode + "]" ).prop( "selected", true );
+		$.cookie( "_presideEditMode", mode ? "true" : "false" );
 	}
 
 	togglePageEditMode = function(){
-		var $options = $( "#edit-mode-options option" )
-		  , ix       = 0
-		  , $nextSelection;
+		var $checkbox = $( "#edit-mode-options" )
+		  , isChecked = $checkbox.prop( "checked" )
+		  , newStatus = !isChecked;
 
-		$options.each( function( i ){
-			if ( $( this ).is( ":selected" ) ) {
-				ix = i+1;
-				return false;
-			}
-		} );
-		if ( ix >= $options.length ) {
-			ix = 0;
-		}
-		$nextSelection = $( $options.get( ix ) );
-		setEditMode( $nextSelection.attr( "value" ) );
+		$checkbox.prop( "checked", newStatus );
+		$checkbox.trigger( "change" );
 	};
 
 	$adminBar.on( "click change", "#edit-mode-options", function( e ){
-		setEditMode( $( this ).val() );
+		var $checkbox = $( this );
+
+		setEditMode( $checkbox.prop( "checked" ) );
 	} );
 
 	$body.keydown( "e", function( e ){
@@ -79,9 +61,12 @@
 	} );
 
 	if ( typeof $.cookie( "_presideEditMode" ) !== "undefined" ) {
-		var mode = $.cookie( "_presideEditMode" );
-		$( "#edit-mode-options option[value=" + mode + "]" ).prop( "selected", true );
-		setEditMode( mode );
+		var mode      = $.cookie( "_presideEditMode" )
+		  , $checkbox = $( "#edit-mode-options" )
+		  , editMode  = mode == "true";
+
+		$checkbox.prop( "checked", editMode );
+		setEditMode( editMode );
 	}
 
 	if ( $editors.length ) {
