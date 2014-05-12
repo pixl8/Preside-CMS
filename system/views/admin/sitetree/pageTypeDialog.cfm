@@ -9,7 +9,7 @@
 			<li class="page-type">
 				<h3 class="page-type-title">
 					<a href="#rootLink##pageType.getId()#">
-						<i class="page-type-icon fa fa-2x #translateResource( 'page-types.#pageType.getId()#:iconclass', 'fa-file-o' )#"></i>
+						<i class="page-type-icon fa fa-lg #translateResource( 'page-types.#pageType.getId()#:iconclass', 'fa-file-o' )#"></i>
 						#translateResource( uri=pageType.getName(), defaultValue=pageType.getId() )#
 					</a>
 				</h3>
