@@ -105,7 +105,7 @@ component extends="preside.system.base.Service" output=false {
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( asset.id in (:id) )";
-			params.id = argumetns.ids;
+			params.id = { value=ArrayToList( arguments.ids ), list=true };
 		}
 		if ( arguments.allowedTypes.len() ) {
 			params.asset_type = { value="", list=true };
