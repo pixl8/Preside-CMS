@@ -24,7 +24,7 @@
 
 	<cfoutput>
 		<div class="preside-admin-toolbar" id="preside-admin-toolbar">
-			<h1>#translateResource( "cms:admintoolbar.title" )#</h1>
+			<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
 
 			<div class="preside-admin-toolbar-actions">
 				<input id="edit-mode-options" class="ace ace-switch ace-switch-3" type="checkbox" />

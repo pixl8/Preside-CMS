@@ -22,6 +22,8 @@
 				link = getRequestContext().buildLink( argumentCollection = arguments );
 			}
 
+			link = Replace( link, "//", "/", "all" );
+
 			return link;
 		</cfscript>
 	</cffunction>
