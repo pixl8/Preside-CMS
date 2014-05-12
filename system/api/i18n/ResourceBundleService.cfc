@@ -210,6 +210,8 @@ component output=false {
 			rethrow;
 		}
 
+		fis.close();
+
 		return returnStruct;
 	}
 
