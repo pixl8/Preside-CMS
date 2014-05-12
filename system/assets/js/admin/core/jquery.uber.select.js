@@ -392,7 +392,7 @@
 		};
 
 		UberSelect.prototype.fetch_items_by_value = function( value, callback ){
-			$.ajax( uberSelect.remote_url, {
+			$.ajax( this.remote_url.replace( '%QUERY', '' ), {
 				  data    : { values : value }
 				, cache   : false
 				, method  : "post"
