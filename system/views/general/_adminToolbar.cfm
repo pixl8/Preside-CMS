@@ -26,6 +26,9 @@
 		<div class="preside-admin-toolbar" id="preside-admin-toolbar">
 			<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
 
+			<ul class="preside-admin-toolbar-page-details list-unstyled">
+			</ul>
+
 			<ul class="preside-admin-toolbar-actions list-unstyled">
 				<li>
 					<div class="edit-mode-toggle-container">

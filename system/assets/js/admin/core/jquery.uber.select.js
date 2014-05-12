@@ -977,7 +977,7 @@
 					uberSelect.fetch_items_by_value( value, function( data ){
 						var _i=0; _len=data.length;
 						for( ; _i<_len; _i++ ){
-							uberSelect.select_item( data[__i] );
+							uberSelect.select_item( data[_i] );
 						}
 					} );
 				}
