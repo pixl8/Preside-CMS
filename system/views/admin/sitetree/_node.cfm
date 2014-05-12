@@ -24,7 +24,7 @@
 			<cfif not args.trashed>
 				<a data-context-key="p" href="#event.buildLink( page=args.id )#" title="#translateResource( "cms:sitetree.preview.page.link" )#" target="_blank"><i class="fa fa-external-link"></i></a>
 
-				<a data-context-key="a" href="##add-dialog-#args.id#" data-toggle="bootbox-modal" data-buttons="cancel" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.label ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+				<a data-context-key="a" href="##add-dialog-#args.id#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.label ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
 
 				<a data-context-key="e" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
 				<cfif args.id neq homepageId>
