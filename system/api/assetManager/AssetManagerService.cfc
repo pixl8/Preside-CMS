@@ -144,6 +144,33 @@ component extends="preside.system.base.Service" output=false {
 		return result;
 	}
 
+	public string function getPrefetchCachebusterForAjaxSelect( array allowedTypes=[] ) output=false {
+		var filter  = "( asset.asset_folder != :asset_folder )";
+		var params  = { asset_folder = _getTrashFolderId() };
+		var records = "";
+
+		if ( arguments.allowedTypes.len() ) {
+			params.asset_type = { value="", list=true };
+
+			for( var typeName in expandTypeList( arguments.allowedTypes ) ){
+				params.asset_type.value = ListAppend( params.asset_type.value, typeName );
+			}
+			if ( Len( Trim( params.asset_type.value ) ) ){
+				filter &= " and ( asset.asset_type in (:asset_type) )";
+			} else {
+				params.delete( "asset_type" );
+			}
+		}
+
+		records = getPresideObject( "asset" ).selectData(
+			  selectFields = [ "Max( asset.datemodified ) as lastmodified" ]
+			, filter       = filter
+			, filterParams = params
+		);
+
+		return records.recordCount ? Hash( records.lastmodified ) : Hash( Now() );
+	}
+
 	public boolean function trashFolder( required string id ) output=false {
 		var folder = getFolder( arguments.id );
 

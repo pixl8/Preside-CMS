@@ -354,8 +354,6 @@
 			var uberSelect = this
 			  , i;
 
-			this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" );
-			this.prefetch_ttl = parseInt( this.form_field.getAttribute( "data-prefetch-url" ) );
 			if ( isNaN( this.prefetch_ttl ) ) {
 				this.prefetch_ttl = 0;
 			}
@@ -368,7 +366,7 @@
 
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
-				, prefetch       : { url : this.prefetch_url, ttl : this.prefetch_ttl }
+				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) )
 				, remote         : ( this.remote_url = this.form_field.getAttribute( "data-remote-url" ) )
 				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
 			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
