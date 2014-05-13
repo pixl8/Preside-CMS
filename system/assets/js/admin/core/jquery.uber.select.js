@@ -351,7 +351,14 @@
 		};
 
 		UberSelect.prototype.setup_search_engine = function(){
-			var i, uberSelect=this;
+			var uberSelect = this
+			  , i;
+
+			this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" );
+			this.prefetch_ttl = parseInt( this.form_field.getAttribute( "data-prefetch-url" ) );
+			if ( isNaN( this.prefetch_ttl ) ) {
+				this.prefetch_ttl = 0;
+			}
 
 			this.local_options = SelectParser.select_to_array( this.form_field );
 
@@ -361,8 +368,8 @@
 
 			this.search_engine = new Bloodhound( {
 				  local          : this.local_options
-				, prefetch       : ( this.prefetch_url = this.form_field.getAttribute( "data-prefetch-url" ) )
-				, remote         : ( this.remote_url   = this.form_field.getAttribute( "data-remote-url" )   )
+				, prefetch       : { url : this.prefetch_url, ttl : this.prefetch_ttl }
+				, remote         : ( this.remote_url = this.form_field.getAttribute( "data-remote-url" ) )
 				, datumTokenizer : function(d) { return Bloodhound.tokenizers.whitespace( d.text ); }
 			 	, queryTokenizer : Bloodhound.tokenizers.whitespace
 			 	, limit          : 100 // a sensible limit, should probably be configurable, right?!
