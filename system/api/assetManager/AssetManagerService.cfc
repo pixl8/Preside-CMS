@@ -95,7 +95,7 @@ component extends="preside.system.base.Service" output=false {
 		return expanded;
 	}
 
-	public array function getAssetsForAjaxSelect( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=1000 ) output=false {
+	public array function getAssetsForAjaxSelect( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) output=false {
 		var assetDao    = getPresideObject( "asset" );
 		var filter      = "( asset.asset_folder != :asset_folder )";
 		var params      = { asset_folder = _getTrashFolderId() };
@@ -133,6 +133,7 @@ component extends="preside.system.base.Service" output=false {
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows
+			, orderBy      = "asset.datemodified desc"
 		);
 
 		for( var record in records ){
