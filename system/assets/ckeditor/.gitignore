@@ -3,4 +3,5 @@
 
 # Except for preside specific CKEditor modifications (and the ignore file)
 !.gitignore
-/plugins/widgets/*
+!/plugins/widgets/*
+!config.js

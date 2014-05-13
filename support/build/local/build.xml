@@ -4,11 +4,12 @@
 
 	<property file="build.properties" />
 
-	<target name="install" depends="init,installcoldbox,installcfstatic,cleanup" />
+	<target name="install" depends="init,installcoldbox,installcfstatic,installckeditor,cleanup" />
 
 	<target name="clean">
 		<delete dir="${coldbox.installdir}" failonerror="false" />
 		<delete dir="${cfstatic.installdir}" failonerror="false" />
+		<delete dir="${ckeditor.installdir}" failonerror="false" />
 	</target>
 
 	<target name="init">
@@ -23,33 +24,49 @@
 	<target name="installcoldbox" depends="fetch.coldbox" unless="coldbox.installed">
 		<unzip src="${build.dir}/coldbox.zip" dest="${coldbox.installdir}">
 			<mapper>
-        		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
-    		</mapper>
-    	</unzip>
+				<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
+			</mapper>
+		</unzip>
 	</target>
 	<target name="fetch.coldbox" depends="coldbox.check" unless="coldbox.installed">
 		<get src="${coldbox.zip}" dest="${build.dir}/coldbox.zip" />
 	</target>
 	<target name="coldbox.check">
 		<condition property="coldbox.installed">
-      		<available file="${coldbox.installdir}" type="dir"/>
-    	</condition>
+			<available file="${coldbox.installdir}" type="dir"/>
+		</condition>
 	</target>
 
 	<target name="installcfstatic" depends="fetch.cfstatic" unless="cfstatic.installed">
 		<unzip src="${build.dir}/cfstatic.zip" dest="${cfstatic.installdir}">
 			<mapper>
-        		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
-    		</mapper>
-    	</unzip>
+				<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
+			</mapper>
+		</unzip>
 	</target>
 	<target name="fetch.cfstatic" depends="cfstatic.check" unless="cfstatic.installed">
 		<get src="${cfstatic.zip}" dest="${build.dir}/cfstatic.zip" />
 	</target>
 	<target name="cfstatic.check">
 		<condition property="cfstatic.installed">
-      		<available file="${cfstatic.installdir}" type="dir"/>
-    	</condition>
+			<available file="${cfstatic.installdir}" type="dir"/>
+		</condition>
+	</target>
+
+	<target name="installckeditor" depends="fetch.ckeditor" unless="ckeditor.installed">
+		<unzip src="${build.dir}/ckeditor.zip" dest="${ckeditor.installdir}" overwrite="false">
+			<mapper>
+				<globmapper from="${ckeditor.zipsubdir}/*" to="*"/>
+			</mapper>
+		</unzip>
+	</target>
+	<target name="fetch.ckeditor" depends="ckeditor.check" unless="ckeditor.installed">
+		<get src="${ckeditor.zip}" dest="${build.dir}/ckeditor.zip" />
+	</target>
+	<target name="ckeditor.check">
+		<condition property="ckeditor.installed">
+			<available file="${ckeditor.installdir}/ckeditor.js" type="dir"/>
+		</condition>
 	</target>
 
 </project>
