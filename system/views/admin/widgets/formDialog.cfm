@@ -15,7 +15,7 @@
 			<input name="widget" type="hidden" value="#( rc.widget ?: "" )#" />
 
 			#renderWidgetConfigForm(
-				  widgetId   = ( rc.widget               ?: "" )
+				  widgetId         = ( rc.widget               ?: "" )
 				, configJson       = ( rc.configJson       ?: "" )
 				, validationResult = ( rc.validationResult ?: "" )
 				, context          = "widgetdialog"
