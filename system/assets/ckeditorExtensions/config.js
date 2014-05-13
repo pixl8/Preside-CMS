@@ -1,12 +1,15 @@
-/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
- */
+(function() {
+	var basePath = CKEDITOR.basePath + "../ckeditorExtensions/";
+	basePath = basePath.replace( "ckeditor/../", "/" );
+
+	// register our custom plugins
+	CKEDITOR.plugins.addExternal( 'widgets', basePath+'plugins/widgets/', 'plugin.js' );
+})();
+
 
 CKEDITOR.editorConfig = function( config ) {
-	// Define changes to default configuration here.
-	// For complete reference see:
-	// http://docs.ckeditor.com/#!/api/CKEDITOR.config
+	// activate out plugins
+	config.extraPlugins = "widgets";
 
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
@@ -39,7 +42,6 @@ CKEDITOR.editorConfig = function( config ) {
 	// 'cos the <p> tag functionality is just horrible
 	config.enterMode = CKEDITOR.ENTER_BR;
 
-	config.extraPlugins = "widgets";
 
 	config.skin = "bootstrapck";
 };

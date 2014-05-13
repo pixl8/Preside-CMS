@@ -1,0 +1,2 @@
+# Ignore ckeditor (pulled in externally)
+/ckeditor/*

@@ -54,7 +54,7 @@
 	</target>
 
 	<target name="installckeditor" depends="fetch.ckeditor" unless="ckeditor.installed">
-		<unzip src="${build.dir}/ckeditor.zip" dest="${ckeditor.installdir}" overwrite="false">
+		<unzip src="${build.dir}/ckeditor.zip" dest="${ckeditor.installdir}">
 			<mapper>
 				<globmapper from="${ckeditor.zipsubdir}/*" to="*"/>
 			</mapper>
@@ -65,7 +65,7 @@
 	</target>
 	<target name="ckeditor.check">
 		<condition property="ckeditor.installed">
-			<available file="${ckeditor.installdir}/ckeditor.js" type="dir"/>
+			<available file="${ckeditor.installdir}" type="dir"/>
 		</condition>
 	</target>
 
