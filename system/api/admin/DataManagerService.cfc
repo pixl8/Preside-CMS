@@ -162,6 +162,14 @@ component output="false" extends="preside.system.base.Service" {
 		return result;
 	}
 
+	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) output=false {
+		var records = getPresideObject( arguments.objectName ).selectData(
+			selectFields = [ "Max( datemodified ) as lastmodified" ]
+		);
+
+		return records.recordCount ? Hash( records.lastmodified ) : Hash( Now() );
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName ) output=false {
 		var sqlFields    = Duplicate( arguments.gridFields );
