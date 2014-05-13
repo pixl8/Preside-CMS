@@ -4,12 +4,13 @@
 
 	// register our custom plugins
 	CKEDITOR.plugins.addExternal( 'widgets', basePath+'plugins/widgets/', 'plugin.js' );
+	CKEDITOR.plugins.addExternal( 'imagepicker', basePath+'plugins/imagepicker/', 'plugin.js' );
 })();
 
 
 CKEDITOR.editorConfig = function( config ) {
 	// activate out plugins
-	config.extraPlugins = "widgets";
+	config.extraPlugins = "widgets,imagepicker";
 
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	config.toolbarGroups = [
