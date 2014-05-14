@@ -366,6 +366,19 @@ component extends="preside.system.base.Service" output=false {
 		}
 	}
 
+	public string function createAssetDerivativeWhenNotExists(
+		  required string assetId
+		, required string derivativeName
+		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
+	) output=false {
+		var derivativeDao = getPresideObject( "asset_derivative" );
+		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName };
+
+		if ( !derivativeDao.dataExists( filter=selectFilter ) ) {
+			return createAssetDerivative( argumentCollection = arguments );
+		}
+	}
+
 	public string function createAssetDerivative(
 		  required string assetId
 		, required string derivativeName

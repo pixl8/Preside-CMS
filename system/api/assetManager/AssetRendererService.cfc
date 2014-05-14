@@ -12,7 +12,7 @@ component extends="preside.system.base.Service" output=false {
 
 // PUBLIC API METHODS
 	public string function renderAsset( required string assetId, string context="default", struct args={} ) output=false {
-		var asset      = _getAssetManagerService().getAsset( arguments.assetId );
+		var asset = _getAssetManagerService().getAsset( arguments.assetId );
 
 		if ( asset.recordCount ){
 			for( var a in asset ) { asset = a; } // quick query row to struct
@@ -26,6 +26,36 @@ component extends="preside.system.base.Service" output=false {
 		}
 
 		return "";
+	}
+
+	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) output=false {
+		var embeddedImage   = "";
+		var renderedImage   = "";
+		var renderedContent = arguments.richContent;
+
+		do {
+			embeddedImage = _findNextEmbeddedImage( renderedContent );
+
+			if ( Len( Trim( embeddedImage.asset ?: "" ) ) ) {
+				var viewletArgs = Duplicate( embeddedImage );
+
+				viewletArgs.delete( "asset" );
+				viewletArgs.delete( "placeholder" );
+
+				renderedImage = renderAsset(
+					  assetId = embeddedImage.asset
+					, context = arguments.context
+					, args    = viewletArgs
+				);
+			}
+
+			if ( Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
+				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
+			}
+
+		} while ( StructCount( embeddedImage ) );
+
+		return renderedContent;
 	}
 
 
@@ -55,6 +85,31 @@ component extends="preside.system.base.Service" output=false {
 		}
 
 		return _getViewletForAssetType( arguments.assetType, "default" );
+	}
+
+	private struct function _findNextEmbeddedImage( required string richContent ) output=false {
+		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// {{image:{asset:"assetId",option:"value",option2:"value"}:image}}
+
+
+		var regex  = "{{image:(.*?):image}}";
+		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var img    = {};
+		var config = "";
+
+		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+			img.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
+
+			config = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			config = UrlDecode( config );
+
+			try {
+				config = DeserializeJson( config );
+				StructAppend( img, config );
+			} catch ( any e ) {}
+		}
+
+		return img;
 	}
 
 
