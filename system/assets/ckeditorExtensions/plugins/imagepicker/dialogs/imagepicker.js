@@ -11,8 +11,8 @@ CKEDITOR.dialog.add( 'imagepicker', function( editor ) {
 
 	return {
 		title: lang.title,
-		minWidth: 800,
-		minHeight: 400,
+		minWidth: 900,
+		minHeight: 500,
 		onShow:function(){
 			this.disableButton( "ok" );
 		},
@@ -24,8 +24,8 @@ CKEDITOR.dialog.add( 'imagepicker', function( editor ) {
 				elements: [{
 					type   : 'iframe',
 					src    : buildAdminLink( "assetmanager", "imagePickerForEditorDialog" ),
-					width  : '800px',
-					height : '400px',
+					width  : '900px',
+					height : '500px',
 					setup  : function( widget ) {
 						var params = {};
 

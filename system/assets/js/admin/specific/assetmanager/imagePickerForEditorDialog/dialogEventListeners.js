@@ -1,6 +1,6 @@
 var onDialogEvent = ( function( $ ){
 
-	var listener, saveConfig, hasConfigJustBeenSaved, returnSavedConfigToParent, triggerDialogOk, parentDialog, $configForm;
+	var listener, saveConfig, triggerDialogOk, parentDialog, $configForm;
 
 	listener = function( e, dialog ){
 		var eventName = e.name || "";
@@ -12,15 +12,7 @@ var onDialogEvent = ( function( $ ){
 
 			case "load":
 				parentDialog = dialog;
-				if ( hasConfigJustBeenSaved() ) {
-					returnSavedConfigToParent( dialog );
-				}
-				if ( pageHasSaveableForm() ) {
-					dialog.enableButton( "ok" );
-				} else {
-					dialog.disableButton( "ok" );
-				}
-
+				dialog.enableButton( "ok" );
 			break;
 		}
 
@@ -28,34 +20,12 @@ var onDialogEvent = ( function( $ ){
 	};
 
 	saveConfig = function( dialog ){
-		if ( !pageHasSaveableForm() ) {
-			return true; // nothing selected, just close the dialog
-		}
+		var config = encodeURIComponent( JSON.stringify( $configForm.serialize() ) );
 
-		dialog.disableButton( "ok" );
-		setTimeout( function() {
-			getConfigForm().submit();
-			dialog.enableButton( "ok" ); // if submit failed, i.e. validation errors
-		}, 2 ); /* submit the form in a couple of milliseconds time *after* we've returned false to the dialog event handler to prevent it from closing*/
-
-		return false; /* do not close the dialog until form is saved */
-	};
-
-	hasConfigJustBeenSaved = function(){
-		return ( typeof cfrequest.imageSavedConfig ) !== "undefined";
-	};
-	returnSavedConfigToParent = function( dialog ){
-		dialog.getContentElement( "iframe" )._imgConfig = cfrequest.imageSavedConfig;
+		dialog.getContentElement( "iframe" )._imgConfig = "{{image:" + config + ":image}}";
 		dialog.commitContent();
-		dialog.hide();
-	};
 
-	pageHasSaveableForm = function(){
-		return getConfigForm().length;
-	};
-
-	getConfigForm = function(){
-		return $( ".image-config-form:first" );
+		return true;
 	};
 
 	// Triggering dialog events
@@ -66,12 +36,13 @@ var onDialogEvent = ( function( $ ){
 		}
 	};
 
-	$('body').keydown( 'esc', function( e ){
+	$( 'body' ).keydown( 'esc', function( e ){
 		if ( parentDialog ) {
 			parentDialog.hide();
 		}
 	} );
-	$configForm = getConfigForm();
+
+	$configForm = $( "#image-config-form" );
 	if ( $configForm.length ) {
 		$configForm.find( 'input,select,textarea' ).keydown( "ctrl+return", triggerDialogOk );
 	}

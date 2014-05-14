@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab>
+		<fieldset>
+			<field name="asset"          control="assetPicker" required="true"  label="cms:ckeditor.imagepicker.asset.label" />
+			<field name="width"          control="spinner"     required="true"  label="cms:ckeditor.imagepicker.width.label" />
+			<field name="height"         control="spinner"     required="true"  label="cms:ckeditor.imagepicker.height.label" />
+			<field name="maintain_ratio" control="yesNoSwitch" required="false" label="cms:ckeditor.imagepicker.maintain_ratio.label" />
+		</fieldset>
+	</tab>
+</form>

@@ -324,24 +324,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	public void function imagePickerForEditorDialog( event, rc, prc ) output=false {
-		var configJson  = rc.configJson  ?: "";
-		var configSaved = rc.configSaved ?: false;
-		var savedConfig = rc.savedConfig ?: {};
-
 		event.setLayout( "adminModalDialog" );
-
-		if ( IsBoolean( configSaved ) && configSaved && Len( Trim( widget ) ) ) {
-			if ( not IsStruct( savedConfig ) ) {
-				savedConfig eq {};
-			}
-
-			event.includeData( { imageSavedConfig = "{{image:#Trim( UrlEncodedFormat( SerializeJson( savedConfig ) ) )#:image}}" } );
-			event.setView( "admin/assetManager/editorImagePicker/configSavedDialog" );
-
-		} else {
-
-			event.setView( "admin/assetManager/editorImagePicker/dialog" );
-		}
+		event.setView( "admin/assetManager/editorImagePicker/dialog" );
 	}
 
 }
