@@ -6,12 +6,17 @@
 'use strict';
 
 ( function( $ ) {
-	var imageReplaceRegex = /{{image:(.*?):image}}/gi;
+	var imageReplaceRegex = /{{image:(.*?):image}}/gi
+	  , addEmbeddedImageStylesToWidgetWrapper;
 
 	CKEDITOR.plugins.add( 'imagepicker', {
 		requires: 'iframedialog',
 		lang: 'en',
 		icons: 'imagepicker',
+
+		onLoad: function() {
+			CKEDITOR.addCss( '.img-placeholder{ display : inline-block; }' );
+		},
 
 		init: function( editor ) {
 			var lang = editor.lang.imagepicker;
@@ -41,15 +46,22 @@
 						this._previousRaw = this.data.raw;
 						this.data.configJson = this.data.raw.replace( imageReplaceRegex, "$1");
 						this.element.setAttribute( "data-raw", this.data.raw );
+						this.element.setText( "LOADING IMAGE..." );
+						this.element.addClass( "loading" );
 
 						$.ajax({
 							  url     : buildAjaxLink( "assetManager.renderEmbeddedImageForEditor" )
 							, method  : "POST"
 							, data    : { embeddedImage : this.data.raw }
 							, success : function( data ) {
+								imgWidget.element.removeClass( "loading" );
 								imgWidget.element.setHtml( data );
+
+								addEmbeddedImageStylesToWidgetWrapper( imgWidget );
 							  }
 							, error : function(){
+								imgWidget.element.removeClass( "loading" );
+								imgWidget.element.addClass( "error" );
 								imgWidget.element.setText( "ERROR LOADING IMAGE" );
 							}
 						});
@@ -78,5 +90,30 @@
 			} );
 		}
 	} );
+
+	addEmbeddedImageStylesToWidgetWrapper = function( widget ){
+		var $img    = $( widget.element.$ ).find( "img:first" )
+		  , wrapper = widget.wrapper
+		  , styles, classes, i;
+
+		if ( $img.length ) {
+			if ( $img.attr( "style" ) ) {
+				styles = $img.attr( "style" ).split( ";" );
+				for( i=0; i < styles.length; i++ ){
+					styles[i] = styles[i].split( ":");
+					if ( styles[i].length === 2 ) {
+						wrapper.setStyle( styles[i][0], styles[i][1] );
+					}
+				}
+			}
+
+			if ( $img.attr( "class" ) && $img.attr( "class" ).length ) {
+				classes = $img.attr( "class" ).split( /\s+/ );
+				for( i=0; i < classes.length; i++ ){
+					wrapper.addClass( classes[i] );
+				}
+			}
+		}
+	};
 
 } )( presideJQuery );
