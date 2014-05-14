@@ -3,7 +3,7 @@
 		#renderView( view="admin/general/pageTitle", args={
 			  title    = translateResource( "cms:ckeditor.imagepicker.title" )
 			, subTitle = translateResource( "cms:ckeditor.imagepicker.subtitle" )
-			, icon     = ""
+			, icon     = "picture-o"
 		} )#
 
 		<div class="row modal-dialog-body">
