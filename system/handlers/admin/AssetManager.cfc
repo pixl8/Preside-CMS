@@ -324,6 +324,15 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	public void function imagePickerForEditorDialog( event, rc, prc ) output=false {
+		var jsonConfig = rc.configJson ?: "";
+
+		if ( Len( Trim( jsonConfig ) ) ) {
+				rc.append( DeSerializeJson( UrlDecode( jsonConfig ) ) );
+			try {
+			} catch ( any e ){}
+		}
+
+
 		event.setLayout( "adminModalDialog" );
 		event.setView( "admin/assetManager/editorImagePicker/dialog" );
 	}

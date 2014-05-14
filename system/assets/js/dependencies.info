@@ -65,3 +65,6 @@
 /admin/core/preside.url.builder.js
 	/admin/core/preside.sitetreepage.picker.js
 	/admin/specific/datamanager/object/listingTable.js
+
+/admin/core/jquery.serialize-object.js
+	/admin/specific/assetmanager/imagePickerForEditorDialog/dialogEventListeners.js

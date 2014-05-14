@@ -20,7 +20,7 @@ var onDialogEvent = ( function( $ ){
 	};
 
 	saveConfig = function( dialog ){
-		var config = encodeURIComponent( JSON.stringify( $configForm.serialize() ) );
+		var config = encodeURIComponent( $configForm.serializeJSON() );
 
 		dialog.getContentElement( "iframe" )._imgConfig = "{{image:" + config + ":image}}";
 		dialog.commitContent();
