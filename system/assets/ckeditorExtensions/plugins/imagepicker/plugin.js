@@ -5,7 +5,7 @@
 
 'use strict';
 
-( function() {
+( function( $ ) {
 	var imageReplaceRegex = /{{image:(.*?):image}}/gi;
 
 	CKEDITOR.plugins.add( 'imagepicker', {
@@ -35,11 +35,24 @@
 				, downcast : function() { return new CKEDITOR.htmlParser.text( this.data.raw ); }
 				, upcast   : function( el ){ return el.name == 'span' && el.hasClass( 'asset-placeholder' ); }
 				, data     : function(){
+					var imgWidget = this;
+
 					if ( this.data.raw !== null && ( !this._previousRaw || this._previousRaw !== this.data.raw ) ) {
 						this._previousRaw = this.data.raw;
 						this.data.configJson = this.data.raw.replace( imageReplaceRegex, "$1");
-						this.element.setText( "todo, smart stuff here please" );
 						this.element.setAttribute( "data-raw", this.data.raw );
+
+						$.ajax({
+							  url     : buildAjaxLink( "assetManager.renderEmbeddedImageForEditor" )
+							, method  : "POST"
+							, data    : { embeddedImage : this.data.raw }
+							, success : function( data ) {
+								imgWidget.element.setHtml( data );
+							  }
+							, error : function(){
+								imgWidget.element.setText( "ERROR LOADING IMAGE" );
+							}
+						});
 					}
 				}
 			} );
@@ -66,4 +79,4 @@
 		}
 	} );
 
-} )();
+} )( presideJQuery );
