@@ -25,18 +25,7 @@
 			picker.$originalInput.attr( "type", "hidden" );
 			picker.$originalInput.after( picker.$html );
 
-			picker.$width  = picker.$html.find( '.image-dimensions-picker-width' );
-			picker.$height = picker.$html.find( '.image-dimensions-picker-height' );
-
-			picker.$width.change( function( e ){
-				picker.isAspectRatioLocked() && picker.setHeightBasedOnWidth();
-				picker.updateHiddenVal();
-			} );
-			picker.$height.change( function( e ){
-				picker.isAspectRatioLocked() && picker.setWidthBasedOnHeight();
-				picker.updateHiddenVal();
-			} );
-
+			picker.setupWidthAndHeightInputs();
 			picker.setupAspectRatioToggler();
 		};
 
@@ -65,6 +54,27 @@
 				  width  : isNaN( width  ) ? "" : width
 				, height : isNaN( height ) ? "" : height
 			};
+		};
+
+		ImageDimensionPicker.prototype.setupWidthAndHeightInputs = function(){
+			var originalTabIndex = picker.$originalInput.attr( 'tabindex' );
+
+			picker.$width  = picker.$html.find( '.image-dimensions-picker-width' );
+			picker.$height = picker.$html.find( '.image-dimensions-picker-height' );
+
+			picker.$width.change( function( e ){
+				picker.isAspectRatioLocked() && picker.setHeightBasedOnWidth();
+				picker.updateHiddenVal();
+			} );
+			picker.$height.change( function( e ){
+				picker.isAspectRatioLocked() && picker.setWidthBasedOnHeight();
+				picker.updateHiddenVal();
+			} );
+
+			if ( !isNaN( parseInt( originalTabIndex ) ) ) {
+				picker.$width.attr( 'tabindex', originalTabIndex );
+				picker.$height.attr( 'tabindex', originalTabIndex );
+			}
 		};
 
 		ImageDimensionPicker.prototype.setupAspectRatioToggler = function(){

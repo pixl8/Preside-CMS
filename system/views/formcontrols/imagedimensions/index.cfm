@@ -17,5 +17,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" id="#inputId#" name="#inputName#" value="#value#" class="image-dimension-picker" />
+	<input type="text" id="#inputId#" name="#inputName#" value="#value#" class="image-dimension-picker" tabindex="#getNextTabIndex()#" />
 </cfoutput>
