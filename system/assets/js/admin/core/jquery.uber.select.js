@@ -689,9 +689,10 @@
 			_addOption = function( option ){
 				if ( uberSelect.is_multiple ) {
 					uberSelect.choice_build( option );
+					uberSelect.hidden_field.val( uberSelect.hidden_field.val() + "," + option.value );
 				} else {
 					uberSelect.single_set_selected_text( Mustache.render( uberSelect.selected_template, option ) );
-					return;
+					uberSelect.hidden_field.val( option.value );
 				}
 			};
 
