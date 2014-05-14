@@ -20,12 +20,16 @@ var onDialogEvent = ( function( $ ){
 	};
 
 	saveConfig = function( dialog ){
-		var config = encodeURIComponent( $configForm.serializeJSON() );
+		if ( $configForm.valid() ) {
+			var config = encodeURIComponent( $configForm.serializeJSON() );
 
-		dialog.getContentElement( "iframe" )._imgConfig = "{{image:" + config + ":image}}";
-		dialog.commitContent();
+			dialog.getContentElement( "iframe" )._imgConfig = "{{image:" + config + ":image}}";
+			dialog.commitContent();
 
-		return true;
+			return true;
+		}
+
+		return false;
 	};
 
 	// Triggering dialog events
