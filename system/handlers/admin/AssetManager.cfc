@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
-	property name="assetManagerService" inject="assetManagerService";
-	property name="messageBox"          inject="coldbox:plugin:messageBox";
+	property name="assetManagerService"      inject="assetManagerService";
+	property name="imageManipulationService" inject="imageManipulationService";
+	property name="messageBox"               inject="coldbox:plugin:messageBox";
 
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -335,6 +336,26 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		event.setLayout( "adminModalDialog" );
 		event.setView( "admin/assetManager/editorImagePicker/dialog" );
+	}
+
+	public void function getImageDetailsForCKEditorImageDialog( event, rc, prc ) output=false {
+		var assetId = rc.asset ?: "";
+		var asset   = assetManagerService.getAsset( assetId );
+		var binary  = assetManagerService.getAssetBinary( assetId );
+
+		if ( asset.recordCount ) {
+			asset = QueryRowToStruct( asset );
+
+			if ( !IsNull( binary ) ) {
+				asset.append( imageManipulationService.getImageInformation( binary ) );
+				StructDelete( asset, "metadata" );
+				StructDelete( asset, "colormodel" );
+			}
+
+			event.renderData( data=asset, type="json" );
+		} else {
+			event.renderData( data={}, type="json" );
+		}
 	}
 
 }

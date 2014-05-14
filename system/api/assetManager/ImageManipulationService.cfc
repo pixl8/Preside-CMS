@@ -88,4 +88,14 @@ component output=false {
 
 		return FileReadBinary( tmpFilePath );
 	}
+
+	public struct function getImageInformation( required binary asset ) output=false {
+		try {
+			return ImageInfo( ImageNew( arguments.asset ) );
+		} catch ( "java.io.IOException" e ) {
+			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
+		}
+
+		return {};
+	}
 }
