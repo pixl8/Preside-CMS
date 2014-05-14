@@ -30,12 +30,25 @@
 
 			picker.$width.change( function( e ){
 				picker.isAspectRatioLocked() && picker.setHeightBasedOnWidth();
+				picker.updateHiddenVal();
 			} );
 			picker.$height.change( function( e ){
 				picker.isAspectRatioLocked() && picker.setWidthBasedOnHeight();
+				picker.updateHiddenVal();
 			} );
 
 			picker.setupAspectRatioToggler();
+		};
+
+		ImageDimensionPicker.prototype.updateHiddenVal = function(){
+			var width  = parseInt( picker.$width.val() )
+			  , height = parseInt( picker.$height.val() );
+
+			if ( isNaN( width ) || isNaN( height ) ) {
+				picker.$originalInput.val( "" );
+			} else {
+				picker.$originalInput.val( width + "x" + height );
+			}
 		};
 
 		ImageDimensionPicker.prototype.calculateDimensions = function( val ){
@@ -105,6 +118,7 @@
 
 			picker.$width.val( dimensions.width );
 			picker.$height.val( dimensions.height );
+			picker.updateHiddenVal();
 
 			if ( isNaN( picker.ratio ) ) {
 				picker.enableAspectRatioToggler( false );
