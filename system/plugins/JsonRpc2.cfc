@@ -33,7 +33,7 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		}
 
 		if ( ( parsedInput.jsonrpc ?: "" ) != "2.0" ) {
-			error( this.ERROR_CODES.INVALID_REQUEST, "Invalid JSON-RPC request: missing or invalid protocol version" );
+			error( this.ERROR_CODES.INVALID_REQUEST, "Invalid JSON-RPC request: missing or invalid protocol version. Expected 2.0 but received [#( parsedInput.jsonrpc ?: '' )#]." );
 			return false;
 		}
 
