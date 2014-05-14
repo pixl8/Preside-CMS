@@ -2,6 +2,7 @@
 
 	$(".uber-select").uberSelect( { allow_single_deselect : true, inherit_select_classes : true } );
 	$(".asset-picker").assetPicker();
+	$(".image-dimension-picker").imageDimensionPicker();
 
 	$(".spinner-input").each( function(){
 		var $this = $(this);
