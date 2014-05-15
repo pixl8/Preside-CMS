@@ -25,7 +25,7 @@
 			  , assetPicker = this;
 
 			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
-			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + i18n.translateResource( "cms:assetmanager.browser.title" ) + '">...</a>' );
+			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + i18n.translateResource( "cms:assetmanager.browser.title" ) + '"><i class="fa fa-ellipsis-h"></i></a>' );
 
 			this.$uberSelect.after( this.$browserIframeContainer );
 			this.$uberSelect.after( this.$browserButton );

@@ -147,8 +147,17 @@ input[type="color"] {
 				cursor : pointer;
 			}
 
-			li.search-field input[type="text"] {
-				height : 37px;
+			li.search-field {
+				input[type="text"] {
+					height : 25px;
+					color  : #999 !important;
+					padding : 0 5px;
+				}
+
+				&:first-child {
+					padding-bottom : 7px;
+					margin-top     : -2px;
+				}
 			}
 		}
 	}
