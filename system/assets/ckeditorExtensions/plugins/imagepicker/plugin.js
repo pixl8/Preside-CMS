@@ -30,15 +30,17 @@
 				icon: 'imagepicker'
 			} );
 
+
 			editor.widgets.add( 'imagepicker', {
 				  dialog   : 'imagepicker'
 				, pathName : 'imagepicker'
-				, template : '<span class="img-placeholder"></span>'
+				, template : '<div class="img-placeholder"></div>'
+				, allowedContent: '*[*]{*}(*)'
 				, init: function() {
 					this.setData( 'raw', this.element.getAttribute( 'data-raw' ) );
 				  }
 				, downcast : function() { return new CKEDITOR.htmlParser.text( this.data.raw ); }
-				, upcast   : function( el ){ return el.name == 'span' && el.hasClass( 'asset-placeholder' ); }
+				, upcast   : function( el ){ return el.name == 'div' && el.hasClass( 'asset-placeholder' ); }
 				, data     : function(){
 					var imgWidget = this;
 
@@ -77,7 +79,7 @@
 				text: function( text ) {
 					return text.replace( imageReplaceRegex, function( match ) {
 						var imageWrapper = null
-						  , innerElement  = new CKEDITOR.htmlParser.element( 'span', {
+						  , innerElement  = new CKEDITOR.htmlParser.element( 'div', {
 								  'class'    : 'img-placeholder'
 								, 'data-raw' : match
 							} );
