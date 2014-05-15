@@ -4,6 +4,8 @@
  * @link https://github.com/macek/jquery-serialize-object
  * @license BSD
  * @version 2.2.0
+ *
+ * Slightly modified for use in Preside, May 2014. Using safe presideJQuery global namespace instead of jQuery + detecting CKEditor textareas
  */
 (function(root, factory) {
 
@@ -89,6 +91,20 @@
       return this;
     }
 
+    function addCKEditorFields( $form ){
+      $form.find( 'textarea.ckeditor' ).each( function(){
+        var $editor = $(this)
+          , name    = $editor.attr( 'name' );
+        if ( name && CKEDITOR && CKEDITOR.instances && name in CKEDITOR.instances  ) {
+          addPair( {
+              name  : name
+            , value : CKEDITOR.instances[ name ].getData()
+          } );
+        }
+      } );
+      return this;
+    }
+
     function serialize() {
       return data;
     }
@@ -102,6 +118,7 @@
     this.addPairs = addPairs;
     this.serialize = serialize;
     this.serializeJSON = serializeJSON;
+    this.addCKEditorFields = addCKEditorFields;
   };
 
   FormSerializer.patterns = {
@@ -118,6 +135,7 @@
     }
     return new FormSerializer($).
       addPairs(this.serializeArray()).
+      addCKEditorFields(this).
       serialize();
   };
 
@@ -127,6 +145,7 @@
     }
     return new FormSerializer($).
       addPairs(this.serializeArray()).
+      addCKEditorFields(this).
       serializeJSON();
   };
 
