@@ -92,13 +92,13 @@
 	} );
 
 	addEmbeddedImageStylesToWidgetWrapper = function( widget ){
-		var $img    = $( widget.element.$ ).find( "img:first" )
+		var $firstchild = $( widget.element.$ ).children().first()
 		  , wrapper = widget.wrapper
 		  , styles, classes, i;
 
-		if ( $img.length ) {
-			if ( $img.attr( "style" ) ) {
-				styles = $img.attr( "style" ).split( ";" );
+		if ( $firstchild.length ) {
+			if ( $firstchild.attr( "style" ) ) {
+				styles = $firstchild.attr( "style" ).split( ";" );
 				for( i=0; i < styles.length; i++ ){
 					styles[i] = styles[i].split( ":");
 					if ( styles[i].length === 2 ) {
@@ -107,8 +107,8 @@
 				}
 			}
 
-			if ( $img.attr( "class" ) && $img.attr( "class" ).length ) {
-				classes = $img.attr( "class" ).split( /\s+/ );
+			if ( $firstchild.attr( "class" ) && $firstchild.attr( "class" ).length ) {
+				classes = $firstchild.attr( "class" ).split( /\s+/ );
 				for( i=0; i < classes.length; i++ ){
 					wrapper.addClass( classes[i] );
 				}
