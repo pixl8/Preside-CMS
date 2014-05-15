@@ -2,7 +2,7 @@
 	var $adminBar       = $( "#preside-admin-toolbar" )
 	  , $body           = $( 'body' )
 	  , $editors        = $( ".content-editor" )
-	  , currentEditMode = "disabled"
+	  , currentEditMode = false
 	  , setEditorSizes
 	  , setEditMode
 	  , togglePageEditMode;
@@ -59,6 +59,10 @@
 	$( window ).resize( function(){
 		setEditorSizes();
 	} );
+
+	setInterval( function(){
+		if ( currentEditMode ) { setEditorSizes(); }
+	}, 200 );
 
 	if ( typeof $.cookie( "_presideEditMode" ) !== "undefined" ) {
 		var mode      = $.cookie( "_presideEditMode" )
@@ -382,7 +386,7 @@
 			} );
 
 			$editor.keydown( "return", function( e ){
-				if ( currentEditMode.toLowerCase() !== "disabled" ) {
+				if ( currentEditMode ) {
 					e.preventDefault();
 					toggleEditMode( true );
 				}
