@@ -15,7 +15,7 @@
 		icons: 'imagepicker',
 
 		onLoad: function() {
-			CKEDITOR.addCss( '.img-placeholder{ display : inline-block; }' );
+			CKEDITOR.addCss( '.img-placeholder{ display : inline-block; } .img-placeholder.error{ padding: 2px; color : red; } .img-placeholder.loading { padding: 2px; color: #999; }' );
 		},
 
 		init: function( editor ) {
@@ -46,7 +46,7 @@
 						this._previousRaw = this.data.raw;
 						this.data.configJson = this.data.raw.replace( imageReplaceRegex, "$1");
 						this.element.setAttribute( "data-raw", this.data.raw );
-						this.element.setText( "LOADING IMAGE..." );
+						this.element.setText( i18n.translateResource( "cms:ckeditor.imagepicker.image.loading" ) );
 						this.element.addClass( "loading" );
 
 						$.ajax({
@@ -62,7 +62,7 @@
 							, error : function(){
 								imgWidget.element.removeClass( "loading" );
 								imgWidget.element.addClass( "error" );
-								imgWidget.element.setText( "ERROR LOADING IMAGE" );
+								imgWidget.element.setText( i18n.translateResource( "cms:ckeditor.imagepicker.image.loading.error" ) );
 							}
 						});
 					}
