@@ -9,7 +9,7 @@
 	var widgetsReplaceRegex = /{{widget:([a-z\$_][a-z0-9\$_]*):(.*?):widget}}/gi;
 
 	CKEDITOR.plugins.add( 'widgets', {
-		requires: 'widget,iframedialog',
+		requires: 'iframedialog',
 		lang: 'en',
 		icons: 'widgets',
 
