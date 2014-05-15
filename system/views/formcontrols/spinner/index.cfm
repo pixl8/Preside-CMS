@@ -14,5 +14,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" id="#inputId#" name="#inputName#" value="#value#" class="spinner-input" data-min="#minValue#" data-max="#maxValue#" data-step="#step#" maxlength="#Len( maxValue )#" tabindex="#getNextTabIndex()#">
+	<input type="number" id="#inputId#" name="#inputName#" value="#value#" min="#minValue#" max="#maxValue#" step="#step#" maxlength="#Len( maxValue )#" tabindex="#getNextTabIndex()#">
 </cfoutput>
