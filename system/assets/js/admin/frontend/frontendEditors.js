@@ -111,7 +111,7 @@
 			  , formEnabled        = false
 			  , autoSaveInterval   = 1500 // auto save draft 1.5 seconds after typing stopped
 			  , autoSaveTimeout    = null
-			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
+			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
 			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl;
 
 			toggleEditMode = function( editMode ){
