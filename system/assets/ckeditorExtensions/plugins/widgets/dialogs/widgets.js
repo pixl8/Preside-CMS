@@ -23,11 +23,12 @@ CKEDITOR.dialog.add( 'widgets', function( editor ) {
 				title: lang.title,
 				elements: [{
 					type   : 'iframe',
-					src    : buildAdminLink( "widgets", "dialog" ),
+					src    : '',
 					width  : '800px',
 					height : '400px',
 					setup  : function( widget ) {
-						var params = {};
+						var params = {}
+						  , dlg    = this;
 
 						associatedWidget = widget;
 
@@ -37,9 +38,22 @@ CKEDITOR.dialog.add( 'widgets', function( editor ) {
 							if ( widget.data.configJson ) {
 								params.configJson = widget.data.configJson;
 							}
-						}
 
-						this.getElement().$.src = buildAdminLink( "widgets", "dialog", params );
+							// little trick to send long / complex data to the server
+							// ready for the subsequent iFrame request
+							// uses ColdBox FlashRAM to store the data which is then picked
+							// up by next request
+							$.ajax({
+								  url    : buildAdminLink( "ajaxhelper.temporarilyStoreData" )
+								, method : "POST"
+								, data   : params
+								, success: function(){
+									dlg.getElement().$.src = buildAdminLink( "widgets", "dialog" );
+								 }
+							});
+						} else {
+							dlg.getElement().$.src = buildAdminLink( "widgets", "dialog" );
+						}
 					},
 					commit : function() {
 						if ( associatedWidget && this._widgetConfig ) {

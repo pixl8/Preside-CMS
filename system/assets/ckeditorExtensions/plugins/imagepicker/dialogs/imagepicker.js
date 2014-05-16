@@ -23,18 +23,31 @@ CKEDITOR.dialog.add( 'imagepicker', function( editor ) {
 				title: lang.title,
 				elements: [{
 					type   : 'iframe',
-					src    : buildAdminLink( "assetmanager", "imagePickerForEditorDialog" ),
+					src    : "",
 					width  : '900px',
 					height : '500px',
 					setup  : function( widget ) {
-						var params = {};
+						var params = {}
+						  , dlg    = this;
 
 						associatedWidget = widget;
 						if ( widget.data.configJson ) {
 							params.configJson = widget.data.configJson;
+							// little trick to send long / complex data to the server
+							// ready for the subsequent iFrame request
+							// uses ColdBox FlashRAM to store the data which is then picked
+							// up by next request
+							$.ajax({
+								  url    : buildAdminLink( "ajaxhelper.temporarilyStoreData" )
+								, method : "POST"
+								, data   : params
+								, success: function(){
+									dlg.getElement().$.src = buildAdminLink( "assetmanager", "imagePickerForEditorDialog" );
+								 }
+							});
+						} else {
+							dlg.getElement().$.src = buildAdminLink( "assetmanager", "imagePickerForEditorDialog" );
 						}
-
-						this.getElement().$.src = buildAdminLink( "assetmanager", "imagePickerForEditorDialog", params );
 					},
 					commit : function() {
 						if ( associatedWidget && this._imgConfig ) {
