@@ -12,23 +12,39 @@ CKEDITOR.editorConfig = function( config ) {
 	// activate out plugins
 	config.extraPlugins = "widgets,imagepicker";
 
-	// The toolbar groups arrangement, optimized for two toolbar rows.
-	config.toolbarGroups = [
-		{ name: 'clipboard',   groups: [ 'clipboard', 'undo' ] },
-		{ name: 'editing',     groups: [ 'find', 'selection', 'spellchecker' ] },
-		{ name: 'links' },
-		{ name: 'insert' },
-		{ name: 'forms' },
-		{ name: 'tools' },
-		{ name: 'document',	   groups: [ 'mode', 'document', 'doctools' ] },
-		{ name: 'others' },
+
+	config.toolbar_full = [
+		{ name: 'document', items: [ 'Maximize', '-', 'Source', '-', 'Preview' ] },
+		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
+		{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-', 'Scayt' ] },
+		{ name: 'insert', items: [ 'Widgets','ImagePicker', 'Table', 'HorizontalRule', 'SpecialChar', 'Iframe' ] },
 		'/',
-		{ name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ] },
-		{ name: 'paragraph',   groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ] },
-		{ name: 'styles' },
-		{ name: 'colors' },
-		{ name: 'about' }
+		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },
+		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl', 'Language' ] },
+		{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },
+		'/',
+		{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
+		{ name: 'colors', items: [ 'TextColor', 'BGColor' ] }
 	];
+
+	config.toolbar_noinserts = [
+		{ name: 'document', items: [ 'Maximize', '-', 'Source', '-', 'Preview' ] },
+		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
+		{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-', 'Scayt' ] },
+		'/',
+		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },
+		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl', 'Language' ] },
+		{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },
+		'/',
+		{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
+		{ name: 'colors', items: [ 'TextColor', 'BGColor' ] }
+	];
+
+	config.toolbar_bolditaliconly = [
+		{ name: 'basicstyles', items: [ 'Bold', 'Italic', '-', 'RemoveFormat' ] },
+	];
+
+	config.toolbar = "full"; // default toolbar
 
 	// Remove some buttons provided by the standard plugins, which are
 	// not needed in the Standard(s) toolbar.
