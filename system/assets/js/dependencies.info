@@ -18,6 +18,10 @@
 /admin/core/preside.asset.picker.js
 	/admin/core/formFields.js
 
+/admin/core/preside.richeditor.js
+	/admin/core/formFields.js
+	/admin/frontend/frontendEditors.js
+
 /admin/core/preside.imageDimension.picker.js
 	/admin/core/formFields.js
 

@@ -150,7 +150,7 @@
 					notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.draft.loaded.notification" ) );
 					$contentInput.val( $drafttextarea.val() );
 				}
-				editor = CKEDITOR.replace( $contentInput.get(0) );
+				editor = new PresideRichEditor( $contentInput.get(0) ).editor;
 				editor.on( "change", function( e ){ disableOrEnableSaveButtons(); } );
 				editor.on( "instanceReady", function( e ){
 					if ( originalValue === savedDraftValue ) {

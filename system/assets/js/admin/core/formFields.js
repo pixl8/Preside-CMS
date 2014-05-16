@@ -25,15 +25,7 @@
 		});
 	});
 	$( 'textarea.richeditor' ).each( function(){
-		var $textarea = $( this )
-		  , config    = {}
-		  , toolbar   = $textarea.data( "toolbar" );
-
-		if ( toolbar && toolbar.length ) {
-			config.toolbar = toolbar;
-		}
-
-		$textarea.data( 'ckeditorinstance', CKEDITOR.replace( this, config ) );
+		new PresideRichEditor( this );
 	} );
 
 	$('.date-picker')

@@ -23,9 +23,9 @@
 		event.include( "/css/admin/devtools/" );
 	}
 
+	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 	css        = event.renderIncludes( "css" );
 	bottomJs   = event.renderIncludes( "js" );
-	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 
 	event.include( "/js/admin/coretop/ie/" );
 	event.include( "/js/admin/coretop/" );

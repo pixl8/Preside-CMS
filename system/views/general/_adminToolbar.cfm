@@ -20,6 +20,8 @@
 			event.include( "/js/admin/devtools/" );
 			event.include( "/css/admin/devtools/" );
 		}
+
+		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 	</cfscript>
 
 	<cfoutput>
@@ -45,9 +47,7 @@
 			</ul>
 		</div>
 
-		<cfoutput>
-			<script type="text/javascript" src="#staticRoot#/ckeditor/ckeditor.js"></script>
-		</cfoutput>
+		#ckEditorJs#
 	</cfoutput>
 </cfif>
 
