@@ -23,7 +23,7 @@
 
 			CKEDITOR.dialog.add( 'imagepicker', this.path + 'dialogs/imagepicker.js' );
 
-			editor.ui.addButton && editor.ui.addButton( 'imagepicker', {
+			editor.ui.addButton && editor.ui.addButton( 'ImagePicker', {
 				label: lang.toolbar,
 				command: 'imagepicker',
 				toolbar: 'insert,6',
