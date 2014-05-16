@@ -36,7 +36,9 @@
 				<cfif Len( Trim( args.copyright ?: "" ) )>
 					<small class="copyright">&copy; #args.copyright#</small>
 				</cfif>
-				#( args.caption ?: "" )#
+				<cfif Len( Trim( args.caption ?: "" ) )>
+					#renderContent( data=args.caption, renderer="richeditor" )#
+				</cfif>
 			</figcaption>
 		</figure>
 	</cfif>
