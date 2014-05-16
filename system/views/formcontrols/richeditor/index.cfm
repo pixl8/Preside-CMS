@@ -12,5 +12,5 @@
 </cfscript>
 
 <cfoutput>
-	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="ckeditor" tabindex="#getNextTabIndex()#">#value#</textarea>
+	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="richeditor" tabindex="#getNextTabIndex()#"<cfif Len( Trim( args.toolbar ?: "" ) )> data-toolbar="#Trim( args.toolbar )#"</cfif>>#value#</textarea>
 </cfoutput>

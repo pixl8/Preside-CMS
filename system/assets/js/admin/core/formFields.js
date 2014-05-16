@@ -24,6 +24,17 @@
 			limitText: 'max allowed : %n.'
 		});
 	});
+	$( 'textarea.richeditor' ).each( function(){
+		var $textarea = $( this )
+		  , config    = {}
+		  , toolbar   = $textarea.data( "toolbar" );
+
+		if ( toolbar && toolbar.length ) {
+			config.toolbar = toolbar;
+		}
+
+		$textarea.data( 'ckeditorinstance', CKEDITOR.replace( this, config ) );
+	} );
 
 	$('.date-picker')
 		.datepicker( { autoclose:true } )
