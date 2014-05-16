@@ -165,22 +165,18 @@ component output=false {
 			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 			         & '|Find,Replace,-,SelectAll,-,Scayt'
 			         & '|Widgets,ImagePicker,Table,HorizontalRule,SpecialChar,Iframe'
-			         & '|/'
+			         & '|Link,Unlink,Anchor'
 			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat'
 			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
-			         & '|Link,Unlink,Anchor'
-			         & '|/'
 			         & '|Styles,Format,Font,FontSize'
 			         & '|TextColor,BGColor',
 
 			noInserts = 'Maximize,-,Source,-,Preview'
 			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 			         & '|Find,Replace,-,SelectAll,-,Scayt'
-			         & '|/'
+			         & '|Link,Unlink,Anchor'
 			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat'
 			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
-			         & '|Link,Unlink,Anchor'
-			         & '|/'
 			         & '|Styles,Format,Font,FontSize'
 			         & '|TextColor,BGColor',
 
