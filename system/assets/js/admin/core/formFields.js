@@ -4,19 +4,6 @@
 	$(".asset-picker").assetPicker();
 	$(".image-dimension-picker").imageDimensionPicker();
 
-	$(".spinner-input").each( function(){
-		var $this = $(this);
-
-		$this.ace_spinner( {
-			  value          : $this.val()
-			, min            : $this.data("min") || 0
-			, max            : $this.data("max")
-			, step           : $this.data("step")
-			, btn_up_class   : 'btn-info'
-			, btn_down_class : 'btn-info'
-		} );
-	} );
-
 	$(".auto-slug").each( function(){
 		var $this = $(this)
 		  , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
