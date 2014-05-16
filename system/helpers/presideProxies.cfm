@@ -18,6 +18,10 @@
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderContent" access="public" returntype="any" output="false">
+		<cfreturn getController().getWireBox().getInstance( "contentRenderer" ).render( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderField" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "contentRenderer" ).renderField( argumentCollection = arguments ) />
 	</cffunction>
