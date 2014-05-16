@@ -24,7 +24,7 @@
 			limitText: 'max allowed : %n.'
 		});
 	});
-	$( 'textarea.richeditor' ).each( function(){
+	$( 'textarea.richeditor' ).not( '.frontend-container' ).each( function(){
 		new PresideRichEditor( this );
 	} );
 

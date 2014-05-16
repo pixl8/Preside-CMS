@@ -43,7 +43,15 @@
 					<input type="hidden" name="renderer" value="#renderer#" />
 
 					<cfif control == "richeditor">
-						<textarea name="content">#rawContent#</textarea>
+						#renderFormControl(
+							  name         = "content"
+							, type         = "richeditor"
+							, extraClasses = "frontend-container"
+							, savedValue   = rawContent
+							, defaultValue = rawContent
+							, id           = ""
+							, layout       = ""
+						)#
 						<textarea name="draftContent" class="hide">#draftContent#</textarea>
 					<cfelse>
 						#renderFormControl(
@@ -52,6 +60,7 @@
 							, context      = "admin"
 							, savedValue   = rawContent
 							, defaultValue = rawContent
+							, id           = ""
 							, layout       = ""
 						)#
 					</cfif>
