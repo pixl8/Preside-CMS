@@ -13,36 +13,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.extraPlugins = "widgets,imagepicker";
 
 
-	config.toolbar_full = [
-		{ name: 'document', items: [ 'Maximize', '-', 'Source', '-', 'Preview' ] },
-		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
-		{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-', 'Scayt' ] },
-		{ name: 'insert', items: [ 'Widgets','ImagePicker', 'Table', 'HorizontalRule', 'SpecialChar', 'Iframe' ] },
-		'/',
-		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },
-		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl', 'Language' ] },
-		{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },
-		'/',
-		{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
-		{ name: 'colors', items: [ 'TextColor', 'BGColor' ] }
-	];
-
-	config.toolbar_noinserts = [
-		{ name: 'document', items: [ 'Maximize', '-', 'Source', '-', 'Preview' ] },
-		{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
-		{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-', 'Scayt' ] },
-		'/',
-		{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },
-		{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl', 'Language' ] },
-		{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },
-		'/',
-		{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
-		{ name: 'colors', items: [ 'TextColor', 'BGColor' ] }
-	];
-
-	config.toolbar_bolditaliconly = [
-		{ name: 'basicstyles', items: [ 'Bold', 'Italic', '-', 'RemoveFormat' ] },
-	];
+	config.toolbar = "";
 
 	config.toolbar = "full"; // default toolbar
 

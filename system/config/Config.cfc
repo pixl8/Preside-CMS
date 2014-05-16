@@ -67,6 +67,10 @@ component output=false {
 
 		settings.globalPermissionKeys = [ "sitetree", "assetmanager", "datamanager", "usermanager" ];
 
+		settings.ckeditor = {
+			toolbars = _getCkEditorToolbarConfig()
+		}
+
 	}
 
 // PRIVATE UTILITY
@@ -153,5 +157,35 @@ component output=false {
 		};
 
 		return derivatives;
+	}
+
+	private struct function _getCkEditorToolbarConfig() output=false {
+		return {
+			full     =  'Maximize,-,Source,-,Preview'
+			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+			         & '|Find,Replace,-,SelectAll,-,Scayt'
+			         & '|Widgets,ImagePicker,Table,HorizontalRule,SpecialChar,Iframe'
+			         & '|/'
+			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat'
+			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
+			         & '|Link,Unlink,Anchor'
+			         & '|/'
+			         & '|Styles,Format,Font,FontSize'
+			         & '|TextColor,BGColor',
+
+			noInserts = 'Maximize,-,Source,-,Preview'
+			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+			         & '|Find,Replace,-,SelectAll,-,Scayt'
+			         & '|/'
+			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat'
+			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
+			         & '|Link,Unlink,Anchor'
+			         & '|/'
+			         & '|Styles,Format,Font,FontSize'
+			         & '|TextColor,BGColor',
+
+			bolditaliconly = 'Bold,Italic,-,RemoveFormat'
+		};
+
 	}
 }

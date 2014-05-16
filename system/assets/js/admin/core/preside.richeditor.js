@@ -12,7 +12,7 @@ PresideRichEditor = ( function( $ ){
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
-			config.toolbar = toolbar;
+			config.toolbar = this.parseToolbarConfig( toolbar );
 		}
 
 		if ( customConfig ) {
@@ -22,6 +22,35 @@ PresideRichEditor = ( function( $ ){
 		this.editor = CKEDITOR.replace( elementToReplace, config );
 
 		$elementToReplace.data( 'ckeditorinstance', this.editor );
+	};
+
+	PresideRichEditor.prototype.parseToolbarConfig = function( rawToolbarText ){
+		var bars = rawToolbarText.split( '|' )
+		  , barCount = bars.length
+		  , toolbar = []
+		  , buttons
+		  , bar, i, n;
+
+		if ( rawToolbarText.match( /[\,\|]/g ) === null ) {
+			return rawToolbarText;
+		}
+
+		for( i=0; i<barCount; i++ ){
+			if ( !$.trim( bars[i] ).length || bars[i] === '/' ) {
+				toolbar.push( "/" );
+				continue;
+			}
+
+			buttons = bars[i].split(',');
+
+			bar = { name:i, items:[] };
+			for( n=0; n<buttons.length; n++ ){
+				bar.items.push( buttons[n] );
+			}
+			toolbar.push( bar );
+		}
+
+		return toolbar;
 	};
 
 

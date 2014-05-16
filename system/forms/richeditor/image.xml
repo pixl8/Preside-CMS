@@ -12,7 +12,7 @@
 	<tab id="caption" title="cms:ckeditor.imagepicker.caption.tab">
 		<fieldset id="caption">
 			<field name="copyright" control="textinput"   required="false"  label="cms:ckeditor.imagepicker.copyright.label" maxLength="600" />
-			<field name="caption"   control="richeditor"  required="false"  label="cms:ckeditor.imagepicker.caption.label" toolbar="noinserts" />
+			<field name="caption"   control="richeditor"  required="false"  label="cms:ckeditor.imagepicker.caption.label" toolbar="noInserts" />
 		</fieldset>
 	</tab>
 	<tab id="link" title="cms:ckeditor.imagepicker.link.tab">

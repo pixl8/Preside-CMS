@@ -126,6 +126,10 @@
 			.initArg( name="assetManagerService", ref="assetManagerService" )
 			.initArg( name="coldbox", value=getColdbox() );
 
+		map( "ckeditorToolbarHelper" ).asSingleton().to( "preside.system.api.admin.CkEditorToolbarHelper" ).noAutowire()
+			.initArg( name="securityService"   , ref="adminSecurityService" )
+			.initArg( name="configuredToolbars", value=settings.ckeditor.toolbars ?: {} );
+
 	// globally used services
 		map( "validationEngine" ).asSingleton().to( "preside.system.api.validation.ValidationEngine" ).parent( "baseService" ).noAutoWire();
 
