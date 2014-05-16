@@ -21,10 +21,6 @@
 /admin/core/preside.imageDimension.picker.js
 	/admin/core/formFields.js
 
-/admin/core/jquery.fuelux.spinner.js
-	/admin/core/formFields.js
-	/admin/core/ace.js
-
 /admin/core/jquery.autosize.js
 	/admin/core/formFields.js
 	/admin/core/ace.js
