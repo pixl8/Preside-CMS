@@ -49,6 +49,8 @@
 							, extraClasses = "frontend-container"
 							, savedValue   = rawContent
 							, defaultValue = rawContent
+							, width        = 800
+							, height       = 400
 							, id           = ""
 							, layout       = ""
 						)#

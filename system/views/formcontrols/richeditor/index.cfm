@@ -19,10 +19,16 @@
 	          class       = "richeditor #extraClasses#"
 	          tabindex="#getNextTabIndex()#"
 	          <cfif Len( Trim( args.toolbar ?: "" ) )>
-	              data-toolbar = "#Trim( args.toolbar )#"
+	               data-toolbar = "#Trim( args.toolbar )#"
 	          </cfif>
 	          <cfif Len( Trim( args.customConfig ?: "" ) )>
-	          	  data-custom-config="#Trim( args.customConfig )#"
+	              data-custom-config="#Trim( args.customConfig )#"
+	          </cfif>
+	          <cfif Val( args.width ?: "" )>
+	              data-width="#Val( args.width )#"
+	          </cfif>
+	          <cfif Val( args.height ?: "" )>
+	              data-height="#Val( args.height )#"
 	          </cfif>
 	>#value#</textarea>
 </cfoutput>
