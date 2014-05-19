@@ -5,23 +5,22 @@
 	  , $titleInput
 	  , $dimensions
 	  , originalAssetValue
-	  , isImageForm
+	  , assetType
 	  , checkAndProcessChangedAsset
 	  , populateAssetDetails
 	  , setupForm
 	  , assetDetailsUrl;
 
 	setupForm = function(){
-		$form       = $( "#image-config-form" );
-		isImageForm = $form.length;
+		$form       = $( "#asset-config-form" );
+		assetType   = $form.data( "assetType" ) || "image";
 
-		if ( isImageForm ) {
+		if ( assetType === "image" ) {
 			$titleInput     = $form.find( "input[name='alt_text']" );
 			$dimensions     = $form.find( "input[name='dimensions']" );
 			assetDetailsUrl = buildAjaxLink( "assetmanager.getImageDetailsForCKEditorImageDialog" );
 
 		} else {
-			$form           = $( "#attachment-config-form" );
 			$titleInput     = $form.find( "input[name='link_text']" );
 			assetDetailsUrl = buildAjaxLink( "assetmanager.getAttachmentDetailsForCKEditorDialog" );
 		}
@@ -51,7 +50,7 @@
 	};
 
 	populateAssetDetails = function( data ){
-		if ( isImageForm && data.width && data.height ) {
+		if ( assetType === "image" && data.width && data.height ) {
 			$dimensions.data( "ImageDimensionPicker" ).reset( data.width, data.height );
 		}
 

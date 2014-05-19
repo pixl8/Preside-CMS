@@ -11,11 +11,11 @@
 
 		<div class="row modal-dialog-body">
 			<div class="col-sm-12">
-				<form data-auto-focus-form="true" class="form-horizontal" id="#linkType#-config-form" method="post" action="">
+				<form data-auto-focus-form="true" class="form-horizontal" id="asset-config-form" data-asset-type="#linkType#" method="post" action="">
 					#renderForm(
 						  formName         = "richeditor.#linkType#"
 						, context          = "assetpicker"
-						, formId           = "#linkType#-config-form"
+						, formId           = "asset-config-form"
 					)#
 				</form>
 			</div>

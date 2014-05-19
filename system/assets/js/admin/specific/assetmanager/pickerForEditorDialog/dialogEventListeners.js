@@ -1,6 +1,6 @@
 var onDialogEvent = ( function( $ ){
 
-	var listener, saveConfig, triggerDialogOk, parentDialog, $configForm, assetType="image";
+	var listener, saveConfig, triggerDialogOk, parentDialog, $configForm, assetType;
 
 	listener = function( e, dialog ){
 		var eventName = e.name || "";
@@ -46,11 +46,8 @@ var onDialogEvent = ( function( $ ){
 		}
 	} );
 
-	$configForm = $( "#image-config-form" );
-	if ( !$configForm.length ) {
-		$configForm = $( "#attachment-config-form" );
-		assetType = "attachment";
-	}
+	$configForm = $( "#asset-config-form" );
+	assetType   = $configForm.data( "assetType" ) || "image";
 
 	if ( $configForm.length ) {
 		$configForm.find( 'input,select,textarea' ).keydown( "ctrl+return", triggerDialogOk );
