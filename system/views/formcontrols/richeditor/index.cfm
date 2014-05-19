@@ -4,6 +4,7 @@
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 	extraClasses = args.extraClasses ?: "";
+	stylesheets  = args.stylesheets ?: "";
 	maxLength    = Val( args.maxLength ?: 0 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
@@ -23,6 +24,9 @@
 	          </cfif>
 	          <cfif Len( Trim( args.customConfig ?: "" ) )>
 	              data-custom-config="#Trim( args.customConfig )#"
+	          </cfif>
+	          <cfif Len( Trim( args.stylesheets ?: "" ) )>
+	              data-stylesheets="#Trim( args.stylesheets )#"
 	          </cfif>
 	          <cfif Val( args.width ?: "" )>
 	              data-width="#Val( args.width )#"

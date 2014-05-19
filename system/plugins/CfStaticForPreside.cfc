@@ -61,6 +61,10 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getIncludeUrl" access="public" returntype="string" output="false">
+		<cfreturn _getCfStatic().getIncludeUrl( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="reload" access="public" returntype="void" output="false">
 		<cfscript>
 			_initCfStatic();

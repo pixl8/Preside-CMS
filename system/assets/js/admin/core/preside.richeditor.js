@@ -10,11 +10,15 @@ PresideRichEditor = ( function( $ ){
 		  , toolbar      = $elementToReplace.data( "toolbar" )
 		  , width        = $elementToReplace.data( "width" )
 		  , height       = $elementToReplace.data( "height" )
+		  , stylesheets  = $elementToReplace.data( "stylesheets" )
 		  , customConfig = $elementToReplace.data( "customConfig" ) || cfrequest.ckeditorConfig
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
 			config.toolbar = this.parseToolbarConfig( toolbar );
+		}
+		if ( stylesheets && stylesheets.length ) {
+			config.contentsCss = stylesheets.split( "," );
 		}
 		if ( customConfig ) {
 			config.customConfig = customConfig;
