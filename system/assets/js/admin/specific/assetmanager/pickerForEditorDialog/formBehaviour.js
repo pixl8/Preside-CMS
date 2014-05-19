@@ -26,10 +26,21 @@
 		}
 
 		if ( $form.length ) {
-			$assetPicker       = $form.find( "input[name='asset']" );
-			originalAssetValue = $assetPicker.val();
+			setTimeout( function() {
+				$assetPicker       = $form.find( "input[name='asset']" );
+				originalAssetValue = $assetPicker.val();
 
-			$form.on( 'click change blur focus', checkAndProcessChangedAsset );
+				$.ajax({
+					  url      : assetDetailsUrl
+					, method   : "POST"
+					, data     : { asset : originalAssetValue }
+					, success  : function( data ){
+						$titleInput.attr( 'placeholder', data.LABEL || '' );
+					}
+				});
+
+				$form.on( 'click change blur focus', checkAndProcessChangedAsset );
+			}, 10 );
 		}
 	};
 
@@ -54,9 +65,7 @@
 			$dimensions.data( "ImageDimensionPicker" ).reset( data.width, data.height );
 		}
 
-		if ( data.LABEL ) {
-			$titleInput.val( data.LABEL );
-		}
+		$titleInput.attr( 'placeholder', data.LABEL || '' );
 	};
 
 	setupForm();
