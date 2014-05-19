@@ -12,7 +12,9 @@ Developer guides & recipes
    viewlets
    widgets
    pagetypes
+   richeditor
    routing
+   configcfc
    reloading
    cssandjs
 
