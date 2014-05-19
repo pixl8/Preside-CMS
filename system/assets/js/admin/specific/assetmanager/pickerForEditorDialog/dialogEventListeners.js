@@ -1,6 +1,6 @@
 var onDialogEvent = ( function( $ ){
 
-	var listener, saveConfig, triggerDialogOk, parentDialog, $configForm;
+	var listener, saveConfig, triggerDialogOk, parentDialog, $configForm, assetType="image";
 
 	listener = function( e, dialog ){
 		var eventName = e.name || "";
@@ -23,7 +23,7 @@ var onDialogEvent = ( function( $ ){
 		if ( $configForm.valid() ) {
 			var config = encodeURIComponent( $configForm.serializeJSON() );
 
-			dialog.getContentElement( "iframe" )._imgConfig = "{{image:" + config + ":image}}";
+			dialog.getContentElement( "iframe" )._config = "{{" + assetType + ":" + config + ":" + assetType + "}}";
 			dialog.commitContent();
 
 			return true;
@@ -47,6 +47,11 @@ var onDialogEvent = ( function( $ ){
 	} );
 
 	$configForm = $( "#image-config-form" );
+	if ( !$configForm.length ) {
+		$configForm = $( "#attachment-config-form" );
+		assetType = "attachment";
+	}
+
 	if ( $configForm.length ) {
 		$configForm.find( 'input,select,textarea' ).keydown( "ctrl+return", triggerDialogOk );
 	}

@@ -325,18 +325,18 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.renderData( type="json", data=recordsWithIcons );
 	}
 
-	public void function imagePickerForEditorDialog( event, rc, prc ) output=false {
+	public void function pickerForEditorDialog( event, rc, prc ) output=false {
 		var jsonConfig = rc.configJson ?: "";
 
 		if ( Len( Trim( jsonConfig ) ) ) {
-				rc.append( DeSerializeJson( UrlDecode( jsonConfig ) ) );
 			try {
+				rc.append( DeSerializeJson( UrlDecode( jsonConfig ) ) );
 			} catch ( any e ){}
 		}
 
 
 		event.setLayout( "adminModalDialog" );
-		event.setView( "admin/assetManager/editorImagePicker/dialog" );
+		event.setView( "admin/assetManager/pickerForEditorDialog" );
 	}
 
 	public void function getImageDetailsForCKEditorImageDialog( event, rc, prc ) output=false {
@@ -359,9 +359,28 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
+	public void function getAttachmentDetailsForCKEditorDialog( event, rc, prc ) output=false {
+		var assetId = rc.asset ?: "";
+		var asset   = assetManagerService.getAsset( assetId );
+
+		if ( asset.recordCount ) {
+			asset = QueryRowToStruct( asset );
+			event.renderData( data=asset, type="json" );
+		} else {
+			event.renderData( data={}, type="json" );
+		}
+	}
+
 	public void function renderEmbeddedImageForEditor( event, rc, prc ) output=false {
 		var richContent = rc.embeddedImage ?: "";
 		var rendered    = assetRendererService.renderEmbeddedImages( richContent );
+
+		event.renderData( data=rendered );
+	}
+
+	public void function renderEmbeddedAttachmentForEditor( event, rc, prc ) output=false {
+		var richContent = rc.embeddedAttachment ?: "";
+		var rendered    = assetRendererService.renderEmbeddedAttachments( richContent );
 
 		event.renderData( data=rendered );
 	}

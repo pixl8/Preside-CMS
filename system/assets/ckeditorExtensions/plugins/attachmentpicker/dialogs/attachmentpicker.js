@@ -1,12 +1,12 @@
 /**
- * @fileOverview Definition for imagepicker plugin dialog.
+ * @fileOverview Definition for attachmentpicker plugin dialog.
  *
  */
 
 'use strict';
 
-CKEDITOR.dialog.add( 'imagepicker', function( editor ) {
-	var lang = editor.lang.imagepicker
+CKEDITOR.dialog.add( 'attachmentpicker', function( editor ) {
+	var lang = editor.lang.attachmentpicker
 	  , associatedWidget;
 
 	return {
@@ -42,11 +42,11 @@ CKEDITOR.dialog.add( 'imagepicker', function( editor ) {
 								, method : "POST"
 								, data   : params
 								, success: function(){
-									dlg.getElement().$.src = buildAdminLink( "assetmanager", "pickerForEditorDialog", { type:"image" } );
+									dlg.getElement().$.src = buildAdminLink( "assetmanager", "pickerForEditorDialog", { type:"attachment" } );
 								 }
 							});
 						} else {
-							dlg.getElement().$.src = buildAdminLink( "assetmanager", "pickerForEditorDialog", { type:"image" } );
+							dlg.getElement().$.src = buildAdminLink( "assetmanager", "pickerForEditorDialog", { type:"attachment" } );
 						}
 					},
 					commit : function() {

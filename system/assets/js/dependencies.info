@@ -67,4 +67,4 @@
 	/admin/specific/datamanager/object/listingTable.js
 
 /admin/core/jquery.serialize-object.js
-	/admin/specific/assetmanager/imagePickerForEditorDialog/dialogEventListeners.js
+	/admin/specific/assetmanager/pickerForEditorDialog/dialogEventListeners.js
