@@ -1,22 +1,15 @@
-.. Preside CMS documentation master file, created by
-   sphinx-quickstart on Sun May 18 22:23:25 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Preside CMS Documentation for developers and designers
+======================================================
 
-Welcome to Preside CMS's documentation!
-=======================================
+Preside CMS is a free and open source content management system written for the Railo_ platform.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
+   quickstart
+   devguides/index
+   contribguides/index
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+.. _Railo: http://www.getrailo.org
