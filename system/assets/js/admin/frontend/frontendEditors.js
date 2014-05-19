@@ -415,7 +415,7 @@
 				discardDraft();
 			} );
 
-			$editor.on( "submit", "form", function( e ){
+			$editor.on( "submit", ".content-editor-form", function( e ){
 				e.preventDefault();
 			} );
 		} );
