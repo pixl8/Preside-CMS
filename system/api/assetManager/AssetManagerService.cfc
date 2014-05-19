@@ -298,7 +298,7 @@ component extends="preside.system.base.Service" output=false {
 	}
 
 	public query function getAsset( required string id, boolean throwOnMissing=false ) output=false {
-		var asset = getPresideObject( "asset" ).selectData( id=arguments.id );
+		var asset = Len( Trim( arguments.id ) ) ? getPresideObject( "asset" ).selectData( id=arguments.id ) : QueryNew('');
 
 		if ( asset.recordCount or not throwOnMissing ) {
 			return asset;
