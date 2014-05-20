@@ -118,12 +118,14 @@
 			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
 			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl;
 
+			$editorContainer.appendTo( 'body' ); // make its absolute position relative to the body
+
 			toggleEditMode = function( editMode ){
 				formEnabled = editMode;
 
 				if ( editMode ) {
 					window.addEventListener( "beforeunload", exitProtectionListener, false );
-					$editor.addClass( "edit-active" );
+					$editorContainer.addClass( "edit-active" );
 					$body.addClass( "frontend-editors-editing" );
 
 					if ( isRichEditor ) {
@@ -138,7 +140,7 @@
 						tearDownCkEditor();
 					}
 
-					$editor.removeClass( "edit-active" );
+					$editorContainer.removeClass( "edit-active" );
 					$body.removeClass( "frontend-editors-editing" );
 				}
 				setEditorSizes();
@@ -385,24 +387,24 @@
 				toggleEditMode( true );
 			} );
 
-			$editor.keydown( "return", function( e ){
+			$editorContainer.keydown( "return", function( e ){
 				if ( currentEditMode ) {
 					e.preventDefault();
 					toggleEditMode( true );
 				}
 			} );
 
-			$editor.on( "click", ".editor-btn-cancel", function( e ){
+			$editorContainer.on( "click", ".editor-btn-cancel", function( e ){
 				e.preventDefault();
 				toggleEditMode( false );
 			} );
 
-			$editor.on( "click", ".editor-btn-save", function( e ){
+			$editorContainer.on( "click", ".editor-btn-save", function( e ){
 				e.preventDefault();
 				confirmAndSave();
 			} );
 
-			$editor.on( "click", ".editor-btn-draft", function( e ){
+			$editorContainer.on( "click", ".editor-btn-draft", function( e ){
 				e.preventDefault();
 				saveContent( {
 					  draft     : true
@@ -410,12 +412,12 @@
 				} );
 			} );
 
-			$editor.on( "click", ".discard-draft", function( e ){
+			$editorContainer.on( "click", ".discard-draft", function( e ){
 				e.preventDefault();
 				discardDraft();
 			} );
 
-			$editor.on( "submit", ".content-editor-form", function( e ){
+			$editorContainer.on( "submit", ".content-editor-form", function( e ){
 				e.preventDefault();
 			} );
 		} );

@@ -89,12 +89,6 @@
 			left    : -99999px !important;
 		}
 
-		&.edit-active {
-			.content-editor-editor-container {
-				display       : block;
-			}
-		}
-
 		.content-editor-label {
 			display: none;
 		}
@@ -107,16 +101,23 @@
 
 .content-editor-editor-container {
 	display        : none;
+	position       : absolute;
+	top            : 100px;
+	left           : 0;
+	right          : 0;
+	margin         : 0 auto;
 	font-size      : 14px;
 	font-family    : 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	color          : #333;
 	line-height    : 2;
-	position       : absolute;
-	top            : 0;
 	z-index        : 100;
 	padding-bottom : 100px;
 	min-width      : 500px;
+	max-width      : 810px;
 
+	&.edit-active {
+		display : block;
+	}
 
 	form {
 		border : 1px solid #438eb9;
