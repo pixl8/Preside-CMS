@@ -224,9 +224,9 @@
 
 			disableOrEnableSaveButtons = function() {
 				if ( formEnabled ) {
-					$editor.find( ".editor-btn-save" ).prop( "disabled", !isDirty() );
+					$editorContainer.find( ".editor-btn-save" ).prop( "disabled", !isDirty() );
 					if ( isRichEditor ) {
-						$editor.find( ".editor-btn-draft" ).prop( "disabled", !draftIsDirty() );
+						$editorContainer.find( ".editor-btn-draft" ).prop( "disabled", !draftIsDirty() );
 					}
 				}
 			};
