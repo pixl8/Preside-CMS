@@ -20,6 +20,10 @@ To remove all the dependencies from your working tree, you can run the 'clean' t
 
    /support/build/local>ant clean
 
+.. note::
+
+	You may need to stop the Railo service / daemon before performing a clean. This is due to certain .jar files getting locked
+
 .. _`GitHub repository`: http://github.com/pixl8/Preside-CMS
 .. _`fork it`: https://guides.github.com/activities/forking/
 .. _ant: http://ant.apache.org/
