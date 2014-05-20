@@ -14,7 +14,7 @@
 		icons: 'widgets',
 
 		onLoad: function() {
-			CKEDITOR.addCss( '.widget-placeholder{background:#eee url(' + this.path + 'icons/widgets.png) 6px center no-repeat;padding:6px 10px 6px 32px;border:1px solid #ccc;border-radius:5px;display:block;margin:2px;}' );
+			CKEDITOR.addCss( '.widget-placeholder{background:#eee url(' + this.path + 'icons/widgets.png) 6px center no-repeat;padding:6px 10px 6px 32px;border:1px solid #ccc;border-radius:5px;display:inline-block;margin:2px;}' );
 		},
 
 		init: function( editor ) {
@@ -32,7 +32,7 @@
 			editor.widgets.add( 'widgets', {
 				  dialog   : 'widgets'
 				, pathName : 'widgets'
-				, template : '<span class="widget-placeholder">&nbsp;</span>'
+				, template : '<div class="widget-placeholder">&nbsp;</div>'
 				, init: function() {
 					this.setData( 'raw', this.element.getAttribute( 'data-raw' ) );
 				  }
@@ -58,7 +58,7 @@
 				text: function( text ) {
 					return text.replace( widgetsReplaceRegex, function( match ) {
 						var widgetWrapper = null
-						  , innerElement  = new CKEDITOR.htmlParser.element( 'span', {
+						  , innerElement  = new CKEDITOR.htmlParser.element( 'div', {
 								  'class'    : 'widget-placeholder'
 								, 'data-raw' : match
 							} );
