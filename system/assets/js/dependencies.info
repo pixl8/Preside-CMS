@@ -11,11 +11,11 @@
 	/admin/core/jquery.uber.select.js
 
 /admin/core/jquery.uber.select.js
-	/admin/core/preside.asset.picker.js
+	/admin/core/preside.uber.select.with.browser.js
 	/admin/core/formFields.js
 	/admin/core/ace.js
 
-/admin/core/preside.asset.picker.js
+/admin/core/preside.uber.select.with.browser.js
 	/admin/core/formFields.js
 
 /admin/core/preside.richeditor.js
@@ -57,7 +57,7 @@
 	/admin/core/i18n.js (conditional)
 
 /admin/core/i18n.js
-	/admin/core/preside.asset.picker.js
+	/admin/core/preside.uber.select.with.browser.js
 
 /admin/core/jquery.cookies.js
 	/admin/frontend/frontendEditors.js

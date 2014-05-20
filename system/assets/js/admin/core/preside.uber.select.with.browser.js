@@ -1,16 +1,16 @@
 ( function( $ ){
 
-	var AssetPicker;
+	var UberSelectWithBrowser;
 
-	AssetPicker = (function() {
-		function AssetPicker( $originalInput ) {
+	UberSelectWithBrowser = (function() {
+		function UberSelectWithBrowser( $originalInput ) {
 			this.$originalInput = $originalInput;
 
 			this.setupUberSelect();
 			this.setupBrowser();
 		}
 
-		AssetPicker.prototype.setupUberSelect = function(){
+		UberSelectWithBrowser.prototype.setupUberSelect = function(){
 			this.$originalInput.uberSelect({
 				  allow_single_deselect  : true
 				, inherit_select_classes : true
@@ -19,24 +19,25 @@
 			this.uberSelect = this.$originalInput.data( "uberSelect" );
 		};
 
-		AssetPicker.prototype.setupBrowser = function(){
-			var iframeSrc = this.$originalInput.data( "browserUrl" )
-			  , iframeId  = this.$originalInput.attr('id') & "_browser_frame"
-			  , assetPicker = this;
+		UberSelectWithBrowser.prototype.setupBrowser = function(){
+			var iframeSrc   = this.$originalInput.data( "browserUrl" )
+			  , modalTitle  = this.$originalInput.data( "modalTitle" )
+			  , iframeId    = this.$originalInput.attr('id') + "_browser_frame"
+			  , uberBrowser = this;
 
 			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
-			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + i18n.translateResource( "cms:assetmanager.browser.title" ) + '"><i class="fa fa-ellipsis-h"></i></a>' );
+			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-ellipsis-h"></i></a>' );
 
 			this.$uberSelect.after( this.$browserIframeContainer );
 			this.$uberSelect.after( this.$browserButton );
 
-			this.$browserButton.data( 'modalClass', 'asset-picker-dialog' );
+			this.$browserButton.data( 'modalClass', 'uber-browser-dialog' );
 			this.$browserButton.on( 'bootboxModalok', function(){
-				assetPicker.processDialogOk();
+				uberBrowser.processDialogOk();
 			} );
 		};
 
-		AssetPicker.prototype.processDialogOk = function(){
+		UberSelectWithBrowser.prototype.processDialogOk = function(){
 			var iFramePicker = this.getPickerIframe();
 
 			if ( typeof iFramePicker !== "undefined" ) {
@@ -49,20 +50,20 @@
 			}
 		};
 
-		AssetPicker.prototype.getPickerIframe = function(){
+		UberSelectWithBrowser.prototype.getPickerIframe = function(){
 			var $iframe = $( '.modal-dialog iframe' )
 			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow.assetPicker;
+				return $iframe.get(0).contentWindow.uberBrowser;
 			}
 		};
 
-		return AssetPicker;
+		return UberSelectWithBrowser;
 	})();
 
 
-	$.fn.assetPicker = function(){
+	$.fn.uberSelectWithBrowser = function(){
 		return this.each( function(){
-			new AssetPicker( $(this) );
+			new UberSelectWithBrowser( $(this) );
 		} );
 	};
 

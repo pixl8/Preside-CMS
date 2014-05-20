@@ -84,6 +84,32 @@ component output=false extends="preside.system.base.Service" {
 		return _getPObj().selectData( argumentCollection = args );
 	}
 
+	public query function getPagesForAjaxSelect(
+		  numeric maxRows     = 100
+		, string  searchQuery = ""
+		, array   ids         = []
+	) output=false {
+		var filter      = "( page.trashed = 0 )";
+		var params      = {};
+
+		if ( arguments.ids.len() ) {
+			filter &= " and ( page.id in (:id) )";
+			params.id = { value=ArrayToList( arguments.ids ), list=true };
+		}
+		if ( Len( Trim( arguments.searchQuery ) ) ) {
+			filter &= " and ( page.label like (:label) )";
+			params.label = "%#arguments.searchQuery#%";
+		}
+
+		return _getPobj().selectData(
+			  selectFields = [ "page.id as value", "page.label as text", "page.main_image", "parent_page.label as parent" ]
+			, filter       = filter
+			, filterParams = params
+			, maxRows      = arguments.maxRows
+			, orderBy      = "page.datemodified desc"
+		);
+	}
+
 	public struct function getExtendedPageProperties( required string id, required string pageType ) output=false {
 		var ptSvc = _getPageTypesService();
 

@@ -8,7 +8,7 @@
 	browserUrl         = args.browserUrl      ?: "";
 	sortable           = args.sortable         ?: "";
 	multiple           = args.multiple         ?: "";
-	resultTemplate     = selectedTemplate = '<div class="asset-result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
+	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
 	resultTemplateId   = "result_template_" & CreateUUId();
 	selectedTemplateId = "selected_template_" & CreateUUId();
 
@@ -21,7 +21,7 @@
 <cfoutput>
 	<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
 	<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-	<select class="asset-picker"
+	<select class="uber-select-with-browser"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
@@ -33,6 +33,7 @@
 	        data-browser-url="#browserUrl#"
 	    	data-result-template="#resultTemplateId#"
 	    	data-selected-template="#selectedTemplateId#"
+	    	data-modal-title="#translateResource( 'cms:assetmanager.browser.title' )#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
 	        </cfif>

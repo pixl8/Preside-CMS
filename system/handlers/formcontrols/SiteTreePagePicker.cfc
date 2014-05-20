@@ -1,19 +1,35 @@
 component output=false {
 
-	property name="siteTreeService" inject="siteTreeService";
+	property name="presideObjectService" inject="presideObjectService";
+	property name="dataManagerService"   inject="dataManagerService";
 
 	public string function index( event, rc, prc, viewletArgs={} ) output=false {
-		var value = event.getValue(
-			  name         = viewletArgs.name ?: ""
-			, defaultValue = viewletArgs.defaultValue ?: ""
-		);
+		var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( "page" );
 
-		if ( not IsSimpleValue( value ) ) {
-			value = "";
+		if ( Len( Trim( viewletArgs.savedData.id ?: "" ) ) ) {
+			var sourceObject = viewletArgs.sourceObject ?: "";
+
+			if ( presideObjectService.isManyToManyProperty( sourceObject, viewletArgs.name ) ) {
+				viewletArgs.savedValue = presideObjectService.selectManyToManyData(
+					  objectName   = sourceObject
+					, propertyName = viewletArgs.name
+					, id           = viewletArgs.savedData.id
+					, selectFields = [ "#viewletArgs.name#.id" ]
+				);
+
+				viewletArgs.defaultValue = viewletArgs.savedValue = ValueList( viewletArgs.savedValue.id );
+			}
 		}
 
-		if ( Len( Trim ( value ) ) ) {
-			viewletArgs.selectedPage = siteTreeService.getPage( id = value, includeInactive=true );
+		viewletArgs.multiple    = viewletArgs.multiple ?: ( ( viewletArgs.relationship ?: "" ) == "many-to-many" );
+		viewletArgs.prefetchUrl = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="prefetchCacheBuster=#prefetchCacheBuster#" );
+		viewletArgs.remoteUrl   = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="q=%QUERY" );
+
+		if ( !Len( Trim( viewletArgs.placeholder ?: "" ) ) ) {
+			viewletArgs.placeholder = translateResource(
+				  uri  = "cms:datamanager.search.data.placeholder"
+				, data = [ translateResource( uri=presideObjectService.getResourceBundleUriRoot( "page" ) & "title", defaultValue=translateResource( "cms:datamanager.records" ) ) ]
+			);
 		}
 
 		return renderView( view="formcontrols/sitetreePagePicker/index", args=viewletArgs );

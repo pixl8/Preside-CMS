@@ -427,6 +427,33 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getPagesForAjaxPicker" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var records = siteTreeService.getPagesForAjaxSelect(
+				  maxRows      = rc.maxRows      ?: 1000
+				, searchQuery  = rc.q            ?: ""
+				, ids          = ListToArray( rc.values ?: "" )
+			);
+			var recordsWithIcons = [];
+
+			for ( record in records ) {
+				if ( Len( Trim( record.main_image ?: "" ) ) ) {
+					record.icon = renderAsset( record.value, "pickerIcon" );
+				} else {
+					record.icon = "";
+				}
+				recordsWithIcons.append( record );
+			}
+
+				event.renderData( type="json", data=recordsWithIcons );
+			</cfscript>
+		</cffunction>
+
+
 <!--- private helpers --->
 	<cffunction name="_getPageTypeFormName" access="private" returntype="string" output="false">
 		<cfargument name="pageType" type="any" required="true" />
