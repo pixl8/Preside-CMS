@@ -68,8 +68,13 @@ component output=false {
 		settings.globalPermissionKeys = [ "sitetree", "assetmanager", "datamanager", "usermanager" ];
 
 		settings.ckeditor = {
-			  toolbars    = _getCkEditorToolbarConfig()
-			, stylesheets = [ "/core/" ]
+			  defaults    = {
+			  	  stylesheets = [ "/core/" ]
+			  	, width       = "auto"
+			  	, height      = "auto"
+			  	, configFile  = "/ckeditorExtensions/config.js"
+			  }
+			, toolbars    = _getCkEditorToolbarConfig()
 		}
 
 	}

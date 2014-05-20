@@ -7,10 +7,10 @@ PresideRichEditor = ( function( $ ){
 	PresideRichEditor.prototype.init = function( elementToReplace ){
 		var $elementToReplace = $( elementToReplace )
 		  , config       = {}
-		  , toolbar      = $elementToReplace.data( "toolbar" )
-		  , width        = $elementToReplace.data( "width" )
-		  , height       = $elementToReplace.data( "height" )
-		  , stylesheets  = $elementToReplace.data( "stylesheets" )
+		  , toolbar      = $elementToReplace.data( "toolbar" )      || cfrequest.ckeditorDefaultToolbar
+		  , width        = $elementToReplace.data( "width" )        || cfrequest.ckeditorDefaultWidth
+		  , height       = $elementToReplace.data( "height" )       || cfrequest.ckeditorDefaultHeight
+		  , stylesheets  = $elementToReplace.data( "stylesheets" )  || cfrequest.ckeditorDefaultStyleSheets
 		  , customConfig = $elementToReplace.data( "customConfig" ) || cfrequest.ckeditorConfig
 		  , editor;
 

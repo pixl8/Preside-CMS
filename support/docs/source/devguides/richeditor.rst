@@ -21,8 +21,8 @@ Default settings and toolbar sets can be configured in your site's :doc:`Config.
 
         // default settings
         settings.ckeditor.defaults = {
-              width       = 800                                   // default width of the editor, in pixels
-            , height      = 400                                   // default height of the editor, in pixels
+              width       = "auto"                                // default width of the editor, in pixels if numeric
+            , height      = 400                                   // default height of the editor, in pixels if numeric
             , toolbar     = "full"                                // default toolbar set, see below
             , stylesheets = [ "/specific/richeditor/", "/core/" ] // array of stylesheets to be included in editor body
             , configFile  = "/ckeditorExtensions/config.js"       // path is relative to the compiled assets folder
