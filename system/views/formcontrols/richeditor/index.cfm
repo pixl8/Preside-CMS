@@ -31,8 +31,12 @@
 	          <cfif Val( args.width ?: "" )>
 	              data-width="#Val( args.width )#"
 	          </cfif>
-	          <cfif Val( args.height ?: "" )>
-	              data-height="#Val( args.height )#"
+	          <cfif Val( args.minHeight ?: "" )>
+	              data-min-height="#Val( args.minHeight )#"
 	          </cfif>
+	          <cfif Val( args.maxHeight ?: "" )>
+	              data-max-height="#Val( args.maxHeight )#"
+	          </cfif>
+
 	>#value#</textarea>
 </cfoutput>

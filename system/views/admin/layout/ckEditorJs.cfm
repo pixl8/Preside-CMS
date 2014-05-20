@@ -5,9 +5,10 @@
 
 	event.includeData( {
 		  ckeditorConfig             = staticRoot & ( ckeditorSettings.defaults.configFile ?: "/ckeditorExtensions/config.js" )
-		, ckeditorDefaultToolbar     = ckeditorSettings.defaults.toolbar ?: ""
-		, ckeditorDefaultWidth       = ckeditorSettings.defaults.width  ?: "auto"
-		, ckeditorDefaultHeight      = ckeditorSettings.defaults.height ?: "auto"
+		, ckeditorDefaultToolbar     = ckeditorSettings.defaults.toolbar   ?: ""
+		, ckeditorDefaultWidth       = ckeditorSettings.defaults.width     ?: "auto"
+		, ckeditorDefaultMinHeight   = ckeditorSettings.defaults.minHeight ?: "auto"
+		, ckeditorDefaultMaxHeight   = ckeditorSettings.defaults.maxHeight ?: 600
 	} );
 </cfscript>
 

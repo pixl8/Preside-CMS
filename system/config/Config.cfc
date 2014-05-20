@@ -71,7 +71,8 @@ component output=false {
 			  defaults    = {
 			  	  stylesheets = [ "/admin/specific/richeditor/", "/core/" ]
 			  	, width       = "auto"
-			  	, height      = "auto"
+			  	, minHeight   = 0
+			  	, maxHeight   = 600
 			  	, configFile  = "/ckeditorExtensions/config.js"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
@@ -172,21 +173,19 @@ component output=false {
 			         & '|Find,Replace,-,SelectAll,-,Scayt'
 			         & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
 			         & '|Link,Unlink,Anchor'
-			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat'
+			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
 			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
-			         & '|Styles,Format,Font,FontSize'
-			         & '|TextColor,BGColor',
+			         & '|Styles,Format',
 
 			noInserts = 'Maximize,-,Source,-,Preview'
 			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 			         & '|Find,Replace,-,SelectAll,-,Scayt'
 			         & '|Link,Unlink,Anchor'
-			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript,-,RemoveFormat'
+			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
 			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
-			         & '|Styles,Format,Font,FontSize'
-			         & '|TextColor,BGColor',
+			         & '|Styles,Format',
 
-			bolditaliconly = 'Bold,Italic,-,RemoveFormat'
+			bolditaliconly = 'Bold,Italic'
 		};
 
 	}

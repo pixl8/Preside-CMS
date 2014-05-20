@@ -10,16 +10,22 @@
 
 
 CKEDITOR.editorConfig = function( config ) {
-	// activate out plugins
-	config.extraPlugins = "widgets,imagepicker,attachmentpicker";
+	// activate our plugins
+	config.extraPlugins = "widgets,imagepicker,attachmentpicker,stylesheetparser";
 
-	config.toolbar = "full"; // default toolbar
+	// the skin we are using
+	config.skin = "bootstrapck";
+
+	// configuring the auto imported styles from editor stylesheet (see stylesheetparser plugin)
+	config.stylesSet = [];
+	config.stylesheetParser_validSelectors = /^(p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong)\.\w+/;
 
 	// Set the most common block elements.
 	config.format_tags = 'p;h1;h2;h3;pre';
 
-	// 'cos the <p> tag functionality is just horrible
-	config.enterMode = CKEDITOR.ENTER_BR;
+	// auto grow config
+	config.autoGrow_onStartup = true;
 
-	config.skin = "bootstrapck";
+	// turn that damned auto P tag feature off!
+	config.autoParagraph = false;
 };

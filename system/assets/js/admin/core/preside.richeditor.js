@@ -9,7 +9,8 @@ PresideRichEditor = ( function( $ ){
 		  , config       = {}
 		  , toolbar      = $elementToReplace.data( "toolbar" )      || cfrequest.ckeditorDefaultToolbar
 		  , width        = $elementToReplace.data( "width" )        || cfrequest.ckeditorDefaultWidth
-		  , height       = $elementToReplace.data( "height" )       || cfrequest.ckeditorDefaultHeight
+		  , minHeight    = $elementToReplace.data( "minHeight" )    || cfrequest.ckeditorDefaultMinHeight
+		  , maxHeight    = $elementToReplace.data( "maxHeight" )    || cfrequest.ckeditorDefaultMaxHeight
 		  , customConfig = $elementToReplace.data( "customConfig" ) || cfrequest.ckeditorConfig
 		  , stylesheets  = $elementToReplace.data( "stylesheets" )
 		  , editor;
@@ -26,8 +27,11 @@ PresideRichEditor = ( function( $ ){
 		if ( width ) {
 			config.width = width;
 		}
-		if ( height ) {
-			config.height = height;
+		if ( minHeight ) {
+			config.autoGrow_minHeight = isNaN( parseInt( minHeight ) ) ? 0 : parseInt( minHeight );
+		}
+		if ( maxHeight ) {
+			config.autoGrow_maxHeight = isNaN( parseInt( maxHeight ) ) ? 0 : parseInt( maxHeight );
 		}
 
 		this.editor = CKEDITOR.replace( elementToReplace, config );
