@@ -69,7 +69,7 @@ component output=false {
 
 		settings.ckeditor = {
 			  defaults    = {
-			  	  stylesheets = [ "/core/" ]
+			  	  stylesheets = [ "/admin/specific/richeditor/", "/core/" ]
 			  	, width       = "auto"
 			  	, height      = "auto"
 			  	, configFile  = "/ckeditorExtensions/config.js"
