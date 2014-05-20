@@ -8,7 +8,6 @@
 		, ckeditorDefaultToolbar     = ckeditorSettings.defaults.toolbar ?: ""
 		, ckeditorDefaultWidth       = ckeditorSettings.defaults.width  ?: "auto"
 		, ckeditorDefaultHeight      = ckeditorSettings.defaults.height ?: "auto"
-		, ckeditorDefaultStyleSheets = ArrayToList( ckeditorSettings.defaults.stylesheets ?: [] )
 	} );
 </cfscript>
 

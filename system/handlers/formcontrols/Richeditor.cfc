@@ -5,8 +5,7 @@ component output=false {
 
 	public string function index( event, rc, prc, viewletArgs={} ) output=false {
 		var toolbar     = viewletArgs.toolbar ?: "full";
-		var stylesheets = viewletArgs.stylesheets ?: Duplicate( ckeditorSettings.stylesheets ?: "" );
-
+		var stylesheets = viewletArgs.stylesheets ?: Duplicate( ckeditorSettings.defaults.stylesheets ?: "" );
 		if ( isSimpleValue( stylesheets ) ) {
 			stylesheets = ListToArray( stylesheets );
 		}
@@ -14,6 +13,7 @@ component output=false {
 		for( var i=1; i <= stylesheets.len(); i++ ){
 			stylesheets[i] = cfstatic.getIncludeUrl( "css", stylesheets[i] );
 		}
+
 		viewletArgs.stylesheets = ArrayToList( stylesheets );
 		if ( Len( Trim( toolbar ) ) ) {
 			viewletArgs.toolbar = ckeditorToolbarHelper.getToolbarDefinition( toolbar );

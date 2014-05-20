@@ -10,8 +10,8 @@ PresideRichEditor = ( function( $ ){
 		  , toolbar      = $elementToReplace.data( "toolbar" )      || cfrequest.ckeditorDefaultToolbar
 		  , width        = $elementToReplace.data( "width" )        || cfrequest.ckeditorDefaultWidth
 		  , height       = $elementToReplace.data( "height" )       || cfrequest.ckeditorDefaultHeight
-		  , stylesheets  = $elementToReplace.data( "stylesheets" )  || cfrequest.ckeditorDefaultStyleSheets
 		  , customConfig = $elementToReplace.data( "customConfig" ) || cfrequest.ckeditorConfig
+		  , stylesheets  = $elementToReplace.data( "stylesheets" )
 		  , editor;
 
 		if ( toolbar && toolbar.length ) {
