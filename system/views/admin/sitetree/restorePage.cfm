@@ -17,7 +17,7 @@
 		<input type="hidden" name="id" value="#event.getValue( name='id', defaultValue='' )#" />
 
 		#renderForm(
-			  formName         = "preside-objects.page.admin.restore"
+			  formName         = "preside-objects.page.restore"
 			, context          = "admin"
 			, formId           = formId
 			, savedData        = page
