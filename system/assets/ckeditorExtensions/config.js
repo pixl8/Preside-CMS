@@ -29,4 +29,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// turn that damned auto P tag feature off!
 	config.autoParagraph = false;
+
+	// email obfuscation for link plugin
+	config.emailProtection = 'encode';
 };
