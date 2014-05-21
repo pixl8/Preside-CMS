@@ -5,6 +5,7 @@
 			<field name="emailaddress" control="textinput" required="true"  maxlength="255" label="cms:ckeditor.linkpicker.emailaddress.label" placeholder="cms:ckeditor.linkpicker.emailaddress.placeholder" />
 			<field name="emailsubject" control="textinput" required="false" maxlength="100" label="cms:ckeditor.linkpicker.emailsubject.label" />
 			<field name="emaibody"     control="textarea"  required="false" maxlength="200" label="cms:ckeditor.linkpicker.emaibody.label" />
+			<field name="title"        control="textinput" required="false" maxlength="200" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" />
 		</fieldset>
 	</tab>
 </form>
