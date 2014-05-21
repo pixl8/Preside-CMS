@@ -14,7 +14,7 @@
 		icons: 'widgets',
 
 		onLoad: function() {
-			CKEDITOR.addCss( '.widget-placeholder{background:#eee url(' + this.path + 'icons/widgets.png) 6px center no-repeat;padding:6px 10px 6px 32px;border:1px solid #ccc;border-radius:5px;display:inline-block;margin:2px;}' );
+			CKEDITOR.addCss( '.widget-placeholder{background:#eee url(' + this.path + 'icons/widgets.png) 6px center no-repeat;padding:6px 10px 6px 26px;border:1px solid #ccc;border-radius:5px;display:inline-block;margin:2px;}' );
 		},
 
 		init: function( editor ) {
