@@ -1,8 +1,9 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
+	placeholder  = args.placeholder  ?: "";
+	placeholder = translateResource( uri=placeholder, defaultValue=placeholder );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
