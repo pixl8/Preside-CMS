@@ -85,12 +85,13 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public query function getPagesForAjaxSelect(
-		  numeric maxRows     = 100
+		  numeric maxRows     = 1000
 		, string  searchQuery = ""
 		, array   ids         = []
+		, string  site        = getDefaultSiteId()
 	) output=false {
-		var filter      = "( page.trashed = 0 )";
-		var params      = {};
+		var filter = "( page.trashed = 0 and page.site = :site )";
+		var params = { site = arguments.site };
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( page.id in (:id) )";
@@ -102,11 +103,11 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		return _getPobj().selectData(
-			  selectFields = [ "page.id as value", "page.label as text", "page.main_image", "parent_page.label as parent" ]
+			  selectFields = [ "page.id as value", "page.label as text", "parent_page.label as parent", "page._hierarchy_depth as depth" ]
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows
-			, orderBy      = "page.datemodified desc"
+			, orderBy      = "page._hierarchy_sort_order"
 		);
 	}
 

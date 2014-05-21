@@ -5,10 +5,9 @@
 	defaultValue       = args.defaultValue ?: "";
 	remoteUrl          = args.remoteUrl    ?: "";
 	prefetchUrl        = args.prefetchUrl  ?: "";
-	browserUrl         = args.browserUrl   ?: "";
 	sortable           = args.sortable     ?: "";
 	multiple           = args.multiple     ?: "";
-	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div><div class="folder-and-text"><span class="folder">{{parent}}</span><span class="title">{{text}}</span></div></div>';
+	resultTemplate     = selectedTemplate = '<span class="result-container"><span class="parent">{{{parent}}} /</span> <span class="title">{{text}}</span>';
 	resultTemplateId   = "result_template_" & CreateUUId();
 	selectedTemplateId = "selected_template_" & CreateUUId();
 
@@ -21,7 +20,7 @@
 <cfoutput>
 	<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
 	<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-	<select class="uber-select-with-browser"
+	<select class="uber-select sitetree-page-picker"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
@@ -32,7 +31,6 @@
 	        data-remote-url="#remoteUrl#"
 	    	data-result-template="#resultTemplateId#"
 	    	data-selected-template="#selectedTemplateId#"
-	    	data-browser-url="#browserUrl#"
 	    	data-modal-title="#translateResource( 'cms:sitetree.browser.title' )#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"

@@ -63,7 +63,6 @@
 	/admin/frontend/frontendEditors.js
 
 /admin/core/preside.url.builder.js
-	/admin/core/preside.sitetreepage.picker.js
 	/admin/specific/datamanager/object/listingTable.js
 
 /admin/core/jquery.serialize-object.js

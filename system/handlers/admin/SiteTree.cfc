@@ -398,22 +398,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="picker" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			prc.tree = siteTreeService.getTree(
-				  trash        =  false
-				, format       = "nestedArray"
-				, selectFields = [ "id", "label" ]
-			);
-
-			event.setView( noLayout=true, view="/admin/sitetree/picker" );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="pageTypeDialog" access="private" returntype="string" output="false">
 		<cfargument name="event"       type="any"    required="true" />
 		<cfargument name="rc"          type="struct" required="true" />
@@ -438,18 +422,20 @@
 				, searchQuery  = rc.q            ?: ""
 				, ids          = ListToArray( rc.values ?: "" )
 			);
-			var recordsWithIcons = [];
+			var preparedPages = [];
 
 			for ( record in records ) {
-				if ( Len( Trim( record.main_image ?: "" ) ) ) {
-					record.icon = renderAsset( record.value, "pickerIcon" );
-				} else {
-					record.icon = "";
+				if ( IsNull( record.parent ?: ""  ) || !Len( Trim( record.parent ?: "" ) ) ) {
+					record.parent = "";
 				}
-				recordsWithIcons.append( record );
+				if ( record.depth ) {
+					record.parent = RepeatString( "&rarr;", record.depth ) & record.parent;
+				}
+
+				preparedPages.append( record );
 			}
 
-				event.renderData( type="json", data=recordsWithIcons );
+				event.renderData( type="json", data=preparedPages );
 			</cfscript>
 		</cffunction>
 
