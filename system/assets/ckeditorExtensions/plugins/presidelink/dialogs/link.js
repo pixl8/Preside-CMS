@@ -101,10 +101,9 @@
 			minHeight: 350,
 			onShow: function(){
 				dialog = this;
+				dialog.disableButton( "ok" );
+				dialog._plugin = plugin;
 				initializeIframe();
-			},
-			onOk: function() {
-				// TODO!
 			},
 			contents: [
 				{

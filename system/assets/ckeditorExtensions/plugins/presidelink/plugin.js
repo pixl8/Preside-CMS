@@ -576,8 +576,8 @@
 			// Compose the URL.
 			switch ( data.type ) {
 				case 'url':
-					var protocol = ( data.url && data.url.protocol != undefined ) ? data.url.protocol : 'http://',
-						url = ( data.url && CKEDITOR.tools.trim( data.url.url ) ) || '';
+					var protocol = ( data.protocol != undefined ) ? data.protocol : 'http://'
+					  , url      = ( data.address && CKEDITOR.tools.trim( data.address ) ) || '';
 
 					set[ 'data-cke-saved-href' ] = ( url.indexOf( '/' ) === 0 ) ? url : protocol + url;
 
@@ -590,15 +590,14 @@
 
 					break;
 				case 'email':
-					var email = data.email,
-						address = email.address,
-						linkHref;
+					var address = data.emailaddress
+					  , linkHref;
 
 					switch ( emailProtection ) {
 						case '':
 						case 'encode':
-							var subject = encodeURIComponent( email.subject || '' ),
-								body = encodeURIComponent( email.body || '' ),
+							var subject = encodeURIComponent( data.emailsubject || '' ),
+								body = encodeURIComponent( data.emailbody || '' ),
 								argList = [];
 
 							// Build the e-mail parameters first.
@@ -622,10 +621,14 @@
 						default:
 							// Separating name and domain.
 							var nameAndDomain = address.split( '@', 2 );
-							email.name = nameAndDomain[ 0 ];
-							email.domain = nameAndDomain[ 1 ];
 
-							linkHref = [ 'javascript:', protectEmailLinkAsFunction( editor, email ) ];
+							linkHref = [ 'javascript:', protectEmailLinkAsFunction( editor, {
+								  name    : nameAndDomain[ 0 ]
+								, domain  : nameAndDomain[ 1 ]
+								, address : address
+								, body    : ( data.emailbody    || "" )
+								, subject : ( data.emailsubject || "" )
+							} ) ];
 					}
 
 					set[ 'data-cke-saved-href' ] = linkHref.join( '' );
@@ -662,19 +665,6 @@
 					set.target = data.target.name;
 			}
 
-			// Advanced attributes.
-			if ( data.advanced ) {
-				for ( var a in advAttrNames ) {
-					var val = data.advanced[ advAttrNames[ a ] ];
-
-					if ( val )
-						set[ a ] = val;
-				}
-
-				if ( set.name )
-					set[ 'data-cke-saved-name' ] = set.name;
-			}
-
 			// Browser need the "href" fro copy/paste link to work. (#6641)
 			if ( set[ 'data-cke-saved-href' ] )
 				set.href = set[ 'data-cke-saved-href' ];
@@ -694,6 +684,54 @@
 				set: set,
 				removed: CKEDITOR.tools.objectKeys( removed )
 			};
+		},
+
+		updateLink: function( data, dialog ) {
+			var editor     = dialog.getParentEditor()
+			  , selection  = editor.getSelection()
+			  , attributes = this.getLinkAttributes( editor, data );
+
+			if ( !dialog._.selectedElement ) {
+				var range = selection.getRanges()[ 0 ];
+
+				// Use link URL as text with a collapsed cursor.
+				if ( range.collapsed ) {
+					// Short mailto link text view (#5736).
+					var text = new CKEDITOR.dom.text( data.type === 'email' ? data.email.address : attributes.set[ 'data-cke-saved-href' ], editor.document );
+					range.insertNode( text );
+					range.selectNodeContents( text );
+				}
+
+				// Apply style.
+				var style = new CKEDITOR.style( {
+					element: 'a',
+					attributes: attributes.set
+				} );
+
+				style.type = CKEDITOR.STYLE_INLINE; // need to override... dunno why.
+				style.applyToRange( range, editor );
+				range.select();
+			} else {
+				// We're only editing an existing link, so just overwrite the attributes.
+				var element = dialog._.selectedElement,
+					href = element.data( 'cke-saved-href' ),
+					textView = element.getHtml();
+
+				element.setAttributes( attributes.set );
+				element.removeAttributes( attributes.removed );
+
+				// Update text view when user changes protocol (#4612).
+				if ( href == textView || data.type == 'email' && textView.indexOf( '@' ) != -1 ) {
+					// Short mailto link text view (#5736).
+					element.setHtml( data.type == 'email' ?
+						data.email.address : attributes.set[ 'data-cke-saved-href' ] );
+
+					// We changed the content, so need to select it again.
+					selection.selectElement( element );
+				}
+
+				delete dialog._.selectedElement;
+			}
 		}
 	};
 
