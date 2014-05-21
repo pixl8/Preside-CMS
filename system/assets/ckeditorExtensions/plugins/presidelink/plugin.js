@@ -221,7 +221,7 @@
 		name: 'advName',
 		lang: 'advLangCode',
 		tabindex: 'advTabIndex',
-		title: 'advTitle',
+		title: 'title',
 		type: 'advContentType',
 		'class': 'advCSSClasses',
 		charset: 'advCharset',
@@ -467,8 +467,7 @@
 			if ( !retval.type ) {
 				if ( ( anchorMatch = href.match( anchorRegex ) ) ) {
 					retval.type = 'anchor';
-					retval.anchor = {};
-					retval.anchor.name = retval.anchor.id = anchorMatch[ 1 ];
+					retval.anchorname = anchorMatch[ 1 ];
 				}
 				// Protected email link as encoded string.
 				else if ( ( emailMatch = href.match( emailRegex ) ) ) {
@@ -476,10 +475,10 @@
 						bodyMatch = href.match( emailBodyRegex );
 
 					retval.type = 'email';
-					var email = ( retval.email = {} );
-					email.address = emailMatch[ 1 ];
-					subjectMatch && ( email.subject = decodeURIComponent( subjectMatch[ 1 ] ) );
-					bodyMatch && ( email.body = decodeURIComponent( bodyMatch[ 1 ] ) );
+
+					retval.emailaddress = emailMatch[ 1 ];
+					subjectMatch && ( retval.emailsubject = decodeURIComponent( subjectMatch[ 1 ] ) );
+					bodyMatch && ( retval.emailbody = decodeURIComponent( bodyMatch[ 1 ] ) );
 				}
 				else if ( href && ( urlMatch = href.match( presideLinkRegex ) ) ) {
 					retval.type = 'sitetreelink'
@@ -488,9 +487,8 @@
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
 					retval.type = 'url';
-					retval.url = {};
-					retval.url.protocol = urlMatch[ 1 ];
-					retval.url.url = urlMatch[ 2 ];
+					retval.protocol = urlMatch[ 1 ];
+					retval.address = urlMatch[ 2 ];
 				}
 			}
 
@@ -498,49 +496,21 @@
 			if ( element ) {
 				var target = element.getAttribute( 'target' );
 
-				// IE BUG: target attribute is an empty string instead of null in IE if it's not set.
-				if ( !target ) {
-					var onclick = element.data( 'cke-pa-onclick' ) || element.getAttribute( 'onclick' ),
-						onclickMatch = onclick && onclick.match( popupRegex );
-
-					if ( onclickMatch ) {
-						retval.target = {
-							type: 'popup',
-							name: onclickMatch[ 1 ]
-						};
-
-						var featureMatch;
-						while ( ( featureMatch = popupFeaturesRegex.exec( onclickMatch[ 2 ] ) ) ) {
-							// Some values should remain numbers (#7300)
-							if ( ( featureMatch[ 2 ] == 'yes' || featureMatch[ 2 ] == '1' ) && !( featureMatch[ 1 ] in { height: 1, width: 1, top: 1, left: 1 } ) )
-								retval.target[ featureMatch[ 1 ] ] = true;
-							else if ( isFinite( featureMatch[ 2 ] ) )
-								retval.target[ featureMatch[ 1 ] ] = featureMatch[ 2 ];
-						}
-					}
-				} else {
-					retval.target = {
-						type: target.match( selectableTargets ) ? target : 'frame',
-						name: target
-					};
+				if ( target ) {
+					retval.link_target = target;
 				}
-
-				var advanced = {};
 
 				for ( var a in advAttrNames ) {
 					var val = element.getAttribute( a );
 
-					if ( val )
-						advanced[ advAttrNames[ a ] ] = val;
+					if ( val ) {
+						retval[ advAttrNames[ a ] ] = val;
+					}
 				}
 
-				var advName = element.data( 'cke-saved-name' ) || advanced.advName;
-
-				if ( advName )
-					advanced.advName = advName;
-
-				if ( !CKEDITOR.tools.isEmpty( advanced ) )
-					retval.advanced = advanced;
+				if ( !retval.advName && element.data( 'cke-saved-name' ) ) {
+					retval.advName = element.data( 'cke-saved-name' );
+				}
 			}
 
 			return retval;
