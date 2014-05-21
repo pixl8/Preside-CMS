@@ -14,8 +14,10 @@
 
 		initializeIframe = function() {
 			var selection = editor.getSelection()
+			  , selectedRanges = selection.getRanges()
 			  , element = null
-			  , data;
+			  , data    = {}
+			  , anchors, i;
 
 			// Fill in all the relevant fields if there's already one link selected.
 			if ( ( element = plugin.getSelectedLink( editor ) ) && element.hasAttribute( 'href' ) ) {
@@ -24,11 +26,24 @@
 				if ( !selection.getSelectedElement() ) {
 					selection.selectElement( element );
 				}
+				data = plugin.parseLinkAttributes( editor, element );
+
 			} else {
 				element = null;
 			}
 
-			data = plugin.parseLinkAttributes( editor, element );
+			data.newAndEmptyLink = selectedRanges.length === 1 && selectedRanges[0].collapsed;
+
+			anchors = plugin.getEditorAnchors( editor );
+			data.anchors = [];
+			for( i=0; i < anchors.length; i++ ){
+				if ( anchors[i].id && data.anchors.indexOf( anchors[i].id ) === -1 ) {
+					data.anchors.push( anchors[i].id );
+				}
+				if ( anchors[i].name && data.anchors.indexOf( anchors[i].name ) === -1 ) {
+					data.anchors.push( anchors[i].name );
+				}
+			}
 
 			// Record down the selected element in the dialog.
 			dialog._.selectedElement = element;
