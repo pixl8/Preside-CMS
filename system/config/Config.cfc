@@ -172,7 +172,7 @@ component output=false {
 			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 			         & '|Find,Replace,-,SelectAll,-,Scayt'
 			         & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
-			         & '|Link,Unlink,Anchor'
+			         & '|PresideLink,PresideUnlink,PresideAnchor'
 			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
 			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 			         & '|Styles,Format',
@@ -180,7 +180,7 @@ component output=false {
 			noInserts = 'Maximize,-,Source,-,Preview'
 			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 			         & '|Find,Replace,-,SelectAll,-,Scayt'
-			         & '|Link,Unlink,Anchor'
+			         & '|PresideLink,PresideUnlink,PresideAnchor'
 			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
 			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 			         & '|Styles,Format',
