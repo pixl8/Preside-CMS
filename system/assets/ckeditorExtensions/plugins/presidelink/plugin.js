@@ -575,6 +575,9 @@
 
 			// Compose the URL.
 			switch ( data.type ) {
+				case 'sitetreelink':
+					set[ 'data-cke-saved-href' ] = '{{link:' + ( data.page || '' ) + ':link}}';
+					break;
 				case 'url':
 					var protocol = ( data.protocol != undefined ) ? data.protocol : 'http://'
 					  , url      = ( data.address && CKEDITOR.tools.trim( data.address ) ) || '';
@@ -636,38 +639,18 @@
 			}
 
 			// Popups and target.
-			if ( data.target ) {
-				if ( data.target.type == 'popup' ) {
-					var onclickList = [
-							'window.open(this.href, \'', data.target.name || '', '\', \''
-						],
-						featureList = [
-							'resizable', 'status', 'location', 'toolbar', 'menubar', 'fullscreen', 'scrollbars', 'dependent'
-						],
-						featureLength = featureList.length,
-						addFeature = function( featureName ) {
-							if ( data.target[ featureName ] )
-								featureList.push( featureName + '=' + data.target[ featureName ] );
-						};
+			if ( data.link_target && data.link_target !== "_self" ) {
+				set.target = data.link_target;
+			}
 
-					for ( var i = 0; i < featureLength; i++ )
-						featureList[ i ] = featureList[ i ] + ( data.target[ featureList[ i ] ] ? '=yes' : '=no' );
-
-					addFeature( 'width' );
-					addFeature( 'left' );
-					addFeature( 'height' );
-					addFeature( 'top' );
-
-					onclickList.push( featureList.join( ',' ), '\'); return false;' );
-					set[ 'data-cke-pa-onclick' ] = onclickList.join( '' );
-				}
-				else if ( data.target.type != 'notSet' && data.target.name )
-					set.target = data.target.name;
+			if ( data.title && data.title.length ) {
+				set.title = data.title;
 			}
 
 			// Browser need the "href" fro copy/paste link to work. (#6641)
-			if ( set[ 'data-cke-saved-href' ] )
+			if ( set[ 'data-cke-saved-href' ] ){
 				set.href = set[ 'data-cke-saved-href' ];
+			}
 
 			var removed = CKEDITOR.tools.extend( {
 				target: 1,
@@ -689,17 +672,19 @@
 		updateLink: function( data, dialog ) {
 			var editor     = dialog.getParentEditor()
 			  , selection  = editor.getSelection()
-			  , attributes = this.getLinkAttributes( editor, data );
+			  , attributes = this.getLinkAttributes( editor, data )
+			  , linkText, textEl;
 
 			if ( !dialog._.selectedElement ) {
 				var range = selection.getRanges()[ 0 ];
 
 				// Use link URL as text with a collapsed cursor.
 				if ( range.collapsed ) {
-					// Short mailto link text view (#5736).
-					var text = new CKEDITOR.dom.text( data.type === 'email' ? data.emailaddress : attributes.set[ 'data-cke-saved-href' ], editor.document );
-					range.insertNode( text );
-					range.selectNodeContents( text );
+					linkText = data.defaultText || ( data.type === 'email' ? data.emailaddress : attributes.set[ 'data-cke-saved-href' ] );
+					textEl   = new CKEDITOR.dom.text( linkText, editor.document );
+
+					range.insertNode( textEl );
+					range.selectNodeContents( textEl );
 				}
 
 				// Apply style.

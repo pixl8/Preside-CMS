@@ -21,7 +21,18 @@ var onDialogEvent = ( function( $ ){
 
 	saveLink = function( dialog ){
 		if ( $linkForm.valid() ) {
-			dialog._plugin.updateLink( $linkForm.serializeObject(), dialog )
+			var data = $linkForm.serializeObject()
+			  , selectedPage
+			  , pageControl = $( "#page" );
+
+			if ( pageControl.length ) {
+				selectedPage = pageControl.data( "uberSelect" ) && pageControl.data("uberSelect").getSelected();
+				if ( selectedPage.length ) {
+					data.defaultText = selectedPage[0].text;
+				}
+			}
+
+			dialog._plugin.updateLink( data, dialog )
 
 			return true;
 		}
