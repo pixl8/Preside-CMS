@@ -54,6 +54,7 @@
 			this.form_field = form_field;
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
+			this.selected = [];
 			this.setup_preselected_value();
 			this.set_sortable_options();
 			this.set_rendering_templates();
@@ -918,6 +919,7 @@
 
 		UberSelect.prototype.results_reset = function() {
 			this.hidden_field.val( "" );
+			this.selected = [];
 			this.selected_option_count = null;
 			this.single_set_selected_text();
 			this.show_search_field_default();
@@ -1003,9 +1005,11 @@
 				this.hidden_field.val( this.hidden_field.val() + "," + item.value );
 
 			} else {
+				this.selected = [];
 				this.single_set_selected_text( Mustache.render( this.selected_template, item ) );
 				this.hidden_field.val( item.value );
 			}
+			this.selected.push( item );
 		}
 
 		UberSelect.prototype.single_set_selected_text = function(text) {
@@ -1033,8 +1037,17 @@
 					}
 					this.hidden_field.val( values.join( ',' ) );
 				}
+
+				for( itemIndex=0; itemIndex<this.selected.length; itemIndex++ ){
+					if ( this.selected[itemIndex].value == item.value ) {
+						this.selected.splice( itemIndex, 1 );
+						break;
+					}
+				}
+
 			} else {
 				this.hidden_field.val( "" );
+				this.selected = [];
 			}
 
 			this.result_clear_highlight();
@@ -1213,6 +1226,10 @@
 
 				$uberSelect.hidden_field.val( newVal.length ? newVal.join( "," ) : "" );
 			}
+		};
+
+		UberSelect.prototype.getSelected = function(){
+			return this.selected;
 		};
 
 		UberSelect.browser_is_supported = function() {
