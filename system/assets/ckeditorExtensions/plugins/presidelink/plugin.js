@@ -3,7 +3,6 @@
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  *
  * May 2014: This file has been lightly modified for the purposes of integrating with PresideCMS
- * but all logic and copyright remains w/ CKSource.
  */
 
 'use strict';
@@ -207,6 +206,7 @@
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:http|https|ftp|news):\/\/)?(.*)$/,
+		presideLinkRegex = /^{{link:(.*?):link}}$/,
 		selectableTargets = /^(_(?:self|top|parent|blank))$/,
 		encodedEmailLinkRegex = /^javascript:void\(location\.href='mailto:'\+String\.fromCharCode\(([^)]+)\)(?:\+'(.*)')?\)$/,
 		functionCallProtectedEmailLinkRegex = /^javascript:([^(]+)\(([^)]+)\)$/,
@@ -480,6 +480,10 @@
 					email.address = emailMatch[ 1 ];
 					subjectMatch && ( email.subject = decodeURIComponent( subjectMatch[ 1 ] ) );
 					bodyMatch && ( email.body = decodeURIComponent( bodyMatch[ 1 ] ) );
+				}
+				else if ( href && ( urlMatch = href.match( presideLinkRegex ) ) ) {
+					retval.type = 'sitetreelink'
+					retval.page = urlMatch[ 1 ];
 				}
 				// urlRegex matches empty strings, so need to check for href as well.
 				else if ( href && ( urlMatch = href.match( urlRegex ) ) ) {
