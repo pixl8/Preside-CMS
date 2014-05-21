@@ -697,7 +697,7 @@
 				// Use link URL as text with a collapsed cursor.
 				if ( range.collapsed ) {
 					// Short mailto link text view (#5736).
-					var text = new CKEDITOR.dom.text( data.type === 'email' ? data.email.address : attributes.set[ 'data-cke-saved-href' ], editor.document );
+					var text = new CKEDITOR.dom.text( data.type === 'email' ? data.emailaddress : attributes.set[ 'data-cke-saved-href' ], editor.document );
 					range.insertNode( text );
 					range.selectNodeContents( text );
 				}
