@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="main">
+		<fieldset id="main">
+			<field name="page"        control="sitetreePagePicker" required="true" label="cms:ckeditor.linkpicker.page.label" />
+			<field name="link_target" control="select"             required="true" label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" />
+		</fieldset>
+	</tab>
+</form>

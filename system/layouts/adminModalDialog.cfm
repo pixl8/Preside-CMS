@@ -37,7 +37,7 @@
 	</head>
 
 	<body>
-		<div class="main-container widgets-browser" id="main-container">
+		<div class="main-container modal-dialog-layout-container" id="main-container">
 			<div class="main-container-inner">
 				<div class="main-content">
 					#body#
