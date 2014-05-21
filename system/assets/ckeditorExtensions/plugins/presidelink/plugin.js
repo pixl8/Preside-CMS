@@ -1,13 +1,16 @@
 ﻿/**
  * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
+ *
+ * May 2014: This file has been lightly modified for the purposes of integrating with PresideCMS
+ * but all logic and copyright remains w/ CKSource.
  */
 
 'use strict';
 
 ( function() {
 	CKEDITOR.plugins.add( 'presidelink', {
-		requires: 'dialog,fakeobjects',
+		requires: 'dialog,iframedialog,fakeobjects',
 		lang: 'en',
 		icons: 'presideanchor,presideanchor-rtl,presidelink,presideunlink',
 		hidpi: true,
