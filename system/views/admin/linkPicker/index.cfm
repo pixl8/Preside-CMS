@@ -5,17 +5,6 @@
 	if ( !ListFindNoCase( validLinkTypes, linkType ) ) {
 		linkType = "sitetreelink";
 	}
-
-	switch( linkType ) {
-		case "email":
-			formName = "richeditor.emailLink"
-			break;
-		case "url":
-			formName = "richeditor.plainLink"
-			break;
-		default:
-			formName = "richeditor.sitetreeLink"
-	}
 </cfscript>
 
 <cfoutput>
@@ -36,10 +25,10 @@
 				<input type="hidden" name="type" value="#linkType#" />
 
 				#renderForm(
-					  formName  = formName
+					  formName  = "richeditor.link"
 					, context   = "richeditor"
 					, formId    = "link-picker-form"
-					, savedData = event.getCollectionForForm( formName )
+					, savedData = event.getCollectionForForm( "richeditor.link" )
 				)#
 			</form>
 		</div>
