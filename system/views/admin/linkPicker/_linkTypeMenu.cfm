@@ -13,5 +13,8 @@
 		<li class="link-type<cfif args.selectedType eq 'email'> selected</cfif>">
 			<a href="##fieldset-email" class="link-type-link" data-link-type="email">#translateResource( "cms:ckeditor.linkpicker.type.email")#</a>
 		</li>
+		<li class="link-type<cfif args.selectedType eq 'anchor'> selected</cfif>">
+			<a href="##fieldset-anchor" class="link-type-link" data-link-type="anchor">#translateResource( "cms:ckeditor.linkpicker.type.anchor")#</a>
+		</li>
 	</ul>
 </cfoutput>

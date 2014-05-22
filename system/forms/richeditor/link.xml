@@ -17,6 +17,10 @@
 			<field name="emailsubject" control="textinput" required="false" maxlength="100" label="cms:ckeditor.linkpicker.emailsubject.label" />
 			<field name="emailbody"    control="textarea"  required="false" maxlength="200" label="cms:ckeditor.linkpicker.emailbody.label" />
 		</fieldset>
+
+		<fieldset id="anchor">
+			<field name="anchor" control="select" required="true" label="cms:ckeditor.linkpicker.anchor.label" placeholder="cms:ckeditor.linkpicker.anchor.placeholder" values="" />
+		</fieldset>
 	</tab>
 
 	<tab id="advanced" title="cms:ckeditor.linkpicker.advanced.tab">

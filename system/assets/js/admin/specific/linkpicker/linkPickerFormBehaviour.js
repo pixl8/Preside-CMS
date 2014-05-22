@@ -6,7 +6,7 @@
 	  , $links               = $typeLinkList.find( ".link-type-link" )
 	  , $toggleableFieldsets = $( "#tab-basic fieldset" )
 	  , $basicTabLink        = $( "#link-picker-form a[href='#tab-basic']" )
-	  , setActiveFieldset, deactivateFieldset, activateFieldset, initializeBehaviour;
+	  , setActiveFieldset, deactivateFieldset, activateFieldset, initializeBehaviour, setupAnchors;
 
 	initializeBehaviour = function(){
 		$links.click( function(e){
@@ -19,6 +19,31 @@
 		} );
 
 		setActiveFieldset();
+	};
+
+	setupAnchors = function(){
+		var anchors = cfrequest.anchors || []
+		  , $anchorsSelectBox = $( '#anchor' )
+		  , i, anchorCount;
+
+		if ( typeof anchors === "string" ) {
+			anchors = anchors.split( "," );
+		}
+
+		anchorCount = anchors.length;
+
+		if ( !anchorCount ) {
+			$anchorsSelectBox.attr( "data-placeholder", i18n.translateResource( "cms:ckeditor.linkpicker.no.anchors" ) )
+		} else {
+			$anchorsSelectBox.append( '<option value=""></option>' );
+			for( i=0; i < anchorCount; i++ ){
+				$anchorsSelectBox.append( '<option value="' + anchors[i] + '">' + anchors[i] + '</option>' );
+			}
+		}
+
+		// rebuild the uber select with the new options
+		$anchorsSelectBox.uberSelect( 'destroy' );
+		$anchorsSelectBox.uberSelect( { allow_single_deselect : true, inherit_select_classes : true } );
 	};
 
 	setActiveFieldset = function(){
@@ -46,6 +71,7 @@
 		$fieldset.find( "input,select,textarea" ).prop( 'disabled', false );
 	}
 
+	setupAnchors();
 	initializeBehaviour();
 
 } )( presideJQuery );

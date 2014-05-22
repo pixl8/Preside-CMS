@@ -1269,6 +1269,7 @@
 				uberSelect = $this.data( 'uberSelect' );
 				if ( options === 'destroy' && uberSelect ) {
 					uberSelect.destroy();
+					$this.removeData( 'uberSelect' );
 				} else if ( !uberSelect ) {
 					$this.data( 'uberSelect', new UberSelect( this, options ) );
 				}
