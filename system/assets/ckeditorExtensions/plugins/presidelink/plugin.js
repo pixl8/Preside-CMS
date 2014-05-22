@@ -467,7 +467,7 @@
 			if ( !retval.type ) {
 				if ( ( anchorMatch = href.match( anchorRegex ) ) ) {
 					retval.type = 'anchor';
-					retval.anchorname = anchorMatch[ 1 ];
+					retval.anchor = anchorMatch[ 1 ];
 				}
 				// Protected email link as encoded string.
 				else if ( ( emailMatch = href.match( emailRegex ) ) ) {
@@ -556,10 +556,7 @@
 
 					break;
 				case 'anchor':
-					var name = ( data.anchor && data.anchor.name ),
-						id = ( data.anchor && data.anchor.id );
-
-					set[ 'data-cke-saved-href' ] = '#' + ( name || id || '' );
+					set[ 'data-cke-saved-href' ] = '#' + ( data.anchor || '' );
 
 					break;
 				case 'email':
