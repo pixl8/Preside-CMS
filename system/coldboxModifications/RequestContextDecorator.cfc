@@ -131,9 +131,7 @@
 
 	<cffunction name="hasAdminPermission" access="public" returntype="boolean" output="false">
 		<cfscript>
-			var securitySvc = getModel( "AdminSecurityService" );
-
-			return securitySvc.hasPermission( argumentCollection = arguments );
+			return true; // temporary while we refactor
 		</cfscript>
 	</cffunction>
 
