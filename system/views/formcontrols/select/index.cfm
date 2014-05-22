@@ -20,7 +20,7 @@
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
-	        data-placeholder="#placeholder#"
+	        data-placeholder="#translateResource( uri=placeholder, defaultValue=placeholder )#"
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 	        data-value="#value#"
 	        <cfif IsBoolean( multiple ) && multiple>
