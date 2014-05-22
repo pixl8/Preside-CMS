@@ -1,5 +1,5 @@
 <cfoutput>
-	<fieldset>
+	<fieldset<cfif Len( Trim( args.id ?: "" ) )> id="fieldset-#args.id#"</cfif>>
 		<cfif Len( Trim( args.title ?: "" ) )>
 			<h3 class="header smaller lighter green">#translateResource( uri=args.title, defaultValue=args.title )#</h3>
 		</cfif>
