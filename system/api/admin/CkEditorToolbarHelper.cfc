@@ -1,8 +1,7 @@
 component output=false {
 
 // CONSTRUCTOR
-	public any function init( required any securityService, required struct configuredToolbars ) output=false {
-		_setSecurityService( arguments.securityService );
+	public any function init( required struct configuredToolbars ) output=false {
 		_setConfiguredToolbars( arguments.configuredToolbars );
 
 		return this;
@@ -12,7 +11,9 @@ component output=false {
 	public string function getToolbarDefinition( required string toolbarDefinition ) output=false {
 		var toolbars = _getConfiguredToolbars();
 
-		return _stripPermissionRestrictedButtons( toolbars[ arguments.toolbarDefinition ] ?: arguments.toolbarDefinition );
+		return toolbars;
+
+		// return _stripPermissionRestrictedButtons( toolbars[ arguments.toolbarDefinition ] ?: arguments.toolbarDefinition );
 	}
 
 
@@ -76,12 +77,4 @@ component output=false {
 	private void function _setConfiguredToolbars( required struct configuredToolbars ) output=false {
 		_configuredToolbars = arguments.configuredToolbars;
 	}
-
-	private any function _getSecurityService() output=false {
-		return _securityService;
-	}
-	private void function _setSecurityService( required any securityService ) output=false {
-		_securityService = arguments.securityService;
-	}
-
 }
