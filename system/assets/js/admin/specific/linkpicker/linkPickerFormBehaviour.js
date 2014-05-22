@@ -24,10 +24,14 @@
 	setupAnchors = function(){
 		var anchors = cfrequest.anchors || []
 		  , $anchorsSelectBox = $( '#anchor' )
+		  , currentValue = $anchorsSelectBox.data( "value" ) || ""
 		  , i, anchorCount;
 
 		if ( typeof anchors === "string" ) {
 			anchors = anchors.split( "," );
+		}
+		if ( currentValue.length && anchors.indexOf( currentValue ) === -1 ) {
+			anchors.push( currentValue );
 		}
 
 		anchorCount = anchors.length;
