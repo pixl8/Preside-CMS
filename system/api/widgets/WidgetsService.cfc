@@ -102,29 +102,6 @@ component extends="preside.system.base.Service" output=false {
 		return config;
 	}
 
-	public string function renderEmbeddedWidgets( required string richContent, string context="" ) output=false {
-		var embeddedWidget      = "";
-		var renderedWidget      = "";
-		var renderedContent = arguments.richContent;
-
-		do {
-			embeddedWidget = _findNextEmbeddedWidget( renderedContent );
-
-			if ( StructCount( embeddedWidget ) ) {
-				renderedWidget = renderWidget(
-					  widgetId = embeddedWidget.id
-					, configJson     = embeddedWidget.configJson
-					, context        = arguments.context
-				);
-
-				renderedContent = Replace( renderedContent, embeddedWidget.placeholder, renderedWidget, "all" );
-			}
-
-		} while ( StructCount( embeddedWidget ) );
-
-		return renderedContent;
-	}
-
 	public void function reload( struct configuredWidgets={} ) output=false {
 		_autoDiscoverWidgets();
 		_loadWidgetsFromConfig();
@@ -230,24 +207,6 @@ component extends="preside.system.base.Service" output=false {
 
 	private string function _getDescriptionByConvention( required string widgetId ) output=false {
 		return "widgets.#widgetId#:description";
-	}
-
-	private struct function _findNextEmbeddedWidget( required string richContent ) output=false {
-		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
-		// {{widget:myWidgetId:{option:"value",option2:"value"}:widget}}
-
-
-		var regex = "{{widget:([a-z\$_][a-z0-9\$_]*):(.*?):widget}}";
-		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
-		var widget    = {};
-
-		if ( ArrayLen( match.len ) eq 3 and match.len[1] and match.len[2] and match.len[3] ) {
-			widget.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
-			widget.id          = Mid( arguments.richContent, match.pos[2], match.len[2] );
-			widget.configJson  = Mid( arguments.richContent, match.pos[3], match.len[3] );
-		}
-
-		return widget;
 	}
 
 

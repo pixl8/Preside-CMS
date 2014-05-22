@@ -1,9 +1,11 @@
 component extends="preside.system.base.Service" output="false" {
 
 // CONSTRUCTOR
-	public any function init( required any coldbox, required any cache ) output=false {
+	public any function init( required any coldbox, required any cache, required any assetRendererService, required any widgetsService ) output=false {
 		_setColdbox( arguments.coldbox );
 		_setCache( arguments.cache );
+		_setAssetRendererService( arguments.assetRendererService );
+		_setWidgetsService( arguments.widgetsService );
 
 		_setRenderers( {} );
 
@@ -171,6 +173,89 @@ component extends="preside.system.base.Service" output="false" {
 		return fieldAttributes.type ?: "";
 	}
 
+	public string function renderEmbeddedImages( required string richContent, string context="richeditor" ) output=false {
+		var embeddedImage   = "";
+		var renderedImage   = "";
+		var renderedContent = arguments.richContent;
+
+		do {
+			embeddedImage = _findNextEmbeddedImage( renderedContent );
+
+			if ( Len( Trim( embeddedImage.asset ?: "" ) ) ) {
+				var viewletArgs = Duplicate( embeddedImage );
+
+				viewletArgs.delete( "asset" );
+				viewletArgs.delete( "placeholder" );
+
+				renderedImage = _getAssetRendererService().renderAsset(
+					  assetId = embeddedImage.asset
+					, context = arguments.context
+					, args    = viewletArgs
+				);
+			}
+
+			if ( Len( Trim( embeddedImage.placeholder ?: "" ) ) ) {
+				renderedContent = Replace( renderedContent, embeddedImage.placeholder, renderedImage, "all" );
+			}
+
+		} while ( StructCount( embeddedImage ) );
+
+		return renderedContent;
+	}
+
+	public string function renderEmbeddedAttachments( required string richContent, string context="richeditor" ) output=false {
+		var embeddedAttachment   = "";
+		var renderedAttachment   = "";
+		var renderedContent = arguments.richContent;
+
+		do {
+			embeddedAttachment = _findNextEmbeddedAttachment( renderedContent );
+
+			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) ) {
+				var viewletArgs = Duplicate( embeddedAttachment );
+
+				viewletArgs.delete( "asset" );
+				viewletArgs.delete( "placeholder" );
+
+				renderedAttachment = _getAssetRendererService().renderAsset(
+					  assetId = embeddedAttachment.asset
+					, context = arguments.context
+					, args    = viewletArgs
+				);
+			}
+
+			if ( Len( Trim( embeddedAttachment.placeholder ?: "" ) ) ) {
+				renderedContent = Replace( renderedContent, embeddedAttachment.placeholder, renderedAttachment, "all" );
+			}
+
+		} while ( StructCount( embeddedAttachment ) );
+
+		return renderedContent;
+	}
+
+	public string function renderEmbeddedWidgets( required string richContent, string context="" ) output=false {
+		var embeddedWidget      = "";
+		var renderedWidget      = "";
+		var renderedContent = arguments.richContent;
+
+		do {
+			embeddedWidget = _findNextEmbeddedWidget( renderedContent );
+
+			if ( StructCount( embeddedWidget ) ) {
+				renderedWidget = _getWidgetsService().renderWidget(
+					  widgetId = embeddedWidget.id
+					, configJson     = embeddedWidget.configJson
+					, context        = arguments.context
+				);
+
+				renderedContent = Replace( renderedContent, embeddedWidget.placeholder, renderedWidget, "all" );
+			}
+
+		} while ( StructCount( embeddedWidget ) );
+
+		return renderedContent;
+	}
+
 // PRIVATE HELPERS
 	private ContentRenderer function _getRenderer( required string name, required string context ) output=false {
 		var renderers            = _getRenderers();
@@ -256,6 +341,74 @@ component extends="preside.system.base.Service" output="false" {
 		return control;
 	}
 
+	private struct function _findNextEmbeddedImage( required string richContent ) output=false {
+		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// {{image:{asset:"assetId",option:"value",option2:"value"}:image}}
+
+
+		var regex  = "{{image:(.*?):image}}";
+		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var img    = {};
+		var config = "";
+
+		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+			img.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
+
+			config = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			config = UrlDecode( config );
+
+			try {
+				config = DeserializeJson( config );
+				StructAppend( img, config );
+			} catch ( any e ) {}
+		}
+
+		return img;
+	}
+
+	private struct function _findNextEmbeddedAttachment( required string richContent ) output=false {
+		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// {{attachment:{asset:"assetId",option:"value",option2:"value"}:attachment}}
+
+
+		var regex      = "{{attachment:(.*?):attachment}}";
+		var match      = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var attachment = {};
+		var config     = "";
+
+		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+			attachment.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
+
+			config = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			config = UrlDecode( config );
+
+			try {
+				config = DeserializeJson( config );
+				StructAppend( attachment, config );
+			} catch ( any e ) {}
+		}
+
+		return attachment;
+	}
+
+	private struct function _findNextEmbeddedWidget( required string richContent ) output=false {
+		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// {{widget:myWidgetId:{option:"value",option2:"value"}:widget}}
+
+
+		var regex = "{{widget:([a-z\$_][a-z0-9\$_]*):(.*?):widget}}";
+		var match = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var widget    = {};
+
+		if ( ArrayLen( match.len ) eq 3 and match.len[1] and match.len[2] and match.len[3] ) {
+			widget.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
+			widget.id          = Mid( arguments.richContent, match.pos[2], match.len[2] );
+			widget.configJson  = Mid( arguments.richContent, match.pos[3], match.len[3] );
+		}
+
+		return widget;
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getColdbox() output=false {
@@ -276,5 +429,19 @@ component extends="preside.system.base.Service" output="false" {
 	}
 	private void function _setRenderers( required struct renderers ) output=false {
 		_renderers = arguments.renderers;
+	}
+
+	private any function _getAssetRendererService() output=false {
+		return _assetRendererService;
+	}
+	private void function _setAssetRendererService( required any assetRendererService ) output=false {
+		_assetRendererService = arguments.assetRendererService;
+	}
+
+	private any function _getWidgetsService() output=false {
+		return _widgetsService;
+	}
+	private void function _setWidgetsService( required any widgetsService ) output=false {
+		_widgetsService = arguments.widgetsService;
 	}
 }

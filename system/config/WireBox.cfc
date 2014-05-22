@@ -158,8 +158,10 @@
 			.initArg( name="coldbox"                , value = getColdbox()                 );
 
 		map( "contentRenderer" ).asSingleton().to( "preside.system.api.rendering.ContentRendererService" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="coldbox", value=getColdbox() )
-			.initArg( name="cache"  , dsl="cachebox:systemCache" );
+			.initArg( name="coldbox"             , value=getColdbox() )
+			.initArg( name="cache"               , dsl="cachebox:systemCache" )
+			.initArg( name="assetRendererService", ref="assetRendererService" )
+			.initArg( name="widgetsService"      , ref="widgetsService" );
 
 		map( "pageTypesService" ).asSingleton().to( "preside.system.api.pageTypes.PageTypesService" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="autoDiscoverDirectories", value = _getApplicationDirectories()  );
