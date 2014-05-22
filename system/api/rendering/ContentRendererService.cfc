@@ -256,6 +256,27 @@ component extends="preside.system.base.Service" output="false" {
 		return renderedContent;
 	}
 
+	public string function renderEmbeddedLinks( required string richContent ) output=false {
+		var renderedContent = arguments.richContent;
+		var embeddedLink    = "";
+		var renderedLink    = "";
+
+		do {
+			embeddedLink = _findNextEmbeddedLink( renderedContent );
+
+			if ( Len( Trim( embeddedLink.page ?: "" ) ) ) {
+				renderedLink = _getColdbox().getRequestContext().buildLink( page=embeddedLink.page );
+			}
+
+			if ( Len( Trim( embeddedLink.placeholder ?: "" ) ) ) {
+				renderedContent = Replace( renderedContent, embeddedLink.placeholder, renderedLink, "all" );
+			}
+
+		} while ( StructCount( embeddedLink ) );
+
+		return renderedContent;
+	}
+
 // PRIVATE HELPERS
 	private ContentRenderer function _getRenderer( required string name, required string context ) output=false {
 		var renderers            = _getRenderers();
@@ -407,6 +428,23 @@ component extends="preside.system.base.Service" output="false" {
 		}
 
 		return widget;
+	}
+
+	private struct function _findNextEmbeddedLink( required string richContent ) output=false {
+		// The following regex is designed to match the following pattern that would be embedded in rich editor content:
+		// {{link:pageid:link}}
+
+
+		var regex  = "{{link:(.*?):link}}";
+		var match  = ReFindNoCase( regex, arguments.richContent, 1, true );
+		var link   = {};
+
+		if ( ArrayLen( match.len ) eq 2 and match.len[1] and match.len[2] ) {
+			link.placeHolder = Mid( arguments.richContent, match.pos[1], match.len[1] );
+			link.page        = Mid( arguments.richContent, match.pos[2], match.len[2] );
+		}
+
+		return link;
 	}
 
 

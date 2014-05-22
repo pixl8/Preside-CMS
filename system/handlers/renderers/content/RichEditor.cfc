@@ -7,6 +7,7 @@ component output=false {
 		content = contentRenderer.renderEmbeddedWidgets( richContent = content );
 		content = contentRenderer.renderEmbeddedImages( richContent=content, context="richeditor" );
 		content = contentRenderer.renderEmbeddedAttachments( richContent=content, context="richeditor" );
+		content = contentRenderer.renderEmbeddedLinks( richContent=content );
 
 		return content;
 	}
