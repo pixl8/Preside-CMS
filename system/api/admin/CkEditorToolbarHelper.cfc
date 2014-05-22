@@ -11,7 +11,7 @@ component output=false {
 	public string function getToolbarDefinition( required string toolbarDefinition ) output=false {
 		var toolbars = _getConfiguredToolbars();
 
-		return toolbars;
+		return toolbars[ arguments.toolbarDefinition ] ?: arguments.toolbarDefinition;
 
 		// return _stripPermissionRestrictedButtons( toolbars[ arguments.toolbarDefinition ] ?: arguments.toolbarDefinition );
 	}
