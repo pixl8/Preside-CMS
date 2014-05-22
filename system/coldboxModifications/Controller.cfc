@@ -25,7 +25,7 @@ component extends="coldbox.system.web.Controller" output=false {
 				cache.set( cacheKey, false );
 				return false;
 			}
-			handler = handlerSvc.getHandler( handler, _getRequestContext() );
+			handler = handlerSvc.getHandler( handler, getRequestContext() );
 			handler = GetMetaData( handler );
 			if ( Right( handler.fullname ?: "", Len( arguments.event ) ) eq arguments.event ) {
 				action = getSetting( name="EventAction", fwSetting=true, defaultValue="index" );
@@ -92,11 +92,11 @@ component extends="coldbox.system.web.Controller" output=false {
 		);
 	}
 
-// private helpers
-	private any function _getRequestContext() output=false {
+	public any function getRequestContext() output=false {
 		return getRequestService().requestCapture();
 	}
 
+// private helpers
 	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) output=false {
 		if ( StructKeyExists( arguments.handlerMeta, "extends" ) and _actionExistsInHandler( arguments.handlerMeta.extends, arguments.action ) ) {
 			return true;
