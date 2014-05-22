@@ -250,6 +250,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, presideObjectService = presideObjectService
 			, coldbox              = mockColdBox
 			, cache                = cache
+			, assetRendererService = getMockBox().createEmptyMock( "preside.system.api.assetManager.assetRendererService" )
+			, widgetsService       = getMockBox().createEmptyMock( "preside.system.api.widgets.widgetsService" )
 		);
 	}
 }
