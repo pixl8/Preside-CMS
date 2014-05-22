@@ -544,7 +544,9 @@
 				this.form_field_jq[0].tabIndex = this.search_field[0].tabIndex;
 			}
 			this.container.remove();
-			this.form_field_jq.removeData('chosen');
+			this.form_field_jq.removeData('uberSelect');
+			this.form_field_jq.attr( 'name', this.hidden_field.attr('name') );
+			this.hidden_field.remove();
 			return this.form_field_jq.show();
 		};
 
@@ -726,7 +728,7 @@
 				} );
 
 			} else {
-				for( _i=0; _i<_len; _i++ ){ _addOption( _data[ _i ] ); }
+				for( _i=0; _i<_data.length; _i++ ){ _addOption( _data[ _i ] ); }
 			}
 		};
 
