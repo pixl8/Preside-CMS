@@ -90,7 +90,7 @@
 			.initArg( name="sitetreeService", ref="siteTreeService" );
 
 	// admin related services
-		map( "adminSecurityService" ).asSingleton().to( "preside.system.api.admin.SecurityService" ).parent( "baseService" ).noAutoWire()
+		map( "adminLoginService" ).asSingleton().to( "preside.system.api.admin.LoginService" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="sessionService", ref="sessionService"                      )
 			.initArg( name="bCryptService" , ref="bCryptService"                       )
 			.initArg( name="systemUserList", value=settings.system_users ?: "sysadmin" );
@@ -127,7 +127,6 @@
 			.initArg( name="coldbox", value=getColdbox() );
 
 		map( "ckeditorToolbarHelper" ).asSingleton().to( "preside.system.api.admin.CkEditorToolbarHelper" ).noAutowire()
-			.initArg( name="securityService"   , ref="adminSecurityService" )
 			.initArg( name="configuredToolbars", value=settings.ckeditor.toolbars ?: {} );
 
 	// globally used services
@@ -139,8 +138,8 @@
 			.initArg( name="resourceBundleService", ref="resourceBundleService" );
 
 		map( "siteTreeService" ).asSingleton().to( "preside.system.api.siteTree.SiteTreeService" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="securityService"     , ref="adminSecurityService" )
-			.initArg( name="pageTypesService"    , ref="pageTypesService" );
+			.initArg( name="loginService"    , ref="adminLoginService" )
+			.initArg( name="pageTypesService", ref="pageTypesService" );
 
 		map( "formsService" ).asSingleton().to( "preside.system.api.forms.FormsService" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="validationEngine"         , ref   = "validationEngine"                      )

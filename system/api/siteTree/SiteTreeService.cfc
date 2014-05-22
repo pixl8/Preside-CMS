@@ -1,10 +1,10 @@
 component output=false extends="preside.system.base.Service" {
 
 // CONSTRUCTOR
-	public any function init( required any securityService, required any pageTypesService ) output=false {
+	public any function init( required any loginService, required any pageTypesService ) output=false {
 		super.init( argumentCollection = arguments );
 
-		_setSecurityService( arguments.securityService );
+		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
 
 		return this;
@@ -276,8 +276,8 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public query function getSiteHomepage( array selectFields=[], string site=getDefaultSiteId(), boolean createIfNotExists=true ) output=false {
-		var securitySvc = _getSecurityService();
-		var homepage    = _getPobj().selectData(
+		var loginSvc       = _getLoginService();
+		var homepage       = _getPobj().selectData(
 			  maxRows      = 1
 			, orderBy      = "_hierarchy_depth, _hierarchy_sort_order"
 			, selectFields = arguments.selectFields
@@ -298,7 +298,7 @@ component output=false extends="preside.system.base.Service" {
 			, page_type     = "homepage"
 			, site          = arguments.site
 			, active        = 1
-			, userId        = ( securitySvc.isLoggedIn() ? securitySvc.getLoggedInUserId() : securitySvc.getSystemUserId() )
+			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		);
 
 		return getPage( id=homepage, selectFields=arguments.selectFields );
@@ -310,7 +310,7 @@ component output=false extends="preside.system.base.Service" {
 		, required string page_type
 		,          string parent_page
 		,          string site        = getDefaultSiteId()
-		,          string userId      = _getSecurityService().getLoggedInUserId()
+		,          string userId      = _getLoginService().getLoggedInUserId()
 
 	) output=false {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
@@ -721,11 +721,11 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getSecurityService() output=false {
-		return _securityService;
+	private any function _getLoginService() output=false {
+		return _loginService;
 	}
-	private void function _setSecurityService( required any securityService ) output=false {
-		_securityService = arguments.securityService;
+	private void function _setLoginService( required any loginService ) output=false {
+		_loginService = arguments.loginService;
 	}
 
 	private any function _getPageTypesService() output=false {

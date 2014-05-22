@@ -15,7 +15,7 @@
 			var logger    = _getTestLogger();
 			var pageTypesService = new preside.system.api.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ] );
 
-			securityService = new preside.system.api.admin.SecurityService(
+			loginService = new preside.system.api.admin.loginService(
 				  logger               = logger
 				, presideObjectService = poService
 				, sessionService       = new preside.system.api.cfmlScopes.SessionService()
@@ -26,7 +26,7 @@
 			siteTreeService = new preside.system.api.sitetree.SiteTreeService(
 				  logger               = logger
 				, presideObjectService = poService
-				, securityService      = securityService
+				, loginService         = loginService
 				, pageTypesService     = pageTypesService
 			);
 
@@ -1140,7 +1140,7 @@
 
 	<cffunction name="_login" access="private" returntype="void" output="false">
 		<cfscript>
-			securityService.login( loginId="dummy", password="dummy" );
+			loginService.login( loginId="dummy", password="dummy" );
 		</cfscript>
 	</cffunction>
 

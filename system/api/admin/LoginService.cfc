@@ -55,23 +55,6 @@ component output="false" extends="preside.system.base.Service" {
 		return isLoggedIn() and ListFindNoCase( _getSystemUserList(), getLoggedInUserDetails().loginId );
 	}
 
-	public boolean function hasPermission( required string permission ) output=false {
-		if ( not IsLoggedIn() ) {
-			return false;
-		}
-
-		if ( isSystemUser() ) {
-			return true;
-		}
-
-		return getPresideObject( "security_user" ).dataExists(
-			filter = {
-				  "security_user.id"               = getLoggedInUserId()
-				, "security_role_permission.label" = arguments.permission
-			}
-		);
-	}
-
 	public string function getSystemUserId() output=false {
 		var systemUser = ListFirst( _getSystemUserList() );
 		var usr        = getPresideObject( "security_user" ).selectData(
@@ -89,29 +72,6 @@ component output="false" extends="preside.system.base.Service" {
 			, password      = _getBCryptService().hashPw( "password" )
 			, email_address = ""
 		} );
-	}
-
-	public void function setGlobalPermissionsForRole( required string roleId, required string permissions ) output=false {
-		var dao           = getPresideObject( "security_role_permission" );
-		var existingPerms = dao.selectData( selectFields=[ "id", "label" ], filter={ security_role = arguments.roleId } );
-		var toBeDeleted   = [];
-		var toBeAdded     = ListToArray( arguments.permissions );
-
-		for( var perm in existingPerms ) {
-			if ( !ListFindNoCase( arguments.permissions, perm.label ) ) {
-				toBeDeleted.append( perm.id );
-			} else {
-				toBeAdded.delete( perm.label );
-			}
-		}
-
-		if ( toBeDeleted.len() ) {
-			dao.deleteData( filter={ id=toBeDeleted } );
-		}
-
-		for( var perm in toBeAdded ) {
-			dao.insertData( { label=perm, security_role=arguments.roleId } );
-		}
 	}
 
 // PRIVATE HELPERS
@@ -158,4 +118,5 @@ component output="false" extends="preside.system.base.Service" {
 	private void function _setSystemUserList( required string systemUserList ) output=false {
 		_systemUserList = arguments.systemUserList;
 	}
+
 }

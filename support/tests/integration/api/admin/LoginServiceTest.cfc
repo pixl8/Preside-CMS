@@ -1,0 +1,208 @@
+<cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
+
+	<cffunction name="beforeTests" access="public" returntype="any" output="false">
+		<cfscript>
+			_emptyDatabase();
+			_dbSync();
+			_setupTestData();
+
+			sessionService  = new preside.system.api.cfmlScopes.SessionService();
+			loginService = new preside.system.api.admin.loginService(
+				  logger               = _getTestLogger()
+				, presideObjectService = _getPresideObjectService()
+				, sessionService       = sessionService
+				, bCryptService        = _getBCrypt()
+				, systemUserList       = "sysadmin"
+			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="afterTests" access="public" returntype="any" output="false">
+		<cfscript>
+			_wipeTestData();
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="setup" access="public" returntype="any" output="false">
+		<cfscript>
+			sessionService.clearAll();
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="teardown" access="public" returntype="any" output="false">
+		<cfscript>
+			sessionService.clearAll();
+		</cfscript>
+	</cffunction>
+
+<!--- tests --->
+	<cffunction name="test01_login_shouldReturnFalse_ifLoginIdNotFound" returntype="void">
+		<cfscript>
+			super.assertFalse( loginService.login( loginId="a_bad_login_id", password=testUsers[1].pw ), "Login succeeded when the loginId should not have existed in the user store" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test02_login_shouldReturnFalse_ifLoginIdFound_butPasswordIsIncorrect" returntype="void">
+		<cfscript>
+			super.assertFalse( loginService.login( loginId=testUsers[1].loginId, password=testUsers[2].pw ), "Login succeeded when the password check should have failed" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test03_login_shouldReturnTrue_whenLoginIdAndPasswordAreCorrect" returntype="void">
+		<cfscript>
+			super.assert( loginService.login( loginId=testUsers[2].loginId, password=testUsers[2].pw ), "Login failed when credentials were correct" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test04_isLoggedIn_shouldReturnFalse_whenNoOnLoggedIn" returntype="void">
+		<cfscript>
+			super.assertFalse( loginService.isLoggedIn(), "Is logged in returned true, when no sessions should exist." );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test05_isLoggedIn_shouldReturnTrue_whenLoggedInSessionExists" returntype="void">
+		<cfscript>
+			loginService.login( loginId=testUsers[4].loginId, password=testUsers[4].pw );
+
+			super.assert( loginService.isLoggedIn(), "Is logged in returned false, even though a user session existed." );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test06_getLoggedInUserDetails_shouldReturnStoredDetailsOfLoggedInUser" returntype="void">
+		<cfscript>
+			var expected = { loginId=testUsers[2].loginId, emailAddress=testUsers[2].email, userId=testUsers[2].id, knownAs=testUsers[2].name };
+			var result = "";
+
+			loginService.login( loginId=testUsers[2].loginId, password=testUsers[2].pw );
+
+			result = loginService.getLoggedInUserDetails();
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test07_getLoggedInUserDetails_shouldReturnEmptyStruct_whenUserIsNotLoggedIn" returntype="void">
+		<cfscript>
+			var result = "";
+
+			result = loginService.getLoggedInUserDetails();
+
+			super.assertEquals( {}, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test08_login_shouldOverrideCurrentlyLoggedInUser_whenUserIsAlreadyLoggedIn" returntype="void">
+		<cfscript>
+			var expected = { loginId=testUsers[5].loginId, emailAddress=testUsers[5].email, userId=testUsers[5].id, knownAs=testUsers[5].name };
+			var result = "";
+
+			loginService.login( loginId=testUsers[3].loginId, password=testUsers[3].pw );
+			super.assertEquals( testUsers[3].loginId, loginService.getLoggedInUserDetails().loginId, "Test failed, initial user login did not register." );
+
+			loginService.login( loginId=testUsers[5].loginId, password=testUsers[5].pw );
+			result = loginService.getLoggedInUserDetails();
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test16_isSystemUser_shouldReturnFalse_whenLoggedInUserIsNotSystemUser" returntype="void">
+		<cfscript>
+			loginService.login( loginId=testUsers[2].loginId, password=testUsers[2].pw );
+
+			super.assertFalse( loginService.isSystemUser(), "IsSystemUser() returned true for a non-system user" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test17_isSystemUser_shouldReturnTrue_whenLoggedInUserIsSystemUser" returntype="void">
+		<cfscript>
+			loginService.login( loginId=testUsers[6].loginId, password=testUsers[6].pw );
+
+			super.assert( loginService.isSystemUser(), "IsSystemUser() returned false for a system user" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test18_isSystemUser_shouldReturnFalse_whenNoUserLoggedIn" returntype="void">
+		<cfscript>
+			super.assertFalse( loginService.isSystemUser(), "IsSystemUser() returned true when no one was logged in!" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test19_logout_shouldLogYouOut" returntype="void">
+		<cfscript>
+			loginService.login( loginId=testUsers[6].loginId, password=testUsers[6].pw );
+			super.assert( loginService.isLoggedIn(), "Test failed, couldn't log in!" );
+
+			loginService.logout();
+			super.assertFalse( loginService.isLoggedIn(), "User was not logged out" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test20_login_shouldAllowLoginWithEmailAddress" returntype="void">
+		<cfscript>
+			loginService.login( loginId=testUsers[1].email, password=testUsers[1].pw );
+
+			super.assert( loginService.isLoggedIn(), "Login with email failed" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test21_getLoggedInUserId_shouldReturnTheIdOfTheLoggedInUser" returntype="void">
+		<cfscript>
+			loginService.login( loginId=testUsers[3].email, password=testUsers[3].pw );
+
+			super.assertEquals( testUsers[3].id, loginService.getLoggedInUserId()  );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test22_getSystemUserId_shouldReturnIdOfFirstUserInConfiguredSystemUserList" returntype="void">
+		<cfscript>
+			super.assertEquals( testUsers[6].id, loginService.getSystemUserId() );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test23_getSystemUserId_shouldCreateSystemUserIfNoneExists" returntype="void">
+		<cfscript>
+			var usrId        = "";
+			var usrDetails   = {};
+			var loginSuccess = "";
+
+			_wipeTestData();
+
+			usrId = loginService.getSystemUserId();
+			assert( Len( Trim( usrId ) ) );
+
+			loginSuccess = loginService.login( loginId="sysadmin", password="password" );
+			usrDetails   = loginService.getLoggedInUserDetails();
+
+			_wipeTestData();
+			_setupTestData();
+
+			super.assert( loginSuccess );
+			super.assertEquals( "System Administrator", usrDetails.knownAs );
+			super.assertEquals( "", usrDetails.emailAddress );
+		</cfscript>
+	</cffunction>
+
+<!--- private --->
+	<cffunction name="_wipeTestData" access="private" returntype="void" output="false">
+		<cfscript>
+			_deleteData( objectName="security_user", forceDeleteAll=true );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_setupTestData" access="private" returntype="void" output="false">
+		<cfscript>
+			variables.testUsers = [
+				  { loginId="fred"    , pw="some%$p45%word" , name="Big Daddy"   , email="test1@test.com", id="" }
+				, { loginId="james"   , pw="aN0THERP4$$word", name="007"         , email="test2@test.com", id="" }
+				, { loginId="boris"   , pw="j0ns0n"         , name="Bendy Boris" , email="test3@test.com", id="" }
+				, { loginId="pixl8"   , pw="1nter4ct!ve"    , name="Pixl8"       , email="test4@test.com", id="" }
+				, { loginId="mandy"   , pw="sdfjlsdf84£rjs" , name="Patinkin"    , email="test5@test.com", id="" }
+				, { loginId="sysadmin", pw="ajdlfjasfas&&^" , name="System Admin", email="test6@test.com", id="" }
+			];
+			for( var user in testUsers ){
+				user.id = _insertData( objectName="security_user", data={ label=user.name, login_id=user.loginId, password=_bCryptPassword( user.pw ), email_address=user.email } );
+			}
+		</cfscript>
+	</cffunction>
+</cfcomponent>
