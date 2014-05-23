@@ -44,6 +44,50 @@ component output=false extends="preside.system.base.Service" {
 		_setRoles( _expandRoles( arguments.rolesConfig ) );
 	}
 
+	private array function _getRolePermissions( required string role ) output=false {
+		var roles = _getRoles();
+
+		return roles[ arguments.role ] ?: [];
+	}
+
+	private array function _getGroupPermissions( required string group ) output=false {
+		var roles = _getPresideObjectService().selectData( objectName="security_group", id=arguments.group, selectFields=[ "roles" ] );
+		var perms = [];
+
+		if ( !roles.recordCount ) {
+			return [];
+		}
+		for( var role in ListToArray( roles.roles ) ){
+			_getRolePermissions( role ).each( function( perm ){
+				if ( !perms.find( perm ) ) {
+					perms.append( perm );
+				}
+			} );
+		}
+
+		return perms;
+	}
+
+	private array function _getUserPermissions( required string user ) output=false {
+		var perms = [];
+		var groups = _getPresideObjectService().selectManyToManyData(
+			  objectName   = "security_user"
+			, propertyName = "groups"
+			, id           = arguments.user
+			, selectFields = [ "security_group" ]
+		);
+
+		for( var group in groups ){
+			_getGroupPermissions( group.security_group ).each( function( perm ){
+				if ( !perms.find( perm ) ) {
+					perms.append( perm );
+				}
+			} );
+		}
+
+		return perms;
+	}
+
 	private array function _expandPermissions( required struct permissions, string prefix="" ) output=false {
 		var expanded = [];
 
@@ -106,50 +150,6 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		return expandedRoles;
-	}
-
-	private array function _getRolePermissions( required string role ) output=false {
-		var roles = _getRoles();
-
-		return roles[ arguments.role ] ?: [];
-	}
-
-	private array function _getGroupPermissions( required string group ) output=false {
-		var roles = _getPresideObjectService().selectData( objectName="security_group", id=arguments.group, selectFields=[ "roles" ] );
-		var perms = [];
-
-		if ( !roles.recordCount ) {
-			return [];
-		}
-		for( var role in ListToArray( roles.roles ) ){
-			_getRolePermissions( role ).each( function( perm ){
-				if ( !perms.find( perm ) ) {
-					perms.append( perm );
-				}
-			} );
-		}
-
-		return perms;
-	}
-
-	private array function _getUserPermissions( required string user ) output=false {
-		var perms = [];
-		var groups = _getPresideObjectService().selectManyToManyData(
-			  objectName   = "security_user"
-			, propertyName = "groups"
-			, id           = arguments.user
-			, selectFields = [ "security_group" ]
-		);
-
-		for( var group in groups ){
-			_getGroupPermissions( group.security_group ).each( function( perm ){
-				if ( !perms.find( perm ) ) {
-					perms.append( perm );
-				}
-			} );
-		}
-
-		return perms;
 	}
 
 	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
