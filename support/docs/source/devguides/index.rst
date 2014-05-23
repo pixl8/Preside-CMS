@@ -17,5 +17,4 @@ Developer guides & recipes
    configcfc
    reloading
    cssandjs
-
-
+   permissioning
