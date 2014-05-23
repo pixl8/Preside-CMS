@@ -33,11 +33,11 @@ component output=false extends="preside.system.base.Service" {
 	public boolean function hasPermission(
 		  required string permissionKey
 		,          string context       = ""
-		,          any   contextKey    = ""
+		,          array  contextKeys   = []
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) output=false {
 
-		if ( Len( Trim( arguments.context ) ) ) {
+		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
 				return contextPerm;
@@ -105,17 +105,17 @@ component output=false extends="preside.system.base.Service" {
 		  required string userId
 		, required string permissionKey
 		, required string context
-		, required any    contextKey
+		, required array  contextKeys
 	) {
 		var perms = _getPresideObjectService().selectData(
 			  objectName   = "security_user"
-			, selectFields = IsArray( arguments.contextKey ) ? [ "security_context_permission.granted", "security_context_permission.context_key" ] : [ "security_context_permission.granted" ]
+			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
 				  "security_user.id"                          = arguments.userId
 				, "security_context_permision.permission_key" = arguments.permissionKey
 				, "security_context_permission.context"       = arguments.context
-				, "security_context_permission.context_key"   = arguments.contextKey
+				, "security_context_permission.context_key"   = arguments.contextKeys
 			}
 		);
 
@@ -123,7 +123,7 @@ component output=false extends="preside.system.base.Service" {
 			return NullValue();
 		}
 
-		if ( IsSimpleValue( arguments.contextKey ) ) {
+		if ( perms.recordCount == 1 ) {
 			return perms.granted;
 		}
 
@@ -131,7 +131,7 @@ component output=false extends="preside.system.base.Service" {
 		for( var perm in perms ) {
 			permsAsStruct[ perm.context_key ] = perm.granted;
 		}
-		for( var key in arguments.contextKey ){
+		for( var key in arguments.contextKeys ){
 			if ( permsAsStruct.keyExists( key ) ) {
 				return permsAsStruct[ key ];
 			}

@@ -275,17 +275,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName = "security_user"
-			, selectFields = [ "security_context_permission.granted" ]
+			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
 				  "security_user.id"                          = "me"
 				, "security_context_permision.permission_key" = "a.new.key"
 				, "security_context_permission.context"       = "someContext"
-				, "security_context_permission.context_key"   = "somekey"
+				, "security_context_permission.context_key"   = [ "somekey" ]
 			}
 		).$results( QueryNew( 'granted', 'bit', [1] ) );
 
-		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKey="somekey" );
+		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKeys=[ "somekey" ] );
 
 		super.assert( hasPerm, "Should have permission, yet returned that I don't :(" );
 	}
@@ -300,17 +300,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName = "security_user"
-			, selectFields = [ "security_context_permission.granted" ]
+			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
 				  "security_user.id"                          = "me"
 				, "security_context_permision.permission_key" = "some.key"
 				, "security_context_permission.context"       = "anotherContext"
-				, "security_context_permission.context_key"   = "anotherkey"
+				, "security_context_permission.context_key"   = [ "anotherkey" ]
 			}
 		).$results( QueryNew( 'granted', 'bit', [0] ) );
 
-		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKey="anotherkey" );
+		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKeys=[ "anotherkey" ] );
 
 		super.assertFalse( hasPerm, "Should not have permission, yet returned that I do :(" );
 	}
@@ -325,17 +325,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName = "security_user"
-			, selectFields = [ "security_context_permission.granted" ]
+			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
 				  "security_user.id"                          = "me"
 				, "security_context_permision.permission_key" = "some.key"
 				, "security_context_permission.context"       = "anotherContext"
-				, "security_context_permission.context_key"   = "anotherkey"
+				, "security_context_permission.context_key"   = [ "anotherkey" ]
 			}
 		).$results( QueryNew( 'granted' ) );
 
-		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKey="anotherkey" );
+		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKeys=[ "anotherkey" ] );
 
 		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
 	}
@@ -360,7 +360,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			}
 		).$results( QueryNew( 'granted,context_key', "bit,varchar", [[0,"keyA"],[0,"key2"],[1,"keyX"],[0,"key3"]] ) );
 
-		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKey=[ "keyX", "key2", "key3", "keyA" ] );
+		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKeys=[ "keyX", "key2", "key3", "keyA" ] );
 
 		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
 	}
