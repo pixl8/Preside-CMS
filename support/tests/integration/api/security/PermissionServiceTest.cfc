@@ -21,8 +21,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		testRoles = {
 			  administrator = [ "*" ]
 			, tester        = [ "*.delete", "assetmanager.*.read", "sitetree.*", "!groupmanager.delete", "groupmanager.edit", "!*.add" ]
-			, user          = [ "cms.login", "assetmanager.blah.test" ]
-		}
+			, user          = [ "cms.login", "assetmanager.blah.test.*", "sitetree.navigate" ]
+		};
 	}
 
 // TESTS
@@ -83,7 +83,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test05_listPermissionKeys_shouldReturnPermissionsThatHaveBeenExplicitlyConfiguredOnPassedRole(){
-		var expected = [ "assetmanager.blah.test", "cms.login" ];
+		var expected = [
+			  "assetmanager.blah.test.blah"
+			, "assetmanager.blah.test.doh"
+			, "assetmanager.blah.test.meh"
+			, "cms.login"
+			, "sitetree.navigate"
+		];
 		var actual   = _getPermissionService( permissions=testPerms, roles=testRoles ).listPermissionKeys( role="user" );
 
 		super.assertEquals( expected, actual.sort( "textnocase" ) );
@@ -107,10 +113,54 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
+	function test07_listPermissionKeys_shouldReturnEmptyArray_whenPassedGroupDoesNotExist(){
+		var actual   = "";
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var expected = [];
+
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="security_group", selectFields=["roles"], id="testgroup" )
+			.$results( QueryNew('roles' ) );
+
+		actual = permsService.listPermissionKeys( group="testgroup" );
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
+	}
+
+	function test08_listPermissionKeys_shouldReturnPermissionsForGivenGroup_basedOnTheGroupsAssociatedRoles(){
+		var actual   = "";
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var expected = [
+			  "sitetree.navigate"
+			, "sitetree.read"
+			, "sitetree.edit"
+			, "sitetree.delete"
+			, "assetmanager.folders.read"
+			, "assetmanager.assets.read"
+			, "assetmanager.folders.delete"
+			, "assetmanager.assets.delete"
+			, "groupmanager.edit"
+			, "cms.login"
+			, "assetmanager.blah.test.meh"
+			, "assetmanager.blah.test.doh"
+			, "assetmanager.blah.test.blah"
+		];
+
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="security_group", selectFields=["roles"], id="testgroup" )
+			.$results( QueryNew('roles', 'varchar', ['tester,user'] ) );
+
+		actual = permsService.listPermissionKeys( group="testgroup" );
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
+		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
+
 		return new preside.system.api.security.PermissionService(
-			  presideObjectService = _getPresideObjectService()
+			  presideObjectService = mockPresideObjectService
 			, logger               = _getTestLogger()
 			, rolesConfig          = arguments.roles
 			, permissionsConfig    = arguments.permissions

@@ -14,14 +14,15 @@ component output=false extends="preside.system.base.Service" {
 		return _getRoles().keyArray();
 	}
 
-	public array function listPermissionKeys( string role="" ) output=false {
+	public array function listPermissionKeys( string role="", string group="" ) output=false {
 		if ( Len( Trim( arguments.role ) ) ) {
 			return _getRolePermissions( arguments.role );
+		} elseif ( Len( Trim( arguments.group ) ) ) {
+			return _getGroupPermissions( arguments.group );
 		}
 
 		return _getPermissions();
 	}
-
 
 // PRIVATE HELPERS
 	private void function _denormalizeConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
@@ -97,6 +98,24 @@ component output=false extends="preside.system.base.Service" {
 		var roles = _getRoles();
 
 		return roles[ arguments.role ] ?: [];
+	}
+
+	private array function _getGroupPermissions( required string group ) output=false {
+		var roles = _getPresideObjectService().selectData( objectName="security_group", id=arguments.group, selectFields=[ "roles" ] );
+		var perms = [];
+
+		if ( !roles.recordCount ) {
+			return [];
+		}
+		for( var role in ListToArray( roles.roles ) ){
+			_getRolePermissions( role ).each( function( perm ){
+				if ( !perms.find( perm ) ) {
+					perms.append( perm );
+				}
+			} );
+		}
+
+		return perms;
 	}
 
 	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
