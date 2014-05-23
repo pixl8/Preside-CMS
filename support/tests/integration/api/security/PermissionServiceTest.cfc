@@ -155,6 +155,56 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
+	function test09_listPermissionKeys_shouldReturnEmptyArray_whenPassedUserDoesHasNoGroups(){
+		var actual   = "";
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var expected = [];
+
+		mockPresideObjectService.$( "selectManyToManyData" )
+			.$args( objectName="security_user", selectFields=["security_group"], propertyName="groups", id="testuser" )
+			.$results( QueryNew('security_group' ) );
+
+		actual = permsService.listPermissionKeys( user="testuser" );
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
+	}
+
+	function test10_listPermissionKeys_shouldReturnPermissionKeysForAllGroupsAssociatedWithPassedUser(){
+		var actual   = "";
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var expected = [
+			  "sitetree.navigate"
+			, "sitetree.read"
+			, "sitetree.edit"
+			, "sitetree.delete"
+			, "assetmanager.folders.read"
+			, "assetmanager.assets.read"
+			, "assetmanager.folders.delete"
+			, "assetmanager.assets.delete"
+			, "groupmanager.edit"
+			, "cms.login"
+			, "assetmanager.blah.test.meh"
+			, "assetmanager.blah.test.doh"
+			, "assetmanager.blah.test.blah"
+		];
+
+		mockPresideObjectService.$( "selectManyToManyData" )
+			.$args( objectName="security_user", selectFields=["security_group"], propertyName="groups", id="me" )
+			.$results( QueryNew('security_group', 'varchar', [['testgroup'],['testgroup2']] ) );
+
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="security_group", selectFields=["roles"], id="testgroup" )
+			.$results( QueryNew('roles', 'varchar', ['tester'] ) );
+
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="security_group", selectFields=["roles"], id="testgroup2" )
+			.$results( QueryNew('roles', 'varchar', ['user'] ) );
+
+		actual = permsService.listPermissionKeys( user="me" );
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );

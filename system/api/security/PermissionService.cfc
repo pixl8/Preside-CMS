@@ -14,11 +14,15 @@ component output=false extends="preside.system.base.Service" {
 		return _getRoles().keyArray();
 	}
 
-	public array function listPermissionKeys( string role="", string group="" ) output=false {
+	public array function listPermissionKeys( string role="", string group="", string user="" ) output=false {
 		if ( Len( Trim( arguments.role ) ) ) {
 			return _getRolePermissions( arguments.role );
+
 		} elseif ( Len( Trim( arguments.group ) ) ) {
 			return _getGroupPermissions( arguments.group );
+
+		} elseif ( Len( Trim( arguments.user ) ) ) {
+			return _getUserPermissions( arguments.user );
 		}
 
 		return _getPermissions();
@@ -117,6 +121,27 @@ component output=false extends="preside.system.base.Service" {
 
 		return perms;
 	}
+
+	private array function _getUserPermissions( required string user ) output=false {
+		var perms = [];
+		var groups = _getPresideObjectService().selectManyToManyData(
+			  objectName   = "security_user"
+			, propertyName = "groups"
+			, id           = arguments.user
+			, selectFields = [ "security_group" ]
+		);
+
+		for( var group in groups ){
+			_getGroupPermissions( group.security_group ).each( function( perm ){
+				if ( !perms.find( perm ) ) {
+					perms.append( perm );
+				}
+			} );
+		}
+
+		return perms;
+	}
+
 
 	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
 		var regex       = Replace( _reEscape( arguments.permissionKey ), "\*", "(.*?)", "all" );
