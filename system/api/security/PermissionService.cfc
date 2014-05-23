@@ -112,10 +112,10 @@ component output=false extends="preside.system.base.Service" {
 			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
-				  "security_user.id"                          = arguments.userId
-				, "security_context_permision.permission_key" = arguments.permissionKey
-				, "security_context_permission.context"       = arguments.context
-				, "security_context_permission.context_key"   = arguments.contextKeys
+				  "security_user.id"                           = arguments.userId
+				, "security_context_permission.permission_key" = arguments.permissionKey
+				, "security_context_permission.context"        = arguments.context
+				, "security_context_permission.context_key"    = arguments.contextKeys
 			}
 		);
 

@@ -278,10 +278,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
-				  "security_user.id"                          = "me"
-				, "security_context_permision.permission_key" = "a.new.key"
-				, "security_context_permission.context"       = "someContext"
-				, "security_context_permission.context_key"   = [ "somekey" ]
+				  "security_user.id"                           = "me"
+				, "security_context_permission.permission_key" = "a.new.key"
+				, "security_context_permission.context"        = "someContext"
+				, "security_context_permission.context_key"    = [ "somekey" ]
 			}
 		).$results( QueryNew( 'granted', 'bit', [1] ) );
 
@@ -303,10 +303,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
-				  "security_user.id"                          = "me"
-				, "security_context_permision.permission_key" = "some.key"
-				, "security_context_permission.context"       = "anotherContext"
-				, "security_context_permission.context_key"   = [ "anotherkey" ]
+				  "security_user.id"                           = "me"
+				, "security_context_permission.permission_key" = "some.key"
+				, "security_context_permission.context"        = "anotherContext"
+				, "security_context_permission.context_key"    = [ "anotherkey" ]
 			}
 		).$results( QueryNew( 'granted', 'bit', [0] ) );
 
@@ -328,10 +328,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
-				  "security_user.id"                          = "me"
-				, "security_context_permision.permission_key" = "some.key"
-				, "security_context_permission.context"       = "anotherContext"
-				, "security_context_permission.context_key"   = [ "anotherkey" ]
+				  "security_user.id"                           = "me"
+				, "security_context_permission.permission_key" = "some.key"
+				, "security_context_permission.context"        = "anotherContext"
+				, "security_context_permission.context_key"    = [ "anotherkey" ]
 			}
 		).$results( QueryNew( 'granted' ) );
 
@@ -353,10 +353,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
 			, forceJoins   = "inner"
 			, filter       = {
-				  "security_user.id"                          = "me"
-				, "security_context_permision.permission_key" = "some.key"
-				, "security_context_permission.context"       = "anotherContext"
-				, "security_context_permission.context_key"   = [ "keyX", "key2", "key3", "keyA" ]
+				  "security_user.id"                           = "me"
+				, "security_context_permission.permission_key" = "some.key"
+				, "security_context_permission.context"        = "anotherContext"
+				, "security_context_permission.context_key"    = [ "keyX", "key2", "key3", "keyA" ]
 			}
 		).$results( QueryNew( 'granted,context_key', "bit,varchar", [[0,"keyA"],[0,"key2"],[1,"keyX"],[0,"key3"]] ) );
 
