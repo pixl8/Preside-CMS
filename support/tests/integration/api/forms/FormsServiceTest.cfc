@@ -190,7 +190,7 @@
 	<cffunction name="test13_getDefaultFormForPresideObject_shouldReturnAFormWithOneTabAndOneFieldsetContainingAllFieldsFormTheGivenPresideObject" returntype="void">
 		<cfscript>
 			var formsSvc = _getFormsService( "/tests/resources/formsService/forms4" );
-			var result   = formsSvc.getDefaultFormForPresideObject( objectName="security_role" );
+			var result   = formsSvc.getDefaultFormForPresideObject( objectName="security_group" );
 			var expected = {
 				tabs = [{
 					title="",
@@ -199,11 +199,11 @@
 						title="",
 						description="",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
 						},{
-							name="key", control="default", type="string", dbtype="varchar", maxLength="50", uniqueindexes="role_key", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
+							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group"
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_role"
+							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group"
 						}]
 					}]
 				}]
@@ -245,7 +245,7 @@
 	<cffunction name="test18_getForm_shouldReturnDefaultFormForPresideObject_whenFormDoesNotExistAndFirstPartOfFormNameIsAValidComponent" returntype="void">
 		<cfscript>
 			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
-			var result   = formsSvc.getForm( "preside-objects.security_role.add.form" );
+			var result   = formsSvc.getForm( "preside-objects.security_group.add.form" );
 			var expected = {
 				tabs = [{
 					title="",
@@ -254,11 +254,11 @@
 						title="",
 						description="",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
 						},{
-							name="key", control="default", type="string", dbtype="varchar", maxLength="50", uniqueindexes="role_key", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_role"
+							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group"
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_role"
+							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group"
 						}]
 					}]
 				}]
