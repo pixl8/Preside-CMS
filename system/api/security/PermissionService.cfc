@@ -30,7 +30,19 @@ component output=false extends="preside.system.base.Service" {
 		return _getPermissions();
 	}
 
-	public boolean function hasPermission( required string permissionKey, string userId=_getLoginService().getLoggedInUserId() ) output=false {
+	public boolean function hasPermission(
+		  required string permissionKey
+		,          string context       = ""
+		,          string contextKey    = ""
+		,          string userId        = _getLoginService().getLoggedInUserId()
+	) output=false {
+		if ( Len( Trim( arguments.context ) ) && Len( Trim( arguments.contextKey ) ) ) {
+			var contextPerm = _getContextPermission( argumentCollection=arguments );
+			if ( !IsNull( contextPerm ) ) {
+				return contextPerm;
+			}
+		}
+
 		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
 			return true;
 		}
@@ -86,6 +98,27 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		return perms;
+	}
+
+	private any function _getContextPermission(
+		  required string userId
+		, required string permissionKey
+		, required string context
+		, required string contextKey
+	) {
+		var perms = _getPresideObjectService().selectData(
+			  objectName   = "security_user"
+			, selectFields = [ "security_context_permission.granted" ]
+			, forceJoins   = "inner"
+			, filter       = {
+				  "security_user.id"                          = arguments.userId
+				, "security_context_permision.permission_key" = arguments.permissionKey
+				, "security_context_permission.context"       = arguments.context
+				, "security_context_permission.context_key"   = arguments.contextKey
+			}
+		);
+
+		return perms.recordCount ? perms.granted : NullValue();
 	}
 
 	private array function _expandPermissions( required struct permissions, string prefix="" ) output=false {

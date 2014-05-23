@@ -265,6 +265,31 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( permsService.hasPermission( permissionKey="another.key", userId="anotherUserThatIsNotMe" ), "Should have permission, yet returned that I don't :(" );
 	}
 
+	function test17_hasPermission_shouldReturnTrue_whenPassedInUserDoesNotHaveRolePermissionBUTdoesHaveContextPermissionForGivenContextAndKey(){
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var hasPerm      = "";
+
+		mockLoginService.$( "getLoggedInUserId", "me" );
+		mockLoginService.$( "isSystemUser", false );
+
+		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
+		mockPresideObjectService.$( "selectData" ).$args(
+			  objectName = "security_user"
+			, selectFields = [ "security_context_permission.granted" ]
+			, forceJoins   = "inner"
+			, filter       = {
+				  "security_user.id"                          = "me"
+				, "security_context_permision.permission_key" = "a.new.key"
+				, "security_context_permission.context"       = "someContext"
+				, "security_context_permission.context_key"   = "somekey"
+			}
+		).$results( QueryNew( 'granted', 'bit', [1] ) );
+
+		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKey="somekey" );
+
+		super.assert( hasPerm, "Should have permission, yet returned that I don't :(" );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
