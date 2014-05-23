@@ -7,8 +7,8 @@
 			<field binding="security_user.active" />
 		</fieldset>
 
-		<fieldset id="roles" title="preside-objects.security_user:fieldset.roles" description="preside-objects.security_user:fieldset.roles.description">
-			<field binding="security_user.user_roles" />
+		<fieldset id="groups" title="preside-objects.security_user:fieldset.groups" description="preside-objects.security_user:fieldset.groups.description">
+			<field binding="security_user.groups" />
 		</fieldset>
 	</tab>
 </form>

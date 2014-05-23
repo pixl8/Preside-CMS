@@ -176,6 +176,11 @@
 			.initArg( name="tokenExpiryInSeconds", value=settings.csrf_token_timeout ?: 1200 )
 			.initArg( name="maxTokens"           , value=settings.csrf_max_tokens    ?: 100  );
 
+		map( "permissionService" ).asSingleton().to( "preside.system.api.security.PermissionService" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="loginService"     , ref  ="adminLoginService"        )
+			.initArg( name="permissionsConfig", value=settings.permissions ?: {} )
+			.initArg( name="rolesConfig"      , value=settings.roles       ?: {} );
+
 	// DEVELOPER TOOLS
 		map( "scaffoldingService" ).asSingleton().to( "preside.system.api.devtools.ScaffoldingService" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="widgetsService"  , ref="widgetsService" )

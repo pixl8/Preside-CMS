@@ -109,17 +109,17 @@
 
 	<cffunction name="isAdminUser" access="public" returntype="boolean" output="false">
 		<cfscript>
-			var securitySvc = getModel( "AdminSecurityService" );
+			var loginSvc = getModel( "adminLoginService" );
 
-			return securitySvc.isLoggedIn();
+			return loginSvc.isLoggedIn();
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="getAdminUserDetails" access="public" returntype="struct" output="false">
 		<cfscript>
-			var securitySvc = getModel( "AdminSecurityService" );
+			var loginSvc = getModel( "adminLoginService" );
 
-			return securitySvc.getLoggedInUserDetails();
+			return loginSvc.getLoggedInUserDetails();
 		</cfscript>
 	</cffunction>
 
@@ -130,9 +130,7 @@
 	</cffunction>
 
 	<cffunction name="hasAdminPermission" access="public" returntype="boolean" output="false">
-		<cfscript>
-			return true; // temporary while we refactor
-		</cfscript>
+		<cfreturn getModel( "permissionService" ).hasPermission( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="adminAccessDenied" access="public" returntype="void" output="false">

@@ -7,8 +7,8 @@
 			<field binding="security_user.login_id" control="autoslug" basedOn="label" />
 		</fieldset>
 
-		<fieldset title="preside-objects.security_user:fieldset.roles" description="preside-objects.security_user:fieldset.roles.description">
-			<field binding="security_user.user_roles" />
+		<fieldset title="preside-objects.security_user:fieldset.groups" description="preside-objects.security_user:fieldset.groups.description">
+			<field binding="security_user.groups" />
 		</fieldset>
 
 		<fieldset title="preside-objects.security_user:fieldset.security" description="preside-objects.security_user:fieldset.security.description">
