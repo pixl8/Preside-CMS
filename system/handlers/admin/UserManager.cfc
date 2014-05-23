@@ -1,7 +1,6 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
-	property name="securityService"      inject="adminSecurityService";
 	property name="messageBox"           inject="coldbox:plugin:messageBox";
 	property name="bCryptService"        inject="bCryptService";
 
@@ -53,20 +52,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object            = "security_role"
 				, errorAction       = "userManager.addRole"
 				, redirectOnSuccess = false
+				, successAction    = "usermanager.roles"
+				, addAnotherAction = "usermanager.addRole"
+				, viewRecordAction = "userManager.editRole"
 			}
 		);
-
-		securityService.setGlobalPermissionsForRole(
-			  roleId      = newId
-			, permissions = ( rc.global_permissions ?: "" )
-		);
-
-		messageBox.info( translateResource( uri="cms:datamanager.roleAdded.confirmation" ) );
-		if ( Val( rc._addanother ?: 0 ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.addRole" ), persist="_addAnother" );
-		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.roles" ) );
-		}
 	}
 
 	function editRole( event, rc, prc ) output=false {
@@ -84,11 +74,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 	function editRoleAction( event, rc, prc ) output=false {
-		securityService.setGlobalPermissionsForRole(
-			  roleId = ( rc.id ?: "" )
-			, permissions = ( rc.global_permissions ?: "" )
-		);
-
 		runEvent(
 			  event          = "admin.DataManager.editRecordAction"
 			, prePostExempt  = true
