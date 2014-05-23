@@ -14,7 +14,7 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
-			if ( !event.hasAdminPermission( "datamanager" ) ) {
+			if ( !event.hasAdminPermission( "datamanager.navigate" ) ) {
 				event.adminAccessDenied();
 			}
 

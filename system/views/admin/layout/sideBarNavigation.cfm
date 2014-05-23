@@ -11,7 +11,7 @@
 
 		<ul class="nav nav-list">
 
-			<cfif event.hasAdminPermission( "sitetree" )>
+			<cfif event.hasAdminPermission( "sitetree.navigate" )>
 				<li<cfif listLast( handler, ".") eq "sitetree"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo="sitetree" )#" data-goto-key="s">
 						<i class="fa fa-sitemap"></i>
@@ -20,7 +20,7 @@
 				</li>
 			</cfif>
 
-			<cfif event.hasAdminPermission( "assetmanager" )>
+			<cfif event.hasAdminPermission( "assetmanager.general.navigate" )>
 				<li<cfif listLast( handler, ".") eq "assetmanager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo="assetmanager" )#" data-goto-key="a">
 						<i class="fa fa-picture-o"></i>
@@ -29,7 +29,7 @@
 				</li>
 			</cfif>
 
-			<cfif event.hasAdminPermission( "datamanager" )>
+			<cfif event.hasAdminPermission( "datamanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "datamanager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo='datamanager' )#" data-goto-key="d">
 						<i class="fa fa-puzzle-piece"></i>
@@ -38,7 +38,7 @@
 				</li>
 			</cfif>
 
-			<cfif event.hasAdminPermission( "usermanager" )>
+			<cfif event.hasAdminPermission( "usermanager.navigate" ) || event.hasAdminPermission( "groupmanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "usermanager"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<i class="fa fa-group"></i>
@@ -47,18 +47,22 @@
 					</a>
 
 					<ul class="submenu">
-						<li>
-							<a href="#event.buildAdminLink( linkTo='usermanager.users' )#">
-								<i class="fa fa-angle-double-right"></i>
-								#translateResource( "cms:usermanager.users" )#
-							</a>
-						</li>
-						<li>
-							<a href="#event.buildAdminLink( linkTo='usermanager.groups' )#">
-								<i class="fa fa-angle-double-right"></i>
-								#translateResource( "cms:usermanager.groups" )#
-							</a>
-						</li>
+						<cfif event.hasAdminPermission( "usermanager.navigate" )>
+							<li>
+								<a href="#event.buildAdminLink( linkTo='usermanager.users' )#">
+									<i class="fa fa-angle-double-right"></i>
+									#translateResource( "cms:usermanager.users" )#
+								</a>
+							</li>
+						</cfif>
+						<cfif event.hasAdminPermission( "groupmanager.navigate" )>
+							<li>
+								<a href="#event.buildAdminLink( linkTo='usermanager.groups' )#">
+									<i class="fa fa-angle-double-right"></i>
+									#translateResource( "cms:usermanager.groups" )#
+								</a>
+							</li>
+						</cfif>
 					</ul>
 				</li>
 			</cfif>

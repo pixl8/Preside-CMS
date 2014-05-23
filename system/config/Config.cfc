@@ -66,7 +66,7 @@ component output=false {
 		settings.activeExtensions = _loadExtensions();
 
 
-		permissions = {
+		settings.permissions = {
 			  cms          = [ "login" ]
 			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
 			, datamanager  = [ "navigate", "read", "add", "edit", "delete" ]
@@ -77,12 +77,14 @@ component output=false {
 			 }
 			, usermanager  = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
+			, devtools     = [ "console" ]
 		};
 
 		settings.roles = {
 			  user           = [ "cms.login" ]
 			, sysadmin       = [ "usermanager.*", "groupmanager.*" ]
 			, sitetreeAdmin  = [ "sitetree.*" ]
+			, dataAdmin      = [ "datamanager.*" ]
 			, sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ]
 			, assetAdmin     = [ "assetmanager.*" ]
 			, assetEditor    = [ "assetmanager.*", "!assetmanager.*.delete" ]

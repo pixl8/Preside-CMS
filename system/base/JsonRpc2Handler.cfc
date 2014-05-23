@@ -9,8 +9,8 @@ component output=false hint="I am a base handler for any handlers implementing J
 			return;
 		};
 
-		if ( !event.hasAdminPermission( "dev-tools" ) ) {
-			jsonRpc2Plugin.error( 401, "You do not have permission to access the terminal" );
+		if ( !event.hasAdminPermission( "devtools.console" ) ) {
+			jsonRpc2Plugin.error( 401, "You do not have permission to access the console" );
 			return;
 		}
 
