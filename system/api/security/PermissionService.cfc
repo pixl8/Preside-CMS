@@ -38,7 +38,7 @@ component output=false extends="preside.system.base.Service" {
 	) output=false {
 		if ( Len( Trim( arguments.context ) ) && Len( Trim( arguments.contextKey ) ) ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
-			if ( !IsNull( contextPerm ) ) {
+			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
 				return contextPerm;
 			}
 		}
