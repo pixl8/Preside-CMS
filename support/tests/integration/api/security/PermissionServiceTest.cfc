@@ -340,6 +340,31 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
 	}
 
+	function test20_hasPermission_shouldReturnFirstGrantOrDenial_whenMultipleContextKeysAreSuppliedThatHaveMatches(){
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var hasPerm      = "";
+
+		mockLoginService.$( "getLoggedInUserId", "me" );
+		mockLoginService.$( "isSystemUser", false );
+
+		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
+		mockPresideObjectService.$( "selectData" ).$args(
+			  objectName = "security_user"
+			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
+			, forceJoins   = "inner"
+			, filter       = {
+				  "security_user.id"                          = "me"
+				, "security_context_permision.permission_key" = "some.key"
+				, "security_context_permission.context"       = "anotherContext"
+				, "security_context_permission.context_key"   = [ "keyX", "key2", "key3", "keyA" ]
+			}
+		).$results( QueryNew( 'granted,context_key', "bit,varchar", [[0,"keyA"],[0,"key2"],[1,"keyX"],[0,"key3"]] ) );
+
+		hasPerm = permsService.hasPermission( permissionKey="some.key", context="anotherContext", contextKey=[ "keyX", "key2", "key3", "keyA" ] );
+
+		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );

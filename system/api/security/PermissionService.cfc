@@ -33,10 +33,11 @@ component output=false extends="preside.system.base.Service" {
 	public boolean function hasPermission(
 		  required string permissionKey
 		,          string context       = ""
-		,          string contextKey    = ""
+		,          any   contextKey    = ""
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) output=false {
-		if ( Len( Trim( arguments.context ) ) && Len( Trim( arguments.contextKey ) ) ) {
+
+		if ( Len( Trim( arguments.context ) ) ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
 				return contextPerm;
@@ -104,11 +105,11 @@ component output=false extends="preside.system.base.Service" {
 		  required string userId
 		, required string permissionKey
 		, required string context
-		, required string contextKey
+		, required any    contextKey
 	) {
 		var perms = _getPresideObjectService().selectData(
 			  objectName   = "security_user"
-			, selectFields = [ "security_context_permission.granted" ]
+			, selectFields = IsArray( arguments.contextKey ) ? [ "security_context_permission.granted", "security_context_permission.context_key" ] : [ "security_context_permission.granted" ]
 			, forceJoins   = "inner"
 			, filter       = {
 				  "security_user.id"                          = arguments.userId
@@ -118,7 +119,25 @@ component output=false extends="preside.system.base.Service" {
 			}
 		);
 
-		return perms.recordCount ? perms.granted : NullValue();
+		if ( !perms.recordCount ) {
+			return NullValue();
+		}
+
+		if ( IsSimpleValue( arguments.contextKey ) ) {
+			return perms.granted;
+		}
+
+		var permsAsStruct = {};
+		for( var perm in perms ) {
+			permsAsStruct[ perm.context_key ] = perm.granted;
+		}
+		for( var key in arguments.contextKey ){
+			if ( permsAsStruct.keyExists( key ) ) {
+				return permsAsStruct[ key ];
+			}
+		}
+
+		return NullValue();
 	}
 
 	private array function _expandPermissions( required struct permissions, string prefix="" ) output=false {
