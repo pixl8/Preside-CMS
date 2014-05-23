@@ -5,9 +5,6 @@
 			<field binding="security_user.email_address" required="true" />
 			<field binding="security_user.label" />
 			<field binding="security_user.login_id" control="autoslug" basedOn="label" />
-		</fieldset>
-
-		<fieldset title="preside-objects.security_user:fieldset.groups" description="preside-objects.security_user:fieldset.groups.description">
 			<field binding="security_user.groups" />
 		</fieldset>
 

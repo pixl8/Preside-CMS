@@ -4,8 +4,6 @@
 		<fieldset id="basic">
 			<field binding="security_group.label" />
 			<field binding="security_group.description" />
-		</fieldset>
-		<fieldset id="roles" title="preside-objects.security_group:fieldset.roles.title" description="preside-objects.security_group:fieldset.roles.description">
 			<field binding="security_group.roles"  />
 		</fieldset>
 	</tab>
