@@ -214,6 +214,28 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( permsService.hasPermission( permissionKey="some.key" ), "A system user should always have permission, yet method said no!" );
 	}
 
+	function test12_hasPermission_shouldReturnFalse_whenLoggedInUserIsNotSystemUserAndDoesNotHaveAccessToSuppliedPermissionKey(){
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+
+		mockLoginService.$( "getLoggedInUserId", "me" );
+		mockLoginService.$( "isSystemUser", false );
+
+		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
+
+		super.assertFalse( permsService.hasPermission( permissionKey="key.i.do.not.have" ), "Shouldn't have permission, yet returned that I do" );
+	}
+
+	function test13_hasPermission_shoultReturnTrue_whenLoggedInUserIsNotSystemUserButHasAccessToSuppliedPermissionKey(){
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+
+		mockLoginService.$( "getLoggedInUserId", "me" );
+		mockLoginService.$( "isSystemUser", false );
+
+		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
+
+		super.assert( permsService.hasPermission( permissionKey="another.key" ), "Should have permission, yet returned that I don't :(" );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );

@@ -34,7 +34,8 @@ component output=false extends="preside.system.base.Service" {
 		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
 			return true;
 		}
-		return false;
+
+		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
 
 // PRIVATE HELPERS
