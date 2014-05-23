@@ -65,15 +65,36 @@ component output=false {
 
 		settings.activeExtensions = _loadExtensions();
 
-		settings.globalPermissionKeys = [ "sitetree", "assetmanager", "datamanager", "usermanager" ];
+
+		permissions = {
+			  cms          = [ "login" ]
+			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
+			, datamanager  = [ "navigate", "read", "add", "edit", "delete" ]
+			, assetmanager = {
+				  general = [ "navigate" ]
+				, folders = [ "read", "add", "edit", "delete" ]
+				, assets  = [ "read", "add", "edit", "delete" ]
+			 }
+			, usermanager  = [ "navigate", "read", "add", "edit", "delete" ]
+			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
+		};
+
+		settings.roles = {
+			  user           = [ "cms.login" ]
+			, sysadmin       = [ "usermanager.*", "groupmanager.*" ]
+			, sitetreeAdmin  = [ "sitetree.*" ]
+			, sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ]
+			, assetAdmin     = [ "assetmanager.*" ]
+			, assetEditor    = [ "assetmanager.*", "!assetmanager.*.delete" ]
+		};
 
 		settings.ckeditor = {
 			  defaults    = {
-			  	  stylesheets = [ "/admin/specific/richeditor/", "/core/" ]
-			  	, width       = "auto"
-			  	, minHeight   = 0
-			  	, maxHeight   = 600
-			  	, configFile  = "/ckeditorExtensions/config.js"
+				  stylesheets = [ "/admin/specific/richeditor/", "/core/" ]
+				, width       = "auto"
+				, minHeight   = 0
+				, maxHeight   = 600
+				, configFile  = "/ckeditorExtensions/config.js"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
 		}
@@ -169,21 +190,21 @@ component output=false {
 	private struct function _getCkEditorToolbarConfig() output=false {
 		return {
 			full     =  'Maximize,-,Source,-,Preview'
-			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
-			         & '|Find,Replace,-,SelectAll,-,Scayt'
-			         & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
-			         & '|PresideLink,PresideUnlink,PresideAnchor'
-			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
-			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
-			         & '|Styles,Format',
+					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Find,Replace,-,SelectAll,-,Scayt'
+					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
+					 & '|PresideLink,PresideUnlink,PresideAnchor'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
+					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
+					 & '|Styles,Format',
 
 			noInserts = 'Maximize,-,Source,-,Preview'
-			         & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
-			         & '|Find,Replace,-,SelectAll,-,Scayt'
-			         & '|PresideLink,PresideUnlink,PresideAnchor'
-			         & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
-			         & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
-			         & '|Styles,Format',
+					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Find,Replace,-,SelectAll,-,Scayt'
+					 & '|PresideLink,PresideUnlink,PresideAnchor'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
+					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
+					 & '|Styles,Format',
 
 			bolditaliconly = 'Bold,Italic'
 		};
