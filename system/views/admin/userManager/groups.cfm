@@ -1,17 +1,17 @@
 <cfscript>
-	objectName          = "security_role"
+	objectName          = "security_group"
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
 
 	prc.pageIcon     = "group";
-	prc.pageTitle    = translateResource( "cms:usermanager.rolespage.title");
-	prc.pageSubTitle = translateResource( "cms:usermanager.rolespage.subtitle");
+	prc.pageTitle    = translateResource( "cms:usermanager.groupspage.title");
+	prc.pageSubTitle = translateResource( "cms:usermanager.groupspage.subtitle");
 </cfscript>
 
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="usermanager.addRole" )#" data-global-key="a">
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="usermanager.addGroup" )#" data-global-key="a">
 			<button class="btn btn-success btn-sm">
 				<i class="fa fa-plus"></i>
 				#addRecordTitle#
@@ -22,8 +22,8 @@
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
 		, useMultiActions = true
-		, multiActionUrl  = event.buildAdminLink( linkTo='userManager.deleteRoleAction' )
-		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=userManager.getRolesForAjaxDataTables" )
+		, multiActionUrl  = event.buildAdminLink( linkTo='userManager.deleteGroupAction' )
+		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=userManager.getGroupsForAjaxDataTables" )
 		, gridFields      = [ "label", "description" ]
 	} )#
 </cfoutput>

@@ -54,9 +54,9 @@
 							</a>
 						</li>
 						<li>
-							<a href="#event.buildAdminLink( linkTo='usermanager.roles' )#">
+							<a href="#event.buildAdminLink( linkTo='usermanager.groups' )#">
 								<i class="fa fa-angle-double-right"></i>
-								#translateResource( "cms:usermanager.roles" )#
+								#translateResource( "cms:usermanager.groups" )#
 							</a>
 						</li>
 					</ul>

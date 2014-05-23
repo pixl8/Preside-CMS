@@ -11,10 +11,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 			event.adminAccessDenied();
 		}
 
-		if ( event.getCurrentAction() contains "role" ) {
+		if ( event.getCurrentAction() contains "group" ) {
 			event.addAdminBreadCrumb(
-				  title = translateResource( "cms:usermanager.rolespage.title" )
-				, link  = event.buildAdminLink( linkTo="usermanager.roles" )
+				  title = translateResource( "cms:usermanager.groupspage.title" )
+				, link  = event.buildAdminLink( linkTo="usermanager.groups" )
 			);
 		} elseif ( event.getCurrentAction() contains "user" ) {
 			event.addAdminBreadCrumb(
@@ -24,74 +24,73 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function roles( event, rc, prc ) output=false {}
+	function groups( event, rc, prc ) output=false {}
 
-	function getRolesForAjaxDataTables( event, rc, prc ) output=false {
+	function getGroupsForAjaxDataTables( event, rc, prc ) output=false {
 		runEvent(
 			  event          = "admin.DataManager.getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
 			, eventArguments = {
-				  object      = "security_role"
+				  object      = "security_group"
 				, gridFields  = "label,description"
-				, actionsView = "/admin/usermanager/_rolesGridActions"
+				, actionsView = "/admin/usermanager/_groupsGridActions"
 			}
 		);
 	}
 
-	function addRole( event, rc, prc ) output=false {
+	function addGroup( event, rc, prc ) output=false {
 		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:usermanager.addRole.page.title" )
-			, link  = event.buildAdminLink( linkTo="usermanager.addRole" )
+			  title = translateResource( "cms:usermanager.addGroup.page.title" )
+			, link  = event.buildAdminLink( linkTo="usermanager.addGroup" )
 		);
 	}
-	function addRoleAction( event, rc, prc ) output=false {
+	function addGroupAction( event, rc, prc ) output=false {
 		var newId = runEvent(
 			  event          = "admin.DataManager.addRecordAction"
 			, prePostExempt  = true
 			, eventArguments = {
-				  object            = "security_role"
-				, errorAction       = "userManager.addRole"
-				, redirectOnSuccess = false
-				, successAction    = "usermanager.roles"
-				, addAnotherAction = "usermanager.addRole"
-				, viewRecordAction = "userManager.editRole"
+				  object            = "security_group"
+				, errorAction       = "userManager.addGroup"
+				, successAction    = "usermanager.groups"
+				, addAnotherAction = "usermanager.addGroup"
+				, viewRecordAction = "userManager.editGroup"
 			}
 		);
 	}
 
-	function editRole( event, rc, prc ) output=false {
-		prc.record = presideObjectService.selectData( objectName="security_role", filter={ id=rc.id ?: "" } );
+	function editGroup( event, rc, prc ) output=false {
+		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
 
 		if ( not prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:usermanager.roleNotFound.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.roles" ) );
+			messageBox.error( translateResource( uri="cms:usermanager.groupNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="usermanager.groups" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:usermanager.editRole.page.title", data=[ prc.record.label ] )
-			, link  = event.buildAdminLink( linkTo="usermanager.editRole", queryString="id=#(rc.id ?: '')#" )
+			  title = translateResource( uri="cms:usermanager.editGroup.page.title", data=[ prc.record.label ] )
+			, link  = event.buildAdminLink( linkTo="usermanager.editGroup", queryString="id=#(rc.id ?: '')#" )
 		);
 	}
-	function editRoleAction( event, rc, prc ) output=false {
+	function editGroupAction( event, rc, prc ) output=false {
 		runEvent(
 			  event          = "admin.DataManager.editRecordAction"
 			, prePostExempt  = true
 			, eventArguments = {
-				  object        = "security_role"
-				, errorAction   = "userManager.editRole"
-				, successAction = "userManager.roles"
+				  object        = "security_group"
+				, errorAction   = "userManager.editGroup"
+				, successAction = "userManager.groups"
 			}
 		);
 	}
 
-	function deleteRoleAction( event, rc, prc ) output=false {
+	function deleteGroupAction( event, rc, prc ) output=false {
 		runEvent(
 			  event          = "admin.DataManager.deleteRecordAction"
 			, prePostExempt  = true
 			, eventArguments = {
-				  object     = "security_role"
-				, postAction = "userManager.roles"
+				  object     = "security_group"
+				, postAction = "userManager.groups"
 			}
 		);
 	}
