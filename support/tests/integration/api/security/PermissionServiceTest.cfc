@@ -3,6 +3,26 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 // SETUP, etc
 	function setup() {
 		super.setup();
+
+		testPerms = {
+			  cms          = [ "login" ]
+			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
+			, assetmanager = {
+				  folders = [ "navigate", "read", "add", "edit", "delete" ]
+				, assets  = [ "navigate", "read", "add", "edit", "delete" ]
+				, blah    = {
+					  test = [ "meh", "doh", "blah" ]
+					, test2 = [ "tehee" ]
+				}
+			 }
+			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
+		};
+
+		testRoles = {
+			  administrator = [ "*" ]
+			, tester        = [ "*.delete", "assetmanager.*.read", "sitetree.*", "!groupmanager.delete", "groupmanager.edit", "!*.add" ]
+			, user          = [ "cms.login", "assetmanager.blah.test" ]
+		}
 	}
 
 // TESTS
@@ -12,11 +32,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test02_listRoles_shouldReturnArrayOfConfiguredRoles(){
 		var expected = [ "administrator", "tester", "user" ];
-		var actual   = _getPermissionService( roles={
-			  administrator = [ "*" ]
-			, tester        = [ "someperm.*" ]
-			, user          = [ "cms.login" ]
-		} ).listRoles();
+		var actual   = _getPermissionService( roles=testRoles ).listRoles();
 
 		actual.sort( "textnocase" );
 
@@ -25,11 +41,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test03_listPermissionKeys_shouldReturnEmptyArrayWhenNoPermissionsSet(){
 		var expected = [ ];
-		var actual   = _getPermissionService( roles={
-			  administrator = [ "*" ]
-			, tester        = [ "someperm.*" ]
-			, user          = [ "cms.login" ]
-		} ).listPermissionKeys();
+		var actual   = _getPermissionService( roles=testRoles ).listPermissionKeys();
 
 		super.assertEquals( expected, actual );
 	}
@@ -62,24 +74,37 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, "groupmanager.edit"
 			, "groupmanager.delete"
 		];
-		var actual = _getPermissionService( permissions={
-			  cms          = [ "login" ]
-			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
-			, assetmanager = {
-				  folders = [ "navigate", "read", "add", "edit", "delete" ]
-				, assets  = [ "navigate", "read", "add", "edit", "delete" ]
-				, blah    = {
-					  test = [ "meh", "doh", "blah" ]
-					, test2 = [ "tehee" ]
-				}
-			 }
-			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
-		} ).listPermissionKeys();
+		var actual = _getPermissionService( permissions=testPerms ).listPermissionKeys();
 
 		expected.sort( "textnocase" );
 		actual.sort( "textnocase" );
 
 		super.assertEquals( expected, actual );
+	}
+
+	function test05_listPermissionKeys_shouldReturnPermissionsThatHaveBeenExplicitlyConfiguredOnPassedRole(){
+		var expected = [ "assetmanager.blah.test", "cms.login" ];
+		var actual   = _getPermissionService( permissions=testPerms, roles=testRoles ).listPermissionKeys( role="user" );
+
+		super.assertEquals( expected, actual.sort( "textnocase" ) );
+	}
+
+	function test06_listPermissionKeys_shouldReturnExpandedPermissions_whereSuppliedRoleHasPermissionsConfiguredWithWildCardsAndExclusions(){
+		var expected = [
+			  "sitetree.navigate"
+			, "sitetree.read"
+			, "sitetree.edit"
+			, "sitetree.delete"
+			, "assetmanager.folders.read"
+			, "assetmanager.assets.read"
+			, "assetmanager.folders.delete"
+			, "assetmanager.assets.delete"
+			, "groupmanager.edit"
+		];
+
+		var actual   = _getPermissionService( permissions=testPerms, roles=testRoles ).listPermissionKeys( role="tester" );
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
 // PRIVATE HELPERS
