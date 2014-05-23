@@ -1,10 +1,12 @@
 component output=false extends="preside.system.base.Service" {
 
 // CONSTRUCTOR
-	public any function init( required struct permissionsConfig, required struct rolesConfig ) output=false {
+	public any function init( required any loginService, required struct permissionsConfig, required struct rolesConfig ) output=false {
 		super.init( argumentCollection = arguments );
 
-		_denormalizeConfiguredRolesAndPermissions( arguments.permissionsConfig, arguments.rolesConfig );
+		_setLoginService( arguments.loginService );
+
+		_denormalizeAndSaveConfiguredRolesAndPermissions( arguments.permissionsConfig, arguments.rolesConfig );
 
 		return this;
 	}
@@ -28,8 +30,15 @@ component output=false extends="preside.system.base.Service" {
 		return _getPermissions();
 	}
 
+	public boolean function hasPermission( required string permissionKey, string userId=_getLoginService().getLoggedInUserId() ) output=false {
+		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+			return true;
+		}
+		return false;
+	}
+
 // PRIVATE HELPERS
-	private void function _denormalizeConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
+	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
 		_setRoles( _expandRoles( arguments.rolesConfig ) );
 	}
@@ -142,7 +151,6 @@ component output=false extends="preside.system.base.Service" {
 		return perms;
 	}
 
-
 	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
 		var regex       = Replace( _reEscape( arguments.permissionKey ), "\*", "(.*?)", "all" );
 		var permissions = _getPermissions();
@@ -176,5 +184,12 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setPermissions( required array permissions ) output=false {
 		_permissions = arguments.permissions;
+	}
+
+	private any function _getLoginService() output=false {
+		return _loginService;
+	}
+	private void function _setLoginService( required any loginService ) output=false {
+		_loginService = arguments.loginService;
 	}
 }

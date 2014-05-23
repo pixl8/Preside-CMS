@@ -205,15 +205,26 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
+	function test11_hasPermission_shouldReturnTrue_whenLoggedInUserIsSystemUser(){
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+
+		mockLoginService.$( "getLoggedInUserId", "me" );
+		mockLoginService.$( "isSystemUser", true );
+
+		super.assert( permsService.hasPermission( permissionKey="some.key" ), "A system user should always have permission, yet method said no!" );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
+		mockLoginService         = getMockBox().createEmptyMock( "preside.system.api.admin.LoginService" );
 
-		return new preside.system.api.security.PermissionService(
+		return getMockBox().createMock( object=new preside.system.api.security.PermissionService(
 			  presideObjectService = mockPresideObjectService
+			, loginService         = mockLoginService
 			, logger               = _getTestLogger()
 			, rolesConfig          = arguments.roles
 			, permissionsConfig    = arguments.permissions
-		);
+		) );
 	}
 }
