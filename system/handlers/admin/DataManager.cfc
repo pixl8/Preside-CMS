@@ -43,6 +43,10 @@
 		<cfscript>
 			var objectName = event.getValue( name="id", default="" );
 
+			if ( !event.hasAdminPermission( permissionKey="datamanager.read", context="datamanager", contextKeys=[ objectName ] ) ) {
+				event.adminAccessDenied();
+			}
+
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
