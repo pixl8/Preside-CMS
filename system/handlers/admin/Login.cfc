@@ -3,6 +3,7 @@
 	<cfproperty name="adminLoginService"    inject="adminLoginService" />
 	<cfproperty name="sessionService"       inject="sessionService"       />
 	<cfproperty name="adminDefaultEvent"    inject="coldbox:setting:adminDefaultEvent" />
+	<cfproperty name="messageBox"           inject="coldbox:plugin:messageBox" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -43,6 +44,11 @@
 			);
 
 			if ( loggedIn ) {
+				if ( !event.hasAdminPermission( "cms.login" ) ) {
+					adminLoginService.logout();
+					messageBox.error( translateResource( uri="cms:login.no.login.rights.error" ) );
+					setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );
+				}
 				user = event.getAdminUserDetails();
 				event.audit(
 					  detail   = "[#user.knownAs#] has logged in"
