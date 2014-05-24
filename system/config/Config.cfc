@@ -80,15 +80,15 @@ component output=false {
 			, devtools     = [ "console" ]
 		};
 
-		settings.roles = {
-			  user           = [ "cms.login" ]
-			, sysadmin       = [ "usermanager.*", "groupmanager.*" ]
-			, sitetreeAdmin  = [ "sitetree.*" ]
-			, dataAdmin      = [ "datamanager.*" ]
-			, sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ]
-			, assetAdmin     = [ "assetmanager.*" ]
-			, assetEditor    = [ "assetmanager.*", "!assetmanager.*.delete" ]
-		};
+		settings.roles = StructNew( "linked" );
+
+		settings.roles.user           = [ "cms.login" ]
+		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*" ]
+		settings.roles.sitetreeAdmin  = [ "sitetree.*" ]
+		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ]
+		settings.roles.dataAdmin      = [ "datamanager.*" ]
+		settings.roles.assetAdmin     = [ "assetmanager.*" ]
+		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.delete" ]
 
 		settings.ckeditor = {
 			  defaults    = {

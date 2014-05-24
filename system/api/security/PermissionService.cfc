@@ -164,7 +164,7 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	private struct function _expandRoles( required struct roles ) output=false {
-		var expandedRoles = {};
+		var expandedRoles = StructNew( "linked" );
 
 		for( var roleName in arguments.roles ){
 			var role = arguments.roles[ roleName ];
