@@ -32,7 +32,7 @@ test04
 
 				super.assert( StructKeyExists( columns, "label" ), "The label column was not created." );
 				super.assertEquals( "varchar", columns.label.type_name, "The label column was not a varchar." );
-				super.assertEquals( "35", columns.label.column_size, "The label column did not have a length of 35." );
+				super.assertEquals( "250", columns.label.column_size, "The label column did not have a length of 250." );
 				super.assertFalse( columns.label.nullable, "The label column should not be nullable" );
 
 				super.assert( StructKeyExists( columns, "datecreated" ), "The datecreated column was not created." );
@@ -1327,7 +1327,7 @@ test04
 				  datecreated  = { name="datecreated" , control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
 				, datemodified = { name="datemodified", control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
 				, id           = { name="id"          , control="none"     , dbtype="varchar"  , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label        = { name="label"       , control="textinput", dbtype="varchar"  , generator="none", maxLength=35, relatedTo="none", relationship="none", required=true, type="string" }
+				, label        = { name="label"       , control="textinput", dbtype="varchar"  , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 				, object_d         = { name="object_d"        , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade" }
 				, related_to_a     = { name="related_to_a"    , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade" }
 			};
@@ -1861,7 +1861,7 @@ test04
 				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
 				, datemodified                = { name="datemodified"               , control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
 				, id                          = { name="id"                         , control="none"     , dbtype="varchar"  , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label                       = { name="label"                      , control="textinput", dbtype="varchar"  , generator="none", maxLength=35, relatedTo="none", relationship="none", required=true, type="string" }
+				, label                       = { name="label"                      , control="textinput", dbtype="varchar"  , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 
 				, propertyThatWillBePreserved = { name="propertyThatWillBePreserved", type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
 				, propertyWhosTypeWillChange  = { name="propertyWhosTypeWillChange" , type="numeric", dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }

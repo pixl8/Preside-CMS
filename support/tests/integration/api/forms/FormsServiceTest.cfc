@@ -199,7 +199,7 @@
 						title="",
 						description="",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
 						},{
 							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group"
 						},{
@@ -254,7 +254,7 @@
 						title="",
 						description="",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="35", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
 						},{
 							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group"
 						},{
