@@ -25,11 +25,6 @@ component output=false {
 				adapter = new MySqlAdapter();
 			break;
 
-			case "H2":
-				adapter = new H2Adapter();
-			break;
-
-
 			default:
 				throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
 		}
