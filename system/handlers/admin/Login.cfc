@@ -44,7 +44,7 @@
 			);
 
 			if ( loggedIn ) {
-				if ( !event.hasAdminPermission( "cms.login" ) ) {
+				if ( !hasPermission( "cms.login" ) ) {
 					adminLoginService.logout();
 					messageBox.error( translateResource( uri="cms:login.no.login.rights.error" ) );
 					setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );

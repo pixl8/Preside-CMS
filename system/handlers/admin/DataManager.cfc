@@ -14,7 +14,7 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
-			if ( !event.hasAdminPermission( "datamanager.navigate" ) ) {
+			if ( !hasPermission( "datamanager.navigate" ) ) {
 				event.adminAccessDenied();
 			}
 
@@ -43,7 +43,7 @@
 		<cfscript>
 			var objectName = event.getValue( name="id", default="" );
 
-			if ( !event.hasAdminPermission( permissionKey="datamanager.read", context="datamanager", contextKeys=[ objectName ] ) ) {
+			if ( !hasPermission( permissionKey="datamanager.read", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 

@@ -11,7 +11,7 @@
 
 		<ul class="nav nav-list">
 
-			<cfif event.hasAdminPermission( "sitetree.navigate" )>
+			<cfif hasPermission( "sitetree.navigate" )>
 				<li<cfif listLast( handler, ".") eq "sitetree"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo="sitetree" )#" data-goto-key="s">
 						<i class="fa fa-sitemap"></i>
@@ -20,7 +20,7 @@
 				</li>
 			</cfif>
 
-			<cfif event.hasAdminPermission( "assetmanager.general.navigate" )>
+			<cfif hasPermission( "assetmanager.general.navigate" )>
 				<li<cfif listLast( handler, ".") eq "assetmanager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo="assetmanager" )#" data-goto-key="a">
 						<i class="fa fa-picture-o"></i>
@@ -29,7 +29,7 @@
 				</li>
 			</cfif>
 
-			<cfif event.hasAdminPermission( "datamanager.navigate" )>
+			<cfif hasPermission( "datamanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "datamanager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo='datamanager' )#" data-goto-key="d">
 						<i class="fa fa-puzzle-piece"></i>
@@ -38,7 +38,7 @@
 				</li>
 			</cfif>
 
-			<cfif event.hasAdminPermission( "usermanager.navigate" ) || event.hasAdminPermission( "groupmanager.navigate" )>
+			<cfif hasPermission( "usermanager.navigate" ) || hasPermission( "groupmanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "usermanager"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<i class="fa fa-group"></i>
@@ -47,7 +47,7 @@
 					</a>
 
 					<ul class="submenu">
-						<cfif event.hasAdminPermission( "usermanager.navigate" )>
+						<cfif hasPermission( "usermanager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='usermanager.users' )#">
 									<i class="fa fa-angle-double-right"></i>
@@ -55,7 +55,7 @@
 								</a>
 							</li>
 						</cfif>
-						<cfif event.hasAdminPermission( "groupmanager.navigate" )>
+						<cfif hasPermission( "groupmanager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='usermanager.groups' )#">
 									<i class="fa fa-angle-double-right"></i>

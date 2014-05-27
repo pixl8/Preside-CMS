@@ -16,7 +16,7 @@
 
 		staticRoot = getSetting( name="cfstatic_generated_url", defaultValue="/_assets" );
 
-		if ( event.hasAdminPermission( "devtools.console" ) ) {
+		if ( hasPermission( "devtools.console" ) ) {
 			event.include( "/js/admin/devtools/" );
 			event.include( "/css/admin/devtools/" );
 		}

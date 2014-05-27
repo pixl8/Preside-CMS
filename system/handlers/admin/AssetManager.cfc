@@ -8,7 +8,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
-		if ( !event.hasAdminPermission( "assetmanager.general.navigate" ) ) {
+		if ( !hasPermission( "assetmanager.general.navigate" ) ) {
 			event.adminAccessDenied();
 		}
 

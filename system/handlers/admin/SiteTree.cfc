@@ -13,7 +13,7 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
-			if ( !event.hasAdminPermission( "sitetree.navigate" ) ) {
+			if ( !hasPermission( "sitetree.navigate" ) ) {
 				WriteDump( getModel( "permissionService" ).listPermissionKeys( user="41EE6157-9DCD-4F3B-A7D505972A9B4FAE" ) ); abort;
 				event.adminAccessDenied();
 			}

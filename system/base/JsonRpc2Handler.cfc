@@ -9,7 +9,7 @@ component output=false hint="I am a base handler for any handlers implementing J
 			return;
 		};
 
-		if ( !event.hasAdminPermission( "devtools.console" ) ) {
+		if ( !hasPermission( "devtools.console" ) ) {
 			jsonRpc2Plugin.error( 401, "You do not have permission to access the console" );
 			return;
 		}

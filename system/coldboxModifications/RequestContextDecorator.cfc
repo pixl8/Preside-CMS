@@ -129,10 +129,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="hasAdminPermission" access="public" returntype="boolean" output="false">
-		<cfreturn getModel( "permissionService" ).hasPermission( argumentCollection = arguments ) />
-	</cffunction>
-
 	<cffunction name="adminAccessDenied" access="public" returntype="void" output="false">
 		<cfscript>
 			// todo, something much better here!

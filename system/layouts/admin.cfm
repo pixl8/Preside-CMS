@@ -18,7 +18,7 @@
 	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/" );
 	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
 
-	if ( event.hasAdminPermission( "devtools.console" ) ) {
+	if ( hasPermission( "devtools.console" ) ) {
 		event.include( "/js/admin/devtools/" );
 		event.include( "/css/admin/devtools/" );
 	}
