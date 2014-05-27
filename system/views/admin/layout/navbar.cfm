@@ -21,31 +21,18 @@
 
 						<ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 							<li>
-								<a href="##">
-									<i class="fa fa-cog"></i>
-									Settings
-								</a>
-							</li>
-
-							<li>
-								<a href="##">
-									<i class="fa fa-user"></i>
-									Profile
-								</a>
-							</li>
-
-							<li class="divider"></li>
-
-							<li>
 								<a href="#event.buildAdminLink( linkTo="login.logout" )#">
-									<i class="fa fa-off"></i>
-									Logout
+									<i class="fa fa-sign-out"></i>
+									#translateResource( "cms:logout.link" )#
 								</a>
 							</li>
 						</ul>
 					</li>
 					<li>
-						<a href="#getSetting( 'presideHelpAndSupportLink' )#">#translateResource( "cms:helpandsupport.link" )#</a>
+						<a href="#getSetting( 'presideHelpAndSupportLink' )#">
+							<i class="fa fa-life-ring"></i>
+							#translateResource( "cms:helpandsupport.link" )#
+						</a>
 					</li>
 				</ul><!-- /.ace-nav -->
 			</div><!-- /.navbar-header -->
