@@ -243,11 +243,20 @@ component output=false extends="preside.system.base.Service" {
 		} );
 
 		for( var key in arguments.contextKeys ){
+			var perm = NullValue();
+
 			for( var group in listUserGroups( arguments.userId ) ){
 				cacheKey = key & "_" & arguments.permissionKey & "_" & group;
 				if ( StructKeyExists( cachedContextPerms, cacheKey ) ) {
-					return cachedContextPerms[ cacheKey ];
+					perm = cachedContextPerms[ cacheKey ];
+					if ( perm ) {
+						return perm;
+					}
 				}
+			}
+
+			if ( !IsNull( perm ) ) {
+				return perm;
 			}
 		}
 

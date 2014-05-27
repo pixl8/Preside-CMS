@@ -520,6 +520,35 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 5, callLog.insertData.len() );
 	}
 
+	function test24_hasPermission_shouldReturnTrue_whenUserBelongsToMulipleGroupsWithGivenContextPermSetAndAtLeastOneOfThoseGroupsHasExplicitGrantAccess(){
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var hasPerm      = "";
+		var mockContextPerms = QueryNew( "granted,context_key,permission_key,security_group", 'bit,varchar,varchar,varchar', [
+			    [ 1, "some.context.key1", "some.permission.key1", "somegroup" ]
+			  , [ 0, "some.context.key2", "some.permission.key2", "groupx" ]
+			  , [ 0, "somekey"          , "a.new.key"           , "somegroup" ]
+			  , [ 1, "somekey"          , "a.new.key"           , "anothergroup" ]
+			  , [ 0, "some.context.key" , "some.permission.key4", "blah" ]
+			  , [ 0, "some.context.key" , "a.new.key"           , "test" ]
+		] );
+
+		mockLoginService.$( "getLoggedInUserId", "me" );
+		mockLoginService.$( "isSystemUser", false );
+
+		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
+		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
+
+		mockPresideObjectService.$( "selectData" ).$args(
+			  objectName   = "security_context_permission"
+			, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+			, filter       = { context = "someContext" }
+		).$results( mockContextPerms );
+
+		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKeys=[ "somekey" ] );
+
+		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
