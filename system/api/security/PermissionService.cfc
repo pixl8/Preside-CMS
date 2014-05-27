@@ -40,6 +40,10 @@ component output=false extends="preside.system.base.Service" {
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) output=false {
 
+		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
+			return true;
+		}
+
 		if ( Len( Trim( arguments.context ) ) && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {
@@ -47,9 +51,6 @@ component output=false extends="preside.system.base.Service" {
 			}
 		}
 
-		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
-			return true;
-		}
 
 		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
