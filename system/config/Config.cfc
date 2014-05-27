@@ -85,7 +85,7 @@ component output=false {
 		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*" ];
 		settings.roles.sitetreeAdmin  = [ "sitetree.*" ];
 		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
-		settings.roles.dataAdmin      = [ "datamanager.*", "!datamanager.manageContextPerms" ];
+		settings.roles.dataAdmin      = [ "datamanager.*" ];
 		settings.roles.assetAdmin     = [ "assetmanager.*" ];
 		settings.roles.assetEditor    = [ "assetmanager.*" ];
 

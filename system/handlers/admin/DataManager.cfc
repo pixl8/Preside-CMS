@@ -144,7 +144,7 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 
-			if ( !hasPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextKey=objectName ) ) {
+			if ( !hasPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 
@@ -154,6 +154,32 @@
 				  title = translateResource( uri="cms:datamanager.managePerms.breadcrumb.title" )
 				, link  = ""
 			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="savePermsAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var objectName = event.getValue( name="object", defaultValue="" );
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
+
+			if ( !hasPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextKeys=[ objectName ] ) ) {
+				event.adminAccessDenied();
+			}
+
+			if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+				messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			}
+
+			messageBox.error( translateResource( uri="cms:datamanager.permsSaved.error", data=[ objectName ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.managePerms", queryString="object=#objectName#" ) );
+
 		</cfscript>
 	</cffunction>
 

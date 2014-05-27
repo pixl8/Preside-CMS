@@ -1,15 +1,19 @@
 <cfscript>
-	formId         = "managePermsForm-" & CreateUUId();
-	saveAction     = args.saveAction     ?: event.buildAdminLink( linkTo="permissions.saveContextPermsAction" );
-	cancelAction   = args.cancelAction   ?: cgi.http_referer;
-	permissionKeys = args.permissionKeys ?: [];
+	param name="args.saveAction"       type="string";
+	param name="args.cancelAction"     type="string";
+	param name="args.permissionKeys"   type="array";
+	param name="args.savedPermissions" type="struct";
+	param name="args.context"          type="string";
+	param name="args.contextKey"       type="string";
 
-	event.include( "/css/admin/specific/contextPermsForm/" )
+	event.include( "/css/admin/specific/contextPermsForm/" );
 </cfscript>
 
 <cfoutput>
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal manage-context-permissions-form" method="post" action="#saveAction#">
-		<input type="hidden" name="permissionKeys" value="#permissionKeys.toList()#">
+	<form data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal manage-context-permissions-form" method="post" action="#args.saveAction#">
+		<input type="hidden" name="permissionKeys" value="#args.permissionKeys.toList()#">
+		<input type="hidden" name="context"        value="#args.context#">
+		<input type="hidden" name="contextKey"     value="#args.contextKey#">
 
 		<table class="table">
 			<thead>
@@ -20,7 +24,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<cfloop array="#permissionKeys#" index="i" item="key">
+				<cfloop array="#args.permissionKeys#" index="i" item="key">
 					<tr>
 						<td class="permission-col">
 							<h4>#translateResource( uri="permissions:#key#.title"      , defaultValue=key )#</h4>
@@ -28,22 +32,24 @@
 						</td>
 						<td class="edit-col">
 							#renderFormControl(
-								  name        = "grant." & key
-								, type        = "objectPicker"
-								, object      = "security_group"
-								, multiple    = true
-								, layout      = ""
-								, placeholder = "&nbsp;"
+								  name         = "grant." & key
+								, type         = "objectPicker"
+								, object       = "security_group"
+								, multiple     = true
+								, layout       = ""
+								, placeholder  = "&nbsp;"
+								, defaultValue = ( args.savedPermissions[ key ].granted ?: [] ).toList()
 							)#
 						</td>
 						<td class="edit-col">
 							#renderFormControl(
-								  name        = "deny." & key
-								, type        = "objectPicker"
-								, object      = "security_group"
-								, multiple    = true
-								, layout      = ""
-								, placeholder = "&nbsp;"
+								  name         = "deny." & key
+								, type         = "objectPicker"
+								, object       = "security_group"
+								, multiple     = true
+								, layout       = ""
+								, placeholder  = "&nbsp;"
+								, defaultValue = ( args.savedPermissions[ key ].denied ?: [] ).toList()
 							)#
 						</td>
 					</tr>
@@ -53,7 +59,7 @@
 
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
-				<a href="#cancelAction#" class="btn btn-default" data-global-key="c">
+				<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:contextperms.cancel.btn" )#
 				</a>

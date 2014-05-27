@@ -132,6 +132,8 @@ component output=false extends="preside.system.base.Service" {
 					  }
 				);
 			}
+
+			_getCacheProvider().clear( "Context perms for context: " & arguments.context );
 		}
 
 		return true;
