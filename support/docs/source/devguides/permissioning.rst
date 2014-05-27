@@ -183,3 +183,21 @@ Our :code:`admin.events.saveEventPermissionsAction` handler action might then lo
       messageBox.error( translateResource( uri="cms:eventmanager.permsSaved.error" ) );
       setNextEvent( url=event.buildAdminLink( linkTo="events.managePermissions", queryString="id=#eventId#" ) );
     }
+
+System users
+############
+
+Users that are defined as **system users** are excempt from all permission checking. In effect, they are granted access to **everything**. This concept exists to enable web agencies to manage every aspect of a site while setting up more secure access for their clients.
+
+System users are only configurable through your site's :doc:`Config.cfc <configcfc>` file as a comma separated list of login ids. The default value of this setting is 'sysadmin'. For example, in your site's Config.cfc, you might have:
+
+.. code-block:: js
+
+     public void function configure() output=false {
+        super.configure();
+
+        // ...
+
+        settings.system_users = "sysadmin,developer"; // both the 'developer' and 'sysadmin' users are now defined as system users
+      }
+
