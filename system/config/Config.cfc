@@ -65,15 +65,14 @@ component output=false {
 
 		settings.activeExtensions = _loadExtensions();
 
-
 		settings.permissions = {
 			  cms          = [ "login" ]
-			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
-			, datamanager  = [ "navigate", "read", "add", "edit", "delete" ]
+			, sitetree     = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms" ]
+			, datamanager  = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms" ]
 			, assetmanager = {
 				  general = [ "navigate" ]
-				, folders = [ "read", "add", "edit", "delete" ]
-				, assets  = [ "read", "add", "edit", "delete" ]
+				, folders = [ "read", "add", "edit", "delete", "manageContextPerms" ]
+				, assets  = [ "read", "add", "edit", "delete", "download", "manageContextPerms" ]
 			 }
 			, usermanager  = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
