@@ -17,7 +17,7 @@ component output=false extends="preside.system.base.Service" {
 		return _getRoles().keyArray();
 	}
 
-	public array function listPermissionKeys( string role="", string group="", string user="" ) output=false {
+	public array function listPermissionKeys( string role="", string group="", string user="", array filter=[] ) output=false {
 		if ( Len( Trim( arguments.role ) ) ) {
 			return _getRolePermissions( arguments.role );
 
@@ -26,6 +26,8 @@ component output=false extends="preside.system.base.Service" {
 
 		} elseif ( Len( Trim( arguments.user ) ) ) {
 			return _getUserPermissions( arguments.user );
+		} elseif ( arguments.filter.len() ) {
+			return _filterPermissions( arguments.filter );
 		}
 
 		return _getPermissions();
@@ -108,6 +110,41 @@ component output=false extends="preside.system.base.Service" {
 		return perms;
 	}
 
+	private array function _filterPermissions( required array filter ) output=false {
+		var filtered   = [];
+		var exclusions = [];
+		var allPerms   = _getPermissions();
+
+		for( var permissionKey in filter ){
+			if ( IsSimpleValue( permissionKey ) ) {
+				if ( Left( permissionKey, 1 ) == "!" ) {
+					exclusions.append( ReReplace( permissionKey, "^!(.*)$", "\1" ) );
+
+				} elseif ( permissionKey contains "*" ) {
+					( _expandWildCardPermissionKey( permissionKey ) ).each( function( expandedKey ){
+						if ( !filtered.findNoCase( expandedKey ) ) {
+							filtered.append( expandedKey );
+						}
+					} );
+				} elseif ( allPerms.findNoCase( permissionKey ) && !filtered.findNoCase( permissionKey ) ) {
+					filtered.append( permissionKey );
+				}
+			}
+		}
+
+		for( var exclusion in exclusions ){
+			if ( exclusion contains "*" ) {
+				( _expandWildCardPermissionKey( exclusion ) ).each( function( expandedKey ){
+					filtered.delete( expandedKey );
+				} );
+			} else {
+				filtered.delete( exclusion );
+			}
+		}
+
+		return filtered;
+	}
+
 	private any function _getContextPermission(
 		  required string userId
 		, required string permissionKey
@@ -176,31 +213,7 @@ component output=false extends="preside.system.base.Service" {
 			expandedRoles[ roleName ] = [];
 
 			if ( IsArray( role ) ) {
-				for( var permissionKey in role ){
-					if ( IsSimpleValue( permissionKey ) ) {
-						if ( Left( permissionKey, 1 ) == "!" ) {
-							exclusions.append( ReReplace( permissionKey, "^!(.*)$", "\1" ) );
-						} elseif ( Find( "*", permissionKey ) ) {
-							( _expandWildCardPermissionKey( permissionKey ) ).each( function( expandedKey ){
-								if ( !expandedRoles[ roleName ].findNoCase( expandedKey ) ) {
-									expandedRoles[ roleName ].append( expandedKey );
-								}
-							} );
-						} else {
-							expandedRoles[ roleName ].append( permissionKey );
-						}
-					}
-				}
-			}
-
-			for( var exclusion in exclusions ){
-				if ( Find( "*", exclusion ) ) {
-					( _expandWildCardPermissionKey( exclusion ) ).each( function( expandedKey ){
-						expandedRoles[ roleName ].delete( expandedKey );
-					} );
-				} else {
-					expandedRoles[ roleName ].delete( exclusion );
-				}
+				expandedRoles[ roleName ] = listPermissionKeys( filter=role );
 			}
 		}
 

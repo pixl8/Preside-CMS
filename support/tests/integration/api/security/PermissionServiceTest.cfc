@@ -381,6 +381,22 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
 	}
 
+	function test21_listPermissions_shouldReturnFilteredListOfPermissions_whenFilterSupplied() {
+		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var actual       = permsService.listPermissionKeys( filter=[ "assetmanager.folders.*", "!*.delete", "*.edit" ] );
+		var expected     = [
+			  "sitetree.edit"
+			, "assetmanager.folders.navigate"
+			, "assetmanager.folders.read"
+			, "assetmanager.folders.add"
+			, "assetmanager.folders.edit"
+			, "assetmanager.assets.edit"
+			, "groupmanager.edit"
+		];
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
