@@ -1,5 +1,5 @@
 <cfscript>
-	prc.pageIcon  = "picture";
+	prc.pageIcon  = "picture-o";
 	prc.pageTitle = translateResource( "cms:assetManager" );
 </cfscript>
 
