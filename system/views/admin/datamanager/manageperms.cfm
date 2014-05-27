@@ -1,10 +1,10 @@
 <cfscript>
 	object              = rc.object ?: ""
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-	managePermsTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[ LCase( objectTitleSingular ) ] );
 
-	prc.pageIcon  = "lock";
-	prc.pageTitle = managePermsTitle;
+	prc.pageIcon     = "lock";
+	prc.pageTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[ LCase( objectTitleSingular ) ] );;
+	prc.pageSubTitle = translateResource( uri="cms:datamanager.manageperms.subtitle", data=[ LCase( objectTitleSingular ) ] );;
 </cfscript>
 
 <cfoutput>
