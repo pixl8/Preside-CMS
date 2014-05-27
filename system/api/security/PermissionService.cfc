@@ -96,6 +96,47 @@ component output=false extends="preside.system.base.Service" {
 		return contextPerms;
 	}
 
+	public boolean function syncContextPermissions( required string context, required string contextKey, required string permissionKey, required array grantedToGroups, required array deniedToGroups ) output=false {
+		transaction {
+			_getPresideObjectService().deleteData(
+				  objectName = "security_context_permission"
+				, filter     = {
+					  context        = arguments.context
+					, context_key    = arguments.contextKey
+					, permission_key = arguments.permissionKey
+				  }
+			);
+
+			for( var group in arguments.grantedToGroups ){
+				_getPresideObjectService().insertData(
+					  objectName = "security_context_permission"
+					, data       = {
+						  context        = arguments.context
+						, context_key    = arguments.contextKey
+						, permission_key = arguments.permissionKey
+						, security_group = group
+						, granted        = true
+					  }
+				);
+			}
+
+			for( var group in arguments.deniedToGroups ){
+				_getPresideObjectService().insertData(
+					  objectName = "security_context_permission"
+					, data       = {
+						  context        = arguments.context
+						, context_key    = arguments.contextKey
+						, permission_key = arguments.permissionKey
+						, security_group = group
+						, granted        = false
+					  }
+				);
+			}
+		}
+
+		return true;
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );

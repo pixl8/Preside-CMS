@@ -437,6 +437,89 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, actual );
 	}
 
+	function test23_syncContextPermissions_shouldEnsureAccessAndDenyRightsAreAppliedToSuppliedGroupsAndNoOthers_forGivenPermissionAndContext(){
+		var permsService    = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var testContext     = "thisisatest";
+		var testContextKey  = "thisisakeytest";
+		var testPerm        = "somePerm";
+		var testGrantGroups = [ "group1", "group2" ];
+		var testDenyGroups  = [ "group3", "group9", "group10" ];
+
+		mockPresideObjectService.$( "deleteData" ).$args(
+			  objectName   = "security_context_permission"
+			, filter       = { context=testContext, context_key=testContextKey, permission_key=testPerm }
+		).$results( 4 );
+
+		mockPresideObjectService.$( "insertData" ).$args(
+			  objectName = "security_context_permission"
+			, data       = {
+				  permission_key = testPerm
+				, context        = testContext
+				, context_key    = testContextKey
+				, security_group = "group1"
+				, granted        = 1
+			  }
+		).$results( "" );
+
+		mockPresideObjectService.$( "insertData" ).$args(
+			  objectName = "security_context_permission"
+			, data       = {
+				  permission_key = testPerm
+				, context        = testContext
+				, context_key    = testContextKey
+				, security_group = "group2"
+				, granted        = 1
+			  }
+		).$results( "" );
+
+		mockPresideObjectService.$( "insertData" ).$args(
+			  objectName = "security_context_permission"
+			, data       = {
+				  permission_key = testPerm
+				, context        = testContext
+				, context_key    = testContextKey
+				, security_group = "group3"
+				, granted        = 0
+			  }
+		).$results( "" );
+
+		mockPresideObjectService.$( "insertData" ).$args(
+			  objectName = "security_context_permission"
+			, data       = {
+				  permission_key = testPerm
+				, context        = testContext
+				, context_key    = testContextKey
+				, security_group = "group9"
+				, granted        = 1
+			  }
+		).$results( "" );
+
+		mockPresideObjectService.$( "insertData" ).$args(
+			  objectName = "security_context_permission"
+			, data       = {
+				  permission_key = testPerm
+				, context        = testContext
+				, context_key    = testContextKey
+				, security_group = "group10"
+				, granted        = 1
+			  }
+		).$results( "" );
+
+		permsService.syncContextPermissions(
+			  context         = testContext
+			, contextKey      = testContextKey
+			, permissionKey   = testPerm
+			, grantedToGroups = testGrantGroups
+			, deniedToGroups  = testDenyGroups
+		);
+
+		var callLog = mockPresideObjectService.$callLog();
+
+
+		super.assertEquals( 1, callLog.deleteData.len() );
+		super.assertEquals( 5, callLog.insertData.len() );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
