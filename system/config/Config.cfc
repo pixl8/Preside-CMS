@@ -81,13 +81,13 @@ component output=false {
 
 		settings.roles = StructNew( "linked" );
 
-		settings.roles.user           = [ "cms.login" ]
-		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*" ]
-		settings.roles.sitetreeAdmin  = [ "sitetree.*" ]
-		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ]
-		settings.roles.dataAdmin      = [ "datamanager.*" ]
-		settings.roles.assetAdmin     = [ "assetmanager.*" ]
-		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.delete" ]
+		settings.roles.user           = [ "cms.login" ];
+		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*" ];
+		settings.roles.sitetreeAdmin  = [ "sitetree.*" ];
+		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
+		settings.roles.dataAdmin      = [ "datamanager.*", "!datamanager.manageContextPerms" ];
+		settings.roles.assetAdmin     = [ "assetmanager.*" ];
+		settings.roles.assetEditor    = [ "assetmanager.*" ];
 
 		settings.ckeditor = {
 			  defaults    = {

@@ -1,5 +1,6 @@
 <cfscript>
-	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=rc.object ?: "" );
+	object              = rc.object ?: ""
+	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
 	editRecordTitle     = translateResource( uri="cms:datamanager.editrecord.title", data=[ LCase( objectTitleSingular ) ] );
 
 	prc.pageIcon  = "pencil";
