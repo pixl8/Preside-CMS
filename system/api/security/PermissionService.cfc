@@ -66,7 +66,12 @@ component output=false extends="preside.system.base.Service" {
 		return ListToArray( ValueList( groups.security_group ) );
 	}
 
-	public struct function getContextPermissions( required string context, required array contextKeys, required array permissionKeys ) output=false {
+	public struct function getContextPermissions(
+		  required string  context
+		, required array   contextKeys
+		, required array   permissionKeys
+		,          boolean includeDefaults=false
+	) output=false {
 		var expandedPermissionKeys = listPermissionKeys( filter=permissionKeys );
 		var contextPerms           = {};
 		var dbData                 = _getPresideObjectService().selectData(
@@ -91,6 +96,16 @@ component output=false extends="preside.system.base.Service" {
 				contextPerms[ record.permission_key ].granted.append( record.security_group );
 			} else {
 				contextPerms[ record.permission_key ].denied.append( record.security_group );
+			}
+		}
+
+		if ( arguments.includeDefaults ) {
+			for( key in contextPerms ) {
+				getDefaultGroupsForPermission( permissionKey=key ).each( function( group ){
+					if ( !contextPerms[ key ].granted.find( group ) ) {
+						contextPerms[ key ].granted.append( group );
+					}
+				} );
 			}
 		}
 
@@ -138,6 +153,36 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		return true;
+	}
+
+	public array function getDefaultGroupsForPermission( required string permissionKey ) output=false {
+		var roles         = _getRoles();
+		var rolesWithPerm = {};
+		var groups        = [];
+
+		for( var role in roles ){
+			if ( roles[ role ].find( arguments.permissionKey ) ) {
+				rolesWithPerm[ role ] = 1;
+			}
+		}
+
+		if ( StructCount( rolesWithPerm ) ) {
+			var allGroups = _getPresideObjectService().selectData(
+				  objectName   = "security_group"
+				, selectFields = [ "obj_id", "roles" ]
+			);
+
+			for( var group in allGroups ){
+				for ( var role in ListToArray( group.roles ) ) {
+					if ( rolesWithPerm.keyExists( role ) ) {
+						groups.append( group.obj_id );
+						break;
+					}
+				}
+			}
+		}
+
+		return groups;
 	}
 
 // PRIVATE HELPERS

@@ -549,6 +549,58 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( hasPerm, "Should have permission, yet returned that I do not :(" );
 	}
 
+	function test25_getContextPermissions_shouldIncludeDefaultNonContextPermissions_whenIncludeDefaultPermsIsPassedAsTrue(){
+		var permsService    = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var actual          = "";
+		var mockContextPerms = QueryNew( 'permission_key,granted,security_group', 'varchar,bit,varchar', [
+			  [ "assetmanager.folders.navigate", 1, "groupx" ]
+			, [ "sitetree.edit"                , 1, "groupx" ]
+			, [ "groupmanager.edit"            , 0, "groupy" ]
+			, [ "groupmanager.edit"            , 1, "groupz" ]
+			, [ "groupmanager.edit"            , 0, "groupa" ]
+			, [ "groupmanager.edit"            , 1, "groupb" ]
+		] );
+		var mockGroups = QueryNew( "obj_id,roles", "varchar,varchar", [
+			  [ "anothergroup", "tester,blah" ]
+			, [ "mygroup", "administrator,blah" ]
+			, [ "someothergroup", "mehrole,anothernonrole" ]
+		] );
+
+		var expected        = {
+			  "sitetree.edit"                 = { granted=["groupx", "anothergroup", "mygroup" ], denied=[] }
+			, "assetmanager.folders.navigate" = { granted=["groupx","mygroup"], denied=[] }
+			, "assetmanager.folders.read"     = { granted=["anothergroup", "mygroup"], denied=[] }
+			, "assetmanager.folders.add"      = { granted=["mygroup"], denied=[] }
+			, "assetmanager.folders.edit"     = { granted=["mygroup"], denied=[] }
+			, "assetmanager.assets.edit"      = { granted=["mygroup"], denied=[] }
+			, "groupmanager.edit"             = { granted=["groupz","groupb","anothergroup", "mygroup"], denied=["groupy","groupa"] }
+		};
+		var expandedPermKeys = [ "sitetree.edit","assetmanager.folders.navigate","assetmanager.folders.read","assetmanager.folders.add","assetmanager.folders.edit","assetmanager.assets.edit","groupmanager.edit" ];
+
+		expandedPermKeys = expandedPermKeys.sort( "textnocase" );
+
+		mockPresideObjectService.$( "selectData" ).$args(
+			  objectName   = "security_context_permission"
+			, selectFields = [ "granted", "permission_key", "security_group" ]
+			, filter       = { context = "someContext", context_key = [ "aContextKey" ], permission_key = expandedPermKeys }
+		).$results( mockContextPerms );
+
+		mockPresideObjectService.$( "selectData" ).$args(
+			  objectName   = "security_group"
+			, selectFields = [ "obj_id", "roles" ]
+		).$results( mockGroups );
+
+		actual = permsService.getContextPermissions(
+			  context         = "someContext"
+			, contextKeys     = [ "aContextKey" ]
+			, permissionKeys  = [ "assetmanager.folders.*", "!*.delete", "*.edit" ]
+			, includeDefaults = true
+		);
+
+		super.assertEquals( expected, actual );
+	}
+
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
