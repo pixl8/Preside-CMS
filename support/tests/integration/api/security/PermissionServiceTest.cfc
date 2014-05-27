@@ -560,7 +560,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, [ "groupmanager.edit"            , 0, "groupa" ]
 			, [ "groupmanager.edit"            , 1, "groupb" ]
 		] );
-		var mockGroups = QueryNew( "obj_id,roles", "varchar,varchar", [
+		var mockGroups = QueryNew( "id,roles", "varchar,varchar", [
 			  [ "anothergroup", "tester,blah" ]
 			, [ "mygroup", "administrator,blah" ]
 			, [ "someothergroup", "mehrole,anothernonrole" ]
@@ -587,7 +587,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName   = "security_group"
-			, selectFields = [ "obj_id", "roles" ]
+			, selectFields = [ "id", "roles" ]
 		).$results( mockGroups );
 
 		actual = permsService.getContextPermissions(

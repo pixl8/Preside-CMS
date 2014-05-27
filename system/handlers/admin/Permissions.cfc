@@ -9,6 +9,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, contextKeys    = [ viewletArgs.contextKey ?: "" ]
 			, permissionKeys = viewletArgs.permissionKeys
 		);
+		viewletArgs.inheritedPermissions = permissionService.getContextPermissions(
+			  context        = viewletArgs.context ?: ""
+			, contextKeys    = viewletArgs.inheritedContextKeys ?: []
+			, permissionKeys = viewletArgs.permissionKeys
+			, includeDefaults = true
+		);
 
 		return renderView( view="admin/permissions/contextPermsForm", args=viewletArgs );
 	}

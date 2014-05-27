@@ -74,15 +74,7 @@ component output=false extends="preside.system.base.Service" {
 	) output=false {
 		var expandedPermissionKeys = listPermissionKeys( filter=permissionKeys );
 		var contextPerms           = {};
-		var dbData                 = _getPresideObjectService().selectData(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "permission_key", "security_group" ]
-			, filter       = {
-				  context        = arguments.context
-				, context_key    = arguments.contextKeys
-				, permission_key = expandedPermissionKeys.sort( "textnocase" )
-			  }
-		);
+		var dbData                 = "";
 
 		for( var key in expandedPermissionKeys ){
 			contextPerms[ key ] = {
@@ -91,13 +83,26 @@ component output=false extends="preside.system.base.Service" {
 			};
 		}
 
-		for( var record in dbData ){
-			if ( record.granted ) {
-				contextPerms[ record.permission_key ].granted.append( record.security_group );
-			} else {
-				contextPerms[ record.permission_key ].denied.append( record.security_group );
+		if ( arguments.contextKeys.len() ) {
+			dbData = _getPresideObjectService().selectData(
+				  objectName   = "security_context_permission"
+				, selectFields = [ "granted", "permission_key", "security_group" ]
+				, filter       = {
+					  context        = arguments.context
+					, context_key    = arguments.contextKeys
+					, permission_key = expandedPermissionKeys.sort( "textnocase" )
+				  }
+			);
+
+			for( var record in dbData ){
+				if ( record.granted ) {
+					contextPerms[ record.permission_key ].granted.append( record.security_group );
+				} else {
+					contextPerms[ record.permission_key ].denied.append( record.security_group );
+				}
 			}
 		}
+
 
 		if ( arguments.includeDefaults ) {
 			for( key in contextPerms ) {
@@ -169,13 +174,13 @@ component output=false extends="preside.system.base.Service" {
 		if ( StructCount( rolesWithPerm ) ) {
 			var allGroups = _getPresideObjectService().selectData(
 				  objectName   = "security_group"
-				, selectFields = [ "obj_id", "roles" ]
+				, selectFields = [ "id", "roles" ]
 			);
 
 			for( var group in allGroups ){
 				for ( var role in ListToArray( group.roles ) ) {
 					if ( rolesWithPerm.keyExists( role ) ) {
-						groups.append( group.obj_id );
+						groups.append( group.id );
 						break;
 					}
 				}
