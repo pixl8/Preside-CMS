@@ -65,6 +65,37 @@ component output=false extends="preside.system.base.Service" {
 		return ListToArray( ValueList( groups.security_group ) );
 	}
 
+	public struct function getContextPermissions( required string context, required array contextKeys, required array permissionKeys ) output=false {
+		var expandedPermissionKeys = listPermissionKeys( filter=permissionKeys );
+		var contextPerms           = {};
+		var dbData                 = _getPresideObjectService().selectData(
+			  objectName   = "security_context_permission"
+			, selectFields = [ "granted", "permission_key", "security_group" ]
+			, filter       = {
+				  context        = arguments.context
+				, context_key    = arguments.contextKeys
+				, permission_key = expandedPermissionKeys.sort( "textnocase" )
+			  }
+		);
+
+		for( var key in expandedPermissionKeys ){
+			contextPerms[ key ] = {
+				  granted = []
+				, denied  = []
+			};
+		}
+
+		for( var record in dbData ){
+			if ( record.granted ) {
+				contextPerms[ record.permission_key ].granted.append( record.security_group );
+			} else {
+				contextPerms[ record.permission_key ].denied.append( record.security_group );
+			}
+		}
+
+		return contextPerms;
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );

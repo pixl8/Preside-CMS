@@ -397,6 +397,46 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
+	function test22_getContextPermissions_shouldReturnStructureThatProvidesGroupsWhoHaveBeenGrantedAndDeniedAccesToProvidedPermissionKeysForTheGivenContext(){
+		var permsService    = _getPermissionService( permissions=testPerms, roles=testRoles );
+		var actual          = "";
+		var mockQueryResult = QueryNew( 'permission_key,granted,security_group', 'varchar,bit,varchar', [
+			  [ "assetmanager.folders.navigate", 1, "groupx" ]
+			, [ "sitetree.edit"                , 1, "groupx" ]
+			, [ "groupmanager.edit"            , 0, "groupy" ]
+			, [ "groupmanager.edit"            , 1, "groupz" ]
+			, [ "groupmanager.edit"            , 0, "groupa" ]
+			, [ "groupmanager.edit"            , 1, "groupb" ]
+		] );
+		var expected        = {
+			  "sitetree.edit"                 = { granted=["groupx"], denied=[] }
+			, "assetmanager.folders.navigate" = { granted=["groupx"], denied=[] }
+			, "assetmanager.folders.read"     = { granted=[], denied=[] }
+			, "assetmanager.folders.add"      = { granted=[], denied=[] }
+			, "assetmanager.folders.edit"     = { granted=[], denied=[] }
+			, "assetmanager.assets.edit"      = { granted=[], denied=[] }
+			, "groupmanager.edit"             = { granted=["groupz","groupb"], denied=["groupy","groupa"] }
+		};
+		var expandedPermKeys = [ "sitetree.edit","assetmanager.folders.navigate","assetmanager.folders.read","assetmanager.folders.add","assetmanager.folders.edit","assetmanager.assets.edit","groupmanager.edit" ];
+
+		expandedPermKeys = expandedPermKeys.sort( "textnocase" );
+
+		mockPresideObjectService.$( "selectData" ).$args(
+			  objectName   = "security_context_permission"
+			, selectFields = [ "granted", "permission_key", "security_group" ]
+			, filter       = { context = "someContext", context_key = [ "aContextKey" ], permission_key = expandedPermKeys }
+		).$results( mockQueryResult );
+
+		actual = permsService.getContextPermissions(
+			  context        = "someContext"
+			, contextKeys    = [ "aContextKey" ]
+			, permissionKeys = [ "assetmanager.folders.*", "!*.delete", "*.edit" ]
+		);
+
+
+		super.assertEquals( expected, actual );
+	}
+
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
 		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
