@@ -10,7 +10,7 @@ Permissions and roles
         - **Roles** provide convenient grant access to one or more permissions
 
 Users and groups
-    User's and groups are defined through the administrative GUI and are stored in the database.
+    Users and groups are defined through the administrative GUI and are stored in the database.
 
         - An *active* **user** must belong to one or more groups
         - A **group** must have one or more *roles*
@@ -26,7 +26,7 @@ Contextual permissions
 
     .. note::
 
-        If a feature of the CMS requires context permissions, it must supply its own GUI for managing them.
+        If a feature of the CMS requires context permissions, it must supply its own views and handlers for managing them. PresideCMS helps you out here with a viewlet and action handler for some common UI and saving logic, see ContextPermGUIHelpers_.
 
 Configuring permissions and roles
 #################################
@@ -116,3 +116,70 @@ For permissions, add your keys to the :code:`/i18n/permissions.properties` file,
 .. note::
 
     For permissions, you may only want to create resource bundle entries when the permissions will be used in contextual permission GUIs. Otherwise, the translations will never be used.
+
+Applying permissions in code with hasPermission()
+#################################################
+
+When you wish to permission control a given system feature, you should use the :code:`hasPermission()` method. For example:
+
+.. code-block:: js
+
+    // a general permission check
+    if ( !hasPermission( permissionKey="eventmanagement.events.navigate" ) ) {
+        event.adminAccessDenied(); // this is a preside request context helper
+    }
+
+    // a contextual permission check. In this case:
+    // "do we have permission to add folders to the asset folder with id [idOfCurrentFolder]"
+    if ( !hasPermission( permissionKey="assetManager.folders.add", context="assetmanagerfolders", contextKeys=[ idOfCurrentFolder ] ) ) {
+        event.adminAccessDenied(); // this is a preside request context helper
+    }
+
+.. note::
+    The :code:`hasPermission()` method has been implemented as a ColdBox helper method and is available to all your handlers and views. If you wish to access the method from your services, you can access it via the :code:`permissionService` service object, the core implementation of which can be found at :code:`/preside/system/api/security/PermissionService.cfc`.
+
+.. _ContextPermGUIHelpers:
+
+Rolling out Context Permission GUIs
+###################################
+
+Should a feature you are developing for the admin require contextual permissions management, you can make use of a viewlet helper to give you a visual form and handler code to manage them.
+
+For example, if we want to be able to manage permissions on event management *per* event, we might have a view at :code:`/views/admin/events/managePermissions.cfm`, that contained the following code:
+
+.. code-block:: cfm
+
+    #renderViewlet( event="admin.permissions.contextPermsForm", args={
+          permissionKeys = [ "eventmanagement.events.*", "!*.managePerms" ] <!--- permissions that you want to manage within the form --->
+        , context        = "eventmanager"
+        , contextKey     = eventId
+        , saveAction     = event.buildAdminLink( linkTo="events.saveEventPermissionsAction", querystring="id=#eventId#" )
+        , cancelAction   = event.buildAdminLink( linkTo="events.viewEvent", querystring="id=#eventId#" )
+    } )#
+
+Our :code:`admin.events.saveEventPermissionsAction` handler action might then look like this:
+
+.. code-block:: js
+
+    function saveEventPermissionsAction( event, rc, prc ) output=false {
+      var eventId = rc.id ?: "";
+
+      // check that we are allowed to manage the permissions of this event, or events in general ;)
+      if ( !hasPermission( permissionKey="eventmanager.events.manageContextPerms", context="eventmanager", contextKeys=[ eventId ] ) ) {
+          event.adminAccessDenied();
+      }
+
+      // run the core 'admin.Permissions.saveContextPermsAction' event
+      // this will save the permissioning configured in the
+      // 'admin.permissions.contextPermsForm' form
+      var success = runEvent( event="admin.Permissions.saveContextPermsAction", private=true );
+
+      // redirect the user and present them with appropriate message
+      if ( success ) {
+          messageBox.info( translateResource( uri="cms:eventmanager.permsSaved.confirmation" ) );
+          setNextEvent( url=event.buildAdminLink( linkTo="eventmanager.viewEvent", queryString="id=#eventId#" ) );
+      }
+
+      messageBox.error( translateResource( uri="cms:eventmanager.permsSaved.error" ) );
+      setNextEvent( url=event.buildAdminLink( linkTo="events.managePermissions", queryString="id=#eventId#" ) );
+    }
