@@ -51,6 +51,17 @@ component output=false extends="preside.system.base.Service" {
 		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
 
+	public array function listUserGroups( required string userId ) output=false {
+		var groups = _getPresideObjectService().selectManyToManyData(
+			  objectName   = "security_user"
+			, propertyName = "groups"
+			, id           = arguments.userId
+			, selectFields = [ "security_group" ]
+		);
+
+		return ListToArray( ValueList( groups.security_group ) );
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
@@ -83,15 +94,10 @@ component output=false extends="preside.system.base.Service" {
 
 	private array function _getUserPermissions( required string user ) output=false {
 		var perms = [];
-		var groups = _getPresideObjectService().selectManyToManyData(
-			  objectName   = "security_user"
-			, propertyName = "groups"
-			, id           = arguments.user
-			, selectFields = [ "security_group" ]
-		);
+		var groups = listUserGroups( arguments.user );
 
 		for( var group in groups ){
-			_getGroupPermissions( group.security_group ).each( function( perm ){
+			_getGroupPermissions( group ).each( function( perm ){
 				if ( !perms.find( perm ) ) {
 					perms.append( perm );
 				}
