@@ -1,6 +1,6 @@
 <cfscript>
 	object              = rc.object ?: ""
-	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 	managePermsTitle    = translateResource( uri="cms:datamanager.manageperms.title", data=[ LCase( objectTitleSingular ) ] );
 
 	prc.pageIcon  = "lock";
@@ -8,5 +8,9 @@
 </cfscript>
 
 <cfoutput>
-
+	#renderViewlet( event="admin.permissions.contextPermsForm", args={
+		  permissionKeys = [ "datamanager.*" ]
+		, context        = "datamanager"
+		, contextKey     = object
+	} )#
 </cfoutput>
