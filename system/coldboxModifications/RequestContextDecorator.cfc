@@ -132,7 +132,7 @@
 	<cffunction name="adminAccessDenied" access="public" returntype="void" output="false">
 		<cfscript>
 			// todo, something much better here!
-			getRequestContext().renderData( data="<h1>Access denied</h1>", statusCode=401 );
+			content reset=true type="text/html";header statusCode="401";WriteOutput("<h1>Access denied</h1>");abort;
 		</cfscript>
 	</cffunction>
 
