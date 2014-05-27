@@ -1,10 +1,11 @@
 component output=false extends="preside.system.base.Service" {
 
 // CONSTRUCTOR
-	public any function init( required any loginService, required struct permissionsConfig, required struct rolesConfig ) output=false {
+	public any function init( required any loginService, required any cacheProvider, required struct permissionsConfig, required struct rolesConfig ) output=false {
 		super.init( argumentCollection = arguments );
 
 		_setLoginService( arguments.loginService );
+		_setCacheProvider( arguments.cacheProvider )
 
 		_denormalizeAndSaveConfiguredRolesAndPermissions( arguments.permissionsConfig, arguments.rolesConfig );
 
@@ -113,33 +114,29 @@ component output=false extends="preside.system.base.Service" {
 		, required string context
 		, required array  contextKeys
 	) {
-		var perms = _getPresideObjectService().selectData(
-			  objectName   = "security_user"
-			, selectFields = [ "security_context_permission.granted", "security_context_permission.context_key" ]
-			, forceJoins   = "inner"
-			, filter       = {
-				  "security_user.id"                           = arguments.userId
-				, "security_context_permission.permission_key" = arguments.permissionKey
-				, "security_context_permission.context"        = arguments.context
-				, "security_context_permission.context_key"    = arguments.contextKeys
+		var cacheKey           = "Context perms for context: " & arguments.context;
+		var cntext             = arguments.context;
+		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
+			var permsToCache = {};
+			var permsFromDb  = _getPresideObjectService().selectData(
+				  objectName   = "security_context_permission"
+				, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+				, filter       = { context = cntext }
+			);
+
+			for( var perm in permsFromDb ){
+				permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.security_group ] = perm.granted;
 			}
-		);
 
-		if ( !perms.recordCount ) {
-			return NullValue();
-		}
+			return permsToCache;
+		} );
 
-		if ( perms.recordCount == 1 ) {
-			return perms.granted;
-		}
-
-		var permsAsStruct = {};
-		for( var perm in perms ) {
-			permsAsStruct[ perm.context_key ] = perm.granted;
-		}
 		for( var key in arguments.contextKeys ){
-			if ( permsAsStruct.keyExists( key ) ) {
-				return permsAsStruct[ key ];
+			for( var group in listUserGroups( arguments.userId ) ){
+				cacheKey = key & "_" & arguments.permissionKey & "_" & group;
+				if ( StructKeyExists( cachedContextPerms, cacheKey ) ) {
+					return cachedContextPerms[ cacheKey ];
+				}
 			}
 		}
 
@@ -250,5 +247,12 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setLoginService( required any loginService ) output=false {
 		_loginService = arguments.loginService;
+	}
+
+	private any function _getCacheProvider() output=false {
+		return _cacheProvider;
+	}
+	private void function _setCacheProvider( required any cacheProvider ) output=false {
+		_cacheProvider = arguments.cacheProvider;
 	}
 }

@@ -59,6 +59,20 @@ component output=false {
 						, maxObjects                     = 1000
 						, objectStore                    = "ConcurrentSoftReferenceStore"
 					}
+				},
+
+				PermissionsCache = {
+					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					, properties = {
+						  objectDefaultTimeout           = 120
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 5
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 20
+						, maxObjects                     = 100
+						, objectStore                    = "ConcurrentSoftReferenceStore"
+					}
 				}
 			}
 		};
