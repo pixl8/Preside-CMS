@@ -71,7 +71,7 @@
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
 				  id           = { name="id"          , type="string", dbtype="varchar"  , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-				, label        = { name="label"       , type="string", dbtype="varchar"  , control="textinput", maxLength="35", relationship="none", relatedto="none", generator="none", required="true" }
+				, label        = { name="label"       , type="string", dbtype="varchar"  , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
 				, datecreated  = { name="datecreated" , type="date"  , dbtype="timestamp", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
 				, datemodified = { name="datemodified", type="date"  , dbtype="timestamp", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
 			};
@@ -86,7 +86,7 @@
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
 				  id           = { name="id"          , label="Test ID"           , type="numeric", dbtype="integer"  , control="none"      , maxLength="9" , relationship="none", relatedto="none", generator="AUTOINCREMENT", required="true", pk="true"  }
-				, label        = { name="label"       , label="Test Label"        , type="string" , dbtype="varchar"  , control="textinput" , maxLength="35", relationship="none", relatedto="none", generator="none"         , required="true"  }
+				, label        = { name="label"       , label="Test Label"        , type="string" , dbtype="varchar"  , control="textinput" , maxLength="250", relationship="none", relatedto="none", generator="none"         , required="true"  }
 				, datecreated  = { name="datecreated" , label="Test Created"      , type="date"   , dbtype="timestamp", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
 				, datemodified = { name="datemodified", label="Test Last modified", type="date"   , dbtype="timestamp", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
 			};
@@ -101,7 +101,7 @@
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
 				  id                = { name="id"                                     , type="string" , dbtype="varchar"  , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
-				, label             = { name="label"                                  , type="string" , dbtype="varchar"  , control="textinput"   , maxLength="35" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				, label             = { name="label"                                  , type="string" , dbtype="varchar"  , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, datecreated       = { name="datecreated"                            , type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, datemodified      = { name="datemodified"                           , type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, test_property         = { name="test_property"                              , type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }
@@ -120,7 +120,7 @@
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
 				  id                = { name="id"               ,                       type="string" , dbtype="varchar"  , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
-				, label             = { name="label"            ,                       type="string" , dbtype="varchar"  , control="textinput"   , maxLength="35" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				, label             = { name="label"            ,                       type="string" , dbtype="varchar"  , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, datecreated       = { name="datecreated"      ,                       type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, datemodified      = { name="datemodified"     ,                       type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, test_property         = { name="test_property"        , label="New label"   , type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }

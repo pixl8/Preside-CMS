@@ -177,7 +177,7 @@ component output=false {
 
 		var defaults = {
 			  id            = { type="string", dbtype="varchar"  , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-			, label         = { type="string", dbtype="varchar"  , control="textinput", maxLength="35", relationship="none", relatedto="none", generator="none", required="true" }
+			, label         = { type="string", dbtype="varchar"  , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
 			, datecreated   = { type="date"  , dbtype="timestamp", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
 			, datemodified  = { type="date"  , dbtype="timestamp", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
 		};

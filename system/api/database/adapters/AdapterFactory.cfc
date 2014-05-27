@@ -24,6 +24,7 @@ component output=false {
 			case "MySql":
 				adapter = new MySqlAdapter();
 			break;
+
 			default:
 				throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
 		}

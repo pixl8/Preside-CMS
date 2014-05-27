@@ -13,7 +13,7 @@
 			<i class="fa fa-pencil bigger-130"></i>
 		</a>
 
-		<a class="red confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#args.deleteRecordTitle#">
+		<a class="red confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
 			<i class="fa fa-trash-o bigger-130"></i>
 		</a>
 	</div>
