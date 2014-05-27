@@ -18,9 +18,9 @@
 		<table class="table">
 			<thead>
 				<tr>
-					<th class="permission-col">Permission</th>
-					<th class="edit-col">Grant to</th>
-					<th class="edit-col">Deny to</th>
+					<th class="permission-col">#translateResource( "cms:contextperms.permission.row.title" )#</th>
+					<th class="edit-col">#translateResource( "cms:contextperms.grant.row.title" )#</th>
+					<th class="edit-col">#translateResource( "cms:contextperms.deny.row.title" )#</th>
 				</tr>
 			</thead>
 			<tbody>
