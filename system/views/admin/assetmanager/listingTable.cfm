@@ -5,6 +5,8 @@
 		activeFolder = rootFolder;
 	}
 
+	permissionContext   = prc.permissionContext ?: [];
+
 	folders = renderPresideObjectView(
 		  object  = "asset_folder"
 		, view    = "browserListing"
@@ -26,10 +28,12 @@
 				<th>&nbsp;</th>
 				<th>#translateResource( "cms:assetManager.browser.name.column" )#</th>
 				<th>
-					<a class="btn btn-success btn-xs" data-global-key="a" href="#event.buildAdminLink( linkTo='assetManager.addFolder', queryString='folder=#( rc.folder ?: "" )#' )#">
-						<i class="fa fa-plus"></i>
-						#translateResource( "cms:assetManager.add.folder.button" )#
-					</a>
+					<cfif hasPermission( permissionKey="assetmanager.folders.add", context="assetmanagerfolder", contextKeys=permissionContext )>
+						<a class="btn btn-success btn-xs" data-global-key="a" href="#event.buildAdminLink( linkTo='assetManager.addFolder', queryString='folder=#( rc.folder ?: "" )#' )#">
+							<i class="fa fa-plus"></i>
+							#translateResource( "cms:assetManager.add.folder.button" )#
+						</a>
+					</cfif>
 				</th>
 			</tr>
 		</thead>

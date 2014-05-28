@@ -72,7 +72,7 @@ component output=false {
 			, assetmanager = {
 				  general = [ "navigate" ]
 				, folders = [ "read", "add", "edit", "delete", "manageContextPerms" ]
-				, assets  = [ "read", "add", "edit", "delete", "download", "manageContextPerms" ]
+				, assets  = [ "read", "upload", "edit", "delete", "download", "pick" ]
 			 }
 			, usermanager  = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
@@ -87,7 +87,8 @@ component output=false {
 		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
 		settings.roles.dataAdmin      = [ "datamanager.*" ];
 		settings.roles.assetAdmin     = [ "assetmanager.*" ];
-		settings.roles.assetEditor    = [ "assetmanager.*" ];
+		// settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete" ];
+		settings.roles.assetEditor    = [ "assetmanager.*.read", "assetmanager.*.navigate" ];
 
 		settings.ckeditor = {
 			  defaults    = {
