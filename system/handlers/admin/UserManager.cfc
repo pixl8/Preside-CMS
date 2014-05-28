@@ -7,10 +7,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
-		if ( !hasPermission( "usermanager.navigate" ) ) {
-			event.adminAccessDenied();
-		}
-
 		if ( event.getCurrentAction() contains "group" ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:usermanager.groupspage.title" )
@@ -24,9 +20,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function groups( event, rc, prc ) output=false {}
+	function groups( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.navigate" );
+	}
 
 	function getGroupsForAjaxDataTables( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.read" );
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
@@ -40,19 +40,23 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function addGroup( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.add" );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:usermanager.addGroup.page.title" )
 			, link  = event.buildAdminLink( linkTo="usermanager.addGroup" )
 		);
 	}
 	function addGroupAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.add" );
+
 		var newId = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object            = "security_group"
-				, errorAction       = "userManager.addGroup"
+				  object           = "security_group"
+				, errorAction      = "userManager.addGroup"
 				, successAction    = "usermanager.groups"
 				, addAnotherAction = "usermanager.addGroup"
 				, viewRecordAction = "userManager.editGroup"
@@ -61,6 +65,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function editGroup( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.edit" );
+
 		prc.record = presideObjectService.selectData( objectName="security_group", filter={ id=rc.id ?: "" } );
 
 		if ( not prc.record.recordCount ) {
@@ -75,6 +81,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 	function editGroupAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.edit" );
+
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
 			, private        = true
@@ -88,6 +96,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function deleteGroupAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="groupmanager.delete" );
+
 		runEvent(
 			  event          = "admin.DataManager._deleteRecordAction"
 			, private        = true
@@ -99,8 +109,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function users( event, rc, prc ) output=false {}
+	function users( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.navigate" );
+	}
 	function getUsersForAjaxDataTables( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.read" );
+
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
@@ -115,12 +129,16 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function addUser( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.add" );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:usermanager.addUser.page.title" )
 			, link  = event.buildAdminLink( linkTo="usermanager.addUser" )
 		);
 	}
 	function addUserAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.add" );
+
 		if ( Len( rc.password ?: "" ) ) {
 			rc.password = bCryptService.hashPw( rc.password ?: "" );
 			if ( bCryptService.checkPw( rc.confirm_password, rc.password ) ) {
@@ -147,6 +165,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function editUser( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.edit" );
+
 		prc.record = presideObjectService.selectData( objectName="security_user", filter={ id=rc.id ?: "" } );
 
 		if ( not prc.record.recordCount ) {
@@ -161,6 +181,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 	function editUserAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.edit" );
+
 		if ( rc.id == event.getAdminUserId() ) {
 			StructDelete( rc, "active" ); // ensure user cannot deactivate themselves!
 		}
@@ -179,6 +201,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function deleteUserAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="usermanager.delete" );
+
 		var id            = rc.id ?: "";
 		var postActionUrl = event.buildAdminLink( linkTo="usermanager.users" );
 
@@ -211,6 +235,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		messageBox.error( translateResource( uri="cms:usermanager.recordNotDeleted.unknown.error" ) );
 		setNextEvent( url=postActionUrl );
+	}
+
+// private utility
+	private void function _checkPermissions( required any event, required string key ) output=false {
+		if ( !hasPermission( arguments.key ) ) {
+			event.adminAccessDenied();
+		}
 	}
 
 }

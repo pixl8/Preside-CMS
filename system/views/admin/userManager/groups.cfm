@@ -11,12 +11,14 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="usermanager.addGroup" )#" data-global-key="a">
-			<button class="btn btn-success btn-sm">
-				<i class="fa fa-plus"></i>
-				#addRecordTitle#
-			</button>
-		</a>
+		<cfif hasPermission( "groupmanager.add" )>
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="usermanager.addGroup" )#" data-global-key="a">
+				<button class="btn btn-success btn-sm">
+					<i class="fa fa-plus"></i>
+					#addRecordTitle#
+				</button>
+			</a>
+		</cfif>
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
