@@ -106,6 +106,7 @@
 						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#record.id#" )
 						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#objectName#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
+						, objectName        = objectName
 					} ) );
 				}
 			}
@@ -402,6 +403,9 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) ) {
+				event.adminAccessDenied();
+			}
 
 			// validity checks
 			if ( not presideObjectService.objectExists( object ) ) {
@@ -448,6 +452,9 @@
 			var persist          = "";
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
+			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) ) {
+				event.adminAccessDenied();
+			}
 
 			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
