@@ -6,9 +6,11 @@
 
 <cfoutput>
 	<div class="action-buttons">
-		<a class="green" href="#args.viewRecordLink#" data-context-key="v">
-			<i class="fa fa-search bigger-130"></i>
-		</a>
+		<cfif hasPermission( permissionKey="datamanager.view", context="datamanager", contextKeys=[ args.objectName ] )>
+			<a class="green" href="#args.viewRecordLink#" data-context-key="v">
+				<i class="fa fa-search bigger-130"></i>
+			</a>
+		</cfif>
 
 		<cfif hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ args.objectName ] )>
 			<a class="blue" href="#args.editRecordLink#" data-context-key="e">

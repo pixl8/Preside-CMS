@@ -196,8 +196,14 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = event.getValue( name="object", default="" );
-			var recordId      = event.getValue( name="id", default="" );
+			var objectName = rc.object ?: "";
+			var recordId   = rc.id     ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
+			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] ) ) {
+				event.adminAccessDenied();
+			}
 
 			// temporary redirect to edit record (we haven't implemented view record yet!)
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="id=#recordId#&object=#objectName#" ) );
