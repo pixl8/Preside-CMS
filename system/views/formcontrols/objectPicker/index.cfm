@@ -13,6 +13,7 @@
 	extraClasses       = args.extraClasses     ?: "";
 	resultTemplate     = args.resultTemplate   ?: "";
 	selectedTemplate   = args.selectedTemplate ?: "";
+	disabledValues     = args.disabledValues   ?: "";
 	resultTemplateId   = Len( Trim( resultTemplate ) ) ? "result_template_" & CreateUUId() : "";
 	selectedTemplateId = Len( Trim( selectedTemplate ) ) ? "selected_template_" & CreateUUId() : "";
 
@@ -55,7 +56,7 @@
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
 			<cfloop query="records">
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif>>#records.label#</option>
+				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#records.label#</option>
 			</cfloop>
 		</cfif>
 	</select>
