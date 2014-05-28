@@ -88,7 +88,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	function deleteGroupAction( event, rc, prc ) output=false {
 		runEvent(
-			  event          = "admin.DataManager.deleteRecordAction"
+			  event          = "admin.DataManager._deleteRecordAction"
+			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
 				  object     = "security_group"

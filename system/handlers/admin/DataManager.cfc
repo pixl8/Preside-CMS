@@ -173,75 +173,20 @@
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 
 		<cfscript>
-			var id               = rc.id          ?: "";
-			var forceDelete      = rc.forceDelete ?: false;
-			var ids              = ListToArray( id );
-			var obj              = "";
-			var records          = "";
-			var record           = "";
-			var blockers         = "";
-			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
-			var postActionUrl    = event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) );
+			var objectName = rc.object ?: "";
 
-			_checkObjectExists( argumentCollection=arguments, object=object );
-			if ( !hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] ) ) {
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			if ( !hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 
-			obj = presideObjectService.getObject( object );
-
-			records = obj.selectData( selectField=['label'], filter={ id = ids }, useCache=false );
-
-			if ( records.recordCount neq ids.len() ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[objectName] ) );
-				setNextEvent( url=postActionUrl );
-			}
-
-			if ( not IsBoolean( forceDelete ) or not forceDelete ) {
-				blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
-
-				if ( ArrayLen( blockers ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#&postAction=#postAction#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids) } );
-				}
-			} else {
-				try {
-					presideObjectService.deleteRelatedData( objectName=object, recordId=ids );
-				} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
-					messageBox.error( translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[objectName] ) );
-					setNextEvent( url=postActionUrl );
-				}
-			}
-
-			if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
-				for( record in records ) {
-					event.audit(
-						  detail   = "#objectName#, '#record.label#', was deleted"
-						, source   = "datamanager"
-						, action   = "deleteRecord"
-						, type     = object
-						, instance = record.id
-					);
-				}
-
-				if ( redirectOnSuccess ) {
-					if ( ids.len() eq 1 ) {
-						messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label ] ) );
-					} else {
-						messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
-					}
-
-					setNextEvent( url=postActionUrl );
-				}
-			} else {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotDeleted.unknown.error" ) );
-				setNextEvent( url=postActionUrl );
-			}
+			runEvent(
+				  event          = "admin.DataManager._deleteRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
 		</cfscript>
 	</cffunction>
 
@@ -308,7 +253,7 @@
 			}
 
 			runEvent(
-				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+				  event          = "admin.DataManager._addRecordAction"
 				, prePostExempt  = true
 				, private        = true
 			);
@@ -569,6 +514,77 @@
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
 				}
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_deleteRecordAction" access="private" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
+		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+
+		<cfscript>
+			var id               = rc.id          ?: "";
+			var forceDelete      = rc.forceDelete ?: false;
+			var ids              = ListToArray( id );
+			var obj              = "";
+			var records          = "";
+			var record           = "";
+			var blockers         = "";
+			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
+			var postActionUrl    = event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) );
+
+			obj = presideObjectService.getObject( object );
+
+			records = obj.selectData( selectField=['label'], filter={ id = ids }, useCache=false );
+
+			if ( records.recordCount neq ids.len() ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[objectName] ) );
+				setNextEvent( url=postActionUrl );
+			}
+
+			if ( not IsBoolean( forceDelete ) or not forceDelete ) {
+				blockers = presideObjectService.listForeignObjectsBlockingDelete( object, ids );
+
+				if ( ArrayLen( blockers ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.cascadeDeletePrompt", queryString="object=#object#&postAction=#postAction#" ), persistStruct={ blockers = blockers, id=ArrayToList(ids) } );
+				}
+			} else {
+				try {
+					presideObjectService.deleteRelatedData( objectName=object, recordId=ids );
+				} catch( "PresideObjectService.CascadeDeleteTooDeep" e ) {
+					messageBox.error( translateResource( uri="cms:datamanager.cascadeDelete.cascade.too.deep.error", data=[objectName] ) );
+					setNextEvent( url=postActionUrl );
+				}
+			}
+
+			if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
+				for( record in records ) {
+					event.audit(
+						  detail   = "#objectName#, '#record.label#', was deleted"
+						, source   = "datamanager"
+						, action   = "deleteRecord"
+						, type     = object
+						, instance = record.id
+					);
+				}
+
+				if ( redirectOnSuccess ) {
+					if ( ids.len() eq 1 ) {
+						messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label ] ) );
+					} else {
+						messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
+					}
+
+					setNextEvent( url=postActionUrl );
+				}
+			} else {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotDeleted.unknown.error" ) );
+				setNextEvent( url=postActionUrl );
 			}
 		</cfscript>
 	</cffunction>
