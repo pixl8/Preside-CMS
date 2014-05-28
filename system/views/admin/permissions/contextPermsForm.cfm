@@ -1,14 +1,18 @@
 <cfscript>
-	param name="args.saveAction"       type="string";
-	param name="args.cancelAction"     type="string";
-	param name="args.permissionKeys"   type="array";
-	param name="args.savedPermissions" type="struct";
-	param name="args.context"          type="string";
-	param name="args.contextKey"       type="string";
+	param name="args.saveAction"           type="string";
+	param name="args.cancelAction"         type="string";
+	param name="args.permissionKeys"       type="array";
+	param name="args.savedPermissions"     type="struct";
+	param name="args.inheritedPermissions" type="struct";
+	param name="args.context"              type="string";
+	param name="args.contextKey"           type="string";
 
 	event.include( "/css/admin/specific/contextPermsForm/" );
 
-	// little data conversion helper
+	inheritedLabel         = translateResource( "cms:contextperms.inherited" );
+	noInheritedGroupsLabel = translateResource( "cms:contextperms.inherited.none" );
+
+	// display helpers
 	function savedPermsToValueList( required array savedPerms ) output=false {
 		var valueList = [];
 
@@ -17,6 +21,16 @@
 		} );
 
 		return valueList.toList();
+	}
+
+	function inheritedPermsList( required array savedPerms ) output=false {
+		var valueList = [];
+
+		savedPerms.each( function( perm ){
+			valueList.append( perm.name );
+		} );
+
+		return valueList.len() ? valueList.toList( ", " ) : "none";
 	}
 </cfscript>
 
@@ -51,6 +65,12 @@
 								, placeholder  = "&nbsp;"
 								, defaultValue = savedPermsToValueList( args.savedPermissions[ key ].granted ?: [] )
 							)#
+
+							<cfset inheritedPerms = args.inheritedPermissions[ key ].granted ?: [] />
+							<p class="inherited-perms">
+								<strong>#inheritedLabel#:</strong>
+								#( inheritedPerms.len() ? inheritedPermsList( inheritedPerms ) : '<em>#noInheritedGroupsLabel#</em>' )#
+							</p>
 						</td>
 						<td class="edit-col">
 							#renderFormControl(
@@ -62,6 +82,12 @@
 								, placeholder  = "&nbsp;"
 								, defaultValue = savedPermsToValueList( args.savedPermissions[ key ].denied ?: [] )
 							)#
+
+							<cfset inheritedPerms = args.inheritedPermissions[ key ].denied ?: [] />
+							<p class="inherited-perms">
+								<strong>#inheritedLabel#:</strong>
+								#( inheritedPerms.len() ? inheritedPermsList( inheritedPerms ) : '<em>#noInheritedGroupsLabel#</em>' )#
+							</p>
 						</td>
 					</tr>
 				</cfloop>
