@@ -400,22 +400,22 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test22_getContextPermissions_shouldReturnStructureThatProvidesGroupsWhoHaveBeenGrantedAndDeniedAccesToProvidedPermissionKeysForTheGivenContext(){
 		var permsService    = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var actual          = "";
-		var mockQueryResult = QueryNew( 'permission_key,granted,security_group', 'varchar,bit,varchar', [
-			  [ "assetmanager.folders.navigate", 1, "groupx" ]
-			, [ "sitetree.edit"                , 1, "groupx" ]
-			, [ "groupmanager.edit"            , 0, "groupy" ]
-			, [ "groupmanager.edit"            , 1, "groupz" ]
-			, [ "groupmanager.edit"            , 0, "groupa" ]
-			, [ "groupmanager.edit"            , 1, "groupb" ]
+		var mockQueryResult = QueryNew( 'permission_key,granted,security_group,group_name', 'varchar,bit,varchar,varchar', [
+			  [ "assetmanager.folders.navigate", 1, "groupx", "group x" ]
+			, [ "sitetree.edit"                , 1, "groupx", "group x" ]
+			, [ "groupmanager.edit"            , 0, "groupy", "group y" ]
+			, [ "groupmanager.edit"            , 1, "groupz", "group z" ]
+			, [ "groupmanager.edit"            , 0, "groupa", "group a" ]
+			, [ "groupmanager.edit"            , 1, "groupb", "group b" ]
 		] );
 		var expected        = {
-			  "sitetree.edit"                 = { granted=["groupx"], denied=[] }
-			, "assetmanager.folders.navigate" = { granted=["groupx"], denied=[] }
+			  "sitetree.edit"                 = { granted=[{id="groupx", name="group x"}], denied=[] }
+			, "assetmanager.folders.navigate" = { granted=[{id="groupx", name="group x"}], denied=[] }
 			, "assetmanager.folders.read"     = { granted=[], denied=[] }
 			, "assetmanager.folders.add"      = { granted=[], denied=[] }
 			, "assetmanager.folders.edit"     = { granted=[], denied=[] }
 			, "assetmanager.assets.edit"      = { granted=[], denied=[] }
-			, "groupmanager.edit"             = { granted=["groupz","groupb"], denied=["groupy","groupa"] }
+			, "groupmanager.edit"             = { granted=[{id="groupz", name="group z"},{id="groupb", name="group b"}], denied=[{id="groupy", name="group y"},{id="groupa", name="group a"}] }
 		};
 		var expandedPermKeys = [ "sitetree.edit","assetmanager.folders.navigate","assetmanager.folders.read","assetmanager.folders.add","assetmanager.folders.edit","assetmanager.assets.edit","groupmanager.edit" ];
 
@@ -423,7 +423,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "permission_key", "security_group" ]
+			, selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
 			, filter       = { context = "someContext", context_key = [ "aContextKey" ], permission_key = expandedPermKeys }
 		).$results( mockQueryResult );
 
@@ -552,28 +552,28 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test25_getContextPermissions_shouldIncludeDefaultNonContextPermissions_whenIncludeDefaultPermsIsPassedAsTrue(){
 		var permsService    = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var actual          = "";
-		var mockContextPerms = QueryNew( 'permission_key,granted,security_group', 'varchar,bit,varchar', [
-			  [ "assetmanager.folders.navigate", 1, "groupx" ]
-			, [ "sitetree.edit"                , 1, "groupx" ]
-			, [ "groupmanager.edit"            , 0, "groupy" ]
-			, [ "groupmanager.edit"            , 1, "groupz" ]
-			, [ "groupmanager.edit"            , 0, "groupa" ]
-			, [ "groupmanager.edit"            , 1, "groupb" ]
+		var mockContextPerms = QueryNew( 'permission_key,granted,security_group,group_name', 'varchar,bit,varchar,varchar', [
+			  [ "assetmanager.folders.navigate", 1, "groupx", "group x" ]
+			, [ "sitetree.edit"                , 1, "groupx", "group x" ]
+			, [ "groupmanager.edit"            , 0, "groupy", "group y" ]
+			, [ "groupmanager.edit"            , 1, "groupz", "group z" ]
+			, [ "groupmanager.edit"            , 0, "groupa", "group a" ]
+			, [ "groupmanager.edit"            , 1, "groupb", "group b" ]
 		] );
-		var mockGroups = QueryNew( "id,roles", "varchar,varchar", [
-			  [ "anothergroup", "tester,blah" ]
-			, [ "mygroup", "administrator,blah" ]
-			, [ "someothergroup", "mehrole,anothernonrole" ]
+		var mockGroups = QueryNew( "id,label,roles", "varchar,varchar,varchar", [
+			  [ "anothergroup"  , "anothergrou p"  , "tester,blah"            ]
+			, [ "mygroup"       , "mygrou p"       , "administrator,blah"     ]
+			, [ "someothergroup", "someothergrou p", "mehrole,anothernonrole" ]
 		] );
 
 		var expected        = {
-			  "sitetree.edit"                 = { granted=["groupx", "anothergroup", "mygroup" ], denied=[] }
-			, "assetmanager.folders.navigate" = { granted=["groupx","mygroup"], denied=[] }
-			, "assetmanager.folders.read"     = { granted=["anothergroup", "mygroup"], denied=[] }
-			, "assetmanager.folders.add"      = { granted=["mygroup"], denied=[] }
-			, "assetmanager.folders.edit"     = { granted=["mygroup"], denied=[] }
-			, "assetmanager.assets.edit"      = { granted=["mygroup"], denied=[] }
-			, "groupmanager.edit"             = { granted=["groupz","groupb","anothergroup", "mygroup"], denied=["groupy","groupa"] }
+			  "sitetree.edit"                 = { granted=[{id="groupx", name="group x" }, {id="anothergroup", name="anothergrou p" }, {id="mygroup", name="mygrou p" } ], denied=[] }
+			, "assetmanager.folders.navigate" = { granted=[{id="groupx", name="group x" },{id="mygroup", name="mygrou p" }], denied=[] }
+			, "assetmanager.folders.read"     = { granted=[{id="anothergroup", name="anothergrou p" }, {id="mygroup", name="mygrou p" }], denied=[] }
+			, "assetmanager.folders.add"      = { granted=[{id="mygroup", name="mygrou p" }], denied=[] }
+			, "assetmanager.folders.edit"     = { granted=[{id="mygroup", name="mygrou p" }], denied=[] }
+			, "assetmanager.assets.edit"      = { granted=[{id="mygroup", name="mygrou p" }], denied=[] }
+			, "groupmanager.edit"             = { granted=[{id="groupz", name="group z" },{id="groupb", name="group b" },{id="anothergroup", name="anothergrou p" }, {id="mygroup", name="mygrou p" }], denied=[{id="groupy", name="group y" },{id="groupa", name="group a" }] }
 		};
 		var expandedPermKeys = [ "sitetree.edit","assetmanager.folders.navigate","assetmanager.folders.read","assetmanager.folders.add","assetmanager.folders.edit","assetmanager.assets.edit","groupmanager.edit" ];
 
@@ -581,13 +581,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "permission_key", "security_group" ]
+			, selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
 			, filter       = { context = "someContext", context_key = [ "aContextKey" ], permission_key = expandedPermKeys }
 		).$results( mockContextPerms );
 
 		mockPresideObjectService.$( "selectData" ).$args(
 			  objectName   = "security_group"
-			, selectFields = [ "id", "roles" ]
+			, selectFields = [ "id", "label", "roles" ]
 		).$results( mockGroups );
 
 		actual = permsService.getContextPermissions(

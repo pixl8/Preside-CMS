@@ -86,7 +86,7 @@ component output=false extends="preside.system.base.Service" {
 		if ( arguments.contextKeys.len() ) {
 			dbData = _getPresideObjectService().selectData(
 				  objectName   = "security_context_permission"
-				, selectFields = [ "granted", "permission_key", "security_group" ]
+				, selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
 				, filter       = {
 					  context        = arguments.context
 					, context_key    = arguments.contextKeys
@@ -96,9 +96,9 @@ component output=false extends="preside.system.base.Service" {
 
 			for( var record in dbData ){
 				if ( record.granted ) {
-					contextPerms[ record.permission_key ].granted.append( record.security_group );
+					contextPerms[ record.permission_key ].granted.append( { id=record.security_group, name=record.group_name } );
 				} else {
-					contextPerms[ record.permission_key ].denied.append( record.security_group );
+					contextPerms[ record.permission_key ].denied.append( { id=record.security_group, name=record.group_name } );
 				}
 			}
 		}
@@ -106,7 +106,7 @@ component output=false extends="preside.system.base.Service" {
 
 		if ( arguments.includeDefaults ) {
 			for( key in contextPerms ) {
-				getDefaultGroupsForPermission( permissionKey=key ).each( function( group ){
+				_getDefaultGroupsForPermission( permissionKey=key ).each( function( group ){
 					if ( !contextPerms[ key ].granted.find( group ) ) {
 						contextPerms[ key ].granted.append( group );
 					}
@@ -158,36 +158,6 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		return true;
-	}
-
-	public array function getDefaultGroupsForPermission( required string permissionKey ) output=false {
-		var roles         = _getRoles();
-		var rolesWithPerm = {};
-		var groups        = [];
-
-		for( var role in roles ){
-			if ( roles[ role ].find( arguments.permissionKey ) ) {
-				rolesWithPerm[ role ] = 1;
-			}
-		}
-
-		if ( StructCount( rolesWithPerm ) ) {
-			var allGroups = _getPresideObjectService().selectData(
-				  objectName   = "security_group"
-				, selectFields = [ "id", "roles" ]
-			);
-
-			for( var group in allGroups ){
-				for ( var role in ListToArray( group.roles ) ) {
-					if ( rolesWithPerm.keyExists( role ) ) {
-						groups.append( group.id );
-						break;
-					}
-				}
-			}
-		}
-
-		return groups;
 	}
 
 // PRIVATE HELPERS
@@ -372,6 +342,36 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		return escaped;
+	}
+
+	private array function _getDefaultGroupsForPermission( required string permissionKey ) output=false {
+		var roles         = _getRoles();
+		var rolesWithPerm = {};
+		var groups        = [];
+
+		for( var role in roles ){
+			if ( roles[ role ].find( arguments.permissionKey ) ) {
+				rolesWithPerm[ role ] = 1;
+			}
+		}
+
+		if ( StructCount( rolesWithPerm ) ) {
+			var allGroups = _getPresideObjectService().selectData(
+				  objectName   = "security_group"
+				, selectFields = [ "id", "label", "roles" ]
+			);
+
+			for( var group in allGroups ){
+				for ( var role in ListToArray( group.roles ) ) {
+					if ( rolesWithPerm.keyExists( role ) ) {
+						groups.append( { id=group.id, name=group.label } );
+						break;
+					}
+				}
+			}
+		}
+
+		return groups;
 	}
 
 // GETTERS AND SETTERS
