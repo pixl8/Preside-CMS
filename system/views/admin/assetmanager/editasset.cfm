@@ -37,7 +37,7 @@
 
 					<div class="col-md-offset-2">
 						<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
-						<button type="input" class="btn btn-primary"><i class="fa fa-ok"></i> #saveBtnTitle#</button>
+						<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
 					</div>
 				</div>
 			</div>

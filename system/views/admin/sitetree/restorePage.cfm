@@ -27,7 +27,7 @@
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
 				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-ok bigger-110"></i>
+					<i class="fa fa-check bigger-110"></i>
 					#translateResource( "cms:sitetree.restorepage.btn" )#
 				</button>
 			</div>

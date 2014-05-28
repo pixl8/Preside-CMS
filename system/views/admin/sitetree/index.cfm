@@ -17,7 +17,7 @@
 					<div class="widget-toolbar no-border">
 						<ul class="nav nav-tabs" id="myTab">
 							<li class="active">
-								<a data-toggle="tab" href="##active-tree-tab"><i class="fa fa-ok green"></i> #translateResource( "cms:sitetree.active.tab.title" )#</a>
+								<a data-toggle="tab" href="##active-tree-tab"><i class="fa fa-check green"></i> #translateResource( "cms:sitetree.active.tab.title" )#</a>
 							</li>
 							<li>
 								<a data-toggle="tab" href="##trash-tree-tab"><i class="fa fa-trash-o red"></i> #translateResource( "cms:sitetree.trash.tab.title" )#</a>

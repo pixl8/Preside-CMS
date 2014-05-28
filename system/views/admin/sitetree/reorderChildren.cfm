@@ -30,7 +30,7 @@
 					#translateResource( "cms:sitetree.reorderchildren.reset.btn" )#
 				</button>
 				<button class="btn btn-sm btn-success" type="submit">
-					<i class="fa fa-ok bigger-110"></i>
+					<i class="fa fa-check bigger-110"></i>
 					#translateResource( "cms:sitetree.reorderchildren.submit.btn" )#
 				</button>
 			</div>

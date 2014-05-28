@@ -32,7 +32,7 @@
 
 			<div class="col-md-offset-2">
 				<button class="btn btn-info" type="submit">
-					<i class="fa fa-ok bigger-110"></i>
+					<i class="fa fa-check bigger-110"></i>
 					#translateResource( "cms:assetmanager.add.folder.button" )#
 				</button>
 			</div>

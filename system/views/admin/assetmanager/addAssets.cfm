@@ -39,7 +39,7 @@
 
 								<div class="col-md-offset-2">
 									<button type="reset" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</button>
-									<button type="input" class="btn btn-primary"><i class="fa fa-ok"></i> #saveBtnTitle#</button>
+									<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
 								</div>
 							</div>
 						</div>
@@ -49,7 +49,7 @@
 		</cfloop>
 
 		<div class="upload-completed-message">
-			<h2 class="green"><i class="fa fa-ok"></i>&nbsp;#translateResource( "cms:assetmanager.add.assets.complete.title" )#</h2>
+			<h2 class="green"><i class="fa fa-check"></i>&nbsp;#translateResource( "cms:assetmanager.add.assets.complete.title" )#</h2>
 
 
 			<p> #translateResource( "cms:assetmanager.add.assets.complete.message" )# </p>

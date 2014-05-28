@@ -546,7 +546,7 @@ presideJQuery(function() {
 			'open-icon' : 'fa fa-folder-open',
 			'close-icon' : 'fa fa-folder-close',
 			'selectable' : true,
-			'selected-icon' : 'fa fa-ok',
+			'selected-icon' : 'fa fa-check',
 			'unselected-icon' : 'tree-dot'
 		}
 

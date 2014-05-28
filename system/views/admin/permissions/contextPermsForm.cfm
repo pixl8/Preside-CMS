@@ -68,7 +68,7 @@
 										</a>
 
 										<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-											<i class="fa fa-ok bigger-110"></i>
+											<i class="fa fa-check bigger-110"></i>
 											#translateResource( "cms:contextperms.save.btn" )#
 										</button>
 									</div>
