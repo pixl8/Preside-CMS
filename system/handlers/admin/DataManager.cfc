@@ -304,64 +304,20 @@
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
-		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
-		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
 
 		<cfscript>
-			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+			var objectName = rc.object ?: "";
 
-			var id               = event.getValue( name="id", defaultValue="" );
-			var formData         = event.getCollectionForForm( formName );
-			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var obj              = "";
-			var validationResult = "";
-			var persist          = "";
-
-			_checkObjectExists( argumentCollection=arguments, object=object );
-			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) ) {
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 
-			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
-
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-				}
-			}
-
-			formData.id = id;
-			validationResult = validateForm( formName=formName, formData=formData );
-
-			if ( not validationResult.validated() ) {
-				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
-				persist = formData;
-				persist.validationResult = validationResult;
-
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ), persistStruct=persist );
-				}
-			}
-
-			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
-
-			if ( redirectOnSuccess ) {
-				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
-
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#id#" ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#id#" ) );
-				}
-			}
+			runEvent(
+				  event          = "admin.DataManager._editRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
 		</cfscript>
 	</cffunction>
 
@@ -585,6 +541,66 @@
 			} else {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotDeleted.unknown.error" ) );
 				setNextEvent( url=postActionUrl );
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_editRecordAction" access="private" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="errorAction"       type="string"  required="false" default="" />
+		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
+		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
+
+		<cfscript>
+			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
+
+			var id               = event.getValue( name="id", defaultValue="" );
+			var formData         = event.getCollectionForForm( formName );
+			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var obj              = "";
+			var validationResult = "";
+			var persist          = "";
+
+			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+
+				if ( Len( errorAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ) );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+				}
+			}
+
+			formData.id = id;
+			validationResult = validateForm( formName=formName, formData=formData );
+
+			if ( not validationResult.validated() ) {
+				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+				persist = formData;
+				persist.validationResult = validationResult;
+
+				if ( Len( errorAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ), persistStruct=persist );
+				}
+			}
+
+			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
+
+			if ( redirectOnSuccess ) {
+				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
+
+				if ( Len( successAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#id#" ) );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#id#" ) );
+				}
 			}
 		</cfscript>
 	</cffunction>

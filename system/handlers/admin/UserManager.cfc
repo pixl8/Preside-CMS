@@ -76,7 +76,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 	function editGroupAction( event, rc, prc ) output=false {
 		runEvent(
-			  event          = "admin.DataManager.editRecordAction"
+			  event          = "admin.DataManager._editRecordAction"
+			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
 				  object        = "security_group"
@@ -165,7 +166,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		runEvent(
-			  event          = "admin.dataManager.editRecordAction"
+			  event          = "admin.dataManager._editRecordAction"
+			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
 				  object            = "security_user"
