@@ -67,14 +67,20 @@
 		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
 
 		<cfscript>
+			var objectName = event.getValue( name="id", default="" );
+
+			if ( !hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
+				event.adminAccessDenied();
+			}
+
 			gridFields = ListToArray( gridFields );
 
-			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 			var checkboxCol         = [];
 			var optionsCol          = [];
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var results             = dataManagerService.getRecordsForGridListing(
-				  objectName  = object
+				  objectName  = objectName
 				, gridFields  = gridFields
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
@@ -85,7 +91,7 @@
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], "adminDataTable" );
+					records[ field ][ records.currentRow ] = renderField( objectName, field, record[ field ], "adminDataTable" );
 				}
 
 				if ( useMultiActions ) {
@@ -96,9 +102,9 @@
 					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
-						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#object#" )
-						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
-						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
+						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#objectName#" )
+						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#record.id#" )
+						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#objectName#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
 					} ) );
 				}
