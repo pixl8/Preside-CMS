@@ -1,23 +1,65 @@
-.manage-context-permissions-form {
-	.table {
-		.permission-col {
-			width : 30%;
+.manage-context-permissions.table {
 
-			h4 {
-				margin : 0 0 4px;
+	.permission-col {
+		width : 30%;
+
+		h4 {
+			margin : 0 0 4px;
+		}
+		p {
+			margin : 0 0 2px;
+		}
+	}
+
+	tr:first-child > td {
+		border-top : none;
+	}
+
+	.edit-col {
+		cursor : pointer;
+
+		&.edit-mode {
+			cursor : default;
+
+			.groups-list {
+				display : none;
+			}
+
+			.groups-input {
+				display : block;
 			}
 		}
 
-		.edit-col {
-			width : 35%;
+		.groups-input {
+			display : none;
+		}
 
-			.inherited-perms {
-				margin : 4px 0;
+		.groups-list {
+			margin : 4px 0;
+			cursor : pointer;
+
+			p {
+				margin : 0;
+			}
+
+			.fa {
+				margin-right : 0.5em;
+			}
+
+			.inherited-perm, .no-perms {
+				color : #999;
+			}
+
+			.selected-perm {
+				font-weight : bold;
+			}
+			.no-perms {
+				font-style : italic;
 			}
 		}
+	}
 
-		tbody>tr>td {
-			vertical-align: top;
-		}
+	tbody>tr>td {
+		vertical-align: middle
 	}
 }
