@@ -43,11 +43,8 @@
 		<cfscript>
 			var objectName = event.getValue( name="id", default="" );
 
-			if ( !hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
-
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 
@@ -65,9 +62,7 @@
 		<cfscript>
 			var objectName = rc.id ?: "";
 
-			if ( !hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
 			runEvent(
 				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -109,10 +104,7 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-
-			if ( !hasPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
 
 			_addObjectNameBreadCrumb( event, objectName );
 
@@ -133,10 +125,7 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-
-			if ( !hasPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
 
 			if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 				messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ objectName ] ) );
@@ -160,9 +149,7 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 			// temporary redirect to edit record (we haven't implemented view record yet!)
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="id=#recordId#&object=#objectName#" ) );
@@ -178,9 +165,7 @@
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			if ( !hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
 			runEvent(
 				  event          = "admin.DataManager._deleteRecordAction"
@@ -199,9 +184,7 @@
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			if ( !hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="delete", object=objectName );
 
 			_addObjectNameBreadCrumb( event, objectName );
 
@@ -225,10 +208,7 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-
-			if ( !hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
 			_addObjectNameBreadCrumb( event, objectName );
 
@@ -248,9 +228,7 @@
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			if ( !hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
 			runEvent(
 				  event          = "admin.DataManager._addRecordAction"
@@ -273,9 +251,7 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
-			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 
 			// validity checks
 			if ( not presideObjectService.objectExists( object ) ) {
@@ -309,9 +285,7 @@
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			if ( !hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] ) ) {
-				event.adminAccessDenied();
-			}
+			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
 			runEvent(
 				  event          = "admin.DataManager._editRecordAction"
@@ -615,6 +589,20 @@
 			if ( not presideObjectService.objectExists( object ) ) {
 				messageBox.error( translateResource( uri="cms:datamanager.objectNotFound.error", data=[object] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.index" ) );
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_checkPermission" access="public" returntype="void" output="false">
+		<cfargument name="event"  type="any"    required="true" />
+		<cfargument name="rc"     type="struct" required="true" />
+		<cfargument name="prc"    type="struct" required="true" />
+		<cfargument name="key"    type="string" required="true" />
+		<cfargument name="object" type="string" required="true" />
+
+		<cfscript>
+			if ( !hasPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) ) {
+				event.adminAccessDenied();
 			}
 		</cfscript>
 	</cffunction>
