@@ -71,8 +71,8 @@ component output=false {
 			, datamanager  = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms" ]
 			, assetmanager = {
 				  general = [ "navigate" ]
-				, folders = [ "read", "add", "edit", "delete", "manageContextPerms" ]
-				, assets  = [ "read", "upload", "edit", "delete", "download", "pick" ]
+				, folders = [ "add", "edit", "delete", "manageContextPerms" ]
+				, assets  = [ "upload", "edit", "delete", "download", "pick" ]
 			 }
 			, usermanager  = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]

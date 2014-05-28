@@ -9,7 +9,7 @@
 
 <cfoutput>
 	#renderViewlet( event="admin.permissions.contextPermsForm", args={
-		  permissionKeys       = [ "assetmanager.*" ]
+		  permissionKeys       = [ "assetmanager.general.*", "assetmanager.folders.*", "assetmanager.assets.*" ]
 		, context              = "assetmanagerfolder"
 		, contextKey           = folderId
 		, inheritedContextKeys = prc.inheritedPermissionContext ?: []
