@@ -16,8 +16,10 @@
 			</a>
 		</cfif>
 
-		<a class="red confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
-			<i class="fa fa-trash-o bigger-130"></i>
-		</a>
+		<cfif hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
+			<a class="red confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
+				<i class="fa fa-trash-o bigger-130"></i>
+			</a>
+		</cfif>
 	</div>
 </cfoutput>

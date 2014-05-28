@@ -225,6 +225,9 @@
 			var postActionUrl    = event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
+			if ( !hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] ) ) {
+				event.adminAccessDenied();
+			}
 
 			obj = presideObjectService.getObject( object );
 
@@ -283,9 +286,13 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = event.getValue( name="object", defaultValue="" );
+			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			if ( !hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] ) ) {
+				event.adminAccessDenied();
+			}
+
 			_addObjectNameBreadCrumb( event, objectName );
 
 			event.addAdminBreadCrumb(
