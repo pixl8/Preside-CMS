@@ -28,8 +28,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	function getGroupsForAjaxDataTables( event, rc, prc ) output=false {
 		runEvent(
-			  event          = "admin.DataManager.getObjectRecordsForAjaxDataTables"
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
+			, private        = true
 			, eventArguments = {
 				  object      = "security_group"
 				, gridFields  = "label,description"
@@ -98,8 +99,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function users( event, rc, prc ) output=false {}
 	function getUsersForAjaxDataTables( event, rc, prc ) output=false {
 		runEvent(
-			  event          = "admin.DataManager.getObjectRecordsForAjaxDataTables"
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
 			, prePostExempt  = true
+			, private        = true
 			, eventArguments = {
 				  object          = "security_user"
 				, gridFields      = "active,login_id,label,email_address"

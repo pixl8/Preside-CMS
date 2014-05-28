@@ -61,65 +61,24 @@
 		<cfargument name="event"           type="any"     required="true" />
 		<cfargument name="rc"              type="struct"  required="true" />
 		<cfargument name="prc"             type="struct"  required="true" />
-		<cfargument name="object"          type="string"  required="false" default="#( rc.id ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,datemodified' )#" />
-		<cfargument name="actionsView"     type="string"  required="false" default="" />
-		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
 
 		<cfscript>
-			var objectName = event.getValue( name="id", default="" );
+			var objectName = rc.id ?: "";
 
 			if ( !hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 
-			gridFields = ListToArray( gridFields );
-
-			var objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-			var checkboxCol         = [];
-			var optionsCol          = [];
-			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
-			var results             = dataManagerService.getRecordsForGridListing(
-				  objectName  = objectName
-				, gridFields  = gridFields
-				, startRow    = dtHelper.getStartRow()
-				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = dtHelper.getSortOrder()
-				, searchQuery = dtHelper.getSearchQuery()
+			runEvent(
+				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object          = objectName
+					, useMultiActions = hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+				}
 			);
-			var records = Duplicate( results.records );
-
-			for( var record in records ){
-				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( objectName, field, record[ field ], "adminDataTable" );
-				}
-
-				if ( useMultiActions ) {
-					ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
-				}
-
-				if ( Len( Trim( actionsView ) ) ) {
-					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
-				} else {
-					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
-						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#objectName#" )
-						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#objectName#&id=#record.id#" )
-						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#objectName#&id=#record.id#" )
-						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
-						, objectName        = objectName
-					} ) );
-				}
-			}
-
-			if ( useMultiActions ) {
-				QueryAddColumn( records, "_checkbox", checkboxCol );
-				ArrayPrepend( gridFields, "_checkbox" );
-			}
-
-			QueryAddColumn( records, "_options" , optionsCol );
-			ArrayAppend( gridFields, "_options" );
-
-			event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
 		</cfscript>
 	</cffunction>
 
@@ -538,6 +497,66 @@
 	</cffunction>
 
 <!--- private events for sharing --->
+	<cffunction name="_getObjectRecordsForAjaxDataTables" access="private" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+		<cfargument name="object"          type="string"  required="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,datemodified' )#" />
+		<cfargument name="actionsView"     type="string"  required="false" default="" />
+		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
+
+		<cfscript>
+			gridFields = ListToArray( gridFields );
+
+			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var checkboxCol         = [];
+			var optionsCol          = [];
+			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+			var results             = dataManagerService.getRecordsForGridListing(
+				  objectName  = object
+				, gridFields  = gridFields
+				, startRow    = dtHelper.getStartRow()
+				, maxRows     = dtHelper.getMaxRows()
+				, orderBy     = dtHelper.getSortOrder()
+				, searchQuery = dtHelper.getSearchQuery()
+			);
+			var records = Duplicate( results.records );
+
+			for( var record in records ){
+				for( var field in gridFields ){
+					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], "adminDataTable" );
+				}
+
+				if ( useMultiActions ) {
+					ArrayAppend( checkboxCol, renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
+				}
+
+				if ( Len( Trim( actionsView ) ) ) {
+					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
+				} else {
+					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
+						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#object#" )
+						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
+						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
+						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
+						, objectName        = object
+					} ) );
+				}
+			}
+
+			if ( useMultiActions ) {
+				QueryAddColumn( records, "_checkbox", checkboxCol );
+				ArrayPrepend( gridFields, "_checkbox" );
+			}
+
+			QueryAddColumn( records, "_options" , optionsCol );
+			ArrayAppend( gridFields, "_options" );
+
+			event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_checkObjectExists" access="public" returntype="void" output="false">
 		<cfargument name="event"  type="any"    required="true" />
 		<cfargument name="rc"     type="struct" required="true" />
