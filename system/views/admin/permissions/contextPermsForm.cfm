@@ -7,6 +7,17 @@
 	param name="args.contextKey"       type="string";
 
 	event.include( "/css/admin/specific/contextPermsForm/" );
+
+	// little data conversion helper
+	function savedPermsToValueList( required array savedPerms ) output=false {
+		var valueList = [];
+
+		savedPerms.each( function( perm ){
+			valueList.append( perm.id );
+		} );
+
+		return valueList.toList();
+	}
 </cfscript>
 
 <cfoutput>
@@ -38,7 +49,7 @@
 								, multiple     = true
 								, layout       = ""
 								, placeholder  = "&nbsp;"
-								, defaultValue = ( args.savedPermissions[ key ].granted ?: [] ).toList()
+								, defaultValue = savedPermsToValueList( args.savedPermissions[ key ].granted ?: [] )
 							)#
 						</td>
 						<td class="edit-col">
@@ -49,7 +60,7 @@
 								, multiple     = true
 								, layout       = ""
 								, placeholder  = "&nbsp;"
-								, defaultValue = ( args.savedPermissions[ key ].denied ?: [] ).toList()
+								, defaultValue = savedPermsToValueList( args.savedPermissions[ key ].denied ?: [] )
 							)#
 						</td>
 					</tr>
