@@ -47,8 +47,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 	function addGroupAction( event, rc, prc ) output=false {
 		var newId = runEvent(
-			  event          = "admin.DataManager.addRecordAction"
+			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
+			, private        = true
 			, eventArguments = {
 				  object            = "security_group"
 				, errorAction       = "userManager.addGroup"
@@ -130,8 +131,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		runEvent(
-			  event          = "admin.DataManager.addRecordAction"
+			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
+			, private        = true
 			, eventArguments = {
 				  object           = "security_user"
 				, errorAction      = "userManager.addUser"
@@ -140,8 +142,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, viewRecordAction = "userManager.editUser"
 			}
 		);
-
-		runEvent( event="admin.dataManager.addRecordAction" );
 	}
 
 	function editUser( event, rc, prc ) output=false {

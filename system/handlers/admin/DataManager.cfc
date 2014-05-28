@@ -298,67 +298,20 @@
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
-		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
-		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.add";
-			var formData         = event.getCollectionForForm( formName );
-			var obj              = "";
-			var validationResult = "";
-			var newId            = "";
-			var newRecordLink    = "";
-			var persist          = "";
+			var objectName = rc.object ?: "";
 
-			_checkObjectExists( argumentCollection=arguments, object=object );
-			if ( !hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) ) {
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			if ( !hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 
-			validationResult = validateForm( formName=formName, formData=formData );
-
-			if ( not validationResult.validated() ) {
-				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
-				persist = formData;
-				persist.validationResult = validationResult;
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#object#" ), persistStruct=persist );
-				}
-			}
-
-			obj = presideObjectService.getObject( object );
-			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
-
-			if ( !redirectOnSuccess ) {
-				return newId;
-			}
-
-			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
-
-			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
-				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-				, '<a href="#newRecordLink#">#event.getValue( name="label", defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
-			] ) );
-
-			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
-				}
-			} else {
-				if ( Len( addAnotherAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
-				}
-			}
+			runEvent(
+				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+			);
 		</cfscript>
 	</cffunction>
 
@@ -554,6 +507,69 @@
 			ArrayAppend( gridFields, "_options" );
 
 			event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_addRecordAction" access="private" returntype="any" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="errorAction"       type="string"  required="false" default="" />
+		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
+		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
+		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+
+		<cfscript>
+			var formName         = "preside-objects.#object#.admin.add";
+			var formData         = event.getCollectionForForm( formName );
+			var obj              = "";
+			var validationResult = "";
+			var newId            = "";
+			var newRecordLink    = "";
+			var persist          = "";
+
+			validationResult = validateForm( formName=formName, formData=formData );
+
+			if ( not validationResult.validated() ) {
+				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+				persist = formData;
+				persist.validationResult = validationResult;
+				if ( Len( errorAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", querystring="object=#object#" ), persistStruct=persist );
+				}
+			}
+
+			obj = presideObjectService.getObject( object );
+			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+
+			if ( !redirectOnSuccess ) {
+				return newId;
+			}
+
+			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+
+			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
+				, '<a href="#newRecordLink#">#event.getValue( name="label", defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			] ) );
+
+			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
+				if ( Len( addAnotherAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
+				}
+			} else {
+				if ( Len( addAnotherAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=successAction ) );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
+				}
+			}
 		</cfscript>
 	</cffunction>
 
