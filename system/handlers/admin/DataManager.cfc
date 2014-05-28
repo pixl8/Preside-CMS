@@ -308,6 +308,10 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 
+			if ( !hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ objectName ] ) ) {
+				event.adminAccessDenied();
+			}
+
 			_addObjectNameBreadCrumb( event, objectName );
 
 			event.addAdminBreadCrumb(
@@ -338,6 +342,9 @@
 			var persist          = "";
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
+			if ( !hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) ) {
+				event.adminAccessDenied();
+			}
 
 			validationResult = validateForm( formName=formName, formData=formData );
 
