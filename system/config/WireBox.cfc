@@ -98,8 +98,9 @@
 		map( "auditService" ).asSingleton().to ( "preside.system.api.admin.AuditService" ).parent( "baseService" ).noAutoWire();
 
 		map( "dataManagerService" ).asSingleton().to( "preside.system.api.admin.DataManagerService" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="contentRenderer", ref="contentRenderer" )
-			.initArg( name="i18nPlugin"     , dsl="coldbox:plugin:i18n" );
+			.initArg( name="contentRenderer"  , ref="contentRenderer" )
+			.initArg( name="permissionService", ref="permissionService" )
+			.initArg( name="i18nPlugin"       , dsl="coldbox:plugin:i18n" );
 
 		map( "assetStorageProvider" ).asSingleton().to( "preside.system.api.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory" , value=settings.uploads_directory ?: "/content/assets" )

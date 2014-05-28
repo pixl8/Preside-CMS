@@ -43,7 +43,7 @@
 		<cfscript>
 			var objectName = event.getValue( name="id", default="" );
 
-			if ( !hasPermission( permissionKey="datamanager.read", context="datamanager", contextKeys=[ objectName ] ) ) {
+			if ( !hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				event.adminAccessDenied();
 			}
 

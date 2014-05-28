@@ -2,9 +2,10 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 
 // SETUP, TEARDOWN, etc
 	function setup() output=false {
-		mockPoService   = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
-		contentRenderer = getMockBox().createEmptyMock( "preside.system.api.rendering.ContentRenderer" );
-		mockI18nPlugin  = getMockBox().createEmptyMock( "preside.system.coldboxModifications.plugins.i18n" );
+		mockPoService         = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
+		contentRenderer       = getMockBox().createEmptyMock( "preside.system.api.rendering.ContentRenderer" );
+		mockPermissionService = getMockBox().createEmptyMock( "preside.system.api.security.PermissionService" );
+		mockI18nPlugin        = getMockBox().createEmptyMock( "preside.system.coldboxModifications.plugins.i18n" );
 
 		_setupMockObjectMeta();
 
@@ -13,6 +14,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 			, logger               = _getTestLogger()
 			, i18nPlugin           = mockI18nPlugin
 			, contentRenderer      = contentRenderer
+			, permissionService    = mockPermissionService
 		);
 	}
 
@@ -27,7 +29,11 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 				, { id="object2", title="Object 2" }
 			  ] }
 		];
-		var groups   = dataManagerService.getGroupedObjects();
+		var groups   = "";
+
+		mockPermissionService.$( "hasPermission", true );
+
+		groups = dataManagerService.getGroupedObjects();
 
 		super.assertEquals( expected, groups );
 	}
@@ -48,6 +54,35 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 		).$results( "field1,field2,field3" );
 
 		super.assertEquals( ["field1","field2","field3"], dataManagerService.listGridFields( "object4" ) );
+	}
+
+	function test05_getGroupedObjects_shouldNotContainObjectsToWhichTheLoggedInUserDoesNotHaveNavigationPermissions() output=false {
+		var expected = [
+			  { title="Some group", description="Some description", icon="an-icon-class", objects=[
+				  { id="object1", title="Object 1" }
+			  ] }
+		];
+		var groups   = "";
+
+		mockPermissionService.$( "hasPermission" ).$args(
+			  permissionKey = "datamanager.navigate"
+			, context       = "datamanager"
+			, contextKeys   = [ "object1" ]
+		).$results( true );
+		mockPermissionService.$( "hasPermission" ).$args(
+			  permissionKey = "datamanager.navigate"
+			, context       = "datamanager"
+			, contextKeys   = [ "object2" ]
+		).$results( false );
+		mockPermissionService.$( "hasPermission" ).$args(
+			  permissionKey = "datamanager.navigate"
+			, context       = "datamanager"
+			, contextKeys   = [ "object4" ]
+		).$results( false );
+
+		groups = dataManagerService.getGroupedObjects();
+
+		super.assertEquals( expected, groups );
 	}
 
 

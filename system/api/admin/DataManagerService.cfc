@@ -1,11 +1,12 @@
 component output="false" extends="preside.system.base.Service" {
 
 // CONSTRUCTOR
-	public any function init( required any contentRenderer, required any i18nPlugin ) output=false {
+	public any function init( required any contentRenderer, required any i18nPlugin, required any permissionService ) output=false {
 		super.init( argumentCollection = arguments );
 
 		_setContentRenderer( arguments.contentRenderer );
 		_setI18nPlugin( arguments.i18nPlugin );
+		_setPermissionService( arguments.permissionService );
 
 		return this;
 	}
@@ -13,6 +14,7 @@ component output="false" extends="preside.system.base.Service" {
 // PUBLIC METHODS
 	public array function getGroupedObjects() output=false {
 		var poService      = _getPresideObjectService();
+		var permsService   = _getPermissionService();
 		var i18nPlugin     = _getI18nPlugin();
 		var objectNames    = poService.listObjects();
 		var groups         = {};
@@ -20,7 +22,7 @@ component output="false" extends="preside.system.base.Service" {
 
 		for( var objectName in objectNames ){
 			var groupId = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
-			if ( Len( Trim( groupId ) ) ) {
+			if ( Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
 					groups[ groupId ] = {
 						  title       = i18nPlugin.translateResource( uri="preside-objects.groups.#groupId#:title" )
@@ -264,6 +266,13 @@ component output="false" extends="preside.system.base.Service" {
 	}
 	private void function _setI18nPlugin( required any i18nPlugin ) output=false {
 		_i18nPlugin = arguments.i18nPlugin;
+	}
+
+	private any function _getPermissionService() output=false {
+		return _permissionService;
+	}
+	private void function _setPermissionService( required any permissionService ) output=false {
+		_permissionService = arguments.permissionService;
 	}
 
 }
