@@ -57,13 +57,15 @@
 						</td>
 						<td class="edit-col">
 							#renderFormControl(
-								  name         = "grant." & key
-								, type         = "objectPicker"
-								, object       = "security_group"
-								, multiple     = true
-								, layout       = ""
-								, placeholder  = "&nbsp;"
-								, defaultValue = savedPermsToValueList( args.savedPermissions[ key ].granted ?: [] )
+								  name           = "grant." & key
+								, type           = "objectPicker"
+								, object         = "security_group"
+								, multiple       = true
+								, layout         = ""
+								, placeholder    = "&nbsp;"
+								, defaultValue   = savedPermsToValueList( args.savedPermissions[ key ].granted ?: [] )
+								, disabledValues = savedPermsToValueList( args.inheritedPermissions[ key ].granted ?: [] )
+								, ajax           = false
 							)#
 
 							<cfset inheritedPerms = args.inheritedPermissions[ key ].granted ?: [] />
@@ -74,13 +76,15 @@
 						</td>
 						<td class="edit-col">
 							#renderFormControl(
-								  name         = "deny." & key
-								, type         = "objectPicker"
-								, object       = "security_group"
-								, multiple     = true
-								, layout       = ""
-								, placeholder  = "&nbsp;"
-								, defaultValue = savedPermsToValueList( args.savedPermissions[ key ].denied ?: [] )
+								  name           = "deny." & key
+								, type           = "objectPicker"
+								, object         = "security_group"
+								, multiple       = true
+								, layout         = ""
+								, placeholder    = "&nbsp;"
+								, defaultValue   = savedPermsToValueList( args.savedPermissions[ key ].denied ?: [] )
+								, disabledValues = savedPermsToValueList( args.inheritedPermissions[ key ].denied ?: [] )
+								, ajax           = false
 							)#
 
 							<cfset inheritedPerms = args.inheritedPermissions[ key ].denied ?: [] />
