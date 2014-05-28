@@ -149,7 +149,7 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 			// temporary redirect to edit record (we haven't implemented view record yet!)
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="id=#recordId#&object=#objectName#" ) );
