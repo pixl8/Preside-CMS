@@ -7,7 +7,7 @@
 <cfoutput>
 	<div class="action-buttons">
 		<a class="green" href="#args.viewRecordLink#" data-context-key="v">
-			<i class="fa fa-zoom-in bigger-130"></i>
+			<i class="fa fa-search bigger-130"></i>
 		</a>
 
 		<cfif hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ args.objectName ] )>
