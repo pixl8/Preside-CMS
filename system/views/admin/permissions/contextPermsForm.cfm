@@ -36,21 +36,25 @@
 						<td class="edit-col">
 
 							<div class="groups-list">
-								#renderView( view="admin/permissions/_editableGroupsList", args={
-									  savedPerms     = savedGrants
-									, inheritedPerms = inheritedGrants
-									, savedOpposites = savedDenials
-									, title          = grantTitle
-									, icon           = "check-circle"
-								} )#
+								<div class="pull-left">
+									#renderView( view="admin/permissions/_editableGroupsList", args={
+										  savedPerms     = savedGrants
+										, inheritedPerms = inheritedGrants
+										, savedOpposites = savedDenials
+										, title          = grantTitle
+										, icon           = "check-circle"
+									} )#
 
-								#renderView( view="admin/permissions/_editableGroupsList", args={
-									  savedPerms     = savedDenials
-									, savedOpposites = savedGrants
-									, inheritedPerms = inheritedDenials
-									, title          = denyTitle
-									, icon           = "times-circle"
-								} )#
+									#renderView( view="admin/permissions/_editableGroupsList", args={
+										  savedPerms     = savedDenials
+										, savedOpposites = savedGrants
+										, inheritedPerms = inheritedDenials
+										, title          = denyTitle
+										, icon           = "times-circle"
+									} )#
+								</div>
+
+								<i class="fa fa-pencil edit-row-icon pull-right"></i>
 							</div>
 
 							<div class="groups-input row">
@@ -67,8 +71,8 @@
 									, inheritedPerms = inheritedDenials
 									, title          = denyTitle
 								} )#
-
 							</div>
+
 						</td>
 					</tr>
 				</cfloop>

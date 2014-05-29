@@ -37,8 +37,9 @@
 			}
 
 			.groups-list {
-				margin : 4px 0;
-				cursor : pointer;
+				margin  : 4px 0;
+				cursor  : pointer;
+				display : inline-block;
 
 				p {
 					margin : 0;
@@ -61,6 +62,18 @@
 				}
 				.no-perms {
 					font-style : italic;
+				}
+
+				.edit-row-icon {
+					color   : #999;
+					margin  : 4px 0 0 1em;
+					display : none;
+				}
+			}
+
+			&:hover {
+				.edit-row-icon {
+					display : inline-block;
 				}
 			}
 		}
