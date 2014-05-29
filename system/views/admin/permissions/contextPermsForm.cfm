@@ -57,20 +57,22 @@
 								<i class="fa fa-pencil edit-row-icon pull-right"></i>
 							</div>
 
-							<div class="groups-input row">
-								#renderView( view="admin/permissions/_editableGroupsInput", args={
-									  controlName    = "grant.#key#"
-									, savedPerms     = savedGrants
-									, inheritedPerms = inheritedGrants
-									, title          = grantTitle
-								} )#
+							<div class="groups-input">
+								<div class="row">
+									#renderView( view="admin/permissions/_editableGroupsInput", args={
+										  controlName    = "grant.#key#"
+										, savedPerms     = savedGrants
+										, inheritedPerms = inheritedGrants
+										, title          = grantTitle
+									} )#
 
-								#renderView( view="admin/permissions/_editableGroupsInput", args={
-									  controlName    = "deny.#key#"
-									, savedPerms     = savedDenials
-									, inheritedPerms = inheritedDenials
-									, title          = denyTitle
-								} )#
+									#renderView( view="admin/permissions/_editableGroupsInput", args={
+										  controlName    = "deny.#key#"
+										, savedPerms     = savedDenials
+										, inheritedPerms = inheritedDenials
+										, title          = denyTitle
+									} )#
+								</div>
 							</div>
 
 						</td>

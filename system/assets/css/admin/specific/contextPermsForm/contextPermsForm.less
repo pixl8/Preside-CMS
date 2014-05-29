@@ -33,13 +33,17 @@
 			}
 
 			.groups-input {
-				display : none;
+				display       : none;
+				background    : #eee;
+				border-radius : 5px;
+				padding       : 5px 8px;
 			}
 
 			.groups-list {
 				margin  : 4px 0;
 				cursor  : pointer;
 				display : inline-block;
+				padding : 2px 8px;
 
 				p {
 					margin : 0;
@@ -71,7 +75,10 @@
 				}
 			}
 
-			&:hover {
+			&:hover .groups-list, .groups-list:active, .groups-list:focus {
+				background    : #eee;
+				border-radius : 5px;
+
 				.edit-row-icon {
 					display : inline-block;
 				}
