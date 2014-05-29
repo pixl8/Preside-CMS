@@ -44,7 +44,7 @@
 	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel">
 		<concat destfile="../../${build.label}">Built on ${start.TODAY}</concat>
 
-		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS.zip">
+		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.zip">
 			<zipfileset dir="../../" prefix="preside">
 				<exclude name="support/**"/>
 				<exclude name=".travis.yml"/>
