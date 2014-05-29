@@ -2,14 +2,17 @@ language: java
 
 env:
   matrix:
-  - PLATFORM=railo41
-  - PLATFORM=railo42beta
+  - PLATFORM=railo41 TARGET=test-ci
+  - PLATFORM=railo42beta TARGET=test-ci
+  - PLATFORM=railo42beta TARGET=build
+  global:
+  - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
 
 before_script:
 - mysql -e 'create database preside_test;'
 
 install: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
-script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM test-ci
+script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM $TARGET
 
 notifications:
   email: false
@@ -17,3 +20,13 @@ notifications:
     format: html
     rooms:
       secure: EZhnjtmz1hRai2fd2P9a48pFDcqvLOl347amWALojbQmPhw2GkfZ2E2L/WKjg2kqcRHs70nC3+YonLcZIjmrzsjez8eRLtnwH2NP3deFPAhmHXbtRlXDnLbbFhb/p4uORzZB2aNKCKKOPsYeGz5oCtF4mL8826KYbka1WupTZLc=
+
+deploy:
+  provider: s3
+  access_key_id: AKIAJ3PTU73IHOOZV3LQ
+  secret_access_key:
+    secure: quj9MxIlfx43l9S6CXcchbpsKd43DPkNyZIAOl3crQVz2iG7qQfYacgl9utgM66cl6ZEd4ZC24PcYAeD3Y9np8OmlYGXQ85ofI/pp7h9jsbL9Fyk2RjObTxmka/+vdKAI7mKw1GSZFQGPIsOKSFfKfHyqhL35Tk+xB1K4vM43fQ=
+  bucket: downloads.presidecms.com
+  local-dir: ./support/build/artifacts
+  on:
+    repo: pixl8/Preside-CMS
