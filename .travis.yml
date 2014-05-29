@@ -2,9 +2,9 @@ language: java
 
 env:
   matrix:
-  - PLATFORM=railo41 TARGET=test-ci
-  - PLATFORM=railo42beta TARGET=test-ci
   - PLATFORM=railo42beta TARGET=build
+#  - PLATFORM=railo41 TARGET=test-ci
+#  - PLATFORM=railo42beta TARGET=test-ci
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
 
@@ -27,6 +27,7 @@ deploy:
   secret_access_key:
     secure: quj9MxIlfx43l9S6CXcchbpsKd43DPkNyZIAOl3crQVz2iG7qQfYacgl9utgM66cl6ZEd4ZC24PcYAeD3Y9np8OmlYGXQ85ofI/pp7h9jsbL9Fyk2RjObTxmka/+vdKAI7mKw1GSZFQGPIsOKSFfKfHyqhL35Tk+xB1K4vM43fQ=
   bucket: downloads.presidecms.com
-  local-dir: ./support/build/artifacts
+  local-dir: support/build/artifacts
+  skip_cleanup: true
   on:
     repo: pixl8/Preside-CMS
