@@ -2,9 +2,9 @@ language: java
 
 env:
   matrix:
+  - PLATFORM=railo41 TARGET=test-ci
+  - PLATFORM=railo42beta TARGET=test-ci
   - PLATFORM=railo42beta TARGET=build
-#  - PLATFORM=railo41 TARGET=test-ci
-#  - PLATFORM=railo42beta TARGET=test-ci
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
 
@@ -31,3 +31,4 @@ deploy:
   skip_cleanup: true
   on:
     repo: pixl8/Preside-CMS
+    condition: "$TARGET = build"
