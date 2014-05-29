@@ -16,7 +16,7 @@
 </cfscript>
 
 <cfoutput>
-	<div class="col-sm-4">
+	<div class="col-sm-6">
 		#renderFormControl(
 			  name           = args.controlName
 			, type           = "objectPicker"

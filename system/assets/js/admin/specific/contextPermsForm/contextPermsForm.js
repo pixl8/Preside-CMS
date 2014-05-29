@@ -6,22 +6,14 @@
 
 ( function( $ ){
 
-	var $contextPermsTable = $( ".manage-context-permissions" );
+	var $contextPermsForm = $( ".manage-context-permissions-form" );
 
-	$contextPermsTable.on( "click", ".edit-col:not(.edit-mode)", function( e ){
+	$contextPermsForm.on( "click", ".edit-col:not(.edit-mode)", function( e ){
 		e.preventDefault();
 
 		var $editableContainer = $(this);
 
 		$editableContainer.addClass( "edit-mode" );
-	} );
-
-	$contextPermsTable.on( "click", ".context-permission-form-cancel-button", function( e ){
-		e.preventDefault();
-
-		var $editableContainer = $(this).closest( ".edit-col" );
-
-		$editableContainer.removeClass( "edit-mode" );
 	} );
 
 
