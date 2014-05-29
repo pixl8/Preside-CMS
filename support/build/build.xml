@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project basedir="." default="test" name="Preside CI">
-
+<project basedir="." default="build" name="Preside CI">
 	<property file="build.properties" />
 
 	<property name="test.project" value="preside-ci" />
 	<property name="work.dir" value="/tmp/work" />
 	<property name="build.dir" value="" />
+	<property name="server.name" value="localhost"/>
+	<property name="server.port" value="8888"/>
+	<property name="stop.port" value="8887"/>
+	<property name="output.dir" value="./results"/>
+	<property name="artifacts.dir" value="./artifacts" />
 
 	<property name="railo40.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.0.4.001-nojre.tar.gz" />
 	<property name="railo41.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.1.2.005-nojre.tar.gz" />
@@ -18,16 +22,6 @@
 	<property name="railo41-osx.helper" value="railo" />
 	<property name="railo42beta.helper" value="railo" />
 
-	<fail unless="platform" message="Platform is not set" />
-	<fail unless="${platform}.${source}.url">Unkown platform ${platform} for source ${source}.
-
-Valid values are:
- railo40
- railo41
- railo41-osx
- railo42beta
-	</fail>
-
 	<macrodef name="propertycopy">
 		<attribute name="name"/>
 		<attribute name="from"/>
@@ -36,14 +30,22 @@ Valid values are:
 		</sequential>
 	</macrodef>
 
-	<propertycopy name="platform.url" from="${platform}.${source}.url" />
-	<propertycopy name="platform.helper" from="${platform}.helper" />
+	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps">
+		<zip destfile="${artifacts.dir}/PresideCMS-Bleeding-Edge.zip">
+			<zipfileset dir="../../" prefix="preside">
+				<exclude name="support/**"/>
+			</zipfileset>
+		</zip>
+	</target>
 
-	<!-- General Properties -->
-	<property name="server.name" value="localhost"/>
-	<property name="server.port" value="8888"/>
-	<property name="stop.port" value="8887"/>
-	<property name="output.dir" value="results"/>
+	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installcfstatic,installckeditor">
+	</target>
+
+	<target name="clean-preside-deps">
+		<delete dir="${coldbox.installdir}" failonerror="false" />
+		<delete dir="${cfstatic.installdir}" failonerror="false" />
+		<delete dir="${ckeditor.installdir}" failonerror="false" />
+	</target>
 
 	<target name="install-ci-deps">
 		<exec executable="/bin/bash" failonerror="true" outputproperty="output.log">
@@ -83,7 +85,7 @@ Valid values are:
 		</exec>
 	</target>
 
-	<target name="test-ci" depends="setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
+	<target name="test-ci" depends="setupTestRunnerEnvironment,setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
 		<property file="${output.dir}/testbox.properties" />
 		<fail if="testbox.failed" message="At least one test failure!" />
 	</target>
@@ -92,10 +94,28 @@ Valid values are:
 		<delete dir="${output.dir}"/>
 		<mkdir dir="${output.dir}"/>
 	</target>
+	<target name="setupartifactsdir">
+		<delete dir="${artifacts.dir}"/>
+		<mkdir dir="${artifacts.dir}"/>
+	</target>
 
 	<target name="test">
 		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/test-suite-runner.cfm" verbose="true" />
     	<concat><path path="${output.dir}/output.txt" /></concat>
+	</target>
+
+	<target name="setupTestRunnerEnvironment">
+		<fail unless="platform" message="Platform is not set" />
+		<fail unless="${platform}.${source}.url">Unkown platform ${platform} for source ${source}.
+
+Valid values are:
+ railo40
+ railo41
+ railo41-osx
+ railo42beta
+		</fail>
+		<propertycopy name="platform.url" from="${platform}.${source}.url" />
+		<propertycopy name="platform.helper" from="${platform}.helper" />
 	</target>
 
 	<target name="installcoldbox">
@@ -115,6 +135,15 @@ Valid values are:
         		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
     		</mapper>
     	</unzip>
+	</target>
+
+	<target name="installckeditor">
+		<get src="${ckeditor.zip}" dest="${output.dir}/ckeditor.zip" />
+		<unzip src="${output.dir}/ckeditor.zip" dest="${ckeditor.installdir}">
+			<mapper>
+				<globmapper from="${ckeditor.zipsubdir}/*" to="*"/>
+			</mapper>
+		</unzip>
 	</target>
 
 </project>

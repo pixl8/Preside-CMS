@@ -8,8 +8,8 @@ env:
 before_script:
 - mysql -e 'create database preside_test;'
 
-install: ant -f support/build/ci/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
-script: ant -f support/build/ci/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM test-ci
+install: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
+script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM test-ci
 
 notifications:
   email: false
