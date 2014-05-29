@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project basedir="." default="build" name="Preside CI">
+	<tstamp prefix="start"/>
+
 	<property file="build.properties" />
 
 	<property name="test.project" value="preside-ci" />
@@ -40,11 +42,16 @@
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
 
 	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel">
+		<concat destfile="../../${build.label}">Built on ${start.TODAY}</concat>
+
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS.zip">
 			<zipfileset dir="../../" prefix="preside">
 				<exclude name="support/**"/>
+				<exclude name=".travis.yml"/>
 			</zipfileset>
 		</zip>
+
+		<delete file="../../${build.label}" failonerror="false" />
 	</target>
 
 	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installcfstatic,installckeditor">
@@ -176,7 +183,7 @@ Valid values are:
 		</unzip>
 	</target>
 
-	<target name="setupreleaselabel">
+	<target name="setupreleaselabel" depends="incrementBuildNumber">
 		<property name="branch" value="develop" />
 		<property name="tag" value="" />
 
@@ -194,11 +201,26 @@ Valid values are:
 						<property name="release.name" value="${branch}" />
 					</default>
 				</switch>
+				<property name="build.label" value="PresideCMS-${preside.version}-${release.name}.${build.number}" />
 			</then>
 			<else>
 				<property name="release.name" value="${tag}" />
+				<property name="build.label" value="PresideCMS-${preside.version}.${build.number}"/>
 			</else>
 		</if>
+	</target>
+
+	<target name="incrementBuildNumber">
+		<get src="${build.number.remote.url}" dest="${build.number.file}" ignoreerrors="true" />
+		<propertyfile file="${build.number.file}" comment="Build Number for ANT. Edit not!">
+			<entry key="build.number"
+					type="int"
+			     	operation="+"
+					pattern="00000"
+			     	default="1" />
+		</propertyfile>
+
+		<property file="${build.number.file}" />
 	</target>
 
 </project>
