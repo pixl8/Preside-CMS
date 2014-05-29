@@ -50,7 +50,7 @@
 										, savedOpposites = savedGrants
 										, inheritedPerms = inheritedDenials
 										, title          = denyTitle
-										, icon           = "times-circle"
+										, icon           = "minus-circle"
 									} )#
 								</div>
 
@@ -59,19 +59,27 @@
 
 							<div class="groups-input">
 								<div class="row">
-									#renderView( view="admin/permissions/_editableGroupsInput", args={
-										  controlName    = "grant.#key#"
-										, savedPerms     = savedGrants
-										, inheritedPerms = inheritedGrants
-										, title          = grantTitle
-									} )#
+									<div class="col-sm-11">
+										<div class="row">
+											#renderView( view="admin/permissions/_editableGroupsInput", args={
+												  controlName    = "grant.#key#"
+												, savedPerms     = savedGrants
+												, inheritedPerms = inheritedGrants
+												, title          = grantTitle
+											} )#
 
-									#renderView( view="admin/permissions/_editableGroupsInput", args={
-										  controlName    = "deny.#key#"
-										, savedPerms     = savedDenials
-										, inheritedPerms = inheritedDenials
-										, title          = denyTitle
-									} )#
+											#renderView( view="admin/permissions/_editableGroupsInput", args={
+												  controlName    = "deny.#key#"
+												, savedPerms     = savedDenials
+												, inheritedPerms = inheritedDenials
+												, title          = denyTitle
+											} )#
+
+										</div>
+									</div>
+									<div class="col-sm-1">
+										<i class="close-icon fa fa-lg fa-times-circle pull-right"></i>
+									</div>
 								</div>
 							</div>
 

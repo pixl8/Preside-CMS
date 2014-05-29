@@ -16,5 +16,13 @@
 		$editableContainer.addClass( "edit-mode" );
 	} );
 
+	$contextPermsForm.on( "click", ".close-icon", function( e ){
+		e.preventDefault();
+
+		var $editableContainer = $(this).closest( ".edit-col" );
+
+		$editableContainer.removeClass( "edit-mode" );
+	} );
+
 
 } )( presideJQuery );
