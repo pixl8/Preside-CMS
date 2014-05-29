@@ -12,7 +12,7 @@ before_script:
 - mysql -e 'create database preside_test;'
 
 install: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
-script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM $TARGET
+script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG $TARGET
 
 notifications:
   email: false

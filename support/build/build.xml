@@ -9,7 +9,9 @@
 	<property name="server.port" value="8888"/>
 	<property name="stop.port" value="8887"/>
 	<property name="output.dir" value="./results"/>
+	<property name="download.dir" value="./downloads"/>
 	<property name="artifacts.dir" value="./artifacts" />
+	<property name="build.number.file" value="${artifacts.dir}/build.number" />
 
 	<property name="railo40.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.0.4.001-nojre.tar.gz" />
 	<property name="railo41.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.1.2.005-nojre.tar.gz" />
@@ -30,8 +32,15 @@
 		</sequential>
 	</macrodef>
 
-	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps">
-		<zip destfile="${artifacts.dir}/PresideCMS-Bleeding-Edge.zip">
+	<path id="cp">
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
+
+	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel">
+		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS.zip">
 			<zipfileset dir="../../" prefix="preside">
 				<exclude name="support/**"/>
 			</zipfileset>
@@ -119,8 +128,15 @@ Valid values are:
 	</target>
 
 	<target name="installcoldbox">
-		<get src="${coldbox.zip}" dest="${output.dir}/coldbox.zip" />
-		<unzip src="${output.dir}/coldbox.zip" dest="${coldbox.installdir}">
+		<mkdir dir="${download.dir}" />
+		<if>
+			<available file="${download.dir}/${coldbox.tmp.file}" />
+			<then></then>
+			<else>
+				<get src="${coldbox.zip}" dest="${download.dir}/${coldbox.tmp.file}" />
+			</else>
+		</if>
+		<unzip src="${download.dir}/${coldbox.tmp.file}" dest="${coldbox.installdir}">
 			<mapper>
         		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
     		</mapper>
@@ -129,8 +145,15 @@ Valid values are:
 	</target>
 
 	<target name="installcfstatic">
-		<get src="${cfstatic.zip}" dest="${output.dir}/cfstatic.zip" />
-		<unzip src="${output.dir}/cfstatic.zip" dest="${cfstatic.installdir}">
+		<mkdir dir="${download.dir}" />
+		<if>
+			<available file="${download.dir}/${cfstatic.tmp.file}" />
+			<then></then>
+			<else>
+				<get src="${cfstatic.zip}" dest="${download.dir}/${cfstatic.tmp.file}" />
+			</else>
+		</if>
+		<unzip src="${download.dir}/${cfstatic.tmp.file}" dest="${cfstatic.installdir}">
 			<mapper>
         		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
     		</mapper>
@@ -138,12 +161,44 @@ Valid values are:
 	</target>
 
 	<target name="installckeditor">
-		<get src="${ckeditor.zip}" dest="${output.dir}/ckeditor.zip" />
-		<unzip src="${output.dir}/ckeditor.zip" dest="${ckeditor.installdir}">
+		<mkdir dir="${download.dir}" />
+		<if>
+			<available file="${download.dir}/${ckeditor.tmp.file}" />
+			<then></then>
+			<else>
+				<get src="${ckeditor.zip}" dest="${download.dir}/${ckeditor.tmp.file}" />
+			</else>
+		</if>
+		<unzip src="${download.dir}/${ckeditor.tmp.file}" dest="${ckeditor.installdir}">
 			<mapper>
 				<globmapper from="${ckeditor.zipsubdir}/*" to="*"/>
 			</mapper>
 		</unzip>
+	</target>
+
+	<target name="setupreleaselabel">
+		<property name="branch" value="develop" />
+		<property name="tag" value="" />
+
+		<if>
+			<equals arg1="${tag}" arg2="" />
+			<then>
+				<switch value="${branch}">
+					<case value="master">
+						<property name="release.name" value="stable" />
+					</case>
+					<case value="develop">
+						<property name="release.name" value="bleeding-edge" />
+					</case>
+					<default>
+						<property name="release.name" value="${branch}" />
+					</default>
+				</switch>
+			</then>
+			<else>
+				<property name="release.name" value="${tag}" />
+			</else>
+		</if>
 	</target>
 
 </project>

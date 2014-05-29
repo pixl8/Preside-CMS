@@ -20,6 +20,7 @@ component output=false {
 			, applicationStartHandler   = "General.applicationStart"
 			, requestStartHandler       = "General.requestStart"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
+			// , controllerDecorator       = "preside.system.coldboxModifications.boot"
 		};
 
 		datasources = { preside = { name = "openpreside" } };
