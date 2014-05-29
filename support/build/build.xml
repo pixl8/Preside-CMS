@@ -100,7 +100,7 @@
 	</target>
 
 	<target name="test">
-		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/ci/test-suite-runner.cfm" verbose="true" />
+		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/test-suite-runner.cfm" verbose="true" />
     	<concat><path path="${output.dir}/output.txt" /></concat>
 	</target>
 
