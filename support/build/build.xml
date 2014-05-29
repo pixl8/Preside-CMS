@@ -47,7 +47,7 @@
 		<delete dir="${ckeditor.installdir}" failonerror="false" />
 	</target>
 
-	<target name="install-ci-deps">
+	<target name="install-ci-deps" depends="setupTestRunnerEnvironment">
 		<exec executable="/bin/bash" failonerror="true" outputproperty="output.log">
 			<env key="WORK_DIR" value="${work.dir}" />
 			<env key="BUILD_DIR" value="${build.dir}" />
