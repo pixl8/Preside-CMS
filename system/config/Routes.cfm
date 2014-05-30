@@ -8,7 +8,11 @@
 		var uri         = ListFirst( ( requestData.headers['X-Original-URL'] ?: cgi.path_info ), '?' );
 
 		if ( not Len( Trim( uri ) ) ) {
-			uri = ReReplace( ( cgi.request_url ?: "" ), "^https?://(.*?)/(.*?)(\?.*)?$", "/\2" );
+			uri = request[ "javax.servlet.forward.request_uri" ] ?: "";
+
+			if ( not Len( Trim( uri ) ) ) {
+				uri = ReReplace( ( cgi.request_url ?: "" ), "^https?://(.*?)/(.*?)(\?.*)?$", "/\2" );
+			}
 		}
 
 		return uri;

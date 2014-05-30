@@ -93,14 +93,19 @@
 		<cfscript>
 			var requestData = GetHttpRequestData();
 			var currentUrl  = requestData.headers['X-Original-URL'] ?: "";
+			var qs          = "";
 
 			if ( Len( Trim( currentUrl ) ) ) {
 				return arguments.includeQueryString ? currentUrl : ListFirst( currentUrl, "?" );
 			}
 
-			currentUrl = cgi.path_info ?: "";
-			if ( arguments.includeQueryString && Len( Trim( cgi.query_string ?: "" ) ) ) {
-				currentUrl &= "?" & cgi.query_string;
+			currentUrl = request[ "javax.servlet.forward.request_uri" ]  ?: cgi.path_info;
+
+			if ( arguments.includeQueryString ) {
+				qs = request[ "javax.servlet.forward.query_string" ] ?: cgi.query_string;
+				if ( Len( Trim( qs ) ) ) {
+					return currentUrl & "?" & qs;
+				}
 			}
 
 			return currentUrl;
