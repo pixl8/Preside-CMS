@@ -39,8 +39,8 @@ component output=false {
 
 // PRIVATE HELPERS
 	private void function _setupMappings() output=false {
-		this.mappings[ "/app"           ] = ExpandPath( "/../app/" );
-		this.mappings[ "/content"       ] = ExpandPath( "/../content/" );
+		this.mappings[ "/app"           ] = ExpandPath( "/.application/" );
+		this.mappings[ "/content"       ] = ExpandPath( "/.content/" );
 		this.mappings[ "/coldbox"       ] = ExpandPath( "/preside/system/externals/coldbox" );
 		this.mappings[ "/org/cfstatic"  ] = ExpandPath( "/preside/system/externals/cfstatic/org/cfstatic" );
 	}
