@@ -3,23 +3,12 @@
 </cfscript>
 
 <cfoutput>
-	<div class="center">
-		<h1>
-			<i class="fa fa-leaf green"></i>
-			<span class="white">#translateResource( 'cms:cms.title' )#</span>
-		</h1>
-	</div>
-
-	<div class="space-6"></div>
-
-
 	<div class="position-relative">
 		<div id="login-box" class="login-box visible widget-box no-border">
 			<div class="widget-body">
 				<div class="widget-main">
- 					<h4 class="header blue lighter bigger">
-						<i class="fa fa-keyboard green"></i>
-						#translateResource( 'cms:login.prompt' )#
+ 					<h4 class="cms-brand">
+						#translateResource( uri="cms:cms.title" )#
 					</h4>
 
 					<div class="space-6"></div>
@@ -54,14 +43,14 @@
 					</form>
 				</div><!--/widget-main-->
 
-				<div class="toolbar clearfix">
+				<!--- <div class="toolbar clearfix">
 					<div>
 						<a href="##forgot-box" class="forgot-password-link login-box-toggler">
 							<i class="fa fa-arrow-left"></i>
 							#translateResource( 'cms:login.forgotpw.link' )#
 						</a>
 					</div>
-				</div>
+				</div> --->
 			</div><!--/widget-body-->
 		</div><!--/login-box-->
 
