@@ -103,13 +103,13 @@
 			.initArg( name="i18nPlugin"       , dsl="coldbox:plugin:i18n" );
 
 		map( "assetStorageProvider" ).asSingleton().to( "preside.system.api.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="rootDirectory" , value=settings.uploads_directory ?: "/content/assets" )
-			.initArg( name="trashDirectory", value=settings.uploads_directory ?: "/content/.trash" )
+			.initArg( name="rootDirectory" , value=settings.uploads_directory & "/assets" )
+			.initArg( name="trashDirectory", value=settings.uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
 
 		map( "tempStorageProvider" ).asSingleton().to( "preside.system.api.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="rootDirectory" , value=settings.tmp_uploads_directory ?: "/content/.tmp" )
-			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory ?: "/content/.trash" )
+			.initArg( name="rootDirectory" , value=settings.tmp_uploads_directory & "/.tmp" )
+			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
 
 		map( "imageManipulationService" ).asSingleton().to( "preside.system.api.assetManager.ImageManipulationService" ).parent( "baseService" ).noAutoWire();

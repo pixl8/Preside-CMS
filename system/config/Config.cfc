@@ -88,8 +88,11 @@ component output=false {
 		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
 		settings.roles.dataAdmin      = [ "datamanager.*" ];
 		settings.roles.assetAdmin     = [ "assetmanager.*" ];
-		// settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete" ];
-		settings.roles.assetEditor    = [ "assetmanager.*.read", "assetmanager.*.navigate" ];
+		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete" ];
+
+		// uploads directory - each site really should override this setting and provide an external location
+		settings.uploads_directory     = "/uploads";
+		settings.tmp_uploads_directory = "/uploads";
 
 		settings.ckeditor = {
 			  defaults    = {
