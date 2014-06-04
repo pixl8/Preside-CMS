@@ -22,7 +22,7 @@ component output=false {
 		return StructKeyExists( objectViews, arguments.object ) and StructKeyExists( objectViews[ arguments.object ], arguments.view );
 	}
 
-	public any function renderView( required string object, string view="index", boolean pageView=false , string returntype="string") output=false {
+	public any function renderView( required string object, string view="index", boolean pageView=false , string returntype="string", struct args={} ) output=false {
 		var view           = _getView( arguments.object, arguments.pageView ? "__pagetype" & arguments.view : arguments.view );
 		var selectDataArgs = Duplicate( arguments );
 		var data           = "";
@@ -36,9 +36,12 @@ component output=false {
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
 		for( record in data ) {
+			var viewArgs = _renderFields( arguments.object, record, view.fieldOptions );
+			viewArgs.append( arguments.args );
+
 			rendered.append( _getColdboxRenderer().renderView(
 				  view     = view.viewPath
-				, args     = _renderFields( arguments.object, record, view.fieldOptions )
+				, args     = viewArgs
 				, _counter = data.currentRow
 				, _records = data.recordCount
 			) );
@@ -158,16 +161,18 @@ component output=false {
 					result = ReFindNoCase( fieldRegex, match, 1, true );
 					fieldName = result.pos.len() eq 2 and result.pos[2] ? Mid( match, result.pos[2], result.len[2] ) : ( objectName & "." & alias );
 
-					selectDef = alias eq fieldName ? alias : "#fieldName# as #alias#";
-					if ( not fields.selectFields.find( selectDef ) ) {
-						fields.selectFields.append( selectDef );
+					if ( fieldName != "false" ) {
+						selectDef = alias eq fieldName ? alias : "#fieldName# as #alias#";
+						if ( not fields.selectFields.find( selectDef ) ) {
+							fields.selectFields.append( selectDef );
 
-						result = ReFindNoCase( rendererRegex, match, 1, true );
-						fields.fieldOptions[ alias ] = {
-							  editable = ReFindNoCase( editableRegex, match ) != 0
-							, renderer = result.pos.len() eq 2 and result.pos[2] ? Mid( match, result.pos[2], result.len[2] ) : ""
-							, field    = fieldName
-						};
+							result = ReFindNoCase( rendererRegex, match, 1, true );
+							fields.fieldOptions[ alias ] = {
+								  editable = ReFindNoCase( editableRegex, match ) != 0
+								, renderer = result.pos.len() eq 2 and result.pos[2] ? Mid( match, result.pos[2], result.len[2] ) : ""
+								, field    = fieldName
+							};
+						}
 					}
 				}
 			}
