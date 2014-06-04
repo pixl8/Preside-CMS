@@ -104,6 +104,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, anything = "really"
 			, pageView = false
 			, returnType = "string"
+			, args       = {}
 		};
 		var actualForwardedArgs = "";
 		var expectedArgumemntNames = StructKeyArray( expectedArguments );
