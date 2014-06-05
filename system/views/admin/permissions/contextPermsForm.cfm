@@ -7,8 +7,8 @@
 	param name="args.context"              type="string";
 	param name="args.contextKey"           type="string";
 
-	event.include( "/css/admin/specific/contextPermsForm/" );
-	event.include( "/js/admin/specific/contextPermsForm/" );
+	event.include( "/css/specific/contextPermsForm/", "admin" );
+	event.include( "/js/specific/contextPermsForm/" , "admin" );
 
 	grantTitle = translateResource( "cms:contextperms.grant.row.title" );
 	denyTitle  = translateResource( "cms:contextperms.deny.row.title" );

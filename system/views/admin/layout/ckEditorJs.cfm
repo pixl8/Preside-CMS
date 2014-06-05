@@ -9,7 +9,7 @@
 		, ckeditorDefaultWidth       = ckeditorSettings.defaults.width     ?: "auto"
 		, ckeditorDefaultMinHeight   = ckeditorSettings.defaults.minHeight ?: "auto"
 		, ckeditorDefaultMaxHeight   = ckeditorSettings.defaults.maxHeight ?: 600
-	} );
+	}, "admin" );
 </cfscript>
 
 <cfoutput>

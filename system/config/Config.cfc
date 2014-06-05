@@ -64,6 +64,21 @@ component output=false {
 			, derivatives       = _getConfiguredAssetDerivatives()
 		};
 
+		settings.static = {
+			  outputDirectory = "/_assets"
+			, outputUrl       = "/_assets"
+			, bundles         = {
+				admin = {
+					  checkForUpdates     = false
+					, excludePattern      = "lessglobals|ckeditor"
+				}, 
+				website = {
+					  checkForUpdates     = false
+					, excludePattern      = "lessglobals"
+				}
+			}
+		};
+
 		settings.activeExtensions = _loadExtensions();
 
 		settings.permissions = {

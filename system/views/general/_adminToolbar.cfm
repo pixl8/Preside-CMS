@@ -1,13 +1,13 @@
 <cfif event.isAdminUser()>
 	<cfscript>
-		event.include( "/js/admin/core/" );
-		event.include( "/js/admin/frontend/" );
-		event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
-		event.include( "/css/admin/frontend/" );
+		event.include( "/js/core/"                         , "admin" );
+		event.include( "/js/frontend/"                     , "admin" );
+		event.include( "/js/i18n/#getfwLocale()#/bundle.js", "admin" );
+		event.include( "/css/frontend/"                    , "admin" );
 		event.includeData({
 			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
 			, adminBaseUrl = "/" & getSetting( "preside_admin_path" ) & "/"
-		});
+		}, "admin" );
 
 		toolbarUrl = event.buildAdminLink(
 			  linkTo      = 'general.adminToolbar'
@@ -17,8 +17,8 @@
 		staticRoot = getSetting( name="cfstatic_generated_url", defaultValue="/_assets" );
 
 		if ( hasPermission( "devtools.console" ) ) {
-			event.include( "/js/admin/devtools/" );
-			event.include( "/css/admin/devtools/" );
+			event.include( "/js/devtools/" , "admin" );
+			event.include( "/css/devtools/", "admin" );
 		}
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );

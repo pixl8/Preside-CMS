@@ -3,33 +3,32 @@
 	navbar           = renderView( 'admin/layout/navbar' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
 	sideBarNav       = renderView( 'admin/layout/sideBarNavigation' );
-//	uiSettingsWidget = renderView( 'admin/layout/uiSettingsWidget' );
 	backToTopWidget  = renderView( 'admin/layout/backToTopWidget' );
 	notifications    = renderView( 'admin/general/notifications' );
 
 	currentHandler = event.getCurrentHandler();
 	currentAction  = event.getCurrentAction();
 
-	event.include( "/css/admin/core/" );
-	event.include( "/css/admin/specific/#currentHandler#/" );
-	event.include( "/css/admin/specific/#currentHandler#/#currentAction#/" );
-	event.include( "/js/admin/core/" );
-	event.include( "/js/admin/specific/#currentHandler#/" );
-	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/" );
-	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
+	event.include( "/css/core/"                                     , "admin" );
+	event.include( "/css/specific/#currentHandler#/"                , "admin" );
+	event.include( "/css/specific/#currentHandler#/#currentAction#/", "admin" );
+	event.include( "/js/core/"                                      , "admin" );
+	event.include( "/js/specific/#currentHandler#/"                 , "admin" );
+	event.include( "/js/specific/#currentHandler#/#currentAction#/" , "admin" );
+	event.include( "/js/i18n/#getfwLocale()#/bundle.js"             , "admin" );
 
 	if ( hasPermission( "devtools.console" ) ) {
-		event.include( "/js/admin/devtools/" );
-		event.include( "/css/admin/devtools/" );
+		event.include( "/js/devtools/" , "admin" );
+		event.include( "/css/devtools/", "admin" );
 	}
 
 	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
-	css        = event.renderIncludes( "css" );
-	bottomJs   = event.renderIncludes( "js" );
+	css        = event.renderIncludes( "css", "admin" );
+	bottomJs   = event.renderIncludes( "js" , "admin" );
 
-	event.include( "/js/admin/coretop/ie/" );
-	event.include( "/js/admin/coretop/" );
-	topJs = event.renderIncludes( "js" );
+	event.include( "/js/coretop/ie/", "admin" );
+	event.include( "/js/coretop/"   , "admin" );
+	topJs = event.renderIncludes( "js", "admin" );
 </cfscript>
 
 <cfoutput><!DOCTYPE html>

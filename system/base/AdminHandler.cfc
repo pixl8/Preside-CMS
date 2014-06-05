@@ -13,8 +13,8 @@
 			event.includeData( {
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
 				, adminBaseUrl = "/" & getSetting( "preside_admin_path" ) & "/"
-			} );
-			event.includeData( event.getCollection() );
+			}, "admin" );
+			event.includeData( event.getCollection(), "admin" );
 
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:home.title" )

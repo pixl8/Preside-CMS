@@ -9,13 +9,13 @@
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
 
-	event.include( "/js/admin/specific/datamanager/object/");
-	event.include( "/css/admin/specific/datamanager/object/");
+	event.include( "/js/specific/datamanager/object/" , "admin" );
+	event.include( "/css/specific/datamanager/object/", "admin" );
 	event.includeData( {
 		  objectName      = args.objectName
 		, datasourceUrl   = args.datasourceUrl
 		, useMultiActions = args.useMultiActions
-	} );
+	}, "admin" );
 </cfscript>
 
 <cfoutput>
