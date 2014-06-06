@@ -171,6 +171,16 @@ component extends="coldbox.system.Interceptor" output=false {
 		}
 
 		request[ requestCacheKey ] = false;
+
+		switch ( settings.merge ) {
+			case "never":
+				request[ requestCacheKey ] = false;
+				return false;
+			case "once":
+				request[ requestCacheKey ] = !_statusFileExists( arguments.bundle );
+				return request[ requestCacheKey ];				
+		}
+
 		lastModified = _getDirectoryLastModified( settings.generatedDirectory );
 
 		// check core assets
@@ -226,6 +236,14 @@ component extends="coldbox.system.Interceptor" output=false {
 		var statusData   = _generateStatus( [dir] );
 
 		FileWrite( filePath, SerializeJson( statusData ) );
+	}
+
+	private boolean function _statusFileExists( required string bundle ) output=false {
+		var settings     = _getCfStaticSettings( arguments.bundle );
+		var dir          = settings.generatedDirectory;
+		var filePath     = dir & "/.status";
+
+		return FileExists( filePath );
 	}
 
 	private struct function _generateStatus( required array dirs, struct statusData={}, string relativeTo ) output=false {
@@ -314,6 +332,7 @@ component extends="coldbox.system.Interceptor" output=false {
 		_settings[ arguments.bundle ] = {
 			  checkForUpdates    = settingsFromPlugin.checkForUpdates ?: false
 			, generatedDirectory = settingsFromPlugin.staticDirectory ?: "/_assets/#arguments.bundle#"
+			, merge              = settingsFromPlugin.merge           ?: "once"
 		};
 	}
 

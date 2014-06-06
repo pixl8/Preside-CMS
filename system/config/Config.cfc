@@ -71,10 +71,12 @@ component output=false {
 				admin = {
 					  checkForUpdates     = false
 					, excludePattern      = "lessglobals|ckeditor"
+					, merge               = "once"
 				}, 
 				website = {
 					  checkForUpdates     = false
 					, excludePattern      = "lessglobals"
+					, merge               = "once"
 				}
 			}
 		};

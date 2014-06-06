@@ -128,6 +128,7 @@
 				, lessGlobals         = generatedDir & "/css/lessglobals/global.less"
 				, excludePattern      = "lessglobals"
 				, includeAllByDefault = false
+				, merge               = "once"
 			};
 			var mergedSettings = defaultSettings;
 			
