@@ -5,21 +5,22 @@
 	currentHandler = event.getCurrentHandler();
 	currentAction  = event.getCurrentAction();
 
-	event.include( "/css/core/"                                     , "admin" );
-	event.include( "/css/specific/#currentHandler#/"                , "admin" );
-	event.include( "/css/specific/#currentHandler#/#currentAction#/", "admin" );
-	event.include( "/js/core/"                                      , "admin" );
-	event.include( "/js/specific/#currentHandler#/"                 , "admin" );
-	event.include( "/js/specific/#currentHandler#/#currentAction#/" , "admin" );
-	event.include( "/js/i18n/#getfwLocale()#/bundle.js"             , "admin" );
+	event.include( "/css/admin/core/" );
+	event.include( "/css/admin/specific/#currentHandler#/" );
+	event.include( "/css/admin/specific/#currentHandler#/#currentAction#/" );
+	event.include( "/js/admin/core/" );
+	event.include( "/js/admin/specific/#currentHandler#/" );
+	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/" );
+	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
 
 	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
-	css        = event.renderIncludes( "css", "admin" );
-	bottomJs   = event.renderIncludes( "js" , "admin" );
+	css        = event.renderIncludes( "css" );
+	bottomJs   = event.renderIncludes( "js" );
 
-	event.include( "/js/coretop/ie/", "admin" );
-	event.include( "/js/coretop/"   , "admin" );
-	topJs = event.renderIncludes( "js", "admin" );
+
+	event.include( "/js/admin/coretop/ie/" );
+	event.include( "/js/admin/coretop/" );
+	topJs = event.renderIncludes( "js" );
 </cfscript>
 
 <cfoutput><!DOCTYPE html>

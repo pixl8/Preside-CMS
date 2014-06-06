@@ -58,7 +58,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.includeData( {
 			  maxFileSize       = settings.maxFileSize       ?: 10
 			, allowedExtensions = settings.allowedExtensions ?: ""
-		}, "admin" );
+		} );
 
 		prc.rootFolderId = assetManagerService.getRootFolderId();
 	}

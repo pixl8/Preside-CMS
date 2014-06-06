@@ -16,9 +16,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				savedConfig eq {};
 			}
 
-			event.includeData( { 
-				widgetSavedConfig = "{{widget:#Trim( widget )#:#Trim( UrlEncodedFormat( SerializeJson( savedConfig ) ) )#:widget}}" 
-			}, "admin" );
+			event.includeData( { widgetSavedConfig = "{{widget:#Trim( widget )#:#Trim( UrlEncodedFormat( SerializeJson( savedConfig ) ) )#:widget}}" } );
 			event.setView( "admin/widgets/configSavedDialog" );
 
 		} elseif ( Len( Trim( rc.widget ?: "" ) ) ) {

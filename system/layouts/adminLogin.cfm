@@ -2,18 +2,17 @@
 	body          = renderView();
 	notifications = renderView( 'admin/general/notifications' );
 
-	event.include( "/css/core/"                        , "admin" );
-	event.include( "/css/specific/login/"              , "admin" );
-	event.include( "/js/core/"                         , "admin" );
-	event.include( "/js/specific/login/"               , "admin" );
-	event.include( "/js/i18n/#getfwLocale()#/bundle.js", "admin" );
+	event.include( "/css/admin/core/" );
+	event.include( "/css/admin/specific/login/" );
+	event.include( "/js/admin/core/" );
+	event.include( "/js/admin/specific/login/" );
+	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
 
-	bottomJs = event.renderIncludes( "js", "admin" );
-	css      = event.renderIncludes( "css", "admin" );
-	
-	event.include( "/js/coretop/ie/"                   , "admin" );
-	event.include( "/js/coretop/"                      , "admin" );
-	topJs = event.renderIncludes( "js", "admin" );
+	bottomJs = event.renderIncludes( "js" );
+	css = event.renderIncludes( "css" );
+	event.include( "/js/admin/coretop/ie/" );
+	event.include( "/js/admin/coretop/" );
+	topJs = event.renderIncludes( "js" );
 </cfscript>
 
 <cfoutput><!DOCTYPE html>

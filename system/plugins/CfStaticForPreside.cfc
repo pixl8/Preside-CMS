@@ -13,7 +13,7 @@
 			setPluginAuthor("Pixl8 Interactive");
 			setPluginAuthorURL("www.pixl8.co.uk");
 
-			_initAll();
+			_initCfStatic();
 
 			return this;
 		</cfscript>
@@ -21,14 +21,10 @@
 
 <!--- public methods --->
 	<cffunction name="include" access="public" returntype="any" output="false">
-		<cfargument name="resource"       type="string"  required="true"                    />
-		<cfargument name="bundle"         type="string"  required="false" default="website" />
-		<cfargument name="throwOnMissing" type="boolean" required="false"                   />
-
 		<cfscript>
 			announceInterception( "onCfStaticInclude", arguments );
 
-			_getCfStatic( arguments.bundle ).include( argumentCollection = arguments );
+			_getCfStatic().include( argumentCollection = arguments );
 
 			announceInterception( "afterCfStaticInclude", arguments );
 		</cfscript>
@@ -36,29 +32,28 @@
 	</cffunction>
 
 	<cffunction name="includeData" access="public" returntype="any" output="false">
-		<cfargument name="data"   type="struct" required="true" />
-		<cfargument name="bundle" type="string" required="false" default="website" />
-
 		<cfscript>
 			announceInterception( "onCfStaticIncludeData", arguments );
 
-			_getCfStatic( arguments.bundle ).includeData( argumentCollection = arguments );
+			_getCfStatic().includeData( argumentCollection = arguments );
 
 			announceInterception( "postCfStaticIncludeData", arguments );
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="renderIncludes" access="public" returntype="string" output="false">
-		<cfargument name="type"      type="string"  required="false" />
-		<cfargument name="bundle"    type="string"  required="false" default="website" />
-		<cfargument name="debugMode" type="boolean" required="false" />
+		<cfargument name="type"                    type="string"  required="false"                 hint="Either 'js' or 'css'. the type of include to render. If I am not specified, the method will render both css and javascript (css first)" />
+		<cfargument name="includeStandardIncludes" type="boolean" required="false" default="true"  hint="Whether or not to use Preside convention to include standard css and js." />
 
 		<cfscript>
 			var rendered = "";
 
 			announceInterception( "onCfStaticRenderIncludes", arguments );
 
-			rendered = _getCfStatic( arguments.bundle ).renderIncludes( argumentCollection = arguments );
+			if ( arguments.includeStandardIncludes ) {
+				_includeByConvention();
+			}
+			rendered = _getCfStatic().renderIncludes( argumentCollection = arguments );
 
 			announceInterception( "postCfStaticRenderIncludes", arguments );
 
@@ -67,90 +62,60 @@
 	</cffunction>
 
 	<cffunction name="getIncludeUrl" access="public" returntype="string" output="false">
-		<cfargument name="type"           type="string"  required="true" />
-		<cfargument name="resource"       type="string"  required="true" />
-		<cfargument name="bundle"         type="string"  required="false" default="website" />
-		<cfargument name="throwOnMissing" type="boolean" required="false" />
-		<cfargument name="debugMode"      type="boolean" required="false" />
-		
-		<cfreturn _getCfStatic( arguments.bundle ).getIncludeUrl( argumentCollection = arguments ) />
+		<cfreturn _getCfStatic().getIncludeUrl( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="reload" access="public" returntype="void" output="false">
-		<cfargument name="bundle" type="string" required="false" default="website" />
-
 		<cfscript>
-			_initCfStatic( arguments.bundle );
+			_initCfStatic();
 		</cfscript>
 	</cffunction>
 
 <!--- private helpers --->
-	<cffunction name="_initAll" access="private" returntype="void" output="false">
-		<cfscript>
-			var appSettings = super.getController().getSettingStructure();
-
-			( appSettings.static.bundles ?: {} ).each( function( bundleName ){
-				_initCfStatic( bundleName );
-			} );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="_initCfStatic" access="private" returntype="void" output="false">
-		<cfargument name="bundle" type="string" required="true" />
-
 		<cfscript>
-			var settings = _getSettings( arguments.bundle );
-
-			announceInterception( "onCfStaticInit", { settings = settings, bundle=arguments.bundle } );
+			announceInterception( "onCfStaticInit", { settings = _getSettings() } );
 
 			var cfstatic = CreateObject( "component", "org.cfstatic.CfStatic" ).init(
-				argumentCollection = settings
+				argumentCollection = _getSettings()
 			);
-			_setCfstatic( arguments.bundle, cfstatic );
+			_setCfstatic( cfstatic );
 
 			announceInterception( "postCfStaticInit" );
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="_getSettings" access="private" returntype="struct" output="false">
-		<cfargument name="bundle" type="string" required="true" />
-
 		<cfscript>
-			var appSettings  = super.getController().getSettingStructure();
-			var generatedDir = ( appSettings.static.outputDirectory ?: "/_assets" ) & "/" & LCase( arguments.bundle );
-			var generatedUrl = ( appSettings.static.outputUrl       ?: "/_assets" ) & "/" & LCase( arguments.bundle );
-			var defaultSettings = {
+			var settings = super.getController().getSettingStructure();
+			var generatedDir = settings.cfstatic_generated_directory   ?: "/_assets"
+
+			return {
 				  staticDirectory     = generatedDir
-				, staticUrl           = generatedUrl
-				, checkForUpdates     = false
-				, jsDependencyFile    = generatedDir & "/js/dependencies.info"
-				, cssDependencyFile   = generatedDir & "/css/dependencies.info"
-				, lessGlobals         = generatedDir & "/css/lessglobals/global.less"
-				, excludePattern      = "lessglobals"
+				, staticUrl           = settings.cfstatic_generated_url         ?: "/_assets"
+				, checkForUpdates     = settings.cfstatic_check_for_updates     ?: ( settings.developerMode.reloadStatic ?: false )
+				, jsDependencyFile    = settings.cfstatic_js_dependencies_file  ?: generatedDir & "/js/dependencies.info"
+				, cssDependencyFile   = settings.cfstatic_css_dependencies_file ?: generatedDir & "/css/dependencies.info"
+				, lessGlobals         = settings.cfstatic_less_globals_file     ?: generatedDir & "/css/lessglobals/global.less"
+				, excludePattern      = ListAppend( ( settings.cfstatic_exclude_pattern ?: "lessglobals" ), "ckeditor", "|" )
 				, includeAllByDefault = false
 			};
-			var mergedSettings = defaultSettings;
-			
-			mergedSettings.append( appSettings.static.bundles[ arguments.bundle ] ?: {} );
+		</cfscript>
+	</cffunction>
 
-			return mergedSettings;
+	<cffunction name="_includeByConvention" access="private" returntype="void" output="false">
+		<cfscript>
+			// TODO, revisit
 		</cfscript>
 	</cffunction>
 
 <!--- accessors --->
 	<cffunction name="_getCfStatic" access="private" returntype="any" output="false">
-		<cfargument name="bundle" type="string" required="true" />
-
-		<cfreturn _cfStatic[ arguments.bundle ]>
+		<cfreturn _cfStatic>
 	</cffunction>
 	<cffunction name="_setCfStatic" access="private" returntype="void" output="false">
-		<cfargument name="bundle" type="string" required="true" />
 		<cfargument name="cfStatic" type="any" required="true" />
-
-		<cfscript>
-			_cfStatic = _cfStatic ?: {};
-			_cfStatic[ arguments.bundle ] = arguments.cfStatic;
-		</cfscript>
+		<cfset _cfStatic = arguments.cfStatic />
 	</cffunction>
 
 </cfcomponent>

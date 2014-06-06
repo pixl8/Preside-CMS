@@ -4,53 +4,53 @@ component extends="coldbox.system.Interceptor" output=false {
 	public void function configure(){}
 
 	public boolean function onCfStaticInit( event, interceptData ){
-		_setCfStaticSettings( interceptData.bundle ?: "website", interceptData.settings ?: {} );
+		_setCfStaticSettings( interceptData.settings ?: {} );
 
-		if ( _mergeNecessary( interceptData.bundle ) ) {
-			_mergeAssets( interceptData.bundle );
+		if ( _mergeNecessary() ) {
+			_mergeAssets();
 		}
-		_generateI18nFiles( interceptData.bundle );
+		_generateI18nFiles();
 
 		return true;
 	}
 
 	public boolean function onCfStaticInclude( event, interceptData ){
-		_mergeCheck( event, interceptData.bundle );
+		_mergeCheck( event );
 		return true;
 	}
 
 	public boolean function onCfStaticIncludeData( event, interceptData ){
-		_mergeCheck( event, interceptData.bundle );
+		_mergeCheck( event );
 		return true;
 	}
 
 	public boolean function onCfStaticRenderIncludes( event, interceptData ){
-		_mergeCheck( event, interceptData.bundle );
+		_mergeCheck( event );
 		return true;
 	}
 
 // PRIVATE
-	private void function _mergeCheck( event, bundle ) {
-		if ( !event.isAjax() && _getCfStaticSettings( bundle ).checkForUpdates ) {
-			if ( _mergeNecessary( arguments.bundle ) ) {
-				_mergeAssets( arguments.bundle );
-				_generateI18nFiles( arguments.bundle );
+	private void function _mergeCheck( event ) {
+		if ( !event.isAjax() && _getCfStaticSettings().checkForUpdates ) {
+			if ( _mergeNecessary() ) {
+				_mergeAssets();
+				_generateI18nFiles();
 			}
 		}
 	}
 
-	private void function _mergeAssets( required string bundle ){
+	private void function _mergeAssets(){
 		if ( not StructKeyExists( request, '_presideCfStaticAssetsMerged' ) ) {
-			var settings      = _getCfStaticSettings( arguments.bundle );
+			var settings      = _getCfStaticSettings();
 			var generatedDir  = settings.generatedDirectory;
 			var changedAssets = "";
 			var asset         = "";
-			var sourceDirs    = [ "/preside/system/assets/#arguments.bundle#", "/app/assets/#arguments.bundle#" ];
+			var sourceDirs    = [ "/preside/system/assets", settings.sourceDirectory ];
 			var sourceDir     = "";
 			var filePath      = "";
 			var targetFile    = "";
 
-			changedAssets = _calculateChangedAssets( arguments.bundle );
+			changedAssets = _calculateChangedAssets();
 
 			for( asset in changedAssets.changes ) {
 				targetFile = generatedDir & asset;
@@ -73,7 +73,7 @@ component extends="coldbox.system.Interceptor" output=false {
 				_deleteFile( filePath );
 			}
 
-			_generateStatusFile( arguments.bundle );
+			_generateStatusFile();
 
 			request._presideCfStaticAssetsMerged = true;
 		}
@@ -103,10 +103,10 @@ component extends="coldbox.system.Interceptor" output=false {
 		}
 	}
 
-	private void function _generateI18nFiles( required string bundle ){
-		var settings   = _getCfStaticSettings( arguments.bundle );
+	private void function _generateI18nFiles(){
+		var settings   = _getCfStaticSettings();
 		var bundles    = "";
-		var b          = "";
+		var bundle     = "";
 		var locales    = "";
 		var locale     = "";
 		var widgetSvc  = getModel( "widgetsService" );
@@ -119,7 +119,7 @@ component extends="coldbox.system.Interceptor" output=false {
 
 		if ( not StructKeyExists( request, '_presideCfStaticI18nGenerated' ) ) {
 
-			rootFolder = settings.generatedDirectory & "/js/i18n";
+			rootFolder = settings.generatedDirectory & "/js/admin/i18n";
 			if ( not DirectoryExists( rootFolder ) ) {
 				directory action="create" directory=rootFolder;
 			}
@@ -143,9 +143,9 @@ component extends="coldbox.system.Interceptor" output=false {
 
 				js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-				for( b in bundles ) {
+				for( bundle in bundles ) {
 					json = rsSvc.getBundleAsJson(
-						  bundle   = b
+						  bundle   = bundle
 						, language = ListFirst( locale, "-_" )
 						, country  = ListRest( locale, "-_" )
 					);
@@ -160,38 +160,37 @@ component extends="coldbox.system.Interceptor" output=false {
 		}
 	}
 
-	private boolean function _mergeNecessary( required string bundle ) output=false {
-		var lastModified    = "";
-		var tmp             = "";
-		var settings        = _getCfStaticSettings( arguments.bundle );
-		var requestCacheKey = "_presideCfStaticMergeNeccessary" & arguments.bundle;
+	private boolean function _mergeNecessary() output=false {
+		var lastModified = "";
+		var tmp          = "";
+		var settings     = _getCfStaticSettings();
 
-		if ( StructKeyExists( request, requestCacheKey ) ) {
-			return request[ requestCacheKey ];
+		if ( StructKeyExists( request, '_presideCfStaticMergeNeccessary' ) ) {
+			return request._presideCfStaticMergeNeccessary;
 		}
 
-		request[ requestCacheKey ] = false;
+		request._presideCfStaticMergeNeccessary = false;
 		lastModified = _getDirectoryLastModified( settings.generatedDirectory );
 
 		// check core assets
-		tmp = _getDirectoryLastModified( "/preside/system/assets/#arguments.bundle#" );
+		tmp = _getDirectoryLastModified( "/preside/system/assets" );
 
 		if ( tmp gt lastModified ) {
-			request[ requestCacheKey ] = true;
+			request._presideCfStaticMergeNeccessary = true;
 			return true;
 		}
 
 		// todo, check assets in modules
 
 		// check site assets
-		tmp = _getDirectoryLastModified( "/app/assets/#arguments.bundle#" );
+		tmp = _getDirectoryLastModified( settings.sourceDirectory );
 
 		if ( tmp gt lastModified ) {
-			request[ requestCacheKey ] = true;
+			request._presideCfStaticMergeNeccessary = true;
 			return true;
 		}
 
-		return request[ requestCacheKey ];
+		return request._presideCfStaticMergeNeccessary;
 	}
 
 	private date function _getDirectoryLastModified( required string dir ) output=false {
@@ -219,8 +218,8 @@ component extends="coldbox.system.Interceptor" output=false {
 		return DateAdd( "l", lastModified, epoch );
 	}
 
-	private void function _generateStatusFile( required string bundle ) output=false {
-		var settings     = _getCfStaticSettings( arguments.bundle );
+	private void function _generateStatusFile() output=false {
+		var settings     = _getCfStaticSettings();
 		var dir          = settings.generatedDirectory;
 		var filePath     = dir & "/.status";
 		var statusData   = _generateStatus( [dir] );
@@ -269,9 +268,9 @@ component extends="coldbox.system.Interceptor" output=false {
 		return statusData;
 	}
 
-	private struct function _readStatusFromFile( required string bundle ) output=false {
-		var settings     = _getCfStaticSettings( arguments.bundle );
-		var dir          = settings.generatedDirectory;
+	private struct function _readStatusFromFile() output=false {
+		var settings     = _getCfStaticSettings();
+		var dir          = settings.generatedDirectory ?: "/_assets";
 		var filePath     = dir & "/.status";
 
 		if ( fileExists( filePath ) ) {
@@ -281,10 +280,10 @@ component extends="coldbox.system.Interceptor" output=false {
 		return {};
 	}
 
-	private struct function _calculateChangedAssets( required string bundle ) output=false {
-		var settings       = _getCfStaticSettings( arguments.bundle );
-		var generatedState = _readStatusFromFile( arguments.bundle );
-		var sourceState    = _generateStatus( [ "/preside/system/assets/#arguments.bundle#", "/app/assets/#arguments.bundle#" ] ); // todo, add module directories
+	private struct function _calculateChangedAssets() output=false {
+		var settings       = _getCfStaticSettings();
+		var generatedState = _readStatusFromFile();
+		var sourceState    = _generateStatus( [ "/preside/system/assets", settings.sourceDirectory ] ); // todo, add module directories
 		var changedAssets  = { changes=[], deletions=[] };
 		var asset          = "";
 
@@ -307,17 +306,17 @@ component extends="coldbox.system.Interceptor" output=false {
 		return changedAssets;
 	}
 
-	private void function _setCfStaticSettings( required string bundle, required struct settingsFromPlugin ) output=false {
+	private void function _setCfStaticSettings( required struct settingsFromPlugin ) output=false {
 		var siteSettings = super.getController().getSettingStructure();
 
-		_settings = _settings ?: {};
-		_settings[ arguments.bundle ] = {
+		_settings = {
 			  checkForUpdates    = settingsFromPlugin.checkForUpdates ?: false
-			, generatedDirectory = settingsFromPlugin.staticDirectory ?: "/_assets/#arguments.bundle#"
+			, generatedDirectory = settingsFromPlugin.staticDirectory ?: "/_assets"
+			, sourceDirectory    = siteSettings.cfstatic_directory     ?: "/app/assets"
 		};
 	}
 
-	private struct function _getCfStaticSettings( required string bundle ) output=false {
-		return _settings[ arguments.bundle ];
+	private struct function _getCfStaticSettings() output=false {
+		return _settings;
 	}
 }
