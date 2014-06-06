@@ -153,6 +153,9 @@ component output=false hint="Create various preside system entities such as widg
 		if ( !StructKeyExists( params, "description" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
+		if ( !StructKeyExists( params, "dmGroup" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Datamanager group, leave blank for no group: ", required=false, paramName="dmGroup"} );
+		}
 		if ( !StructKeyExists( params, "properties" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Properties, e.g. 'title,max_items,feed_url': ", required=false, paramName="properties"} );
 		}
@@ -172,12 +175,13 @@ component output=false hint="Create various preside system entities such as widg
 		var filesCreated = [];
 		try {
 			filesCreated = scaffoldingService.scaffoldPresideObject(
-				  objectName    = params.id
-				, name          = params.name
-				, pluralName    = params.pluralName
-				, description   = params.description
-				, properties    = params.properties
-				, extension     = params.extension
+				  objectName       = params.id
+				, name             = params.name
+				, pluralName       = params.pluralName
+				, description      = params.description
+				, properties       = params.properties
+				, dataManagerGroup = params.dmGroup
+				, extension        = params.extension
 			);
 		} catch ( any e ) {
 			return Chr(10) & "[[b;red;]Error creating #params.id# object:] [[b;white;]#e.message#]" & Chr(10);

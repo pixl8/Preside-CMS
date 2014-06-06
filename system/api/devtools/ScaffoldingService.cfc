@@ -78,7 +78,7 @@ component output=false extends="preside.system.base.Service" {
 		return filesCreated;
 	}
 
-	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="" ) output=false {
+	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="", string datamanagerGroup="" ) output=false {
 		var filesCreated = [];
 		var i18nProps    = { title=arguments.pluralName, "title.singular"=arguments.name, description=arguments.description };
 
@@ -86,7 +86,7 @@ component output=false extends="preside.system.base.Service" {
 			throw( type="scaffoldpagetype.object.exists", message="The '#arguments.objectName#' object already exists" );
 		}
 
-		filesCreated.append( scaffoldPresideObjectCfc( objectName=arguments.objectName, extension=arguments.extension, properties=ListToArray( arguments.properties ) ) );
+		filesCreated.append( scaffoldPresideObjectCfc( objectName=arguments.objectName, extension=arguments.extension, properties=ListToArray( arguments.properties ), datamanagerGroup=arguments.datamanagerGroup ) );
 
 		for( var field in ListToArray( arguments.properties ) ) {
 			i18nProps[ "field.#field#.title" ] = field;
@@ -207,17 +207,19 @@ component output=false extends="preside.system.base.Service" {
 		return filePath;
 	}
 
-	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false ) output=false {
+	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false, string datamanagerGroup="" ) output=false {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "preside-objects/" & arguments.subDir & "/" & arguments.objectName & ".cfc";
 		var fileContent = FileRead( "/preside/system/api/devtools/scaffoldingResources/object.cfc.txt" );
 		var props       = "";
+		var dmGroup     = Len( Trim( arguments.datamanagerGroup ) ) ? 'dataManagerGroup="#arguments.datamanagerGroup#"' : "";
 
 		for( var field in arguments.properties ) {
 			props &= '	property name="#field#";' & _nl();
 		}
 
 		fileContent = Replace( fileContent, "${properties}", props );
+		fileContent = Replace( fileContent, "${datamanagerGroup}", dmGroup );
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
