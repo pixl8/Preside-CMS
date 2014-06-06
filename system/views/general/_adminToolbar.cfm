@@ -1,9 +1,9 @@
 <cfif event.isAdminUser()>
 	<cfscript>
-		event.include( "/js/core/"                         , "admin" );
-		event.include( "/js/frontend/"                     , "admin" );
-		event.include( "/js/i18n/#getfwLocale()#/bundle.js", "admin" );
-		event.include( "/css/frontend/"                    , "admin" );
+		event.include( "/js/core/"                         , "admin", true );
+		event.include( "/js/frontend/"                     , "admin", true );
+		event.include( "/js/i18n/#getfwLocale()#/bundle.js", "admin", true );
+		event.include( "/css/frontend/"                    , "admin", true );
 		event.includeData({
 			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
 			, adminBaseUrl = "/" & getSetting( "preside_admin_path" ) & "/"
@@ -14,7 +14,7 @@
 			, querystring = 'pageId=#event.getCurrentPageId()#&template=#event.getCurrentTemplate()#'
 		);
 
-		staticRoot = getSetting( name="cfstatic_generated_url", defaultValue="/_assets" );
+		staticRoot = getSetting( name="static.outputUrl", defaultValue="/_assets" );
 
 		if ( hasPermission( "devtools.console" ) ) {
 			event.include( "/js/devtools/" , "admin" );
