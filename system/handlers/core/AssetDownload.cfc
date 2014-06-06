@@ -52,7 +52,7 @@ component output=false {
 				// brutal for now - no thumbnail generation, just spit out the file
 				content reset=true variable="#assetManagerService.getTemporaryFileBinary( tmpId )#" type="#fileTypeDetails.mimeType#";abort;
 			} else {
-				var iconFile = getSetting( name="static.outputDirectory", defaultValue="/_assets" ) & "/images/asset-type-icons/48px/#ListLast( fileDetails.name, "." )#.png";
+				var iconFile = getSetting( name="cfstatic_generated_directory", defaultValue="/_assets" ) & "/images/asset-type-icons/48px/#ListLast( fileDetails.name, "." )#.png";
 				content reset=true file="#iconFile#" deleteFile=false type="image/png";abort;
 			}
 		}

@@ -1,5 +1,5 @@
 <cfscript>
-	staticRoot       = getSetting( name="static.outputUrl", defaultValue="/_assets" );
+	staticRoot       = getSetting( name="cfstatic_generated_url", defaultValue="/_assets" );
 	ckeditorSettings = getSetting( name="ckeditor", defaultValue={} );
 
 
