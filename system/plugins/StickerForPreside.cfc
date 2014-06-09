@@ -24,23 +24,25 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 
 // PRIVATE HELPERS
 	private void function _initSticker() output=false {
-		var sticker  = new sticker.Sticker();
-		var settings = super.getController().getSettingStructure();
-		var rootURl  = ( settings.static.rootUrl ?: "" );
+		var sticker        = new sticker.Sticker();
+		var settings       = super.getController().getSettingStructure();
+		var sysAssetsPath  = getRequestContext().getSystemAssetsPath();
+		var siteAssetsPath = settings.static.siteAssetsPath ?: "/application/assets";
+		var rootURl        = ( settings.static.rootUrl ?: "" );
 
 		super.getController().getPlugin( plugin="SymlinkGenerator", customPlugin=true ).symlink(
 			  source = ExpandPath( "/preside/system/assets" )
-			, target = ExpandPath( "/_assets" )
+			, target = sysAssetsPath
 		);
 
-		// sticker.addBundle( rootDirectory=( settings.static.systemAssetsPath ?: "/_assets" )           , rootUrl=rootUrl )
-		//        .addBundle( rootDirectory=( settings.static.siteAssetsPath   ?: "/application/assets" ), rootUrl=rootUrl );
+		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=rootUrl & sysAssetsPath )
+		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsPath );
 
-		// for( var ext in settings.activeExtensions ) {
-		// 	try {
-		// 		sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=rootUrl );
-		// 	} catch ( any e ) {}
-		// }
+		for( var ext in settings.activeExtensions ) {
+			try {
+				sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=rootUrl );
+			} catch ( any e ) {}
+		}
 
 		sticker.load();
 

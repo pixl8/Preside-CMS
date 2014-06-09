@@ -1,0 +1,40 @@
+{
+	"js-admin-ckeditor" : {
+		  "type"   : "js"
+		, "path"   : "/ckeditor/ckeditor.js"
+		, "before" : "*"
+		, "after"  : ""
+	},
+
+	"js-admin-jquery-2"  : {
+		  "type"   : "js"
+		, "path"   : "/js/admin/jquery/20/jquery-2.0.3.js"
+		, "ie"     : "!IE"
+		, "before" : "*"
+		, "after"  : "ckeditor"
+	},
+
+	"js-admin-jquery-1"  : {
+		  "type"   : "js"
+		, "path"   : "/js/admin/jquery/20/jquery-1.10.2.js"
+		, "ie"     : "IE"
+		, "before" : "*"
+		, "after"  : "ckeditor"
+	},
+
+	"js-admin-core" : {
+		  "type"   : "js"
+		, "path"   : "/js/admin/core/core.min.js"
+		, "before" : "*"
+		, "after"  : [ "js-admin-jquery-2", "js-admin-jquery-1" ]
+	},
+
+
+	"css-admin-core" : {
+		  "type"   : "css"
+		, "path"   : "/css/admin/core/core.min.css"
+		, "before" : "*"
+		, "after"  : ""
+	}
+
+}

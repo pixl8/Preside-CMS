@@ -106,7 +106,6 @@ component output=false {
 
 		settings.static = {
 			  rootUrl          = ""
-			, systemAssetsPath = "/_assets"
 			, siteAssetsPath   = "/application/assets"
 		};
 

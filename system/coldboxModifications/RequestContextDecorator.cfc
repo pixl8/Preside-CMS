@@ -206,15 +206,14 @@
 	<cffunction name="getSystemAssetsUrl" access="public" returntype="any" output="false">
 		<cfscript>
 			var rootUrl = getRequestContext().getSetting( "static.rootUrl", "" );
-			var path    = getRequestContext().getSetting( "static.systemAssetsPath", "/_assets" );
 
-			return rootUrl & path;
+			return rootUrl & "/presideassets";
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="getSystemAssetsPath" access="public" returntype="any" output="false">
 		<cfscript>
-			return getRequestContext().getSetting( "static.systemAssetsPath", "/_assets" );
+			return ExpandPath( "/presideassets" );
 		</cfscript>
 	</cffunction>
 
