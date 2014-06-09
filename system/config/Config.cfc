@@ -32,13 +32,12 @@ component output=false {
 		};
 
 		interceptors = [
-			{ class="preside.system.interceptors.CfStaticPluginInterceptor", properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor", properties={} },
 			{ class="preside.system.interceptors.SES"                      , properties = { configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
-			, customInterceptionPoints = "onBuildLink,onCfStaticInclude,postCfStaticInclude,onCfStaticIncludeData,postCfStaticIncludeData,onCfStaticRenderIncludes,postCfStaticRenderIncludes,onCfStaticInit,postCfStaticInit"
+			, customInterceptionPoints = "onBuildLink"
 		};
 
 		cacheBox = {
@@ -103,7 +102,13 @@ component output=false {
 				, configFile  = "/ckeditorExtensions/config.js"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
-		}
+		};
+
+		settings.static = {
+			  rootUrl          = ""
+			, systemAssetsPath = "/_assets"
+			, siteAssetsPath   = "/application/assets"
+		};
 
 	}
 

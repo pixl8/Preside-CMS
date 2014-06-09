@@ -167,19 +167,19 @@
 		<cfreturn getRequestContext().getValue( name="_adminBreadCrumbs", defaultValue=[], private=true ) />
 	</cffunction>
 
-<!--- cfstatic --->
+<!--- Sticker --->
 	<cffunction name="include" access="public" returntype="any" output="false">
-		<cfreturn _getCfStaticPlugin().include( argumentCollection = arguments ) />
+		<cfreturn _getSticker().include( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="includeData" access="public" returntype="any" output="false">
-		<cfreturn _getCfStaticPlugin().includeData( argumentCollection = arguments ) />
+		<cfreturn _getSticker().includeData( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderIncludes" access="public" returntype="string" output="false">
 		<cfargument name="type" type="string" required="false" />
 		<cfscript>
-			var rendered      = _getCfStaticPlugin().renderIncludes( argumentCollection = arguments );
+			var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
 			var inlineJsArray = "";
 
 			if ( not StructKeyExists( arguments, "type" ) or arguments.type eq "js" ) {
@@ -203,10 +203,25 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getSystemAssetsUrl" access="public" returntype="any" output="false">
+		<cfscript>
+			var rootUrl = getRequestContext().getSetting( "static.rootUrl", "" );
+			var path    = getRequestContext().getSetting( "static.systemAssetsPath", "/_assets" );
+
+			return rootUrl & path;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="getSystemAssetsPath" access="public" returntype="any" output="false">
+		<cfscript>
+			return getRequestContext().getSetting( "static.systemAssetsPath", "/_assets" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
-	<cffunction name="_getCfStaticPlugin" access="private" returntype="any" output="false">
+	<cffunction name="_getSticker" access="private" returntype="any" output="false">
 		<cfreturn getController().getPlugin(
-			  plugin       = "CfStaticForPreside"
+			  plugin       = "StickerForPreside"
 			, customPlugin = true
 		) />
 	</cffunction>

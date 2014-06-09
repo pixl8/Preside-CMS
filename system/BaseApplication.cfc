@@ -39,9 +39,9 @@ component output=false {
 
 // PRIVATE HELPERS
 	private void function _setupMappings() output=false {
-		this.mappings[ "/app"           ] = ExpandPath( "/application/" );
-		this.mappings[ "/coldbox"       ] = ExpandPath( "/preside/system/externals/coldbox" );
-		this.mappings[ "/org/cfstatic"  ] = ExpandPath( "/preside/system/externals/cfstatic/org/cfstatic" );
+		this.mappings[ "/app"     ] = ExpandPath( "/application/" );
+		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
+		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
 	}
 
 	private void function _initColdBox() output=false {

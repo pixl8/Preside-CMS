@@ -54,12 +54,12 @@
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
 
-	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installcfstatic,installckeditor">
+	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installsticker,installckeditor">
 	</target>
 
 	<target name="clean-preside-deps">
 		<delete dir="${coldbox.installdir}" failonerror="false" />
-		<delete dir="${cfstatic.installdir}" failonerror="false" />
+		<delete dir="${sticker.installdir}" failonerror="false" />
 		<delete dir="${ckeditor.installdir}" failonerror="false" />
 	</target>
 
@@ -101,7 +101,7 @@
 		</exec>
 	</target>
 
-	<target name="test-ci" depends="setupTestRunnerEnvironment,setupoutputdir,installcoldbox,installcfstatic,start-server,test,stop-server">
+	<target name="test-ci" depends="setupTestRunnerEnvironment,setupoutputdir,installcoldbox,installsticker,start-server,test,stop-server">
 		<property file="${output.dir}/testbox.properties" />
 		<fail if="testbox.failed" message="At least one test failure!" />
 	</target>
@@ -151,18 +151,18 @@ Valid values are:
     	<copy file="testboxpatch/UnitRunner.cfc" todir="${coldbox.installdir}/system/testing/runners" />
 	</target>
 
-	<target name="installcfstatic">
+	<target name="installsticker">
 		<mkdir dir="${download.dir}" />
 		<if>
-			<available file="${download.dir}/${cfstatic.tmp.file}" />
+			<available file="${download.dir}/${sticker.tmp.file}" />
 			<then></then>
 			<else>
-				<get src="${cfstatic.zip}" dest="${download.dir}/${cfstatic.tmp.file}" />
+				<get src="${sticker.zip}" dest="${download.dir}/${sticker.tmp.file}" />
 			</else>
 		</if>
-		<unzip src="${download.dir}/${cfstatic.tmp.file}" dest="${cfstatic.installdir}">
+		<unzip src="${download.dir}/${sticker.tmp.file}" dest="${sticker.installdir}">
 			<mapper>
-        		<globmapper from="${cfstatic.zipsubdir}/*" to="*"/>
+        		<globmapper from="${sticker.zipsubdir}/*" to="*"/>
     		</mapper>
     	</unzip>
 	</target>

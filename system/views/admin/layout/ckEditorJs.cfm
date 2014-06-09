@@ -1,5 +1,5 @@
 <cfscript>
-	staticRoot       = getSetting( name="cfstatic_generated_url", defaultValue="/_assets" );
+	staticRoot       = event.getSystemAssetsUrl();
 	ckeditorSettings = getSetting( name="ckeditor", defaultValue={} );
 
 

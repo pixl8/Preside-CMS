@@ -14,7 +14,7 @@
 			, querystring = 'pageId=#event.getCurrentPageId()#&template=#event.getCurrentTemplate()#'
 		);
 
-		staticRoot = getSetting( name="cfstatic_generated_url", defaultValue="/_assets" );
+		staticRoot = event.getSystemAssetsUrl();
 
 		if ( hasPermission( "devtools.console" ) ) {
 			event.include( "/js/admin/devtools/" );

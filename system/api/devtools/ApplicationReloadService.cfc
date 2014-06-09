@@ -4,7 +4,7 @@ component output=false extends="preside.system.base.Service" {
 	public any function init(
 		  required any coldbox
 		, required any resourceBundleService
-		, required any cfStaticForPreside
+		, required any stickerForPreside
 		, required any widgetsService
 		, required any pageTypesService
 		, required any formsService
@@ -13,7 +13,7 @@ component output=false extends="preside.system.base.Service" {
 
 		_setColdbox( arguments.coldbox );
 		_setResourceBundleService( arguments.resourceBundleService );
-		_setCfStaticForPreside( arguments.cfStaticForPreside );
+		_setStickerForPreside( arguments.stickerForPreside );
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setFormsService( arguments.formsService );
@@ -53,7 +53,7 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public void function reloadStatic() output=false {
-		_getCfStaticForPreside().reload();
+		_getStickerForPreside().init();
 	}
 
 	public void function reloadWidgets() output=false {
@@ -84,11 +84,11 @@ component output=false extends="preside.system.base.Service" {
 		_resourceBundleService = arguments.resourceBundleService;
 	}
 
-	private any function _getCfStaticForPreside() output=false {
-		return _cfStaticForPreside;
+	private any function _getStickerForPreside() output=false {
+		return _stickerForPreside;
 	}
-	private void function _setCfStaticForPreside( required any cfStaticForPreside ) output=false {
-		_cfStaticForPreside = arguments.cfStaticForPreside;
+	private void function _setStickerForPreside( required any stickerForPreside ) output=false {
+		_stickerForPreside = arguments.stickerForPreside;
 	}
 
 	private any function _getWidgetsService() output=false {

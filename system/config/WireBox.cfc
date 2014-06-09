@@ -191,7 +191,7 @@
 		map( "applicationReloadService" ).asSingleton().to( "preside.system.api.devtools.ApplicationReloadService" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="coldbox"              , value = getColdbox()                           )
 			.initArg( name="resourceBundleService", ref   = "resourceBundleService"                )
-			.initArg( name="cfStaticForPreside"   , dsl   = "coldbox:myPlugin:cfStaticForPreside"  )
+			.initArg( name="StickerForPreside"    , dsl   = "coldbox:myPlugin:StickerForPreside"   )
 			.initArg( name="widgetsService"       , ref   = "widgetsService"                       )
 			.initArg( name="pageTypesService"     , ref   = "pageTypesService"                     )
 			.initArg( name="formsService"         , ref   = "formsService"                         );

@@ -12,6 +12,8 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
+			getMyPlugin( "SymlinkGenerator" ).symlink( ExpandPath( "/preside/system/assets" ), ExpandPath( "/_assets" ) );
+
 			if ( _presideEventsSystemIsEnabled() ) {
 				_registerPresideListeners();
 			}
