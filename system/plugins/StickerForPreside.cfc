@@ -28,14 +28,19 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		var settings = super.getController().getSettingStructure();
 		var rootURl  = ( settings.static.rootUrl ?: "" );
 
-		// sticker.addBundle( rootDirectory=( settings.static.systemAssetsPath ?: "/_assets" )           , rootUrl=rootUrl )
-		//        .addBundle( rootDirectory=( settings.static.siteAssetsPath          ?: "/application/assets" ), rootUrl=rootUrl );
+		super.getController().getPlugin( plugin="SymlinkGenerator", customPlugin=true ).symlink(
+			  source = ExpandPath( "/preside/system/assets" )
+			, target = ExpandPath( "/_assets" )
+		);
 
-		for( var ext in settings.activeExtensions ) {
-			try {
-				sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=rootUrl );
-			} catch ( any e ) {}
-		}
+		// sticker.addBundle( rootDirectory=( settings.static.systemAssetsPath ?: "/_assets" )           , rootUrl=rootUrl )
+		//        .addBundle( rootDirectory=( settings.static.siteAssetsPath   ?: "/application/assets" ), rootUrl=rootUrl );
+
+		// for( var ext in settings.activeExtensions ) {
+		// 	try {
+		// 		sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=rootUrl );
+		// 	} catch ( any e ) {}
+		// }
 
 		sticker.load();
 
