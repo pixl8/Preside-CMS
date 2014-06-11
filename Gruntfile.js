@@ -72,9 +72,9 @@ module.exports = function( grunt ) {
 			specific:{
 				files: [{
 					expand  : true,
-					cwd     : "system/assets/js/admin/specific",
+					cwd     : "system/assets/js/admin/specific/",
 					src     : ["**/*.js", "!**/*.min.js" ],
-					dest    : "system/assets/js/admin/specific",
+					dest    : "system/assets/js/admin/specific/",
 					ext     : ".min.js",
 					rename  : function( dest, src ){
 						var pathSplit = src.split( '/' );
