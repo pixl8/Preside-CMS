@@ -32,12 +32,13 @@ component output=false {
 		};
 
 		interceptors = [
+			{ class="preside.system.interceptors.StickerPluginInterceptor" , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor", properties={} },
 			{ class="preside.system.interceptors.SES"                      , properties = { configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
-			, customInterceptionPoints = "onBuildLink"
+			, customInterceptionPoints = "onBuildLink,onStickerInit"
 		};
 
 		cacheBox = {
