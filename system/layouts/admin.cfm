@@ -10,8 +10,6 @@
 	currentHandler = event.getCurrentHandler();
 	currentAction  = event.getCurrentAction();
 
-	event.include( "jquery" );
-	event.include( "jquery-for-ie" );
 	event.include( "/css/admin/core/" );
 	event.include( "/css/admin/specific/#currentHandler#/", false );
 	event.include( "/css/admin/specific/#currentHandler#/#currentAction#/", false );
