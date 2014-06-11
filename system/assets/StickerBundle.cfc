@@ -4,16 +4,18 @@ component output=false {
 		bundle.addAsset( id="ckeditor", path="/ckeditor/ckeditor.js" );
 
 		bundle.addAssets(
-			  directory   = "/compiled"
-			, match       = function( path ){ return ReFindNoCase( "[0-9a-f]{8}\..*?\.min.(js|css)$", arguments.path ); }
+			  directory   = "/js"
+			, match       = function( path ){ return ReFindNoCase( "_[0-9a-f]{8}\..*?\.min.js$", arguments.path ); }
 			, idGenerator = function( path ) {
-				var filename = ListLast( path, "/" );
-				var id       = ReReplace( filename, "^[0-9a-f]{8}\.(.*?)\.min\.(css|js)$", "\1" );
+				return ListDeleteAt( path, ListLen( path, "/" ), "/" ) & "/";
+			}
+		);
 
-				id = Replace( id, ".", "/", "all" );
-				id = "/#ListLast( arguments.path, "." )#/admin/#id#/";
-
-				return id;
+		bundle.addAssets(
+			  directory   = "/css"
+			, match       = function( path ){ return ReFindNoCase( "_[0-9a-f]{8}\..*?\.min.css$", arguments.path ); }
+			, idGenerator = function( path ) {
+				return ListDeleteAt( path, ListLen( path, "/" ), "/" ) & "/";
 			}
 		);
 
