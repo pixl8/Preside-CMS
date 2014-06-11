@@ -53,7 +53,7 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public void function reloadStatic() output=false {
-		_getStickerForPreside().init();
+		_getStickerForPreside().init( _getColdbox() );
 	}
 
 	public void function reloadWidgets() output=false {
