@@ -205,7 +205,7 @@
 
 	<cffunction name="getSystemAssetsUrl" access="public" returntype="any" output="false">
 		<cfscript>
-			var rootUrl = getRequestContext().getSetting( "static.rootUrl", "" );
+			var rootUrl = getController().getSetting( name="static.rootUrl", defaultValue="" );
 
 			return rootUrl & "/presideassets";
 		</cfscript>
@@ -213,7 +213,7 @@
 
 	<cffunction name="getSystemAssetsPath" access="public" returntype="any" output="false">
 		<cfscript>
-			return ExpandPath( "/presideassets" );
+			return "/presideassets";
 		</cfscript>
 	</cffunction>
 

@@ -11,7 +11,7 @@ component output=false {
 		}
 
 		for( var i=1; i <= stylesheets.len(); i++ ){
-			stylesheets[i] = sticker.getIncludeUrl( "css", stylesheets[i] );
+			stylesheets[i] = sticker.getAssetUrl( "css", stylesheets[i] );
 		}
 
 		viewletArgs.stylesheets = ArrayToList( stylesheets );

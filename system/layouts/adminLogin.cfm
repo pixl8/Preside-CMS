@@ -6,13 +6,13 @@
 	event.include( "/css/admin/specific/login/" );
 	event.include( "/js/admin/core/" );
 	event.include( "/js/admin/specific/login/" );
-	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
+	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js", false );
 
 	bottomJs = event.renderIncludes( "js" );
 	css = event.renderIncludes( "css" );
-	event.include( "/js/admin/coretop/ie/" );
-	event.include( "/js/admin/coretop/" );
-	topJs = event.renderIncludes( "js" );
+	event.include( assetId="/js/admin/coretop/ie/", group="top" );
+	event.include( assetId="/js/admin/coretop/", group="top" );
+	topJs = event.renderIncludes( "js", "top" );
 </cfscript>
 
 <cfoutput><!DOCTYPE html>

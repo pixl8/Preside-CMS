@@ -32,7 +32,7 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 
 		super.getController().getPlugin( plugin="SymlinkGenerator", customPlugin=true ).symlink(
 			  source = ExpandPath( "/preside/system/assets" )
-			, target = sysAssetsPath
+			, target = ExpandPath( sysAssetsPath )
 		);
 
 		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=rootUrl & sysAssetsPath )
