@@ -1,9 +1,0 @@
-.image-dimensions-picker-wrapper .image-dimensions-picker-maintain-ratio {
-  width: 12px;
-  margin: 0 3px;
-  cursor: pointer;
-}
-.image-dimensions-picker-wrapper .image-dimensions-picker-maintain-ratio.disabled {
-  cursor: default;
-  color: #999;
-}

@@ -1,9 +1,0 @@
-.chosen-container.sitetree-page-picker .result-container,
-.chosen-container.sitetree-page-picker .parent,
-.chosen-container.sitetree-page-picker .title {
-  display: inline;
-  margin: 0;
-}
-.chosen-container.sitetree-page-picker .result-container .parent {
-  color: #999;
-}
