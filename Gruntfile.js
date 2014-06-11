@@ -18,7 +18,7 @@ module.exports = function( grunt ) {
 			},
 			core: {
 				src: [
-					  'system/assets/js/admin/core/jquery-ui-*.js'
+					  'system/assets/js/admin/core/jquery-ui-1.10.3.custom.js'
 					, 'system/assets/js/admin/core/mustache.js'
 					, 'system/assets/js/admin/core/jquery.uber.select.js'
 					, 'system/assets/js/admin/core/jquery.fuelux.spinner.js'
@@ -32,12 +32,37 @@ module.exports = function( grunt ) {
 					, 'system/assets/js/admin/core/bootstrap.datepicker.js'
 					, 'system/assets/js/admin/core/dropzone.js'
 					, 'system/assets/js/admin/core/i18n.js'
-					, 'sysetm/assets/js/admin/core/preside.uber.select.with.browser.js'
 					, 'system/assets/js/admin/core/preside.asset.picker.js'
+					, 'system/assets/js/admin/core/preside.uber.select.with.browser.js'
+					, 'system/assets/js/admin/core/preside.imageDimension.picker.js'
 					, 'system/assets/js/admin/core/formFields.js'
-					, 'system/assets/js/admin/core/jquery.*.js'
+					, 'system/assets/js/admin/core/jquery.bootbox.js'
+					, 'system/assets/js/admin/core/jquery.cookies.js'
+					, 'system/assets/js/admin/core/jquery.dataTables.js'
+					, 'system/assets/js/admin/core/jquery.dataTables.bootstrap.js'
+					, 'system/assets/js/admin/core/jquery.dataTables.filterDelay.js'
+					, 'system/assets/js/admin/core/jquery.dateformat.js'
+					, 'system/assets/js/admin/core/jquery.dirtyforms.js'
+					, 'system/assets/js/admin/core/jquery.easy-pie-chart.js'
+					, 'system/assets/js/admin/core/jquery.gritter.js'
+					, 'system/assets/js/admin/core/jquery.hotkeys.js'
+					, 'system/assets/js/admin/core/jquery.lazy.js'
+					, 'system/assets/js/admin/core/jquery.serialize-object.js'
+					, 'system/assets/js/admin/core/jquery.slimscroll.js'
+					, 'system/assets/js/admin/core/jquery.sparkline.js'
+					, 'system/assets/js/admin/core/jquery.tabbable.js'
+					, 'system/assets/js/admin/core/jquery.ui.touch-punch.js'
+					, 'system/assets/js/admin/core/jquery.validate.js'
 					, 'system/assets/js/admin/core/list.js'
-					, 'system/assets/js/admin/core/preside.*js'
+					, 'system/assets/js/admin/core/preside.autofocus.form.js'
+					, 'system/assets/js/admin/core/preside.bootbox.modal.js'
+					, 'system/assets/js/admin/core/preside.clickable.tableRows.js'
+					, 'system/assets/js/admin/core/preside.confirmation.prompts.js'
+					, 'system/assets/js/admin/core/preside.hotkeys.js'
+					, 'system/assets/js/admin/core/preside.loading.sheen.js'
+					, 'system/assets/js/admin/core/preside.richeditor.js'
+					, 'system/assets/js/admin/core/preside.url.builder.js'
+					, 'system/assets/js/admin/core/preside.validation.defaults.js'
 				],
 				dest: 'system/assets/compiled/js/core.min.js'
 			},
@@ -49,7 +74,7 @@ module.exports = function( grunt ) {
 					dest    : 'system/assets/compiled/js',
 					ext     : ".min.js",
 					rename  : function( dest, src ){
-						return dest + "/" + src.replace( /\//g, "." );
+						return dest + "/specific." + src.replace( /^(.+)\/([^\/]+)$/, "$1" ).replace( /\//g, "." ) + ".min.js";
 					}
 				}]
 			},
@@ -75,11 +100,11 @@ module.exports = function( grunt ) {
 			},
 			jquery1: {
 				src:"system/assets/js/admin/jquery/110/*.js",
-				dest:"system/assets/compiled/js/jquery110.min.js"
+				dest:"system/assets/compiled/js/jquery.110.min.js"
 			},
 			jquery2: {
 				src:"system/assets/js/admin/jquery/20/*.js",
-				dest:"system/assets/compiled/js/jquery20.min.js"
+				dest:"system/assets/compiled/js/jquery.20.min.js"
 			}
 		},
 
