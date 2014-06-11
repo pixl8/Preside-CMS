@@ -96,7 +96,7 @@ component output=false {
 
 		settings.ckeditor = {
 			  defaults    = {
-				  stylesheets = [ "/admin/specific/richeditor/", "/core/" ]
+				  stylesheets = [ "/css/admin/specific/richeditor/" ]
 				, width       = "auto"
 				, minHeight   = 0
 				, maxHeight   = 600
