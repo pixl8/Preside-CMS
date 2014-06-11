@@ -1,10 +1,12 @@
 module.exports = function( grunt ) {
 
-	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
-	grunt.loadNpmTasks( 'grunt-rev' );
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
+	grunt.loadNpmTasks( 'grunt-contrib-less' );
+	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
+	grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
+	grunt.loadNpmTasks( 'grunt-rev' );
 
-	grunt.registerTask( 'default', [ 'uglify', 'clean', 'rev' ] );
+	grunt.registerTask( 'default', [ 'uglify', 'less', 'cssmin', 'clean', 'rev' ] );
 
 	grunt.initConfig( {
 		uglify: {
@@ -108,20 +110,56 @@ module.exports = function( grunt ) {
 			}
 		},
 
+		less: {
+			options: {
+				paths             : ["assets/css"],
+			},
+			all : {
+				files: [{
+					expand  : true,
+					cwd     : 'system/assets/css/admin',
+					src     : '**/*.less',
+					dest    : 'system/assets/css/admin',
+					ext     : ".less.css"
+				}]
+			}
+		},
+
+		cssmin: {
+			all: {
+				expand : true,
+				cwd    : 'system/assets/css/admin',
+				src    : '**/*.css',
+				ext    : '.min.css',
+				dest   : 'system/assets/compiled/css',
+				rename : function( dest, src ){
+					return dest + "/" + src.replace( /^(.+)\/([^\/]+)$/, "$1" ).replace( /\//g, "." ) + ".min.css";
+				}
+			}
+		},
+
 		rev: {
 			options: {
 				algorithm : 'md5',
 				length    : 8
 			},
 			assets: {
-				src : "system/assets/compiled/js/*.js"
+				files : [
+					  { src : "system/assets/compiled/js/*.js"  }
+					, { src : "system/assets/compiled/css/*.css" }
+				]
 			}
 		},
 
 		clean: {
 			revs : {
-				  src    : "system/assets/compiled/js/*.js"
-				, filter : function( src ){ return src.match(/[\/\\][a-f0-9]{8}\./) !== null; }
+				files : [{
+					  src    : "system/assets/compiled/js/*.js"
+					, filter : function( src ){ return src.match(/[\/\\][a-f0-9]{8}\./) !== null; }
+				}, {
+					  src    : "system/assets/compiled/css/*.css"
+					, filter : function( src ){ return src.match(/[\/\\][a-f0-9]{8}\./) !== null; }
+				}]
 			}
 		}
 	} );

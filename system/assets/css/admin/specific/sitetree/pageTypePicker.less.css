@@ -1,0 +1,28 @@
+.page-type-picker .modal-dialog {
+  width: 800px;
+}
+.page-type-picker .page-type-list {
+  overflow: auto;
+  max-height: 300px;
+}
+.page-type-picker .page-type-list .page-type {
+  display: block;
+  float: left;
+  width: 220px;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.page-type-picker .page-type-list .page-type:hover {
+  background-color: #f0f7fc;
+  border-radius: 5px;
+}
+.page-type-picker .page-type-list .page-type:nth-child(3n+1) {
+  clear: both;
+}
+.page-type-picker .page-type-list .page-type a:hover {
+  text-decoration: none;
+}
+.page-type-picker .page-type-list .page-type-title {
+  margin-top: 0;
+}

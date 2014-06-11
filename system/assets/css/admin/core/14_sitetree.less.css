@@ -1,0 +1,131 @@
+/**
+ * Stylings for the site tree itself (the nodes)
+ *
+ */
+.site-tree {
+  overflow: auto;
+  padding-left: 6px;
+}
+.site-tree .node-options {
+  display: none;
+}
+.site-tree .tree-node .fa-stack {
+  font-size: 8px;
+}
+.site-tree .tree-item,
+.site-tree .tree-folder-header {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+.site-tree .tree-item:hover,
+.site-tree .tree-folder-header:hover,
+.site-tree .tree-item:focus,
+.site-tree .tree-folder-header:focus,
+.site-tree .tree-item.selected,
+.site-tree .tree-folder-header.selected,
+.site-tree .tree-item.focused,
+.site-tree .tree-folder-header.focused {
+  background-color: #f0f7fc;
+  outline: none;
+}
+.site-tree .tree-item:hover .node-options,
+.site-tree .tree-folder-header:hover .node-options,
+.site-tree .tree-item:focus .node-options,
+.site-tree .tree-folder-header:focus .node-options,
+.site-tree .tree-item.selected .node-options,
+.site-tree .tree-folder-header.selected .node-options,
+.site-tree .tree-item.focused .node-options,
+.site-tree .tree-folder-header.focused .node-options {
+  background-color: #f0f7fc;
+  display: block;
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 5px;
+}
+.site-tree .tree-item:hover .node-options a,
+.site-tree .tree-folder-header:hover .node-options a,
+.site-tree .tree-item:focus .node-options a,
+.site-tree .tree-folder-header:focus .node-options a,
+.site-tree .tree-item.selected .node-options a,
+.site-tree .tree-folder-header.selected .node-options a,
+.site-tree .tree-item.focused .node-options a,
+.site-tree .tree-folder-header.focused .node-options a {
+  padding-left: 5px;
+}
+.site-tree .tree-item.selected,
+.site-tree .tree-folder-header.selected,
+.site-tree .tree-item.selected .node-options,
+.site-tree .tree-folder-header.selected .node-options {
+  background-color: #dff0d8 !important;
+}
+.site-tree .tree-item .node-data,
+.site-tree .tree-folder-header .node-data {
+  display: none;
+}
+.site-tree .tree-item .tree-item-name,
+.site-tree .tree-folder-header .tree-item-name {
+  margin-left: 0;
+}
+.site-tree .tree-item::before,
+.site-tree .tree-folder::before {
+  width: 11px;
+  left: -6px;
+}
+.site-tree .tree-folder .tree-folder-header .fa-folder,
+.site-tree .tree-folder .tree-folder-header .fa-folder-open {
+  margin-right: 2px !important;
+}
+.site-tree .tree-folder .tree-folder-content {
+  display: none;
+  margin-left: 13px;
+}
+.site-tree .tree-folder .tree-folder-content.open {
+  display: block;
+}
+.site-tree .tree-folder .tree-folder-content::before {
+  left: -7px;
+}
+.site-tree .inactive {
+  text-decoration: line-through;
+}
+.site-tree .inactive i {
+  text-decoration: none;
+}
+.site-tree.site-tree-picker .tree-item:hover .node-options,
+.site-tree.site-tree-picker .tree-folder-header:hover .node-options,
+.site-tree.site-tree-picker .tree-item:focus .node-options,
+.site-tree.site-tree-picker .tree-folder-header:focus .node-options,
+.site-tree.site-tree-picker .tree-item.selected .node-options,
+.site-tree.site-tree-picker .tree-folder-header.selected .node-options,
+.site-tree.site-tree-picker .tree-item.focused .node-options,
+.site-tree.site-tree-picker .tree-folder-header.focused .node-options {
+  display: none;
+}
+.site-tree.site-tree-picker .picked.tree-item,
+.site-tree.site-tree-picker .picked > .tree-folder-header {
+  background-color: #dff0d8;
+}
+.site-tree.site-tree-picker .picked.tree-item .node-options,
+.site-tree.site-tree-picker .picked > .tree-folder-header .node-options {
+  display: block;
+  background-color: #dff0d8;
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 5px;
+}
+.page-details dt,
+.page-details dd {
+  line-height: 24px;
+}
+.page-details dt {
+  width: 110px;
+}
+.page-details dd {
+  margin-left: 120px;
+}
+#trash-tree-tab .widget-toolbox {
+  margin: 30px -24px -29px;
+}

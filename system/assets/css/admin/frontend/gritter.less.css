@@ -1,0 +1,205 @@
+#gritter-notice-wrapper.preside {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 301px;
+  z-index: 9999;
+  /* for the light (white) version of the gritter notice */
+}
+#gritter-notice-wrapper.preside.top-left {
+  left: 20px;
+  right: auto;
+}
+#gritter-notice-wrapper.preside.bottom-right {
+  top: auto;
+  left: auto;
+  bottom: 20px;
+  right: 20px;
+}
+#gritter-notice-wrapper.preside.bottom-left {
+  top: auto;
+  right: auto;
+  bottom: 20px;
+  left: 20px;
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper {
+  position: relative;
+  margin: 0 0 10px 0;
+  background: url('../images/ie-spacer.gif');
+  /* ie7/8 fix */
+}
+#gritter-notice-wrapper.preside .gritter-top {
+  background: url(../images/gritter.png) no-repeat left -30px;
+  height: 10px;
+}
+#gritter-notice-wrapper.preside .hover .gritter-top {
+  background-position: right -30px;
+}
+#gritter-notice-wrapper.preside .gritter-bottom {
+  background: url(../images/gritter.png) no-repeat left bottom;
+  height: 8px;
+  margin: 0;
+}
+#gritter-notice-wrapper.preside .hover .gritter-bottom {
+  background-position: bottom right;
+}
+#gritter-notice-wrapper.preside .gritter-item {
+  display: block;
+  background: url(../images/gritter.png) no-repeat left -40px;
+  color: #eee;
+  padding: 2px 11px 8px 11px;
+  font-size: 11px;
+  font-family: verdana;
+}
+#gritter-notice-wrapper.preside .hover .gritter-item {
+  background-position: right -40px;
+}
+#gritter-notice-wrapper.preside .gritter-item p {
+  padding: 0;
+  margin: 0;
+  word-wrap: break-word;
+}
+#gritter-notice-wrapper.preside .gritter-close {
+  display: none;
+  position: absolute;
+  top: 5px;
+  left: 3px;
+  background: url(../images/gritter.png) no-repeat left top;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+}
+#gritter-notice-wrapper.preside .gritter-title {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0 0 7px 0;
+  display: block;
+  text-shadow: 1px 1px 0 #000;
+  /* Not supported by IE :( */
+}
+#gritter-notice-wrapper.preside .gritter-image {
+  width: 48px;
+  height: 48px;
+  float: left;
+}
+#gritter-notice-wrapper.preside .gritter-with-image,
+#gritter-notice-wrapper.preside .gritter-without-image {
+  padding: 0;
+}
+#gritter-notice-wrapper.preside .gritter-with-image {
+  width: 220px;
+  float: right;
+}
+#gritter-notice-wrapper.preside .gritter-light .gritter-item,
+#gritter-notice-wrapper.preside .gritter-light .gritter-bottom,
+#gritter-notice-wrapper.preside .gritter-light .gritter-top,
+#gritter-notice-wrapper.preside .gritter-light .gritter-close {
+  background-image: url(../images/gritter-light.png);
+  color: #222;
+}
+#gritter-notice-wrapper.preside .gritter-light .gritter-title {
+  text-shadow: none;
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper {
+  background-image: none !important;
+  box-shadow: 0 2px 10px rgba(50, 50, 50, 0.5);
+  background: rgba(50, 50, 50, 0.92);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-info {
+  background: rgba(49, 81, 133, 0.92);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-error {
+  background: rgba(153, 40, 18, 0.92);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-success {
+  background: rgba(89, 131, 75, 0.92);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-warning {
+  background: rgba(190, 112, 31, 0.92);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light {
+  background: rgba(245, 245, 245, 0.95);
+  border: 1px solid #BBB;
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-info {
+  background: rgba(232, 242, 255, 0.95);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-info .gritter-item {
+  color: #4A577D;
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-error {
+  background: rgba(255, 235, 235, 0.95);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-error .gritter-item {
+  color: #894A38;
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-success {
+  background: rgba(239, 250, 227, 0.95);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-success .gritter-item {
+  color: #416131;
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-warning {
+  background: rgba(252, 248, 227, 0.95);
+}
+#gritter-notice-wrapper.preside .gritter-item-wrapper.gritter-light.gritter-warning .gritter-item {
+  color: #946446;
+}
+#gritter-notice-wrapper.preside .gritter-item p {
+  line-height: 1.8;
+}
+#gritter-notice-wrapper.preside .gritter-top,
+#gritter-notice-wrapper.preside .gritter-bottom,
+#gritter-notice-wrapper.preside .gritter-item {
+  background-image: none;
+}
+#gritter-notice-wrapper.preside .gritter-close {
+  left: auto;
+  right: 3px;
+  background-image: none;
+  width: 18px;
+  height: 18px;
+  line-height: 17px;
+  text-align: center;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  color: #E17B67;
+}
+#gritter-notice-wrapper.preside .gritter-close:before {
+  font-family: FontAwesome;
+  font-size: 16px;
+  content: "\f00d";
+}
+#gritter-notice-wrapper.preside .gritter-info .gritter-close {
+  color: #FFA500;
+}
+#gritter-notice-wrapper.preside .gritter-error .gritter-close,
+#gritter-notice-wrapper.preside .gritter-success .gritter-close,
+#gritter-notice-wrapper.preside .gritter-warning .gritter-close {
+  color: #FFEA07;
+}
+#gritter-notice-wrapper.preside .gritter-close:hover {
+  color: #FFF !important;
+}
+#gritter-notice-wrapper.preside .gritter-title {
+  text-shadow: none;
+}
+#gritter-notice-wrapper.preside .gritter-light .gritter-item,
+#gritter-notice-wrapper.preside .gritter-light .gritter-bottom,
+#gritter-notice-wrapper.preside .gritter-light .gritter-top,
+#gritter-notice-wrapper.preside .gritter-light .gritter-close {
+  background-image: none;
+  color: #444;
+}
+#gritter-notice-wrapper.preside .gritter-light .gritter-title {
+  text-shadow: none;
+}
+#gritter-notice-wrapper.preside .gritter-light .gritter-close:hover {
+  color: #8A3104 !important;
+}
+#gritter-notice-wrapper.preside .gritter-center {
+  position: fixed;
+  left: 33%;
+  right: 33%;
+  top: 33%;
+}

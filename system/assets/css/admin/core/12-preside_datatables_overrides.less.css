@@ -1,0 +1,17 @@
+.dataTables_wrapper .dataTables_filter .input-icon .data-table-search {
+  border: 1px solid #6fb3e0;
+  width: 300px;
+  border-radius: 4px !important;
+  font-size: 13px;
+  color: #666666;
+  padding-left: 25px;
+}
+.dataTables_wrapper .dataTables_filter .input-icon .data-table-search-icon {
+  color: #6fb3e0 !important;
+  font-size: 14px;
+  line-height: 24px;
+  margin-left: 3px;
+}
+.dataTables_wrapper .dataTables_processing {
+  display: none;
+}
