@@ -6,7 +6,7 @@
 	event.include( "/css/admin/specific/login/" );
 	event.include( "/js/admin/core/" );
 	event.include( "/js/admin/specific/login/" );
-	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js", false );
+	event.include( "/js/admin/i18n/#getfwLocale()#/", false );
 
 	bottomJs = event.renderIncludes( "js" );
 	css = event.renderIncludes( "css" );

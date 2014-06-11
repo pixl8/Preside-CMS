@@ -31,11 +31,12 @@ component output=false {
 		bundle.asset( "/js/admin/jquery/20/"  ).setIe( "!IE" );
 		bundle.asset( "/js/admin/jquery/110/"  ).setIe( "IE" );
 
+
 		bundle.asset( "/css/admin/core/" ).before( "*" );
-		bundle.asset( "/js/admin/jquery/20/" ).after( "ckeditor" );
-		bundle.asset( "/js/admin/jquery/110/" ).after( "ckeditor", "/js/admin/jquery/20/" );
+		bundle.asset( "/js/admin/jquery/20/" ).before( "ckeditor" );
+		bundle.asset( "/js/admin/jquery/110/" ).after( "/js/admin/jquery/20/" );
 		bundle.asset( "/js/admin/core/" )
-			.after    ( "/js/admin/i18n/*" )
+			.after    ( "/js/admin/i18n/*", "ckeditor" )
 			.before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" )
 			.dependsOn( "/js/admin/jquery/20/", "/js/admin/jquery/110/" );
 	}

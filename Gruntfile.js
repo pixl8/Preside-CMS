@@ -35,6 +35,7 @@ module.exports = function( grunt ) {
 					, 'system/assets/js/admin/core/bootstrap.datepicker.js'
 					, 'system/assets/js/admin/core/dropzone.js'
 					, 'system/assets/js/admin/core/i18n.js'
+					, 'system/assets/js/admin/core/preside.richeditor.js'
 					, 'system/assets/js/admin/core/preside.asset.picker.js'
 					, 'system/assets/js/admin/core/preside.uber.select.with.browser.js'
 					, 'system/assets/js/admin/core/preside.imageDimension.picker.js'
@@ -63,7 +64,6 @@ module.exports = function( grunt ) {
 					, 'system/assets/js/admin/core/preside.confirmation.prompts.js'
 					, 'system/assets/js/admin/core/preside.hotkeys.js'
 					, 'system/assets/js/admin/core/preside.loading.sheen.js'
-					, 'system/assets/js/admin/core/preside.richeditor.js'
 					, 'system/assets/js/admin/core/preside.url.builder.js'
 					, 'system/assets/js/admin/core/preside.validation.defaults.js'
 				],

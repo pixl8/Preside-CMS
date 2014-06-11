@@ -6,21 +6,21 @@
 	currentAction  = event.getCurrentAction();
 
 	event.include( "/css/admin/core/" );
-	event.include( "/css/admin/specific/#currentHandler#/" );
-	event.include( "/css/admin/specific/#currentHandler#/#currentAction#/" );
+	event.include( "/css/admin/specific/#currentHandler#/", false );
+	event.include( "/css/admin/specific/#currentHandler#/#currentAction#/", false );
 	event.include( "/js/admin/core/" );
-	event.include( "/js/admin/specific/#currentHandler#/" );
-	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/" );
-	event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
+	event.include( "/js/admin/specific/#currentHandler#/", false );
+	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/", false );
+	event.include( "/js/admin/i18n/#getfwLocale()#/", false );
 
 	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 	css        = event.renderIncludes( "css" );
 	bottomJs   = event.renderIncludes( "js" );
 
 
-	event.include( "/js/admin/coretop/ie/" );
-	event.include( "/js/admin/coretop/" );
-	topJs = event.renderIncludes( "js" );
+	event.include( assetId="/js/admin/coretop/ie/", group="top" );
+	event.include( assetId="/js/admin/coretop/", group="top" );
+	topJs = event.renderIncludes( type="js", group="top" );
 </cfscript>
 
 <cfoutput><!DOCTYPE html>

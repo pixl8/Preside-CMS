@@ -2,6 +2,7 @@
 	staticRoot       = event.getSystemAssetsUrl();
 	ckeditorSettings = getSetting( name="ckeditor", defaultValue={} );
 
+	event.include( "ckeditor" );
 
 	event.includeData( {
 		  ckeditorConfig             = staticRoot & ( ckeditorSettings.defaults.configFile ?: "/ckeditorExtensions/config.js" )
@@ -11,7 +12,3 @@
 		, ckeditorDefaultMaxHeight   = ckeditorSettings.defaults.maxHeight ?: 600
 	} );
 </cfscript>
-
-<cfoutput>
-	<script type="text/javascript" src="#staticRoot#/ckeditor/ckeditor.js"></script>
-</cfoutput>

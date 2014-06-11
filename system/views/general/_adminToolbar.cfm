@@ -2,7 +2,7 @@
 	<cfscript>
 		event.include( "/js/admin/core/" );
 		event.include( "/js/admin/frontend/" );
-		event.include( "/js/admin/i18n/#getfwLocale()#/bundle.js" );
+		event.include( "/js/admin/i18n/#getfwLocale()#/", false );
 		event.include( "/css/admin/frontend/" );
 		event.includeData({
 			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
