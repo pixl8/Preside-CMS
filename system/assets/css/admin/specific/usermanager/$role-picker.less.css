@@ -1,0 +1,17 @@
+.role-picker-checkbox {
+  padding-bottom: 4px;
+  padding-left: 0px;
+  margin-bottom: 5px !important;
+}
+.role-picker-checkbox .role-title {
+  padding-left: 20px;
+  font-weight: bold;
+}
+.role-picker-checkbox .role-desc {
+  padding-left: 72px;
+}
+.role-picker-checkbox .role-title,
+.role-picker-checkbox .role-desc {
+  position: relative;
+  top: -3px;
+}

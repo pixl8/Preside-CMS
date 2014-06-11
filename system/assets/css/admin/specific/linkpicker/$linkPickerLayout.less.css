@@ -1,0 +1,21 @@
+.link-type-menu {
+  border-right: 1px solid #eee;
+  padding-right: 10px;
+  min-height: 250px;
+}
+.link-type-menu .link-type-list {
+  text-align: right;
+}
+.link-type-menu .link-type-list .link-type {
+  margin: 5px 0;
+}
+.link-type-menu .link-type-list .link-type.selected {
+  font-weight: bold;
+}
+.link-type-menu .link-type-list .link-type.selected a {
+  color: inherit;
+  cursor: default;
+}
+.link-type-menu .link-type-list .link-type.selected a:hover {
+  text-decoration: none;
+}

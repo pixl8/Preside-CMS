@@ -1,12 +1,13 @@
 module.exports = function( grunt ) {
 
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
-	grunt.loadNpmTasks( 'grunt-contrib-less' );
-	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
+	grunt.loadNpmTasks( 'grunt-contrib-less' );
+	grunt.loadNpmTasks( 'grunt-contrib-rename' );
+	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-rev' );
 
-	grunt.registerTask( 'default', [ 'uglify', 'less', 'cssmin', 'clean', 'rev' ] );
+	grunt.registerTask( 'default', [ 'uglify', 'less', 'cssmin', 'clean', 'rev', 'rename' ] );
 
 	grunt.initConfig( {
 		uglify: {
@@ -14,7 +15,7 @@ module.exports = function( grunt ) {
 				  sourceMap     : true
 				, sourceMapName : function( dest ){
 					var parts = dest.split( "/" );
-					parts[ parts.length-1 ] = "sourcemap." + parts[ parts.length-1 ].replace( /\.js$/, ".js.map" );
+					parts[ parts.length-1 ] = parts[ parts.length-1 ].replace( /\.js$/, ".map" );
 					return parts.join( "/" );
 				 }
 			},
@@ -66,61 +67,68 @@ module.exports = function( grunt ) {
 					, 'system/assets/js/admin/core/preside.url.builder.js'
 					, 'system/assets/js/admin/core/preside.validation.defaults.js'
 				],
-				dest: 'system/assets/compiled/js/core.min.js'
+				dest: 'system/assets/js/admin/core/_core.min.js'
 			},
 			specific:{
 				files: [{
 					expand  : true,
-					cwd     : 'system/assets/js/admin/specific',
-					src     : '**/*.js',
-					dest    : 'system/assets/compiled/js',
+					cwd     : "system/assets/js/admin/specific",
+					src     : ["**/*.js", "!**/*.min.js" ],
+					dest    : "system/assets/js/admin/specific",
 					ext     : ".min.js",
 					rename  : function( dest, src ){
-						return dest + "/specific." + src.replace( /^(.+)\/([^\/]+)$/, "$1" ).replace( /\//g, "." ) + ".min.js";
+						var pathSplit = src.split( '/' );
+
+						pathSplit[ pathSplit.length-1 ] = "_" + pathSplit[ pathSplit.length-2 ] + ".min.js";
+
+						return dest + pathSplit.join( "/" );
 					}
 				}]
 			},
-			coretop: {
-				src:"system/assets/js/admin/coretop/*.js",
-				dest: 'system/assets/compiled/js/coretop.min.js'
-			},
-			coretopie: {
-				src:"system/assets/js/admin/coretop/ie/*.js",
-				dest: 'system/assets/compiled/js/coretop.ie.min.js'
-			},
-			devtools: {
-				src:"system/assets/js/admin/devtools/*.js",
-				dest: 'system/assets/compiled/js/devtools.min.js'
-			},
-			flot: {
-				src:"system/assets/js/admin/flot/*.js",
-				dest: 'system/assets/compiled/js/flot.min.js'
-			},
-			frontend: {
-				src:"system/assets/js/admin/frontend/*.js",
-				dest: 'system/assets/compiled/js/frontend.min.js'
-			},
-			jquery1: {
-				src:"system/assets/js/admin/jquery/110/*.js",
-				dest:"system/assets/compiled/js/jquery.110.min.js"
-			},
-			jquery2: {
-				src:"system/assets/js/admin/jquery/20/*.js",
-				dest:"system/assets/compiled/js/jquery.20.min.js"
+			infrequentChangers: {
+				files : [ {
+					src  : ["system/assets/js/admin/coretop/*.js", "!system/assets/js/admin/coretop/*.min.js" ],
+					dest : 'system/assets/js/admin/coretop/_coretop.min.js'
+				}, {
+					src:["system/assets/js/admin/coretop/ie/*.js", "!system/assets/js/admin/coretop/ie/*.min.js" ],
+					dest: 'system/assets/js/admin/coretop/ie/_ie.min.js'
+				},{
+					src:["system/assets/js/admin/devtools/*.js", "!system/assets/js/admin/devtools/*.min.js" ],
+					dest: 'system/assets/js/admin/devtools/_devtools.min.js'
+				}, {
+					src:[ "system/assets/js/admin/flot/jquery.flot.*.js" ],
+					dest: 'system/assets/js/admin/flot/_flot.min.js'
+				}, {
+					src:["system/assets/js/admin/frontend/*.js", "!system/assets/js/admin/frontend/*.min.js" ],
+					dest: 'system/assets/js/admin/frontend/_frontend.min.js'
+				}, {
+					src:["system/assets/js/admin/jquery/110/*.js", "!system/assets/js/admin/jquery/110/*.min.js" ],
+					dest:"system/assets/js/admin/jquery/110/_jquery110.min.js"
+				}, {
+					src:["system/assets/js/admin/jquery/20/*.js", "!system/assets/js/admin/jquery/20/*.min.js" ],
+					dest:"system/assets/js/admin/jquery/20/_jquery20.min.js"
+				} ]
 			}
 		},
 
 		less: {
 			options: {
-				paths             : ["assets/css"],
+				paths : ["assets/css"],
 			},
 			all : {
 				files: [{
 					expand  : true,
-					cwd     : 'system/assets/css/admin',
+					cwd     : 'system/assets/css/admin/',
 					src     : '**/*.less',
-					dest    : 'system/assets/css/admin',
-					ext     : ".less.css"
+					dest    : 'system/assets/css/admin/',
+					ext     : ".less.css",
+					rename  : function( dest, src ){
+						var pathSplit = src.split( '/' );
+
+						pathSplit[ pathSplit.length-1 ] = "$" + pathSplit[ pathSplit.length-1 ];
+
+						return dest + pathSplit.join( "/" );
+					}
 				}]
 			}
 		},
@@ -128,12 +136,15 @@ module.exports = function( grunt ) {
 		cssmin: {
 			all: {
 				expand : true,
-				cwd    : 'system/assets/css/admin',
-				src    : '**/*.css',
+				cwd    : 'system/assets/css/admin/',
+				src    : [ '**/*.css', '!**/_*.min.css' ],
 				ext    : '.min.css',
-				dest   : 'system/assets/compiled/css',
+				dest   : 'system/assets/css/admin/',
 				rename : function( dest, src ){
-					return dest + "/" + src.replace( /^(.+)\/([^\/]+)$/, "$1" ).replace( /\//g, "." ) + ".min.css";
+					var pathSplit = src.split( '/' );
+
+					pathSplit[ pathSplit.length-1 ] = "_" + pathSplit[ pathSplit.length-2 ] + ".min.css";
+					return dest + pathSplit.join( "/" );
 				}
 			}
 		},
@@ -145,25 +156,38 @@ module.exports = function( grunt ) {
 			},
 			assets: {
 				files : [
-					  { src : "system/assets/compiled/js/*.js"  }
-					, { src : "system/assets/compiled/css/*.css" }
+					  { src : "system/assets/js/admin/**/_*.min.js"  }
+					, { src : "system/assets/css/admin/**/_*.min.css" }
 				]
+			}
+		},
+
+		rename: {
+			assets: {
+				expand : true,
+				cwd    : 'system/assets/',
+				src    : '**/*._*.min.{js,css}',
+				dest   : 'system/assets/',
+				rename : function( dest, src ){
+					var pathSplit = src.split( '/' );
+
+					pathSplit[ pathSplit.length-1 ] = "_" + pathSplit[ pathSplit.length-1 ].replace( /\._/, "." );
+
+					return dest + pathSplit.join( "/" );
+				}
 			}
 		},
 
 		clean: {
 			revs : {
 				files : [{
-					  src    : "system/assets/compiled/js/*.js"
-					, filter : function( src ){ return src.match(/[\/\\][a-f0-9]{8}\./) !== null; }
+					  src    : "system/assets/js/admin/**/_*.min.js"
+					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}, {
-					  src    : "system/assets/compiled/css/*.css"
-					, filter : function( src ){ return src.match(/[\/\\][a-f0-9]{8}\./) !== null; }
+					  src    : "system/assets/css/admin/**/_*.min.css"
+					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}]
 			}
 		}
 	} );
-
-
-
 };
