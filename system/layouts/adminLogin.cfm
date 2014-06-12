@@ -6,7 +6,7 @@
 	event.include( "/css/admin/specific/login/" );
 	event.include( "/js/admin/presidecore/" );
 	event.include( "/js/admin/specific/login/" );
-	event.include( "/js/admin/i18n/#getfwLocale()#/", false );
+	getPlugin( "i18n" ).includei18nResourceBundlesInJsData();
 
 	bottomJs = event.renderIncludes( "js" );
 	css = event.renderIncludes( "css" );

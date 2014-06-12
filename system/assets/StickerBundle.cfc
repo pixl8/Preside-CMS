@@ -1,6 +1,8 @@
 component output=false {
 
 	public void function configure( bundle ) output=false {
+
+		// REGISTER ASSETS
 		bundle.addAsset( id="ckeditor"                    , path="/ckeditor/ckeditor.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery/"       , path="/js/admin/lib/jquery-2*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-for-ie/", path="/js/admin/lib/jquery-1*.min.js" );
@@ -25,20 +27,15 @@ component output=false {
 			}
 		);
 
-		bundle.addAssets(
-			  directory   = "/js/admin/i18n"
-			, match       = "bundle.js"
-			, idGenerator = function( path ) {
-				return ListDeleteAt( path, ListLen( path, "/" ), "/" ) & "/";
-			}
-		);
 
+		// SET INTERNET EXPLORER RESTRICTIONS
 		bundle.asset( "/js/admin/coretop/ie/"        ).setIe( "IE" );
 		bundle.asset( "/js/admin/lib/jquery-for-ie/" ).setIe( "IE" );
 		bundle.asset( "/js/admin/lib/jquery/"        ).setIe( "!IE" );
 
-		bundle.asset( "/css/admin/core/"             ).before( "*" );
 
+		// DEFINE DEPENDENCIES AND SORT ORDERS
+		bundle.asset( "/css/admin/core/"             ).before( "*" );
 		bundle.asset( "/js/admin/lib/jquery/"        ).before( "ckeditor" );
 		bundle.asset( "/js/admin/lib/jquery-ui/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
 		bundle.asset( "/js/admin/lib/bootstrap/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );

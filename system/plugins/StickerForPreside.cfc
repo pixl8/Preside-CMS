@@ -9,7 +9,6 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		setPluginAuthor("Pixl8 Interactive");
 		setPluginAuthorURL("www.pixl8.co.uk");
 
-		announceInterception( "onStickerInit" );
 		_initSticker();
 
 		return this;
