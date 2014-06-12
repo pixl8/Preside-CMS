@@ -21,8 +21,7 @@ module.exports = function( grunt ) {
 			},
 			core: {
 				src: [
-					  'system/assets/js/admin/core/jquery-ui-1.10.3.custom.js'
-					, 'system/assets/js/admin/core/mustache.js'
+					  'system/assets/js/admin/core/mustache.js'
 					, 'system/assets/js/admin/core/jquery.uber.select.js'
 					, 'system/assets/js/admin/core/jquery.fuelux.spinner.js'
 					, 'system/assets/js/admin/core/jquery.autosize.js'
@@ -101,12 +100,6 @@ module.exports = function( grunt ) {
 				}, {
 					src:["system/assets/js/admin/frontend/*.js", "!system/assets/js/admin/frontend/*.min.js" ],
 					dest: 'system/assets/js/admin/frontend/_frontend.min.js'
-				}, {
-					src:["system/assets/js/admin/jquery/110/*.js", "!system/assets/js/admin/jquery/110/*.min.js" ],
-					dest:"system/assets/js/admin/jquery/110/_jquery110.min.js"
-				}, {
-					src:["system/assets/js/admin/jquery/20/*.js", "!system/assets/js/admin/jquery/20/*.min.js" ],
-					dest:"system/assets/js/admin/jquery/20/_jquery20.min.js"
 				} ]
 			}
 		},
