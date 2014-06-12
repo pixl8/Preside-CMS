@@ -7,8 +7,8 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-rev' );
 
-	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:specific', 'less', 'cssmin', 'clean', 'rev', 'rename' ] );
-	grunt.registerTask( 'all'    , [ 'uglify', 'less', 'cssmin', 'clean', 'rev', 'rename' ] );
+	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:specific', 'less', 'cssmin', 'clean:frequentChangers', 'rev:frequentChangers', 'rename' ] );
+	grunt.registerTask( 'all'    , [ 'uglify', 'less', 'cssmin', 'clean:all', 'rev:all', 'rename' ] );
 
 	grunt.initConfig( {
 		uglify: {
@@ -136,12 +136,39 @@ module.exports = function( grunt ) {
 			}
 		},
 
+		clean: {
+			frequentChangers : {
+				files : [{
+					  src    : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js" ]
+					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
+				}, {
+					  src    : "css/admin/**/_*.min.css"
+					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
+				}]
+			},
+			all : {
+				files : [{
+					  src    : "js/admin/**/_*.min.js"
+					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
+				}, {
+					  src    : "css/admin/**/_*.min.css"
+					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
+				}]
+			}
+		},
+
 		rev: {
 			options: {
 				algorithm : 'md5',
 				length    : 8
 			},
-			assets: {
+			frequentChangers: {
+				files : [
+					  { src : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js" ]  }
+					, { src : "css/admin/**/_*.min.css" }
+				]
+			},
+			all: {
 				files : [
 					  { src : "js/admin/**/_*.min.js"  }
 					, { src : "css/admin/**/_*.min.css" }
@@ -162,18 +189,6 @@ module.exports = function( grunt ) {
 
 					return dest + pathSplit.join( "/" );
 				}
-			}
-		},
-
-		clean: {
-			revs : {
-				files : [{
-					  src    : "js/admin/**/_*.min.js"
-					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
-				}, {
-					  src    : "css/admin/**/_*.min.css"
-					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
-				}]
 			}
 		}
 	} );
