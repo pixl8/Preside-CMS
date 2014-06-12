@@ -26,16 +26,11 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 	private void function _initSticker() output=false {
 		var sticker        = new sticker.Sticker();
 		var settings       = super.getController().getSettingStructure();
-		var sysAssetsPath  = getRequestContext().getSystemAssetsPath();
+		var sysAssetsPath  = "/preside/system/assets"
 		var siteAssetsPath = settings.static.siteAssetsPath ?: "/application/assets";
 		var rootURl        = ( settings.static.rootUrl ?: "" );
 
-		super.getController().getPlugin( plugin="SymlinkGenerator", customPlugin=true ).symlink(
-			  source = ExpandPath( "/preside/system/assets" )
-			, target = ExpandPath( sysAssetsPath )
-		);
-
-		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=rootUrl & sysAssetsPath )
+		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath )
 		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsPath );
 
 		for( var ext in settings.activeExtensions ) {

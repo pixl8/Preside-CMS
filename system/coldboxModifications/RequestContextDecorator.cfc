@@ -141,6 +141,13 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="notFound" access="public" returntype="void" output="false">
+		<cfscript>
+			// todo, something much better here!
+			content reset=true type="text/html";header statusCode="404";WriteOutput("<h1>Not found</h1>");abort;
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="audit" access="public" returntype="void" output="false">
 		<cfscript>
 			arguments.userId = getAdminUserDetails().userId;
@@ -200,20 +207,6 @@
 			ArrayAppend( inlineJsArray, "<script type=""text/javascript"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
 
 			getRequestContext().setValue( name="__presideInlineJsArray", value=inlineJsArray, private=true );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="getSystemAssetsUrl" access="public" returntype="any" output="false">
-		<cfscript>
-			var rootUrl = getController().getSetting( name="static.rootUrl", defaultValue="" );
-
-			return rootUrl & "/presideassets";
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="getSystemAssetsPath" access="public" returntype="any" output="false">
-		<cfscript>
-			return "/presideassets";
 		</cfscript>
 	</cffunction>
 

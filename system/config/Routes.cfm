@@ -25,4 +25,5 @@
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( "adminRouteHandler" ) );
 	addRouteHandler( getModel( "assetRouteHandler" ) );
+	addRouteHandler( getModel( "staticAssetRouteHandler" ) );
 </cfscript>

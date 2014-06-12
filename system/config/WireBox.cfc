@@ -85,6 +85,9 @@
 		map( "assetRouteHandler" ).asSingleton().to( "preside.system.routeHandlers.AssetRouteHandler" ).noAutowire()
 			.initArg( name="eventName", value=settings.eventName ?: "event" );
 
+		map( "staticAssetRouteHandler" ).asSingleton().to( "preside.system.routeHandlers.StaticAssetRouteHandler" ).noAutowire()
+			.initArg( name="eventName", value=settings.eventName ?: "event" );
+
 		map( "defaultPresideRouteHandler" ).asSingleton().to( "preside.system.routeHandlers.DefaultPresideRouteHandler" ).noAutowire()
 			.initArg( name="eventName"      , value=settings.eventName ?: "event" )
 			.initArg( name="sitetreeService", ref="siteTreeService" );

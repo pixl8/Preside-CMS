@@ -14,8 +14,6 @@
 			, querystring = 'pageId=#event.getCurrentPageId()#&template=#event.getCurrentTemplate()#'
 		);
 
-		staticRoot = event.getSystemAssetsUrl();
-
 		if ( hasPermission( "devtools.console" ) ) {
 			event.include( "/js/admin/devtools/" );
 			event.include( "/css/admin/devtools/" );

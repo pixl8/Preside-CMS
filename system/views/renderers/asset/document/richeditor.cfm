@@ -1,13 +1,13 @@
 <cfscript>
-	ext          = ListLast( args.storage_path ?: "", "." );
-	assetRootUrl = event.getSystemAssetsUrl();
-	assetLink    = event.buildLink( assetId=args.id );
-	linkTitle    = Len( Trim( args.link_text ?: "" ) ) ? args.link_text : ( args.label ?: "" );
+	ext       = ListLast( args.storage_path ?: "", "." );
+	iconUrl   = event.buildLink( systemStaticAsset = "/images/asset-type-icons/32px/#LCase( ext )#.png" );
+	assetLink = event.buildLink( assetId=args.id );
+	linkTitle = Len( Trim( args.link_text ?: "" ) ) ? args.link_text : ( args.label ?: "" );
 </cfscript>
 
 <cfoutput>
 	<a href="#assetLink#">
-		<img src="#assetRootUrl#/images/asset-type-icons/32px/#LCase( ext )#.png" />
+		<img src="#iconUrl#" />
 		#linkTitle#
 	</a>
 </cfoutput>

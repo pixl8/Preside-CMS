@@ -1,11 +1,10 @@
 <cfscript>
-	staticRoot       = event.getSystemAssetsUrl();
 	ckeditorSettings = getSetting( name="ckeditor", defaultValue={} );
 
 	event.include( "ckeditor" );
 
 	event.includeData( {
-		  ckeditorConfig             = staticRoot & ( ckeditorSettings.defaults.configFile ?: "/ckeditorExtensions/config.js" )
+		  ckeditorConfig             = event.buildLink( systemStaticAsset = "/ckeditorExtensions/config.js" )
 		, ckeditorDefaultToolbar     = ckeditorSettings.defaults.toolbar   ?: ""
 		, ckeditorDefaultWidth       = ckeditorSettings.defaults.width     ?: "auto"
 		, ckeditorDefaultMinHeight   = ckeditorSettings.defaults.minHeight ?: "auto"
