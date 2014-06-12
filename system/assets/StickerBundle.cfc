@@ -5,6 +5,9 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/jquery/"       , path="/js/admin/lib/jquery-2*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-for-ie/", path="/js/admin/lib/jquery-1*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-ui/"    , path="/js/admin/lib/jquery-ui*.min.js" );
+		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
+		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
+		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
 
 		bundle.addAssets(
 			  directory   = "/js/admin"
@@ -34,15 +37,16 @@ component output=false {
 		bundle.asset( "/js/admin/lib/jquery-for-ie/" ).setIe( "IE" );
 		bundle.asset( "/js/admin/lib/jquery/"        ).setIe( "!IE" );
 
-
 		bundle.asset( "/css/admin/core/"             ).before( "*" );
+
 		bundle.asset( "/js/admin/lib/jquery/"        ).before( "ckeditor" );
 		bundle.asset( "/js/admin/lib/jquery-ui/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
-
-		bundle.asset( "/js/admin/core/" )
-			.after    ( "/js/admin/i18n/*", "ckeditor" )
-			.before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" )
-			.dependsOn( "/js/admin/lib/jquery-ui/" );
+		bundle.asset( "/js/admin/lib/bootstrap/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
+		bundle.asset( "/js/admin/lib/ace/"           ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
+		bundle.asset( "/js/admin/lib/plugins/"       ).dependsOn( "/js/admin/lib/bootstrap/" );
+		bundle.asset( "/js/admin/presidecore/"       ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
+			                                          .after    ( "/js/admin/i18n/*", "ckeditor" )
+			                                          .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
 	}
 
 }

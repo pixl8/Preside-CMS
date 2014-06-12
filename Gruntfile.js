@@ -7,7 +7,8 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-rev' );
 
-	grunt.registerTask( 'default', [ 'uglify', 'less', 'cssmin', 'clean', 'rev', 'rename' ] );
+	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:specific', 'less', 'cssmin', 'clean', 'rev', 'rename' ] );
+	grunt.registerTask( 'all'    , [ 'uglify', 'less', 'cssmin', 'clean', 'rev', 'rename' ] );
 
 	grunt.initConfig( {
 		uglify: {
@@ -21,52 +22,24 @@ module.exports = function( grunt ) {
 			},
 			core: {
 				src: [
-					  'system/assets/js/admin/core/mustache.js'
-					, 'system/assets/js/admin/core/jquery.uber.select.js'
-					, 'system/assets/js/admin/core/jquery.fuelux.spinner.js'
-					, 'system/assets/js/admin/core/jquery.autosize.js'
-					, 'system/assets/js/admin/core/jquery.inputlimiter.1.3.1.js'
-					, 'system/assets/js/admin/core/bootstrap.js'
-					, 'system/assets/js/admin/core/ace.js'
-					, 'system/assets/js/admin/core/ace-elements.js'
-					, 'system/assets/js/admin/core/bloodhound.js'
-					, 'system/assets/js/admin/core/bootstrap-timepicker.js'
-					, 'system/assets/js/admin/core/bootstrap.datepicker.js'
-					, 'system/assets/js/admin/core/dropzone.js'
-					, 'system/assets/js/admin/core/i18n.js'
-					, 'system/assets/js/admin/core/preside.richeditor.js'
-					, 'system/assets/js/admin/core/preside.asset.picker.js'
-					, 'system/assets/js/admin/core/preside.uber.select.with.browser.js'
-					, 'system/assets/js/admin/core/preside.imageDimension.picker.js'
-					, 'system/assets/js/admin/core/formFields.js'
-					, 'system/assets/js/admin/core/jquery.bootbox.js'
-					, 'system/assets/js/admin/core/jquery.cookies.js'
-					, 'system/assets/js/admin/core/jquery.dataTables.js'
-					, 'system/assets/js/admin/core/jquery.dataTables.bootstrap.js'
-					, 'system/assets/js/admin/core/jquery.dataTables.filterDelay.js'
-					, 'system/assets/js/admin/core/jquery.dateformat.js'
-					, 'system/assets/js/admin/core/jquery.dirtyforms.js'
-					, 'system/assets/js/admin/core/jquery.easy-pie-chart.js'
-					, 'system/assets/js/admin/core/jquery.gritter.js'
-					, 'system/assets/js/admin/core/jquery.hotkeys.js'
-					, 'system/assets/js/admin/core/jquery.lazy.js'
-					, 'system/assets/js/admin/core/jquery.serialize-object.js'
-					, 'system/assets/js/admin/core/jquery.slimscroll.js'
-					, 'system/assets/js/admin/core/jquery.sparkline.js'
-					, 'system/assets/js/admin/core/jquery.tabbable.js'
-					, 'system/assets/js/admin/core/jquery.ui.touch-punch.js'
-					, 'system/assets/js/admin/core/jquery.validate.js'
-					, 'system/assets/js/admin/core/list.js'
-					, 'system/assets/js/admin/core/preside.autofocus.form.js'
-					, 'system/assets/js/admin/core/preside.bootbox.modal.js'
-					, 'system/assets/js/admin/core/preside.clickable.tableRows.js'
-					, 'system/assets/js/admin/core/preside.confirmation.prompts.js'
-					, 'system/assets/js/admin/core/preside.hotkeys.js'
-					, 'system/assets/js/admin/core/preside.loading.sheen.js'
-					, 'system/assets/js/admin/core/preside.url.builder.js'
-					, 'system/assets/js/admin/core/preside.validation.defaults.js'
+					  'system/assets/js/admin/presidecore/preside.uber.select.js'
+					, 'system/assets/js/admin/presidecore/i18n.js'
+					, 'system/assets/js/admin/presidecore/preside.richeditor.js'
+					, 'system/assets/js/admin/presidecore/preside.asset.picker.js'
+					, 'system/assets/js/admin/presidecore/preside.uber.select.with.browser.js'
+					, 'system/assets/js/admin/presidecore/preside.imageDimension.picker.js'
+					, 'system/assets/js/admin/presidecore/formFields.js'
+					, 'system/assets/js/admin/presidecore/list.js'
+					, 'system/assets/js/admin/presidecore/preside.autofocus.form.js'
+					, 'system/assets/js/admin/presidecore/preside.bootbox.modal.js'
+					, 'system/assets/js/admin/presidecore/preside.clickable.tableRows.js'
+					, 'system/assets/js/admin/presidecore/preside.confirmation.prompts.js'
+					, 'system/assets/js/admin/presidecore/preside.hotkeys.js'
+					, 'system/assets/js/admin/presidecore/preside.loading.sheen.js'
+					, 'system/assets/js/admin/presidecore/preside.url.builder.js'
+					, 'system/assets/js/admin/presidecore/preside.validation.defaults.js'
 				],
-				dest: 'system/assets/js/admin/core/_core.min.js'
+				dest: 'system/assets/js/admin/presidecore/_presidecore.min.js'
 			},
 			specific:{
 				files: [{
@@ -100,6 +73,27 @@ module.exports = function( grunt ) {
 				}, {
 					src:["system/assets/js/admin/frontend/*.js", "!system/assets/js/admin/frontend/*.min.js" ],
 					dest: 'system/assets/js/admin/frontend/_frontend.min.js'
+				},{
+					  src  : [
+					  	"system/assets/js/admin/lib/plugins/jquery.datatables.js", // must come first
+					  	"system/assets/js/admin/lib/plugins/*.js"
+					  ]
+					, dest : "system/assets/js/admin/lib/plugins-1.0.0.min.js"
+				},{
+					  src  : ["system/assets/js/admin/lib/ace/ace.js", "system/assets/js/admin/lib/ace/ace-elements.js"]
+					, dest : "system/assets/js/admin/lib/ace-1.0.0.min.js"
+				},{
+					  src  : "system/assets/js/admin/lib/bootstrap-3.0.0.js"
+					, dest : "system/assets/js/admin/lib/bootstrap-3.0.0.min.js"
+				},{
+					  src  : "system/assets/js/admin/lib/jquery-1.10.2.js"
+					, dest : "system/assets/js/admin/lib/jquery-1.10.2.min.js"
+				},{
+					  src  : "system/assets/js/admin/lib/jquery-2.0.3.js"
+					, dest : "system/assets/js/admin/lib/jquery-2.0.3.min.js"
+				},{
+					  src  : "system/assets/js/admin/lib/jquery-ui-1.10.3.custom.js"
+					, dest : "system/assets/js/admin/lib/jquery-ui-1.10.3.custom.min.js"
 				} ]
 			}
 		},

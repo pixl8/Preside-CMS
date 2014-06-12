@@ -1,6 +1,6 @@
 <cfif event.isAdminUser()>
 	<cfscript>
-		event.include( "/js/admin/core/" );
+		event.include( "/js/admin/presidecore/" );
 		event.include( "/js/admin/frontend/" );
 		event.include( "/js/admin/i18n/#getfwLocale()#/", false );
 		event.include( "/css/admin/frontend/" );

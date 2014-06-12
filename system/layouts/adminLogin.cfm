@@ -4,7 +4,7 @@
 
 	event.include( "/css/admin/core/" );
 	event.include( "/css/admin/specific/login/" );
-	event.include( "/js/admin/core/" );
+	event.include( "/js/admin/presidecore/" );
 	event.include( "/js/admin/specific/login/" );
 	event.include( "/js/admin/i18n/#getfwLocale()#/", false );
 
