@@ -1,2 +1,3 @@
 # Ignore ckeditor (pulled in externally)
 /ckeditor/*
+/node_modules/*
