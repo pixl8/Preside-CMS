@@ -5,6 +5,7 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-less' );
 	grunt.loadNpmTasks( 'grunt-contrib-rename' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
+	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 	grunt.loadNpmTasks( 'grunt-rev' );
 
 	grunt.registerTask( 'default', [ 'uglify:core', 'uglify:specific', 'less', 'cssmin', 'clean:frequentChangers', 'rev:frequentChangers', 'rename' ] );
@@ -189,6 +190,13 @@ module.exports = function( grunt ) {
 
 					return dest + pathSplit.join( "/" );
 				}
+			}
+		},
+
+		watch: {
+			frequentChangers: {
+				files : [ "css/admin/**/*.less", "css/admin/**/*.css", "js/admin/presidecore/*.js", "js/admin/specific/**/*.js", "!css/admin/**/*.min.css", "!js/admin/**/*.min.js" ],
+				tasks : [ "default" ]
 			}
 		}
 	} );
