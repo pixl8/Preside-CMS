@@ -28,7 +28,7 @@ component output=false {
 	}
 
 	private string function _getEtag( required string fullPath ) output=false {
-		return Hash( SerializeJson( GetFileInfo( arguments.fullPath ) ) );
+		return Left( LCase( Hash( SerializeJson( GetFileInfo( arguments.fullPath ) ) ) ), 8 );
 	}
 
 	private string function _doBrowserEtagLookup( required string etag ) output=false {

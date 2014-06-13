@@ -18,6 +18,9 @@ component output=false {
 		if ( asset.recordCount ) {
 			var assetBinary = "";
 			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
+			var etag        = assetManagerService.getAssetEtag( id=assetId, derivativeName=derivativeName, throwOnMissing=true );
+
+			_doBrowserEtagLookup( etag );
 
 			if ( Len( Trim( derivativeName ) ) ) {
 				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, derivativeName=derivativeName );
@@ -29,6 +32,8 @@ component output=false {
 				header name="Content-Disposition" value="attachment; filename=#asset.label#.#type.extension#";
 			}
 
+			header name="etag" value=etag;
+			header name="cache-control" value="max-age=31536000";
 			content
 				reset    = true
 				variable = assetBinary
@@ -60,4 +65,11 @@ component output=false {
 		event.renderData( data="not found", type="text", statusCode=404 );
 	}
 
+
+// private helpers
+	private string function _doBrowserEtagLookup( required string etag ) output=false {
+		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
+			content reset=true;header statuscode=304 statustext="Not Modified";abort;
+		}
+	}
 }

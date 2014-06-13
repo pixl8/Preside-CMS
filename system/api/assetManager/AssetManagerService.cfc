@@ -319,6 +319,29 @@ component extends="preside.system.base.Service" output=false {
 		}
 	}
 
+	public string function getAssetEtag( required string id, string derivativeName="", boolean throwOnMissing=false ) output="false" {
+		var asset = "";
+
+		if ( Len( Trim( arguments.derivativeName ) ) ) {
+			asset = getAssetDerivative(
+				  assetId        = arguments.id
+				, derivativeName = arguments.derivativeName
+				, throwOnMissing = arguments.throwOnMissing
+			);
+		} else {
+			asset = getAsset( id = arguments.id, throwOnMissing = arguments.throwOnMissing );
+		}
+
+		if ( asset.recordCount ) {
+			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path );
+			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
+
+			return Left( etag, 8 );
+		}
+
+		return "";
+	}
+
 	public boolean function trashAsset( required string id ) output=false {
 		var assetDao    = getPresideObject( "asset" );
 		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "label" ] );
