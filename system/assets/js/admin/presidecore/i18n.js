@@ -1,6 +1,6 @@
 var i18n = ( function(){
 
-	var bundle = typeof cfrequest.resourceBundle === "undefined" ? {} : cfrequest.resourceBundle
+	var bundle = typeof _resourceBundle === "undefined" ? {} : _resourceBundle
 	  , translateResource;
 
 	translateResource = function( uri, args ) {

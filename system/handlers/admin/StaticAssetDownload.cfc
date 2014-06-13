@@ -1,7 +1,12 @@
 component output=false {
+	property name="i18n" inject="coldbox:plugin:i18n";
 
 	function download( event, rc, prc ) output=false {
 		var assetFile = ExpandPath( rc.staticAssetPath ?: "" );
+
+		if ( rc.staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
+			_serveI18nBundle( argumentCollection = arguments );
+		}
 
 		if ( !_fileExists( assetFile ) ) {
 			event.notFound();
@@ -52,5 +57,17 @@ component output=false {
 		}
 
 		return "application/octet-stream";
+	}
+
+	private void function _serveI18nBundle( event, rc, prc ) output=false {
+		var locale = getFwLocale();
+		var js     = i18n.getI18nJsForAdmin();
+		var etag   = Left( LCase( Hash( js ) ), 8 );
+
+		_doBrowserEtagLookup( etag );
+
+		header name="cache-control" value="max-age=#( 2400 )#"; // cache for 20 min
+		header name="etag" value=etag;
+		content reset=true type="application/javascript";WriteOutput(js);abort;
 	}
 }

@@ -30,22 +30,32 @@ component extends="coldbox.system.plugins.i18n" output=false {
 		return translated;
 	}
 
-	public string function includei18nResourceBundlesInJsData(){
-		var event      = getRequestContext();
-		var bundles    = "";
-		var bundle     = "";
-		var locales    = "";
-		var locale     = "";
-		var rootFolder = "";
-		var newFolder  = "";
-		var js         = "";
-		var json       = "";
+	public string function getI18nJsForAdmin(){
+		var data    = {};
+		var bundles = [ "cms" ];
+		var locale  = getFwLocale();
+		var js = "var _resourceBundle = ( function(){ var rb = {}, bundle, el;";
 
-		if ( !event.valueExists( name="_i18nGeneratedForSticker", private=true ) ) {
-			event.includeData( {
-				resourceBundle = _getBundleData()
-			} );
+		for( var widget in widgetsService.getWidgets() ) {
+			ArrayAppend( bundles, "widgets." & widget );
 		}
+		for( var po in presideObjectService.listObjects() ) {
+			ArrayAppend( bundles, "preside-objects." & po );
+		}
+
+		for( bundle in bundles ) {
+			json = resourceBundleService.getBundleAsJson(
+				  bundle   = bundle
+				, language = ListFirst( locale, "-_" )
+				, country  = ListRest( locale, "-_" )
+			);
+
+			js &= "bundle = #json#; for( el in bundle ) { rb[el] = bundle[el]; }";
+		}
+
+		js &= "return rb; } )();"
+
+		return js;
 	}
 
 // PRIVATE HEPERS

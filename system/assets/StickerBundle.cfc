@@ -3,6 +3,7 @@ component output=false {
 	public void function configure( bundle ) output=false {
 
 		// REGISTER ASSETS
+		bundle.addAsset( id="i18n-resource-bundle"        , url="/preside/system/assets/_dynamic/i18nBundle.js" );
 		bundle.addAsset( id="ckeditor"                    , path="/ckeditor/ckeditor.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery/"       , path="/js/admin/lib/jquery-2*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/jquery-for-ie/", path="/js/admin/lib/jquery-1*.min.js" );
@@ -35,6 +36,7 @@ component output=false {
 
 
 		// DEFINE DEPENDENCIES AND SORT ORDERS
+		bundle.asset( "i18n-resource-bundle"         ).before( "/css/admin/core/" );
 		bundle.asset( "/css/admin/core/"             ).before( "*" );
 		bundle.asset( "/js/admin/lib/jquery/"        ).before( "ckeditor" );
 		bundle.asset( "/js/admin/lib/jquery-ui/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );

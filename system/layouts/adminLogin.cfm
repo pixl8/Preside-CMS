@@ -6,7 +6,7 @@
 	event.include( "/css/admin/specific/login/" );
 	event.include( "/js/admin/presidecore/" );
 	event.include( "/js/admin/specific/login/" );
-	getPlugin( "i18n" ).includei18nResourceBundlesInJsData();
+	event.include( "i18n-resource-bundle" );
 
 	bottomJs = event.renderIncludes( "js" );
 	css = event.renderIncludes( "css" );

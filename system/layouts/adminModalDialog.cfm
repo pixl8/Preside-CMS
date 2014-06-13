@@ -11,7 +11,7 @@
 	event.include( "/js/admin/presidecore/" );
 	event.include( "/js/admin/specific/#currentHandler#/", false );
 	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/", false );
-	getPlugin( "i18n" ).includei18nResourceBundlesInJsData();
+	event.include( "i18n-resource-bundle" );
 
 	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 	css        = event.renderIncludes( "css" );

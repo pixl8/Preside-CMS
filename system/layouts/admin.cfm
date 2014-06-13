@@ -17,7 +17,7 @@
 	event.include( "/js/admin/specific/#currentHandler#/", false );
 	event.include( "/js/admin/specific/#currentHandler#/#currentAction#/", false );
 
-	getPlugin( "i18n" ).includei18nResourceBundlesInJsData();
+	event.include( "i18n-resource-bundle" );
 
 	if ( hasPermission( "devtools.console" ) ) {
 		event.include( "/js/admin/devtools/" );

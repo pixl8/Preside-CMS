@@ -2,7 +2,7 @@
 	<cfscript>
 		event.include( "/js/admin/presidecore/" );
 		event.include( "/js/admin/frontend/" );
-		getPlugin( "i18n" ).includei18nResourceBundlesInJsData();
+		event.include( "i18n-resource-bundle" );
 		event.include( "/css/admin/frontend/" );
 		event.includeData({
 			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
