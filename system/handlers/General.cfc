@@ -225,7 +225,7 @@
 				return true;
 			}
 
-			if ( ReFindNoCase( "^(assetDownload|ajaxproxy)", event.getCurrentHandler() ) ) {
+			if ( ReFindNoCase( "^(assetDownload|ajaxproxy|staticAssetDownload)", event.getCurrentHandler() ) ) {
 				return true;
 			}
 
