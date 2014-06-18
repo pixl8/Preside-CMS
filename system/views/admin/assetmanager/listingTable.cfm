@@ -9,13 +9,13 @@
 
 	folders = renderPresideObjectView(
 		  object  = "asset_folder"
-		, view    = "preside-objects/asset_folder/browserListing"
+		, view    = "admin/assetManager/_folderBrowserListing"
 		, filter  = { parent_folder = activeFolder }
 		, orderBy = "label asc"
 	);
 	assets = renderPresideObjectView(
 		  object  = "asset"
-		, view    = "preside-objects/asset/browserListing"
+		, view    = "admin/assetManager/_assetBrowserListing"
 		, filter  = { asset_folder = activeFolder }
 		, orderBy = "label asc"
 	);
@@ -39,7 +39,7 @@
 		</thead>
 		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
 			<cfif activeFolder neq rootFolder>
-				#renderPresideObjectView( object="asset_folder", view="preside-objects/asset_folder/browserListingUpOneLevel", id=activeFolder )#
+				#renderPresideObjectView( object="asset_folder", view="admin/assetManager/_folderBrowserListingUpOneLevel", id=activeFolder )#
 			</cfif>
 			#folders#
 			#assets#
