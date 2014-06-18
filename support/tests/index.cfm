@@ -1,8 +1,2 @@
-<cfscript>
-	testResults = new mxunit.runner.DirectoryTestSuite().run(
-		  directory     = ExpandPath( "/integration" )
-		, componentPath = "integration"
-	);
-
-	WriteOutput( testResults.getResultsOutput() );
-</cfscript>
+<h1>Welcome to PresideCMS test suite</h1>
+<a href="runtests.cfm">Run the full suite now</a>
