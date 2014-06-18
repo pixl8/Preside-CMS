@@ -7,6 +7,7 @@ Developer guides & recipes
    developeroverview
    designeroverview
    presideobjects
+   presideobjectviews
    formlayouts
    formcontrols
    viewlets
