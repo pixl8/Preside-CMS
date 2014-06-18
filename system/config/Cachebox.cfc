@@ -73,6 +73,20 @@ component output=false {
 						, maxObjects                     = 100
 						, objectStore                    = "ConcurrentSoftReferenceStore"
 					}
+				},
+
+				PresideObjectViewCache = {
+					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					, properties = {
+						  objectDefaultTimeout           = 0
+						, objectDefaultLastAccessTimeout = 0
+						, useLastAccessTimeouts          = false
+						, reapFrequency                  = 10
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 10
+						, maxObjects                     = 200
+						, objectStore                    = "ConcurrentSoftReferenceStore"
+					}
 				}
 			}
 		};

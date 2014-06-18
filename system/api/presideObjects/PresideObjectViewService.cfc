@@ -2,45 +2,41 @@ component output=false {
 
 // constructor
 	public any function init(
-		  required any   presideObjectService
-		, required any   presideContentRenderer
-		, required any   coldboxRenderer
-		,          array viewDirectories=[]
+		  required any presideObjectService
+		, required any presideContentRenderer
+		, required any coldboxRenderer
+		, required any cacheProvider
 
 	) output=false {
 		_setPresideObjectService  ( arguments.presideObjectService );
 		_setPresideContentRenderer( arguments.presideContentRenderer );
 		_setColdboxRenderer       ( arguments.coldboxRenderer );
-
-		_loadViews( arguments.viewDirectories );
+		_setCacheProvider         ( arguments.cacheProvider );
 	}
 
 // public api methods
-	public boolean function viewExists( required string object, string view="index" ) output=false {
-		var objectViews = _getObjectViews();
-
-		return StructKeyExists( objectViews, arguments.object ) and StructKeyExists( objectViews[ arguments.object ], arguments.view );
-	}
-
-	public any function renderView( required string object, string view="index", boolean pageView=false , string returntype="string", struct args={} ) output=false {
-		var view           = _getView( arguments.object, arguments.pageView ? "__pagetype" & arguments.view : arguments.view );
+	public any function renderView( required string object, required string view, string returntype="string", struct args={} ) output=false {
+		var viewFilePath   = _getColdboxRenderer().locateView( arguments.view ) & ".cfm";
+		var viewDetails    = _readView( arguments.object, viewFilePath );
 		var selectDataArgs = Duplicate( arguments );
 		var data           = "";
 		var record         = "";
 		var rendered       = CreateObject( "java", "java.lang.StringBuffer" );
+
 		StructDelete( selectDataArgs, "object" );
 		StructDelete( selectDataArgs, "view"   );
 		StructDelete( selectDataArgs, "layout" );
+
 		selectDataArgs.objectName   = arguments.object
-		selectDataArgs.selectFields = view.selectFields
+		selectDataArgs.selectFields = viewDetails.selectFields
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
 		for( record in data ) {
-			var viewArgs = _renderFields( arguments.object, record, view.fieldOptions );
+			var viewArgs = _renderFields( arguments.object, record, viewDetails.fieldOptions );
 			viewArgs.append( arguments.args );
 
 			rendered.append( _getColdboxRenderer().renderView(
-				  view     = view.viewPath
+				  view     = arguments.view
 				, args     = viewArgs
 				, _counter = data.currentRow
 				, _records = data.recordCount
@@ -61,78 +57,19 @@ component output=false {
 	}
 
 // private helpers
-	private struct function _getView( required string object, required string view ) output=false {
-		var objectViews = _getObjectViews();
+	private struct function _readView( required string object, required string viewPath ) output=false {
+		var cacheKey = "PresideObjectService._readView() cache for object [#arguments.object#] and view path [#arguments.viewPath#]";
+		var args     = Duplicate( arguments );
 
-		if ( StructKeyExists( objectViews, arguments.object ) and StructKeyExists( objectViews[ arguments.object ], arguments.view ) ) {
-			return objectViews[ arguments.object ][ arguments.view ];
-		}
-
-		throw( type="presideObjectViewService.missingView", message="Object view not found for object named, [#arguments.object#], and view named, [#arguments.view#]" );
+		return _getCacheProvider().getOrSet( cacheKey, function(){
+			return _parseFieldsFromViewFile(
+				  objectName = args.object
+				, filePath   = args.viewPath
+			)
+		} );
 	}
 
-	private void function _loadViews( required array viewDirectories ) output=false {
-		var objectViews = {};
-		var dir         = "";
-		var subdirs     = "";
-		var subdir      = "";
-		var files       = "";
-		var file        = "";
-		var viewName    = "";
-		var objectName  = "";
-
-		for( dir in arguments.viewDirectories ) {
-			dir     = ReReplace( dir, "[\\/]$", "" ) & "/preside-objects";
-			subDirs = DirectoryList( dir, false, "query" );
-
-			for( subDir in subDirs ){
-				if ( subDir.type eq "Dir" ) {
-					objectName = subDir.name;
-					if ( not StructKeyExists( objectViews, objectName ) ) {
-						objectViews[ objectName ] = {};
-					}
-
-					files = DirectoryList( dir & "/" & objectName, false, "path", "*.cfm" );
-					for( file in files ){
-						viewName = ReReplace( ListLast( file, "\/" ), "\.cfm$", "" );
-						objectViews[ objectName ][ viewName ] = {
-							  filePath = file
-							, viewPath = "/preside-objects/#objectName#/#viewName#"
-						};
-					}
-				}
-			}
-
-			dir     = ReReplace( dir, "preside\-objects$", "page-types" );
-			subdirs = DirectoryList( dir, false, "query" );
-			for( subdir in subdirs ) {
-				if ( subdir.type == "Dir" ) {
-					objectName = subdir.name;
-					files = DirectoryList( dir & "/" & subdir.name, false, "path", "*.cfm" );
-					for( file in files ) {
-						viewName = ReReplace( ListLast( file, "\/" ), "\.cfm$", "" );
-						objectViews[ objectName ][ "__pagetype" & viewName ] = {
-							  filePath = file
-							, viewPath = "/page-types/#objectName#/#viewName#"
-						};
-					}
-				}
-			}
-		}
-
-		for( var objectName in objectViews ) {
-			for( var viewName in objectViews[ objectName ] ) {
-				StructAppend( objectViews[ objectName ][ viewName ], _parseFieldsFromViewFile(
-					  filePath   = objectViews[ objectName ][ viewName ].filePath
-					, objectName = objectName
-				) );
-			}
-		}
-
-		_setObjectViews( objectViews );
-	}
-
-	private struct function _parseFieldsFromViewFile( required string filePath, required string objectName ) output=false {
+	private struct function _parseFieldsFromViewFile( required string objectName, required string filePath ) output=false {
 		var fields          = { selectFields=[], fieldOptions={} };
 		var fileContent     = FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "";
 		var regexes         = [ '<' & 'cfparam\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)".*?;' ];
@@ -268,11 +205,10 @@ component output=false {
 	private void function _setColdboxRenderer( required any coldboxRenderer ) output=false {
 		_coldboxRenderer = arguments.coldboxRenderer;
 	}
-
-	private struct function _getObjectViews() output=false {
-		return _objectViews;
+	private any function _getCacheProvider() output=false {
+		return _CacheProvider;
 	}
-	private void function _setObjectViews( required struct objectViews ) output=false {
-		_objectViews = arguments.objectViews;
+	private void function _setCacheProvider( required any CacheProvider ) output=false {
+		_CacheProvider = arguments.CacheProvider;
 	}
 }

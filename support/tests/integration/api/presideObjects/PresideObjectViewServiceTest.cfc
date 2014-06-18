@@ -12,48 +12,19 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 // tests
-	function test01_viewExists_shouldReturnTrue_whenBothGivenObjectAndViewExist() output=false {
-		var svc = _getPresideObjectViewService( [ viewFolders[1] ] );
-
-		super.assert( svc.viewExists( object="object_b", view="full" ) );
-	}
-
-	function test02_viewExists_shouldReturnFalse_whenNoViewsExistForTheObject() output=false {
-		var svc = _getPresideObjectViewService( [ viewFolders[1] ] );
-
-		super.assertFalse( svc.viewExists( object="i_do_not_exist", view="index" ) );
-	}
-
-	function test03_viewExists_shouldReturnFalse_whenTheSpecifiedViewDoesNotExistForTheObject() output=false {
-		var svc = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
-
-		super.assertFalse( svc.viewExists( object="object_b", view="non-existent" ) );
-	}
-
-	function test04_viewExists_shouldReturnTrue_whenNoViewSuppliedButADefaultIndexViewExistsForTheObject() output=false {
-		var svc = _getPresideObjectViewService( viewFolders );
-
-		super.assert( svc.viewExists( object="object_b" ) );
-	}
-
-	function test05_viewExists_shouldReturnFalse_whenNoViewSuppliedAndNoDefaultIndexViewExistsForTheObject() output=false {
-		var svc = _getPresideObjectViewService( [ viewFolders[1] ] );
-
-		super.assertFalse( svc.viewExists( object="object_e" ) );
-	}
-
-	function test06_renderView_shouldFetchDataFromPresideObjectServiceWithFieldListDerivedFromView() output=false {
+	function test01_renderView_shouldFetchDataFromPresideObjectServiceWithFieldListDerivedFromView() output=false {
 		var svc = _getPresideObjectViewService( [ viewFolders[1] ] );
 		var log = "";
 		var expectedArguments = {
 			  objectName   = "object_b"
-			, selectFields = [ "object_b.label as label", "object_b.datecreated as datecreated", "object_b.id as _id" ]
+			, selectFields = [ "label as title", "object_b.datecreated as datecreated", "object_b.id as _id" ]
 		};
 
 		mockPresideObjectService.$( "selectData", QueryNew('') );
 		mockRendererPlugin.$( "renderView", "" );
+		mockRendererPlugin.$( "locateView", "/tests/resources/presideObjectService/_dataViews/views3/preside-objects/object_b/index" );
 
-		svc.renderView( object = "object_b" );
+		svc.renderView( object = "object_b", view="preside-objects/object_b/index" );
 
 		log = mockPresideObjectService.$callLog().selectData;
 
@@ -63,33 +34,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expectedArguments.selectFields, log[1].selectFields ?: "" );
 	}
 
-	function test06_01_renderView_shouldFetchDataFromPresideObjectServiceWithFieldListDerivedFromOverridedView() output=false {
-		var svc = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
-		var log = "";
-		var expectedArguments = {
-			  objectName   = "object_b"
-			, selectFields = [ "label as title", "datecreated as createdDate", "object_b.id as _id" ]
-		};
 
-		mockPresideObjectService.$( "selectData", QueryNew('') );
-		mockRendererPlugin.$( "renderView", "" );
-
-		svc.renderView( object = "object_b" );
-
-		log = mockPresideObjectService.$callLog().selectData;
-
-		super.assertEquals( 1, log.len(), "Expected a single call to selectData(), instead [#log.len()#] were made" );
-
-		super.assertEquals( expectedArguments.objectName  , log[1].objectName   ?: "" );
-		super.assertEquals( expectedArguments.selectFields, log[1].selectFields ?: "" );
-	}
-
-	function test07_renderView_shouldForwardAllRelevantArgumentsPassedToTheSelectDataCall_soThatWeCanPassInFiltersAndSortOrdersEtc() output=false {
+	function test02_renderView_shouldForwardAllRelevantArgumentsPassedToTheSelectDataCall_soThatWeCanPassInFiltersAndSortOrdersEtc() output=false {
 		var svc = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
 		var log = "";
 		var passedArgs = {
 			  object = "object_b"
-			, view   = "full"
+			, view   = "preside-objects/object_b/full"
 			, sortBy = "this"
 			, filter = "fubar = :this"
 			, filterArgs = { this = "is a test" }
@@ -102,7 +53,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, filter = "fubar = :this"
 			, filterArgs = { this = "is a test" }
 			, anything = "really"
-			, pageView = false
 			, returnType = "string"
 			, args       = {}
 		};
@@ -112,6 +62,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockPresideObjectService.$( "selectData", QueryNew('') );
 		mockRendererPlugin.$( "renderView", "" );
+		mockRendererPlugin.$( "locateView", "/tests/resources/presideObjectService/_dataViews/views1/preside-objects/object_b/full" );
 
 		svc.renderView( argumentCollection = passedArgs );
 
@@ -131,7 +82,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		}
 	}
 
-	function test08_renderView_shouldRenderEachRecordIndividually() output=false {
+	function test03_renderView_shouldRenderEachRecordIndividually() output=false {
 		var svc            = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
 		var expectedResult = "1-two-thr33";
 		var actualResult   = "";
@@ -144,10 +95,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockPresideObjectService.$( "selectData", mockData );
 		mockRendererPlugin.$( "renderView" ).$results( "1", "-two", "-thr33" );
+		mockRendererPlugin.$( "locateView", "/tests/resources/presideObjectService/_dataViews/views1/preside-objects/object_b/full" );
 
 		actualResult = svc.renderView(
 			  object = "object_b"
-			, view   = "full"
+			, view   = "preside-objects/object_b/full"
 		);
 
 		super.assertEquals( expectedResult, actualResult );
@@ -157,7 +109,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( mockData.recordCount, log.len() );
 
 		for( var i=1; i lte mockData.recordCount; i++ ){
-			super.assertEquals( "/preside-objects/object_b/full", log[i].view );
+			super.assertEquals( "preside-objects/object_b/full", log[i].view );
 			super.assertEquals( 4, StructCount( log[i].args ) );
 			super.assertEquals( mockData.this[i], log[i].args.this );
 			super.assertEquals( mockData.is[i]  , log[i].args.is   );
@@ -166,19 +118,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		}
 	}
 
-	function test09_renderView_shouldThrowInformativeError_whenObjectViewDoesNotExist() output=false {
-		var svc         = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
-		var errorThrown = false;
-
-		try {
-			svc.renderView( object="meh", view="boohoo" );
-		} catch( "presideObjectViewService.missingView" e ) {
-			super.assertEquals( "Object view not found for object named, [meh], and view named, [boohoo]", e.message );
-			errorThrown = true;
-		}
-
-		super.assert( errorThrown, "An informative error was not thrown" );
-	}
 
 // private utility
 	private any function _getPresideObjectViewService( folders ) output=false {
@@ -191,6 +130,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, presideObjectService   = mockPresideObjectService
 			, presideContentRenderer = mockRendererService
 			, coldboxRenderer        = mockRendererPlugin
+			, cacheProvider          = _getCachebox().getDefaultCache()
 		);
 	}
 

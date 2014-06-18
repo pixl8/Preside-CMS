@@ -9,7 +9,7 @@
 
 	folders = renderPresideObjectView(
 		  object  = "asset_folder"
-		, view    = "pickerBrowserListing"
+		, view    = "preside-objects/asset_folder/pickerBrowserListing"
 		, filter  = { parent_folder = activeFolder }
 		, orderBy = "label asc"
 	);
@@ -21,7 +21,7 @@
 	}
 	assets = renderPresideObjectView(
 		  object  = "asset"
-		, view    = "pickerBrowserListing"
+		, view    = "preside-objects/asset/pickerBrowserListing"
 		, filter  = assetFilter
 		, orderBy = "label asc"
 	);
@@ -40,7 +40,7 @@
 		</thead>
 		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
 			<cfif activeFolder neq rootFolder>
-				#renderPresideObjectView( object="asset_folder", view="pickerBrowserListingUpOneLevel", id=activeFolder )#
+				#renderPresideObjectView( object="asset_folder", view="preside-objects/asset_folder/pickerBrowserListingUpOneLevel", id=activeFolder )#
 			</cfif>
 			#folders#
 			#assets#

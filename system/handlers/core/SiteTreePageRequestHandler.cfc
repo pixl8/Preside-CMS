@@ -31,8 +31,7 @@ component output=false {
 		} else {
 			rc.body = renderPresideObjectView(
 				  object   = pageType.getPresideObject()
-				, view     = layout
-				, pageView = true
+				, view     = "page-types/#pageType.getId()#/#layout#"
 				, filter   = { page = pageId }
 				, groupby  = pageType.getPresideObject() & ".id" // ensure we only get a single record should the view be joining on one-to-many relationships
 			);
