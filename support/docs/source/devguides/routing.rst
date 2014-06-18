@@ -1,82 +1,24 @@
 Routing
 =======
 
+* `Overview`_
+* `Creating custom routes`_
+    * `PresideCMS Route Handlers`_
+* `URL Rewriting`_
+* `Out-of-the-box routes`_
+    * `Site tree pages`_
+    * `PresideCMS Admin pages and actions`_
+    * `Asset manager assets`_
+
+Overview
+########
+
 Routing is the term used to describe how a URL gets mapped to actions and input variables in your application. In PresideCMS, the action will be a `Coldbox event handler`_ and the input variables will appear in your request context.
 
 We use Coldbox's own routing system along with a PresideCMS addition for handling dynamic routes. When creating your own custom routes, you are free to use either system.
 
 URLs can be built with :code:`event.buildLink()`. Different routing URLs will be generated depending on the arguments passed to the :code:`buildLink()` function.
 
-Out-of-the-box routes
-#####################
-
-Site tree pages
----------------
-
-Any URL that ends with :code:`.html` followed by an optional query string, will be routed as a site tree page URL. The "directories" and "filename" will correspond to the slugs of the pages in your tree. For example:
-
-    :code:`/about-us/meet-the-team/alex-skinner.html?showComments=true`
-
-will be routed to:
-
-.. code-block:: js
-
-    Coldbox event : core.SiteTreePageRequestHandler
-    Coldbox RC    : { showComments : true }
-    Coldbox PRC   : { slug : "about-us.meet-the-team.alex-skinner" }
-
-and map to the site tree page:
-
-.. code-block:: text
-
-    /about-us
-        /meet-the-team
-            alex-skinner
-
-.. tip::
-
-    You can build a link to a site tree page with :code:`event.buildLink( page=idOfThePage )`
-
-PresideCMS Admin pages and actions
-----------------------------------
-
-Any URL that begins with :code:`/(adminPath)` and ends in a forward slash followed by an optional query string, will be routed as a PresideCMS admin request. Directory nodes in the URL will be translated to the ColdBox event.
-
-.. note::
-
-    Your admin path can be configured in your site's :doc:`Config.cfc <configcfc>` file with the :code:`settings.preside_admin_path` setting. The setting defaults to "preside_admin".
-
-For example, assuming that :code:`settings.preside_admin_path` has been set to "acme_cmsarea", the URL :code:`/acme_cmsarea/sitetree/editPage/?id=F4554E4C-9347-4F7E-B5F862595BFC9EBF` will be routed to:
-
-.. code-block:: js
-
-    Coldbox event : admin.sitetree.editPage
-    Coldbox RC    : { id : "F4554E4C-9347-4F7E-B5F862595BFC9EBF" }
-
-.. tip::
-
-    You can build a link to an admin event with :code:`event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#" )` or :code:`event.buildLink( linkTo="admin.sitetree.editPage", queryString="id=#pageId#" )`
-
-Asset manager assets
---------------------
-
-Assets stored in the asset manager are served through the application. Any URL that starts with :code:`/asset` and ends with a trailing slash will be routed to the asset manager download action. URLs take the form: :code:`/asset/(asset ID)/` or :code:`/asset/(asset ID)/(ID or name of derivative)/`. So the URL, :code:`/asset/F4554E4C-9347-4F7E-B5F862595BFC9EBF/`, is routed to:
-
-.. code-block:: js
-
-    Coldbox event : core.assetDownload
-    Coldbox RC    : { assetId : "F4554E4C-9347-4F7E-B5F862595BFC9EBF" }
-
-and :code:`/asset/F4554E4C-9347-4F7E-B5F862595BFC9EBF/headerImage/` becomes:
-
-.. code-block:: js
-
-    Coldbox event : core.assetDownload
-    Coldbox RC    : { assetId : "F4554E4C-9347-4F7E-B5F862595BFC9EBF", derivativeId : "headerImage" }
-
-.. tip::
-
-    You can build a link to an asset with :code:`event.buildAdminLink( assetId=myAssetId )` or :code:`event.buildLink( assetId=myAssetId, derivative=derivativeId )`
 
 Creating custom routes
 ######################
@@ -198,6 +140,77 @@ In order for the core routes to work, URL rewrites need to be in place. PresideC
             <to>null</to>
         </rule>
     </urlrewrite>
+
+Out-of-the-box routes
+#####################
+
+Site tree pages
+---------------
+
+Any URL that ends with :code:`.html` followed by an optional query string, will be routed as a site tree page URL. The "directories" and "filename" will correspond to the slugs of the pages in your tree. For example:
+
+    :code:`/about-us/meet-the-team/alex-skinner.html?showComments=true`
+
+will be routed to:
+
+.. code-block:: js
+
+    Coldbox event : core.SiteTreePageRequestHandler
+    Coldbox RC    : { showComments : true }
+    Coldbox PRC   : { slug : "about-us.meet-the-team.alex-skinner" }
+
+and map to the site tree page:
+
+.. code-block:: text
+
+    /about-us
+        /meet-the-team
+            alex-skinner
+
+.. tip::
+
+    You can build a link to a site tree page with :code:`event.buildLink( page=idOfThePage )`
+
+PresideCMS Admin pages and actions
+----------------------------------
+
+Any URL that begins with :code:`/(adminPath)` and ends in a forward slash followed by an optional query string, will be routed as a PresideCMS admin request. Directory nodes in the URL will be translated to the ColdBox event.
+
+.. note::
+
+    Your admin path can be configured in your site's :doc:`Config.cfc <configcfc>` file with the :code:`settings.preside_admin_path` setting. The setting defaults to "preside_admin".
+
+For example, assuming that :code:`settings.preside_admin_path` has been set to "acme_cmsarea", the URL :code:`/acme_cmsarea/sitetree/editPage/?id=F4554E4C-9347-4F7E-B5F862595BFC9EBF` will be routed to:
+
+.. code-block:: js
+
+    Coldbox event : admin.sitetree.editPage
+    Coldbox RC    : { id : "F4554E4C-9347-4F7E-B5F862595BFC9EBF" }
+
+.. tip::
+
+    You can build a link to an admin event with :code:`event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#" )` or :code:`event.buildLink( linkTo="admin.sitetree.editPage", queryString="id=#pageId#" )`
+
+Asset manager assets
+--------------------
+
+Assets stored in the asset manager are served through the application. Any URL that starts with :code:`/asset` and ends with a trailing slash will be routed to the asset manager download action. URLs take the form: :code:`/asset/(asset ID)/` or :code:`/asset/(asset ID)/(ID or name of derivative)/`. So the URL, :code:`/asset/F4554E4C-9347-4F7E-B5F862595BFC9EBF/`, is routed to:
+
+.. code-block:: js
+
+    Coldbox event : core.assetDownload
+    Coldbox RC    : { assetId : "F4554E4C-9347-4F7E-B5F862595BFC9EBF" }
+
+and :code:`/asset/F4554E4C-9347-4F7E-B5F862595BFC9EBF/headerImage/` becomes:
+
+.. code-block:: js
+
+    Coldbox event : core.assetDownload
+    Coldbox RC    : { assetId : "F4554E4C-9347-4F7E-B5F862595BFC9EBF", derivativeId : "headerImage" }
+
+.. tip::
+
+    You can build a link to an asset with :code:`event.buildAdminLink( assetId=myAssetId )` or :code:`event.buildLink( assetId=myAssetId, derivative=derivativeId )`
 
 
 .. _Coldbox event handler: http://wiki.coldbox.org/wiki/EventHandlers.cfm
