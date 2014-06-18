@@ -17,14 +17,14 @@ In order for the :code:`renderView()` function to know what fields to select for
 
 .. code-block:: cfm
 
-    <cfparam name="args.label" /><!--- I need the 'label' field from the preside object --->
-    <cfparam name="args.teaser" /><!--- I need the 'teaser' field --->
-    <cfparam name="args.image"  /><!--- I need the 'image' field --->
-    <cfparam name="args.event_type_id" field="event_type" /><!--- I need the 'event_type' field, but aliased to 'event_type_id' --->
-    <cfparam name="args.event_type"    field="event_type.label" /><!--- I need the label field from the relatated object, event_type, aliased to 'event_type' --->
+    <cfparam name="args.label"                                  /><!--- I need the 'label' field --->
+    <cfparam name="args.teaser"                                 /><!--- I need the 'teaser' field --->
+    <cfparam name="args.image"                                  /><!--- I need the 'image' field --->
+    <cfparam name="args.event_type_id" field="event_type"       /><!--- I need the 'event_type' field, but aliased to 'event_type_id' --->
+    <cfparam name="args.event_type"    field="event_type.label" /><!--- I need the 'label' field from the relatated object, event_type, aliased to 'event_type' --->
 
-    <cfparam name="_counter" type="numeric" /><!--- not selected from DB, but always provided to views rendered through the Preside Object View rendering system --->
-    <cfparam name="_records" type="numeric" /><!--- not selected from DB, but always provided to views rendered through the Preside Object View rendering system --->
+    <cfparam name="_counter" type="numeric" /><!--- current row in the recordset being rendered --->
+    <cfparam name="_records" type="numeric" /><!--- total records in the recordset being rendered --->
 
     <cfoutput>
         <div class="preview-pane">
@@ -56,3 +56,27 @@ Given the examples above, the SQL you would expect to be automatically generated
 
     where      event.event_category = :event_category
 
+Filtering the records to display
+--------------------------------
+
+Any arguments that you pass to the :code:`renderView()` method will be passed on to the Preside Object :code:`selectData()` method when retrieving the records to be rendered.
+
+This means that you can specify any number of valid :code:`selectData()` arguments to filter and sort the records for display. e.g.
+
+.. code-block:: js
+
+    rendered = renderView(
+          view          = "event/detail"
+        , presideObject = "event"
+        , id            = eventId
+    );
+
+    rendered = renderView(
+          view          = "event/preview"
+        , presideObject = "event"
+        , filter        = "event_type != :event_type or comment_count < :comment_count"
+        , filterParams  = { event_type=rc.type, comment_count=10 }
+        , startRow      = 11
+        , maxRows       = 10
+        , orderBy       = "datepublished desc"
+    );
