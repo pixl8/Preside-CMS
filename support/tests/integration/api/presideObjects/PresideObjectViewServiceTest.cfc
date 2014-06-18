@@ -24,7 +24,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockRendererPlugin.$( "renderView", "" );
 		mockRendererPlugin.$( "locateView", "/tests/resources/presideObjectService/_dataViews/views3/preside-objects/object_b/index" );
 
-		svc.renderView( object = "object_b", view="preside-objects/object_b/index" );
+		svc.renderView( presideObject = "object_b", view="preside-objects/object_b/index" );
 
 		log = mockPresideObjectService.$callLog().selectData;
 
@@ -39,12 +39,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var svc = _getPresideObjectViewService( [ viewFolders[1], viewFolders[2] ] );
 		var log = "";
 		var passedArgs = {
-			  object = "object_b"
-			, view   = "preside-objects/object_b/full"
-			, sortBy = "this"
-			, filter = "fubar = :this"
-			, filterArgs = { this = "is a test" }
-			, anything = "really"
+			  presideObject = "object_b"
+			, view          = "preside-objects/object_b/full"
+			, sortBy        = "this"
+			, filter        = "fubar = :this"
+			, filterArgs    = { this = "is a test" }
+			, anything      = "really"
 		}
 		var expectedArguments = {
 			  objectName   = "object_b"
@@ -98,8 +98,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockRendererPlugin.$( "locateView", "/tests/resources/presideObjectService/_dataViews/views1/preside-objects/object_b/full" );
 
 		actualResult = svc.renderView(
-			  object = "object_b"
-			, view   = "preside-objects/object_b/full"
+			  presideObject = "object_b"
+			, view          = "preside-objects/object_b/full"
 		);
 
 		super.assertEquals( expectedResult, actualResult );

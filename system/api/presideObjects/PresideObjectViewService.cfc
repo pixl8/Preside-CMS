@@ -15,24 +15,24 @@ component output=false {
 	}
 
 // public api methods
-	public any function renderView( required string object, required string view, string returntype="string", struct args={} ) output=false {
+	public any function renderView( required string presideObject, required string view, string returntype="string", struct args={} ) output=false {
 		var viewFilePath   = _getColdboxRenderer().locateView( arguments.view ) & ".cfm";
-		var viewDetails    = _readView( arguments.object, viewFilePath );
+		var viewDetails    = _readView( arguments.presideObject, viewFilePath );
 		var selectDataArgs = Duplicate( arguments );
 		var data           = "";
 		var record         = "";
 		var rendered       = CreateObject( "java", "java.lang.StringBuffer" );
 
-		StructDelete( selectDataArgs, "object" );
+		StructDelete( selectDataArgs, "presideObject" );
 		StructDelete( selectDataArgs, "view"   );
 		StructDelete( selectDataArgs, "layout" );
 
-		selectDataArgs.objectName   = arguments.object
+		selectDataArgs.objectName   = arguments.presideObject
 		selectDataArgs.selectFields = viewDetails.selectFields
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
 		for( record in data ) {
-			var viewArgs = _renderFields( arguments.object, record, viewDetails.fieldOptions );
+			var viewArgs = _renderFields( arguments.presideObject, record, viewDetails.fieldOptions );
 			viewArgs.append( arguments.args );
 
 			rendered.append( _getColdboxRenderer().renderView(

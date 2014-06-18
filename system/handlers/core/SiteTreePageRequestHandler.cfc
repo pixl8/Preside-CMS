@@ -29,11 +29,11 @@ component output=false {
 		if ( pageType.hasHandler() ) {
 			rc.body = renderViewlet( pageType.getViewlet() & "." & layout );
 		} else {
-			rc.body = renderPresideObjectView(
-				  object   = pageType.getPresideObject()
-				, view     = "page-types/#pageType.getId()#/#layout#"
-				, filter   = { page = pageId }
-				, groupby  = pageType.getPresideObject() & ".id" // ensure we only get a single record should the view be joining on one-to-many relationships
+			rc.body = renderView(
+				  view          = "page-types/#pageType.getId()#/#layout#"
+				, presideObject = pageType.getPresideObject()
+				, filter        = { page = pageId }
+				, groupby       = pageType.getPresideObject() & ".id" // ensure we only get a single record should the view be joining on one-to-many relationships
 			);
 		}
 	}
