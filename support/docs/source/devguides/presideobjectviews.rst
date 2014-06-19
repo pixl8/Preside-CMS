@@ -80,3 +80,80 @@ This means that you can specify any number of valid :code:`selectData()` argumen
         , maxRows       = 10
         , orderBy       = "datepublished desc"
     );
+
+Declaring fields for your view
+------------------------------
+
+As seen in the examples above, the :code:`<cfparam>` tag is used by your view to specify what fields it needs to render. Any variable that is declared that starts with "args." will be considered a field on your preside object by default.
+
+If we are rendering a view for a **news**  object, the following param will lead to :code:`news.headline` being retrieved from the database:
+
+.. code-block:: cfm
+
+    <cfparam name="args.headline" />
+
+
+Aliases
+.......
+
+You may find that you need to have a different variable name to the field that you need to select from the data object. To achieve this, you can use the :code:`field` attribute to specify the name of the field:
+
+.. code-block:: cfm
+
+    <cfparam name="args.headline" field="news.label" />
+
+You can use the same technique to do aggregate fields and any other SQL select goodness that you want:
+
+.. code-block:: cfm
+
+    <cfparam name="args.headline"      field="news.label" />
+    <cfparam name="args.comment_count" field="Count( comments.id )" />
+
+Getting fields from other objects
+.................................
+
+For one to many style relationships, where your object is the many side, you can easily select fields from the related object using the :code:`field` attribute shown above. Simply prefix the column name with the name of the foreign key field on your object. For example, if our **news** object has a single **news_category** field that is a foreign key to a category lookup, we could get the title of the category with:
+
+.. code-block:: cfm
+
+    <cfparam name="args.headline" field="news.label" />
+    <cfparam name="args.category" field="news_category.label" />
+
+Front end editing
+.................
+
+If you would like a field to be editable in the front end website, you can set the :code:`editable` attribute to **true**:
+
+.. code-block:: cfm
+
+    <cfparam name="args.label" editable="true" />
+
+Accepting arguments that do not come from the database
+......................................................
+
+Your view may need some variables that do not come from the database. For example, in the code below, the view is being passed the :code:`showComments` argument that does not exist in the database.
+
+.. code-block:: cfm
+
+    #renderView( view="myview", presideObject="news", args={ showComments=false } )#
+
+To allow this to work, you can specify :code:`field="false"`, so:
+
+.. code-block:: cfm
+
+    <cfparam name="args.headline"     field="news.label" />
+    <cfparam name="args.category"     field="news_category.label" />
+    <cfparam name="args.showComments" field="false" type="boolean" />
+
+Defining renderers
+..................
+
+Each of the fields fetch from the database for your view will be pre-rendered using the default renderer for that field. So fields that use a richeditor will have their Widgets and embedded assets all ready rendered for you. To specify a different renderer, or to specify renderers on calculated fields, do:
+
+.. code-block:: cfm
+
+    <cfparam name="args.comment_count" field="Count( comments.id )" renderer="myNumberFormatter" />
+
+
+
+
