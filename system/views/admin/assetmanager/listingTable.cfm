@@ -22,7 +22,7 @@
 </cfscript>
 
 <cfoutput>
-	<table id="asset-listing-table" class="table table-striped table-bordered table-hover asset-listing-table">
+	<table id="asset-listing-table" class="table table-hover asset-listing-table">
 		<thead>
 			<tr>
 				<th>&nbsp;</th>

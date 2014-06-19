@@ -25,7 +25,7 @@
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 
-		<table id="object-listing-table-#LCase( args.objectName )#" class="table table-striped table-bordered table-hover object-listing-table">
+		<table id="object-listing-table-#LCase( args.objectName )#" class="table table-hover object-listing-table">
 			<thead>
 				<tr>
 					<cfif args.useMultiActions>
