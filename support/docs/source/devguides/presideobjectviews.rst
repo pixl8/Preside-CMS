@@ -1,6 +1,9 @@
 Preside Data Object Views
 =========================
 
+Overview
+--------
+
 PresideCMS provides a feature that allows you to autowire your data model to your views, completely bypassing hand written handlers and service layer objects. Rendering one of these views looks like this:
 
 .. code-block:: cfm

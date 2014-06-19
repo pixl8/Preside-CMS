@@ -1,15 +1,6 @@
 Routing
 =======
 
-* `Overview`_
-* `Creating custom routes`_
-    * `PresideCMS Route Handlers`_
-* `URL Rewriting`_
-* `Out-of-the-box routes`_
-    * `Site tree pages`_
-    * `PresideCMS Admin pages and actions`_
-    * `Asset manager assets`_
-
 Overview
 ########
 

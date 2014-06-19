@@ -1,6 +1,9 @@
 Working with the richeditor
 ===========================
 
+Overview
+########
+
 PresideCMS uses CKEditor_ for its richeditor.
 
 Beyond the standard install, PresideCMS provides custom plugins to interact with the CMS such as inserting images and documents from the Asset Manager, linking to pages in the site tree, etc. It also allows you to customize and configure the editor from your CFML code.

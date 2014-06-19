@@ -33,11 +33,9 @@
 
   {% endif %}
 
-  {# RTD hosts this file, so just load on non RTD builds #}
-  {% if not READTHEDOCS %}
-    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
-  {% endif %}
+  <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
 
+  {% set css_files = css_files + ["_static/css/page-toc.css"] %}
   {% for cssfile in css_files %}
     <link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
   {% endfor %}
@@ -113,6 +111,9 @@
           {% include "breadcrumbs.html" %}
           <div role="main">
             {% block body %}{% endblock %}
+          </div>
+          <div role="navigation" id="page-toc">
+            {{ toc }}
           </div>
           {% include "footer.html" %}
         </div>

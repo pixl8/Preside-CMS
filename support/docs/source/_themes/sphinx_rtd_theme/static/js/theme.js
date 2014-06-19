@@ -11,9 +11,15 @@ $( document ).ready(function() {
     });
     $(document).on('click', "[data-toggle='rst-current-version']", function() {
       $("[data-toggle='rst-versions']").toggleClass("shift-up");
-    });  
+    });
     // Make tables responsive
     $("table.docutils:not(.field-list)").wrap("<div class='wy-table-responsive'></div>");
+
+    // crazy TOC hack
+    var $pageToc   = $( '#page-toc' )
+      , $pageTitle = $pageToc.prev().find( "h1:first" );
+
+    $pageToc.insertAfter( $pageTitle );
 });
 
 window.SphinxRtdTheme = (function (jquery) {
