@@ -156,6 +156,47 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="recordHistory" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object     = rc.object ?: "";
+			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var recordId   = rc.id     ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
+
+			if ( !presideObjectService.objectIsVersioned( object ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( not prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+			prc.record = queryRowToStruct( prc.record );
+
+			// breadcrumb setup
+			_addObjectNameBreadCrumb( event, object );
+			if ( Len( Trim( prc.record.label ?: "" ) ) ) {
+				event.addAdminBreadCrumb(
+					  title = prc.record.label
+					, link  = event.buildAdminLink( linkto="datamanager.editRecord", querystring="id=#prc.record.id#&object=#object#" )
+				);
+			}
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
+				, link  = ""
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="deleteRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
@@ -368,6 +409,7 @@
 						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
+						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )
 						, objectName        = object
 					} ) );
 				}

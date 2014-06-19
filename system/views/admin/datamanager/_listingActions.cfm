@@ -1,6 +1,7 @@
 <cfparam name="args.viewRecordLink"    type="string" />
 <cfparam name="args.deleteRecordLink"  type="string" />
 <cfparam name="args.editRecordLink"    type="string" />
+<cfparam name="args.viewHistoryLink"   type="string" />
 <cfparam name="args.deleteRecordTitle" type="string" />
 <cfparam name="args.objectName"        type="string" />
 
@@ -28,7 +29,7 @@
 			</cfif>
 			<cfif hasPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ args.objectName ] )>
 				<li>
-					<a data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
+					<a data-context-key="h" href="#args.viewHistoryLink#">
 						<i class="fa fa-history"></i>
 						#translateResource( uri="cms:datatable.contextmenu.history" )#
 					</a>
