@@ -77,6 +77,30 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getRecordHistoryForAjaxDataTables" access="public" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+
+		<cfscript>
+			var objectName = rc.object ?: "";
+			var recordId   = rc.id     ?: "";
+
+			_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+			runEvent(
+				  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object     = objectName
+					, recordId   = recordId
+					, gridFields = ( rc.gridFields ?: 'datemodified,label' )
+				}
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getObjectRecordsForAjaxSelectControl" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -180,17 +204,9 @@
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
-			prc.record  = queryRowToStruct( prc.record );
-			prc.history = presideObjectService.getRecordVersions( objectName=object, id=id );
 
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );
-			if ( Len( Trim( prc.record.label ?: "" ) ) ) {
-				event.addAdminBreadCrumb(
-					  title = prc.record.label
-					, link  = event.buildAdminLink( linkto="datamanager.editRecord", querystring="id=#prc.record.id#&object=#object#" )
-				);
-			}
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
 				, link  = ""
@@ -419,6 +435,55 @@
 			if ( useMultiActions ) {
 				QueryAddColumn( records, "_checkbox", checkboxCol );
 				ArrayPrepend( gridFields, "_checkbox" );
+			}
+
+			QueryAddColumn( records, "_options" , optionsCol );
+			ArrayAppend( gridFields, "_options" );
+
+			event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getRecordHistoryForAjaxDataTables" access="private" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label' )#" />
+		<cfargument name="actionsView"     type="string"  required="false" default="" />
+
+		<cfscript>
+			gridFields = ListToArray( gridFields );
+
+			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var optionsCol          = [];
+			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+			var results             = dataManagerService.getRecordHistoryForGridListing(
+				  objectName  = object
+				, recordId    = recordId
+				, gridFields  = gridFields
+				, startRow    = dtHelper.getStartRow()
+				, maxRows     = dtHelper.getMaxRows()
+				, orderBy     = dtHelper.getSortOrder()
+				, searchQuery = dtHelper.getSearchQuery()
+			);
+			var records = Duplicate( results.records );
+
+			for( var record in records ){
+				for( var field in gridFields ){
+					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], "adminDataTable" );
+				}
+
+				if ( Len( Trim( actionsView ) ) ) {
+					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
+				} else {
+					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
+						  objectName = object
+						, recordId   = recordId
+						, editRecordLink = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
+					} ) );
+				}
 			}
 
 			QueryAddColumn( records, "_options" , optionsCol );

@@ -581,12 +581,16 @@ component output=false {
 	}
 
 	public query function getRecordVersions( required string objectName, required string id ) output=false {
-		return selectData(
+		var args = Duplicate( arguments );
+
+		args.append( {
 			  objectName   = getVersionObjectName( arguments.objectName )
 			, id           = arguments.id
 			, orderBy      = "_version_number desc"
 			, useCache     = false
-		);
+		} );
+
+		return selectData( argumentCollection = args );
 	}
 
 	public struct function getDeNormalizedManyToManyData(
