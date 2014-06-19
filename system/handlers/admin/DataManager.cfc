@@ -180,7 +180,8 @@
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
-			prc.record = queryRowToStruct( prc.record );
+			prc.record  = queryRowToStruct( prc.record );
+			prc.history = presideObjectService.getRecordVersions( objectName=object, id=id );
 
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );

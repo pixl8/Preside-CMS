@@ -583,9 +583,9 @@ component output=false {
 	public query function getRecordVersions( required string objectName, required string id ) output=false {
 		return selectData(
 			  objectName   = getVersionObjectName( arguments.objectName )
-			, selectFields = [ "_version_number", "datecreated" ]
 			, id           = arguments.id
 			, orderBy      = "_version_number desc"
+			, useCache     = false
 		);
 	}
 
