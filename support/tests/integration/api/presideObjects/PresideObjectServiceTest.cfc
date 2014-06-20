@@ -2501,7 +2501,7 @@ test04
 			var versions = poService.getRecordVersions( objectName="a_category_object", id=id );
 
 			super.assertEquals( 5, versions.recordCount );
-			super.assertEquals( "_version_number,datecreated", versions.columnList );
+			super.assertEquals( "id,label,datecreated,datemodified,_version_number", versions.columnList );
 			for( var i=1; i <= versions.recordCount; i++ ) {
 				super.assertEquals( 6-i, versions._version_number[i] );
 			}

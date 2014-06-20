@@ -581,7 +581,11 @@ component output=false {
 	}
 
 	public query function getRecordVersions( required string objectName, required string id ) output=false {
-		var args = Duplicate( arguments );
+		var args = {};
+
+		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
+			args[ key ] = arguments[ key ];
+		}
 
 		args.append( {
 			  objectName   = getVersionObjectName( arguments.objectName )
