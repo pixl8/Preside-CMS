@@ -2,23 +2,69 @@
 	var $adminBar       = $( "#preside-admin-toolbar" )
 	  , $body           = $( 'body' )
 	  , $editors        = $( ".content-editor" )
+	  , dummyDivs       = []
 	  , currentEditMode = false
-	  , setEditorSizes
+	  , setEditorSizesAndPosition
+	  , removeDummyDivs
 	  , setEditMode
 	  , togglePageEditMode;
 
-	setEditorSizes = function(){
+	setEditorSizesAndPosition = function(){
 		$editors.each( function(){
-			var $editor  = $( this )
-			  , $overlay = $editor.find( ".content-editor-overlay .inner" );
+			var $editor           = $( this )
+			  , $overlay          = $editor.find( ".content-editor-overlay .inner" )
+			  , $contentContainer = $editor.data( "parent" )
+			  , editorId          = $editor.attr( "id" )
+			  , startComment      = "container: " + editorId
+			  , endComment        = "!" + startComment
+			  , position          = {}
+			  , $before           = $( "<div></div>" )
+			  , $after            = $( "<div></div>" )
+			  , $endComment;
 
-			$overlay.width( $editor.outerWidth( true ) );
-			$overlay.height( $editor.outerHeight( true ) );
+			if ( typeof $contentContainer !== "undefined" ) {
+				$contentContainer.contents().filter( function(){ return this.nodeType === 8; } ).each( function(){
+					if ( $.trim( this.nodeValue ) === startComment ) {
+						$( this ).before( $before );
+					} else if ( $.trim( this.nodeValue ) === endComment ) {
+						$endComment = $( this );
+						$endComment.after( $after );
+					}
+				} );
 
-			if ( $overlay.height() < 60 ) {
-				$overlay.height( 60 );
+				position.width  = $before.width();
+				position.top    = $before.offset().top + $before.height();
+				position.left   = $before.offset().left;
+				position.height = $after.offset().top - position.top;
+
+				if ( position.height < 25 ) {
+					dummyDivs.push( $( "<div></div>" ).height( 25 - position.height ) );
+					$endComment.before( dummyDivs[ dummyDivs.length-1 ] );
+					position.height = 25;
+				}
+
+				$before.remove();
+				$after.remove();
+
+				$editor.css( {
+					  top  : position.top  + "px"
+					, left : position.left + "px"
+				} );
+				$editor.width( position.width );
+				$editor.height( position.height );
+
+				$overlay.width( $editor.outerWidth( true ) );
+				$overlay.height( $editor.outerHeight( true ) );
+
 			}
 		} );
+	};
+
+	removeDummyDivs = function(){
+		while( dummyDivs.length ) {
+			try { dummyDivs[0].remove(); } catch(e){}
+			dummyDivs.shift();
+		}
 	};
 
 	setEditMode = function( mode ){
@@ -26,9 +72,10 @@
 
 		if ( mode ) {
 			$body.addClass( "show-frontend-editors" );
-			setEditorSizes();
+			setEditorSizesAndPosition();
 		} else {
 			$body.removeClass( "show-frontend-editors" );
+			removeDummyDivs();
 		}
 
 		$.cookie( "_presideEditMode", mode ? "true" : "false" );
@@ -57,11 +104,11 @@
 	} );
 
 	$( window ).resize( function(){
-		setEditorSizes();
+		setEditorSizesAndPosition();
 	} );
 
 	setInterval( function(){
-		if ( currentEditMode ) { setEditorSizes(); }
+		if ( currentEditMode ) { setEditorSizesAndPosition(); }
 	}, 200 );
 
 	if ( typeof $.cookie( "_presideEditMode" ) !== "undefined" ) {
@@ -104,7 +151,7 @@
 			  , $form              = $editorContainer.find( "form" )
 			  , $contentInput      = $form.find( "[name=content]" )
 			  , $drafttextarea     = $editorContainer.find( "textarea[name=draftContent]" )
-			  , $contentArea       = $editor.find( ".content-editor-content" )
+			  , $editorParent      = $editor.parent()
 			  , $notificationsArea = $editor.find( ".content-editor-editor-notifications" )
 			  , isRichEditor       = $editor.hasClass( "richeditor" )
 			  , saveAction         = $form.attr( "action" )
@@ -116,8 +163,10 @@
 			  , autoSaveInterval   = 1500 // auto save draft 1.5 seconds after typing stopped
 			  , autoSaveTimeout    = null
 			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
-			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl;
+			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent;
 
+			$editor.appendTo( 'body' ); // shove the entire editor markup to the end of the body, avoiding issues with interfering with page layout
+			$editor.data( "parent", $editorParent );
 			$editorContainer.appendTo( 'body' ); // make its absolute position relative to the body
 
 			toggleEditMode = function( editMode ){
@@ -143,7 +192,7 @@
 					$editorContainer.removeClass( "edit-active" );
 					$body.removeClass( "frontend-editors-editing" );
 				}
-				setEditorSizes();
+				setEditorSizesAndPosition();
 			};
 
 			setupCkEditor = function(){
@@ -264,6 +313,34 @@
 				}
 			};
 
+			setContent = function( content ){
+				var nodes        = $editorParent.contents()
+				  , editorId     = $editor.attr( "id" )
+			  	  , startComment = "container: " + editorId
+			  	  , endComment   = "!" + startComment
+				  , i=0, nNodes=nodes.length, started=false, n, $startComment;
+
+				for( ; i < nNodes; i++ ){
+					n = nodes[i];
+					if ( !started && n.nodeType === 8 && $.trim( n.nodeValue ) === startComment ) {
+						started=true;
+						$startComment = $( n );
+						continue;
+					}
+					if ( started ) {
+						if ( n.nodeType === 8 && $.trim( n.nodeValue ) === endComment ) {
+							break;
+						}
+
+						$( n ).remove();
+					}
+				}
+
+				if ( typeof $startComment !== "undefined" ) {
+					$startComment.after( content );
+				}
+			};
+
 			saveContent = function( options ){
 				var formData, content;
 
@@ -299,7 +376,7 @@
 							notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.saved.draft.notification", { data : [ $.dateformat.date( new Date(), "HH:mm:ss" ) ] } ) );
 						} else {
 							originalValue = content;
-							$contentArea.html( data.rendered );
+							setContent( data.rendered );
 							toggleEditMode( false );
 							if ( isRichEditor ) {
 								clearLocalDraft();
@@ -407,8 +484,8 @@
 			$editorContainer.on( "click", ".editor-btn-draft", function( e ){
 				e.preventDefault();
 				saveContent( {
-					  draft     : true
-					, url : saveDraftAction
+					  draft : true
+					, url   : saveDraftAction
 				} );
 			} );
 

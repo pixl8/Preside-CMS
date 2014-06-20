@@ -12,18 +12,6 @@ i.e.
 
 	/preside/support/build/>ant install-preside-deps
 
-.. note::
-
-	You may need to stop the Railo service / daemon before performing a clean. This is due to certain .jar files getting locked
-
-
-What dependencies do we pull down?
-----------------------------------
-
-This build file will pull down CfStatic_, ColdBox_ and a configuration of CKEditor_ specific to Preside.
-
-
-
 
 .. _`GitHub repository`: http://github.com/pixl8/Preside-CMS
 .. _`fork it`: https://guides.github.com/activities/forking/

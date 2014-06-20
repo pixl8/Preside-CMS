@@ -4,6 +4,7 @@
 	param name="args.multiActionUrl"  type="string" default="";
 	param name="args.datasourceUrl"   type="string" default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#" );
 	param name="args.gridFields"      type="array";
+	param name="args.allowSearch"     type="boolean" default=true;
 
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
@@ -15,6 +16,7 @@
 		  objectName      = args.objectName
 		, datasourceUrl   = args.datasourceUrl
 		, useMultiActions = args.useMultiActions
+		, allowSearch     = args.allowSearch
 	} );
 </cfscript>
 
@@ -25,7 +27,7 @@
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
 
-		<table id="object-listing-table-#LCase( args.objectName )#" class="table table-striped table-bordered table-hover object-listing-table">
+		<table id="object-listing-table-#LCase( args.objectName )#" class="table table-hover object-listing-table">
 			<thead>
 				<tr>
 					<cfif args.useMultiActions>

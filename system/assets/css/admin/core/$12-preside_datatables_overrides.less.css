@@ -12,6 +12,28 @@
   line-height: 24px;
   margin-left: 3px;
 }
+.dataTables_wrapper .row:first-child + .dataTable {
+  border-top: none !important;
+}
 .dataTables_wrapper .dataTables_processing {
   display: none;
+}
+.dataTables_wrapper .dataTable th {
+  background-image: none !important;
+}
+.dataTables_wrapper .dataTable th.sorting:after {
+  content: none;
+}
+.dataTables_wrapper .dataTable th.sorting-asc:after {
+  content: "\f0de";
+}
+.dataTables_wrapper .dataTable th.sorting-desc:after {
+  content: "\f0dd";
+}
+.table thead tr {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+.table thead tr th {
+  border-top: none !important;
 }

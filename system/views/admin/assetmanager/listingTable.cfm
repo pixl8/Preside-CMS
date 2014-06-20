@@ -7,22 +7,22 @@
 
 	permissionContext   = prc.permissionContext ?: [];
 
-	folders = renderPresideObjectView(
-		  object  = "asset_folder"
-		, view    = "browserListing"
-		, filter  = { parent_folder = activeFolder }
-		, orderBy = "label asc"
+	folders = renderView(
+		  view           = "admin/assetManager/_folderBrowserListing"
+		, presideObject  = "asset_folder"
+		, filter         = { parent_folder = activeFolder }
+		, orderBy        = "label asc"
 	);
-	assets = renderPresideObjectView(
-		  object  = "asset"
-		, view    = "browserListing"
-		, filter  = { asset_folder = activeFolder }
-		, orderBy = "label asc"
+	assets = renderView(
+		  view           = "admin/assetManager/_assetBrowserListing"
+		, presideObject  = "asset"
+		, filter         = { asset_folder = activeFolder }
+		, orderBy        = "label asc"
 	);
 </cfscript>
 
 <cfoutput>
-	<table id="asset-listing-table" class="table table-striped table-bordered table-hover asset-listing-table">
+	<table id="asset-listing-table" class="table table-hover asset-listing-table">
 		<thead>
 			<tr>
 				<th>&nbsp;</th>
@@ -39,7 +39,7 @@
 		</thead>
 		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
 			<cfif activeFolder neq rootFolder>
-				#renderPresideObjectView( object="asset_folder", view="browserListingUpOneLevel", id=activeFolder )#
+				#renderView( view="admin/assetManager/_folderBrowserListingUpOneLevel", presideObject="asset_folder", id=activeFolder )#
 			</cfif>
 			#folders#
 			#assets#

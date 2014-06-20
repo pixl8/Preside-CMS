@@ -20,7 +20,41 @@
 		}
 	}
 
+	.row:first-child+.dataTable {
+		border-top : none !important;
+	}
+
 	.dataTables_processing {
 		display : none;
+	}
+
+	.dataTable {
+		th{
+			background-image : none !important;
+
+			&.sorting:after {
+				content : none;
+			}
+
+			&.sorting-asc:after {
+				content : "\f0de";
+			}
+			&.sorting-desc:after {
+				content : "\f0dd";
+			}
+		}
+	}
+}
+
+.table {
+	thead {
+		tr {
+			background-image : none !important;
+			background-color : transparent !important;
+
+			th {
+				border-top : none !important;
+			}
+		}
 	}
 }

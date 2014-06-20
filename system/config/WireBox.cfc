@@ -74,7 +74,7 @@
 			.initArg( name="presideObjectService"  , ref="PresideObjectService" )
 			.initArg( name="presideContentRenderer", ref="contentRenderer" )
 			.initArg( name="coldboxRenderer"       , dsl="coldbox:plugin:renderer" )
-			.initArg( name="viewDirectories"       , value=_getApplicationDirectories( "/views/" ) );
+			.initArg( name="cacheProvider"         , dsl="cachebox:PresideObjectViewCache" )
 
 	// route handlers
 		map( "adminRouteHandler" ).asSingleton().to( "preside.system.routeHandlers.AdminRouteHandler" ).noAutowire()

@@ -32,8 +32,8 @@
   top: 0;
   right: 0;
   background-color: #fff;
-  font-size: 15px;
-  padding: 10px;
+  font-size: 12px;
+  padding: 3px 5px;
   font-family: "Open Sans";
   border: 1px dashed #ccc;
   cursor: pointer;
@@ -44,8 +44,7 @@
   display: none;
 }
 .show-frontend-editors .content-editor {
-  position: relative;
-  min-height: 60px;
+  position: absolute;
 }
 .show-frontend-editors .content-editor .content-editor-overlay {
   left: 0;

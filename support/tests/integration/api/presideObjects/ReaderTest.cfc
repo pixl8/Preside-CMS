@@ -275,6 +275,15 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test22_readObject_shouldSetManyToManyFieldsDbTypeToNone" returntype="void">
+		<cfscript>
+			var targetObject  = CreateObject( "tests.resources.presideObjectReader.object_with_many_to_many_field" );
+			var object        = getReader().readObject( targetObject );
+
+			super.assertEquals( "none", object.properties.dave.dbtype );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="getReader" access="private" returntype="any" output="false">
 		<cfargument name="dsn"         type="string" required="false" default="default_dsn" />

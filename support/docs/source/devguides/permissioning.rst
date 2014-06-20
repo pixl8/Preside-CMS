@@ -1,6 +1,9 @@
 Permissioning
 =============
 
+Overview
+########
+
 Permissioning is split into three distinct concepts in PresideCMS:
 
 Permissions and roles

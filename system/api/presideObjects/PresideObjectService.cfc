@@ -581,12 +581,20 @@ component output=false {
 	}
 
 	public query function getRecordVersions( required string objectName, required string id ) output=false {
-		return selectData(
+		var args = {};
+
+		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
+			args[ key ] = arguments[ key ];
+		}
+
+		args.append( {
 			  objectName   = getVersionObjectName( arguments.objectName )
-			, selectFields = [ "_version_number", "datecreated" ]
 			, id           = arguments.id
 			, orderBy      = "_version_number desc"
-		);
+			, useCache     = false
+		} );
+
+		return selectData( argumentCollection = args );
 	}
 
 	public struct function getDeNormalizedManyToManyData(

@@ -11,6 +11,7 @@
 	#renderView( view="/admin/datamanager/_editRecordForm", args={
 		  object        = ( rc.object  ?: "" )
 		, id            = ( rc.id      ?: "" )
+		, version       = ( rc.version ?: "" )
 		, record        = ( prc.record ?: {} )
 		, useVersioning = ( prc.useVersioning ?: false )
 	} )#

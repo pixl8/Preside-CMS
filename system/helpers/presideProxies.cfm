@@ -14,6 +14,18 @@
 	</cffunction>
 
 <!--- rendering --->
+	<cffunction name="renderView" access="public" returntype="any" output="false">
+		<cfscript>
+			if ( Len( Trim( arguments.presideObject ?: "" ) ) ) {
+				return getController().getWireBox().getInstance( "presideObjectViewService" ).renderView(
+					argumentCollection = arguments
+				);
+			}
+
+			return getController().getPlugin( "renderer" ).renderView( argumentCollection=arguments );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="renderViewlet" access="public" returntype="any" output="false">
 		<cfreturn getController().renderViewlet( argumentCollection = arguments ) />
 	</cffunction>
@@ -24,10 +36,6 @@
 
 	<cffunction name="renderField" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "contentRenderer" ).renderField( argumentCollection = arguments ) />
-	</cffunction>
-
-	<cffunction name="renderPresideObjectView" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "presideObjectViewService" ).renderView( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">

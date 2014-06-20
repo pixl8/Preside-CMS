@@ -109,6 +109,38 @@ component output="false" extends="preside.system.base.Service" {
 		return result;
 	}
 
+	public struct function getRecordHistoryForGridListing(
+		  required string  objectName
+		, required string  recordId
+		, required array   gridFields
+		,          numeric startRow    = 1
+		,          numeric maxRows     = 10
+		,          string  orderBy     = ""
+	) output=false {
+		var result = { totalRecords = 0, records = "" };
+		var args   = {
+			  objectName       = arguments.objectName
+			, id               = arguments.recordId
+			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName, true )
+			, startRow         = arguments.startRow
+			, maxRows          = arguments.maxRows
+			, orderBy          = arguments.orderBy
+		};
+
+		result.records = _getPresideObjectService().getRecordVersions( argumentCollection = args );
+
+		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+			result.totalRecords = result.records.recordCount;
+		} else {
+			result.totalRecords = _getPresideObjectService().getRecordVersions(
+				  objectName       = arguments.objectName
+				, selectFields     = [ "count( * ) as nRows" ]
+			).nRows;
+		}
+
+		return result;
+	}
+
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName
 		,          array   ids          = []
@@ -173,7 +205,7 @@ component output="false" extends="preside.system.base.Service" {
 	}
 
 // PRIVATE HELPERS
-	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName ) output=false {
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
 		var sqlFields    = Duplicate( arguments.gridFields );
 		var field        = "";
 		var i            = "";
@@ -208,7 +240,15 @@ component output="false" extends="preside.system.base.Service" {
 				break;
 
 				default:
-					sqlFields[i] = arguments.objectName & "." & field;
+					if ( !versionTable ) {
+						sqlFields[i] = arguments.objectName & "." & field;
+					} else {
+						sqlFields[i] = "vrsn_" & arguments.objectName & "." & field;
+					}
+			}
+
+			if ( arguments.versionTable ) {
+				sqlFields.append( "vrsn_" & arguments.objectName & "._version_number" );
 			}
 		}
 

@@ -77,6 +77,30 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getRecordHistoryForAjaxDataTables" access="public" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+
+		<cfscript>
+			var objectName = rc.object ?: "";
+			var recordId   = rc.id     ?: "";
+
+			_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+			runEvent(
+				  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object     = objectName
+					, recordId   = recordId
+					, gridFields = ( rc.gridFields ?: 'datemodified,label' )
+				}
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getObjectRecordsForAjaxSelectControl" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -153,6 +177,40 @@
 
 			// temporary redirect to edit record (we haven't implemented view record yet!)
 			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="id=#recordId#&object=#objectName#" ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="recordHistory" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object     = rc.object ?: "";
+			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var recordId   = rc.id     ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
+
+			if ( !presideObjectService.objectIsVersioned( object ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNot.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( not prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			// breadcrumb setup
+			_addObjectNameBreadCrumb( event, object );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.recordhistory.breadcrumb.title" )
+				, link  = ""
+			);
 		</cfscript>
 	</cffunction>
 
@@ -244,8 +302,9 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object     = rc.object ?: "";
-			var id         = rc.id     ?: "";
+			var object     = rc.object  ?: "";
+			var id         = rc.id      ?: "";
+			var version    = rc.version ?: "";
 			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var record     = "";
 
@@ -260,7 +319,12 @@
 			}
 
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
-			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( prc.useVersioning && Val( version ) ) {
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
+			} else {
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			}
+
 			if ( not prc.record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
@@ -368,6 +432,7 @@
 						, editRecordLink    = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordLink  = event.buildAdminLink( linkTo="datamanager.deleteRecordAction", queryString="object=#object#&id=#record.id#" )
 						, deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, record[ gridFields[1] ] ] )
+						, viewHistoryLink   = event.buildAdminLink( linkTo="datamanager.recordHistory", queryString="object=#object#&id=#record.id#" )
 						, objectName        = object
 					} ) );
 				}
@@ -376,6 +441,55 @@
 			if ( useMultiActions ) {
 				QueryAddColumn( records, "_checkbox", checkboxCol );
 				ArrayPrepend( gridFields, "_checkbox" );
+			}
+
+			QueryAddColumn( records, "_options" , optionsCol );
+			ArrayAppend( gridFields, "_options" );
+
+			event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getRecordHistoryForAjaxDataTables" access="private" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label' )#" />
+		<cfargument name="actionsView"     type="string"  required="false" default="" />
+
+		<cfscript>
+			gridFields = ListToArray( gridFields );
+
+			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var optionsCol          = [];
+			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+			var results             = dataManagerService.getRecordHistoryForGridListing(
+				  objectName  = object
+				, recordId    = recordId
+				, gridFields  = gridFields
+				, startRow    = dtHelper.getStartRow()
+				, maxRows     = dtHelper.getMaxRows()
+				, orderBy     = dtHelper.getSortOrder()
+				, searchQuery = dtHelper.getSearchQuery()
+			);
+			var records = Duplicate( results.records );
+
+			for( var record in records ){
+				for( var field in gridFields ){
+					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], "adminDataTable" );
+				}
+
+				if ( Len( Trim( actionsView ) ) ) {
+					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
+				} else {
+					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
+						  objectName = object
+						, recordId   = recordId
+						, editRecordLink = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
+					} ) );
+				}
 			}
 
 			QueryAddColumn( records, "_options" , optionsCol );
@@ -533,7 +647,8 @@
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
 
-			var id               = event.getValue( name="id", defaultValue="" );
+			var id               = rc.id      ?: "";
+			var version          = rc.version ?: "";
 			var formData         = event.getCollectionForForm( formName );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var obj              = "";
@@ -561,7 +676,7 @@
 				if ( Len( errorAction ?: "" ) ) {
 					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
 				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ), persistStruct=persist );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", querystring="id=#id#&object=#object#&version=#version#" ), persistStruct=persist );
 				}
 			}
 

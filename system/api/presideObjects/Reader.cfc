@@ -165,6 +165,10 @@ component output=false {
 
 		if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
 			prop.relatedTo = prop.name;
+
+			if ( prop.relationship == "many-to-many" ) {
+				prop.dbtype = "none";
+			}
 		}
 
 		StructDelete( prop, "name" );

@@ -39,6 +39,8 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/preside.loading.sheen.js'
 					, 'js/admin/presidecore/preside.url.builder.js'
 					, 'js/admin/presidecore/preside.validation.defaults.js'
+					, 'js/admin/presidecore/*.js'
+					, '!js/admin/presidecore/_*.min.js'
 				],
 				dest: 'js/admin/presidecore/_presidecore.min.js'
 			},

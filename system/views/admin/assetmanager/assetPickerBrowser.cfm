@@ -7,11 +7,11 @@
 		activeFolder = rootFolder;
 	}
 
-	folders = renderPresideObjectView(
-		  object  = "asset_folder"
-		, view    = "pickerBrowserListing"
-		, filter  = { parent_folder = activeFolder }
-		, orderBy = "label asc"
+	folders = renderView(
+		  view           = "admin/assetManager/_folderBrowserListingForPicker"
+		, presideObject  = "asset_folder"
+		, filter         = { parent_folder = activeFolder }
+		, orderBy        = "label asc"
 	);
 
 
@@ -19,11 +19,11 @@
 	if ( allowedTypes.len() ){
 		assetFilter.asset_type = allowedTypes;
 	}
-	assets = renderPresideObjectView(
-		  object  = "asset"
-		, view    = "pickerBrowserListing"
-		, filter  = assetFilter
-		, orderBy = "label asc"
+	assets = renderView(
+		  view           = "admin/assetManager/_assetBrowserListingForPicker"
+		, presideObject  = "asset"
+		, filter         = assetFilter
+		, orderBy        = "label asc"
 	);
 
 	multiple = IsBoolean( rc.multiple ?: "" ) && rc.multiple;
@@ -40,7 +40,7 @@
 		</thead>
 		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
 			<cfif activeFolder neq rootFolder>
-				#renderPresideObjectView( object="asset_folder", view="pickerBrowserListingUpOneLevel", id=activeFolder )#
+				#renderView( view="admin/assetManager/_folderBrowserListingUpOneLevelForPicker", presideObject="asset_folder", id=activeFolder )#
 			</cfif>
 			#folders#
 			#assets#

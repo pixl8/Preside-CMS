@@ -10,6 +10,7 @@
 	recordId        = args.recordId        ?: "";
 	pageId          = event.getCurrentPageId();
 	hasDraft        = Len( Trim( draftContent ) );
+	containerId     = "_" & Left( LCase( Hash( CreateUUId() ) ), 8 );
 
 	if ( not Len( Trim( label ) ) ) {
 		label = translateResource( uri="cms:frontendeditor.default.label", data=[ position ] );
@@ -20,15 +21,14 @@
 	<cfif not event.isAdminUser()>
 		#renderedContent#
 	<cfelse>
-		<div class="content-editor #LCase( control )#<cfif hasDraft> has-draft</cfif>">
+		<!-- container: #containerId# -->#Trim( renderedContent )#<!-- !container: #containerId# -->
+
+		<div class="content-editor #LCase( control )#<cfif hasDraft> has-draft</cfif>" id="#containerId#">
 			<div class="content-editor-overlay" title="#translateResource( 'cms:frontendeditor.overlay.hint' )#">
 				<div class="inner"></div>
 			</div>
 			<div class="content-editor-label">
 				#translateResource( label, property )# <span class="draft-warning">#translateResource( "cms:frontendeditor.draft.warning.label" )#</span>
-			</div>
-			<div class="content-editor-content">
-				#renderedContent#
 			</div>
 			<div class="content-editor-editor-container">
 				<form method="post"
