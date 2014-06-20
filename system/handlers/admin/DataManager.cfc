@@ -302,8 +302,9 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object     = rc.object ?: "";
-			var id         = rc.id     ?: "";
+			var object     = rc.object  ?: "";
+			var id         = rc.id      ?: "";
+			var version    = rc.version ?: "";
 			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var record     = "";
 
@@ -318,7 +319,12 @@
 			}
 
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
-			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( prc.useVersioning && Val( version ) ) {
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
+			} else {
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			}
+
 			if ( not prc.record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
@@ -641,7 +647,8 @@
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
 
-			var id               = event.getValue( name="id", defaultValue="" );
+			var id               = rc.id      ?: "";
+			var version          = rc.version ?: "";
 			var formData         = event.getCollectionForForm( formName );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var obj              = "";
@@ -669,7 +676,7 @@
 				if ( Len( errorAction ?: "" ) ) {
 					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
 				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ), persistStruct=persist );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", querystring="id=#id#&object=#object#&version=#version#" ), persistStruct=persist );
 				}
 			}
 
