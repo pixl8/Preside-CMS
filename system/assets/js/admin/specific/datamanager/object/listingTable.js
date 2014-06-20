@@ -10,6 +10,7 @@
 	  , setupCheckboxBehaviour
 	  , setupTableRowFocusBehaviour
 	  , object          = cfrequest.objectName || ""
+	  , allowSearch     = cfrequest.allowSearch
 	  , datasourceUrl   = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 	  , useMultiActions = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
 	  , object          = cfrequest.objectName || ""
@@ -45,6 +46,7 @@
 			bServerSide   : true,
 			bProcessing   : true,
 			bStateSave    : true,
+			bFilter       : allowSearch,
 			aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 			sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 			sAjaxSource   : datasourceUrl,

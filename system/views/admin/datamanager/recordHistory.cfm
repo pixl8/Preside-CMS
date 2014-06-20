@@ -13,5 +13,6 @@
 		  objectName    = object
 		, gridFields    = [ "datemodified", "label" ]
 		, datasourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#object#&id=#id#&action=dataManager.getRecordHistoryForAjaxDataTables&gridFields=datemodified,label" )
+		, allowSearch   = false
 	} )#
 </cfoutput>
