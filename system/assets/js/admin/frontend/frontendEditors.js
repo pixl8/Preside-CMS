@@ -37,10 +37,10 @@
 				position.left   = $before.offset().left;
 				position.height = $after.offset().top - position.top;
 
-				if ( position.height < 60 ) {
-					dummyDivs.push( $( "<div></div>" ).height( 60 - position.height ) );
+				if ( position.height < 25 ) {
+					dummyDivs.push( $( "<div></div>" ).height( 25 - position.height ) );
 					$endComment.before( dummyDivs[ dummyDivs.length-1 ] );
-					position.height = 60;
+					position.height = 25;
 				}
 
 				$before.remove();
