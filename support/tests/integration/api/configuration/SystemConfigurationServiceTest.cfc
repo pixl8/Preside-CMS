@@ -50,7 +50,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test05_saveSetting_shouldInsertANewDbRecord_whenNoExistingRecordExistsForTheGivenConfigKey() {
 		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
+			.$args( objectName="system_config", filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
 			.$results( QueryNew('id') );
 
 		mockPresideObjectService.$( "insertData", CreateUUId() );
@@ -66,13 +66,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, log.len() );
 		super.assertEquals( {
 			  objectName = "system_config"
-			, data       = { category="mycategory", label="mysetting", value="this is the value of my setting" }
+			, data       = { category="mycategory", setting="mysetting", value="this is the value of my setting" }
 		}, log[1] );
 	}
 
 	function test06_saveSetting_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
 		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
+			.$args( objectName="system_config", filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
 			.$results( QueryNew('id', "varchar", ["someid"] ) );
 
 		mockPresideObjectService.$( "insertData", CreateUUId() );
@@ -98,7 +98,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test07_getSetting_shouldReturnValueAsSavedInTheDatabaseForGivenCategoryAndSetting() {
 		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="somecategory", label="asetting" }, selectFields=["value"] )
+			.$args( objectName="system_config", filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 			.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
 
 		super.assertEquals( "this is the correct result", _getConfigSvc( testDirs ).getSetting(
@@ -109,7 +109,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test08_getSetting_shouldReturnPassedDefault_whenNoRecordExists() {
 		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="somecategory", label="asetting" }, selectFields=["value"] )
+			.$args( objectName="system_config", filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 			.$results( QueryNew('value') );
 
 		super.assertEquals( "defaultResult", _getConfigSvc( testDirs ).getSetting(

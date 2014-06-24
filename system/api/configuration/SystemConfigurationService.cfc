@@ -14,7 +14,7 @@ component output=false extends="preside.system.base.Service" {
 		var result = _getPresideObjectService().selectData(
 			  objectName = "system_config"
 			, selectFields = [ "value" ]
-			, filter       = { category = arguments.category, label = arguments.setting }
+			, filter       = { category = arguments.category, setting = arguments.setting }
 		);
 
 		if ( result.recordCount ) {
@@ -31,7 +31,7 @@ component output=false extends="preside.system.base.Service" {
 			var currentRecord = poService.selectData(
 				  objectName   = "system_config"
 				, selectFields = [ "id" ]
-				, filter       = { category = arguments.category, label = arguments.setting }
+				, filter       = { category = arguments.category, setting = arguments.setting }
 			);
 
 			if ( currentRecord.recordCount ) {
@@ -43,7 +43,7 @@ component output=false extends="preside.system.base.Service" {
 			} else {
 				return poService.insertData(
 					  objectName = "system_config"
-					, data       = { category = arguments.category, label = arguments.setting, value = arguments.value }
+					, data       = { category = arguments.category, setting = arguments.setting, value = arguments.value }
 				);
 			}
 		}
