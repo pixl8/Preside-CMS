@@ -10,6 +10,20 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 // PUBLIC API METHODS
+	public string function getSetting( required string category, required string setting, string default="" ) output=false {
+		var result = _getPresideObjectService().selectData(
+			  objectName = "system_config"
+			, selectFields = [ "value" ]
+			, filter       = { category = arguments.category, label = arguments.setting }
+		);
+
+		if ( result.recordCount ) {
+			return result.value;
+		}
+
+		return default;
+	}
+
 	public any function saveSetting( required string category, required string setting, required string value ) output=false  {
 		var poService = _getPresideObjectService();
 

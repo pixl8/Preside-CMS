@@ -70,7 +70,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		}, log[1] );
 	}
 
-
 	function test06_saveSetting_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
 		mockPresideObjectService.$( "selectData" )
 			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
@@ -96,6 +95,30 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, id         = "someid"
 		}, log[1] );
 	}
+
+	function test07_getSetting_shouldReturnValueAsSavedInTheDatabaseForGivenCategoryAndSetting() {
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="system_config", filter={ category="somecategory", label="asetting" }, selectFields=["value"] )
+			.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
+
+		super.assertEquals( "this is the correct result", _getConfigSvc( testDirs ).getSetting(
+			  category = "somecategory"
+			, setting  = "asetting"
+		) );
+	}
+
+	function test08_getSetting_shouldReturnPassedDefault_whenNoRecordExists() {
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="system_config", filter={ category="somecategory", label="asetting" }, selectFields=["value"] )
+			.$results( QueryNew('value') );
+
+		super.assertEquals( "defaultResult", _getConfigSvc( testDirs ).getSetting(
+			  category = "somecategory"
+			, setting  = "asetting"
+			, default  = "defaultResult"
+		) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[] ) ouput=false {
 		return new preside.system.api.configuration.SystemConfigurationService(
