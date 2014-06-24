@@ -19,3 +19,4 @@ Developer guides & recipes
    reloading
    cssandjs
    permissioning
+   systemsettings
