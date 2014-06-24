@@ -27,17 +27,17 @@ component output=false extends="preside.system.base.Service" {
 
 // PRIVATE HELPERS
 	private void function _autoDiscoverCategories() output=false {
-		var objectsPath             = "/preside-objects/system-config";
+		var objectsPath             = "/i18n/system-config";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
 
 		for( var dir in autoDiscoverDirectories ) {
 			dir   = ReReplace( dir, "/$", "" );
-			var objects = DirectoryList( dir & objectsPath, false, "query", "*.cfc" );
+			var objects = DirectoryList( dir & objectsPath, false, "query", "*.properties" );
 
 			for ( var obj in objects ) {
 				if ( obj.type eq "File" ) {
-					ids[ ReReplace( obj.name, "\.cfc$", "" ) ] = true;
+					ids[ ReReplace( obj.name, "\.properties$", "" ) ] = true;
 				}
 			}
 		}
@@ -55,7 +55,6 @@ component output=false extends="preside.system.base.Service" {
 			, name             = _getConventionsBaseCategoryName( arguments.id )
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, form             = _getConventionsBaseCategoryForm( arguments.id )
-			, presideObject    = _getConventionsBaseCategoryPresideObject( arguments.id )
 		);
 	}
 
@@ -67,9 +66,6 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private string function _getConventionsBaseCategoryForm( required string id ) output=false {
 		return "system-config.#arguments.id#";
-	}
-	private string function _getConventionsBaseCategoryPresideObject( required string id ) output=false {
-		return arguments.id;
 	}
 
 // GETTERS AND SETTERS

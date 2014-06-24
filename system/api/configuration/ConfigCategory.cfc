@@ -3,7 +3,6 @@ component output=false accessors=true {
 	property name="name"             type="string"  default="";
 	property name="description"      type="string"  default="";
 	property name="form"             type="string"  default="";
-	property name="presideObject"    type="string"  default="";
 
 	public struct function getMemento(){
 		return {
@@ -11,7 +10,6 @@ component output=false accessors=true {
 			, name             = getName()
 			, description      = getDescription()
 			, form             = getForm()
-			, presideObject    = getPresideObject()
 		};
 	}
 }
