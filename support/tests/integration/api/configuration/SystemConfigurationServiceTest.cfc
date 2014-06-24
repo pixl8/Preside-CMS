@@ -48,6 +48,54 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( errorThrown, "A suitable error was not thrown" );
 	}
 
+	function test05_saveConfig_shouldInsertANewDbRecord_whenNoExistingRecordExistsForTheGivenConfigKey() {
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
+			.$results( QueryNew('id') );
+
+		mockPresideObjectService.$( "insertData", CreateUUId() );
+
+		_getConfigSvc( testDirs ).saveConfig(
+			  category = "mycategory"
+			, setting  = "mysetting"
+			, value    = "this is the value of my setting"
+		);
+
+		var log = mockPresideObjectService.$callLog().insertData;
+
+		super.assertEquals( 1, log.len() );
+		super.assertEquals( {
+			  objectName = "system_config"
+			, data       = { category="mycategory", label="mysetting", value="this is the value of my setting" }
+		}, log[1] );
+	}
+
+
+	function test06_saveConfig_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
+			.$results( QueryNew('id', "varchar", ["someid"] ) );
+
+		mockPresideObjectService.$( "insertData", CreateUUId() );
+		mockPresideObjectService.$( "updateData", 1 );
+
+		_getConfigSvc( testDirs ).saveConfig(
+			  category = "mycategory"
+			, setting  = "mysetting"
+			, value    = "this is the value of my setting"
+		);
+
+		var log = mockPresideObjectService.$callLog().insertData;
+		super.assertEquals( 0, log.len() );
+
+		log = mockPresideObjectService.$callLog().updateData;
+		super.assertEquals( 1, log.len() );
+		super.assertEquals( {
+			  objectName = "system_config"
+			, data       = {  value="this is the value of my setting" }
+			, id         = "someid"
+		}, log[1] );
+	}
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[] ) ouput=false {
 		return new preside.system.api.configuration.SystemConfigurationService(

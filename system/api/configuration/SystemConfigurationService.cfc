@@ -2,6 +2,7 @@ component output=false extends="preside.system.base.Service" {
 
 // CONSTRUCTOR
 	public any function init( required array autoDiscoverDirectories ) output=false {
+		super.init( argumentCollection=arguments );
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		reload();
 
@@ -9,6 +10,31 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 // PUBLIC API METHODS
+	public any function saveConfig( required string category, required string setting, required string value ) output=false  {
+		var poService = _getPresideObjectService();
+
+		transaction {
+			var currentRecord = poService.selectData(
+				  objectName   = "system_config"
+				, selectFields = [ "id" ]
+				, filter       = { category = arguments.category, label = arguments.setting }
+			);
+
+			if ( currentRecord.recordCount ) {
+				return poService.updateData(
+					  objectName = "system_config"
+					, data       = { value = arguments.value }
+					, id         = currentRecord.id
+				);
+			} else {
+				return poService.insertData(
+					  objectName = "system_config"
+					, data       = { category = arguments.category, label = arguments.setting, value = arguments.value }
+				);
+			}
+		}
+	}
+
 	public array function listConfigCategories() output=false {
 		var categories = _getConfigCategories();
 		var result    = [];
