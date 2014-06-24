@@ -10,7 +10,7 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 // PUBLIC API METHODS
-	public any function saveConfig( required string category, required string setting, required string value ) output=false  {
+	public any function saveSetting( required string category, required string setting, required string value ) output=false  {
 		var poService = _getPresideObjectService();
 
 		transaction {

@@ -48,14 +48,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( errorThrown, "A suitable error was not thrown" );
 	}
 
-	function test05_saveConfig_shouldInsertANewDbRecord_whenNoExistingRecordExistsForTheGivenConfigKey() {
+	function test05_saveSetting_shouldInsertANewDbRecord_whenNoExistingRecordExistsForTheGivenConfigKey() {
 		mockPresideObjectService.$( "selectData" )
 			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
 			.$results( QueryNew('id') );
 
 		mockPresideObjectService.$( "insertData", CreateUUId() );
 
-		_getConfigSvc( testDirs ).saveConfig(
+		_getConfigSvc( testDirs ).saveSetting(
 			  category = "mycategory"
 			, setting  = "mysetting"
 			, value    = "this is the value of my setting"
@@ -71,7 +71,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 
-	function test06_saveConfig_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
+	function test06_saveSetting_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
 		mockPresideObjectService.$( "selectData" )
 			.$args( objectName="system_config", filter={ category="mycategory", label="mysetting" }, selectFields=["id"] )
 			.$results( QueryNew('id', "varchar", ["someid"] ) );
@@ -79,7 +79,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockPresideObjectService.$( "insertData", CreateUUId() );
 		mockPresideObjectService.$( "updateData", 1 );
 
-		_getConfigSvc( testDirs ).saveConfig(
+		_getConfigSvc( testDirs ).saveSetting(
 			  category = "mycategory"
 			, setting  = "mysetting"
 			, value    = "this is the value of my setting"
