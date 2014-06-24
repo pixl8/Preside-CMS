@@ -14,7 +14,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 // FIRST CLASS EVENTS
 	public any function category( event, rc, prc ) output=false {
-		prc.category            = systemConfigurationService.getConfigCategory( id = rc.id ?: "" );
+		try {
+			prc.category            = systemConfigurationService.getConfigCategory( id = rc.id ?: "" );
+		} catch( "SystemConfigurationService.category.notFound" e ) {
+			event.notFound();
+		}
 		prc.savedData           = systemConfigurationService.getCategorySettings( category = rc.id ?: "" );
 		prc.categoryName        = translateResource( uri=prc.category.getName(), defaultValue=prc.category.getId() );
 		prc.categoryDescription = translateResource( uri=prc.category.getDescription(), defaultValue="" );
