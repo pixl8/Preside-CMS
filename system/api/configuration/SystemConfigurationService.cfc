@@ -24,6 +24,21 @@ component output=false extends="preside.system.base.Service" {
 		return default;
 	}
 
+	public struct function getCategorySettings( required string category ) output=false {
+		var rawResult = _getPresideObjectService().selectData(
+			  objectName = "system_config"
+			, selectFields = [ "setting", "value" ]
+			, filter       = { category = arguments.category }
+		);
+		var result = {};
+
+		for( var record in rawResult ){
+			result[ record.setting ] = record.value;
+		}
+
+		return result;
+	}
+
 	public any function saveSetting( required string category, required string setting, required string value ) output=false  {
 		var poService = _getPresideObjectService();
 

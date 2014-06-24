@@ -119,6 +119,18 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		) );
 	}
 
+	function test09_getCategorySettings_shouldReturnAStructureOfAllSavedSettingsForAGivenCategory() {
+		mockPresideObjectService.$( "selectData" )
+			.$args( objectName="system_config", selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
+			.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
+
+		super.assertEquals( {
+			  setting1 = "value1"
+			, setting2 = "value2"
+			, setting3 = "value3"
+		}, _getConfigSvc().getCategorySettings( category="mycategory" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[] ) ouput=false {
 		return new preside.system.api.configuration.SystemConfigurationService(
