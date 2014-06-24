@@ -99,17 +99,17 @@ component output=false extends="preside.system.base.Service" {
 
 // PRIVATE HELPERS
 	private void function _autoDiscoverCategories() output=false {
-		var objectsPath             = "/i18n/system-config";
+		var objectsPath             = "/forms/system-config";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
 
 		for( var dir in autoDiscoverDirectories ) {
 			dir   = ReReplace( dir, "/$", "" );
-			var objects = DirectoryList( dir & objectsPath, false, "query", "*.properties" );
+			var objects = DirectoryList( dir & objectsPath, false, "query", "*.xml" );
 
 			for ( var obj in objects ) {
 				if ( obj.type eq "File" ) {
-					ids[ ReReplace( obj.name, "\.properties$", "" ) ] = true;
+					ids[ ReReplace( obj.name, "\.xml$", "" ) ] = true;
 				}
 			}
 		}
