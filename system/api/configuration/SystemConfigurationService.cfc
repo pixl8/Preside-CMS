@@ -20,6 +20,23 @@ component output=false extends="preside.system.base.Service" {
 		return result;
 	}
 
+	public ConfigCategory function getConfigCategory( required string id ) output=false {
+		var categories = _getConfigCategories();
+
+		if ( categories.keyExists( arguments.id ) ) {
+			return categories[ arguments.id ];
+		}
+
+		categories = categories.keyArray();
+		categories.sort( "textnocase" );
+		categories = SerializeJson( categories );
+
+		throw(
+			  type    = "SystemConfigurationService.category.notFound"
+			, message = "The configuration category [#arguments.id#] could not be found. Configured categories are: #categories#"
+		);
+	}
+
 	public void function reload() output=false {
 		_setConfigCategories({});
 		_autoDiscoverCategories();
