@@ -133,6 +133,10 @@
 		map( "ckeditorToolbarHelper" ).asSingleton().to( "preside.system.api.admin.CkEditorToolbarHelper" ).noAutowire()
 			.initArg( name="configuredToolbars", value=settings.ckeditor.toolbars ?: {} );
 
+		 map( "systemConfigurationService" ).asSingleton().to( "preside.system.api.configuration.SystemConfigurationService" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="autoDiscoverDirectories", value = _getApplicationDirectories()  );
+
+
 	// globally used services
 		map( "validationEngine" ).asSingleton().to( "preside.system.api.validation.ValidationEngine" ).parent( "baseService" ).noAutoWire();
 
