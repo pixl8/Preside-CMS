@@ -1,8 +1,28 @@
-component extends="preside.system.base.Service" output=false {
+component singleton=true output=false {
 
 // CONSTRUCTOR
-	public any function init( required any storageProvider, required any temporaryStorageProvider, required any assetTransformer, configuredDerivatives={}, struct configuredTypesByGroup={} ) output=false {
-		super.init( argumentCollection = arguments );
+	/**
+	 * @storageProvider.inject          assetStorageProvider
+	 * @temporaryStorageProvider.inject tempStorageProvider
+	 * @assetTransformer.inject         AssetTransformer
+	 * @configuredDerivatives.inject    coldbox:setting:assetManager.derivatives
+	 * @configuredTypesByGroup.inject   coldbox:setting:assetManager.types
+	 * @assetDao.inject                 presidecms:object:asset
+	 * @folderDao.inject                presidecms:object:asset_folder
+	 * @derivativeDao.inject            presidecms:object:asset_derivative
+	 */
+	public any function init(
+		  required any    storageProvider
+		, required any    temporaryStorageProvider
+		, required any    assetTransformer
+		, required any    assetDao
+		, required any    folderDao
+		, required any    derivativeDao
+		,          struct configuredDerivatives={}
+		,          struct configuredTypesByGroup={}
+	) output=false {
+ 		_setAssetDao( arguments.assetDao );
+		_setFolderDao( arguments.folderDao );
 
 		_discoverSystemFolderIds();
 
@@ -11,6 +31,7 @@ component extends="preside.system.base.Service" output=false {
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
+		_setDerivativeDao( arguments.derivativeDao );
 
 		return this;
 	}
@@ -20,18 +41,18 @@ component extends="preside.system.base.Service" output=false {
 		if ( not Len( Trim( arguments.parent_folder ) ) ) {
 			arguments.parent_folder = getRootFolderId();
 		}
-		return getPresideObject( "asset_folder" ).insertData( arguments );
+		return _getFolderDao().insertData( arguments );
 	}
 
 	public boolean function renameFolder( required string id, required string label ) output=false {
-		return getPresideObject( "asset_folder" ).updateData(
+		return _getFolderDao().updateData(
 			  id   = arguments.id
 			, data = { label=arguments.label }
 		);
 	}
 
 	public query function getFolder( required string id ) output=false {
-		return getPresideObject( "asset_folder" ).selectData( filter="id = :id and parent_folder is not null", filterParams={ id = id } );
+		return _getFolderDao().selectData( filter="id = :id and parent_folder is not null", filterParams={ id = id } );
 	}
 
 	public query function getFolderAncestors( required string id ) output=false {
@@ -59,7 +80,7 @@ component extends="preside.system.base.Service" output=false {
 	}
 
 	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) output=false {
-		var folders = getPresideObject( "asset_folder" ).selectData(
+		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, filter       = { parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId() }
 			, orderBy      = "label"
@@ -96,7 +117,7 @@ component extends="preside.system.base.Service" output=false {
 	}
 
 	public array function getAssetsForAjaxSelect( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) output=false {
-		var assetDao    = getPresideObject( "asset" );
+		var assetDao    = _getAssetDao();
 		var filter      = "( asset.asset_folder != :asset_folder )";
 		var params      = { asset_folder = _getTrashFolderId() };
 		var types       = _getTypes();
@@ -162,7 +183,7 @@ component extends="preside.system.base.Service" output=false {
 			}
 		}
 
-		records = getPresideObject( "asset" ).selectData(
+		records = _getAssetDao().selectData(
 			  selectFields = [ "Max( asset.datemodified ) as lastmodified" ]
 			, filter       = filter
 			, filterParams = params
@@ -178,7 +199,7 @@ component extends="preside.system.base.Service" output=false {
 			return false;
 		}
 
-		return getPresideObject( "asset_folder" ).updateData( id = arguments.id, data = {
+		return _getFolderDao().updateData( id = arguments.id, data = {
 			  parent_folder  = _getTrashFolderId()
 			, label          = CreateUUId()
 			, original_label = folder.label
@@ -264,14 +285,14 @@ component extends="preside.system.base.Service" output=false {
 			asset.asset_folder = getRootFolderId();
 		}
 
-		newId = getPresideObject( "asset" ).insertData( data=asset );
+		newId = _getAssetDao().insertData( data=asset );
 		deleteTemporaryFile( arguments.tmpId );
 
 		return newId;
 	}
 
 	public boolean function editAsset( required string id, required struct data ) output=false {
-		return getPresideObject( "asset" ).updateData( id=arguments.id, data=arguments.data );
+		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
 	}
 
 	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) output=false {
@@ -298,7 +319,7 @@ component extends="preside.system.base.Service" output=false {
 	}
 
 	public query function getAsset( required string id, boolean throwOnMissing=false ) output=false {
-		var asset = Len( Trim( arguments.id ) ) ? getPresideObject( "asset" ).selectData( id=arguments.id ) : QueryNew('');
+		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id ) : QueryNew('');
 
 		if ( asset.recordCount or not throwOnMissing ) {
 			return asset;
@@ -343,7 +364,7 @@ component extends="preside.system.base.Service" output=false {
 	}
 
 	public boolean function trashAsset( required string id ) output=false {
-		var assetDao    = getPresideObject( "asset" );
+		var assetDao    = _getAssetDao();
 		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "label" ] );
 		var trashedPath = "";
 
@@ -365,7 +386,7 @@ component extends="preside.system.base.Service" output=false {
 	}
 
 	public query function getAssetDerivative( required string assetId, required string derivativeName ) output=false {
-		var derivativeDao = getPresideObject( "asset_derivative" );
+		var derivativeDao = _getDerivativeDao();
 		var derivative    = "";
 		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName };
 
@@ -394,7 +415,7 @@ component extends="preside.system.base.Service" output=false {
 		, required string derivativeName
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 	) output=false {
-		var derivativeDao = getPresideObject( "asset_derivative" );
+		var derivativeDao = _getDerivativeDao();
 		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName };
 
 		if ( !derivativeDao.dataExists( filter=selectFilter ) ) {
@@ -433,7 +454,7 @@ component extends="preside.system.base.Service" output=false {
 
 		_getStorageProvider().putObject( assetBinary, storagePath );
 
-		return getPresideObject( "asset_derivative" ).insertData( {
+		return _getDerivativeDao().insertData( {
 			  asset_type   = assetType.typeName
 			, asset        = arguments.assetId
 			, label        = arguments.derivativeName
@@ -443,7 +464,7 @@ component extends="preside.system.base.Service" output=false {
 
 // PRIVATE HELPERS
 	private void function _discoverSystemFolderIds() output=false {
-		var dao         = getPresideObject( "asset_folder" );
+		var dao         = _getFolderDao();
 		var rootFolder  = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$root" } );
 		var trashFolder = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
 
@@ -562,5 +583,26 @@ component extends="preside.system.base.Service" output=false {
 	}
 	private void function _setTypes( required struct types ) output=false {
 		_types = arguments.types;
+	}
+
+	private any function _getAssetDao() output=false {
+		return _assetDao;
+	}
+	private void function _setAssetDao( required any assetDao ) output=false {
+		_assetDao = arguments.assetDao;
+	}
+
+	private any function _getFolderDao() output=false {
+		return _folderDao;
+	}
+	private void function _setFolderDao( required any folderDao ) output=false {
+		_folderDao = arguments.folderDao;
+	}
+
+	private any function _getDerivativeDao() output=false {
+		return _derivativeDao;
+	}
+	private void function _setDerivativeDao( required any derivativeDao ) output=false {
+		_derivativeDao = arguments.derivativeDao;
 	}
 }

@@ -1,6 +1,6 @@
 <cfcomponent extends="preside.system.base.AdminHandler" output="false">
 
-	<cfproperty name="adminLoginService"    inject="adminLoginService" />
+	<cfproperty name="loginService"    inject="loginService" />
 	<cfproperty name="sessionService"       inject="sessionService"       />
 	<cfproperty name="adminDefaultEvent"    inject="coldbox:setting:adminDefaultEvent" />
 	<cfproperty name="messageBox"           inject="coldbox:plugin:messageBox" />
@@ -38,14 +38,14 @@
 			var user         = "";
 			var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
 			var unsavedData  = sessionService.getVar( "_unsavedFormData", {} );
-			var loggedIn     = adminLoginService.logIn(
+			var loggedIn     = loginService.logIn(
 				  loginId  = event.getValue( name="loginId" , defaultValue="" )
 				, password = event.getValue( name="password", defaultValue="" )
 			);
 
 			if ( loggedIn ) {
 				if ( !hasPermission( "cms.login" ) ) {
-					adminLoginService.logout();
+					loginService.logout();
 					messageBox.error( translateResource( uri="cms:login.no.login.rights.error" ) );
 					setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );
 				}
@@ -89,7 +89,7 @@
 					, instance = user.userId
 				);
 
-				adminLoginService.logout();
+				loginService.logout();
 			}
 
 			if ( ( rc.redirect ?: "" ) == "referer" ) {

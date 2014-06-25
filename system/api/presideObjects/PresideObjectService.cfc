@@ -1,6 +1,17 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @objectDirectories.inject      presidecms:directories:preside-objects
+	 * @objectReader.inject           PresideObjectReader
+	 * @sqlSchemaSynchronizer.inject  SqlSchemaSynchronizer
+	 * @adapterFactory.inject         AdapterFactory
+	 * @sqlRunner.inject              SqlRunner
+	 * @relationshipGuidance.inject   RelationshipGuidance
+	 * @presideObjectDecorator.inject PresideObjectDecorator
+	 * @objectCache.inject            cachebox:SystemCache
+	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
+	 */
 	public any function init(
 		  required array objectDirectories
 		, required any   objectReader

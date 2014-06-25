@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="assetManagerService"      inject="assetManagerService";
-	property name="contentRenderer"          inject="contentRenderer";
+	property name="contentRendererService"          inject="contentRendererService";
 	property name="imageManipulationService" inject="imageManipulationService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 
@@ -406,14 +406,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	public void function renderEmbeddedImageForEditor( event, rc, prc ) output=false {
 		var richContent = rc.embeddedImage ?: "";
-		var rendered    = contentRenderer.renderEmbeddedImages( richContent );
+		var rendered    = contentRendererService.renderEmbeddedImages( richContent );
 
 		event.renderData( data=rendered );
 	}
 
 	public void function renderEmbeddedAttachmentForEditor( event, rc, prc ) output=false {
 		var richContent = rc.embeddedAttachment ?: "";
-		var rendered    = contentRenderer.renderEmbeddedAttachments( richContent );
+		var rendered    = contentRendererService.renderEmbeddedAttachments( richContent );
 
 		event.renderData( data=rendered );
 	}

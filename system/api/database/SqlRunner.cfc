@@ -1,6 +1,9 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @logger.inject defaultLogger
+	 */
 	public any function init( required any logger ) output=false {
 		_setLogger( arguments.logger );
 

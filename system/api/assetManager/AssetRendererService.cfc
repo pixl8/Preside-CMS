@@ -1,9 +1,12 @@
-component extends="preside.system.base.Service" output=false {
+component singleton=true output=false {
 
 // CONSTRUCTOR
+	/**
+	 * @assetManagerService.inject AssetManagerService
+	 * @coldbox.inject             coldbox
+	 *
+	 */
 	public any function init( required any assetManagerService, required any coldbox ) output=false {
-		super.init( argumentCollection=arguments );
-
 		_setAssetManagerService( arguments.assetManagerService );
 		_setColdbox( arguments.coldbox );
 

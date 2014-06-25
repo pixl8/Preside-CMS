@@ -1,15 +1,22 @@
-component extends="preside.system.base.Service" output="false" {
+component singleton=true output="false" {
 
 // CONSTRUCTOR
-	public any function init( required any coldbox, required any cache, required any assetRendererService, required any widgetsService ) output=false {
+
+	/**
+	 * @coldbox.inject              coldbox
+	 * @cache.inject                cachebox:systemCache
+	 * @assetRendererService.inject AssetRendererService
+	 * @widgetsService.inject       WidgetsService
+	 * @presideObjectService.inject PresideObjectService
+	 */
+	public any function init( required any coldbox, required any cache, required any assetRendererService, required any widgetsService, required any presideObjectService ) output=false {
 		_setColdbox( arguments.coldbox );
 		_setCache( arguments.cache );
 		_setAssetRendererService( arguments.assetRendererService );
 		_setWidgetsService( arguments.widgetsService );
+		_setPresideObjectService( arguments.presideObjectService );
 
 		_setRenderers( {} );
-
-		super.init( argumentCollection = arguments );
 
 		return this;
 	}
@@ -481,5 +488,12 @@ component extends="preside.system.base.Service" output="false" {
 	}
 	private void function _setWidgetsService( required any widgetsService ) output=false {
 		_widgetsService = arguments.widgetsService;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
 	}
 }

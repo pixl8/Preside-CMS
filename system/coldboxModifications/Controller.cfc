@@ -96,6 +96,28 @@ component extends="coldbox.system.web.Controller" output=false {
 		return getRequestService().requestCapture();
 	}
 
+	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) output=false {
+		var target = arguments.fwSetting ? instance.coldboxSettings : instance.configSettings;
+
+		if ( target.keyExists( arguments.name ) ) {
+			return target[ arguments.name ];
+		}
+
+		if ( IsDefined( "target.#arguments.name#" ) ) {
+			return Evaluate( "target.#arguments.name#" );
+		}
+
+		if ( arguments.keyExists( "defaultValue" ) ) {
+			return arguments.defaultValue;
+		}
+
+		getUtil().throwit(
+			  message = "The setting #arguments.name# does not exist."
+			, detail  = "FWSetting flag is #arguments.FWSetting#"
+			, type    = "Controller.SettingNotFoundException"
+		);
+	}
+
 // private helpers
 	private boolean function _actionExistsInHandler( required struct handlerMeta, required string action ) output=false {
 		if ( StructKeyExists( arguments.handlerMeta, "extends" ) and _actionExistsInHandler( arguments.handlerMeta.extends, arguments.action ) ) {

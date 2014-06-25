@@ -1,7 +1,7 @@
 <cfcomponent output="false">
 
 	<cfproperty name="frontendEditingService" inject="frontendEditingService" />
-	<cfproperty name="contentRenderer"  inject="contentRenderer" />
+	<cfproperty name="contentRendererService" inject="contentRendererService" />
 
 
 <!--- actions --->
@@ -103,7 +103,7 @@
 
 			var control  = viewletArgs.control  ?: "richeditor";
 
-			viewletArgs.renderer = viewletArgs.renderer ?: contentRenderer.getRendererForField( fieldAttributes = { control = control } );
+			viewletArgs.renderer = viewletArgs.renderer ?: contentRendererService.getRendererForField( fieldAttributes = { control = control } );
 			viewletArgs.draftContent = frontendEditingService.getDraft(
 				  object   = viewletArgs.object   ?: ""
 				, property = viewletArgs.property ?: ""
@@ -128,8 +128,8 @@
 
 			event.initializePresideSiteteePage( pageId=pageId );
 
-			if ( Len( Trim( renderer ) ) and contentRenderer.rendererExists( name=renderer, context="container" ) ) {
-				return contentRenderer.render(
+			if ( Len( Trim( renderer ) ) and contentRendererService.rendererExists( name=renderer, context="container" ) ) {
+				return contentRendererService.render(
 					  renderer = renderer
 					, data     = content
 					, context  = "container"

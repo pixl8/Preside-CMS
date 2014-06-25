@@ -1,13 +1,16 @@
-component output="false" extends="preside.system.base.Service" {
+component output="false" singleton=true {
 
-<!--- constructor --->
-	public any function init() output=false {
-		super.init( argumentCollection = arguments );
+// CONSTRUCTOR
+	/**
+	 * @dao.inject presidecms:object:audit_log
+	 */
+	public any function init( required any dao ) output=false {
+		_setDao( arguments.dao );
 
 		return this;
 	}
 
-<!--- public methods --->
+// PUBLIC METHODS
 	public void function log(
 		  required string detail
 		, required string source
@@ -16,8 +19,8 @@ component output="false" extends="preside.system.base.Service" {
 		, required string instance
 		, required string userId
 	) output=false {
-		getPresideObject( "audit_log" ).insertData( {
-			  label  = arguments.detail
+		_getDao().insertData( {
+			  label      = arguments.detail
 			, source     = arguments.source
 			, action     = arguments.action
 			, type       = arguments.type
@@ -27,5 +30,13 @@ component output="false" extends="preside.system.base.Service" {
 			, user_ip    = cgi.remote_addr
 			, user_agent = cgi.http_user_agent
 		} );
+	}
+
+// PRIVATE GETTERS AND SETTERS
+	private any function _getDao() output=false {
+		return _dao;
+	}
+	private void function _setDao( required any dao ) output=false {
+		_dao = arguments.dao;
 	}
 }

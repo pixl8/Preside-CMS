@@ -1,14 +1,18 @@
-component extends="preside.system.base.Service" output=false {
+component singleton=true output=false {
 
 // CONSTRUCTOR
+	/**
+	 * @configuredWidgets.inject       coldbox:setting:widgets
+	 * @formsService.inject            FormsService
+	 * @coldbox.inject                 coldbox
+	 * @autoDiscoverDirectories.inject presidecms:directories
+	 */
 	public any function init(
 		  required struct configuredWidgets
 		, required any    formsService
 		, required any    coldbox
 		, required array  autoDiscoverDirectories
 	) output=false {
-		super.init( argumentCollection = arguments );
-
 		_setFormsService( arguments.formsService );
 		_setColdbox( arguments.coldbox );
 		_setAutoDicoverDirectories( arguments.autoDiscoverDirectories );

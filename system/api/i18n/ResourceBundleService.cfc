@@ -1,6 +1,9 @@
 component output=false {
 
 // CONSTRUCTOR
+	/**
+	 * @bundleDirectories.inject presidecms:directories:i18n
+	 */
 	public any function init( required array bundleDirectories ) output=false {
 		_setBundleDirectories( arguments.bundleDirectories );
 		_setBundleDataCache( {} );

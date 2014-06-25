@@ -1,6 +1,11 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @adapterFactory.inject AdapterFactory
+	 * @sqlRunner.inject      SqlRunner
+	 * @dbInfoService.inject  DbInfoService
+	 */
 	public any function init( required any adapterFactory, required any sqlRunner, required any dbInfoService ) output=false {
 		_setAdapterFactory( arguments.adapterFactory );
 		_setSqlRunner( arguments.sqlRunner );

@@ -1,11 +1,29 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required any loginService, required any cacheProvider, required struct permissionsConfig, required struct rolesConfig ) output=false {
-		super.init( argumentCollection = arguments );
-
+	/**
+	 * @loginService.inject       LoginService
+	 * @cacheProvider.inject      cachebox:PermissionsCache
+	 * @permissionsConfig.inject  coldbox:setting:permissions
+	 * @rolesConfig.inject        coldbox:setting:roles
+	 * @groupDao.inject           presidecms:object:security_group
+	 * @userDao.inject            presidecms:object:security_user
+	 * @contextPermDao.inject     presidecms:object:security_context_permission
+	 */
+	public any function init(
+		  required any    loginService
+		, required any    cacheProvider
+		, required struct permissionsConfig
+		, required struct rolesConfig
+		, required any    groupDao
+		, required any    userDao
+		, required any    contextPermDao
+	) output=false {
 		_setLoginService( arguments.loginService );
 		_setCacheProvider( arguments.cacheProvider )
+		_setGroupDao( arguments.groupDao );
+		_setUserDao( arguments.userDao );
+		_setContextPermDao( arguments.contextPermDao );
 
 		_denormalizeAndSaveConfiguredRolesAndPermissions( arguments.permissionsConfig, arguments.rolesConfig );
 
@@ -56,9 +74,8 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public array function listUserGroups( required string userId ) output=false {
-		var groups = _getPresideObjectService().selectManyToManyData(
-			  objectName   = "security_user"
-			, propertyName = "groups"
+		var groups = _getUserDao().selectManyToManyData(
+			  propertyName = "groups"
 			, id           = arguments.userId
 			, selectFields = [ "security_group" ]
 		);
@@ -84,9 +101,8 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		if ( arguments.contextKeys.len() ) {
-			dbData = _getPresideObjectService().selectData(
-				  objectName   = "security_context_permission"
-				, selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
+			dbData = _getContextPermDao().selectData(
+				  selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
 				, filter       = {
 					  context        = arguments.context
 					, context_key    = arguments.contextKeys
@@ -119,38 +135,35 @@ component output=false extends="preside.system.base.Service" {
 
 	public boolean function syncContextPermissions( required string context, required string contextKey, required string permissionKey, required array grantedToGroups, required array deniedToGroups ) output=false {
 		transaction {
-			_getPresideObjectService().deleteData(
-				  objectName = "security_context_permission"
-				, filter     = {
+			_getContextPermDao().deleteData(
+				filter = {
 					  context        = arguments.context
 					, context_key    = arguments.contextKey
 					, permission_key = arguments.permissionKey
-				  }
+				}
 			);
 
 			for( var group in arguments.grantedToGroups ){
-				_getPresideObjectService().insertData(
-					  objectName = "security_context_permission"
-					, data       = {
+				_getContextPermDao().insertData(
+					data = {
 						  context        = arguments.context
 						, context_key    = arguments.contextKey
 						, permission_key = arguments.permissionKey
 						, security_group = group
 						, granted        = true
-					  }
+					}
 				);
 			}
 
 			for( var group in arguments.deniedToGroups ){
-				_getPresideObjectService().insertData(
-					  objectName = "security_context_permission"
-					, data       = {
+				_getContextPermDao().insertData(
+					data = {
 						  context        = arguments.context
 						, context_key    = arguments.contextKey
 						, permission_key = arguments.permissionKey
 						, security_group = group
 						, granted        = false
-					  }
+					}
 				);
 			}
 
@@ -173,7 +186,7 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	private array function _getGroupPermissions( required string group ) output=false {
-		var roles = _getPresideObjectService().selectData( objectName="security_group", id=arguments.group, selectFields=[ "roles" ] );
+		var roles = _getGroupDao().selectData( id=arguments.group, selectFields=[ "roles" ] );
 		var perms = [];
 
 		if ( !roles.recordCount ) {
@@ -250,9 +263,8 @@ component output=false extends="preside.system.base.Service" {
 		var cntext             = arguments.context;
 		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
 			var permsToCache = {};
-			var permsFromDb  = _getPresideObjectService().selectData(
-				  objectName   = "security_context_permission"
-				, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+			var permsFromDb  = _getContextPermDao().selectData(
+				  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
 				, filter       = { context = cntext }
 			);
 
@@ -356,9 +368,8 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		if ( StructCount( rolesWithPerm ) ) {
-			var allGroups = _getPresideObjectService().selectData(
-				  objectName   = "security_group"
-				, selectFields = [ "id", "label", "roles" ]
+			var allGroups = _getGroupDao().selectData(
+				selectFields = [ "id", "label", "roles" ]
 			);
 
 			for( var group in allGroups ){
@@ -401,5 +412,26 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setCacheProvider( required any cacheProvider ) output=false {
 		_cacheProvider = arguments.cacheProvider;
+	}
+
+	private any function _getGroupDao() output=false {
+		return _groupDao;
+	}
+	private void function _setGroupDao( required any groupDao ) output=false {
+		_groupDao = arguments.groupDao;
+	}
+
+	private any function _getUserDao() output=false {
+		return _userDao;
+	}
+	private void function _setUserDao( required any userDao ) output=false {
+		_userDao = arguments.userDao;
+	}
+
+	private any function _getContextPermDao() output=false {
+		return _contextPermDao;
+	}
+	private void function _setContextPermDao( required any contextPermDao ) output=false {
+		_contextPermDao = arguments.contextPermDao;
 	}
 }

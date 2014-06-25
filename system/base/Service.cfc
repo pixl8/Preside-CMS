@@ -1,65 +1,55 @@
-<cfcomponent output="false" hint="I am a base Service object. All front-end services should extend me">
+component output=false singleton=true accessors=true hint="I am a base Service object. All front-end services should extend me" {
 
-	<cffunction name="init" access="public" returntype="any" output="false">
-		<cfargument name="presideObjectService"  type="any" required="true" />
-		<cfargument name="logger"                type="any" required="true" />
+	property name="presideObjectService" inject="presideObjectService";
+	property name="logger"               inject="defaultLogger";
 
-		<cfscript>
-			_setPresideObjectService( arguments.presideObjectService );
-			_setLogger( arguments.logger );
-
-			return this;
-		</cfscript>
-	</cffunction>
+	public any function init() output=false {
+		return this;
+	}
 
 <!--- shared utility methods --->
-	<cffunction name="getPresideObject" access="private" returntype="any" output="false">
-		<cfargument name="objectName" type="string" required="true" />
+	private any function getPresideObject( required string objectName ) output=false {
+		return _getPresideObjectService().getObject( objectName = arguments.objectName );
+	}
 
-		<cfreturn _getPresideObjectService().getObject( objectName = arguments.objectName ) />
-	</cffunction>
-	<cffunction name="presideObjectExists" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().presideObjectExists( argumentCollection = arguments ) />
-	</cffunction>
+	private boolean function presideObjectExists() output=false {
+		return _getPresideObjectService().presideObjectExists( argumentCollection = arguments );
+	}
 
-	<cffunction name="fieldExists" access="public" returntype="boolean" output="false">
-		<cfreturn _getPresideObjectService().fieldExists( argumentCollection = arguments ) />
-	</cffunction>
+	private any function fieldExists() output=false {
+		return _getPresideObjectService().fieldExists( argumentCollection = arguments );
+	}
 
-	<cffunction name="dataExists" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().dataExists( argumentCollection = arguments ) />
-	</cffunction>
-	<cffunction name="deleteData" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().deleteData( argumentCollection = arguments ) />
-	</cffunction>
-	<cffunction name="insertData" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().insertData( argumentCollection = arguments ) />
-	</cffunction>
-	<cffunction name="updateData" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().updateData( argumentCollection = arguments ) />
-	</cffunction>
-	<cffunction name="selectData" access="private" returntype="any" output="false">
-		<cfreturn _getPresideObjectService().selectData( argumentCollection = arguments ) />
-	</cffunction>
+	private any function dataExists() output=false {
+		return _getPresideObjectService().dataExists( argumentCollection = arguments );
+	}
 
-	<cffunction name="getRelatedObjects" access="private" returntype="query" output="false">
-		<cfreturn _getRelatedObjectsService().getRelationships( argumentCollection = arguments ) />
-	</cffunction>
+	private any function deleteData() output=false {
+		return _getPresideObjectService().deleteData( argumentCollection = arguments );
+	}
 
-<!--- getters and setters --->
-	<cffunction name="_getPresideObjectService" access="private" returntype="any" output="false">
-		<cfreturn _presideObjectService>
-	</cffunction>
-	<cffunction name="_setPresideObjectService" access="private" returntype="void" output="false">
-		<cfargument name="presideObjectService" type="any" required="true" />
-		<cfset _presideObjectService = arguments.presideObjectService />
-	</cffunction>
+	private any function insertData() output=false {
+		return _getPresideObjectService().insertData( argumentCollection = arguments );
+	}
 
-	<cffunction name="_getLogger" access="private" returntype="any" output="false">
-		<cfreturn _logger>
-	</cffunction>
-	<cffunction name="_setLogger" access="private" returntype="void" output="false">
-		<cfargument name="logger" type="any" required="true" />
-		<cfset _logger = arguments.logger />
-	</cffunction>
-</cfcomponent>
+	private any function updateData() output=false {
+		return _getPresideObjectService().updateData( argumentCollection = arguments );
+	}
+
+	private any function selectData() output=false {
+		return _getPresideObjectService().selectData( argumentCollection = arguments );
+	}
+
+	private any function getRelatedObjects() output=false {
+		return _getPresideObjectService().getRelatedObjects( argumentCollection = arguments );
+	}
+
+// GETTERS AND SETTERS
+	private any function _getPresideObjectService() output=false {
+		return getPresideObjectService();
+	}
+
+	private any function _getLogger() output=false {
+		return getLogger();
+	}
+}

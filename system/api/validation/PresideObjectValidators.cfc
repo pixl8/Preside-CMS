@@ -1,4 +1,12 @@
-component output=false validationProvider=true extends="preside.system.base.Service" {
+component output=false validationProvider=true singleton=true {
+
+	/**
+	 * @presideObjectService.inject PresideObjectService
+	 */
+	public any function init( required any presideObjectService ) output=false {
+		_setPresideObjectService( arguments.presideObjectService );
+		return this;
+	}
 
 	public boolean function presideObjectUniqueIndex( required string fieldName, struct data={}, required string objectName, required string fields ) output=false validatorMessage="cms:validation.presideObjectUniqueIndex.default" {
 		var pobjService  = _getPresideObjectService();
@@ -44,4 +52,10 @@ component output=false validationProvider=true extends="preside.system.base.Serv
 		return "function(){ return true; }";
 	}
 
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
+	}
 }

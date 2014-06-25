@@ -1,6 +1,10 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @dsn.inject         coldbox:setting:dsn
+	 * @tablePrefix.inject coldbox:setting:presideObjectsTablePrefix
+	 */
 	public any function init( required string dsn, required string tablePrefix ) output=false {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );

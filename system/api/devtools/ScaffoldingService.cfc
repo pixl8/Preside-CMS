@@ -1,11 +1,15 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required any widgetsService, required any pageTypesService ) output=false {
-		super.init( argumentCollection = arguments );
-
+	/**
+	 * @widgetsService.inject       WidgetsService
+	 * @pageTypesService.inject     PageTypesService
+	 * @presideObjectService.inject PresideObjectService
+	 */
+	public any function init( required any widgetsService, required any pageTypesService, required any presideObjectService ) output=false {
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
+		_setPresideObjectService( arguments.presideObjectService );
 
 		return this;
 	}
@@ -280,6 +284,13 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setPageTypesService( required any pageTypesService ) output=false {
 		_pageTypesService = arguments.pageTypesService;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
 	}
 
 }

@@ -1,9 +1,10 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @autoDiscoverDirectories.inject presidecms:directories
+	 */
 	public any function init( required array autoDiscoverDirectories ) output=false {
-		super.init( argumentCollection = arguments );
-
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		reload();
 

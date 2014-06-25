@@ -1,4 +1,4 @@
-component output=false hint="Proxy to cfdbinfo for returning information about a database and its objects" {
+component output=false hint="Proxy to cfdbinfo for returning information about a database and its objects" singleton=true {
 
 // CONSTRUCTOR
 	public any function init() output=false {

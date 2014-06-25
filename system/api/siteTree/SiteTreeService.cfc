@@ -1,11 +1,15 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required any loginService, required any pageTypesService ) output=false {
-		super.init( argumentCollection = arguments );
-
+	/**
+	 * @loginService.inject         LoginService
+	 * @pageTypesService.inject     PageTypesService
+	 * @presideObjectService.inject PresideObjectService
+	 */
+	public any function init( required any loginService, required any pageTypesService, required any presideObjectService ) output=false {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
+		_setPresideObjectService( arguments.presideObjectService );
 
 		return this;
 	}
@@ -119,7 +123,7 @@ component output=false extends="preside.system.base.Service" {
 		}
 
 		var pt = ptSvc.getPageType( arguments.pageType );
-		var pobj   = getPresideObject( pt.getPresideObject() );
+		var pobj   = _getPresideObject( pt.getPresideObject() );
 		var record = pobj.selectData( filter={ page = arguments.id } );
 
 		if ( !record.recordCount ) {
@@ -371,7 +375,7 @@ component output=false extends="preside.system.base.Service" {
 
 			pageTypeObjData = Duplicate( arguments );
 			pageTypeObjData.page = pageTypeObjData.id = pageId;
-			getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
+			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
 		}
 
 		return pageId;
@@ -474,10 +478,10 @@ component output=false extends="preside.system.base.Service" {
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
 				pageType = _getPageTypesService().getPageType( existingPage.page_type );
 
-				var pageTypeObj = getPresideObject( pageType.getPresideObject() );
+				var pageTypeObj = _getPresideObject( pageType.getPresideObject() );
 
 				if ( pageTypeObj.dataExists( filter={ page=arguments.id } ) ) {
-					getPresideObject( pageType.getPresideObject() ).updateData(
+					_getPresideObject( pageType.getPresideObject() ).updateData(
 						  data                    = arguments
 						, filter                  = { page=arguments.id }
 						, versionNumber           = versionNumber
@@ -486,7 +490,7 @@ component output=false extends="preside.system.base.Service" {
 				} else {
 					var insertData = Duplicate( arguments );
 					insertData.page = arguments.id;
-					getPresideObject( pageType.getPresideObject() ).insertData(
+					_getPresideObject( pageType.getPresideObject() ).insertData(
 						  data                    = insertData
 						, versionNumber           = versionNumber
 						, insertManyToManyRecords = true
@@ -587,13 +591,13 @@ component output=false extends="preside.system.base.Service" {
 
 	public string function getDefaultSiteId( ) output=false {
 		/* this is temporary - until we support multiple sites */
-		var result = getPresideObject( "site" ).selectData( selectFields=[ "id" ], maxRows=1 );
+		var result = _getPresideObject( "site" ).selectData( selectFields=[ "id" ], maxRows=1 );
 
 		if ( result.recordCount ) {
 			return result.id;
 		}
 
-		return getPresideObject( "site" ).insertData( { label="Default site", domain="*", path="/" } );
+		return _getPresideObject( "site" ).insertData( { label="Default site", domain="*", path="/" } );
 	}
 
 // PRIVATE HELPERS
@@ -735,7 +739,18 @@ component output=false extends="preside.system.base.Service" {
 		_pageTypesService = arguments.pageTypesService;
 	}
 
+	private any function _getPresideObject() output=false {
+		return _getPresideObjectService().getObject( argumentCollection=arguments );
+	}
+
 	private any function _getPobj() output=false {
-		return getPresideObject( "page" );
+		return _getPresideObject( "page" );
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _PresideObjectService;
+	}
+	private void function _setPresideObjectService( required any PresideObjectService ) output=false {
+		_PresideObjectService = arguments.PresideObjectService;
 	}
 }

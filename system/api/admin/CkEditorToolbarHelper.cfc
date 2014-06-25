@@ -1,6 +1,9 @@
 component output=false {
 
 // CONSTRUCTOR
+	/**
+	 * @configuredToolbars.inject coldbox:setting:ckeditor.toolbars
+	 */
 	public any function init( required struct configuredToolbars ) output=false {
 		_setConfiguredToolbars( arguments.configuredToolbars );
 

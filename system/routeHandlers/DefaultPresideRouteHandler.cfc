@@ -1,6 +1,10 @@
-component implements="iRouteHandler" output=false {
+component implements="iRouteHandler" output=false singleton=true {
 
 // constructor
+	/**
+	 * @eventName.inject       coldbox:setting:eventName
+	 * @sitetreeService.inject SitetreeService
+	 */
 	public any function init( required string eventName, required any sitetreeService ) output=false {
 		_setEventName( arguments.eventName );
 		_setSiteTreeService( arguments.siteTreeService );

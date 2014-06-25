@@ -1,6 +1,11 @@
-component implements="iRouteHandler" output=false {
+component implements="iRouteHandler" output=false singleton=true {
 
 // constructor
+	/**
+	 * @adminPath.inject         coldbox:setting:preside_admin_path
+	 * @eventName.inject         coldbox:setting:eventName
+	 * @adminDefaultEvent.inject coldbox:setting:adminDefaultEvent
+	 */
 	public any function init( required string adminPath, required string eventName, required string adminDefaultEvent ) output=false {
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );

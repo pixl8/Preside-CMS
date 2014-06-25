@@ -1,6 +1,9 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @objectReader.inject PresideObjectReader
+	 */
 	public any function init( required any objectReader ) output=false {
 		_setObjectReader( arguments.objectReader );
 

@@ -1,7 +1,7 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required string extensionsDirectory ) output=false {
+	public any function init( string extensionsDirectory="/app/extensions" ) output=false {
 		_setExtensionsDirectory( arguments.extensionsDirectory );
 		_createExtensionsFileIfItDoesNotExist();
 

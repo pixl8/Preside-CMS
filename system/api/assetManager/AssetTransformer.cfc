@@ -1,6 +1,10 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+
+	/**
+	 * @imageManipulationService.inject ImageManipulationService
+	 */
 	public any function init( required any imageManipulationService ) output=false {
 		_setImageManipulationService( imageManipulationService );
 

@@ -1,4 +1,4 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
 	public any function init( required string rootDirectory, required string trashDirectory, required string rootUrl, numeric lockTimeout=5 ) output=false {

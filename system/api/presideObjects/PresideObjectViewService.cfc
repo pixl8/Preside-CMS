@@ -1,6 +1,12 @@
-component output=false {
+component output=false singleton=true {
 
 // constructor
+	/**
+	 * @presideObjectService.inject   PresideObjectService
+	 * @presideContentRenderer.inject ContentRendererService
+	 * @coldboxRenderer.inject        coldbox:plugin:renderer
+	 * @cacheProvider.inject          cachebox:PresideObjectViewCache
+	 */
 	public any function init(
 		  required any presideObjectService
 		, required any presideContentRenderer

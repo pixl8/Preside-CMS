@@ -1,4 +1,4 @@
-<cfcomponent output="false">
+<cfcomponent output="false" singleton="true">
 
 <!--- CONSTRUCTOR --->
 	<cffunction name="init" access="public" returntype="any" output="false" hint="Constructor">

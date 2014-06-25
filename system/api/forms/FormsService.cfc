@@ -1,8 +1,19 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @formDirectories.inject           presidecms:directories:forms
+	 * @presideObjectService.inject      PresideObjectService
+	 * @validationEngine.inject          ValidationEngine
+	 * @i18n.inject                      coldbox:plugin:i18n
+	 * @coldbox.inject                   coldbox
+	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
+	 * @defaultContextName.inject        coldbox:fwSetting:EventAction
+	 * @configuredControls.inject        coldbox:setting:formControls
+	 */
 	public any function init(
 		  required array  formDirectories
+		, required any    presideObjectService
 		, required any    validationEngine
 		, required any    i18n
 		, required any    coldbox
@@ -10,9 +21,8 @@ component output=false extends="preside.system.base.Service" {
 		, required string defaultContextName
 		, required struct configuredControls
 	) output=false {
-		super.init( argumentCollection = arguments );
-
 		_setValidationEngine( arguments.validationEngine );
+		_setPresideObjectService( arguments.presideObjectService );
 		_setI18n( arguments.i18n );
 		_setColdbox( arguments.coldbox );
 		_setFormDirectories( arguments.formDirectories );
@@ -725,6 +735,13 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setFormDirectories( required array formDirectories ) output=false {
 		_formDirectories = arguments.formDirectories;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
 	}
 
 	private struct function _getForms() output=false {

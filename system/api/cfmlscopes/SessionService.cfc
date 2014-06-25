@@ -1,4 +1,4 @@
-<cfcomponent output="false">
+<cfcomponent output="false" singleton="true">
 
 
 <!--- CONSTRUCTOR --->

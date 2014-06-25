@@ -1,17 +1,28 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+
+	/**
+	 * @coldbox.inject               coldbox
+	 * @presideObjectService.inject  PresideObjectService
+	 * @resourceBundleService.inject ResourceBundleService
+	 * @stickerForPreside.inject     coldbox:myplugin:stickerForPreside
+	 * @widgetsService.inject        WidgetsService
+	 * @pageTypesService.inject      PageTypesService
+	 * @formsService.inject          FormsService
+	 */
 	public any function init(
 		  required any coldbox
+		, required any presideObjectService
 		, required any resourceBundleService
 		, required any stickerForPreside
 		, required any widgetsService
 		, required any pageTypesService
 		, required any formsService
 	) output=false {
-		super.init( argumentCollection = arguments );
 
 		_setColdbox( arguments.coldbox );
+		_setPresideObjectService( arguments.presideObjectService );
 		_setResourceBundleService( arguments.resourceBundleService );
 		_setStickerForPreside( arguments.stickerForPreside );
 		_setWidgetsService( arguments.widgetsService );
@@ -75,6 +86,13 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setColdbox( required any coldbox ) output=false {
 		_coldbox = arguments.coldbox;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _PresideObjectService;
+	}
+	private void function _setPresideObjectService( required any PresideObjectService ) output=false {
+		_PresideObjectService = arguments.PresideObjectService;
 	}
 
 	private any function _getResourceBundleService() output=false {

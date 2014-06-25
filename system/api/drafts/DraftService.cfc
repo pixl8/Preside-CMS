@@ -1,19 +1,23 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init() output=false {
-		super.init( argumentCollection = arguments );
+	/**
+	 * @dao.inject presidecms:object:draft
+	 *
+	 */
+	public any function init( required any dao ) output=false {
+		_setDao( arguments.dao );
 
 		return this;
 	}
 
 // PUBLIC METHODS
 	public boolean function draftExists( required string owner, required string key ) output=false {
-		return _getPObj().dataExists( filter={ key = arguments.key, owner=arguments.owner } );
+		return _getDao().dataExists( filter={ key = arguments.key, owner=arguments.owner } );
 	}
 
 	public any function getDraftContent( required string owner, required string key ) output=false {
-		var draft = _getPObj().selectData(
+		var draft = _getDao().selectData(
 			  filter       = { key = arguments.key, owner=arguments.owner }
 			, selectFields = [ "content" ]
 		);
@@ -22,7 +26,7 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public boolean function saveDraft( required string owner, required string key, required any content ) output=false {
-		var obj = _getPObj();
+		var obj = _getDao();
 		var serialized = _serialize( arguments.content );
 
 		if ( draftExists( owner=arguments.owner, key=arguments.key ) ) {
@@ -41,12 +45,15 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public numeric function discardDraft( required string owner, required string key ) output=false {
-		return _getPObj().deleteData( filter={ key = arguments.key, owner=arguments.owner } );
+		return _getDao().deleteData( filter={ key = arguments.key, owner=arguments.owner } );
 	}
 
 // PRIVATE HELPERS
-	private any function _getPObj() output=false {
-		return getPresideObject( "draft" );
+	private any function _getDao() output=false {
+		return _dao;
+	}
+	private void function _setDao( required any dao ) output=false {
+		_dao = arguments.dao;
 	}
 
 	private string function _serialize( required any content ) output=false {

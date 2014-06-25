@@ -1,17 +1,23 @@
-component output="false" extends="preside.system.base.Service" {
+component output="false" singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @sessionService.inject SessionService
+	 * @bCryptService.inject  BCryptService
+	 * @systemUserList.inject coldbox:setting:system_users
+	 * @userDao.inject        presidecms:object:security_user
+	 */
 	public any function init(
 		  required any    sessionService
 		, required any    bCryptService
 		, required string systemUserList
+		, required any    userDao
 		,          string sessionKey = "admin_user"
 	) output=false {
-		super.init( argumentCollection = arguments );
-
 		_setSessionService( arguments.sessionService );
 		_setBCryptService( arguments.bCryptService );
 		_setSystemUserList( arguments.systemUserList );
+		_setUserDao( arguments.userDao );
 		_setSessionKey( arguments.sessionKey );
 
 		return this;
@@ -19,7 +25,7 @@ component output="false" extends="preside.system.base.Service" {
 
 // PUBLIC METHODS
 	public boolean function login( required string loginId, required string password ) output=false {
-		var usr = getPresideObject( "security_user" ).selectData(
+		var usr = _getUserDao().selectData(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
@@ -57,7 +63,7 @@ component output="false" extends="preside.system.base.Service" {
 
 	public string function getSystemUserId() output=false {
 		var systemUser = ListFirst( _getSystemUserList() );
-		var usr        = getPresideObject( "security_user" ).selectData(
+		var usr        = _getUserDao().selectData(
 			  selectFields = [ "id" ]
 			, filter       = { login_id = systemUser }
 		);
@@ -66,7 +72,7 @@ component output="false" extends="preside.system.base.Service" {
 			return usr.id;
 		}
 
-		return getPresideObject( "security_user" ).insertData( {
+		return _getUserDao().insertData( {
 			  label         = "System administrator"
 			, login_id      = systemUser
 			, password      = _getBCryptService().hashPw( "password" )
@@ -110,6 +116,13 @@ component output="false" extends="preside.system.base.Service" {
 	}
 	private void function _setSessionKey( required string sessionKey ) output=false {
 		_sessionKey = arguments.sessionKey;
+	}
+
+	private any function _getUserDao() output=false {
+		return _userDao;
+	}
+	private void function _setUserDao( required any userDao ) output=false {
+		_userDao = arguments.userDao;
 	}
 
 	private string function _getSystemUserList() output=false {

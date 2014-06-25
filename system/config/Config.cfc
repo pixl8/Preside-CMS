@@ -23,8 +23,6 @@ component output=false {
 			// , controllerDecorator       = "preside.system.coldboxModifications.boot"
 		};
 
-		datasources = { preside = { name = "openpreside" } };
-
 		i18n = {
 			  defaultLocale      = "en"
 			, localeStorage      = "cookie"
@@ -50,11 +48,16 @@ component output=false {
 		};
 
 		settings = {};
+		settings.eventName                 = "event";
 		settings.formControls              = {};
 		settings.widgets                   = {};
 		settings.templates                 = [];
 		settings.adminDefaultEvent         = "sitetree";
+		settings.preside_admin_path        = "admin";
 		settings.presideHelpAndSupportLink = "http://www.pixl8.co.uk";
+		settings.dsn                       = "preside";
+		settings.presideObjectsTablePrefix = "pobj_";
+		settings.system_users              = "sysadmin";
 
 		settings.assetManager = {
 			  maxFileSize       = "5"

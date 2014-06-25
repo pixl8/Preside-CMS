@@ -1,6 +1,9 @@
-component implements="iRouteHandler" output=false {
+component implements="iRouteHandler" output=false singleton=true {
 
 // constructor
+	/**
+	 * @eventName.inject coldbox:setting:eventName
+	 */
 	public any function init( required string eventName ) output=false {
 		_setEventName( arguments.eventName );
 

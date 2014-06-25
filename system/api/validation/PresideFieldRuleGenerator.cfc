@@ -1,10 +1,13 @@
-component output="false" extends="preside.system.base.Service" {
+component output="false" singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required any resourceBundleService ) output=false {
-		super.init( argumentCollection = arguments );
-
+	/**
+	 * @resourceBundleService.inject ResourceBundleService
+	 * @presideObjectService.inject  PresideObjectService
+	 */
+	public any function init( required any resourceBundleService, required any presideObjectService ) output=false {
 		_setResourceBundleService( arguments.resourceBundleService );
+		_setPresideObjectService( arguments.presideObjectService );
 
 		return this;
 	}
@@ -213,5 +216,12 @@ component output="false" extends="preside.system.base.Service" {
 	}
 	private void function _setResourceBundleService( required any resourceBundleService ) output=false {
 		_resourceBundleService = arguments.resourceBundleService;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
 	}
 }

@@ -1,9 +1,15 @@
-component output="false" extends="preside.system.base.Service" {
+component output="false" singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required any contentRenderer, required any i18nPlugin, required any permissionService ) output=false {
-		super.init( argumentCollection = arguments );
 
+	/**
+	 * @presideObjectService.inject PresideObjectService
+	 * @contentRenderer.inject      ContentRendererService
+	 * @i18nPlugin.inject           coldbox:plugin:i18n
+	 * @permissionService.inject    PermissionService
+	 */
+	public any function init( required any presideObjectService, required any contentRenderer, required any i18nPlugin, required any permissionService ) output=false {
+		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
 		_setI18nPlugin( arguments.i18nPlugin );
 		_setPermissionService( arguments.permissionService );
@@ -197,7 +203,7 @@ component output="false" extends="preside.system.base.Service" {
 	}
 
 	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) output=false {
-		var records = getPresideObject( arguments.objectName ).selectData(
+		var records = _getPresideObjectService().getObject( arguments.objectName ).selectData(
 			selectFields = [ "Max( datemodified ) as lastmodified" ]
 		);
 
@@ -294,6 +300,13 @@ component output="false" extends="preside.system.base.Service" {
 	}
 
 // GETTERS AND SETTERS
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
+	}
+
 	private any function _getContentRenderer() output=false {
 		return _contentRenderer;
 	}

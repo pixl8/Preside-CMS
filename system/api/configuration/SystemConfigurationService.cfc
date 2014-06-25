@@ -1,9 +1,14 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required array autoDiscoverDirectories ) output=false {
-		super.init( argumentCollection=arguments );
+	/**
+	 * @autoDiscoverDirectories.inject presidecms:directories
+	 * @dao.inject                     presidecms:object:system_config
+	 */
+	public any function init( required array autoDiscoverDirectories, required any dao ) output=false {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
+		_setDao( arguments.dao )
+
 		reload();
 
 		return this;
@@ -11,9 +16,8 @@ component output=false extends="preside.system.base.Service" {
 
 // PUBLIC API METHODS
 	public string function getSetting( required string category, required string setting, string default="" ) output=false {
-		var result = _getPresideObjectService().selectData(
-			  objectName = "system_config"
-			, selectFields = [ "value" ]
+		var result = _getDao().selectData(
+			  selectFields = [ "value" ]
 			, filter       = { category = arguments.category, setting = arguments.setting }
 		);
 
@@ -25,9 +29,8 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public struct function getCategorySettings( required string category ) output=false {
-		var rawResult = _getPresideObjectService().selectData(
-			  objectName = "system_config"
-			, selectFields = [ "setting", "value" ]
+		var rawResult = _getDao().selectData(
+			  selectFields = [ "setting", "value" ]
 			, filter       = { category = arguments.category }
 		);
 		var result = {};
@@ -40,25 +43,22 @@ component output=false extends="preside.system.base.Service" {
 	}
 
 	public any function saveSetting( required string category, required string setting, required string value ) output=false  {
-		var poService = _getPresideObjectService();
+		var dao = _getDao();
 
 		transaction {
-			var currentRecord = poService.selectData(
-				  objectName   = "system_config"
-				, selectFields = [ "id" ]
+			var currentRecord = dao.selectData(
+				  selectFields = [ "id" ]
 				, filter       = { category = arguments.category, setting = arguments.setting }
 			);
 
 			if ( currentRecord.recordCount ) {
-				return poService.updateData(
-					  objectName = "system_config"
-					, data       = { value = arguments.value }
-					, id         = currentRecord.id
+				return dao.updateData(
+					  data = { value = arguments.value }
+					, id   = currentRecord.id
 				);
 			} else {
-				return poService.insertData(
-					  objectName = "system_config"
-					, data       = { category = arguments.category, setting = arguments.setting, value = arguments.value }
+				return dao.insertData(
+					data = { category = arguments.category, setting = arguments.setting, value = arguments.value }
 				);
 			}
 		}
@@ -146,6 +146,13 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setAutoDiscoverDirectories( required array autoDiscoverDirectories ) output=false {
 		_autoDiscoverDirectories = arguments.autoDiscoverDirectories;
+	}
+
+	private any function _getDao() output=false {
+		return _dao;
+	}
+	private void function _setDao( required any dao ) output=false {
+		_dao = arguments.dao;
 	}
 
 	private struct function _getConfigCategories() output=false {

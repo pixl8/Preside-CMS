@@ -1,9 +1,13 @@
-component output=false extends="preside.system.base.Service" {
+component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required any draftService ) output=false {
-		super.init( argumentCollection = arguments );
-
+	/**
+	 * @draftService.inject         DraftService
+	 * @presideObjectService.inject PresideObjectService
+	 *
+	 */
+	public any function init( required any draftService, required any presideObjectService ) output=false {
+		_setPresideObjectService( arguments.presideObjectService );
 		_setDraftService( arguments.draftService );
 
 		return this;
@@ -58,6 +62,13 @@ component output=false extends="preside.system.base.Service" {
 	}
 	private void function _setDraftService( required any draftService ) output=false {
 		_draftService = arguments.draftService;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
 	}
 }
 

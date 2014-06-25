@@ -1,6 +1,9 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @presideObjectService.inject PresideObjectService
+	 */
 	public any function init( required any presideObjectService ) output=false {
 		_setPresideObjectService( arguments.presideObjectService );
 

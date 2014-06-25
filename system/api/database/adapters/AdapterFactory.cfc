@@ -1,6 +1,11 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+
+	/**
+	 * @dbInfoService.inject  DbInfoService
+	 * @cache.inject          cachebox:SystemCache
+	 */
 	public any function init( required any dbInfoService, required any cache ) output=false {
 		_setCache( arguments.cache );
 		_setDbInfoService( arguments.dbInfoService );

@@ -114,7 +114,7 @@
 
 	<cffunction name="isAdminUser" access="public" returntype="boolean" output="false">
 		<cfscript>
-			var loginSvc = getModel( "adminLoginService" );
+			var loginSvc = getModel( "loginService" );
 
 			return loginSvc.isLoggedIn();
 		</cfscript>
@@ -122,7 +122,7 @@
 
 	<cffunction name="getAdminUserDetails" access="public" returntype="struct" output="false">
 		<cfscript>
-			var loginSvc = getModel( "adminLoginService" );
+			var loginSvc = getModel( "loginService" );
 
 			return loginSvc.getLoggedInUserDetails();
 		</cfscript>

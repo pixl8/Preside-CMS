@@ -1,6 +1,9 @@
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
+	/**
+	 * @sessionService.inject SessionService
+	 */
 	public any function init( required any sessionService, numeric tokenExpiryInSeconds=1200 ) output=false {
 		_setSessionService( arguments.sessionService );
 		_setTokenExpiryInSeconds( arguments.tokenExpiryInSeconds );
