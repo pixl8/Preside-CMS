@@ -90,8 +90,8 @@ component output=false {
 		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete" ];
 
 		// uploads directory - each site really should override this setting and provide an external location
-		settings.uploads_directory     = "/uploads";
-		settings.tmp_uploads_directory = "/uploads";
+		settings.uploads_directory     = ExpandPath( "/uploads" );
+		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
 
 		settings.ckeditor = {
 			  defaults    = {
@@ -105,8 +105,9 @@ component output=false {
 		};
 
 		settings.static = {
-			  rootUrl          = ""
-			, siteAssetsPath   = "/application/assets"
+			  rootUrl        = ""
+			, siteAssetsPath = "/app/assets"
+			, siteAssetsUrl  = "/application/assets"
 		};
 
 	}
