@@ -76,3 +76,25 @@ Settings can be injected into your service layer components using the PresideCMS
 
         ...
     }
+
+.. warning::
+
+    If you inject settings this way into a singleton, any changes to the settings through the admin will not be reflected in your service object until it is reinstantiated (i.e. a full application reload). In this case, you may wish to use the method described below.
+
+You can also inject the :code:`systemConfigurationService` object itself into your services and use its :code:`getSetting()` method. This will mean that you can always get the latest setting stored in the database at runtime. For example:
+
+.. code-block:: js
+
+    component output=false {
+        property name="systemConfigurationService" inject="systemConfigurationService";
+
+        ...
+
+        private string function _getApiKey() output=false {
+            return systemConfigurationService.getSetting( 
+                  category = "hipchat-integration"
+                , setting  = "hipchat_api_key"
+                , default  = "nokeyselected"
+            );
+        }
+    }
