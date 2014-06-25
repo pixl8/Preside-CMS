@@ -4,6 +4,8 @@
 
 		var settings = getColdbox().getSettingStructure();
 
+		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
+
 	// base objects (todo, make mixin style concerns rather than real inheritance)
 		map( "baseService" ).asSingleton().to( "preside.system.base.Service" ).noAutoWire()
 			.initArg( name="presideObjectService", ref="PresideObjectService" )
