@@ -9,7 +9,7 @@
 			sessionService  = new preside.system.services.cfmlScopes.SessionService();
 			loginService = new preside.system.services.admin.loginService(
 				  logger          = _getTestLogger()
-				, userDao         = _getPresideObjectService().getObject( "security_user" )
+				, userDao         = _getPresideObjectService( forceNewInstance=true ).getObject( "security_user" )
 				, sessionService  = sessionService
 				, bCryptService   = _getBCrypt()
 				, systemUserList  = "sysadmin"
