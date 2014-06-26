@@ -87,6 +87,15 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getAdminPath" access="public" returntype="string" output="false">
+		<cfscript>
+			var overridenSetting = getModel( "systemConfigurationService" ).getSetting( "general", "admin_url" );
+			var path             = Len( Trim( overridenSetting ) ) ? overridenSetting : getController().getSetting( "preside_admin_path" );
+
+			return "/" & path  & "/";
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getCurrentUrl" access="public" returntype="string" output="false">
 		<cfargument name="includeQueryString" type="boolean" required="false" default="true" />
 

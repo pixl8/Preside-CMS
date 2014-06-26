@@ -6,7 +6,7 @@
 		event.include( "/css/admin/frontend/" );
 		event.includeData({
 			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
-			, adminBaseUrl = "/" & getSetting( "preside_admin_path" ) & "/"
+			, adminBaseUrl = event.getAdminPath()
 		});
 
 		toolbarUrl = event.buildAdminLink(

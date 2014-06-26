@@ -12,7 +12,7 @@
 			event.setLayout( "admin" );
 			event.includeData( {
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
-				, adminBaseUrl = "/" & getSetting( "preside_admin_path" ) & "/"
+				, adminBaseUrl = event.getAdminPath()
 			} );
 			event.includeData( event.getCollection() );
 
