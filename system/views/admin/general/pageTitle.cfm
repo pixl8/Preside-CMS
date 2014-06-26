@@ -1,12 +1,16 @@
-<cfparam name="args.icon"     type="string" default="" />
-<cfparam name="args.title"    type="string" default="" />
-<cfparam name="args.subTitle" type="string" default="" />
+<cfscript>
+	param name="args.icon"     type="string" default="";
+	param name="args.title"    type="string" default="";
+	param name="args.subTitle" type="string" default="";
+
+	icon = ReFind( "^fa\-", args.icon ) ? args.icon : "fa-#args.icon#";
+</cfscript>
 
 <cfoutput>
 	<div class="page-header">
 		<h1>
 			<cfif Len( Trim( args.icon ) )>
-				<i class="fa fa-#args.icon#"></i>
+				<i class="fa #icon#"></i>
 			</cfif>
 
 			#args.title#

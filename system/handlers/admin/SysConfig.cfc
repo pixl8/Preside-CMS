@@ -8,6 +8,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !hasPermission( permissionKey="systemConfiguration.manage" ) ) {
+			event.adminAccessDenied();
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:sysConfig" )
 			, link  = event.buildAdminLink( linkTo="sysConfig" )
@@ -15,6 +19,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // FIRST CLASS EVENTS
+	public any function index( event, rc, prc ) output=false {
+		prc.categories = systemConfigurationService.listConfigCategories();
+
+		prc.pageTitle    = translateResource( uri="cms:sysconfig" );
+		prc.pageSubtitle = translateResource( uri="cms:sysconfig.subtitle" );
+		prc.pageIcon     = "cogs";
+	}
+
 	public any function category( event, rc, prc ) output=false {
 		var categoryId = rc.id ?: "";
 
@@ -32,8 +44,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, link  = ""
 		);
 
-		prc.pageTitle = translateResource( uri="cms:sysconfig.editCategory.title", data=[ prc.categoryName ] )
+		prc.pageTitle    = translateResource( uri="cms:sysconfig.editCategory.title", data=[ prc.categoryName ] )
 		prc.pageSubtitle = prc.categoryDescription
+		prc.pageIcon     = translateResource( uri=prc.category.getIcon(), defaultValue="" );
+
+		if ( !Len( Trim( prc.pageIcon ) ) ) {
+			prc.pageIcon = "cogs";
+		}
 	}
 
 	public any function saveCategoryAction( event, rc, prc ) output=false {

@@ -69,23 +69,24 @@ component output=false {
 		settings.activeExtensions = _loadExtensions();
 
 		settings.permissions = {
-			  cms          = [ "login" ]
-			, sitetree     = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms" ]
-			, datamanager  = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
-			, assetmanager = {
+			  cms                 = [ "login" ]
+			, sitetree            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms" ]
+			, datamanager         = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
+			, usermanager         = [ "navigate", "read", "add", "edit", "delete" ]
+			, groupmanager        = [ "navigate", "read", "add", "edit", "delete" ]
+			, devtools            = [ "console" ]
+			, systemConfiguration = [ "manage" ]
+			, assetmanager        = {
 				  general = [ "navigate" ]
 				, folders = [ "add", "edit", "delete", "manageContextPerms" ]
 				, assets  = [ "upload", "edit", "delete", "download", "pick" ]
 			 }
-			, usermanager  = [ "navigate", "read", "add", "edit", "delete" ]
-			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
-			, devtools     = [ "console" ]
 		};
 
 		settings.roles = StructNew( "linked" );
 
 		settings.roles.user           = [ "cms.login" ];
-		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*" ];
+		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*" ];
 		settings.roles.sitetreeAdmin  = [ "sitetree.*" ];
 		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
 		settings.roles.dataAdmin      = [ "datamanager.*" ];

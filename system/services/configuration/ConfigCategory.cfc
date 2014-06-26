@@ -2,6 +2,7 @@ component output=false accessors=true {
 	property name="id"               type="string"  default="";
 	property name="name"             type="string"  default="";
 	property name="description"      type="string"  default="";
+	property name="icon"             type="string"  default="";
 	property name="form"             type="string"  default="";
 
 	public struct function getMemento(){
@@ -9,6 +10,7 @@ component output=false accessors=true {
 			  id               = getId()
 			, name             = getName()
 			, description      = getDescription()
+			, icon             = getIcon()
 			, form             = getForm()
 		};
 	}

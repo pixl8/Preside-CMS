@@ -67,7 +67,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "systemConfiguration.navigate" )>
+			<cfif hasPermission( "systemConfiguration.manage" )>
 				<li<cfif listLast( handler, ".") eq "sysconfig"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<i class="fa fa-cogs"></i>

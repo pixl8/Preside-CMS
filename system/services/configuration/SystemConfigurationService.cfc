@@ -126,6 +126,7 @@ component output=false singleton=true {
 			  id               = arguments.id
 			, name             = _getConventionsBaseCategoryName( arguments.id )
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
+			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
 			, form             = _getConventionsBaseCategoryForm( arguments.id )
 		);
 	}
@@ -135,6 +136,9 @@ component output=false singleton=true {
 	}
 	private string function _getConventionsBaseCategoryDescription( required string id ) output=false {
 		return "system-config.#arguments.id#:description";
+	}
+	private string function _getConventionsBaseCategoryIcon( required string id ) output=false {
+		return "system-config.#arguments.id#:iconClass";
 	}
 	private string function _getConventionsBaseCategoryForm( required string id ) output=false {
 		return "system-config.#arguments.id#";
