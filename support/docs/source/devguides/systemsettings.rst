@@ -34,12 +34,13 @@ A category groups configuration options into a single form. To define a new cate
     </form>
 
 
-2. Create an i18n resource bundle file at :code:`/i18n/system-config/my-category.properties`. This should at least contain :code:`name` and :code:`description` properties to describe the category. For example:
+2. Create an i18n resource bundle file at :code:`/i18n/system-config/my-category.properties`. This should at least contain :code:`name`, :code:`description` and :code:`iconClass` properties to describe the category. For example:
 
 .. code-block:: properties
 
     name=Hipchat integration
     description=Configure notifications from PresideCMS into your Hipchat rooms
+    iconClass=fa-comment
 
     api_key.label=API Key
     room_name.label=Room name
