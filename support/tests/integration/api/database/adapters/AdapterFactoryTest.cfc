@@ -29,7 +29,7 @@
 		<cfscript>
 			return new preside.system.api.database.adapters.AdapterFactory(
 				  cache         = _getCachebox().getCache( "SystemCache" )
-				, dbInfoService = new preside.system.api.database.Info()
+				, dbInfoService = new preside.system.api.database.DbInfoService()
 			);
 		</cfscript>
 	</cffunction>

@@ -289,7 +289,7 @@
 		<cfargument name="dsn"         type="string" required="false" default="default_dsn" />
 		<cfargument name="tablePrefix" type="string" required="false" default="pobj_" />
 
-		<cfreturn new preside.system.api.presideObjects.Reader( dsn = arguments.dsn, tablePrefix = arguments.tablePrefix ) />
+		<cfreturn new preside.system.api.presideObjects.PresideObjectReader( dsn = arguments.dsn, tablePrefix = arguments.tablePrefix ) />
 	</cffunction>
 
 	<cffunction name="_propertiesToStruct" access="private" returntype="struct" output="false">

@@ -65,7 +65,7 @@
 
 <!--- private --->
 	<cffunction name="_getAuditService" access="private" returntype="any" output="false">
-		<cfreturn new preside.system.api.admin.AuditService( logger=_getTestLogger(), presideObjectService=_getPresideObjectService() ) />
+		<cfreturn new preside.system.api.admin.AuditService( dao=_getPresideObjectService().getObject( "audit_log" ) ) />
 	</cffunction>
 
 	<cffunction name="_wipeTestData" access="private" returntype="void" output="false">

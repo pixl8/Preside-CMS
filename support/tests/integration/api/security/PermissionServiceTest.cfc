@@ -118,8 +118,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var expected = [];
 
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="security_group", selectFields=["roles"], id="testgroup" )
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["roles"], id="testgroup" )
 			.$results( QueryNew('roles' ) );
 
 		actual = permsService.listPermissionKeys( group="testgroup" );
@@ -146,8 +146,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, "assetmanager.blah.test.blah"
 		];
 
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="security_group", selectFields=["roles"], id="testgroup" )
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["roles"], id="testgroup" )
 			.$results( QueryNew('roles', 'varchar', ['tester,user'] ) );
 
 		actual = permsService.listPermissionKeys( group="testgroup" );
@@ -160,8 +160,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var expected = [];
 
-		mockPresideObjectService.$( "selectManyToManyData" )
-			.$args( objectName="security_user", selectFields=["security_group"], propertyName="groups", id="testuser" )
+		mockUserDao.$( "selectManyToManyData" )
+			.$args( selectFields=["security_group"], propertyName="groups", id="testuser" )
 			.$results( QueryNew('security_group' ) );
 
 		actual = permsService.listPermissionKeys( user="testuser" );
@@ -188,16 +188,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, "assetmanager.blah.test.blah"
 		];
 
-		mockPresideObjectService.$( "selectManyToManyData" )
-			.$args( objectName="security_user", selectFields=["security_group"], propertyName="groups", id="me" )
+		mockUserDao.$( "selectManyToManyData" )
+			.$args( selectFields=["security_group"], propertyName="groups", id="me" )
 			.$results( QueryNew('security_group', 'varchar', [['testgroup'],['testgroup2']] ) );
 
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="security_group", selectFields=["roles"], id="testgroup" )
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["roles"], id="testgroup" )
 			.$results( QueryNew('roles', 'varchar', ['tester'] ) );
 
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="security_group", selectFields=["roles"], id="testgroup2" )
+		mockGroupDao.$( "selectData" )
+			.$args( selectFields=["roles"], id="testgroup2" )
 			.$results( QueryNew('roles', 'varchar', ['user'] ) );
 
 		actual = permsService.listPermissionKeys( user="me" );
@@ -283,9 +283,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
 			, filter       = { context = "someContext" }
 		).$results( mockContextPerms );
 
@@ -312,9 +311,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "a.new.key", "another.key" ] );
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
 			, filter       = { context = "someContext" }
 		).$results( mockContextPerms );
 
@@ -341,9 +339,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "a.new.key", "another.key", "my.perm.key" ] );
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
 			, filter       = { context = "someContext" }
 		).$results( mockContextPerms );
 
@@ -370,9 +367,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
 			, filter       = { context = "someContext" }
 		).$results( mockContextPerms );
 
@@ -421,9 +417,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		expandedPermKeys = expandedPermKeys.sort( "textnocase" );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
 			, filter       = { context = "someContext", context_key = [ "aContextKey" ], permission_key = expandedPermKeys }
 		).$results( mockQueryResult );
 
@@ -445,64 +440,58 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testGrantGroups = [ "group1", "group2" ];
 		var testDenyGroups  = [ "group3", "group9", "group10" ];
 
-		mockPresideObjectService.$( "deleteData" ).$args(
-			  objectName   = "security_context_permission"
-			, filter       = { context=testContext, context_key=testContextKey, permission_key=testPerm }
+		mockContextPermDao.$( "deleteData" ).$args(
+			filter = { context=testContext, context_key=testContextKey, permission_key=testPerm }
 		).$results( 4 );
 
-		mockPresideObjectService.$( "insertData" ).$args(
-			  objectName = "security_context_permission"
-			, data       = {
+		mockContextPermDao.$( "insertData" ).$args(
+			data = {
 				  permission_key = testPerm
 				, context        = testContext
 				, context_key    = testContextKey
 				, security_group = "group1"
 				, granted        = 1
-			  }
+			}
 		).$results( "" );
 
-		mockPresideObjectService.$( "insertData" ).$args(
-			  objectName = "security_context_permission"
-			, data       = {
+		mockContextPermDao.$( "insertData" ).$args(
+			data = {
 				  permission_key = testPerm
 				, context        = testContext
 				, context_key    = testContextKey
 				, security_group = "group2"
 				, granted        = 1
-			  }
+			}
 		).$results( "" );
 
-		mockPresideObjectService.$( "insertData" ).$args(
-			  objectName = "security_context_permission"
-			, data       = {
+		mockContextPermDao.$( "insertData" ).$args(
+			data = {
 				  permission_key = testPerm
 				, context        = testContext
 				, context_key    = testContextKey
 				, security_group = "group3"
 				, granted        = 0
-			  }
+			}
 		).$results( "" );
 
-		mockPresideObjectService.$( "insertData" ).$args(
-			  objectName = "security_context_permission"
-			, data       = {
+		mockContextPermDao.$( "insertData" ).$args(
+			data = {
 				  permission_key = testPerm
 				, context        = testContext
 				, context_key    = testContextKey
 				, security_group = "group9"
 				, granted        = 1
-			  }
+			}
 		).$results( "" );
 
-		mockPresideObjectService.$( "insertData" ).$args(
-			  objectName = "security_context_permission"
-			, data       = {
+		mockContextPermDao.$( "insertData" ).$args(
+			data = {
 				  permission_key = testPerm
 				, context        = testContext
 				, context_key    = testContextKey
 				, security_group = "group10"
 				, granted        = 1
-			  }
+			}
 		).$results( "" );
 
 		permsService.syncContextPermissions(
@@ -513,7 +502,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, deniedToGroups  = testDenyGroups
 		);
 
-		var callLog = mockPresideObjectService.$callLog();
+		var callLog = mockContextPermDao.$callLog();
 
 
 		super.assertEquals( 1, callLog.deleteData.len() );
@@ -538,9 +527,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
 			, filter       = { context = "someContext" }
 		).$results( mockContextPerms );
 
@@ -579,15 +567,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		expandedPermKeys = expandedPermKeys.sort( "textnocase" );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_context_permission"
-			, selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
+		mockContextPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "permission_key", "security_group", "security_group.label as group_name" ]
 			, filter       = { context = "someContext", context_key = [ "aContextKey" ], permission_key = expandedPermKeys }
 		).$results( mockContextPerms );
 
-		mockPresideObjectService.$( "selectData" ).$args(
-			  objectName   = "security_group"
-			, selectFields = [ "id", "label", "roles" ]
+		mockGroupDao.$( "selectData" ).$args(
+			selectFields = [ "id", "label", "roles" ]
 		).$results( mockGroups );
 
 		actual = permsService.getContextPermissions(
@@ -603,17 +589,21 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE HELPERS
 	private any function _getPermissionService( struct roles={}, struct permissions={} ) output=false {
-		mockPresideObjectService = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
-		mockLoginService         = getMockBox().createEmptyMock( "preside.system.api.admin.LoginService" );
-		cacheProvider            = _getCachebox( forceNewInstance = true ).getCache( "default" );
+		mockLoginService    = getMockBox().createEmptyMock( "preside.system.api.admin.LoginService" );
+		cacheProvider       = _getCachebox( forceNewInstance = true ).getCache( "default" );
+		mockGroupDao        = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_group"              ) );
+		mockUserDao         = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_user"               ) );
+		mockContextPermDao  = getMockBox().createEmptyMock( object = _getPresideObjectService().getObject( "security_context_permission" ) );
 
 		return getMockBox().createMock( object=new preside.system.api.security.PermissionService(
-			  presideObjectService = mockPresideObjectService
-			, loginService         = mockLoginService
+			  loginService         = mockLoginService
 			, cacheProvider        = cacheProvider
 			, logger               = _getTestLogger()
 			, rolesConfig          = arguments.roles
 			, permissionsConfig    = arguments.permissions
+			, groupDao             = mockGroupDao
+			, userDao              = mockUserDao
+			, contextPermDao       = mockContextPermDao
 		) );
 	}
 }

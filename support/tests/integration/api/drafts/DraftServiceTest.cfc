@@ -4,10 +4,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function setup() {
 		super.setup();
 
-		var logger = _getTestLogger();
-		var poService = _getPresideObjectService();
-
-		draftSvc = new preside.system.api.drafts.DraftService( logger = logger, presideObjectService = poService );
+		draftSvc = new preside.system.api.drafts.DraftService( dao = _getPresideObjectService().getObject( "draft" ) );
 	}
 
 	function beforeTests() {

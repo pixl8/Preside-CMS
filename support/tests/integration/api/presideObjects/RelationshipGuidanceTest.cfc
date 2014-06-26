@@ -438,7 +438,7 @@
 <!--- private helpers --->
 	<cffunction name="_getGuidanceService" access="private" returntype="any" output="false">
 		<cfscript>
-			var reader        = new preside.system.api.presideObjects.Reader(
+			var reader        = new preside.system.api.presideObjects.PresideObjectReader(
 				  dsn         = "default_dsn"
 				, tablePrefix = "pobj_"
 			);

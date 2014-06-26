@@ -2,10 +2,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // SETUP, TEARDOWN, ETC.
 	function setup() {
-		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
-		mockLogger               = _getTestLogger();
-
-		mockPresideObjectService.$( "objectExists" ).$results( true );
+		mockDao  = getMockbox().createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
 		testDirs = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
 	}
 
@@ -49,11 +46,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test05_saveSetting_shouldInsertANewDbRecord_whenNoExistingRecordExistsForTheGivenConfigKey() {
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
+		mockDao.$( "selectData" )
+			.$args( filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
 			.$results( QueryNew('id') );
 
-		mockPresideObjectService.$( "insertData", CreateUUId() );
+		mockDao.$( "insertData", CreateUUId() );
 
 		_getConfigSvc( testDirs ).saveSetting(
 			  category = "mycategory"
@@ -61,22 +58,19 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, value    = "this is the value of my setting"
 		);
 
-		var log = mockPresideObjectService.$callLog().insertData;
+		var log = mockDao.$callLog().insertData;
 
 		super.assertEquals( 1, log.len() );
-		super.assertEquals( {
-			  objectName = "system_config"
-			, data       = { category="mycategory", setting="mysetting", value="this is the value of my setting" }
-		}, log[1] );
+		super.assertEquals( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting" } }, log[1] );
 	}
 
 	function test06_saveSetting_shouldUpdateExistingDbRecord_whenRecordAlreadyExistsInDb() {
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
+		mockDao.$( "selectData" )
+			.$args( filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
 			.$results( QueryNew('id', "varchar", ["someid"] ) );
 
-		mockPresideObjectService.$( "insertData", CreateUUId() );
-		mockPresideObjectService.$( "updateData", 1 );
+		mockDao.$( "insertData", CreateUUId() );
+		mockDao.$( "updateData", 1 );
 
 		_getConfigSvc( testDirs ).saveSetting(
 			  category = "mycategory"
@@ -84,21 +78,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, value    = "this is the value of my setting"
 		);
 
-		var log = mockPresideObjectService.$callLog().insertData;
+		var log = mockDao.$callLog().insertData;
 		super.assertEquals( 0, log.len() );
 
-		log = mockPresideObjectService.$callLog().updateData;
+		log = mockDao.$callLog().updateData;
 		super.assertEquals( 1, log.len() );
-		super.assertEquals( {
-			  objectName = "system_config"
-			, data       = {  value="this is the value of my setting" }
-			, id         = "someid"
-		}, log[1] );
+		super.assertEquals( { data = {  value="this is the value of my setting" }, id = "someid" }, log[1] );
 	}
 
 	function test07_getSetting_shouldReturnValueAsSavedInTheDatabaseForGivenCategoryAndSetting() {
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+		mockDao.$( "selectData" )
+			.$args( filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 			.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
 
 		super.assertEquals( "this is the correct result", _getConfigSvc( testDirs ).getSetting(
@@ -108,8 +98,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test08_getSetting_shouldReturnPassedDefault_whenNoRecordExists() {
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+		mockDao.$( "selectData" )
+			.$args( filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 			.$results( QueryNew('value') );
 
 		super.assertEquals( "defaultResult", _getConfigSvc( testDirs ).getSetting(
@@ -120,8 +110,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test09_getCategorySettings_shouldReturnAStructureOfAllSavedSettingsForAGivenCategory() {
-		mockPresideObjectService.$( "selectData" )
-			.$args( objectName="system_config", selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
+		mockDao.$( "selectData" )
+			.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
 			.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
 
 		super.assertEquals( {
@@ -134,8 +124,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[] ) ouput=false {
 		return new preside.system.api.configuration.SystemConfigurationService(
-			  presideObjectService    = mockPresideObjectService
-			, logger                  = mockLogger
+			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 		);
 	}

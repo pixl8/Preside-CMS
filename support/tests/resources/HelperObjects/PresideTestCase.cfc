@@ -38,12 +38,12 @@
 
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
-				var objReader = new preside.system.api.presideObjects.Reader(
+				var objReader = new preside.system.api.presideObjects.PresideObjectReader(
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 				);
 				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
-				var dbInfoService  = new preside.system.api.database.Info();
+				var dbInfoService  = new preside.system.api.database.DbInfoService();
 				var sqlRunner      = new preside.system.api.database.sqlRunner( logger = logger );
 
 				var adapterFactory = new preside.system.api.database.adapters.AdapterFactory(

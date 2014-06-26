@@ -8,11 +8,11 @@
 
 			sessionService  = new preside.system.api.cfmlScopes.SessionService();
 			loginService = new preside.system.api.admin.loginService(
-				  logger               = _getTestLogger()
-				, presideObjectService = _getPresideObjectService()
-				, sessionService       = sessionService
-				, bCryptService        = _getBCrypt()
-				, systemUserList       = "sysadmin"
+				  logger          = _getTestLogger()
+				, userDao         = _getPresideObjectService().getObject( "security_user" )
+				, sessionService  = sessionService
+				, bCryptService   = _getBCrypt()
+				, systemUserList  = "sysadmin"
 			);
 		</cfscript>
 	</cffunction>
