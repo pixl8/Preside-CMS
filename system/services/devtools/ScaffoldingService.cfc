@@ -105,9 +105,9 @@ component output=false singleton=true {
 		var filePath = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
 		var viewPath = arguments.subDir & "/" & handlerName & "/index";
 		var fileContent = "component output=false {" & _nl()
-		                & "	private function index( event, rc, prc, viewletArgs={} ) output=false {" & _nl()
+		                & "	private function index( event, rc, prc, args={} ) output=false {" & _nl()
 		                & "		// TODO: create your handler logic here" & _nl()
-		                & "		return renderView( view='#viewPath#', args=viewletArgs );" & _nl()
+		                & "		return renderView( view='#viewPath#', args=args );" & _nl()
 		                & "	}" & _nl()
 		                & "}" & _nl();
 

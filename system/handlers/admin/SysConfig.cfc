@@ -78,10 +78,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // VIEWLETS
-	private string function categoryMenu( event, rc, prc, viewletArgs ) output=false {
-		viewletArgs.categories = systemConfigurationService.listConfigCategories();
+	private string function categoryMenu( event, rc, prc, args ) output=false {
+		args.categories = systemConfigurationService.listConfigCategories();
 
-		return renderView( view="admin/sysconfig/categoryMenu", args=viewletArgs );
+		return renderView( view="admin/sysconfig/categoryMenu", args=args );
 	}
 
 }

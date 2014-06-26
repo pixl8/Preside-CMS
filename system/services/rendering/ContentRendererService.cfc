@@ -189,15 +189,15 @@ component singleton=true output="false" {
 			embeddedImage = _findNextEmbeddedImage( renderedContent );
 
 			if ( Len( Trim( embeddedImage.asset ?: "" ) ) ) {
-				var viewletArgs = Duplicate( embeddedImage );
+				var args = Duplicate( embeddedImage );
 
-				viewletArgs.delete( "asset" );
-				viewletArgs.delete( "placeholder" );
+				args.delete( "asset" );
+				args.delete( "placeholder" );
 
 				renderedImage = _getAssetRendererService().renderAsset(
 					  assetId = embeddedImage.asset
 					, context = arguments.context
-					, args    = viewletArgs
+					, args    = args
 				);
 			}
 
@@ -219,15 +219,15 @@ component singleton=true output="false" {
 			embeddedAttachment = _findNextEmbeddedAttachment( renderedContent );
 
 			if ( Len( Trim( embeddedAttachment.asset ?: "" ) ) ) {
-				var viewletArgs = Duplicate( embeddedAttachment );
+				var args = Duplicate( embeddedAttachment );
 
-				viewletArgs.delete( "asset" );
-				viewletArgs.delete( "placeholder" );
+				args.delete( "asset" );
+				args.delete( "placeholder" );
 
 				renderedAttachment = _getAssetRendererService().renderAsset(
 					  assetId = embeddedAttachment.asset
 					, context = arguments.context
-					, args    = viewletArgs
+					, args    = args
 				);
 			}
 

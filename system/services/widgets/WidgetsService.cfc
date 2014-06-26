@@ -40,16 +40,16 @@ component singleton=true output=false {
 	}
 
 	public string function renderWidget( required string widgetId, string configJson="", string context="", struct config={} ) output=false {
-		var viewletArgs = Duplicate( arguments.config );
+		var args = Duplicate( arguments.config );
 
 		if ( Len( Trim( arguments.configJson ) ) ) {
-			StructAppend( viewletArgs, deserializeConfig( arguments.configJson ) );
+			StructAppend( args, deserializeConfig( arguments.configJson ) );
 		}
-		viewletArgs.context = arguments.context;
+		args.context = arguments.context;
 
 		return _getColdbox().renderViewlet(
 			  event = _getViewletEventForWidget( arguments.widgetId, arguments.context )
-			, args  = viewletArgs
+			, args  = args
 		);
 	}
 

@@ -2,9 +2,9 @@ component output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
 
-	public string function index( event, rc, prc, viewletArgs={} ) output=false {
-		viewletArgs.object = viewletArgs.relatedTo ?: "";
+	public string function index( event, rc, prc, args={} ) output=false {
+		args.object = args.relatedTo ?: "";
 
-		return renderFormControl( argumentCollection=viewletArgs, type="objectPicker", layout="" );
+		return renderFormControl( argumentCollection=args, type="objectPicker", layout="" );
 	}
 }

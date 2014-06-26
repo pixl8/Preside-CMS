@@ -2,21 +2,21 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="permissionService" inject="permissionService";
 
-	private function contextPermsForm( event, rc, prc, viewletArgs={} ) output=false {
-		viewletArgs.permissionKeys   = permissionService.listPermissionKeys( filter=viewletArgs.permissionKeys ?: [ "*" ] );
-		viewletArgs.savedPermissions = permissionService.getContextPermissions(
-			  context        = viewletArgs.context ?: ""
-			, contextKeys    = [ viewletArgs.contextKey ?: "" ]
-			, permissionKeys = viewletArgs.permissionKeys
+	private function contextPermsForm( event, rc, prc, args={} ) output=false {
+		args.permissionKeys   = permissionService.listPermissionKeys( filter=args.permissionKeys ?: [ "*" ] );
+		args.savedPermissions = permissionService.getContextPermissions(
+			  context        = args.context ?: ""
+			, contextKeys    = [ args.contextKey ?: "" ]
+			, permissionKeys = args.permissionKeys
 		);
-		viewletArgs.inheritedPermissions = permissionService.getContextPermissions(
-			  context        = viewletArgs.context ?: ""
-			, contextKeys    = viewletArgs.inheritedContextKeys ?: []
-			, permissionKeys = viewletArgs.permissionKeys
+		args.inheritedPermissions = permissionService.getContextPermissions(
+			  context        = args.context ?: ""
+			, contextKeys    = args.inheritedContextKeys ?: []
+			, permissionKeys = args.permissionKeys
 			, includeDefaults = true
 		);
 
-		return renderView( view="admin/permissions/contextPermsForm", args=viewletArgs );
+		return renderView( view="admin/permissions/contextPermsForm", args=args );
 	}
 
 	private function saveContextPermsAction( event, rc, prc ) output=false {

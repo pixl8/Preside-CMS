@@ -3,9 +3,9 @@ component output=false {
 	property name="ckeditorSettings"      inject="coldbox:setting:ckeditor";
 	property name="sticker"               inject="coldbox:myPlugin:StickerForPreside";
 
-	public string function index( event, rc, prc, viewletArgs={} ) output=false {
-		var toolbar     = viewletArgs.toolbar ?: "full";
-		var stylesheets = viewletArgs.stylesheets ?: Duplicate( ckeditorSettings.defaults.stylesheets ?: "" );
+	public string function index( event, rc, prc, args={} ) output=false {
+		var toolbar     = args.toolbar ?: "full";
+		var stylesheets = args.stylesheets ?: Duplicate( ckeditorSettings.defaults.stylesheets ?: "" );
 		if ( isSimpleValue( stylesheets ) ) {
 			stylesheets = ListToArray( stylesheets );
 		}
@@ -14,12 +14,12 @@ component output=false {
 			stylesheets[i] = sticker.getAssetUrl( stylesheets[i] );
 		}
 
-		viewletArgs.stylesheets = ArrayToList( stylesheets );
+		args.stylesheets = ArrayToList( stylesheets );
 		if ( Len( Trim( toolbar ) ) ) {
-			viewletArgs.toolbar = ckeditorToolbarHelper.getToolbarDefinition( toolbar );
+			args.toolbar = ckeditorToolbarHelper.getToolbarDefinition( toolbar );
 		}
 
-		return renderView( view="formcontrols/richeditor/index", args=viewletArgs );
+		return renderView( view="formcontrols/richeditor/index", args=args );
 	}
 
 // private helpers

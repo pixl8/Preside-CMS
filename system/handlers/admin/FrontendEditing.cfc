@@ -94,24 +94,24 @@
 		<cfargument name="event"       type="any"    required="true" />
 		<cfargument name="rc"          type="struct" required="true" />
 		<cfargument name="prc"         type="struct" required="true" />
-		<cfargument name="viewletArgs" type="struct" required="false" default="#StructNew()#" />
+		<cfargument name="args" type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
 			if ( !event.isAdminUser() ) {
-				return viewletArgs.renderedContent ?: ( viewletArgs.rawContent ?: "" );
+				return args.renderedContent ?: ( args.rawContent ?: "" );
 			}
 
-			var control  = viewletArgs.control  ?: "richeditor";
+			var control  = args.control  ?: "richeditor";
 
-			viewletArgs.renderer = viewletArgs.renderer ?: contentRendererService.getRendererForField( fieldAttributes = { control = control } );
-			viewletArgs.draftContent = frontendEditingService.getDraft(
-				  object   = viewletArgs.object   ?: ""
-				, property = viewletArgs.property ?: ""
-				, recordId = viewletArgs.recordId ?: ""
+			args.renderer = args.renderer ?: contentRendererService.getRendererForField( fieldAttributes = { control = control } );
+			args.draftContent = frontendEditingService.getDraft(
+				  object   = args.object   ?: ""
+				, property = args.property ?: ""
+				, recordId = args.recordId ?: ""
 				, owner    = event.getAdminUserId()
 			);
 
-			return renderView( view="/admin/frontendediting/renderFrontendEditor", args=viewletArgs );
+			return renderView( view="/admin/frontendediting/renderFrontendEditor", args=args );
 		</cfscript>
 	</cffunction>
 
@@ -119,12 +119,12 @@
 		<cfargument name="event"       type="any"    required="true" />
 		<cfargument name="rc"          type="struct" required="true" />
 		<cfargument name="prc"         type="struct" required="true" />
-		<cfargument name="viewletArgs" type="struct" required="false" default="#StructNew()#" />
+		<cfargument name="args" type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
-			var pageId   = viewletArgs.pageId   ?: 0;
-			var renderer = viewletArgs.renderer ?: "";
-			var content  = viewletArgs.content  ?: "";
+			var pageId   = args.pageId   ?: 0;
+			var renderer = args.renderer ?: "";
+			var content  = args.content  ?: "";
 
 			event.initializePresideSiteteePage( pageId=pageId );
 

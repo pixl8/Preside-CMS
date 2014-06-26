@@ -78,7 +78,7 @@ component extends="coldbox.system.web.Controller" output=false {
 				  event          = handler
 				, prepostExempt  = arguments.prepostExempt
 				, private        = arguments.private
-				, eventArguments = { viewletArgs = arguments.args }
+				, eventArguments = { args = arguments.args }
 			);
 		}
 

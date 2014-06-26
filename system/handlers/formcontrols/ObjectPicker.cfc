@@ -3,32 +3,32 @@ component output=false {
 	property name="presideObjectService" inject="presideObjectService";
 	property name="dataManagerService" inject="dataManagerService";
 
-	public string function index( event, rc, prc, viewletArgs={} ) output=false {
-		var targetObject = viewletArgs.object ?: "";
-		var ajax         = viewletArgs.ajax   ?: true;
+	public string function index( event, rc, prc, args={} ) output=false {
+		var targetObject = args.object ?: "";
+		var ajax         = args.ajax   ?: true;
 
 		if ( IsBoolean( ajax ) && ajax ) {
-			if ( not StructKeyExists( viewletArgs, "prefetchUrl" ) ) {
+			if ( not StructKeyExists( args, "prefetchUrl" ) ) {
 				var prefetchCacheBuster = dataManagerService.getPrefetchCachebusterForAjaxSelect( targetObject );
 
-				viewletArgs.prefetchUrl = event.buildAdminLink( linkTo="datamanager.getObjectRecordsForAjaxSelectControl", querystring="object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#" );
+				args.prefetchUrl = event.buildAdminLink( linkTo="datamanager.getObjectRecordsForAjaxSelectControl", querystring="object=#targetObject#&prefetchCacheBuster=#prefetchCacheBuster#" );
 			}
-			viewletArgs.remoteUrl = viewletArgs.remoteUrl ?: event.buildAdminLink( linkTo="datamanager.getObjectRecordsForAjaxSelectControl", querystring="object=#targetObject#&q=%QUERY" );
+			args.remoteUrl = args.remoteUrl ?: event.buildAdminLink( linkTo="datamanager.getObjectRecordsForAjaxSelectControl", querystring="object=#targetObject#&q=%QUERY" );
 		} else {
-			viewletArgs.records = presideObjectService.selectData(
+			args.records = presideObjectService.selectData(
 				  objectName   = targetObject
 				, selectFields = [ "id", "label" ]
 				, orderBy      = "label"
 		 	);
 		}
 
-		if ( !Len( Trim( viewletArgs.placeholder ?: "" ) ) ) {
-			viewletArgs.placeholder = translateResource(
+		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {
+			args.placeholder = translateResource(
 				  uri  = "cms:datamanager.search.data.placeholder"
 				, data = [ translateResource( uri=presideObjectService.getResourceBundleUriRoot( targetObject ) & "title", defaultValue=translateResource( "cms:datamanager.records" ) ) ]
 			);
 		}
 
-		return renderView( view="formcontrols/objectPicker/index", args=viewletArgs );
+		return renderView( view="formcontrols/objectPicker/index", args=args );
 	}
 }

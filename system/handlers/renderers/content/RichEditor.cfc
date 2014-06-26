@@ -1,8 +1,8 @@
 component output=false {
 	property name="contentRendererService" inject="contentRendererService";
 
-	public string function default( event, rc, prc, viewletArgs={} ){
-		var content = ( viewletArgs.data ?: "" );
+	public string function default( event, rc, prc, args={} ){
+		var content = ( args.data ?: "" );
 
 		content = contentRendererService.renderEmbeddedWidgets( richContent = content );
 		content = contentRendererService.renderEmbeddedImages( richContent=content, context="richeditor" );

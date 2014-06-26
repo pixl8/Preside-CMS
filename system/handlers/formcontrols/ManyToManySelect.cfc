@@ -2,23 +2,23 @@ component output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
 
-	public string function index( event, rc, prc, viewletArgs={} ) output=false {
-		if ( Len( Trim( viewletArgs.savedData.id ?: "" ) ) ) {
-			var sourceObject = viewletArgs.sourceObject ?: "";
+	public string function index( event, rc, prc, args={} ) output=false {
+		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
+			var sourceObject = args.sourceObject ?: "";
 
-			viewletArgs.savedValue = presideObjectService.selectManyToManyData(
+			args.savedValue = presideObjectService.selectManyToManyData(
 				  objectName   = sourceObject
-				, propertyName = viewletArgs.name
-				, id           = viewletArgs.savedData.id
-				, selectFields = [ "#viewletArgs.name#.id" ]
+				, propertyName = args.name
+				, id           = args.savedData.id
+				, selectFields = [ "#args.name#.id" ]
 			);
 
-			viewletArgs.defaultValue = viewletArgs.savedValue = ValueList( viewletArgs.savedValue.id );
+			args.defaultValue = args.savedValue = ValueList( args.savedValue.id );
 		}
 
-		viewletArgs.object   = viewletArgs.relatedTo ?: "";
-		viewletArgs.multiple = true;
+		args.object   = args.relatedTo ?: "";
+		args.multiple = true;
 
-		return renderFormControl( argumentCollection=viewletArgs, type="objectPicker", layout="" );
+		return renderFormControl( argumentCollection=args, type="objectPicker", layout="" );
 	}
 }

@@ -403,12 +403,12 @@
 		<cfargument name="event"       type="any"    required="true" />
 		<cfargument name="rc"          type="struct" required="true" />
 		<cfargument name="prc"         type="struct" required="true" />
-		<cfargument name="viewletArgs" type="struct" required="false" default="#StructNew()#" />
+		<cfargument name="args" type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
-			viewletArgs.pageTypes = pageTypesService.listPageTypes();
+			args.pageTypes = pageTypesService.listPageTypes();
 
-			return renderView( view="admin/sitetree/pageTypeDialog", args=viewletArgs );
+			return renderView( view="admin/sitetree/pageTypeDialog", args=args );
 		</cfscript>
 	</cffunction>
 
