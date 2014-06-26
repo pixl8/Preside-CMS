@@ -2,7 +2,6 @@ language: java
 
 env:
   matrix:
-  - PLATFORM=railo41 TARGET=test-ci
   - PLATFORM=railo42beta TARGET=test-ci
   - PLATFORM=railo42beta TARGET=build
   global:
