@@ -3,13 +3,15 @@ component implements="iRouteHandler" output=false singleton=true {
 // constructor
 	/**
 	 * @adminPath.inject         coldbox:setting:preside_admin_path
+	 * @sysConfigService.inject  SystemConfigurationService
 	 * @eventName.inject         coldbox:setting:eventName
 	 * @adminDefaultEvent.inject coldbox:setting:adminDefaultEvent
 	 */
-	public any function init( required string adminPath, required string eventName, required string adminDefaultEvent ) output=false {
+	public any function init( required string adminPath, required string eventName, required string adminDefaultEvent, required any sysConfigService ) output=false {
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
 		_setAdminDefaultEvent( arguments.adminDefaultEvent );
+		_setSysConfigService( arguments.sysConfigService );
 
 		return this;
 	}
@@ -47,7 +49,9 @@ component implements="iRouteHandler" output=false singleton=true {
 
 // private getters and setters
 	private string function _getAdminPath() output=false {
-		return _adminPath;
+		var fromSysConfig = _getSysConfigService().getSetting( "general", "admin_url" );
+
+		return Len( Trim( fromSysConfig ) ) ? fromSysConfig : _adminPath;
 	}
 	private void function _setAdminPath( required string adminPath ) output=false {
 		_adminPath = arguments.adminPath;
@@ -65,5 +69,12 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 	private void function _setAdminDefaultEvent( required string adminDefaultEvent ) output=false {
 		_adminDefaultEvent = arguments.adminDefaultEvent;
+	}
+
+	private any function _getSysConfigService() output=false {
+		return _sysConfigService;
+	}
+	private void function _setSysConfigService( required any sysConfigService ) output=false {
+		_sysConfigService = arguments.sysConfigService;
 	}
 }
