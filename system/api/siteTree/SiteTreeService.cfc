@@ -634,7 +634,7 @@ component output=false singleton=true {
 		var systemField = "";
 
 		for( arg in arguments ) {
-			exists      = fieldExists( objectName="page", fieldName=arg );
+			exists      = _getPresideObjectService().fieldExists( objectName="page", fieldName=arg );
 			systemField = ListFindNoCase( "id,datecreated,datemodified,_hierarchy_id", arg ) or arg contains "_hierarchy_";
 
 			if ( exists and not systemField and not IsNull( arguments[ arg ] ) ) {
