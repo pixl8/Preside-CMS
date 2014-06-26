@@ -14,6 +14,11 @@
 	private void function _mapCommonDirectories() output=false {
 		mapDirectory( packagePath="preside.system.services", exclude="FileSystemStorageProvider|logger" );
 		mapDirectory( packagePath="app.services" );
+
+		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
+		for( var i=extensions.len(); i > 0; i-- ){
+			mapDirectory( packagePath=ListAppend( extensions[i].directory, "services", "/" ) );
+		}
 	}
 
 	private void function _mapSpecificInstancesOfServices() output=false {
