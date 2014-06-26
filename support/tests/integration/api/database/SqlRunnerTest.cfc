@@ -77,7 +77,7 @@
 		<cfargument name="logger" type="any" required="true" />
 
 		<cfscript>
-			return new preside.system.api.database.SqlRunner( logger = arguments.logger );
+			return new preside.system.services.database.SqlRunner( logger = arguments.logger );
 		</cfscript>
 	</cffunction>
 

@@ -3,7 +3,7 @@ component output=false singleton=true {
 // CONSTRUCTOR
 	public any function init() output=false {
 		_setJBCrypt(
-			jBCrypt = CreateObject( 'java', 'org.mindrot.jbcrypt.BCrypt', ExpandPath( "/preside/system/api/encryption/bcrypt/lib/jbcrypt-0.3m.jar" ) )
+			jBCrypt = CreateObject( 'java', 'org.mindrot.jbcrypt.BCrypt', ExpandPath( "/preside/system/services/encryption/bcrypt/lib/jbcrypt-0.3m.jar" ) )
 		);
 
 		return this;

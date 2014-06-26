@@ -13,17 +13,17 @@
 		<cfscript>
 			var poService = _getPresideObjectService( forceNewInstance=true );
 			var logger    = _getTestLogger();
-			var pageTypesService = new preside.system.api.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ] );
+			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ] );
 
-			loginService = new preside.system.api.admin.loginService(
+			loginService = new preside.system.services.admin.loginService(
 				  logger               = logger
 				, presideObjectService = poService
-				, sessionService       = new preside.system.api.cfmlScopes.SessionService()
+				, sessionService       = new preside.system.services.cfmlScopes.SessionService()
 				, bCryptService        = _getBCrypt()
 				, systemUserList       = "sysadmin"
 			);
 
-			siteTreeService = new preside.system.api.sitetree.SiteTreeService(
+			siteTreeService = new preside.system.services.sitetree.SiteTreeService(
 				  logger               = logger
 				, presideObjectService = poService
 				, loginService         = loginService

@@ -4,7 +4,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function setup() {
 		super.setup();
 
-		draftSvc = new preside.system.api.drafts.DraftService( dao = _getPresideObjectService().getObject( "draft" ) );
+		draftSvc = new preside.system.services.drafts.DraftService( dao = _getPresideObjectService().getObject( "draft" ) );
 	}
 
 	function beforeTests() {

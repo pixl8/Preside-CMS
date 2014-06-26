@@ -52,7 +52,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		ArraySort( expectedValidators, "textnocase" );
 
 		super.assertEquals( expectedValidators, engine.listValidators() );
-		super.assert( IsInstanceOf( provider, "preside.system.api.validation.ValidationProvider" ) );
+		super.assert( IsInstanceOf( provider, "preside.system.services.validation.ValidationProvider" ) );
 	}
 
 	function test06_validate_shouldRunValidationRulesetAgainstDataAndFindErrors(){
@@ -187,12 +187,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE
 	private function _getEngine(){
-		return new preside.system.api.validation.ValidationEngine();
+		return new preside.system.services.validation.ValidationEngine();
 	}
 
 	private array function _listCoreValidators(){
-		var providerCfc = new preside.system.api.validation.CoreValidators();
-		var factory     = new preside.system.api.validation.ValidationProviderFactory();
+		var providerCfc = new preside.system.services.validation.CoreValidators();
+		var factory     = new preside.system.services.validation.ValidationProviderFactory();
 		var provider    = factory.createProvider( providerCfc );
 
 		return provider.listValidators();

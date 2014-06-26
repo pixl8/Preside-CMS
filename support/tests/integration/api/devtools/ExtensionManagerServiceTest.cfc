@@ -6,7 +6,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 		_resetTestResources();
 
-		manager = new preside.system.api.devtools.ExtensionManagerService(
+		manager = new preside.system.services.devtools.ExtensionManagerService(
 			extensionsDirectory = "/tests/resources/extensionManager/extensions"
 		);
 	}

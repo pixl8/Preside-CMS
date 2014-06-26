@@ -184,6 +184,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		if ( not StructKeyExists( arguments, "sourceCfc" ) ) {
 			arguments.sourceCfc = this;
 		}
-		return new preside.system.api.validation.ValidationProvider( sourceCfc = arguments.sourceCfc );
+		return new preside.system.services.validation.ValidationProvider( sourceCfc = arguments.sourceCfc );
 	}
 }

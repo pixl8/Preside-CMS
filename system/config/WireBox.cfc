@@ -12,8 +12,8 @@
 	}
 
 	private void function _mapCommonDirectories() output=false {
-		mapDirectory( packagePath="preside.system.api", exclude="FileSystemStorageProvider|logger" );
-		mapDirectory( "preside.system.routeHandlers" );
+		mapDirectory( packagePath="preside.system.services", exclude="FileSystemStorageProvider|logger" );
+		mapDirectory( packagePath="app.services" );
 	}
 
 	private void function _mapSpecificInstancesOfServices() output=false {
@@ -21,16 +21,16 @@
 
 		map( "baseService" ).to( "preside.system.base.Service" ).noAutoWire();
 
-		map( "defaultLogger" ).asSingleton().to( "preside.system.api.logger.CfLogLogger" ).noAutowire()
+		map( "defaultLogger" ).asSingleton().to( "preside.system.services.logger.CfLogLogger" ).noAutowire()
 			.initArg( name="defaultLog", value=settings.default_log_name  ?: "preside" )
 			.initArg( name="logLevel"  , value=settings.default_log_level ?: "information" );
 
-		map( "assetStorageProvider" ).asSingleton().to( "preside.system.api.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+		map( "assetStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory" , value=settings.uploads_directory & "/assets" )
 			.initArg( name="trashDirectory", value=settings.uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
 
-		map( "tempStorageProvider" ).asSingleton().to( "preside.system.api.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+		map( "tempStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory" , value=settings.tmp_uploads_directory & "/.tmp" )
 			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );

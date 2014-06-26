@@ -253,7 +253,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 // PRIVATE HELPERS
 
 	private any function _getStorageProvider( string rootDirectory="/tests/resources/fileStorage/storage/", string trashDirectory="/tests/resources/fileStorage/.trash/", string rootUrl="/" ) output=false {
-		return new preside.system.api.fileStorage.FileSystemStorageProvider(
+		return new preside.system.services.fileStorage.FileSystemStorageProvider(
 			  rootDirectory  = arguments.rootDirectory
 			, trashDirectory = arguments.trashDirectory
 			, rootUrl        = arguments.rootUrl

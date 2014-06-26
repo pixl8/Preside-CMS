@@ -138,7 +138,7 @@ component output=false singleton=true {
 	public string function scaffoldPageTypeView( required string viewName, string subDir="", string extension="", array args=[] ) output=false {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "views/" & arguments.subDir & "/" & arguments.viewName & ".cfm";
-		var fileContent = FileRead( "/preside/system/api/devtools/scaffoldingResources/pageTypeView.cfm.txt" );
+		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/pageTypeView.cfm.txt" );
 		var params      = "";
 
 		for( var arg in args ) {
@@ -195,7 +195,7 @@ component output=false singleton=true {
 	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) output=false {
 		var root           = _getScaffoldRoot( arguments.extension );
 		var filePath       = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
-		var fileContent    = FileRead( "/preside/system/api/devtools/scaffoldingResources/pageTypeForm.xml.txt" );
+		var fileContent    = FileRead( "/preside/system/services/devtools/scaffoldingResources/pageTypeForm.xml.txt" );
 		var renderedFields = "";
 
 		for( var field in arguments.fields ) {
@@ -214,7 +214,7 @@ component output=false singleton=true {
 	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false, string datamanagerGroup="" ) output=false {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "preside-objects/" & arguments.subDir & "/" & arguments.objectName & ".cfc";
-		var fileContent = FileRead( "/preside/system/api/devtools/scaffoldingResources/object.cfc.txt" );
+		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/object.cfc.txt" );
 		var props       = "";
 		var dmGroup     = Len( Trim( arguments.datamanagerGroup ) ) ? 'dataManagerGroup="#arguments.datamanagerGroup#"' : "";
 

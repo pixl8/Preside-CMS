@@ -121,11 +121,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private utility
 	private any function _getPresideObjectViewService( folders ) output=false {
-		mockPresideObjectService = createMock( "preside.system.api.presideObjects.presideObjectViewService" );
-		mockRendererService      = createMock( "preside.system.api.rendering.ContentRendererService" );
+		mockPresideObjectService = createMock( "preside.system.services.presideObjects.presideObjectViewService" );
+		mockRendererService      = createMock( "preside.system.services.rendering.ContentRendererService" );
 		mockRendererPlugin       = createMock( "preside.system.coldboxModifications.plugins.Renderer" );
 
-		return new preside.system.api.presideObjects.presideObjectViewService(
+		return new preside.system.services.presideObjects.presideObjectViewService(
 			  viewDirectories        = folders
 			, presideObjectService   = mockPresideObjectService
 			, presideContentRenderer = mockRendererService

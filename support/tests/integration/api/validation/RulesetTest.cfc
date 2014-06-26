@@ -2,7 +2,7 @@
 
 	<cffunction name="test01_getRules_shouldReturnEmptyArray_whenNoRulesAdded" returntype="void">
 		<cfscript>
-			var ruleset = new preside.system.api.validation.RuleSet();
+			var ruleset = new preside.system.services.validation.RuleSet();
 			var rules   = ruleset.getRules();
 
 			super.assertEquals( [], _rulesetToArrayOfStructs( rules ) );
@@ -11,7 +11,7 @@
 
 	<cffunction name="test02_addRule_shouldAppendRuleToRuleset" returntype="void">
 		<cfscript>
-			var ruleset = new preside.system.api.validation.RuleSet();
+			var ruleset = new preside.system.services.validation.RuleSet();
 			var expected = [
 				  { fieldName="fieldname"        , validator="required" , params={}                              , message=""                          , serverCondition="", clientCondition="" }
 				, { fieldName="another_field"    , validator="email"    , params={ validDomains = ["gmail.com"] }, message=""                          , serverCondition="", clientCondition="" }
@@ -49,7 +49,7 @@
 				, { fieldName="another_field"    , validator="email"    , params={ validDomains = ["gmail.com"] }, message=""                          , serverCondition="", clientCondition="" }
 				, { fieldName="yet_another_field", validator="maxLength", params={ maxLength = 87 }              , message="{bundle:some.resource.key}", serverCondition="", clientCondition="" }
 			];
-			var ruleset = new preside.system.api.validation.RuleSet();
+			var ruleset = new preside.system.services.validation.RuleSet();
 			var rules = "";
 
 			ruleset.addRules( rules=expected );
@@ -65,7 +65,7 @@
 				  { fieldName="another_field"    , validator="email"    , params={ validDomains = ["gmail.com"] }, message=""                          , serverCondition="Len( Trim( ${fieldname} ) )", clientCondition="${fieldname}.val().length;" }
 				, { fieldName="yet_another_field", validator="maxLength", params={ maxLength = 87 }              , message="{bundle:some.resource.key}", serverCondition="", clientCondition="" }
 			];
-			var ruleset = new preside.system.api.validation.RuleSet();
+			var ruleset = new preside.system.services.validation.RuleSet();
 			var rules = "";
 
 			ruleset.addRules( rules=SerializeJson( expected ) );
@@ -79,7 +79,7 @@
 		<cfscript>
 			var rules = "";
 			var filePath = ListAppend( GetTempDirectory(), CreateUUId() );
-			var ruleset = new preside.system.api.validation.RuleSet();
+			var ruleset = new preside.system.services.validation.RuleSet();
 			var expected = [
 				  { fieldName="another_field"    , validator="email"    , params={ validDomains = ["gmail.com"] }, message=""                          , serverCondition="", clientCondition="" }
 				, { fieldName="yet_another_field", validator="maxLength", params={ maxLength = 87 }              , message="{bundle:some.resource.key}", serverCondition="Len( Trim( ${fieldname} ) )", clientCondition="${fieldname}.val().length;" }
@@ -104,7 +104,7 @@
 			];
 
 			try {
-				new preside.system.api.validation.RuleSet().addRules( rules=rules )
+				new preside.system.services.validation.RuleSet().addRules( rules=rules )
 			} catch( "RuleSet.badRule" e ) {
 				super.assertEquals( "Invalid rule. Please see the documentation on creating validation rulesets.", e.message );
 				errorThrown = true;
@@ -119,7 +119,7 @@
 			var errorThrown = false;
 
 			try {
-				new preside.system.api.validation.RuleSet().addRules( rules={ fubar = "test" } )
+				new preside.system.services.validation.RuleSet().addRules( rules={ fubar = "test" } )
 			} catch( "RuleSet.badRuleset" e ) {
 				super.assertEquals( "Invalid ruleset. Rulesets must be either an array of valid rules, a json string that deserializes to an array of valid rules or a path to a file containing such a json string.", e.message );
 				super.assertEquals( "The following ruleset (serialized) was invalid: [#SerializeJson( { fubar = "test" } )#]", e.detail );
@@ -135,7 +135,7 @@
 			var errorThrown = false;
 
 			try {
-				new preside.system.api.validation.RuleSet().addRules( rules="invalidjson" )
+				new preside.system.services.validation.RuleSet().addRules( rules="invalidjson" )
 			} catch( "RuleSet.badRuleset" e ) {
 				super.assertEquals( "Invalid ruleset. Rulesets must be either an array of valid rules, a json string that deserializes to an array of valid rules or a path to a file containing such a json string.", e.message );
 				super.assertEquals( "The following ruleset (serialized) was invalid: [#SerializeJson( "invalidjson" )#]", e.detail );
@@ -154,7 +154,7 @@
 			FileWrite( filePath, "some invalid json here {}" );
 
 			try {
-				new preside.system.api.validation.RuleSet().addRules( rules=filePath )
+				new preside.system.services.validation.RuleSet().addRules( rules=filePath )
 			} catch( "RuleSet.badRuleset" e ) {
 				super.assertEquals( "Invalid ruleset. Rulesets must be either an array of valid rules, a json string that deserializes to an array of valid rules or a path to a file containing such a json string.", e.message );
 				errorThrown = true;

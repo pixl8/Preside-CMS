@@ -96,6 +96,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE HELPERS
 	private any function _getResult(){
-		return new preside.system.api.validation.ValidationResult();
+		return new preside.system.services.validation.ValidationResult();
 	}
 }

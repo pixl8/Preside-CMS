@@ -5,11 +5,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.setup();
 
 		var poService     = _getPresideObjectService();
-		var draftService  = new preside.system.api.drafts.DraftService( dao = poService.getObject( "draft" ) );
+		var draftService  = new preside.system.services.drafts.DraftService( dao = poService.getObject( "draft" ) );
 
 		mockPoService = getMockBox().createMock( object=Duplicate( poService ) );
 
-		editingService = new preside.system.api.frontendEditing.FrontendEditingService( presideObjectService = mockPoService, draftService = draftService );
+		editingService = new preside.system.services.frontendEditing.FrontendEditingService( presideObjectService = mockPoService, draftService = draftService );
 	}
 
 	function beforeTests() {

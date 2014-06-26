@@ -660,6 +660,6 @@
 
 <!--- te helpers --->
 	<cffunction name="_getAdapter" access="private" returntype="any" output="false">
-		<cfreturn new preside.system.api.database.adapters.MySqlAdapter( argumentCollection = arguments ) />
+		<cfreturn new preside.system.services.database.adapters.MySqlAdapter( argumentCollection = arguments ) />
 	</cffunction>
 </cfcomponent>

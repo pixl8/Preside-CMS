@@ -2,9 +2,9 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 
 // SETUP, TEARDOWN, etc
 	function setup() output=false {
-		// mockSecurityService          = getMockBox().createEmptyMock( "preside.system.api.admin.SecurityService" );
+		// mockSecurityService          = getMockBox().createEmptyMock( "preside.system.services.admin.SecurityService" );
 		variables.configuredToolbars = { full = "test,-,config|here|/|oh,-,yes", notsofull = "not,very,full" };
-		variables.toolbarHelper      = new preside.system.api.admin.CkEditorToolbarHelper(
+		variables.toolbarHelper      = new preside.system.services.admin.CkEditorToolbarHelper(
 			  configuredToolbars = configuredToolbars
 			//, securityService    = mockSecurityService
 		);

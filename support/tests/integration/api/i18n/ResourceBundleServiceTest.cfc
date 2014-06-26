@@ -226,7 +226,7 @@
 	<cffunction name="_getRBService" access="private" returntype="any" output="false">
 		<cfargument name="bundleDirectories" type="array" required="true" />
 
-		<cfreturn new preside.system.api.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories ) />
+		<cfreturn new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories ) />
 	</cffunction>
 
 </cfcomponent>

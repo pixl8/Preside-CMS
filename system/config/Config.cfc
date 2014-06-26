@@ -153,7 +153,7 @@ component output=false {
 	}
 
 	private array function _loadExtensions() output=false {
-		return new preside.system.api.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true );
+		return new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true );
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{

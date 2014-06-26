@@ -4,8 +4,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function setup() {
 		super.setup();
 
-		transformer = new preside.system.api.assetManager.AssetTransformer(
-			imageManipulationService = new preside.system.api.assetManager.imageManipulationService()
+		transformer = new preside.system.services.assetManager.AssetTransformer(
+			imageManipulationService = new preside.system.services.assetManager.imageManipulationService()
 		);
 	}
 

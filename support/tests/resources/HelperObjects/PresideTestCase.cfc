@@ -24,7 +24,7 @@
 	</cffunction>
 
 	<cffunction name="_getBCrypt" access="private" returntype="any" output="false">
-		<cfreturn new preside.system.api.encryption.bcrypt.BCryptService() />
+		<cfreturn new preside.system.services.encryption.bcrypt.BCryptService() />
 	</cffunction>
 
 	<cffunction name="_getPresideObjectService" access="private" returntype="any" output="false">
@@ -38,35 +38,35 @@
 
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
-				var objReader = new preside.system.api.presideObjects.PresideObjectReader(
+				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 				);
 				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
-				var dbInfoService  = new preside.system.api.database.DbInfoService();
-				var sqlRunner      = new preside.system.api.database.sqlRunner( logger = logger );
+				var dbInfoService  = new preside.system.services.database.DbInfoService();
+				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
 
-				var adapterFactory = new preside.system.api.database.adapters.AdapterFactory(
+				var adapterFactory = new preside.system.services.database.adapters.AdapterFactory(
 					  cache         = cachebox.getCache( "SystemCache" )
 					, dbInfoService = dbInfoService
 				);
-				var schemaVersioning = new preside.system.api.presideObjects.sqlSchemaVersioning(
+				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
 					  adapterFactory = adapterFactory
 					, sqlRunner      = sqlRunner
 					, dbInfoService  = dbInfoService
 				);
-				var schemaSync = new preside.system.api.presideObjects.sqlSchemaSynchronizer(
+				var schemaSync = new preside.system.services.presideObjects.sqlSchemaSynchronizer(
 					  adapterFactory          = adapterFactory
 					, sqlRunner               = sqlRunner
 					, dbInfoService           = dbInfoService
 					, schemaVersioningService = schemaVersioning
 				);
-				var relationshipGuidance = new preside.system.api.presideObjects.relationshipGuidance(
+				var relationshipGuidance = new preside.system.services.presideObjects.relationshipGuidance(
 					  objectReader = objReader
 				);
-				var presideObjectDecorator = new preside.system.api.presideObjects.presideObjectDecorator();
+				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
-				request[ key ] = new preside.system.api.presideObjects.PresideObjectService(
+				request[ key ] = new preside.system.services.presideObjects.PresideObjectService(
 					  objectDirectories      = arguments.objectDirectories
 					, objectReader           = objReader
 					, sqlSchemaSynchronizer  = schemaSync

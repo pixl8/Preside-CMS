@@ -4,7 +4,7 @@
 		<cfscript>
 			var adapter = _getFactory().getAdapter( dsn = application.dsn );
 
-			super.assertEquals( "preside.system.api.database.adapters.MySqlAdapter", GetMetaData( adapter ).name );
+			super.assertEquals( "preside.system.services.database.adapters.MySqlAdapter", GetMetaData( adapter ).name );
 		</cfscript>
 	</cffunction>
 
@@ -27,9 +27,9 @@
 <!--- private helpers --->
 	<cffunction name="_getFactory" access="private" returntype="any" output="false">
 		<cfscript>
-			return new preside.system.api.database.adapters.AdapterFactory(
+			return new preside.system.services.database.adapters.AdapterFactory(
 				  cache         = _getCachebox().getCache( "SystemCache" )
-				, dbInfoService = new preside.system.api.database.DbInfoService()
+				, dbInfoService = new preside.system.services.database.DbInfoService()
 			);
 		</cfscript>
 	</cffunction>

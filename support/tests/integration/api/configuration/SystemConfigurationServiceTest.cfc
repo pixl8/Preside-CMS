@@ -123,7 +123,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[] ) ouput=false {
-		return new preside.system.api.configuration.SystemConfigurationService(
+		return new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 		);

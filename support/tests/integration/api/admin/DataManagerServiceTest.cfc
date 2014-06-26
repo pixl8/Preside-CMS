@@ -2,14 +2,14 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 
 // SETUP, TEARDOWN, etc
 	function setup() output=false {
-		mockPoService         = getMockBox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
-		contentRenderer       = getMockBox().createEmptyMock( "preside.system.api.rendering.ContentRenderer" );
-		mockPermissionService = getMockBox().createEmptyMock( "preside.system.api.security.PermissionService" );
+		mockPoService         = getMockBox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		contentRenderer       = getMockBox().createEmptyMock( "preside.system.services.rendering.ContentRenderer" );
+		mockPermissionService = getMockBox().createEmptyMock( "preside.system.services.security.PermissionService" );
 		mockI18nPlugin        = getMockBox().createEmptyMock( "preside.system.coldboxModifications.plugins.i18n" );
 
 		_setupMockObjectMeta();
 
-		dataManagerService = new preside.system.api.admin.DataManagerService(
+		dataManagerService = new preside.system.services.admin.DataManagerService(
 			  presideObjectService = mockPoService
 			, logger               = _getTestLogger()
 			, i18nPlugin           = mockI18nPlugin

@@ -205,7 +205,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE HELPERS
 	private function _getValidators() ouptut=false {
-		return new preside.system.api.validation.CoreValidators();
+		return new preside.system.services.validation.CoreValidators();
 	}
 
 

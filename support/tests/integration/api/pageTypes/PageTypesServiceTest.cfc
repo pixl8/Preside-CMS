@@ -2,7 +2,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // SETUP, TEARDOWN, ETC.
 	function setup() {
-		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
+		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockLogger               = _getTestLogger();
 
 		mockPresideObjectService.$( "objectExists" ).$results( true );
@@ -89,7 +89,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getPageTypesSvc( array autoDiscoverDirectories=[] ) output=false {
-		return new preside.system.api.pageTypes.PageTypesService(
+		return new preside.system.services.pageTypes.PageTypesService(
 			  presideObjectService    = mockPresideObjectService
 			, logger                  = mockLogger
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories

@@ -1,14 +1,14 @@
 component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
 
 	function setup(){
-		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.api.presideObjects.PresideObjectService" );
+		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockLogger               = _getTestLogger();
-		mockResourceBundleSvc    = getMockbox().createEmptyMock( "preside.system.api.i18n.ResourceBundleService" );
+		mockResourceBundleSvc    = getMockbox().createEmptyMock( "preside.system.services.i18n.ResourceBundleService" );
 
 		mockPresideObjectService.$( "getResourceBundleUriRoot", "preside-objects.test:" );
 		mockResourceBundleSvc.$( "getResource", "somevalue" );
 
-		generator = new preside.system.api.validation.PresideFieldRuleGenerator(
+		generator = new preside.system.services.validation.PresideFieldRuleGenerator(
 			  presideObjectService  = mockPresideObjectService
 			, logger                = mockLogger
 			, resourceBundleService = mockResourceBundleSvc
@@ -101,9 +101,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockPresideObjectService.$( "getObject", mockObject );
 
 		mockObject.$( "getObjectProperties", {
-			  field1    = new preside.system.api.presideObjects.Property( name="field1", uniqueIndexes="index1|2" )
-			, field2    = new preside.system.api.presideObjects.Property( name="field2", uniqueIndexes="index1|2,index3|2" )
-			, someField = new preside.system.api.presideObjects.Property( name="someField", uniqueIndexes="index1|3,index2,index3|1" )
+			  field1    = new preside.system.services.presideObjects.Property( name="field1", uniqueIndexes="index1|2" )
+			, field2    = new preside.system.services.presideObjects.Property( name="field2", uniqueIndexes="index1|2,index3|2" )
+			, someField = new preside.system.services.presideObjects.Property( name="someField", uniqueIndexes="index1|3,index2,index3|1" )
 		} );
 
 		rules = generator.getRulesForField( objectName="test", fieldName="somefield", fieldAttributes={

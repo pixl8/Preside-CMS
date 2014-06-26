@@ -6,8 +6,8 @@
 			_dbSync();
 			_setupTestData();
 
-			sessionService  = new preside.system.api.cfmlScopes.SessionService();
-			loginService = new preside.system.api.admin.loginService(
+			sessionService  = new preside.system.services.cfmlScopes.SessionService();
+			loginService = new preside.system.services.admin.loginService(
 				  logger          = _getTestLogger()
 				, userDao         = _getPresideObjectService().getObject( "security_user" )
 				, sessionService  = sessionService

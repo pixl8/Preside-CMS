@@ -5,7 +5,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var factory = _getFactory();
 		var provider = factory.createProvider( sourceCfc = this );
 
-		super.assert( IsInstanceOf( provider, "preside.system.api.validation.ValidationProvider" ), "CreateProvider did not return a provider object" );
+		super.assert( IsInstanceOf( provider, "preside.system.services.validation.ValidationProvider" ), "CreateProvider did not return a provider object" );
 		super.assertEquals( [], provider.listValidators() );
 	}
 
@@ -14,7 +14,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var sourceCfc = new tests.resources.ValidationProvider.SimpleProvider();
 		var provider  = factory.createProvider( sourceCfc = sourceCfc );
 
-		super.assert( IsInstanceOf( provider, "preside.system.api.validation.ValidationProvider" ), "CreateProvider did not return a provider object" );
+		super.assert( IsInstanceOf( provider, "preside.system.services.validation.ValidationProvider" ), "CreateProvider did not return a provider object" );
 		super.assertEquals( [ "validator1", "validator2", "validator3" ], provider.listValidators() );
 
 		super.assert( provider.validatorExists( "validator1" ) );
@@ -83,6 +83,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE HELPERS
 	private any function _getFactory(){
-		return new preside.system.api.validation.ValidationProviderFactory();
+		return new preside.system.services.validation.ValidationProviderFactory();
 	}
 }

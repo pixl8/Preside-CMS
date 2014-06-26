@@ -438,12 +438,12 @@
 <!--- private helpers --->
 	<cffunction name="_getGuidanceService" access="private" returntype="any" output="false">
 		<cfscript>
-			var reader        = new preside.system.api.presideObjects.PresideObjectReader(
+			var reader        = new preside.system.services.presideObjects.PresideObjectReader(
 				  dsn         = "default_dsn"
 				, tablePrefix = "pobj_"
 			);
 
-			return new preside.system.api.presideObjects.RelationshipGuidance(
+			return new preside.system.services.presideObjects.RelationshipGuidance(
 				objectReader  = reader
 			);
 		</cfscript>
@@ -455,7 +455,7 @@
 		<cfscript>
 			var newProps = {};
 			for( var prop in rawProps ) {
-				newProps[ prop ] = new preside.system.api.presideObjects.Property( argumentCollection=rawProps[prop] );
+				newProps[ prop ] = new preside.system.services.presideObjects.Property( argumentCollection=rawProps[prop] );
 			}
 
 			return newProps;
