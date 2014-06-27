@@ -229,7 +229,11 @@ component output="false" singleton=true {
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
 			field = sqlFields[i];
 			if ( not StructKeyExists( props, field ) ) {
-				sqlFields[i] = "'' as " & field;
+				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+					sqlFields[i] = "vrsn_" & arguments.objectName & "." & field;
+				} else {
+					sqlFields[i] = "'' as " & field;
+				}
 				continue;
 			}
 

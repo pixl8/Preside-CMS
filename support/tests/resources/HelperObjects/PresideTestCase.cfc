@@ -66,6 +66,13 @@
 				);
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
+				var coldbox = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+				var event   = getMockbox().createStub();
+				event.$( "isAdminUser", true );
+				event.$( "getAdminUserId", "" );
+				coldbox.$( "getRequestContext", event );
+
+
 				request[ key ] = new preside.system.services.presideObjects.PresideObjectService(
 					  objectDirectories      = arguments.objectDirectories
 					, objectReader           = objReader
@@ -76,6 +83,7 @@
 					, presideObjectDecorator = presideObjectDecorator
 					, objectCache            = cachebox.getCache( "SystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
+					, coldboxController      = coldbox
 				);
 			}
 

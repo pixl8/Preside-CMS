@@ -11,8 +11,8 @@
 <cfoutput>
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName    = object
-		, gridFields    = [ "datemodified", "label" ]
-		, datasourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#object#&id=#id#&action=dataManager.getRecordHistoryForAjaxDataTables&gridFields=datemodified,label" )
+		, gridFields    = [ "datemodified", "_version_author", "label" ]
+		, datasourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#object#&id=#id#&action=dataManager.getRecordHistoryForAjaxDataTables&gridFields=datemodified,_version_author,label" )
 		, allowSearch   = false
 	} )#
 </cfoutput>

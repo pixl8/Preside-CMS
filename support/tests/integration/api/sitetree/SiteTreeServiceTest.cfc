@@ -21,6 +21,7 @@
 				, sessionService       = new preside.system.services.cfmlScopes.SessionService()
 				, bCryptService        = _getBCrypt()
 				, systemUserList       = "sysadmin"
+				, userDao              = poService.getObject( "security_user" )
 			);
 
 			siteTreeService = new preside.system.services.sitetree.SiteTreeService(

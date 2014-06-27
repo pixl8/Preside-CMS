@@ -394,7 +394,7 @@
 		<cfargument name="rc"              type="struct"  required="true" />
 		<cfargument name="prc"             type="struct"  required="true" />
 		<cfargument name="object"          type="string"  required="false" default="#( rc.id ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,datemodified' )#" />
+		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
 
@@ -455,13 +455,14 @@
 		<cfargument name="rc"              type="struct"  required="true" />
 		<cfargument name="prc"             type="struct"  required="true" />
 		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label' )#" />
+		<cfargument name="recordId"        type="string"versionObjectrequired="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
 
+			var versionObject       = presideObjectService.getVersionObjectName( object );
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var optionsCol          = [];
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
@@ -478,7 +479,7 @@
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], "adminDataTable" );
+					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], "adminDataTable" );
 				}
 
 				if ( Len( Trim( actionsView ) ) ) {

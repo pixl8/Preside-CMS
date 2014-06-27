@@ -11,6 +11,7 @@ component output=false singleton=true {
 	 * @presideObjectDecorator.inject PresideObjectDecorator
 	 * @objectCache.inject            cachebox:SystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
+	 * @coldboxController.inject      coldbox
 	 */
 	public any function init(
 		  required array objectDirectories
@@ -22,6 +23,7 @@ component output=false singleton=true {
 		, required any   presideObjectDecorator
 		, required any   objectCache
 		, required any   defaultQueryCache
+		, required any   coldboxController
 	) output=false {
 		_setObjectDirectories( arguments.objectDirectories );
 		_setObjectReader( arguments.objectReader );
@@ -32,7 +34,7 @@ component output=false singleton=true {
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
 		_setObjectCache( arguments.objectCache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
-		_setVersioningService( new VersioningService( this ) );
+		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
 		_setCacheMaps( {} );
 
 		_loadObjects();

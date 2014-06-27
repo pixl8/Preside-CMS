@@ -3,16 +3,18 @@ component output=false singleton=true {
 // CONSTRUCTOR
 	/**
 	 * @presideObjectService.inject PresideObjectService
+	 * @coldboxController.inject    coldbox
 	 */
-	public any function init( required any presideObjectService ) output=false {
+	public any function init( required any presideObjectService, required any coldboxController ) output=false {
 		_setPresideObjectService( arguments.presideObjectService );
+		_setColdboxController( arguments.coldboxController );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public void function setupVersioningForVersionedObjects( required struct objects, required string primaryDsn ) output=false {
-		var versionedObjects       = {};
+		var versionedObjects = {};
 
 		for( var objectName in objects ){
 			var obj = objects[ objectName ];
@@ -50,12 +52,14 @@ component output=false singleton=true {
 		  required string  objectName
 		, required struct  data
 		, required struct  manyToManyData
+		,          string  versionAuthor = _getLoggedInUserId()
 		,          numeric versionNumber = getNextVersionNumber()
 	) output=false {
 		return saveVersion(
 			  objectName        = arguments.objectName
 			, data              = arguments.data
 			, versionNumber     = arguments.versionNumber
+			, versionAuthor     = arguments.versionAuthor
 			, manyToManyData    = arguments.manyToManyData
 		);
 	}
@@ -68,6 +72,7 @@ component output=false singleton=true {
 		, required struct  data
 		, required struct  manyToManyData
 		,          numeric versionNumber = getNextVersionNumber()
+		,          string  versionAuthor = _getLoggedInUserId()
 	) output=false {
 		var poService              = _getPresideObjectService();
 		var existingRecords        = poService.selectData( objectName = arguments.objectName, id=arguments.id, filter=arguments.filter, filterParams=arguments.filterParams );
@@ -114,6 +119,7 @@ component output=false singleton=true {
 				  objectName        = arguments.objectName
 				, data              = mergedData
 				, versionNumber     = arguments.versionNumber
+				, versionAuthor     = arguments.versionAuthor
 				, manyToManyData    = mergedManyToManyData
 			);
 		}
@@ -126,6 +132,7 @@ component output=false singleton=true {
 		, required struct  data
 		, required struct  manyToManyData
 		,          numeric versionNumber = getNextVersionNumber()
+		,          string  versionAuthor = _getLoggedInUserId()
 	) output=false {
 		var poService         = _getPresideObjectService();
 		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
@@ -133,6 +140,7 @@ component output=false singleton=true {
 		var recordId          = versionedData.id ?: "";
 
 		versionedData._version_number = arguments.versionNumber;
+		versionedData._version_author = arguments.versionAuthor;
 		if ( poService.fieldExists( versionObjectName, "id" ) ) {
 			versionedData.id = versionedData.id ?: NullValue();
 		}
@@ -151,6 +159,7 @@ component output=false singleton=true {
 				, joinPropertyName = propertyName
 				, values           = manyToManyData[ propertyName ]
 				, versionNumber    = arguments.versionNumber
+				, versionAuthor    = arguments.versionAuthor
 			);
 		}
 
@@ -194,10 +203,26 @@ component output=false singleton=true {
 			, relatedto    = "none"
 			, generator    = "none"
 		);
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number" );
+
+		objMeta.properties[ "_version_author" ] = new Property(
+			  name         = "_version_author"
+			, required     = false
+			, type         = "string"
+			, dbtype       = "varchar"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 100
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, renderer     = "adminuser"
+		);
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
-		objMeta.indexes[ "ix_versioning_version_number" ] = { unique=false, fields="_version_number"    };
+		objMeta.indexes[ "ix_versioning_version_number" ] = { unique=false, fields="_version_number" };
+		objMeta.indexes[ "ix_versioning_version_author" ] = { unique=false, fields="_version_author" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
 			objMeta.indexes[ "ix_versioning_record_id" ]      = { unique=false, fields="id,_version_number" };
 		}
@@ -225,6 +250,7 @@ component output=false singleton=true {
 		, required string  joinPropertyName
 		, required string  values
 		, required numeric versionNumber
+		, required string  versionAuthor
 	) output=false {
 		var poService      = _getPresideObjectService();
 		var prop           = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
@@ -243,11 +269,18 @@ component output=false singleton=true {
 							  "#arguments.sourceObjectName#" = arguments.sourceObjectId
 							, "#targetObject#"               = targetId
 							, _version_number                = arguments.versionNumber
+							, _version_author                = arguments.versionAuthor
 						}
 					);
 				}
 			}
 		}
+	}
+
+	private string function _getLoggedInUserId() output=false {
+		var event = _getColdboxController().getRequestContext();
+
+		return event.isAdminUser() ? event.getAdminUserId() : "";
 	}
 
 // GETTERS AND SETTERS
@@ -256,5 +289,12 @@ component output=false singleton=true {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) output=false {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getColdboxController() output=false {
+		return _coldboxController;
+	}
+	private void function _setColdboxController( required any coldboxController ) output=false {
+		_coldboxController = arguments.coldboxController;
 	}
 }
