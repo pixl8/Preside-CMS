@@ -1,0 +1,9 @@
+.version-navigator a {
+  color: inherit;
+}
+.version-navigator .disabled {
+  opacity: 0.4;
+}
+.page-header + .row > .col-xs-12 > .version-navigator {
+  margin-top: -12px;
+}

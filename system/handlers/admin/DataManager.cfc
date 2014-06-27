@@ -388,6 +388,34 @@
 		</cfscript>
 	</cffunction>
 
+<!--- VIEWLETS --->
+	<cffunction name="versionNavigator" access="private" returntype="string" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+		<cfargument name="args"  type="struct" required="false" default="#StructNew()#" />
+
+		<cfscript>
+			args.versions = presideObjectService.getRecordVersions(
+				  objectName = args.object ?: ""
+				, id         = args.id     ?: ""
+			);
+
+			args.nextVersion = 0;
+			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
+
+			for( var i=1; i <= args.versions.recordCount; i++ ){
+				if ( args.versions._version_number[i] == ( args.version ?: "" ) ) {
+					args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
+					args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
+				}
+			}
+
+			return renderView( view="admin/datamanager/versionNavigator", args=args );
+		</cfscript>
+	</cffunction>
+
+
 <!--- private events for sharing --->
 	<cffunction name="_getObjectRecordsForAjaxDataTables" access="private" returntype="void" output="false">
 		<cfargument name="event"           type="any"     required="true" />
