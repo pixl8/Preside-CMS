@@ -50,9 +50,10 @@ component output=false singleton=true {
 		  string  id
 		, string  slug
 		, string  system_key
-		, boolean includeTrash    = false
-		, array   selectFields    = []
-		, boolean useCache        = true
+		, boolean includeTrash = false
+		, array   selectFields = []
+		, boolean useCache     = true
+		, numeric version      = 0
 
 	) output=false {
 		var args = { filter="", filterParams={}, useCache=arguments.useCache };
@@ -83,6 +84,11 @@ component output=false singleton=true {
 
 		if ( ArrayLen( arguments.selectFields ) ) {
 			args.selectFields = arguments.selectFields;
+		}
+
+		if ( arguments.version ) {
+			args.fromVersionTable = true
+			args.specificVersion  = arguments.version
 		}
 
 		return _getPObj().selectData( argumentCollection = args );

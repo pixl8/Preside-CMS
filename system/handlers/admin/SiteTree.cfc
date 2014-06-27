@@ -133,11 +133,12 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var pageId           = event.getValue( "id", "" );
-			var validationResult = event.getValue( name="validationResult", defaultValue="" );
+			var pageId           = rc.id               ?: "";
+			var validationResult = rc.validationResult ?: "";
+			var version          = Val ( rc.version    ?: "" );
 			var pageType         = "";
 
-			prc.page = siteTreeService.getPage( id = pageId );
+			prc.page = siteTreeService.getPage( id = pageId, version=version );
 
 			if ( not prc.page.recordCount ) {
 				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
@@ -154,7 +155,7 @@
 			prc.mergeFormName = _getPageTypeFormName( pageType, "edit" )
 
 			prc.page = QueryRowToStruct( prc.page );
-			var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId } );
+			var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version  );
 			StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
 			event.addAdminBreadCrumb(
