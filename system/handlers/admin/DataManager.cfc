@@ -483,7 +483,7 @@
 		<cfargument name="rc"              type="struct"  required="true" />
 		<cfargument name="prc"             type="struct"  required="true" />
 		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="recordId"        type="string"versionObjectrequired="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 

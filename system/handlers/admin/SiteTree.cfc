@@ -164,6 +164,29 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="pageHistory" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var pageId   = event.getValue( "id", "" );
+			var pageType = "";
+
+			prc.page = siteTreeService.getPage( id = pageId );
+
+			if ( not prc.page.recordCount ) {
+				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+			}
+
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.label ] )
+				, link  = ""
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="editPageAction" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -436,9 +459,31 @@
 				preparedPages.append( record );
 			}
 
-				event.renderData( type="json", data=preparedPages );
-			</cfscript>
-		</cffunction>
+			event.renderData( type="json", data=preparedPages );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="getPageHistoryForAjaxDataTables" access="public" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+
+		<cfscript>
+			var pageId = rc.id     ?: "";
+
+			runEvent(
+				  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object     = "page"
+					, recordId   = pageId
+					, gridFields = ( rc.gridFields ?: 'datemodified,_version_author,label' )
+					, actionsView = "admin/sitetree/_historyActions"
+				}
+			);
+		</cfscript>
+	</cffunction>
 
 
 <!--- private helpers --->
