@@ -3,9 +3,9 @@
 	public void function configure() output=false {
 		_setupCustomDslProviders();
 		_mapCommonSystemServices();
+		_mapSpecificSystemServices();
 		_mapExtensionServices();
 		_mapSiteServices();
-		_mapSpecificSystemServices();
 	}
 
 // PRIVATE UTILITY
