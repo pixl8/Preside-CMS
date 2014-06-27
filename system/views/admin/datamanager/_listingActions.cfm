@@ -7,26 +7,19 @@
 
 <cfoutput>
 	<div class="action-buttons btn-group">
-		<i class="fa fa-cog dropdown-toggle" data-toggle="dropdown"></i>
+		<cfif hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ args.objectName ] )>
+			<a href="#args.editRecordLink#" data-context-key="e">
+				<i class="fa fa-pencil"></i>
+			</a>
+		</cfif>
 
-		<ul class="dropdown-menu pull-right text-left">
-			<cfif hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ args.objectName ] )>
-				<li>
-					<a href="#args.editRecordLink#" data-context-key="e">
-						<i class="fa fa-pencil"></i>
-						#translateResource( uri="cms:datatable.contextmenu.edit" )#
-					</a>
-				</li>
-			</cfif>
+		<cfif hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
+			<a class="confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
+				<i class="fa fa-trash-o"></i>
+			</a>
+		</cfif>
 
-			<cfif hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
-				<li>
-					<a class="confirmation-prompt" data-context-key="d" href="#args.deleteRecordLink#" title="#htmleditformat(args.deleteRecordTitle)#">
-						<i class="fa fa-trash-o"></i>
-						#translateResource( uri="cms:datatable.contextmenu.delete" )#
-					</a>
-				</li>
-			</cfif>
+		<cfsavecontent variable="extraMenuItems">
 			<cfif hasPermission( permissionKey="datamanager.viewversions", context="datamanager", contextKeys=[ args.objectName ] )>
 				<li>
 					<a data-context-key="h" href="#args.viewHistoryLink#">
@@ -35,6 +28,14 @@
 					</a>
 				</li>
 			</cfif>
-		</ul>
+		</cfsavecontent>
+
+		<cfif Len( Trim( extraMenuItems ) )>
+			<a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i></a>
+
+			<ul class="dropdown-menu pull-right text-left">
+				#extraMenuItems#
+			</ul>
+		</cfif>
 	</div>
 </cfoutput>
