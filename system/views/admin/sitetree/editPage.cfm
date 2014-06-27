@@ -9,10 +9,21 @@
 	prc.pageIcon     = "pencil";
 	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.label ] );
 
+	pageId  = rc.id      ?: "";
+	version = rc.version ?: "";
+
 	safeTitle = HtmlEditFormat( page.label );
 </cfscript>
 
 <cfoutput>
+	#renderViewlet( event='admin.datamanager.versionNavigator', args={
+		  object         = "page"
+		, id             = pageId
+		, version        = version
+		, baseUrl        = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
+		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
+	} )#
+
 	<div class="top-right-button-group">
 
 		<cfif page.id neq ( prc.homepage.id ?: "" )>
