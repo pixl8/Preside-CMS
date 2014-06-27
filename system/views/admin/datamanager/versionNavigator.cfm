@@ -6,6 +6,8 @@
 	param name="args.versions"       type="query";
 	param name="args.baseUrl"        type="string" default="#event.buildAdminLink( linkTo='datamanager.editRecord'   , queryString='object=#args.object#&id=#args.id#&version=' )#";
 	param name="args.allVersionsUrl" type="string" default="#event.buildAdminLink( linkTo='datamanager.recordHistory', queryString='object=#args.object#&id=#args.id#' )#";
+
+	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue="record" );
 </cfscript>
 
 <cfif args.versions.recordCount gt 1>
@@ -14,7 +16,7 @@
 			<p class="pull-left">
 				<i class="fa fa-history fa-lg"></i>
 				&nbsp;
-				#translateResource( uri="cms:version.navigator.#( args.nextVersion ? 'old.version.message' : 'current.version.message' )#" )#
+				#translateResource( uri="cms:version.navigator.#( args.nextVersion ? 'old.version.message' : 'current.version.message' )#", data=[ LCase( objectTitleSingular ) ] )#
 			</p>
 
 			<div class="pull-right">
