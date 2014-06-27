@@ -2,8 +2,10 @@
 
 	public void function configure() output=false {
 		_setupCustomDslProviders();
-		_mapCommonDirectories();
-		_mapSpecificInstancesOfServices();
+		_mapCommonSystemServices();
+		_mapExtensionServices();
+		_mapSiteServices();
+		_mapSpecificSystemServices();
 	}
 
 // PRIVATE UTILITY
@@ -11,13 +13,17 @@
 		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
 	}
 
-	private void function _mapCommonDirectories() output=false {
+	private void function _mapCommonSystemServices() output=false {
 		mapDirectory( packagePath="preside.system.services", exclude="FileSystemStorageProvider|logger" );
+	}
 
+	private void function _mapSiteServices() output=false {
 		if ( DirectoryExists( "/app/services" ) ) {
 			mapDirectory( packagePath="app.services" );
 		}
+	}
 
+	private void function _mapExtensionServices() output=false {
 		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
 		for( var i=extensions.len(); i > 0; i-- ){
 			var servicesDir = ListAppend( extensions[i].directory, "services", "/" )
@@ -27,7 +33,7 @@
 		}
 	}
 
-	private void function _mapSpecificInstancesOfServices() output=false {
+	private void function _mapSpecificSystemServices() output=false {
 		var settings = getColdbox().getSettingStructure();
 
 		map( "baseService" ).to( "preside.system.base.Service" ).noAutoWire();

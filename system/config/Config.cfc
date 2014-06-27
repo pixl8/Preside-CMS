@@ -20,7 +20,6 @@ component output=false {
 			, applicationStartHandler   = "General.applicationStart"
 			, requestStartHandler       = "General.requestStart"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
-			// , controllerDecorator       = "preside.system.coldboxModifications.boot"
 		};
 
 		i18n = {
@@ -70,7 +69,7 @@ component output=false {
 
 		settings.permissions = {
 			  cms                 = [ "login" ]
-			, sitetree            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms" ]
+			, sitetree            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, datamanager         = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, usermanager         = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager        = [ "navigate", "read", "add", "edit", "delete" ]
