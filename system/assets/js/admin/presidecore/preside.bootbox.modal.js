@@ -59,7 +59,7 @@
 		};
 
 		if ( $modalLink.get(0).hash.length ) {
-			setupConfig( $( modalLink.get(0).hash ).html() );
+			setupConfig( $( $modalLink.get(0).hash ).html() );
 		} else {
 			$.ajax( {
 				  method  : "GET"

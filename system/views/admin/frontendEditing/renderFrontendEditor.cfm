@@ -71,6 +71,9 @@
 					<div class="content-editor-editor-buttons">
 						<div class="content-editor-editor-notifications"></div>
 
+						<a data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
+						   href="#event.buildAdminLink( linkTo='frontendediting.fieldHistory', querystring='object=#object#&property=#property#&recordId=#recordId#' )#" data-toggle="bootbox-modal"><i class="preside-icon fa fa-history"></i></a>
+
 						<button class="editor-btn-save" type="submit" disabled="disabled">
 							#translateResource( "cms:frontendeditor.editor.save.btn" )#
 						</button>
