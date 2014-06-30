@@ -61,6 +61,7 @@ component output=false singleton=true {
 			, versionNumber     = arguments.versionNumber
 			, versionAuthor     = arguments.versionAuthor
 			, manyToManyData    = arguments.manyToManyData
+			, changedFields     = arguments.data.keyArray()
 		);
 	}
 
@@ -82,6 +83,7 @@ component output=false singleton=true {
 		StructDelete( newData, "datemodified" );
 
 		for( var oldData in existingRecords ) {
+			var changedFields = [];
 			var dataChanged = false;
 			var oldManyToManyData = poService.getDeNormalizedManyToManyData(
 				  objectName       = arguments.objectName
@@ -89,22 +91,23 @@ component output=false singleton=true {
 			);
 
 			for( var field in newData ) {
-				if ( StructKeyExists( oldData, field ) && oldData[ field ] != newData[ field ] ) {
-					dataChanged = true;
-					break;
+				if ( StructKeyExists( oldData, field ) ) {
+					var oldValue = IsNull( oldData[ field ] ) ? "" : oldData[ field ];
+					var newValue = IsNull( newData[ field ] ) ? "" : newData[ field ];
+
+				 	if ( oldValue != newValue ) {
+						changedFields.append( field );
+				 	}
 				}
 			}
-
+			for( var field in arguments.manyToManyData ) {
+				if ( StructKeyExists( oldManyToManyData, field ) && oldManyToManyData[ field ] != arguments.manyToManyData[ field ] ) {
+					changedFields.append( field );
+				}
+			}
+			dataChanged = changedFields.len();
 			if ( !dataChanged ) {
-				for( var field in arguments.manyToManyData ) {
-					if ( StructKeyExists( oldManyToManyData, field ) && oldManyToManyData[ field ] != arguments.manyToManyData[ field ] ) {
-						dataChanged = true;
-						break;
-					}
-				}
-				if ( !dataChanged ) {
-					continue;
-				}
+				continue;
 			}
 
 			var mergedData  = Duplicate( oldData );
@@ -116,11 +119,12 @@ component output=false singleton=true {
 			StructAppend( mergedManyToManyData, arguments.manyToManyData );
 
 			saveVersion(
-				  objectName        = arguments.objectName
-				, data              = mergedData
-				, versionNumber     = arguments.versionNumber
-				, versionAuthor     = arguments.versionAuthor
-				, manyToManyData    = mergedManyToManyData
+				  objectName     = arguments.objectName
+				, data           = mergedData
+				, versionNumber  = arguments.versionNumber
+				, versionAuthor  = arguments.versionAuthor
+				, manyToManyData = mergedManyToManyData
+				, changedFields  = changedFields
 			);
 		}
 
@@ -131,6 +135,7 @@ component output=false singleton=true {
 		  required string  objectName
 		, required struct  data
 		, required struct  manyToManyData
+		, required array   changedFields
 		,          numeric versionNumber = getNextVersionNumber()
 		,          string  versionAuthor = _getLoggedInUserId()
 	) output=false {
@@ -139,8 +144,10 @@ component output=false singleton=true {
 		var versionedData     = Duplicate( arguments.data );
 		var recordId          = versionedData.id ?: "";
 
-		versionedData._version_number = arguments.versionNumber;
-		versionedData._version_author = arguments.versionAuthor;
+		versionedData._version_number         = arguments.versionNumber;
+		versionedData._version_author         = arguments.versionAuthor;
+		versionedData._version_changed_fields = ',' & arguments.changedFields.toList() & ",";
+
 		if ( poService.fieldExists( versionObjectName, "id" ) ) {
 			versionedData.id = versionedData.id ?: NullValue();
 		}
@@ -218,7 +225,20 @@ component output=false singleton=true {
 			, renderer     = "adminuser"
 		);
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author" );
+		objMeta.properties[ "_version_changed_fields" ] = new Property(
+			  name         = "_version_changed_fields"
+			, required     = false
+			, type         = "string"
+			, dbtype       = "varchar"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 800
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+		);
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		objMeta.indexes[ "ix_versioning_version_number" ] = { unique=false, fields="_version_number" };
