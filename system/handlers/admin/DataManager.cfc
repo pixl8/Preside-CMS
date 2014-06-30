@@ -396,16 +396,22 @@
 		<cfargument name="args"  type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
+			var selectedVersion = Val( args.version ?: "" );
+
 			args.versions = presideObjectService.getRecordVersions(
 				  objectName = args.object ?: ""
 				, id         = args.id     ?: ""
 			);
 
+			if ( !selectedVersion && args.versions.recordCount ) {
+				selectedVersion = args.versions._version_number; // first record, they are ordered reverse chronologically
+			}
+
 			args.nextVersion = 0;
 			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
 
 			for( var i=1; i <= args.versions.recordCount; i++ ){
-				if ( args.versions._version_number[i] == ( args.version ?: "" ) ) {
+				if ( args.versions._version_number[i] == selectedVersion ) {
 					args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
 					args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
 				}
