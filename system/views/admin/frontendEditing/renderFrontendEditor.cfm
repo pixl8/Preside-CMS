@@ -74,11 +74,6 @@
 						<button class="editor-btn-save" type="submit" disabled="disabled">
 							#translateResource( "cms:frontendeditor.editor.save.btn" )#
 						</button>
-						<cfif control == "richeditor">
-							<button class="editor-btn-draft" type="submit" disabled="disabled">
-								#translateResource( "cms:frontendeditor.editor.savedraft.btn" )#
-							</button>
-						</cfif>
 						<button class="editor-btn-cancel">
 							#translateResource( "cms:frontendeditor.editor.cancel.btn" )#
 						</button>

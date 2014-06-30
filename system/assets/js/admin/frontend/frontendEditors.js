@@ -274,9 +274,6 @@
 			disableOrEnableSaveButtons = function() {
 				if ( formEnabled ) {
 					$editorContainer.find( ".editor-btn-save" ).prop( "disabled", !isDirty() );
-					if ( isRichEditor ) {
-						$editorContainer.find( ".editor-btn-draft" ).prop( "disabled", !draftIsDirty() );
-					}
 				}
 			};
 
@@ -479,14 +476,6 @@
 			$editorContainer.on( "click", ".editor-btn-save", function( e ){
 				e.preventDefault();
 				confirmAndSave();
-			} );
-
-			$editorContainer.on( "click", ".editor-btn-draft", function( e ){
-				e.preventDefault();
-				saveContent( {
-					  draft : true
-					, url   : saveDraftAction
-				} );
 			} );
 
 			$editorContainer.on( "click", ".discard-draft", function( e ){
