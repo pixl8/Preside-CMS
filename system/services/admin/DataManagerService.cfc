@@ -139,8 +139,9 @@ component output="false" singleton=true {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			result.totalRecords = _getPresideObjectService().getRecordVersions(
-				  objectName       = arguments.objectName
-				, selectFields     = [ "count( * ) as nRows" ]
+				  objectName   = arguments.objectName
+				, id           = arguments.recordId
+				, selectFields = [ "count( * ) as nRows" ]
 			).nRows;
 		}
 
