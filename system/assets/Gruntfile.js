@@ -78,7 +78,7 @@ module.exports = function( grunt ) {
 					dest: 'js/admin/frontend/_frontend.min.js'
 				},{
 					  src  : [
-					  	"js/admin/lib/plugins/jquery.datatables.js", // must come first
+					  	"js/admin/lib/plugins/jquery.dataTables.js", // must come first
 					  	"js/admin/lib/plugins/*.js"
 					  ]
 					, dest : "js/admin/lib/plugins-1.0.0.min.js"
