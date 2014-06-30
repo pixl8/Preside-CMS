@@ -593,7 +593,7 @@ component output=false singleton=true {
 		return selectData( argumentCollection = selectDataArgs );
 	}
 
-	public query function getRecordVersions( required string objectName, required string id ) output=false {
+	public query function getRecordVersions( required string objectName, required string id, string fieldName ) output=false {
 		var args = {};
 
 		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
@@ -602,10 +602,16 @@ component output=false singleton=true {
 
 		args.append( {
 			  objectName   = getVersionObjectName( arguments.objectName )
-			, id           = arguments.id
 			, orderBy      = "_version_number desc"
 			, useCache     = false
 		} );
+
+		if ( args.keyExists( "fieldName" ) ) {
+			args.filter       = "id = :id and _version_changed_fields like :_version_changed_fields";
+			args.filterParams = { id = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
+			args.delete( "fieldName" );
+			args.delete( "id" );
+		}
 
 		return selectData( argumentCollection = args );
 	}
