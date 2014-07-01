@@ -2,6 +2,7 @@
 	var $adminBar       = $( "#preside-admin-toolbar" )
 	  , $body           = $( 'body' )
 	  , $editors        = $( ".content-editor" )
+	  , htmlComments    = $( "*" ).contents().filter( function(){ return this.nodeType === 8; } )
 	  , dummyDivs       = []
 	  , currentEditMode = false
 	  , setEditorSizesAndPosition
@@ -23,7 +24,7 @@
 			  , $endComment;
 
 			if ( typeof $contentContainer !== "undefined" ) {
-				$contentContainer.contents().filter( function(){ return this.nodeType === 8; } ).each( function(){
+				htmlComments.each( function(){
 					if ( $.trim( this.nodeValue ) === startComment ) {
 						$( this ).before( $before );
 					} else if ( $.trim( this.nodeValue ) === endComment ) {
@@ -109,7 +110,7 @@
 
 	setInterval( function(){
 		if ( currentEditMode ) { setEditorSizesAndPosition(); }
-	}, 200 );
+	}, 1000 );
 
 	if ( typeof $.cookie( "_presideEditMode" ) !== "undefined" ) {
 		var mode      = $.cookie( "_presideEditMode" )
