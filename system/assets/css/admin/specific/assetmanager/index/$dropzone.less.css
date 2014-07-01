@@ -1,21 +1,21 @@
-.asset-upload-dropzone {
+.presidecms .asset-upload-dropzone {
   cursor: pointer;
 }
-.asset-upload-dropzone .upload-instructions {
+.presidecms .asset-upload-dropzone .upload-instructions {
   cursor: pointer;
 }
-.asset-upload-dropzone .upload-instructions * {
+.presidecms .asset-upload-dropzone .upload-instructions * {
   cursor: pointer;
 }
-.asset-upload-dropzone .dz-message .upload-buttons {
+.presidecms .asset-upload-dropzone .dz-message .upload-buttons {
   display: none;
 }
-.asset-upload-dropzone.dz-started .dz-message {
+.presidecms .asset-upload-dropzone.dz-started .dz-message {
   display: block;
 }
-.asset-upload-dropzone.dz-started .dz-message .upload-buttons {
+.presidecms .asset-upload-dropzone.dz-started .dz-message .upload-buttons {
   display: block;
 }
-.asset-upload-dropzone.dz-started .dz-message .upload-instructions {
+.presidecms .asset-upload-dropzone.dz-started .dz-message .upload-instructions {
   display: none;
 }

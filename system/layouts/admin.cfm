@@ -34,7 +34,7 @@
 </cfscript>
 
 <cfoutput><!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="presidecms">
 	<head>
 		<meta charset="utf-8" />
 		<title>#translateResource( uri="cms:cms.title" )#</title>

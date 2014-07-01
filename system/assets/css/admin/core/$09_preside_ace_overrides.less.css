@@ -1,98 +1,98 @@
-html {
+html.presidecms {
   overflow-y: scroll;
 }
-html.iframe {
+html.presidecms.iframe {
   overflow-y: auto;
 }
-.modal {
+.presidecms .modal {
   overflow: hidden;
 }
-.main-container.modal-dialog-layout-container .row {
+.presidecms .main-container.modal-dialog-layout-container .row {
   margin-right: 0;
   margin-left: 0;
 }
-body.modal-open,
-.modal-open .navbar-fixed-top,
-.modal-open .navbar-fixed-bottom {
+.presidecms body.modal-open,
+.presidecms .modal-open .navbar-fixed-top,
+.presidecms .modal-open .navbar-fixed-bottom {
   margin-right: 0;
 }
-.navbar-container .dropdown-menu.dropdown-close.pull-right {
+.presidecms .navbar-container .dropdown-menu.dropdown-close.pull-right {
   right: 0;
   width: 100%;
 }
-input[type="checkbox"].ace + .lbl,
-input[type="radio"].ace + .lbl,
-input[type="checkbox"].ace.ace-checkbox-2 + .lbl,
-input[type="radio"].ace.ace-checkbox-2 + .lbl {
+.presidecms input[type="checkbox"].ace + .lbl,
+.presidecms input[type="radio"].ace + .lbl,
+.presidecms input[type="checkbox"].ace.ace-checkbox-2 + .lbl,
+.presidecms input[type="radio"].ace.ace-checkbox-2 + .lbl {
   z-index: 2;
 }
-input[type="checkbox"].ace:focus + .lbl::before,
-input[type="radio"].ace:focus + .lbl::before,
-input[type="checkbox"].ace.ace-checkbox-2:focus + .lbl::before,
-input[type="radio"].ace.ace-checkbox-2:focus + .lbl::before {
+.presidecms input[type="checkbox"].ace:focus + .lbl::before,
+.presidecms input[type="radio"].ace:focus + .lbl::before,
+.presidecms input[type="checkbox"].ace.ace-checkbox-2:focus + .lbl::before,
+.presidecms input[type="radio"].ace.ace-checkbox-2:focus + .lbl::before {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
 }
-.dataTable tbody tr.focus {
+.presidecms .dataTable tbody tr.focus {
   outline: 0 !important;
 }
-.dataTable tbody tr.focus td,
-.dataTable tbody tr.focus th {
+.presidecms .dataTable tbody tr.focus td,
+.presidecms .dataTable tbody tr.focus th {
   background-color: #f0f0ff;
 }
-.dataTable tbody tr.clickable td,
-.dataTable tbody tr.clickable th {
+.presidecms .dataTable tbody tr.clickable td,
+.presidecms .dataTable tbody tr.clickable th {
   cursor: pointer;
 }
-.gritter-item a,
-.gritter-item a:visited {
+.presidecms .gritter-item a,
+.presidecms .gritter-item a:visited {
   color: #eeeeee;
   text-decoration: underline;
 }
-.gritter-item a:hover,
-.gritter-item a:visited:hover {
+.presidecms .gritter-item a:hover,
+.presidecms .gritter-item a:visited:hover {
   color: white;
 }
-.top-right-button-group {
+.presidecms .top-right-button-group {
   position: absolute;
   right: 10px;
   top: -62px;
 }
-.top-right-button-group button {
+.presidecms .top-right-button-group button {
   margin-left: 1em;
 }
-.form-group .required sup i {
+.presidecms .form-group .required sup i {
   color: #d87464;
   font-size: 8px;
 }
-.form-group .required span {
+.presidecms .form-group .required span {
   display: none;
 }
-textarea:focus,
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="datetime"]:focus,
-input[type="datetime-local"]:focus,
-input[type="date"]:focus,
-input[type="month"]:focus,
-input[type="time"]:focus,
-input[type="week"]:focus,
-input[type="number"]:focus,
-input[type="email"]:focus,
-input[type="url"]:focus,
-input[type="search"]:focus,
-input[type="tel"]:focus,
-input[type="color"]:focus {
+.presidecms textarea:focus,
+.presidecms input[type="text"]:focus,
+.presidecms input[type="password"]:focus,
+.presidecms input[type="datetime"]:focus,
+.presidecms input[type="datetime-local"]:focus,
+.presidecms input[type="date"]:focus,
+.presidecms input[type="month"]:focus,
+.presidecms input[type="time"]:focus,
+.presidecms input[type="week"]:focus,
+.presidecms input[type="number"]:focus,
+.presidecms input[type="email"]:focus,
+.presidecms input[type="url"]:focus,
+.presidecms input[type="search"]:focus,
+.presidecms input[type="tel"]:focus,
+.presidecms input[type="color"]:focus {
   border-color: #64a6bc;
 }
-.chosen-container {
+.presidecms .chosen-container {
   width: 100% !important;
 }
-.chosen-container.chosen-container-single .chosen-single div {
+.presidecms .chosen-container.chosen-container-single .chosen-single div {
   position: static;
   width: auto;
   height: auto;
 }
-.chosen-container.chosen-container-single .chosen-single div.chosen-action-icon {
+.presidecms .chosen-container.chosen-container-single .chosen-single div.chosen-action-icon {
   position: absolute;
   top: 0;
   right: 0;
@@ -100,41 +100,41 @@ input[type="color"]:focus {
   width: 18px;
   height: 100%;
 }
-.chosen-container.chosen-container-multi .chosen-choices li.search-choice {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-choice {
   margin: 0 0 7px 7px;
   padding: 5px 20px 5px 5px;
   background-color: #f5f5f5;
   background-image: none;
   box-shadow: none;
 }
-.chosen-container.chosen-container-multi .chosen-choices li.search-choice:hover {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-choice:hover {
   background-color: #e5e5e5;
 }
-.chosen-container.chosen-container-multi .chosen-choices li.search-choice .search-choice-close {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-choice .search-choice-close {
   top: 6px;
 }
-.chosen-container.chosen-container-multi .chosen-choices.ui-sortable li.search-choice {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices.ui-sortable li.search-choice {
   cursor: pointer;
 }
-.chosen-container.chosen-container-multi .chosen-choices li.search-field input[type="text"] {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-field input[type="text"] {
   height: 25px;
   color: #999 !important;
   padding: 0 5px;
 }
-.chosen-container.chosen-container-multi .chosen-choices li.search-field:first-child {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-field:first-child {
   padding-bottom: 7px;
   margin-top: -2px;
 }
-.chosen-container.chosen-container-multi .chosen-choices {
+.presidecms .chosen-container.chosen-container-multi .chosen-choices {
   padding-top: 7px;
 }
-.user-photo {
+.presidecms .user-photo {
   margin: -4px 8px 0 0;
   border-radius: 100%;
   border: 2px solid #FFF;
   max-width: 40px;
 }
-.user-photo.tiny {
+.presidecms .user-photo.tiny {
   max-width: 20px;
   border: none;
   margin-right: 2px;

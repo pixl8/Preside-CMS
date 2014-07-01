@@ -1,17 +1,17 @@
-html {
+html.presidecms {
   overflow-y: auto !important;
 }
-.widget-image-link {
+.presidecms .widget-image-link {
   display: block;
   margin: 10px 0;
 }
-.widget-image-link img {
+.presidecms .widget-image-link img {
   width: 100%;
 }
-.widget-search .input-icon {
+.presidecms .widget-search .input-icon {
   width: 100%;
 }
-.widget-search .input-icon input {
+.presidecms .widget-search .input-icon input {
   border: 1px solid #6fb3e0;
   width: 100%;
   border-radius: 4px !important;
@@ -19,16 +19,16 @@ html {
   color: #666666;
   padding-left: 25px;
 }
-.widget-list li {
+.presidecms .widget-list li {
   border-bottom: 1px solid #e3e3e3;
   padding: 0 5px 5px 5px;
 }
-.widget-list li:last-child {
+.presidecms .widget-list li:last-child {
   border-bottom: none;
 }
-.widget-list li:active,
-.widget-list li:focus,
-.widget-list li:hover {
+.presidecms .widget-list li:active,
+.presidecms .widget-list li:focus,
+.presidecms .widget-list li:hover {
   cursor: pointer;
   outline: none;
   background-color: #f5f5f5;

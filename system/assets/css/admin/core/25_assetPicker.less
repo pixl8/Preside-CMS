@@ -1,141 +1,144 @@
-.chosen-container.asset-picker {
-	width: calc(~"100% - 50px") !important;
-	width: -moz-calc(~"100% - 50px") !important;
-	width: -webkit-calc(~"100% - 50px") !important;
-	width: -o-calc(~"100% - 50px") !important;
-	width: calc(~"100% - 50px") !important;
+.presidecms {
 
-	+ .btn {
-		font-size         : 17px;
-		padding           : 0;
-		height            : 46px;
-		line-height       : 46px;
-		width             : 51px;
-		margin-left       : -1px;
-		text-align        : center;
-		vertical-align    : top;
-		border            : 1px solid #abbac3;
+	.chosen-container.asset-picker {
+		width: calc(~"100% - 50px") !important;
+		width: -moz-calc(~"100% - 50px") !important;
+		width: -webkit-calc(~"100% - 50px") !important;
+		width: -o-calc(~"100% - 50px") !important;
+		width: calc(~"100% - 50px") !important;
 
-		i {
-			display        : inline-block;
-			vertical-align : middle;
-			line-height    : normal;
-			margin         : 0;
-		}
-	}
-
-	&.chosen-container-multi {
 		+ .btn {
-			height : 48px;
-		}
+			font-size         : 17px;
+			padding           : 0;
+			height            : 46px;
+			line-height       : 46px;
+			width             : 51px;
+			margin-left       : -1px;
+			text-align        : center;
+			vertical-align    : top;
+			border            : 1px solid #abbac3;
 
-		.chosen-choices li.search-field input[type="text"] {
-			height : 32px;
-		}
-	}
-
-	&.chosen-container-single {
-		.chosen-single {
-			min-height     : 46px;
-			line-height    : 15px;
-			padding-top    : 4px;
-			padding-bottom : 4px;
-			border-right   : none;
-
-			> span {
-				display : block;
-			}
-
-			div.chosen-action-icon {
-				top   : 4px;
-				right : 4px;
-			}
-
-			.search-choice-close {
-				top : 10px;
-			}
-		}
-	}
-
-	.result-container {
-		height : 36px;
-
-		.icon-container {
-			display        : inline-block;
-			margin-right   : 5px;
-			vertical-align : top;
-
-			img {
-				margin-top : 2px;
+			i {
+				display        : inline-block;
+				vertical-align : middle;
+				line-height    : normal;
+				margin         : 0;
 			}
 		}
 
-		.folder-and-text {
-			display : inline-block;
-
-			.folder {
-				display       : block;
-				font-style    : italic;
-				color         : #777;
-				margin-bottom : 3px;
+		&.chosen-container-multi {
+			+ .btn {
+				height : 48px;
 			}
 
-			.title {
-				display : block;
+			.chosen-choices li.search-field input[type="text"] {
+				height : 32px;
 			}
 		}
-	}
 
-	.chosen-results {
-		.highlighted {
-			.result-container {
-				.folder-and-text {
-					.folder {
-						color : #eee;
-					}
+		&.chosen-container-single {
+			.chosen-single {
+				min-height     : 46px;
+				line-height    : 15px;
+				padding-top    : 4px;
+				padding-bottom : 4px;
+				border-right   : none;
+
+				> span {
+					display : block;
+				}
+
+				div.chosen-action-icon {
+					top   : 4px;
+					right : 4px;
+				}
+
+				.search-choice-close {
+					top : 10px;
 				}
 			}
 		}
 
-		.result-selected {
-			.result-container {
+		.result-container {
+			height : 36px;
+
+			.icon-container {
+				display        : inline-block;
+				margin-right   : 5px;
+				vertical-align : top;
+
 				img {
-					opacity : 0.3;
+					margin-top : 2px;
 				}
-				.folder-and-text {
-					.folder {
-						color : #ccc;
-					}
+			}
+
+			.folder-and-text {
+				display : inline-block;
+
+				.folder {
+					display       : block;
+					font-style    : italic;
+					color         : #777;
+					margin-bottom : 3px;
+				}
+
+				.title {
+					display : block;
 				}
 			}
 		}
 
-		.icon-container {
-			min-width    : 48px;
+		.chosen-results {
+			.highlighted {
+				.result-container {
+					.folder-and-text {
+						.folder {
+							color : #eee;
+						}
+					}
+				}
+			}
+
+			.result-selected {
+				.result-container {
+					img {
+						opacity : 0.3;
+					}
+					.folder-and-text {
+						.folder {
+							color : #ccc;
+						}
+					}
+				}
+			}
+
+			.icon-container {
+				min-width    : 48px;
+			}
+		}
+
+		&.chosen-container-active {
+			+ .btn {
+				border-top-color    : #4492c9;
+				border-right-color  : #4492c9;
+				border-bottom-color : #4492c9;
+			}
+		}
+
+		.chosen-default {
+			span {
+				margin-top : 10px;
+			}
 		}
 	}
 
-	&.chosen-container-active {
-		+ .btn {
-			border-top-color    : #4492c9;
-			border-right-color  : #4492c9;
-			border-bottom-color : #4492c9;
-		}
-	}
+	.uber-browser-dialog {
+		.modal-dialog {
+			width : 822px;
 
-	.chosen-default {
-		span {
-			margin-top : 10px;
-		}
-	}
-}
-
-.uber-browser-dialog {
-	.modal-dialog {
-		width : 822px;
-
-		.modal-body {
-			padding : 0;
+			.modal-body {
+				padding : 0;
+			}
 		}
 	}
 }

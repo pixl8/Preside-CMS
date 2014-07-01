@@ -24,7 +24,7 @@
 </cfscript>
 
 <cfoutput><!DOCTYPE html>
-<html lang="en" class="iframe">
+<html lang="en" class="iframe presidecms">
 	<head>
 		<meta charset="utf-8" />
 		<title>#translateResource( uri="cms:cms.title" )#</title>

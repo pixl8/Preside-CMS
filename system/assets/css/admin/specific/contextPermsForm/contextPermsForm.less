@@ -1,98 +1,101 @@
-.manage-context-permissions-form {
+.presidecms {
 
-	.table {
+	.manage-context-permissions-form {
 
-		.permission-col {
-			width : 30%;
+		.table {
 
-			h4 {
-				margin : 0 0 4px;
+			.permission-col {
+				width : 30%;
+
+				h4 {
+					margin : 0 0 4px;
+				}
+				p {
+					margin : 0 0 2px;
+				}
 			}
-			p {
-				margin : 0 0 2px;
+
+			tr:first-child > td {
+				border-top : none;
 			}
-		}
 
-		tr:first-child > td {
-			border-top : none;
-		}
+			.edit-col {
+				cursor : pointer;
 
-		.edit-col {
-			cursor : pointer;
+				&.edit-mode {
+					cursor : default;
 
-			&.edit-mode {
-				cursor : default;
+					.groups-list {
+						display : none;
+					}
 
-				.groups-list {
-					display : none;
+					.groups-input {
+						display : block;
+					}
 				}
 
 				.groups-input {
-					display : block;
-				}
-			}
+					display       : none;
+					background    : #eee;
+					border-radius : 5px;
+					padding       : 5px 8px;
 
-			.groups-input {
-				display       : none;
-				background    : #eee;
-				border-radius : 5px;
-				padding       : 5px 8px;
-
-				.close-icon {
-					margin-top : 4px;
-					cursor     : pointer;
-					color      : #999;
-				}
-			}
-
-			.groups-list {
-				margin  : 4px 0;
-				cursor  : pointer;
-				display : inline-block;
-				padding : 2px 8px;
-
-				p {
-					margin : 0;
+					.close-icon {
+						margin-top : 4px;
+						cursor     : pointer;
+						color      : #999;
+					}
 				}
 
-				.fa {
-					margin-right : 0.5em;
-				}
-
-				.overrided {
-					text-decoration : line-through;
-				}
-
-				.inherited-perm, .no-perms {
-					color : #999;
-				}
-
-				.selected-perm {
-					font-weight : bold;
-				}
-				.no-perms {
-					font-style : italic;
-				}
-
-				.edit-row-icon {
-					color   : #999;
-					margin  : 4px 0 0 1em;
-					display : none;
-				}
-			}
-
-			&:hover .groups-list, .groups-list:active, .groups-list:focus {
-				background    : #eee;
-				border-radius : 5px;
-
-				.edit-row-icon {
+				.groups-list {
+					margin  : 4px 0;
+					cursor  : pointer;
 					display : inline-block;
+					padding : 2px 8px;
+
+					p {
+						margin : 0;
+					}
+
+					.fa {
+						margin-right : 0.5em;
+					}
+
+					.overrided {
+						text-decoration : line-through;
+					}
+
+					.inherited-perm, .no-perms {
+						color : #999;
+					}
+
+					.selected-perm {
+						font-weight : bold;
+					}
+					.no-perms {
+						font-style : italic;
+					}
+
+					.edit-row-icon {
+						color   : #999;
+						margin  : 4px 0 0 1em;
+						display : none;
+					}
+				}
+
+				&:hover .groups-list, .groups-list:active, .groups-list:focus {
+					background    : #eee;
+					border-radius : 5px;
+
+					.edit-row-icon {
+						display : inline-block;
+					}
 				}
 			}
-		}
 
-		tbody>tr>td {
-			vertical-align: middle
+			tbody>tr>td {
+				vertical-align: middle
+			}
 		}
 	}
 }

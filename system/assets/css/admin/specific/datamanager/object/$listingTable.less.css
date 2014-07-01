@@ -1,7 +1,7 @@
-.table-responsive {
+.presidecms .table-responsive {
   margin-top: -12px;
 }
-.table-responsive .form-actions {
+.presidecms .table-responsive .form-actions {
   margin-top: 0;
   border-top: none;
   display: none;

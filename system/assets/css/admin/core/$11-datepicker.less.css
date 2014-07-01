@@ -7,30 +7,30 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  */
-.datepicker {
+.presidecms .datepicker {
   padding: 4px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
   direction: ltr;
   /*.dow {
-		border-top: 1px solid #ddd !important;
-	}*/
+  		border-top: 1px solid #ddd !important;
+  	}*/
 }
-.datepicker-inline {
+.presidecms .datepicker-inline {
   width: 220px;
 }
-.datepicker.datepicker-rtl {
+.presidecms .datepicker.datepicker-rtl {
   direction: rtl;
 }
-.datepicker.datepicker-rtl table tr td span {
+.presidecms .datepicker.datepicker-rtl table tr td span {
   float: right;
 }
-.datepicker-dropdown {
+.presidecms .datepicker-dropdown {
   top: 0;
   left: 0;
 }
-.datepicker-dropdown:before {
+.presidecms .datepicker-dropdown:before {
   content: '';
   display: inline-block;
   border-left: 7px solid transparent;
@@ -41,7 +41,7 @@
   top: -7px;
   left: 6px;
 }
-.datepicker-dropdown:after {
+.presidecms .datepicker-dropdown:after {
   content: '';
   display: inline-block;
   border-left: 6px solid transparent;
@@ -51,23 +51,23 @@
   top: -6px;
   left: 7px;
 }
-.datepicker > div {
+.presidecms .datepicker > div {
   display: none;
 }
-.datepicker.days div.datepicker-days {
+.presidecms .datepicker.days div.datepicker-days {
   display: block;
 }
-.datepicker.months div.datepicker-months {
+.presidecms .datepicker.months div.datepicker-months {
   display: block;
 }
-.datepicker.years div.datepicker-years {
+.presidecms .datepicker.years div.datepicker-years {
   display: block;
 }
-.datepicker table {
+.presidecms .datepicker table {
   margin: 0;
 }
-.datepicker td,
-.datepicker th {
+.presidecms .datepicker td,
+.presidecms .datepicker th {
   text-align: center;
   width: 20px;
   height: 20px;
@@ -76,28 +76,28 @@
   border-radius: 4px;
   border: none;
 }
-.table-striped .datepicker table tr td,
-.table-striped .datepicker table tr th {
+.presidecms .table-striped .datepicker table tr td,
+.presidecms .table-striped .datepicker table tr th {
   background-color: transparent;
 }
-.datepicker table tr td.day:hover {
+.presidecms .datepicker table tr td.day:hover {
   background: #eeeeee;
   cursor: pointer;
 }
-.datepicker table tr td.old,
-.datepicker table tr td.new {
+.presidecms .datepicker table tr td.old,
+.presidecms .datepicker table tr td.new {
   color: #999999;
 }
-.datepicker table tr td.disabled,
-.datepicker table tr td.disabled:hover {
+.presidecms .datepicker table tr td.disabled,
+.presidecms .datepicker table tr td.disabled:hover {
   background: none;
   color: #999999;
   cursor: default;
 }
-.datepicker table tr td.today,
-.datepicker table tr td.today:hover,
-.datepicker table tr td.today.disabled,
-.datepicker table tr td.today.disabled:hover {
+.presidecms .datepicker table tr td.today,
+.presidecms .datepicker table tr td.today:hover,
+.presidecms .datepicker table tr td.today.disabled,
+.presidecms .datepicker table tr td.today.disabled:hover {
   background-color: #fde19a;
   background-image: -moz-linear-gradient(top, #fdd49a, #fdf59a);
   background-image: -ms-linear-gradient(top, #fdd49a, #fdf59a);
@@ -112,32 +112,32 @@
   filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
   color: #000 !important;
 }
-.datepicker table tr td.today:hover,
-.datepicker table tr td.today:hover:hover,
-.datepicker table tr td.today.disabled:hover,
-.datepicker table tr td.today.disabled:hover:hover,
-.datepicker table tr td.today:active,
-.datepicker table tr td.today:hover:active,
-.datepicker table tr td.today.disabled:active,
-.datepicker table tr td.today.disabled:hover:active,
-.datepicker table tr td.today.active,
-.datepicker table tr td.today:hover.active,
-.datepicker table tr td.today.disabled.active,
-.datepicker table tr td.today.disabled:hover.active,
-.datepicker table tr td.today.disabled,
-.datepicker table tr td.today:hover.disabled,
-.datepicker table tr td.today.disabled.disabled,
-.datepicker table tr td.today.disabled:hover.disabled,
-.datepicker table tr td.today[disabled],
-.datepicker table tr td.today:hover[disabled],
-.datepicker table tr td.today.disabled[disabled],
-.datepicker table tr td.today.disabled:hover[disabled] {
+.presidecms .datepicker table tr td.today:hover,
+.presidecms .datepicker table tr td.today:hover:hover,
+.presidecms .datepicker table tr td.today.disabled:hover,
+.presidecms .datepicker table tr td.today.disabled:hover:hover,
+.presidecms .datepicker table tr td.today:active,
+.presidecms .datepicker table tr td.today:hover:active,
+.presidecms .datepicker table tr td.today.disabled:active,
+.presidecms .datepicker table tr td.today.disabled:hover:active,
+.presidecms .datepicker table tr td.today.active,
+.presidecms .datepicker table tr td.today:hover.active,
+.presidecms .datepicker table tr td.today.disabled.active,
+.presidecms .datepicker table tr td.today.disabled:hover.active,
+.presidecms .datepicker table tr td.today.disabled,
+.presidecms .datepicker table tr td.today:hover.disabled,
+.presidecms .datepicker table tr td.today.disabled.disabled,
+.presidecms .datepicker table tr td.today.disabled:hover.disabled,
+.presidecms .datepicker table tr td.today[disabled],
+.presidecms .datepicker table tr td.today:hover[disabled],
+.presidecms .datepicker table tr td.today.disabled[disabled],
+.presidecms .datepicker table tr td.today.disabled:hover[disabled] {
   background-color: #fdf59a;
 }
-.datepicker table tr td.active,
-.datepicker table tr td.active:hover,
-.datepicker table tr td.active.disabled,
-.datepicker table tr td.active.disabled:hover {
+.presidecms .datepicker table tr td.active,
+.presidecms .datepicker table tr td.active:hover,
+.presidecms .datepicker table tr td.active.disabled,
+.presidecms .datepicker table tr td.active.disabled:hover {
   background-color: #006dcc;
   background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
   background-image: -ms-linear-gradient(top, #0088cc, #0044cc);
@@ -153,39 +153,39 @@
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
-.datepicker table tr td.active:hover,
-.datepicker table tr td.active:hover:hover,
-.datepicker table tr td.active.disabled:hover,
-.datepicker table tr td.active.disabled:hover:hover,
-.datepicker table tr td.active:active,
-.datepicker table tr td.active:hover:active,
-.datepicker table tr td.active.disabled:active,
-.datepicker table tr td.active.disabled:hover:active,
-.datepicker table tr td.active.active,
-.datepicker table tr td.active:hover.active,
-.datepicker table tr td.active.disabled.active,
-.datepicker table tr td.active.disabled:hover.active,
-.datepicker table tr td.active.disabled,
-.datepicker table tr td.active:hover.disabled,
-.datepicker table tr td.active.disabled.disabled,
-.datepicker table tr td.active.disabled:hover.disabled,
-.datepicker table tr td.active[disabled],
-.datepicker table tr td.active:hover[disabled],
-.datepicker table tr td.active.disabled[disabled],
-.datepicker table tr td.active.disabled:hover[disabled] {
+.presidecms .datepicker table tr td.active:hover,
+.presidecms .datepicker table tr td.active:hover:hover,
+.presidecms .datepicker table tr td.active.disabled:hover,
+.presidecms .datepicker table tr td.active.disabled:hover:hover,
+.presidecms .datepicker table tr td.active:active,
+.presidecms .datepicker table tr td.active:hover:active,
+.presidecms .datepicker table tr td.active.disabled:active,
+.presidecms .datepicker table tr td.active.disabled:hover:active,
+.presidecms .datepicker table tr td.active.active,
+.presidecms .datepicker table tr td.active:hover.active,
+.presidecms .datepicker table tr td.active.disabled.active,
+.presidecms .datepicker table tr td.active.disabled:hover.active,
+.presidecms .datepicker table tr td.active.disabled,
+.presidecms .datepicker table tr td.active:hover.disabled,
+.presidecms .datepicker table tr td.active.disabled.disabled,
+.presidecms .datepicker table tr td.active.disabled:hover.disabled,
+.presidecms .datepicker table tr td.active[disabled],
+.presidecms .datepicker table tr td.active:hover[disabled],
+.presidecms .datepicker table tr td.active.disabled[disabled],
+.presidecms .datepicker table tr td.active.disabled:hover[disabled] {
   background-color: #0044cc;
 }
-.datepicker table tr td.active:active,
-.datepicker table tr td.active:hover:active,
-.datepicker table tr td.active.disabled:active,
-.datepicker table tr td.active.disabled:hover:active,
-.datepicker table tr td.active.active,
-.datepicker table tr td.active:hover.active,
-.datepicker table tr td.active.disabled.active,
-.datepicker table tr td.active.disabled:hover.active {
+.presidecms .datepicker table tr td.active:active,
+.presidecms .datepicker table tr td.active:hover:active,
+.presidecms .datepicker table tr td.active.disabled:active,
+.presidecms .datepicker table tr td.active.disabled:hover:active,
+.presidecms .datepicker table tr td.active.active,
+.presidecms .datepicker table tr td.active:hover.active,
+.presidecms .datepicker table tr td.active.disabled.active,
+.presidecms .datepicker table tr td.active.disabled:hover.active {
   background-color: #003399 \9;
 }
-.datepicker table tr td span {
+.presidecms .datepicker table tr td span {
   display: block;
   width: 23%;
   height: 54px;
@@ -197,19 +197,19 @@
   -moz-border-radius: 4px;
   border-radius: 4px;
 }
-.datepicker table tr td span:hover {
+.presidecms .datepicker table tr td span:hover {
   background: #eeeeee;
 }
-.datepicker table tr td span.disabled,
-.datepicker table tr td span.disabled:hover {
+.presidecms .datepicker table tr td span.disabled,
+.presidecms .datepicker table tr td span.disabled:hover {
   background: none;
   color: #999999;
   cursor: default;
 }
-.datepicker table tr td span.active,
-.datepicker table tr td span.active:hover,
-.datepicker table tr td span.active.disabled,
-.datepicker table tr td span.active.disabled:hover {
+.presidecms .datepicker table tr td span.active,
+.presidecms .datepicker table tr td span.active:hover,
+.presidecms .datepicker table tr td span.active.disabled,
+.presidecms .datepicker table tr td span.active.disabled:hover {
   background-color: #006dcc;
   background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
   background-image: -ms-linear-gradient(top, #0088cc, #0044cc);
@@ -225,64 +225,64 @@
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
-.datepicker table tr td span.active:hover,
-.datepicker table tr td span.active:hover:hover,
-.datepicker table tr td span.active.disabled:hover,
-.datepicker table tr td span.active.disabled:hover:hover,
-.datepicker table tr td span.active:active,
-.datepicker table tr td span.active:hover:active,
-.datepicker table tr td span.active.disabled:active,
-.datepicker table tr td span.active.disabled:hover:active,
-.datepicker table tr td span.active.active,
-.datepicker table tr td span.active:hover.active,
-.datepicker table tr td span.active.disabled.active,
-.datepicker table tr td span.active.disabled:hover.active,
-.datepicker table tr td span.active.disabled,
-.datepicker table tr td span.active:hover.disabled,
-.datepicker table tr td span.active.disabled.disabled,
-.datepicker table tr td span.active.disabled:hover.disabled,
-.datepicker table tr td span.active[disabled],
-.datepicker table tr td span.active:hover[disabled],
-.datepicker table tr td span.active.disabled[disabled],
-.datepicker table tr td span.active.disabled:hover[disabled] {
+.presidecms .datepicker table tr td span.active:hover,
+.presidecms .datepicker table tr td span.active:hover:hover,
+.presidecms .datepicker table tr td span.active.disabled:hover,
+.presidecms .datepicker table tr td span.active.disabled:hover:hover,
+.presidecms .datepicker table tr td span.active:active,
+.presidecms .datepicker table tr td span.active:hover:active,
+.presidecms .datepicker table tr td span.active.disabled:active,
+.presidecms .datepicker table tr td span.active.disabled:hover:active,
+.presidecms .datepicker table tr td span.active.active,
+.presidecms .datepicker table tr td span.active:hover.active,
+.presidecms .datepicker table tr td span.active.disabled.active,
+.presidecms .datepicker table tr td span.active.disabled:hover.active,
+.presidecms .datepicker table tr td span.active.disabled,
+.presidecms .datepicker table tr td span.active:hover.disabled,
+.presidecms .datepicker table tr td span.active.disabled.disabled,
+.presidecms .datepicker table tr td span.active.disabled:hover.disabled,
+.presidecms .datepicker table tr td span.active[disabled],
+.presidecms .datepicker table tr td span.active:hover[disabled],
+.presidecms .datepicker table tr td span.active.disabled[disabled],
+.presidecms .datepicker table tr td span.active.disabled:hover[disabled] {
   background-color: #0044cc;
 }
-.datepicker table tr td span.active:active,
-.datepicker table tr td span.active:hover:active,
-.datepicker table tr td span.active.disabled:active,
-.datepicker table tr td span.active.disabled:hover:active,
-.datepicker table tr td span.active.active,
-.datepicker table tr td span.active:hover.active,
-.datepicker table tr td span.active.disabled.active,
-.datepicker table tr td span.active.disabled:hover.active {
+.presidecms .datepicker table tr td span.active:active,
+.presidecms .datepicker table tr td span.active:hover:active,
+.presidecms .datepicker table tr td span.active.disabled:active,
+.presidecms .datepicker table tr td span.active.disabled:hover:active,
+.presidecms .datepicker table tr td span.active.active,
+.presidecms .datepicker table tr td span.active:hover.active,
+.presidecms .datepicker table tr td span.active.disabled.active,
+.presidecms .datepicker table tr td span.active.disabled:hover.active {
   background-color: #003399 \9;
 }
-.datepicker table tr td span.old {
+.presidecms .datepicker table tr td span.old {
   color: #999999;
 }
-.datepicker th.switch {
+.presidecms .datepicker th.switch {
   width: 145px;
 }
-.datepicker thead tr:first-child th,
-.datepicker tfoot tr:first-child th {
+.presidecms .datepicker thead tr:first-child th,
+.presidecms .datepicker tfoot tr:first-child th {
   cursor: pointer;
 }
-.datepicker thead tr:first-child th:hover,
-.datepicker tfoot tr:first-child th:hover {
+.presidecms .datepicker thead tr:first-child th:hover,
+.presidecms .datepicker tfoot tr:first-child th:hover {
   background: #eeeeee;
 }
-.datepicker .cw {
+.presidecms .datepicker .cw {
   font-size: 10px;
   width: 12px;
   padding: 0 2px 0 5px;
   vertical-align: middle;
 }
-.datepicker thead tr:first-child th.cw {
+.presidecms .datepicker thead tr:first-child th.cw {
   cursor: default;
   background-color: transparent;
 }
-.input-append.date .add-on i,
-.input-prepend.date .add-on i {
+.presidecms .input-append.date .add-on i,
+.presidecms .input-prepend.date .add-on i {
   display: block;
   cursor: pointer;
   width: 16px;
