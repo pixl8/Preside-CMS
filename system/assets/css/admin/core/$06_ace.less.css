@@ -3,6 +3,10 @@ html.presidecms {
   position: relative;
 }
 .presidecms {
+  font-family: 'Open Sans';
+  font-size: 13px;
+  color: #393939;
+  line-height: 1.5;
   /* ace default theme layout sections */
   /* elements */
   /* header sizes */
@@ -202,10 +206,6 @@ html.presidecms {
   padding-bottom: 0;
   background-color: #e4e6e9;
   min-height: 100%;
-  font-family: 'Open Sans';
-  font-size: 13px;
-  color: #393939;
-  line-height: 1.5;
 }
 .presidecms body.navbar-fixed {
   padding-top: 45px;
