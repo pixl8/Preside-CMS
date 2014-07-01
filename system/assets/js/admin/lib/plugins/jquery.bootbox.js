@@ -10,7 +10,7 @@ window.presideBootbox = window.presideBootbox || (function init($, undefined) {
   // the base DOM structure needed to create a modal
   var templates = {
     dialog:
-      "<div class='bootbox modal preside' tabindex='-1' role='dialog'>" +
+      "<div class='presidecms bootbox modal' tabindex='-1' role='dialog'>" +
         "<div class='modal-dialog'>" +
           "<div class='modal-content'>" +
             "<div class='modal-body'><div class='bootbox-body'></div></div>" +
