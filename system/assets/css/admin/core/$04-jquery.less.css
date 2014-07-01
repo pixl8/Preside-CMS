@@ -1,29 +1,29 @@
-.presidecms {
-  /* the norm */
-  /* for the light (white) version of the gritter notice */
-}
-.presidecms #gritter-notice-wrapper {
+#gritter-notice-wrapper.presidecms {
   position: fixed;
   top: 20px;
   right: 20px;
   width: 301px;
   z-index: 9999;
 }
-.presidecms #gritter-notice-wrapper.top-left {
+#gritter-notice-wrapper.presidecms.top-left {
   left: 20px;
   right: auto;
 }
-.presidecms #gritter-notice-wrapper.bottom-right {
+#gritter-notice-wrapper.presidecms.bottom-right {
   top: auto;
   left: auto;
   bottom: 20px;
   right: 20px;
 }
-.presidecms #gritter-notice-wrapper.bottom-left {
+#gritter-notice-wrapper.presidecms.bottom-left {
   top: auto;
   right: auto;
   bottom: 20px;
   left: 20px;
+}
+.presidecms {
+  /* the norm */
+  /* for the light (white) version of the gritter notice */
 }
 .presidecms .gritter-item-wrapper {
   position: relative;

@@ -3,6 +3,7 @@
 		event.include( "/js/admin/presidecore/" );
 		event.include( "/js/admin/frontend/" );
 		event.include( "i18n-resource-bundle" );
+		event.include( "/css/admin/core/" );
 		event.include( "/css/admin/frontend/" );
 		event.includeData({
 			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
@@ -23,7 +24,7 @@
 	</cfscript>
 
 	<cfoutput>
-		<div class="preside-admin-toolbar" id="preside-admin-toolbar">
+		<div class="preside-admin-toolbar presidecms" id="preside-admin-toolbar">
 			<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
 
 			<ul class="preside-admin-toolbar-actions list-unstyled">

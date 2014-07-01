@@ -23,14 +23,14 @@
 	<cfelse>
 		<!-- container: #containerId# -->#Trim( renderedContent )#<!-- !container: #containerId# -->
 
-		<div class="content-editor #LCase( control )#<cfif hasDraft> has-draft</cfif>" id="#containerId#">
+		<div class="presidecms content-editor #LCase( control )#<cfif hasDraft> has-draft</cfif>" id="#containerId#">
 			<div class="content-editor-overlay" title="#translateResource( 'cms:frontendeditor.overlay.hint' )#">
 				<div class="inner"></div>
 			</div>
 			<div class="content-editor-label">
 				#translateResource( label, property )# <span class="draft-warning">#translateResource( "cms:frontendeditor.draft.warning.label" )#</span>
 			</div>
-			<div class="content-editor-editor-container">
+			<div class="presidecms content-editor-editor-container">
 				<form method="post"
 				    class                     = "content-editor-form"
 					action                    = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' )#"
