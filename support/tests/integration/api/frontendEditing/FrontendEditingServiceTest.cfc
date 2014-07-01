@@ -1,18 +1,8 @@
 component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
 
 // SETUP, TEARDOWN, ETC.
-	function setup() {
-		super.setup();
-
-		var poService     = _getPresideObjectService();
-		var draftService  = new preside.system.services.drafts.DraftService( dao = poService.getObject( "draft" ) );
-
-		mockPoService = getMockBox().createMock( object=Duplicate( poService ) );
-
-		editingService = new preside.system.services.frontendEditing.FrontendEditingService( presideObjectService = mockPoService, draftService = draftService );
-	}
-
 	function beforeTests() {
+		presideObjectService = _getPresideObjectService( forceNewInstance=true );
 		_emptyDatabase();
 		_dbSync();
 		_createDummyUsers();
@@ -20,6 +10,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function afterTests() {
 		_wipeData();
+	}
+
+	function setup() {
+		super.setup();
+
+		var draftService  = new preside.system.services.drafts.DraftService( dao = presideObjectService.getObject( "draft" ) );
+
+		mockPoService = getMockBox().createMock( object=Duplicate( presideObjectService ) );
+
+		editingService = new preside.system.services.frontendEditing.FrontendEditingService( presideObjectService = mockPoService, draftService = draftService );
 	}
 
 // TESTS
