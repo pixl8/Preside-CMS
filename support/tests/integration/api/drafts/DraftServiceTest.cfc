@@ -1,13 +1,8 @@
 component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
 
 // SETUP, TEARDOWN, ETC.
-	function setup() {
-		super.setup();
-
-		draftSvc = new preside.system.services.drafts.DraftService( dao = _getPresideObjectService( forceNewInstance=true ).getObject( "draft" ) );
-	}
-
 	function beforeTests() {
+		presideObjectService = _getPresideObjectService( forceNewInstance=true );
 		_emptyDatabase();
 		_dbSync();
 		_createDummyUsers();
@@ -15,6 +10,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function afterTests() {
 		_wipeData();
+	}
+
+	function setup() {
+		super.setup();
+
+		draftSvc = new preside.system.services.drafts.DraftService( dao = presideObjectService.getObject( "draft" ) );
 	}
 
 // TESTS
