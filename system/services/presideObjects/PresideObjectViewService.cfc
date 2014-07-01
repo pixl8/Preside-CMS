@@ -4,7 +4,7 @@ component output=false singleton=true {
 	/**
 	 * @presideObjectService.inject   PresideObjectService
 	 * @presideContentRenderer.inject ContentRendererService
-	 * @coldboxRenderer.inject        coldbox:plugin:renderer
+	 * @coldboxRenderer.inject        coldbox:plugin:Renderer
 	 * @cacheProvider.inject          cachebox:PresideObjectViewCache
 	 */
 	public any function init(
