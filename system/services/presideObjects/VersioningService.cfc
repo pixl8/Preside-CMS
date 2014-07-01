@@ -61,7 +61,7 @@ component output=false singleton=true {
 			, versionNumber     = arguments.versionNumber
 			, versionAuthor     = arguments.versionAuthor
 			, manyToManyData    = arguments.manyToManyData
-			, changedFields     = arguments.data.keyArray()
+			, changedFields     = StructKeyArray( arguments.data )
 		);
 	}
 
