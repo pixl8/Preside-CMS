@@ -103,13 +103,13 @@ module.exports = function( grunt ) {
 
 		less: {
 			options: {
-				paths : ["assets/css"],
+				paths : ["css/admin/lessglobals"],
 			},
 			all : {
 				files: [{
 					expand  : true,
 					cwd     : 'css/admin/',
-					src     : '**/*.less',
+					src     : ['**/*.less', '!**/lessglobals/*' ],
 					dest    : 'css/admin/',
 					ext     : ".less.css",
 					rename  : function( dest, src ){

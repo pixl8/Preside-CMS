@@ -16,7 +16,6 @@
   /*.dow {
 		border-top: 1px solid #ddd !important;
 	}*/
-
 }
 .datepicker-inline {
   width: 220px;
@@ -134,16 +133,6 @@
 .datepicker table tr td.today.disabled[disabled],
 .datepicker table tr td.today.disabled:hover[disabled] {
   background-color: #fdf59a;
-}
-.datepicker table tr td.today:active,
-.datepicker table tr td.today:hover:active,
-.datepicker table tr td.today.disabled:active,
-.datepicker table tr td.today.disabled:hover:active,
-.datepicker table tr td.today.active,
-.datepicker table tr td.today:hover.active,
-.datepicker table tr td.today.disabled.active,
-.datepicker table tr td.today.disabled:hover.active {
-  background-color: #fbf069 \9;
 }
 .datepicker table tr td.active,
 .datepicker table tr td.active:hover,
