@@ -71,9 +71,8 @@
 					<div class="content-editor-editor-buttons">
 						<p class="content-editor-editor-notifications"></p>
 
-						<a class="version-history-link" title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
-						   data-toggle="bootbox-modal" data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history"
-						   href="#event.buildAdminLink( linkTo='frontendediting.fieldHistory', querystring='object=#object#&property=#property#&recordId=#recordId#' )#"><i class="fa fa-history fa-lg"></i></a>
+						<a href="##versiontable#containerId#" class="version-history-link" title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
+						   data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history"><i class="fa fa-history fa-lg"></i></a>
 
 						<button class="btn btn-primary editor-btn-save" type="submit" disabled="disabled">
 							<i class="fa fa-check"></i>
@@ -83,6 +82,20 @@
 							<i class="fa fa-reply"></i>
 							#translateResource( "cms:frontendeditor.editor.cancel.btn" )#
 						</button>
+
+						<div class="hide" id="versiontable#containerId#">
+							<table class="table table-hover field-version-table" data-remote="#event.buildAdminLink( linkTo="ajaxProxy", queryString="action=frontendediting.getHistoryForAjaxDataTables&id=#recordId#&object=#object#&property=#property#" )#">
+								<thead>
+									<tr>
+										<th>#translateResource( 'cms:frontendeditor.field.history.versiondate.heading' )#</th>
+										<th>#translateResource( 'cms:frontendeditor.field.history.versionauthor.heading' )#</th>
+										<th>&nbsp;</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</form>
 			</div>

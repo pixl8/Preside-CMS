@@ -154,6 +154,7 @@
 			  , $drafttextarea     = $editorContainer.find( "textarea[name=draftContent]" )
 			  , $editorParent      = $editor.parent()
 			  , $notificationsArea = $editor.find( ".content-editor-editor-notifications" )
+			  , $versioningLink    = $editorContainer.find( ".version-history-link" )
 			  , isRichEditor       = $editor.hasClass( "richeditor" )
 			  , saveAction         = $form.attr( "action" )
 			  , saveDraftAction    = $form.data( "saveDraftAction" )
@@ -164,7 +165,7 @@
 			  , autoSaveInterval   = 1500 // auto save draft 1.5 seconds after typing stopped
 			  , autoSaveTimeout    = null
 			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
-			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent;
+			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi;
 
 			$editor.appendTo( 'body' ); // shove the entire editor markup to the end of the body, avoiding issues with interfering with page layout
 			$editor.data( "parent", $editorParent );
@@ -457,6 +458,55 @@
 				}
 			};
 
+			setupVersionTableUi = function( modalDialog ){
+				var $table    = $( modalDialog ).find( '.field-version-table' )
+				  , entity    = i18n.translateResource( "cms:frontendeditor.version.entityname" )
+				  , colConfig = [
+						{ mData : "datemodified"   , sWidth : "18em" },
+						{ mData : "_version_author" },
+						{
+							sClass    : "center",
+							bSortable : false,
+							mData     : "_options",
+							sWidth    : "9em"
+						}
+				    ];
+
+				$table.dataTable( {
+					bServerSide   : true,
+					bProcessing   : false,
+					bFilter       : false,
+					bLengthChange : false,
+					aoColumns     : colConfig,
+					sDom          : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+					sAjaxSource   : $table.data( "remote" ),
+					oLanguage : {
+		      			oAria : {
+							sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
+							sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
+						},
+						oPaginate : {
+							sFirst : i18n.translateResource( "cms:datatables.first", { data : [entity], defaultValue : "" } ),
+							sLast : i18n.translateResource( "cms:datatables.last", { data : [entity], defaultValue : "" } ),
+							sNext : i18n.translateResource( "cms:datatables.next", { data : [entity], defaultValue : "" } ),
+							sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [entity], defaultValue : "" } )
+						},
+						sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [entity], defaultValue : "" } ),
+						sInfo : i18n.translateResource( "cms:datatables.info", { data : [entity], defaultValue : "" } ),
+						sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [entity], defaultValue : "" } ),
+						sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [entity], defaultValue : "" } ),
+						sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [entity], defaultValue : "" } ),
+						sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [entity], defaultValue : "" } ),
+						sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [entity], defaultValue : "" } ),
+						sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [entity], defaultValue : "" } ),
+						sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [entity], defaultValue : "" } ),
+						sSearch : '',
+						sUrl : '',
+						sInfoPostFix : ''
+		    		}
+				} )
+			};
+
 			$editor.on( "click", ".content-editor-overlay,.content-editor-label", function( e ){
 				e.preventDefault();
 				toggleEditMode( true );
@@ -487,6 +537,8 @@
 			$editorContainer.on( "submit", ".content-editor-form", function( e ){
 				e.preventDefault();
 			} );
+
+			$versioningLink.presideBootboxModal( { onShow : setupVersionTableUi } );
 		} );
 	};
 

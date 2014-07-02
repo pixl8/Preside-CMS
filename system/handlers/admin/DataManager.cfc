@@ -490,6 +490,7 @@
 		<cfargument name="prc"             type="struct"  required="true" />
 		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
 		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 
@@ -503,6 +504,7 @@
 			var results             = dataManagerService.getRecordHistoryForGridListing(
 				  objectName  = object
 				, recordId    = recordId
+				, property    = property
 				, gridFields  = gridFields
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()

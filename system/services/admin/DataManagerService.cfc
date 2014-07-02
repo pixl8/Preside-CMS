@@ -119,6 +119,7 @@ component output="false" singleton=true {
 		  required string  objectName
 		, required string  recordId
 		, required array   gridFields
+		,          string  property    = ""
 		,          numeric startRow    = 1
 		,          numeric maxRows     = 10
 		,          string  orderBy     = ""
@@ -132,6 +133,10 @@ component output="false" singleton=true {
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
 		};
+
+		if ( Len( Trim( arguments.property ) ) ) {
+			args.fieldName = arguments.property;
+		}
 
 		result.records = _getPresideObjectService().getRecordVersions( argumentCollection = args );
 

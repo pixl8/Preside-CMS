@@ -72,20 +72,23 @@ component output=false {
 		}
 	}
 
-	public void function fieldHistory( event, rc, prc ) output=false {
+	public void function getHistoryForAjaxDataTables( event, rc, prc ) output=false {
+		var recordId = rc.id       ?: "";
 		var object   = rc.object   ?: "";
-		var recordId = rc.recordId ?: "";
 		var property = rc.property ?: "";
 
-		event.noLayout();
-		event.setView( "admin/frontendEditing/fieldHistory" );
-
-		prc.history = presideObjectService.getRecordVersions(
-			  objectName = object
-			, id         = recordId
-			, fieldName  = property
+		runEvent(
+			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = object
+				, recordId   = recordId
+				, property   = property
+				, gridFields = 'datemodified,_version_author'
+				, actionsView = "admin/frontendediting/_historyActions"
+			}
 		);
-		prc.versionObjectName = presideObjectService.getVersionObjectName( object );
 	}
 
 // VIEWLETS
