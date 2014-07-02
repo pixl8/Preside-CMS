@@ -3,7 +3,7 @@
 	$.fn.presideBootboxModal = function( modalOptions ){
 		return this.each( function(){
 			var $modalLink = $( this )
-			  , openModal, registerEventHandlers, launchHandler, btnCallBack;
+			  , openModal, registerEventHandlers, launchHandler, btnCallBack, initModalConfig;
 
 			launchHandler = function( e ){
 				var modalConfig = $modalLink.data( "bootboxModalConfig" );

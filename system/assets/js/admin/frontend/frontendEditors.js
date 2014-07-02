@@ -486,7 +486,11 @@
 							, success : function( result ){
 								if ( typeof result === "object" && result.success && typeof result.content !== "undefined" ) {
 									setVersionContent( result.content );
+									modalDialog.on('hidden.bs.modal', function () {
+									    modalDialog.remove();
+									});
 									modalDialog.modal( "hide" );
+
 								} else {
 									$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.loadversion.unknown.error" ), sticky : true } );
 								}
@@ -530,13 +534,21 @@
 							sUrl : '',
 							sInfoPostFix : ''
 						}
-					} )
+					} );
+
+					$table.data( 'setupVersionTableUi', true );
 				}
 			};
 
 			setVersionContent = function( content ){
 				$editor.data( "_rawContent", content );
-				clearLocalDraft();
+
+				if ( isRichEditor ) {
+					clearLocalDraft();
+				} else {
+					originalValue = content;
+					$contentInput.val( content );
+				}
 
 				notify( versionIcon + i18n.translateResource( "cms:frontendeditor.version.loaded.notification" ) );
 			};
