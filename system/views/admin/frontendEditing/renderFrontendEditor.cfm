@@ -72,7 +72,7 @@
 						<p class="content-editor-editor-notifications"></p>
 
 						<a href="##versiontable#containerId#" class="version-history-link" title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
-						   data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history"><i class="fa fa-history fa-lg"></i></a>
+						   data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history" data-buttons="ok"><i class="fa fa-history fa-lg"></i></a>
 
 						<button class="btn btn-primary editor-btn-save" type="submit" disabled="disabled">
 							<i class="fa fa-check"></i>

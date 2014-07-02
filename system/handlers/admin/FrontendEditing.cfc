@@ -91,6 +91,27 @@ component output=false {
 		);
 	}
 
+	public void function getVersionContent( event, rc, prc ) output=false {
+		var recordId = rc.id       ?: "";
+		var object   = rc.object   ?: "";
+		var property = rc.property ?: "";
+		var version  = Val( rc.version  ?: "" );
+		var result   = { success=true, content="" };
+		var record   = presideObjectService.selectData(
+			  objectName       = object
+			, selectFields     = [ property ]
+			, id               = recordId
+			, fromVersionTable = true
+			, specificVersion  = version
+		);
+
+		if ( record.recordCount ) {
+			result.content = record[ property ];
+		}
+
+		event.renderData( type="json", data=result );
+	}
+
 // VIEWLETS
 	private string function renderFrontendEditor( event, rc, prc, struct args={} ) output=false {
 		if ( !event.isAdminUser() ) {

@@ -165,7 +165,8 @@
 			  , autoSaveInterval   = 1500 // auto save draft 1.5 seconds after typing stopped
 			  , autoSaveTimeout    = null
 			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
-			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi;
+			  , versionIcon        = '<i class="preside-icon fa fa-history"></i> '
+			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent;
 
 			$editor.appendTo( 'body' ); // shove the entire editor markup to the end of the body, avoiding issues with interfering with page layout
 			$editor.data( "parent", $editorParent );
@@ -315,8 +316,8 @@
 			setContent = function( content ){
 				var nodes        = $editorParent.contents()
 				  , editorId     = $editor.attr( "id" )
-			  	  , startComment = "container: " + editorId
-			  	  , endComment   = "!" + startComment
+				  , startComment = "container: " + editorId
+				  , endComment   = "!" + startComment
 				  , i=0, nNodes=nodes.length, started=false, n, $startComment;
 
 				for( ; i < nNodes; i++ ){
@@ -470,42 +471,74 @@
 							mData     : "_options",
 							sWidth    : "9em"
 						}
-				    ];
+					];
 
-				$table.dataTable( {
-					bServerSide    : true,
-					bProcessing    : false,
-					bFilter        : false,
-					bLengthChange  : false,
-					iDisplayLength : 5,
-					aoColumns      : colConfig,
-					sDom           : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
-					sAjaxSource    : $table.data( "remote" ),
-					oLanguage : {
-		      			oAria : {
-							sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
-							sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
-						},
-						oPaginate : {
-							sFirst : i18n.translateResource( "cms:datatables.first", { data : [entity], defaultValue : "" } ),
-							sLast : i18n.translateResource( "cms:datatables.last", { data : [entity], defaultValue : "" } ),
-							sNext : i18n.translateResource( "cms:datatables.next", { data : [entity], defaultValue : "" } ),
-							sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [entity], defaultValue : "" } )
-						},
-						sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [entity], defaultValue : "" } ),
-						sInfo : i18n.translateResource( "cms:datatables.info", { data : [entity], defaultValue : "" } ),
-						sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [entity], defaultValue : "" } ),
-						sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [entity], defaultValue : "" } ),
-						sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [entity], defaultValue : "" } ),
-						sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [entity], defaultValue : "" } ),
-						sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [entity], defaultValue : "" } ),
-						sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [entity], defaultValue : "" } ),
-						sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [entity], defaultValue : "" } ),
-						sSearch : '',
-						sUrl : '',
-						sInfoPostFix : ''
-		    		}
-				} )
+				if ( typeof $table.data( 'setupVersionTableUi' ) === 'undefined' ) {
+					$table.on( "click", ".load-version", function( e ){
+						e.preventDefault();
+
+						var $loadLink = $( this );
+
+						$.ajax({
+							  method  : "GET"
+							, url     : $loadLink.attr( 'href' )
+							, cache   : false
+							, success : function( result ){
+								if ( typeof result === "object" && result.success && typeof result.content !== "undefined" ) {
+									setVersionContent( result.content );
+									modalDialog.modal( "hide" );
+								} else {
+									$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.loadversion.unknown.error" ), sticky : true } );
+								}
+							  }
+							, error : function(){
+								$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.loadversion.unknown.error" ), sticky : true } );
+							  }
+						} );
+					} );
+
+					$table.dataTable( {
+						bServerSide    : true,
+						bProcessing    : false,
+						bFilter        : false,
+						bLengthChange  : false,
+						iDisplayLength : 5,
+						aoColumns      : colConfig,
+						sDom           : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+						sAjaxSource    : $table.data( "remote" ),
+						oLanguage : {
+							oAria : {
+								sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
+								sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
+							},
+							oPaginate : {
+								sFirst : i18n.translateResource( "cms:datatables.first", { data : [entity], defaultValue : "" } ),
+								sLast : i18n.translateResource( "cms:datatables.last", { data : [entity], defaultValue : "" } ),
+								sNext : i18n.translateResource( "cms:datatables.next", { data : [entity], defaultValue : "" } ),
+								sPrevious : i18n.translateResource( "cms:datatables.previous", { data : [entity], defaultValue : "" } )
+							},
+							sEmptyTable : i18n.translateResource( "cms:datatables.emptyTable", { data : [entity], defaultValue : "" } ),
+							sInfo : i18n.translateResource( "cms:datatables.info", { data : [entity], defaultValue : "" } ),
+							sInfoEmpty : i18n.translateResource( "cms:datatables.infoEmpty", { data : [entity], defaultValue : "" } ),
+							sInfoFiltered : i18n.translateResource( "cms:datatables.infoFiltered", { data : [entity], defaultValue : "" } ),
+							sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [entity], defaultValue : "" } ),
+							sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [entity], defaultValue : "" } ),
+							sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [entity], defaultValue : "" } ),
+							sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [entity], defaultValue : "" } ),
+							sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [entity], defaultValue : "" } ),
+							sSearch : '',
+							sUrl : '',
+							sInfoPostFix : ''
+						}
+					} )
+				}
+			};
+
+			setVersionContent = function( content ){
+				$editor.data( "_rawContent", content );
+				clearLocalDraft();
+
+				notify( versionIcon + i18n.translateResource( "cms:frontendeditor.version.loaded.notification" ) );
 			};
 
 			$editor.on( "click", ".content-editor-overlay,.content-editor-label", function( e ){
