@@ -78,6 +78,7 @@
 			};
 
 			$modalLink.on( "click", launchHandler );
+			$modalLink.data( "presideBootboxModal", true );
 		} );
 	};
 

@@ -112,6 +112,34 @@ component output=false {
 		event.renderData( type="json", data=result );
 	}
 
+	public void function previewVersionContent( event, rc, prc ) output=false {
+		var recordId = rc.id       ?: "";
+		var object   = rc.object   ?: "";
+		var property = rc.property ?: "";
+		var version  = Val( rc.version  ?: "" );
+		var preview  = "";
+		var record   = presideObjectService.selectData(
+			  objectName       = object
+			, selectFields     = [ property ]
+			, id               = recordId
+			, fromVersionTable = true
+			, specificVersion  = version
+		);
+
+		if ( record.recordCount ) {
+			preview = renderField(
+				  object   = object
+				, property = property
+				, data     = record[ property ]
+				, context  = "preview"
+			);
+
+			preview = '<div class="version-preview">#preview#</div>';
+		}
+
+		event.renderData( type="html", data=preview );
+	}
+
 // VIEWLETS
 	private string function renderFrontendEditor( event, rc, prc, struct args={} ) output=false {
 		if ( !event.isAdminUser() ) {

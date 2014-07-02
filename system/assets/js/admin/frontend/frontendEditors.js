@@ -474,6 +474,15 @@
 					];
 
 				if ( typeof $table.data( 'setupVersionTableUi' ) === 'undefined' ) {
+					$table.on( "click", ".preview-version", function( e ) {
+						var $previewLink = $( this );
+
+						if ( !$previewLink.data( "presideBootboxModal" ) ) {
+							e.preventDefault();
+							$previewLink.presideBootboxModal();
+							$previewLink.click();
+						}
+					} );
 					$table.on( "click", ".load-version", function( e ){
 						e.preventDefault();
 
