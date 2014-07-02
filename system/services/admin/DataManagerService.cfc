@@ -143,11 +143,16 @@ component output="false" singleton=true {
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
-			result.totalRecords = _getPresideObjectService().getRecordVersions(
+			args = {
 				  objectName   = arguments.objectName
 				, id           = arguments.recordId
 				, selectFields = [ "count( * ) as nRows" ]
-			).nRows;
+			};
+			if ( Len( Trim( arguments.property ) ) ) {
+				args.fieldName = arguments.property;
+			}
+
+			result.totalRecords = _getPresideObjectService().getRecordVersions( argumentCollection = args ).nRows;
 		}
 
 		return result;
