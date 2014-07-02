@@ -30,11 +30,6 @@
 .presidecms .preside-theme .ace-nav > li.open:last-child > a {
   border-right: 1px solid #273b4c;
 }
-.presidecms .preside-theme .user-info {
-  max-width: none;
-  vertical-align: baseline;
-  top: 2px;
-}
 .presidecms .preside-theme .nav-list > li.active:after {
   border-right: 2px solid #f5962d;
 }

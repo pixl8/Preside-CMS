@@ -139,3 +139,8 @@ html.presidecms.iframe {
   border: none;
   margin-right: 2px;
 }
+.presidecms .user-info {
+  max-width: none;
+  vertical-align: baseline;
+  top: 2px;
+}
