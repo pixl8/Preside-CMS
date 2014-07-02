@@ -104,6 +104,7 @@
   color: white;
   font-size: 90%;
   padding-left: 5px;
+  margin: 7px 0 0;
 }
 .content-editor-editor-container .content-editor-editor-buttons .content-editor-editor-notifications .preside-icon {
   font-size: 120%;
@@ -115,6 +116,10 @@
 .content-editor-editor-container .content-editor-editor-buttons button[disabled] {
   color: #aaa;
 }
+.content-editor-editor-container .content-editor-editor-buttons .version-history-link {
+  color: white;
+  margin-right: 5px;
+}
 .frontend-editor-modal-sheen {
   display: none;
   position: fixed;
@@ -125,4 +130,8 @@
   width: 100%;
   height: 100%;
   z-index: 99;
+}
+.presidecms.modal.version-history .modal-dialog {
+  width: 800px;
+  height: 400px;
 }

@@ -69,15 +69,18 @@
 					</cfif>
 
 					<div class="content-editor-editor-buttons">
-						<div class="content-editor-editor-notifications"></div>
+						<p class="content-editor-editor-notifications"></p>
 
-						<a data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
-						   href="#event.buildAdminLink( linkTo='frontendediting.fieldHistory', querystring='object=#object#&property=#property#&recordId=#recordId#' )#" data-toggle="bootbox-modal"><i class="preside-icon fa fa-history"></i></a>
+						<a class="version-history-link" title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
+						   data-toggle="bootbox-modal" data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history"
+						   href="#event.buildAdminLink( linkTo='frontendediting.fieldHistory', querystring='object=#object#&property=#property#&recordId=#recordId#' )#"><i class="fa fa-history fa-lg"></i></a>
 
-						<button class="editor-btn-save" type="submit" disabled="disabled">
+						<button class="btn btn-primary editor-btn-save" type="submit" disabled="disabled">
+							<i class="fa fa-check"></i>
 							#translateResource( "cms:frontendeditor.editor.save.btn" )#
 						</button>
-						<button class="editor-btn-cancel">
+						<button class="btn editor-btn-cancel">
+							<i class="fa fa-reply"></i>
 							#translateResource( "cms:frontendeditor.editor.cancel.btn" )#
 						</button>
 					</div>
