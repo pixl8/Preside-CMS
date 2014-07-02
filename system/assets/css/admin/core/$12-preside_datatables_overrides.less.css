@@ -37,3 +37,11 @@
 .presidecms .table thead tr th {
   border-top: none !important;
 }
+.presidecms .table thead > tr > th,
+.presidecms .table tbody > tr > th,
+.presidecms .table tfoot > tr > th,
+.presidecms .table thead > tr > td,
+.presidecms .table tbody > tr > td,
+.presidecms .table tfoot > tr > td {
+  padding: 5px;
+}

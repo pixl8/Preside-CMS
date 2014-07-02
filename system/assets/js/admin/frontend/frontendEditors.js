@@ -473,13 +473,14 @@
 				    ];
 
 				$table.dataTable( {
-					bServerSide   : true,
-					bProcessing   : false,
-					bFilter       : false,
-					bLengthChange : false,
-					aoColumns     : colConfig,
-					sDom          : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
-					sAjaxSource   : $table.data( "remote" ),
+					bServerSide    : true,
+					bProcessing    : false,
+					bFilter        : false,
+					bLengthChange  : false,
+					iDisplayLength : 5,
+					aoColumns      : colConfig,
+					sDom           : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+					sAjaxSource    : $table.data( "remote" ),
 					oLanguage : {
 		      			oAria : {
 							sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
