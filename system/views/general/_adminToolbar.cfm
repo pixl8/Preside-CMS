@@ -30,8 +30,11 @@
 			<ul class="preside-admin-toolbar-actions list-unstyled">
 				<li>
 					<div class="edit-mode-toggle-container">
-						<input id="edit-mode-options" class="ace ace-switch ace-switch-3" type="checkbox" />
-						<span class="lbl"></span>
+						<label>
+							#translateResource( "cms:admintoolbar.editmode" )#
+							<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
+							<span class="lbl"></span>
+						</span>
 					</div>
 					<a class="view-in-tree-link" href="#event.buildAdminLink( linkTo='sitetree', queryString='selected=#event.getCurrentPageId()#' )#" title="#translateResource( 'cms:admintoolbar.view.in.tree' )#">
 						<i class="fa fa-sitemap"></i>
