@@ -11,9 +11,9 @@
   z-index: 1001;
   height: 600px;
   width: 100%;
-  background-color: #000;
+  background-color: #000000;
   opacity: 0.85;
-  color: #aaa;
+  color: #aaaaaa;
   font-family: FreeMono, monospace !important;
   font-size: 14px;
   padding: 10px;
@@ -49,56 +49,55 @@
   height: 1.3em;
   /*margin-top: 3px; */
 }
-#preside-terminal .cmd .cursor.blink {
-  -webkit-animation: blink 1s infinite steps(1, start);
-  -moz-animation: blink 1s infinite steps(1, start);
-  -ms-animation: blink 1s infinite steps(1, start);
-  animation: blink 1s infinite steps(1, start);
-}
 @keyframes blink {
   0%,
   100% {
-    background-color: #000;
-    color: #aaa;
+    background-color: #000000;
+    color: #aaaaaa;
   }
   50% {
-    background-color: #bbb;
-    /* not #aaa because it's seem there is Google Chrome bug */
-    color: #000;
+    background-color: #aaaaaa;
+    color: #000000;
   }
 }
 @-webkit-keyframes blink {
   0%,
   100% {
-    background-color: #000;
-    color: #aaa;
+    background-color: #000000;
+    color: #aaaaaa;
   }
   50% {
-    background-color: #bbb;
-    color: #000;
+    background-color: #aaaaaa;
+    color: #000000;
   }
 }
 @-ms-keyframes blink {
   0%,
   100% {
-    background-color: #000;
-    color: #aaa;
+    background-color: #000000;
+    color: #aaaaaa;
   }
   50% {
-    background-color: #bbb;
-    color: #000;
+    background-color: #aaaaaa;
+    color: #000000;
   }
 }
 @-moz-keyframes blink {
   0%,
   100% {
-    background-color: #000;
-    color: #aaa;
+    background-color: #000000;
+    color: #aaaaaa;
   }
   50% {
-    background-color: #bbb;
-    color: #000;
+    background-color: #aaaaaa;
+    color: #000000;
   }
+}
+#preside-terminal .cmd .cursor.blink {
+  -webkit-animation: blink 1s infinite steps(1, start);
+  -moz-animation: blink 1s infinite steps(1, start);
+  -ms-animation: blink 1s infinite steps(1, start);
+  animation: blink 1s infinite steps(1, start);
 }
 #preside-terminal .terminal .terminal-output div div,
 #preside-terminal .cmd .prompt {
@@ -112,8 +111,8 @@
 #preside-terminal .terminal,
 #preside-terminal .cmd {
   font-family: FreeMono, monospace;
-  color: #aaa;
-  background-color: #000;
+  color: #aaaaaa;
+  background-color: #000000;
   line-height: 14px;
 }
 #preside-terminal .terminal-output > div {
@@ -129,27 +128,21 @@
 }
 #preside-terminal .terminal .inverted,
 #preside-terminal .cmd .inverted,
-#preside-terminal .cmd .cursor.blink {
-  background-color: #aaa;
-  color: #000;
-}
+#preside-terminal .cmd .cursor.blink,
 #preside-terminal .terminal .terminal-output div div::-moz-selection,
 #preside-terminal .terminal .terminal-output div span::-moz-selection,
-#preside-terminal .terminal .terminal-output div div a::-moz-selection {
-  background-color: #aaa;
-  color: #000;
-}
+#preside-terminal .terminal .terminal-output div div a::-moz-selection,
 #preside-terminal .terminal .terminal-output div div::selection,
 #preside-terminal .terminal .terminal-output div div a::selection,
 #preside-terminal .terminal .terminal-output div span::selection,
 #preside-terminal .cmd > span::selection,
 #preside-terminal .cmd .prompt span::selection {
-  background-color: #aaa;
-  color: #000;
+  background-color: #aaaaaa;
+  color: #000000;
 }
 #preside-terminal .terminal .terminal-output div.error,
 #preside-terminal .terminal .terminal-output div.error div {
-  color: red;
+  color: #dd5a43;
 }
 #preside-terminal .tilda {
   position: fixed;
@@ -162,8 +155,5 @@
   clear: both;
 }
 #preside-terminal .terminal a {
-  color: #0F60FF;
-}
-#preside-terminal .terminal a:hover {
-  color: red;
+  color: #4c8fbd;
 }

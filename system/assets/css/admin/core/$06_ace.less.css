@@ -557,7 +557,7 @@ html.presidecms {
   line-height: 1 !important;
 }
 .presidecms .dark {
-  color: #333333 !important;
+  color: #222222 !important;
 }
 .presidecms .white {
   color: #ffffff !important;
@@ -1762,7 +1762,7 @@ html.presidecms {
   margin: 0 22px 0 12px;
   padding: 0;
   font-size: 13px;
-  color: #333333;
+  color: #222222;
   border-radius: 0;
 }
 .presidecms .breadcrumb > li,
@@ -4619,7 +4619,7 @@ html.presidecms {
 .presidecms .dropdown-light .dropdown-submenu:hover > a,
 .presidecms .nav-tabs .dropdown-light li > a:focus {
   background: #e7e7e7;
-  color: #333333;
+  color: #222222;
 }
 .presidecms .dropdown-lighter li a:hover,
 .presidecms .dropdown-lighter li a:focus,
@@ -10846,7 +10846,7 @@ html.presidecms {
 }
 .presidecms #cboxNext:hover,
 .presidecms #cboxPrevious:hover {
-  color: #333333;
+  color: #222222;
   border-color: #666;
 }
 .presidecms #cboxContent {

@@ -258,7 +258,7 @@
   background-image: linear-gradient(#f4f4f4 20%, #f0f0f0 50%, #e8e8e8 52%, #eeeeee 100%);
   background-clip: padding-box;
   box-shadow: 0 0 2px #ffffff inset, 0 1px 0 rgba(0, 0, 0, 0.05);
-  color: #333333;
+  color: #222222;
   line-height: 13px;
   cursor: default;
 }
