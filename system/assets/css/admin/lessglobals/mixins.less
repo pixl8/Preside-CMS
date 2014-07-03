@@ -5,3 +5,10 @@
     background-image: -o-linear-gradient(@angle, @color1 25%, @color2 25%, @color2 50%, @color1 50%, @color1 75%, @color2 75%, @color2 75%);
     background-image: linear-gradient(@angle, @color1 25%, @color2 25%, @color2 50%, @color1 50%, @color1 75%, @color2 75%, @color2 75%);
 }
+
+.calc-width( @expression ) {
+	width: calc( @expression );
+	width: -moz-calc( @expression );
+	width: -webkit-calc( @expression );
+	width: -o-calc( @expression );
+}
