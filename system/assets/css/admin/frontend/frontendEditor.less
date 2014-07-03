@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 .content-editor {
 	.content-editor-overlay {
 		transition       : opacity .25s ease-in-out;
@@ -119,11 +121,11 @@
 	}
 
 	form {
-		border : 1px solid #2C3D4E;
+		border : 1px solid @preside-bar-background-colour;
 	}
 
 	.content-editor-editor-buttons {
-		background-color : #2C3D4E;
+		background-color : @preside-bar-background-colour;
 		text-align       : right;
 		padding          : 5px;
 
