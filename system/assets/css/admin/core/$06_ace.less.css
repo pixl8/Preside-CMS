@@ -1762,7 +1762,7 @@ html.presidecms {
   margin: 0 22px 0 12px;
   padding: 0;
   font-size: 13px;
-  color: #333;
+  color: #333333;
   border-radius: 0;
 }
 .presidecms .breadcrumb > li,
@@ -10846,7 +10846,7 @@ html.presidecms {
 }
 .presidecms #cboxNext:hover,
 .presidecms #cboxPrevious:hover {
-  color: #333;
+  color: #333333;
   border-color: #666;
 }
 .presidecms #cboxContent {

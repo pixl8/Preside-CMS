@@ -81,7 +81,7 @@
   margin: 0 auto;
   font-size: 14px;
   font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #333;
+  color: #333333;
   line-height: 2;
   z-index: 100;
   padding-bottom: 100px;
@@ -101,7 +101,7 @@
 }
 .content-editor-editor-container .content-editor-editor-buttons .content-editor-editor-notifications {
   float: left;
-  color: white;
+  color: #ffffff;
   font-size: 90%;
   padding-left: 5px;
   margin: 7px 0 0;
@@ -117,7 +117,7 @@
   color: #aaa;
 }
 .content-editor-editor-container .content-editor-editor-buttons .version-history-link {
-  color: white;
+  color: #ffffff;
   margin-right: 5px;
 }
 .frontend-editor-modal-sheen {
@@ -125,7 +125,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #000;
+  background-color: #000000;
   opacity: 0.5;
   width: 100%;
   height: 100%;
@@ -145,7 +145,7 @@
   max-height: 150px;
   border-top: 1px solid #ddd;
   padding: 10px;
-  background: #fff;
+  background: #ffffff;
 }
 .presidecms.modal.version-history .modal-dialog .preview-area .preview-pane.loading {
   min-height: 40px;
