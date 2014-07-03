@@ -183,6 +183,10 @@
 		<cfreturn getRequestContext().getValue( name="_adminBreadCrumbs", defaultValue=[], private=true ) />
 	</cffunction>
 
+	<cffunction name="getHTTPContent" access="public" returntype="string" output="false">
+		<cfreturn request.http.body ?: ToString( getHTTPRequestData().content ) />
+	</cffunction>
+
 <!--- Sticker --->
 	<cffunction name="include" access="public" returntype="any" output="false">
 		<cfreturn _getSticker().include( argumentCollection = arguments ) />

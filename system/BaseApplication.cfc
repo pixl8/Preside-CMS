@@ -11,6 +11,7 @@ component output=false {
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
+		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 		_reloadCheck();
 
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
@@ -79,5 +80,9 @@ component output=false {
 		}
 
 		return "preside.system.config.Config";
+	}
+
+	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() output=false {
+		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 }

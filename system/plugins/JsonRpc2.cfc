@@ -21,8 +21,9 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 	}
 
 	public boolean function readRequest() output=false {
-		var prc         = getRequestContext().getCollection( private = true );
-		var rawInput    = Trim( ToString( GetHttpRequestData().content ) );
+		var event       = getRequestContext();
+		var prc         = event.getCollection( private = true );
+		var rawInput    = event.getHTTPContent();
 		var parsedInput = {};
 
 		try {
@@ -33,7 +34,7 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		}
 
 		if ( ( parsedInput.jsonrpc ?: "" ) != "2.0" ) {
-			error( this.ERROR_CODES.INVALID_REQUEST, "Invalid JSON-RPC request: missing or invalid protocol version. Expected 2.0 but received [#( parsedInput.jsonrpc ?: '' )#]. Raw input from console client: [#rawInput#]." );
+			error( this.ERROR_CODES.INVALID_REQUEST, "Invalid JSON-RPC request: missing or invalid protocol version. Expected 2.0 but received [#( parsedInput.jsonrpc ?: '' )#]. Request body was: [#request.body#]." );
 			return false;
 		}
 
