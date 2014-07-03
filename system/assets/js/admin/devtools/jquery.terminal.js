@@ -2366,7 +2366,7 @@
             error: error,
             contentType: 'application/json',
             dataType: 'text',
-            async: false,
+            async: true,
             cache: false,
             //timeout: 1,
             type: 'POST'});
