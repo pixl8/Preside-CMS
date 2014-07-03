@@ -9,7 +9,7 @@
 		cursor           : pointer;
 		z-index          : 101;
 
-		.striped-gradient( #ccc, #bbb, right bottom );
+		.striped-gradient( @frontendeditor-overlay-stripes-colour1, @frontendeditor-overlay-stripes-colour2, right bottom );
 		background-size: 30px 30px;
 
 		.inner{
@@ -21,7 +21,7 @@
 	&.has-draft {
 		.content-editor-overlay {
 			.inner {
-				background-color : #f00;
+				background-color : @frontendeditor-overlay-draft-warning-color;
 			}
 		}
 
@@ -42,13 +42,13 @@
 		position         : absolute;
 		top              : 0;
 		right            : 0;
-		background-color : #fff;
+		background-color : @frontendeditor-overlay-label-background-colour;
 		font-size        : 12px;
 		padding          : 3px 5px;
 		font-family      : "Open Sans";
-		border           : 1px dashed #ccc;
+		border           : 1px dashed @frontendeditor-overlay-label-border-colour;
 		cursor           : pointer;
-		color            : #7d7c7c;
+		color            : @frontendeditor-overlay-label-font-colour;
 		z-index          : 102;
 		.draft-warning {
 			display : none;
@@ -127,7 +127,7 @@
 
 		.content-editor-editor-notifications {
 			float        : left;
-			color        : @white;
+			color        : @preside-bar-font-colour;
 			font-size    : 90%;
 			padding-left : 5px;
 			margin       : 7px 0 0;
@@ -142,12 +142,8 @@
 			}
 		}
 
-		button[disabled] {
-			color : #aaa;
-		}
-
 		.version-history-link {
-			color        : @white;
+			color        : @preside-bar-font-colour;
 			margin-right : 5px;
 		}
 	}
@@ -171,16 +167,16 @@
 		height : 400px;
 
 		.preview-area {
-			border-top       : 1px solid #ddd;
-			background-color : #eee;
+			border-top       : 1px solid @frontendeditor-preview-pane-border-colour;
+			background-color : @frontendeditor-preview-area-bg-colour;
 			padding          : 10px;
 
 			.preview-pane {
 				overflow    : auto;
 				max-height  : 150px;
-				border-top  : 1px solid #ddd;
+				border-top  : 1px solid @frontendeditor-preview-pane-border-colour;
 				padding     : 10px;
-				background  : @white;
+				background  : @frontendeditor-preview-pane-bg-colour;
 
 				&.loading {
 					min-height : 40px;

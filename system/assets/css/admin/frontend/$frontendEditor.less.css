@@ -16,7 +16,7 @@
   opacity: 0.2;
 }
 .content-editor.has-draft .content-editor-overlay .inner {
-  background-color: #f00;
+  background-color: #dd5a43;
 }
 .content-editor.has-draft .content-editor-label .draft-warning {
   display: inline;
@@ -30,13 +30,13 @@
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #ffffff;
   font-size: 12px;
   padding: 3px 5px;
   font-family: "Open Sans";
-  border: 1px dashed #ccc;
+  border: 1px dashed #cccccc;
   cursor: pointer;
-  color: #7d7c7c;
+  color: #777777;
   z-index: 102;
 }
 .content-editor .content-editor-label .draft-warning {
@@ -112,9 +112,6 @@
 .content-editor-editor-container .content-editor-editor-buttons .content-editor-editor-notifications .preside-icon.discard-draft {
   cursor: pointer;
 }
-.content-editor-editor-container .content-editor-editor-buttons button[disabled] {
-  color: #aaa;
-}
 .content-editor-editor-container .content-editor-editor-buttons .version-history-link {
   color: #ffffff;
   margin-right: 5px;
@@ -135,14 +132,14 @@
   height: 400px;
 }
 .presidecms.modal.version-history .modal-dialog .preview-area {
-  border-top: 1px solid #ddd;
-  background-color: #eee;
+  border-top: 1px solid #dddddd;
+  background-color: #eeeeee;
   padding: 10px;
 }
 .presidecms.modal.version-history .modal-dialog .preview-area .preview-pane {
   overflow: auto;
   max-height: 150px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #dddddd;
   padding: 10px;
   background: #ffffff;
 }
