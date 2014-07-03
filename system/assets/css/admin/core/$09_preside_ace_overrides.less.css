@@ -82,7 +82,7 @@ html.presidecms.iframe {
 .presidecms input[type="search"]:focus,
 .presidecms input[type="tel"]:focus,
 .presidecms input[type="color"]:focus {
-  border-color: #64a6bc;
+  border-color: #6fb3e0;
 }
 .presidecms .chosen-container {
   width: 100% !important;

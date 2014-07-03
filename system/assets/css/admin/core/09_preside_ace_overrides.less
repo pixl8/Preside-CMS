@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 html.presidecms {
     overflow-y : scroll;
 
@@ -111,7 +113,7 @@ html.presidecms {
 	input[type="tel"],
 	input[type="color"] {
 		&:focus {
-			border-color : #64a6bc;
+			border-color : @default-selected-input-border-colour;
 		}
 	}
 

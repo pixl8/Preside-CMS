@@ -80,9 +80,9 @@
   min-width: 48px;
 }
 .presidecms .chosen-container.asset-picker.chosen-container-active + .btn {
-  border-top-color: #4492c9;
-  border-right-color: #4492c9;
-  border-bottom-color: #4492c9;
+  border-top-color: #6fb3e0;
+  border-right-color: #6fb3e0;
+  border-bottom-color: #6fb3e0;
 }
 .presidecms .chosen-container.asset-picker .chosen-default span {
   margin-top: 10px;
