@@ -479,7 +479,10 @@
 						e.preventDefault();
 
 						var $previewLink = $( this )
+						  , $tr          = $previewLink.closest( "tr" )
 						  , oldHtml      = $previewPane.html();
+
+						$tr.addClass( 'selected' ).siblings().removeClass( 'selected' );
 
 						$previewPane.html( "" );
 						$previewPane.addClass( "loading" );
@@ -537,6 +540,11 @@
 						aoColumns      : colConfig,
 						sDom           : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 						sAjaxSource    : $table.data( "remote" ),
+						fnRowCallback : function( row ){
+							$row = $( row );
+							$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
+							$row.addClass( "clickable" ); // make work with clickable tr Preside system
+						},
 						oLanguage : {
 							oAria : {
 								sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),

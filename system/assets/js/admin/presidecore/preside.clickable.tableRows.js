@@ -5,7 +5,7 @@
 		    || $( eventTarget ).data( 'toggle' );
 	};
 
-	$( "table" ).on( "click", "tr.clickable", function( e ){
+	$( "body" ).on( "click", "tr.clickable", function( e ){
 		if ( !linkWasClicked( e.target ) ) {
 			var $firstLink = $( this ).find( 'a:first' );
 
