@@ -460,9 +460,10 @@
 			};
 
 			setupVersionTableUi = function( modalDialog ){
-				var $table    = $( modalDialog ).find( '.field-version-table' )
-				  , entity    = i18n.translateResource( "cms:frontendeditor.version.entityname" )
-				  , colConfig = [
+				var $table       = $( modalDialog ).find( '.field-version-table' )
+				  , $previewPane = $( modalDialog ).find( '.preview-pane' )
+				  , entity       = i18n.translateResource( "cms:frontendeditor.version.entityname" )
+				  , colConfig    = [
 						{ mData : "datemodified"   , sWidth : "18em" },
 						{ mData : "_version_author" },
 						{
@@ -475,13 +476,30 @@
 
 				if ( typeof $table.data( 'setupVersionTableUi' ) === 'undefined' ) {
 					$table.on( "click", ".preview-version", function( e ) {
-						var $previewLink = $( this );
+						e.preventDefault();
 
-						if ( !$previewLink.data( "presideBootboxModal" ) ) {
-							e.preventDefault();
-							$previewLink.presideBootboxModal();
-							$previewLink.click();
-						}
+						var $previewLink = $( this )
+						  , oldHtml      = $previewPane.html();
+
+						$previewPane.html( "" );
+						$previewPane.addClass( "loading" );
+
+						$.ajax({
+							  method   : "GET"
+							, url      : $previewLink.attr( "href" )
+							, success  : function( content ){
+								setTimeout( function(){
+									$previewPane.removeClass( "loading" );
+									$previewPane.html( content );
+								}, 400 ); // simulate at least a little bit of loading time so that the loading icon doesn't just flash annoyingly
+
+							  }
+							, error    : function(){
+								$previewPane.html( oldHtml );
+								$previewPane.removeClass( "loading" );
+								$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.previewversion.unknown.error" ), sticky : true } );
+							  }
+						});
 					} );
 					$table.on( "click", ".load-version", function( e ){
 						e.preventDefault();
@@ -515,7 +533,7 @@
 						bProcessing    : false,
 						bFilter        : false,
 						bLengthChange  : false,
-						iDisplayLength : 5,
+						iDisplayLength : 4,
 						aoColumns      : colConfig,
 						sDom           : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 						sAjaxSource    : $table.data( "remote" ),

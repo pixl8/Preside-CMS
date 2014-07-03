@@ -135,11 +135,19 @@
   width: 800px;
   height: 400px;
 }
-.presidecms.modal.version-preview .version-preview {
-  overflow: auto;
-  max-width: 520px;
-  max-height: 200px;
-  padding: 10px;
-  border: 3px dashed #ddd;
+.presidecms.modal.version-history .modal-dialog .preview-area {
+  border-top: 1px solid #ddd;
   background-color: #eee;
+  padding: 10px;
+}
+.presidecms.modal.version-history .modal-dialog .preview-area .preview-pane {
+  overflow: auto;
+  max-height: 200px;
+  border-top: 1px solid #ddd;
+  padding: 10px;
+  background: #fff;
+}
+.presidecms.modal.version-history .modal-dialog .preview-area .preview-pane.loading {
+  min-height: 40px;
+  background: #eeeeee url(../../../images/loading-gifs/large.gif ) center center no-repeat;
 }

@@ -95,6 +95,12 @@
 								<tbody>
 								</tbody>
 							</table>
+							<div class="preview-area">
+								<h4>#translateResource( uri='cms:frontendeditor.previewpane.title' )#</h4>
+								<div class="preview-pane">
+									<em>#translateResource( uri='cms:frontendeditor.previewpane.hint', data=[ '<i class="fa fa-eye"></i>' ])#</em>
+								</div>
+							</div>
 						</div>
 					</div>
 				</form>

@@ -133,8 +133,6 @@ component output=false {
 				, data     = record[ property ]
 				, context  = "preview"
 			);
-
-			preview = '<div class="version-preview">#preview#</div>';
 		}
 
 		event.renderData( type="html", data=preview );
