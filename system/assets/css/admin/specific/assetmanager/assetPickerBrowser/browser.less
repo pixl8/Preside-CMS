@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 .presidecms {
 
 	.breadcrumbs .breadcrumb {
@@ -24,10 +26,10 @@
 				}
 
 				&.selected {
-					background-color : #dff0d8 !important;
+					background-color : @default-selected-row-colour !important;
 
 					td {
-						background-color : #dff0d8 !important;
+						background-color : @default-selected-row-colour !important;
 					}
 					.selected-icon {
 						display : inline-block;

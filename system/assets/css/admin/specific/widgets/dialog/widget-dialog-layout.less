@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 html.presidecms {
 	overflow-y : auto !important;
 }
@@ -18,11 +20,11 @@ html.presidecms {
 			width : 100%;
 
 			input {
-				border        : 1px solid #6fb3e0;
+				border        : 1px solid @default-selected-input-border-colour;
 				width         : 100%;
 				border-radius : 4px !important;
 				font-size     : 13px;
-				color         : #666666;
+				color         : @default-input-font-colour;
 				padding-left  : 25px;
 			}
 		}
@@ -30,7 +32,7 @@ html.presidecms {
 
 	.widget-list {
 		li {
-			border-bottom  : 1px solid #e3e3e3;
+			border-bottom  : 1px solid @default-panel-border-colour;
 			padding        : 0 5px 5px 5px;
 
 			&:last-child {
@@ -40,7 +42,7 @@ html.presidecms {
 			&:active, &:focus, &:hover {
 				cursor           : pointer;
 				outline          : none;
-				background-color : #f5f5f5;
+				background-color : @default-panel-background-colour;
 			}
 		}
 	}

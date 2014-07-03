@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 .presidecms {
 
 	.manage-context-permissions-form {
@@ -36,14 +38,14 @@
 
 				.groups-input {
 					display       : none;
-					background    : #eee;
+					background    : @default-panel-background-colour;
 					border-radius : 5px;
 					padding       : 5px 8px;
 
 					.close-icon {
 						margin-top : 4px;
 						cursor     : pointer;
-						color      : #999;
+						color      : @context-perms-light-font-colour;
 					}
 				}
 
@@ -66,7 +68,7 @@
 					}
 
 					.inherited-perm, .no-perms {
-						color : #999;
+						color : @context-perms-light-font-colour;
 					}
 
 					.selected-perm {
@@ -77,14 +79,14 @@
 					}
 
 					.edit-row-icon {
-						color   : #999;
+						color   : @context-perms-light-font-colour;
 						margin  : 4px 0 0 1em;
 						display : none;
 					}
 				}
 
 				&:hover .groups-list, .groups-list:active, .groups-list:focus {
-					background    : #eee;
+					background    : @default-panel-background-colour;
 					border-radius : 5px;
 
 					.edit-row-icon {

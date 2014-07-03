@@ -20,7 +20,7 @@ html.presidecms {
   padding-left: 25px;
 }
 .presidecms .widget-list li {
-  border-bottom: 1px solid #e3e3e3;
+  border-bottom: 1px solid #dddddd;
   padding: 0 5px 5px 5px;
 }
 .presidecms .widget-list li:last-child {
@@ -31,5 +31,5 @@ html.presidecms {
 .presidecms .widget-list li:hover {
   cursor: pointer;
   outline: none;
-  background-color: #f5f5f5;
+  background-color: #eeeeee;
 }
