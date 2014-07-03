@@ -5,12 +5,11 @@
   left: -99999px;
   cursor: pointer;
   z-index: 101;
-  background-image: -webkit-gradient(linear, right bottom, left top, color-stop(0, #cccccc), color-stop(0.25, #cccccc), color-stop(0.25, #bbbbbb), color-stop(0.5, #bbbbbb), color-stop(0.5, #cccccc), color-stop(0.75, #cccccc), color-stop(0.75, #bbbbbb));
-  background-image: -webkit-linear-gradient(right bottom, #cccccc 0%, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%);
-  background-image: -moz-linear-gradient(right bottom, #cccccc 0%, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%);
-  background-image: -ms-linear-gradient(right bottom, #cccccc 0%, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%);
-  background-image: -o-linear-gradient(right bottom, #cccccc 0%, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%);
-  background-image: linear-gradient(right bottom, #cccccc 0%, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%);
+  background-image: -webkit-linear-gradient(right bottom, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%, #bbbbbb 75%);
+  background-image: -moz-linear-gradient(right bottom, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%, #bbbbbb 75%);
+  background-image: -ms-linear-gradient(right bottom, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%, #bbbbbb 75%);
+  background-image: -o-linear-gradient(right bottom, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%, #bbbbbb 75%);
+  background-image: linear-gradient(right bottom, #cccccc 25%, #bbbbbb 25%, #bbbbbb 50%, #cccccc 50%, #cccccc 75%, #bbbbbb 75%, #bbbbbb 75%);
   background-size: 30px 30px;
 }
 .content-editor .content-editor-overlay .inner {
