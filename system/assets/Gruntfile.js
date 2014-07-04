@@ -103,13 +103,13 @@ module.exports = function( grunt ) {
 
 		less: {
 			options: {
-				paths : ["css/admin/lessglobals"],
+				paths : [ "css/admin/lessglobals", "css/admin/bootstrap", "css/admin/ace" ],
 			},
 			all : {
 				files: [{
 					expand  : true,
 					cwd     : 'css/admin/',
-					src     : ['**/*.less', '!**/lessglobals/*' ],
+					src     : ['**/*.less', '!**/lessglobals/*', '!**/ace/**', '!**/bootstrap/*' ],
 					dest    : 'css/admin/',
 					ext     : ".less.css",
 					rename  : function( dest, src ){
@@ -120,6 +120,15 @@ module.exports = function( grunt ) {
 						return dest + pathSplit.join( "/" );
 					}
 				}]
+			},
+			lib: {
+				files : [ {
+					src  : 'css/admin/ace/ace.less',
+					dest : 'css/admin/ace/ace.less.css'
+				}, {
+					src  : 'css/admin/bootstrap/bootstrap.less',
+					dest : 'css/admin/bootstrap/bootstrap.less.css'
+				} ]
 			}
 		},
 

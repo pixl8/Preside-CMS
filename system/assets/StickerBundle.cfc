@@ -11,6 +11,8 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
+		bundle.addAsset( id="/css/admin/ace/"             , path="/css/admin/ace/_*.ace.min.css" );
+		bundle.addAsset( id="/css/admin/bootstrap/"       , path="/css/admin/bootstrap/_*.bootstrap.min.css" );
 
 		bundle.addAssets(
 			  directory   = "/js/admin"
@@ -36,16 +38,17 @@ component output=false {
 
 
 		// DEFINE DEPENDENCIES AND SORT ORDERS
-		bundle.asset( "i18n-resource-bundle"         ).before( "/css/admin/core/" );
-		bundle.asset( "/css/admin/core/"             ).before( "*" );
-		bundle.asset( "/js/admin/lib/jquery/"        ).before( "ckeditor" );
-		bundle.asset( "/js/admin/lib/jquery-ui/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
-		bundle.asset( "/js/admin/lib/bootstrap/"     ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
-		bundle.asset( "/js/admin/lib/ace/"           ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
-		bundle.asset( "/js/admin/lib/plugins/"       ).dependsOn( "/js/admin/lib/bootstrap/" );
-		bundle.asset( "/js/admin/presidecore/"       ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
-			                                          .after    ( "/js/admin/i18n/*", "ckeditor" )
-			                                          .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
+		bundle.asset( "/css/admin/ace/"  ).dependsOn( "/css/admin/bootstrap/" );
+		bundle.asset( "/css/admin/core/" ).before( "*" ).dependsOn( "/css/admin/ace/", "/css/admin/bootstrap/" );
+
+		bundle.asset( "/js/admin/lib/jquery/"    ).before( "ckeditor" );
+		bundle.asset( "/js/admin/lib/jquery-ui/" ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
+		bundle.asset( "/js/admin/lib/bootstrap/" ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
+		bundle.asset( "/js/admin/lib/ace/"       ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
+		bundle.asset( "/js/admin/lib/plugins/"   ).dependsOn( "/js/admin/lib/bootstrap/" );
+		bundle.asset( "/js/admin/presidecore/"   ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
+			                                      .after    ( "i18n-resource-bundle", "ckeditor" )
+			                                      .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
 	}
 
 }
