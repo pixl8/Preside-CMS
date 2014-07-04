@@ -44,7 +44,7 @@
   display: inline-block;
   margin: 17px;
   vertical-align: top;
-  border: 1px solid #acacac;
+  border: 1px solid #dddddd;
   padding: 6px 6px 6px 6px;
 }
 .presidecms .dropzone .dz-preview.dz-file-preview [data-dz-thumbnail],
@@ -56,7 +56,7 @@
   width: 100px;
   height: 100px;
   position: relative;
-  background: #ebebeb;
+  background: #eeeeee;
   padding: 5px;
   margin-bottom: 22px;
 }
@@ -108,11 +108,11 @@
 }
 .presidecms .dropzone .dz-preview .dz-success-mark,
 .presidecms .dropzone-previews .dz-preview .dz-success-mark {
-  color: #8cc657;
+  color: #87b87f;
 }
 .presidecms .dropzone .dz-preview .dz-error-mark,
 .presidecms .dropzone-previews .dz-preview .dz-error-mark {
-  color: #ee162d;
+  color: #dd5a43;
 }
 .presidecms .dropzone .dz-preview .dz-progress,
 .presidecms .dropzone-previews .dz-preview .dz-progress {
@@ -121,7 +121,7 @@
   left: 6px;
   right: 6px;
   height: 6px;
-  background: #d7d7d7;
+  background: #eeeeee;
   display: none;
 }
 .presidecms .dropzone .dz-preview .dz-progress .dz-upload,
@@ -131,7 +131,7 @@
   bottom: 0;
   left: 0;
   width: 0%;
-  background-color: #8cc657;
+  background-color: #87b87f;
 }
 .presidecms .dropzone .dz-preview.dz-processing .dz-progress,
 .presidecms .dropzone-previews .dz-preview.dz-processing .dz-progress {
@@ -145,7 +145,7 @@
   left: -20px;
   background: rgba(245, 245, 245, 0.8);
   padding: 8px 10px;
-  color: #800;
+  color: #dd5a43;
   min-width: 140px;
   max-width: 500px;
   z-index: 500;
@@ -156,7 +156,7 @@
 }
 .presidecms .dropzone {
   min-height: 100px;
-  border: 3px dashed #cccccc;
+  border: 3px dashed #dddddd;
   background: rgba(0, 0, 0, 0.03);
   padding: 15px;
   margin: 8px;
@@ -234,7 +234,7 @@
 }
 .presidecms .dropzone .dz-preview.dz-error .dz-progress .dz-upload,
 .presidecms .dropzone-previews .dz-preview.dz-error .dz-progress .dz-upload {
-  background: #ee1e2d;
+  background: #dd5a43;
 }
 .presidecms .dropzone .dz-preview .dz-error-mark,
 .presidecms .dropzone-previews .dz-preview .dz-error-mark,
@@ -341,25 +341,25 @@
 }
 .presidecms .dropzone a.dz-remove,
 .presidecms .dropzone-previews a.dz-remove {
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fafafa), color-stop(1, #eeeeee));
-  background-image: -webkit-linear-gradient(top, #fafafa 0, #eeeeee 100%);
-  background-image: -moz-linear-gradient(top, #fafafa 0, #eeeeee 100%);
-  background-image: -o-linear-gradient(top, #fafafa 0, #eeeeee 100%);
-  background-image: -ms-linear-gradient(top, #fafafa 0, #eeeeee 100%);
-  background-image: linear-gradient(top, #fafafa 0, #eeeeee 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eeeeee), color-stop(1, #dddddd));
+  background-image: -webkit-linear-gradient(top, #eeeeee 0, #dddddd 100%);
+  background-image: -moz-linear-gradient(top, #eeeeee 0, #dddddd 100%);
+  background-image: -o-linear-gradient(top, #eeeeee 0, #dddddd 100%);
+  background-image: -ms-linear-gradient(top, #eeeeee 0, #dddddd 100%);
+  background-image: linear-gradient(top, #eeeeee 0, #dddddd 100%);
   -webkit-border-radius: 2px;
   border-radius: 2px;
-  border: 1px solid #eee;
+  border: 1px solid #dddddd;
   text-decoration: none;
   display: block;
   padding: 4px 5px;
   text-align: center;
-  color: #aaa;
+  color: #999999;
   margin-top: 26px;
 }
 .presidecms .dropzone a.dz-remove:hover,
 .presidecms .dropzone-previews a.dz-remove:hover {
-  color: #666;
+  color: #dddddd;
 }
 @-moz-keyframes loading {
   0% {

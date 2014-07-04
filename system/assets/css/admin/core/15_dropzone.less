@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 .presidecms {
 
   /* The MIT License */
@@ -44,7 +46,7 @@
     display: inline-block;
     margin: 17px;
     vertical-align: top;
-    border: 1px solid #acacac;
+    border: 1px solid @default-panel-border-colour;
     padding: 6px 6px 6px 6px;
   }
   .dropzone .dz-preview.dz-file-preview [data-dz-thumbnail],
@@ -56,7 +58,7 @@
     width: 100px;
     height: 100px;
     position: relative;
-    background: #ebebeb;
+    background: @default-panel-background-colour;
     padding: 5px;
     margin-bottom: 22px;
   }
@@ -108,11 +110,11 @@
   }
   .dropzone .dz-preview .dz-success-mark,
   .dropzone-previews .dz-preview .dz-success-mark {
-    color: #8cc657;
+    color: @green;
   }
   .dropzone .dz-preview .dz-error-mark,
   .dropzone-previews .dz-preview .dz-error-mark {
-    color: #ee162d;
+    color: @red;
   }
   .dropzone .dz-preview .dz-progress,
   .dropzone-previews .dz-preview .dz-progress {
@@ -121,7 +123,7 @@
     left: 6px;
     right: 6px;
     height: 6px;
-    background: #d7d7d7;
+    background: @default-panel-background-colour;
     display: none;
   }
   .dropzone .dz-preview .dz-progress .dz-upload,
@@ -131,7 +133,7 @@
     bottom: 0;
     left: 0;
     width: 0%;
-    background-color: #8cc657;
+    background-color: @green;
   }
   .dropzone .dz-preview.dz-processing .dz-progress,
   .dropzone-previews .dz-preview.dz-processing .dz-progress {
@@ -145,7 +147,7 @@
     left: -20px;
     background: rgba(245,245,245,0.8);
     padding: 8px 10px;
-    color: #800;
+    color: @red;
     min-width: 140px;
     max-width: 500px;
     z-index: 500;
@@ -156,7 +158,7 @@
   }
   .dropzone {
     min-height: 100px;
-    border : 3px dashed #cccccc;
+    border : 3px dashed @default-panel-border-colour;
     background: rgba(0,0,0,0.03);
     padding: 15px;
     margin: 8px;
@@ -234,7 +236,7 @@
   }
   .dropzone .dz-preview.dz-error .dz-progress .dz-upload,
   .dropzone-previews .dz-preview.dz-error .dz-progress .dz-upload {
-    background: #ee1e2d;
+    background: @red;
   }
   .dropzone .dz-preview .dz-error-mark,
   .dropzone-previews .dz-preview .dz-error-mark,
@@ -341,26 +343,28 @@
   }
   .dropzone a.dz-remove,
   .dropzone-previews a.dz-remove {
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fafafa), color-stop(1, #eee));
-    background-image: -webkit-linear-gradient(top, #fafafa 0, #eee 100%);
-    background-image: -moz-linear-gradient(top, #fafafa 0, #eee 100%);
-    background-image: -o-linear-gradient(top, #fafafa 0, #eee 100%);
-    background-image: -ms-linear-gradient(top, #fafafa 0, #eee 100%);
-    background-image: linear-gradient(top, #fafafa 0, #eee 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, @grey14), color-stop(1, @grey13));
+    background-image: -webkit-linear-gradient(top, @grey14 0, @grey13 100%);
+    background-image: -moz-linear-gradient(top, @grey14 0, @grey13 100%);
+    background-image: -o-linear-gradient(top, @grey14 0, @grey13 100%);
+    background-image: -ms-linear-gradient(top, @grey14 0, @grey13 100%);
+    background-image: linear-gradient(top, @grey14 0, @grey13 100%);
     -webkit-border-radius: 2px;
     border-radius: 2px;
-    border: 1px solid #eee;
+    border: 1px solid @default-panel-border-colour;
     text-decoration: none;
     display: block;
     padding: 4px 5px;
     text-align: center;
-    color: #aaa;
+    color: @default-light-font-colour;
     margin-top: 26px;
   }
+
   .dropzone a.dz-remove:hover,
   .dropzone-previews a.dz-remove:hover {
-    color: #666;
+    color: @default-light-font-colour-reversed;
   }
+
   @-moz-keyframes loading {
     0% {
       background-position: 0 -400px;
