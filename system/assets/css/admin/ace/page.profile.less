@@ -23,7 +23,7 @@
 	padding:6px 4px 6px 6px;
 	margin-left:120px;
 	border-top:1px dotted #D5E4F1;
-	
+
 	> span  + span:before{/* for a list of values (such as location city & country) put a comma between them */
 		display:inline;
 		content:",";
@@ -87,14 +87,14 @@
 			border-top-color:#D0D8E0;
 		}
 	}
-	
+
 	&:hover {
 		background-color:#F4F9FD;
 		border-left:1px dotted #D0D8E0;
 		border-right:1px dotted #D0D8E0;
 	}
-	
-	
+
+
 	img {
 		border:2px solid #C9D6E5;
 		border-radius:100%;
@@ -107,14 +107,14 @@
 		background-color:#74ABD7;
 		display:inline-block;
 		border-radius:100%;
-		
+
 		width:38px;
 		height:38px;
 
 		color:#FFF; font-size:18px;
 		text-align:center;
 		line-height:38px;
-		 
+
 		margin-right:10px; margin-left:0px;
 		text-shadow:none !important;
 	}
@@ -198,7 +198,7 @@
 	.progress-bar {
 		line-height:26px;
 		font-size:13px; font-weight:bold;
-		font-family:"Open Sans";
+		font-family:@default-font;
 		padding:0 8px;
 	}
 }
@@ -211,7 +211,7 @@
 		position:static;
 		text-align:center;
 		width:auto;
-		
+
 		img {
 			padding:2px;
 			.border-radius(100%);
@@ -219,9 +219,9 @@
 
 			max-width:none;
 			width:64px;
-			
+
 			.transition(~"all 0.1s");
-			
+
 			&:hover {
 				.box-shadow(~"0 0 1px 1px rgba(0,0,0,0.33)");
 			}
@@ -237,11 +237,11 @@
 		text-align:center;
 
 		margin:0 8px 24px;
-		
+
 		.name a:hover [class*="icon-"] {
 			text-decoration:none;
 		}
-		
+
 		.body {
 			display:inline-block;
 			margin:8px 0 0 0;
@@ -250,7 +250,7 @@
 		.popover {
 			visibility:hidden;
 			min-width: 150px;
-		 
+
 			margin-left:0;
 			margin-right:0;
 
@@ -261,7 +261,7 @@
 			display:none;
 
 			.transition(~"visibility 0s linear 0.2s, z-index 0s linear 0.2s, opacity 0.2s linear 0s");
-			
+
 			&.right {
 				left:100%;
 				right:auto;
@@ -277,7 +277,7 @@
 			visibility:visible;
 			opacity:1;
 			z-index:@zindex-popover;
-			
+
 			-webkit-transition-delay:0s;
 			-moz-transition-delay:0s;
 			-o-transition-delay:0s;
@@ -298,7 +298,7 @@
 		}
 
 	}
-	
+
 }
 
 
@@ -312,7 +312,7 @@
 	.border-radius(100%);
 	vertical-align:middle;
 	margin-right:1px;
-	
+
 	&.status-online{
 		border-color:#8AC16C;
 	}
@@ -331,7 +331,7 @@
 	border:1px solid #DDD;
 	padding:8px 32px 32px;
 	.box-shadow(~"1px 1px 0 0 rgba(0, 0, 0, 0.2)");
-	
+
 	background-color: #FFF;
 }
 

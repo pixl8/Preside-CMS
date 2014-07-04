@@ -1,7 +1,7 @@
 .dropzone {
   .border-radius(0);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  
+
   .dz-default.dz-message {
 	background-image:none;
 	font-size:24px;
@@ -15,12 +15,12 @@
 	span {
 		display:inline;
 		color:#555;
-		
+
 		.upload-icon {
 			.opacity(0.7);
 			margin-top:8px;
 			cursor:pointer;
-			
+
 			&:hover {
 				.opacity(1);
 			}
@@ -33,7 +33,7 @@
 
 
 
-  
+
 .dropzone .dz-preview .dz-error-mark,
 .dropzone-previews .dz-preview .dz-error-mark,
 .dropzone .dz-preview .dz-success-mark,
@@ -48,14 +48,14 @@
 
 .dropzone .dz-preview .dz-error-mark:before,
 .dropzone-previews .dz-preview .dz-error-mark:before{
-	font-family:FontAwesome;
+	font-family:@icon-font;
 	font-size:30px;
 	color:#DB6262;
 	content:"\f00d";
 }
 .dropzone .dz-preview .dz-success-mark:before,
 .dropzone-previews .dz-preview .dz-success-mark:before{
-	font-family:FontAwesome;
+	font-family:@icon-font;
 	font-size:30px;
 	color:#6DA552;
 	content:"\f00c";

@@ -40,17 +40,17 @@
 	display:block;
 	position:absolute;
 	top:0; left:0; right:0; height:30px;
- 
+
 	background-color:@file-input-bg;
 	border:1px solid @file-input-border;
 
 	cursor:pointer;
- 
+
 	//.box-shadow(@file-input-shadow);
 	.box-shadow(none);
- 
+
 	.transition(~"all 0.15s");
-	
+
 	&:hover {
 		//.box-shadow(@file-input-hover-shadow);
 		.box-shadow(none);
@@ -59,23 +59,23 @@
 	&:before { /* the button */
 		 display:inline-block;
 		 content:attr(data-title);
-		  
+
 		 position:absolute;
 		 right:0; top:0; bottom:0; padding:0 8px;
 		 line-height:24px;
 		 text-align:center;
-		 
+
 		 background-color:@file-input-btn-bg;
 		 color:#FFF;
 		 font-size:11px; font-weight:bold;
-		 
+
 		 border:2px solid #FFF;
 		 border-left-width:4px;
- 
+
 		.transition(~"all 0.3s");
 	}
-	
-	
+
+
 	.file-name { /* the file name container */
 		display:inline-block;
 		height:28px; max-width:80%;  white-space:nowrap;  overflow:hidden;
@@ -83,10 +83,10 @@
 		color:@file-input-name-color;
 		font-size:13px;
 		vertical-align: top;
-		 
+
 		position:static;
 		padding-left:30px;
-		
+
 		&:after { /* the file name */
 			display:inline-block;
 			content:attr(data-title);
@@ -97,9 +97,9 @@
 		.file-name {
 			color:@file-input-selected-name-color;
 		}
-		
+
 	}
-	
+
 	[class*="icon-"] {
 		.ace-file-icon();
 	    background-color:@file-input-icon-bg;//should be here
@@ -126,7 +126,7 @@
 	}
 
   }
- 
+
   a:hover{
 	text-decoration:none;
   }
@@ -137,7 +137,7 @@
 
 	 width:17px; text-align:center;
 	 height:17px; line-height:15px;
-	 
+
 	 font-size:11px; font-weight:normal;
 
 	 background-color:@file-remove-bg;
@@ -148,7 +148,7 @@
   .file-label.selected + .remove {
 	 display:inline-block;
   }
-  
+
 
 
 }
@@ -166,7 +166,7 @@
   width:26px;
   text-align:center;
 
-  font-family:FontAwesome; font-size:13px;
+  font-family:@icon-font; font-size:13px;
 
 
   border:2px solid #FFF;
@@ -198,22 +198,22 @@
 	 &:before {/* the button */
 		 display:inline-block;
 		 content:attr(data-title);
-		  
+
 		 position:relative;
 		 right:0; left:0; margin:12px;
 		 line-height:22px;
-		 
+
 		 background-color:#FFF;
 		 color:#CCC;
 		 font-size:18px; font-weight:bold;
-		 
+
 		 border:none;
 	 }
 	 &.selected .file-name [class*="icon-"] {
 		.ace-file-icon();
 	 }
 
-	 
+
 	 .file-name {
 		position:relative;
 		display:block;
@@ -222,7 +222,7 @@
 		width:auto; max-width:100%; margin:0 4px;
 		border-bottom:1px solid #DDD;
 		text-align:left;
-		
+
 		&:first-child {
 			margin-top:1px;
 		}
@@ -236,7 +236,7 @@
 			background-color:#FFF;
 			background-repeat:no-repeat;
 			background-position: center;
-	 
+
 			margin:4px 8px 4px 1px;
 		}
 		&:after { /* the file name */
@@ -250,8 +250,8 @@
 	.file-name img + [class*="icon-"] , &.selected .file-name img + [class*="icon-"]  {
 		display:none;
 	}
-	
-	
+
+
   }
 
 
@@ -262,8 +262,8 @@
 
 	background-color:#FFF;
 	color:red;
-	
-	width:22px; 
+
+	width:22px;
 	height:22px;
 	line-height:15px;
   }
@@ -284,14 +284,14 @@
 	  text-align:center;
 	  height:auto; line-height:64px;
 	  width:auto;
-	  
+
 	  font-size:64px; color:#D5D5D5;
-	 
+
 	  margin:4px 0;
 
 	  background-color:transparent;
 	}
-	
+
 	&.selected:after {
 		display:none;
 	}
@@ -300,13 +300,13 @@
 		margin-right:4px; margin-left:2px;
 		line-height:24px;
 	}
-	
-	
+
+
 	.file-name.large {
 		text-align:center;
 		border-bottom:2px solid #222;
 		margin:0 1px 3px;
-		
+
 		&:last-child {
 			margin:0 1px;
 			border-bottom-width:0;
@@ -326,7 +326,7 @@
 			padding:0;
 		}
 	}
-	
+
 }
 
 
@@ -351,7 +351,7 @@
 	&[readonly] + .file-label {
 		cursor:default;
 	}
-	
+
 }
 
 
@@ -364,7 +364,7 @@
 			&:before {
 				background-color:transparent;
 			}
-			
+
 			[class*="icon-"] {
 				border-color:#EEE;
 			}

@@ -1,4 +1,4 @@
-.dd { 
+.dd {
 	position: relative;
 	display: block;
 	margin: 0; padding: 0;
@@ -10,7 +10,7 @@
 	display: block;
 	position: relative;
 	margin: 0; padding: 0; list-style: none;
-	
+
 	.dd-list {
 		padding-left: 30px;
 	}
@@ -35,22 +35,22 @@
 	min-height: 38px;
 	margin: 5px 0;
 	padding: 8px 12px;
-	
+
 	background: #F8FAFF;
 	border: 1px solid #DAE2EA;
 	color: #7C9EB2;
 	text-decoration: none;
-	font-weight: bold;    
+	font-weight: bold;
 
     .box-sizing(border-box);
-	
-	
-	&:hover { 
+
+
+	&:hover {
 		color: #438EB9;
-		background: #F4F6F7; 
+		background: #F4F6F7;
 		border-color:#DCE2E8;
 	}
-	
+
 	&[class*="btn-"] {
 		color:#FFF;
 		border:none;
@@ -76,7 +76,7 @@
 .dd-item > button:hover {
 	~ .dd-handle  , ~ .dd2-content {
 		color: #438EB9;
-		background: #F4F6F7; 
+		background: #F4F6F7;
 		border-color:#DCE2E8;
 	}
 	~ .dd-handle[class*="btn-"]  , ~ .dd2-content[class*="btn-"] {
@@ -87,7 +87,7 @@
 .dd2-handle:hover {
 	~ .dd2-content {
 		color: #438EB9;
-		background: #F4F6F7; 
+		background: #F4F6F7;
 		border-color:#DCE2E8;
 	}
 	~ .dd2-content[class*="btn-"] {
@@ -107,41 +107,41 @@
 	display: block;
 	position: relative; z-index:1;
 	cursor: pointer;
-	
+
 	float: left;
 	width: 25px;
 	height: 20px;
 	margin: 5px 1px 5px 5px;
 	padding: 0;
-	
+
 	text-indent: 100%;
 	white-space: nowrap;
 	overflow: hidden;
-	
+
 	border: 0;
 	background: transparent;
 	font-size: 12px;
-	
+
 	line-height: 1;
 	text-align: center;
-	font-weight: bold; 
-	
+	font-weight: bold;
+
 	top:4px;
 	left:1px;
-	
+
 	color:#707070;
  }
 .dd-item > button:before {
-	font-family:FontAwesome;
+	font-family:@icon-font;
 	content: '\f067';
-	
+
 	display: block;
 	position: absolute;
 	width: 100%;
-	
+
 	text-align: center;
 	text-indent: 0;
-	
+
 	font-weight:normal;
 	font-size:14px;
 }
@@ -176,17 +176,17 @@
 	pointer-events: none;
 	z-index: 999;
 	opacity:0.8;
-	
+
 	> li > .dd-handle {
 		color:#4B92BE;
 		background:#F1F5FA;
-		
+
 		border-color:#D6E1EA;
 		//opacity:0.85;
 		border-left:2px solid #777;
-		
+
 		position:relative;
-		
+
 		&[class*="btn-"]  {
 			color:#FFF;
 		}
@@ -217,7 +217,7 @@
 
 .dd2-handle , .dd-dragel > li > .dd2-handle {
 	position:absolute;
-	left:0;	top:0; 
+	left:0;	top:0;
 	width:36px;
 	margin:0;
 	border-width:1px 1px 0 0;
@@ -225,7 +225,7 @@
 	padding:0 !important;
 	line-height:38px;
 	height:38px;
- 
+
 	background: #EBEDF2;
 	border: 1px solid #DEE4EA;
 

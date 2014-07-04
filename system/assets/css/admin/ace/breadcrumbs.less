@@ -14,14 +14,14 @@
 
  border-bottom:1px solid @breadcrumb-border;
  background-color:@breadcrumb-bg;
- 
+
  min-height:@breadcrumb-height;
  line-height:(@breadcrumb-height - 1);
 
  padding:0 12px 0 0;
 
  display:block;
- 
+
  &.fixed , &.breadcrumbs-fixed{
    position:fixed;
    right:0;
@@ -42,32 +42,32 @@
 
  font-size:13px;
  color:#333;
- 
+
  border-radius:0;
   > li {
     & , &.active {
 	  color:@breadcrumb-text-color;
 	}
-	
+
 	> a {
 	  display:inline-block;
 	  padding:0 4px;
 	  color:@breadcrumb-link-color;
     }
-	
+
 	+ li:before {
-		font-family:FontAwesome;
+		font-family:@icon-font;
 		font-size:14px;
 		content:@breadcrumb-separator;
 		color:@breadcrumb-arrow-color;
-		
+
 		margin-right: 2px;
 		padding: 0 5px 0 2px;
 		position:relative;
 		top: 1px;
 	}
   }
-  
+
 
   .home-icon {
 	 margin-left:4px; margin-right:2px;
@@ -113,7 +113,7 @@
 	left: auto !important;
 	right: auto !important;
  }
- 
+
  @media (min-width: @screen-tablet) {
 	.breadcrumbs.breadcrumbs-fixed {
 		width: @container-tablet - @sidebar-width;
