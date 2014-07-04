@@ -41,7 +41,9 @@
   float: right;
   display: block;
   margin-top: 17px;
+  margin-left: 4px;
   color: #ffffff;
+  line-height: 23px;
 }
 .preside-admin-toolbar .preside-admin-toolbar-actions .nav-user-photo {
   margin: 8px 5px 0 0;
@@ -53,7 +55,13 @@
 .preside-admin-toolbar .preside-admin-toolbar-actions .logout-link {
   color: white;
   position: relative;
-  top: 4px;
+  top: 6px;
+}
+.preside-admin-toolbar .preside-admin-toolbar-actions .logout-link:hover {
+  text-decoration: none;
+}
+.preside-admin-toolbar .preside-admin-toolbar-actions label {
+  font-size: 12px;
 }
 body {
   padding-bottom: 100px !important;

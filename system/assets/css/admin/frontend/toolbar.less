@@ -44,10 +44,12 @@
 		}
 
 		.view-in-tree-link {
-			float      : right;
-			display    : block;
-			margin-top : 17px;
-			color      : @preside-bar-font-colour
+			float       : right;
+			display     : block;
+			margin-top  : 17px;
+			margin-left : 4px;
+			color       : @preside-bar-font-colour;
+			line-height : 23px;
 		}
 
 		.nav-user-photo {
@@ -61,7 +63,15 @@
 		.logout-link {
 			color    : white;
 			position : relative;
-			top      : 4px;
+			top      : 6px;
+
+			&:hover {
+				text-decoration : none;
+			}
+		}
+
+		label {
+			font-size : 12px;
 		}
 	}
 }
