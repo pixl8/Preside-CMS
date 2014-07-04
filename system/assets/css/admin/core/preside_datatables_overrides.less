@@ -14,10 +14,14 @@
 			.data-table-search-icon {
 				color        : @default-selected-input-border-colour !important;
 				font-size    : 14px;
-				line-height  : 24px;
+				line-height  : 16px;
 				margin-left  : 3px;
 			}
 		}
+	}
+
+	> .row:first-child {
+		background: none;
 	}
 
 	.row:first-child+.dataTable {
@@ -42,6 +46,29 @@
 			&.sorting-desc:after {
 				content : "\f0dd";
 			}
+		}
+
+		tbody {
+			tr {
+				&.focus {
+					td, th {
+						background-color : default-selected-row-colour;
+					}
+
+					outline: 0 !important;
+				}
+
+				&.clickable {
+					td, th {
+						cursor : pointer;
+					}
+				}
+			}
+		}
+
+		+ .row {
+			background    : none;
+			border-bottom : none;
 		}
 	}
 }
