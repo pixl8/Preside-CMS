@@ -3,6 +3,8 @@
  *
  */
 
+@import url( 'globals.less' );
+
 .presidecms {
 
 	.site-tree {
@@ -25,11 +27,11 @@
 			position      : relative;
 
 			&:hover, &:focus, &.selected, &.focused {
-				background-color : #f0f7fc;
+				background-color : @default-row-hover-colour;
 				outline          : none;
 
 				.node-options {
-					background-color : #f0f7fc;
+					background-color : @default-row-hover-colour;
 					display          : block;
 					position         : absolute;
 					right            : 0;
@@ -43,7 +45,7 @@
 			}
 
 			&.selected, &.selected .node-options {
-				background-color : #dff0d8 !important;
+				background-color : @default-selected-row-colour !important;
 			}
 
 			.node-data {
@@ -105,11 +107,11 @@
 
 			.picked {
 				&.tree-item, > .tree-folder-header {
-					background-color : #dff0d8;
+					background-color : @default-selected-row-colour;
 
 					.node-options {
 						display : block;
-						background-color : #dff0d8;
+						background-color : @default-selected-row-colour;
 						position         : absolute;
 						right            : 0;
 						top              : 0;
