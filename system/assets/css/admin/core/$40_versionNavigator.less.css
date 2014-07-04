@@ -1,9 +1,0 @@
-.presidecms .version-navigator a {
-  color: inherit;
-}
-.presidecms .version-navigator .disabled {
-  opacity: 0.4;
-}
-.presidecms .page-header + .row > .col-xs-12 > .version-navigator {
-  margin-top: -12px;
-}

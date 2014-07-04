@@ -1,9 +1,0 @@
-.presidecms .chosen-container.sitetree-page-picker .result-container,
-.presidecms .chosen-container.sitetree-page-picker .parent,
-.presidecms .chosen-container.sitetree-page-picker .title {
-  display: inline;
-  margin: 0;
-}
-.presidecms .chosen-container.sitetree-page-picker .result-container .parent {
-  color: #999999;
-}

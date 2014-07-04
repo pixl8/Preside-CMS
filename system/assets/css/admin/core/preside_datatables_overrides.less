@@ -1,0 +1,69 @@
+.dataTables_wrapper {
+
+	.dataTables_filter {
+		.input-icon {
+			.data-table-search {
+				border        : 1px solid @default-selected-input-border-colour;
+				width         : 300px;
+				border-radius : 4px !important;
+				font-size     : 13px;
+				color         : @default-input-font-colour;
+				padding-left  : 25px;
+			}
+
+			.data-table-search-icon {
+				color        : @default-selected-input-border-colour !important;
+				font-size    : 14px;
+				line-height  : 24px;
+				margin-left  : 3px;
+			}
+		}
+	}
+
+	.row:first-child+.dataTable {
+		border-top : none !important;
+	}
+
+	.dataTables_processing {
+		display : none;
+	}
+
+	.dataTable {
+		th{
+			background-image : none !important;
+
+			&.sorting:after {
+				content : none;
+			}
+
+			&.sorting-asc:after {
+				content : "\f0de";
+			}
+			&.sorting-desc:after {
+				content : "\f0dd";
+			}
+		}
+	}
+}
+
+.table {
+	thead {
+		tr {
+			background-image : none !important;
+			background-color : transparent !important;
+
+			th {
+				border-top : none !important;
+			}
+		}
+	}
+
+	thead > tr > th,
+	tbody > tr > th,
+	tfoot > tr > th,
+	thead > tr > td,
+	tbody > tr > td,
+	tfoot > tr > td {
+		padding : 5px;
+	}
+}

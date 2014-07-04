@@ -109,7 +109,7 @@ module.exports = function( grunt ) {
 				files: [{
 					expand  : true,
 					cwd     : 'css/admin/',
-					src     : ['**/*.less', '!**/lessglobals/*', '!**/ace/**', '!**/bootstrap/*' ],
+					src     : ['**/*.less', '!**/lessglobals/*', '!**/ace/**', '!**/bootstrap/**', '!**/core/**' ],
 					dest    : 'css/admin/',
 					ext     : ".less.css",
 					rename  : function( dest, src ){
@@ -121,14 +121,9 @@ module.exports = function( grunt ) {
 					}
 				}]
 			},
-			lib: {
-				files : [ {
-					src  : 'css/admin/ace/ace.less',
-					dest : 'css/admin/ace/ace.less.css'
-				}, {
-					src  : 'css/admin/bootstrap/bootstrap.less',
-					dest : 'css/admin/bootstrap/bootstrap.less.css'
-				} ]
+			core: {
+				src  : 'css/admin/core/core.less',
+				dest : 'css/admin/core/core.less.css'
 			}
 		},
 

@@ -1,0 +1,137 @@
+.chosen-container.asset-picker {
+	.calc-width( ~"100% - 50px" ) !important;
+
+	+ .btn {
+		font-size         : 17px;
+		padding           : 0;
+		height            : 46px;
+		line-height       : 46px;
+		width             : 51px;
+		margin-left       : -1px;
+		text-align        : center;
+		vertical-align    : top;
+		border            : 1px solid @btn-default-colour;
+
+		i {
+			display        : inline-block;
+			vertical-align : middle;
+			line-height    : normal;
+			margin         : 0;
+		}
+	}
+
+	&.chosen-container-multi {
+		+ .btn {
+			height : 48px;
+		}
+
+		.chosen-choices li.search-field input[type="text"] {
+			height : 32px;
+		}
+	}
+
+	&.chosen-container-single {
+		.chosen-single {
+			min-height     : 46px;
+			line-height    : 15px;
+			padding-top    : 4px;
+			padding-bottom : 4px;
+			border-right   : none;
+
+			> span {
+				display : block;
+			}
+
+			div.chosen-action-icon {
+				top   : 4px;
+				right : 4px;
+			}
+
+			.search-choice-close {
+				top : 10px;
+			}
+		}
+	}
+
+	.result-container {
+		height : 36px;
+
+		.icon-container {
+			display        : inline-block;
+			margin-right   : 5px;
+			vertical-align : top;
+
+			img {
+				margin-top : 2px;
+			}
+		}
+
+		.folder-and-text {
+			display : inline-block;
+
+			.folder {
+				display       : block;
+				font-style    : italic;
+				color         : @default-light-font-colour;
+				margin-bottom : 3px;
+			}
+
+			.title {
+				display : block;
+			}
+		}
+	}
+
+	.chosen-results {
+		.highlighted {
+			.result-container {
+				.folder-and-text {
+					.folder {
+						color : @default-light-font-colour-reversed;
+					}
+				}
+			}
+		}
+
+		.result-selected {
+			.result-container {
+				img {
+					opacity : 0.3;
+				}
+				.folder-and-text {
+					.folder {
+						color : @default-light-font-colour-reversed;
+					}
+				}
+			}
+		}
+
+		.icon-container {
+			min-width    : 48px;
+		}
+	}
+
+	&.chosen-container-active {
+		+ .btn {
+			border-top-color    : @default-selected-input-border-colour;
+			border-right-color  : @default-selected-input-border-colour;
+			border-bottom-color : @default-selected-input-border-colour;
+		}
+	}
+
+	.chosen-default {
+		span {
+			margin-top : 10px;
+		}
+	}
+}
+
+.uber-browser-dialog {
+	.modal-dialog {
+		width : 822px;
+
+		.modal-body {
+			padding : 0;
+		}
+	}
+}

@@ -11,8 +11,6 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
-		bundle.addAsset( id="/css/admin/ace/"             , path="/css/admin/ace/_*.ace.min.css" );
-		bundle.addAsset( id="/css/admin/bootstrap/"       , path="/css/admin/bootstrap/_*.bootstrap.min.css" );
 
 		bundle.addAssets(
 			  directory   = "/js/admin"
@@ -38,9 +36,6 @@ component output=false {
 
 
 		// DEFINE DEPENDENCIES AND SORT ORDERS
-		bundle.asset( "/css/admin/ace/"  ).dependsOn( "/css/admin/bootstrap/" );
-		bundle.asset( "/css/admin/core/" ).before( "*" ).dependsOn( "/css/admin/ace/", "/css/admin/bootstrap/" );
-
 		bundle.asset( "/js/admin/lib/jquery/"    ).before( "ckeditor" );
 		bundle.asset( "/js/admin/lib/jquery-ui/" ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
 		bundle.asset( "/js/admin/lib/bootstrap/" ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
