@@ -47,7 +47,7 @@
 	> a {
 		padding:5px 15px 7px;
 		font-size:14px;
-		> [class*="icon-"]:first-child  {
+		> [class*="fa-"]:first-child  {
 			margin-bottom:5px;
 		}
 
@@ -56,7 +56,7 @@
 			border-radius:7px !important;
 		}
 	}
-	
+
 	&.active > a.btn-new-mail {
 		margin-top:0 !important;
 		top:1px;
@@ -99,31 +99,31 @@
  border-bottom-width:0;
  padding:12px 12px 14px;
  line-height:18px;
- 
+
  position:relative;
  background-color:#FFF;
- 
+
  &:first-child {
 	border-top-width:0;
  }
- 
+
  &:hover {
 	border-color:#E2EAF2;
 	background-color:#F2F6F9;
-	
+
 	+ .message-item {
 		border-top-color:#E2EAF2;
-		
+
 		&.selected {
 			border-top-color:#FFF;
 		}
 	}
  }
- 
+
  &.selected {
 	background-color:#EFF4F7;
 	border-color:#FFF #E2EAF2;
-	
+
 	+ .message-item{
 		border-top-color:#FFF;
 
@@ -159,14 +159,14 @@
 	vertical-align:middle;
 	display:inline-block;
 	position:relative;
-	
+
 	margin-left:30px;
 
 	max-width:250px;
 	max-width:~"calc(100% - 300px)";
 	min-width:200px;
 	white-space: nowrap;
-	
+
 	.text {
 		color:#555;
 		vertical-align:middle;
@@ -180,12 +180,12 @@
 		white-space: nowrap;
 
 		cursor:pointer;
-		
+
 		&:hover {
 			text-decoration:underline;
 		}
 	}
-	
+
 	.message-flags {
 		display:block;
 		position:absolute;
@@ -194,7 +194,7 @@
 		height:18px;
 		white-space: nowrap;
 	}
-	
+
  }
  &.message-unread .summary .text {
 	color:#609FC4;
@@ -238,7 +238,7 @@
  margin:2px 4px 0 6px;
  font-size:15px;
  cursor:pointer;
- 
+
  &:hover {
 	color:@ace-orange2 !important;
 	text-decoration:none;
@@ -274,7 +274,7 @@
 	margin:8px 0 0 32px;
 	max-width:95%;
 	min-width:0;
-	 
+
 	display:block;
  }
  .message-item .sender {
@@ -305,7 +305,7 @@
  .box-shadow(~"0 0 1px 1px rgba(0,0,0,0.02)");
  background-color:rgba(255,255,255,0.8);
  border-top-width:0;
- 
+
  .message-item & {
 	margin-top:16px;
 	border-top-width:1px;
@@ -322,15 +322,15 @@
  padding:10px 12px;
  border:1px solid #D6E1EA;
  border-color:#D6E1EA transparent;
- 
+
  background-color:#F1F5FA;
- 
+
  position:relative;
 }
 
 .message-navbar , .message-content {
  .dropdown-toggle {
-	color:#777;	
+	color:#777;
 	&:hover, &:focus {
 		text-decoration:none;
 		color:#2283C5;
@@ -359,20 +359,20 @@
   border:1px solid #E6E6E6;
   border-width:1px 0;
   border-top:1px solid #E4E9EE;
-  
+
  .pagination {
 	margin:0;
 	> li {
 		margin:0;
 		padding:0;
-		
+
 		> a , > span {
 			color:#777;
 			padding: 3px;
 
 			margin-left:3px;
 			margin-right:3px;
-			
+
 			background-color: transparent;
 			border: none;
 		}
@@ -380,7 +380,7 @@
 			color:#BBBBBB;
 			cursor:default;
 		}
-		
+
 		> a:hover {
 			color:#2283C5;
 			text-decoration:none;
@@ -396,7 +396,7 @@
 	line-height:20px;
 
 	margin-bottom:0;
-	
+
 	padding:3px;
 	vertical-align:middle;
 	text-align:center;
@@ -449,10 +449,10 @@
  background-color:rgba(255,255,255,0.5);
  text-align:center;
 
- > [class*="icon-"] {
+ > [class*="fa-"] {
 		position:absolute;
 		top:15%;
-		left:0; right:0; 
+		left:0; right:0;
 		text-align:center;
  }
 }
@@ -474,7 +474,7 @@
 	float:none;
 	vertical-align:middle;
   }
-  
+
 }
 
 
@@ -494,16 +494,16 @@ ul.attachment-list {
  color:#777;
  width:200px;
 
-  > [class*="icon-"] {
+  > [class*="fa-"] {
 	display:inline-block;
 	width:16px;
 	margin-right:2px;
  }
- 
+
  &:hover {
 	text-decoration:none;
 	color:#438EB9;
-	
+
 	.attached-name {
 		color:#2283C5;
 	}
@@ -515,7 +515,7 @@ ul.attachment-list {
 	overflow:hidden;
 	white-space: nowrap;
  }
- 
+
 }
 
 
@@ -526,7 +526,7 @@ ul.attachment-list {
  position:absolute;
  bottom:14px;
  left:12px;
- text-align:left; 
+ text-align:left;
 }
 .messagebar-item-right {
  right:12px;
@@ -560,7 +560,7 @@ ul.attachment-list {
  .form-actions {
 	margin-bottom:0;
  }
- 
+
  .wysiwyg-editor {
 	overflow:auto;
 	min-height:150px;
@@ -593,7 +593,7 @@ ul.attachment-list {
 		padding-top:7px;
 		padding-bottom:7px;
 	}
-	
+
 	.messagebar-item-left , .messagebar-item-right {
 		bottom:9px;
 	}
@@ -649,11 +649,11 @@ ul.attachment-list {
 	background-color:#EFEFEF !important;
 	color:#6092C4 !important;
 }
-.inbox-folders .btn > [class*="icon-"]:first-child {
+.inbox-folders .btn > [class*="fa-"]:first-child {
 	display:inline-block;
 	width:14px;
 	text-align:left;
-} 
+}
 
 
 .inbox-folders  .btn-lighter + .btn-lighter {
@@ -667,7 +667,7 @@ ul.attachment-list {
 	top:1px; bottom:1px; left:-1px;
 	border-left:3px solid #4F99C6;
 }
-.inbox-folders  .btn.active:after{ 
+.inbox-folders  .btn.active:after{
 	display:none;
 }
 

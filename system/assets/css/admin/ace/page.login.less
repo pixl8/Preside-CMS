@@ -23,19 +23,19 @@
 	margin-bottom:11px;
  }
 
- 
+
  .widget-box {
 	visibility:hidden;
-	position:absolute;	 
+	position:absolute;
 	overflow:hidden;
 	width:100%;
-	 
+
 	border-bottom:none;
 	box-shadow:none;
 	padding:6px;
 	background-color:#394557;
-	 
-	.transform(~"scale(0,1) translate(-150px)");	
+
+	.transform(~"scale(0,1) translate(-150px)");
 	&.visible {
 		visibility:visible;
 		.transform(~"scale(1,1) translate(0)");
@@ -44,7 +44,7 @@
 		-o-transition: none;/* too slow */
 		-webkit-transition: none;/* works in chrome but not in safari, never scales back to 1! */
 	}
-	
+
 	.widget-main {
 		padding:16px 36px 36px;
 		background:#F7F7F7;
@@ -55,11 +55,11 @@
 	.widget-body .toolbar > div > a {
 		font-size:15px;
 		font-weight:400;
-		text-shadow:1px 0px 1px rgba(0,0,0,0.25); 
+		text-shadow:1px 0px 1px rgba(0,0,0,0.25);
 	}
  }
- 
- 
+
+
 }
 
 
@@ -68,7 +68,7 @@
 .login-box {
   .forgot-password-link { color:#FE9; }
   .user-signup-link { color:#CF7; }
-  
+
   .toolbar {
 	background:#5090C1;
 	border-top:2px solid #597597;
@@ -83,7 +83,7 @@
 			> a {
 				margin-left:11px;
 			}
-			
+
 			+ div {//the next one
 				float:right;
 				text-align:right;
@@ -115,7 +115,7 @@
  color:#FE9;
  font-size:14px;
  font-weight:bold;
- text-shadow:1px 0px 1px rgba(0,0,0,0.25); 
+ text-shadow:1px 0px 1px rgba(0,0,0,0.25);
 }
 
 
@@ -130,7 +130,7 @@
 
  .social-or-login {
 	margin-top:4px;
-	 
+
 	position:relative; z-index:1;
 	:first-child {
 		display:inline-block;
@@ -138,7 +138,7 @@
 		padding: 0 8px;
 		color: #5090C1; font-size: 13px;
 	}
-	
+
 	&:before {
 		content:""; display:block;
 		position:absolute; z-index:-1;
@@ -155,7 +155,7 @@
 		padding:0;
 		margin:0 1px;
 		border:none;
-		> [class*="icon-"] {
+		> [class*="fa-"] {
 			font-size:24px;
 			margin:0;
 		}

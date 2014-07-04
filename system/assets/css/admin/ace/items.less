@@ -6,13 +6,13 @@
   padding-right:3px;
   min-height:66px;
   position:relative;
-  
+
   > .user {
 	display:inline-block;
 	width:42px;
 	position:absolute;
 	left:0;
-	
+
 	> img {
 		border-radius:100%;
 		border:2px solid #5293C4;
@@ -23,27 +23,27 @@
 
 
   > .body {
-	width:auto;	
+	width:auto;
 	margin-left:50px;
 	margin-right:12px;
 
 	position:relative;
-	
+
 	> .time {
 		display:block;
 		font-size:11px;
 		font-weight:bold;
 		color:#666;
- 
+
 		position:absolute;
 		right:9px; top:0;
 
-		[class*="icon-"] {
+		[class*="fa-"] {
 			font-size:14px;
 			font-weight:normal;
 		}
 	}// .body > .time
-	
+
 	> .name {
 		display:block;
 		color:#999;
@@ -54,10 +54,10 @@
 		display:block;
 		position:relative;
 		margin-top:2px;
-		 
+
 		padding-bottom:19px;
 		padding-left:7px;
-		
+
 		font-size:13px;
 
 		&:after {
@@ -65,11 +65,11 @@
 			 height:1px; font-size:0; overflow:hidden;
 			 position:absolute;
 			 left:16px; right:-12px; margin-top:9px;
-			 
+
 			 border-top:1px solid #E4ECF3;
 		}
-		
-		> [class*="icon-quote-"]:first-child {
+
+		> [class*="fa-quote-"]:first-child {
 			color:#DCE3ED;
 			margin-right:4px;
 		}
@@ -89,7 +89,7 @@
 	&:before {
 		position:absolute;
 		display:block; content:"";
-		 
+
 		top:0; bottom:0; left:19px;
 		width:3px; max-width:3px;
 
@@ -100,8 +100,8 @@
 	&:last-child:before {
 		display:none;
 	}
-	
-	
+
+
 	> .user > img {
 		border-color:#C9D6E5;
 	}
@@ -118,12 +118,12 @@
 			border:2px solid #DDE4ED;
 			border-width:2px 0 0 2px;
 			background-color:#FFF;
-			
+
 			.box-sizing(content-box);
-			 
+
 			.rotate(-45deg);
 		}
-		
+
 		> .time {
 			position:static;
 			float:right;
@@ -134,7 +134,7 @@
 			&:after {display:none;}
 		}
 	}
-	
+
 	.tooltip-inner {
 		word-break:break-all;
 	}
@@ -148,7 +148,7 @@
 	 margin:3px 0;
 	 float:left;
 	 border-bottom:1px solid #E8E8E8;
-	  
+
 	 > .user > img {
 		border-color:#DCE3ED;
 	 }
@@ -210,7 +210,7 @@
 	background-color:#FFF;
 	margin-top:-1px;
 	position:relative;
-	
+
 	&.selected {
 		color:#8090A0;
 		background-color:#F4F9FC;
@@ -232,7 +232,7 @@
 		font-size:11px; font-weight:bold;
 		color:#777;
 	}
-	
+
 	&.ui-sortable-helper {
 		cursor:move;
 	}

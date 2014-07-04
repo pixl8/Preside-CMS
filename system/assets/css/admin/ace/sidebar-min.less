@@ -9,7 +9,7 @@
 			.breadcrumbs.fixed , .breadcrumbs.breadcrumbs-fixed { left:(@sidebar-min-width); }
 		}
 	}
-	
+
 	.nav-list a {
 	  .badge , .label {
 		position:relative;
@@ -25,26 +25,26 @@
 		}
 	}
 
-	
+
 	.nav-list > li {
 	  > a {
 		position:relative;
 		 > .menu-text {
 			display:none;
-			
+
 			position:absolute;
 			left:(@sidebar-min-width - 1);
 			top:-2px;
 			width:(@sidebar-width - 16);
 			height:40px;
-			
+
 			line-height:38px;
 			background-color:@menumin-bg;
 			z-index:121;
-			
+
 			.box-shadow(@menumin-shadow);
 			border:1px solid @menumin-border;
-			
+
 			padding-left:12px;
 		}
 		&.dropdown-toggle > .menu-text {
@@ -57,7 +57,7 @@
 		.arrow {
 			display:none;
 		}
-		
+
 		&:hover:before {/* the right side border on hover */
 			width:2px;
 		}
@@ -85,7 +85,7 @@
 	 &.active > a  {
 		color:@menu-active-color;
 	 }
-	 
+
 	 &.active > a:after  { /* the caret */
 		border-width:10px 6px;
 		top:8px;
@@ -113,22 +113,22 @@
 		padding-bottom:2px;
 
 		display:none !important;
-		
+
 		&:before {
 			 /* hide the tree like submenu in minimized mode */
 			display:none;
 		}
-			 
+
 		li {
 		  &:before {
 			display:none;
 		  }
-		  
+
 		  > a {
 			//border-left:none;
 			margin-left:0;
 			padding-left:24px;
-			> [class*="icon-"]:first-child {
+			> [class*="fa-"]:first-child {
 				left:4px;
 			}
 		  }
@@ -148,8 +148,8 @@
 
 
 
-  
-  
+
+
   //sidebar shortcuts
   .sidebar-shortcuts {
 	position:relative;
@@ -157,18 +157,18 @@
   .sidebar-shortcuts-mini {
 	display:block;
   }
-  
+
   .sidebar-shortcuts-large {
 	display:none;
 	position:absolute;
 	z-index:20;
 	top:-1px;
 	left:@sidebar-min-width - 1;
-	
+
 	width:(@sidebar-width - 8);
-	
+
 	padding:0 2px 1px;
-	
+
 	background-color:@submenu-bg;
 	.box-shadow(@menumin-shadow);
 	border:1px solid @menumin-border;
@@ -181,7 +181,7 @@
 	&:before {
 		left:5px; right:5px;
 	}
-	> [class*="icon-"] {
+	> [class*="fa-"] {
 		font-size:13px;
 		padding:0 4px;
 		line-height:15px;
@@ -190,7 +190,7 @@
 		border-color:darken(@menumin-icon-border, 5%);
 	}
   }
-  
+
 
 
 
@@ -210,8 +210,8 @@
 		display:none;
 	}
  }
- 
- 
+
+
  .nav-list li.active.open > .submenu > li.active > a:after {
 	display: none;
  }

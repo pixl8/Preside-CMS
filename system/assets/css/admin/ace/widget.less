@@ -4,8 +4,8 @@
  padding:0;
  .box-shadow(none);
  margin:3px 0;
- 
- border-bottom:1px solid #CCC; 
+
+ border-bottom:1px solid #CCC;
 }
 
 @media only screen and (max-width: @screen-xs-max) {
@@ -32,7 +32,7 @@
  border-bottom:1px solid #DDD;
 
  padding-left:12px;
- 
+
  &:before, &:after {
     content: "";
     display: table;
@@ -73,12 +73,12 @@
  margin:0;
  display:inline;
 
- > [class*="icon-"] {
+ > [class*="fa-"] {
 	margin-right:5px;
 	font-weight:normal;
 	//font-size:110%;
 	display:inline-block;
- } 
+ }
 }
 .widget-header-large > .widget-caption , .widget-header-large > :first-child {
  line-height:48px;
@@ -110,14 +110,14 @@
   &.padding-5 {
 	padding:0 5px;
   }
-  
+
   &:before {/* border on left ot it! */
 	display:inline-block;
 	content:"";
 	position:absolute; top:3px; bottom:3px; left:-1px;
 	border:1px solid #D9D9D9;
 	border-width:0 1px 0 0;
-	
+
 	.widget-header-large > & {
 		top:6px; bottom:6px;
 	}
@@ -135,13 +135,13 @@
   &.no-border:before {
 	display:none;
   }
-  
+
   label {
 	display:inline-block;
 	vertical-align:middle;
 	margin-bottom:0;
   }
-  
+
   /* widget toolbar basic buttons */
    > a {
 	font-size:14px;
@@ -153,7 +153,7 @@
 	&:hover {
 		text-decoration:none;
 	}
-	
+
 	.widget-header-large > & {
 		font-size:15px;
 		margin:0 1px;
@@ -205,7 +205,7 @@
 
 /* widget-toolbar buttons*/
 .widget-toolbar > [data-action] {
-  > [class*="icon-"] {
+  > [class*="fa-"] {
 	margin-right:0;
   }
   &:focus {
@@ -381,7 +381,7 @@
 .widget-box.transparent {
  border:none;
  box-shadow:none;
- 
+
  > .widget-header {
 	background:none;
 	filter:progid:DXImageTransform.Microsoft.gradient(enabled=false);
@@ -389,7 +389,7 @@
 	border:none;
 	border-bottom:1px solid #DCE8F1;
 	color:#4383B4;
- 
+
 	padding-left:3px;
  }
  > .widget-header-large {
@@ -429,7 +429,7 @@
   &.table-bordered thead:first-child > tr {
 		border-top:none;
   }
-  
+
 }
 
 .widget-main.no-padding , .widget-main.padding-0 {
@@ -474,12 +474,12 @@
   border-bottom:none;
   margin-bottom:0;
   position:relative; top:5px;
-  
+
   > li > a {
 	box-shadow:none;
   }
   > li:not(.active) > a{
-	border-color:transparent; 
+	border-color:transparent;
 	background-color:transparent;
 	&:hover {
 		background-color:transparent;
@@ -490,8 +490,8 @@
 	border-bottom-color:transparent;
 	box-shadow:none;
   }
-  
-  
+
+
   .widget-header-small > & {
 	 top:5px;
 	 > li > a {
@@ -503,7 +503,7 @@
 		margin-top:-1px;
 	 }
   }
-  
+
   .widget-header-large > & {
 	 top:8px;
 	 > li > a {
@@ -511,8 +511,8 @@
 		padding-top:9px; padding-bottom:9px;
 	 }
   }
-  
-  
+
+
   [class*="header-color-"] > & {
 	> li > a {
 		border-color:transparent;
@@ -535,8 +535,8 @@
   .header-color-orange > &  > li > a{
 		color:#855D10;
   }
-  
-  
+
+
   .transparent  & {
 	> li > a {
 		 color:#555;
@@ -553,7 +553,7 @@
 	}
   }
 
-  
+
 }
 
 
@@ -574,7 +574,7 @@
 	&:last-child {/* the toolbox coming after content */
 		padding:2px;
 		border-top:1px solid #CCC;
-		
+
 		.transparent & {
 			border:none;
 			border-top:1px solid #CCC;
@@ -585,7 +585,7 @@
 		margin:0;
 		padding:0;
 	}
-	
+
 	&.center {
 		text-align:center;
 	}
@@ -610,21 +610,21 @@
  position:absolute;
  top:0;bottom:0;right:0;left:0;
  background-color:rgba(0,0,0,0.3);
- 
+
  z-index: 21;
 
- 
- > [class*="icon-"] {
+
+ > [class*="fa-"] {
 		position:absolute;
 		top:15%;
-		left:0; right:0; 
+		left:0; right:0;
 		text-align:center;
-		
+
 		.widget-box.collapsed  & {
 			top: 5%;
 		}
  }
- 
+
  > .icon-spin {
 	.animation-duration(1.2s);
  }
@@ -641,7 +641,7 @@
 		margin-bottom:0;
 	 }
   }
-  
+
   &.no-padding, &.padding-0 {
 	> form {
 		> fieldset {

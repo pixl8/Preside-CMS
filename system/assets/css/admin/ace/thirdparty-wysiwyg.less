@@ -3,13 +3,13 @@
 	height: 250px;
 	background-color: #F7F8FA;
 	border-collapse: separate;
-	border: 1px solid #BBC0CA; 
-	padding: 4px; 
-	box-sizing: content-box; 
+	border: 1px solid #BBC0CA;
+	padding: 4px;
+	box-sizing: content-box;
 	overflow-y: scroll;
 	overflow-x:hidden;
 	outline: none;
-	
+
 	&:focus {
 		background-color:#FFF;
 	}
@@ -19,34 +19,34 @@
 .wysiwyg-toolbar {
 	line-height:32px;
 	margin:0 !important;
-	
+
 	.dropdown-menu {
 		text-align:left;
 	}
-	
+
 	.btn-group {
 		float:none;
 		font-size:0;
 	}
 	.btn-group > .btn , .btn-group > .inline > .btn { /* sometimes we need to put .btn inside an .inline.position-relative for dropdowns to show up in correct position */
 		float:none;
-		
+
 		padding-left:0;
 		padding-right:0;
 		text-align:center;
 		border-width:2px;
 		margin-left:1px;
-		
-		> [class*="icon-"]:first-child {
+
+		> [class*="fa-"]:first-child {
 			font-size:14px;
 			width:25px; max-width:25px;
 			display:inline-block;
 			border-width:1px !important;
 		}
-		&.dropdown-toggle > [class*="icon-"]:last-child {
+		&.dropdown-toggle > [class*="fa-"]:last-child {
 			margin-right:4px;
 		}
-		
+
 		&.active:after {
 			border-color: transparent;
 			border-style: solid;
@@ -67,7 +67,7 @@
 		border:none !important;
 		color:#ADB3BE !important;
 		text-shadow:none !important;
-		
+
 		&.active {
 			color:#5B80CE !important;
 			&:after {
@@ -75,7 +75,7 @@
 			}
 		}
 	}
-	
+
 	.btn-group {
 		position:relative;
 		&:after {
@@ -95,20 +95,20 @@
 
 .wysiwyg-style2 {
 	background-color:#E5E5E5;
-	
+
 	& + .wysiwyg-editor {
 		border-color:#DDD;
 		background-color:#FFF;
 		border-top:none;
 	}
-	
+
 	.btn-group > .btn , .btn-group > .inline > .btn  {
 		margin:0 1px 0 0 !important;
 		background:#FFF !important;
 		border:none !important;
 		color:#8D939E !important;
 		text-shadow:none !important;
-		
+
 		&.active  {
 			color:#FFF !important;
 			background:#6AAEDF !important;
@@ -117,7 +117,7 @@
 	.btn-group:after {
 		display:none;
 	}
-	
+
 }
 
 
@@ -230,7 +230,7 @@
 
 	.transform(~"scale(2.0, 2.0)");
 	.box-shadow(none) !important;
-	
+
 	cursor: pointer;
 	&:focus {
 		.box-shadow(none) !important;
@@ -250,15 +250,15 @@
 		border-color:transparent;
 		background:rgba(255,255,255,0.25) !important;
 		color:#FFF !important;
-		
+
 		text-align:center;
 		padding-left:0; padding-right:0;
 		border-width:1px !important;
-		
+
 		padding-top: 2px;
 		padding-bottom: 4px;
-		
-		> [class*="icon-"] {
+
+		> [class*="fa-"] {
 			font-size:14px;
 			width:25px; max-width:25px;
 			display:inline-block;
@@ -277,7 +277,7 @@
 		padding:8px;
 		min-height:200px;
 	}
-	
+
 	.md-input {
 		border:none !important;
 		box-shadow:none !important;
@@ -286,7 +286,7 @@
 		background-color:rgba(48, 126, 204, 0.07);
 		padding:8px;
 		width: 100%;
-		
+
 		&:focus {
 			background-color:#FFF;
 			box-shadow:none !important;

@@ -141,7 +141,7 @@
 	.vspace-xs-@{index} ,
 	.vspace-sm-@{index} ,
 	.vspace-md-@{index} ,
-	.vspace-lg-@{index} 
+	.vspace-lg-@{index}
 	{
 		.space();
 		margin:unit(@index,px) 0 unit(@index - 1,px) 0;
@@ -160,7 +160,7 @@
  margin-top:18px;
  padding-bottom:4px;
  border-bottom:1px solid #CCC;
- 
+
  &.blue {
 	border-bottom-color:desaturate(lighten(@ace-blue, 35%), 10%);
  }
@@ -201,7 +201,7 @@
 	border-bottom-color:desaturate(lighten(@ace-brown, 32%), 5%);
  }
 
-  > [class*="icon-"] {
+  > [class*="fa-"] {
 	margin-right:2px;
   }
 }
@@ -218,7 +218,7 @@
   display:inline-block;
   opacity:0.85;
    .transition(~"all 0.1s");
-  
+
   &:hover {
 	text-decoration:none;
 	.transform(~"scale(1.2)");

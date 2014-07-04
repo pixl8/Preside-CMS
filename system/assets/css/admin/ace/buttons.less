@@ -18,7 +18,7 @@
  margin:0;
 
  position:relative;
- 
+
 }
 
 .btn-lg {
@@ -201,11 +201,11 @@ button.btn:active  {
  &.btn-minier:after {
 	bottom:-1px;
  }
- 
+
   &.btn-yellow:after {
 	border-bottom-color:@btn-yellow-active-border;
  }
- &.btn-light {	
+ &.btn-light {
 	color:#515151;
 	&:after {
 		border-bottom-color:#B5B5B5;
@@ -218,17 +218,17 @@ button.btn:active  {
 
 /* icons inside buttons */
 .btn {
-	> [class*="icon-"] {
+	> [class*="fa-"] {
 		display:inline;
 		margin-right:4px;
 		//min-width:12px;
-		
+
 		&.icon-on-right {
 			margin-right:0;
 			margin-left:4px;
 		}
 	}
-	> .icon-only[class*="icon-"] {
+	> .icon-only[class*="fa-"] {
 		margin:0;
 		vertical-align:middle;
 		text-align:center;
@@ -237,23 +237,23 @@ button.btn:active  {
 	}
 }
 
-.btn-large > [class*="icon-"] {
+.btn-large > [class*="fa-"] {
 	margin-right:6px;
-	
+
 	&.icon-on-right {
 		margin-right:0;
 		margin-left:6px;
 	}
 }
-.btn-sm > [class*="icon-"] {
+.btn-sm > [class*="fa-"] {
 	margin-right:3px;
-	
+
 	&.icon-on-right {
 		margin-right:0;
 		margin-left:3px;
 	}
 }
-.btn-xs > [class*="icon-"] , &.btn-minier > [class*="icon-"] {
+.btn-xs > [class*="fa-"] , &.btn-minier > [class*="fa-"] {
 	margin-right:2px;
 
 	&.icon-on-right {
@@ -273,7 +273,7 @@ button.btn:active  {
   text-shadow:none !important;
   padding:4px 12px !important;
   line-height:20px !important;
- 
+
  &:hover {
 	background:none !important;
 	text-shadow:none !important;
@@ -317,7 +317,7 @@ button.btn:active  {
 	  &:first-child , &:last-child {
 		border-radius:0;
 	  }
-	  
+
 	  /* caret inside buttons */
 	  > .caret {
 		 margin-top:15px;
@@ -342,7 +342,7 @@ button.btn:active  {
 		margin-top:7px;
 		border-width:3px;
 	 }
-	 
+
 	 /* dropdown toggle */
 	 + .btn.dropdown-toggle {
 		padding-right:3px;
@@ -416,16 +416,16 @@ button.btn:active  {
  font-size: 18px;
  font-weight: normal;
  color: #FFF;
- 
+
  text-align: center;
  text-shadow: 0 -1px -1px rgba(0,0,0,0.2) !important;
- 
+
  border: none;
  border-radius: 12px;
- 
+
  padding: 12px 0 8px;
  margin: 2px;
- 
+
  line-height: 1.7;
 
  position: relative;
@@ -447,7 +447,7 @@ button.btn:active  {
 .btn-app-color(@color-name, @percent:10%) {
  @color1-name : ~`"btn-app-@{color-name}-1"`;
  @color2-name : ~`"btn-app-@{color-name}-2"`;
- 
+
  .btn-app-color(@@color1-name, @@color2-name , @percent);
 }
 
@@ -491,7 +491,7 @@ button.btn:active  {
 
 .btn.btn-app.btn-yellow {
  .btn-app-color(~"yellow" , 5%);
- 
+
  color:@btn-app-yellow-color !important;
  text-shadow:0 -1px 0 rgba(255, 255, 255, 0.4) !important;
 }
@@ -502,7 +502,7 @@ button.btn:active  {
 		width:80px;
 		font-size:16px;
 		border-radius:10px ;
-		
+
 		line-height: 1.5;
 	}
 	&.btn-xs {
@@ -511,20 +511,20 @@ button.btn:active  {
 		border-radius:8px;
 		padding-bottom:7px;
 		padding-top:8px;
-		
+
 		line-height: 1.45;
 	}
-	
-	
+
+
 
    > [class*=icon] {
 		display:block;
 		font-size:42px;
-	 
+
 		margin:0 0 4px;
 		line-height:36px;
 		min-width:0;
-	 
+
 		padding:0;
    }
    &.btn-sm > [class*=icon] {
@@ -539,14 +539,14 @@ button.btn:active  {
 		line-height:24px;
 		margin:0;
 	}
-	
+
 	&.no-radius {
 		border-radius:0;
 	}
 	&.radius-4 {
 		border-radius:4px;
 	}
-	
+
 	/* badge & label inside buttons */
 	> .badge , > .label {
 		position:absolute !important;
@@ -554,7 +554,7 @@ button.btn:active  {
 		padding:1px 3px;
 		text-align:center;
 		font-size:12px;
-		
+
 		&.badge-left , &.label-left{
 			right:auto;
 			left:-2px;
@@ -572,7 +572,7 @@ button.btn:active  {
 			}
 		}
 	}
-	
+
 	/* active state */
 	&.active {
 		color:@btn-app-active;

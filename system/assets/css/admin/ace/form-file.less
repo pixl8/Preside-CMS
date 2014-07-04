@@ -100,24 +100,24 @@
 
 	}
 
-	[class*="icon-"] {
+	[class*="fa-"] {
 		.ace-file-icon();
 	    background-color:@file-input-icon-bg;//should be here
 	}
 	&.selected .file-name {
-		[class*="icon-"]  {
+		[class*="fa-"]  {
 			background-color:@file-input-selected-icon-bg;
 		}
-		.icon-picture {
+		.fa-picture {
 			background-color:@file-input-selected-icon-picture-bg;
 		}
-		.icon-film {
+		.fa-film {
 			background-color:@file-input-selected-icon-film-bg;
 		}
-		.icon-music {
+		.fa-music {
 			background-color:@file-input-selected-icon-music-bg;
 		}
-		.icon-archive {
+		.fa-archive {
 			background-color:@file-input-selected-icon-archive-bg;
 		}
 	}
@@ -209,7 +209,7 @@
 
 		 border:none;
 	 }
-	 &.selected .file-name [class*="icon-"] {
+	 &.selected .file-name [class*="fa-"] {
 		.ace-file-icon();
 	 }
 
@@ -247,7 +247,7 @@
 		display:inline-block;
 		white-space:pre;
 	}
-	.file-name img + [class*="icon-"] , &.selected .file-name img + [class*="icon-"]  {
+	.file-name img + [class*="fa-"] , &.selected .file-name img + [class*="fa-"]  {
 		display:none;
 	}
 
@@ -278,7 +278,7 @@
 
 
 .ace-file-multiple .file-label {
-	.file-name [class*="icon-"] {
+	.file-name [class*="fa-"] {
 	  position:relative;
 	  display:block;
 	  text-align:center;
@@ -295,7 +295,7 @@
 	&.selected:after {
 		display:none;
 	}
-	&.selected .file-name [class*="icon-"]  {
+	&.selected .file-name [class*="fa-"]  {
 		position:relative;
 		margin-right:4px; margin-left:2px;
 		line-height:24px;
@@ -365,7 +365,7 @@
 				background-color:transparent;
 			}
 
-			[class*="icon-"] {
+			[class*="fa-"] {
 				border-color:#EEE;
 			}
 		}

@@ -46,7 +46,7 @@
 
 .sidebar {
  width:@sidebar-width;
- 
+
  float:left;
  position:relative;
  //why not simply position:absolute?
@@ -56,22 +56,22 @@
  border:1px solid @sidebar-border-right;
  border-width:0 1px 0 0;
 
- 
+
  background-color:@sidebar-bg;
- 
+
   &:before {/* the grey background of sidebar */
 
 	 content:""; display:block;
 	 width:@sidebar-width;
-		
+
 	 position:fixed; bottom:0; top:0;
 	 z-index:-1;
-		
+
 	 background-color:@sidebar-bg;
 	 border:1px solid @sidebar-border-right;
 	 border-width:0 1px 0 0;
  }
- 
+
  &.fixed , &.sidebar-fixed {
 	position: fixed;
 	z-index: @zindex-navbar-fixed - 1;
@@ -87,7 +87,7 @@
 
 
 /* side navigation */
-li [class^="icon-"], li [class*=" icon-"]{
+li [class^="fa-"], li [class*=" fa-"]{
  & , .nav-list & {
 	width:auto;
  }
@@ -131,7 +131,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 	 display:block;
 	 height:38px; line-height:36px;
 
-	 padding:0 16px 0 7px; 
+	 padding:0 16px 0 7px;
 	 background-color:@menu-bg;
 
 	 color:@menu-color;
@@ -140,7 +140,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 	 font-size:13px;
 	 text-decoration:none;
 
-	 > [class*="icon-"]:first-child {
+	 > [class*="fa-"]:first-child {
 		display:inline-block;
 		vertical-align:middle;
 
@@ -149,15 +149,15 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 		font-size:18px;
 		font-weight:normal;
-		
+
 		margin-right:2px;
 	 }
-	 
+
 	 &:focus {
 		background-color:@menu-bg;
 		color:@menu-focus-color;
 	 }
-	 
+
 	 &:hover  {
 		background-color:#FFF;
 		color:@menu-focus-color;
@@ -171,20 +171,20 @@ li [class^="icon-"], li [class*=" icon-"]{
 	 }
 
  }
- 
+
  /* the submenu indicator arrow */
  a > .arrow {
 	display:inline-block;
 	width:14px !important; height:14px;
 	line-height:14px;
- 
+
 	text-shadow:none;
 	font-size:18px;
- 
+
 	position:absolute;
 	right:11px;
 	top:11px;
- 
+
 	padding:0;
 	color:@menu-subarrow-color;
  }
@@ -220,7 +220,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 		 font-size:13px;
 	 }
 
-	 > [class*="icon-"] {
+	 > [class*="fa-"] {
 		font-weight:normal;
      }
 
@@ -236,7 +236,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 	position:absolute;
 	right:-2px; top:-1px; bottom:0;
 	z-index:1;
-	
+
 	border:2px solid @menu-active-color;
 	border-width: 0 2px 0 0;
   }
@@ -266,7 +266,7 @@ li [class^="icon-"], li [class*=" icon-"]{
    > li {
 	 margin-left:0;
 	 position:relative;
-	 
+
 	 > a {
 		 display:block;
 		 position:relative;
@@ -274,7 +274,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 		 padding:7px 0 9px 37px;
 		 margin:0;
-		 
+
 		 border-top:1px dotted @submenu-item-border;
 		 &:focus {
 			text-decoration:none;
@@ -291,7 +291,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 
 	/* optional icon before each item */
-	a > [class*="icon-"]:first-child {
+	a > [class*="fa-"]:first-child {
 		display:none;
 
 		font-size:12px; font-weight:normal;
@@ -300,11 +300,11 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 		background-color:#FFF;
 	}
-	&.active > a > [class*="icon-"]:first-child,
-	&:hover > a > [class*="icon-"]:first-child {
+	&.active > a > [class*="fa-"]:first-child,
+	&:hover > a > [class*="fa-"]:first-child {
 		display:inline-block;
 	}
-	&.active > a > [class*="icon-"]:first-child {
+	&.active > a > [class*="fa-"]:first-child {
 		color:@submenu-item-active-icon;
 	}
 
@@ -314,13 +314,13 @@ li [class^="icon-"], li [class*=" icon-"]{
 
  > .submenu {//the first level submenu
 	> li {
-		//tree like menu 
+		//tree like menu
 		&:before {
 			 /* the horizontal line */
 			content:""; display:inline-block;
 			position:absolute;
-			
-			width:7px;		 
+
+			width:7px;
 			left:20px; top:17px;
 			border-top:1px @submenu-left-border-style @submenu-left-border;
 		}
@@ -335,7 +335,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 		position:absolute; z-index:1;
 		left:18px;
 		top:0; bottom:0;
- 
+
 		border: 1px @submenu-left-border-style @submenu-left-border;
 		border-width: 0 0 0 1px;
 	}
@@ -354,15 +354,15 @@ li [class^="icon-"], li [class*=" icon-"]{
  }
 
 
-}//end of .nav-list > li 
+}//end of .nav-list > li
 
 
-//.nav-list li 
+//.nav-list li
 .nav-list li {
  .active_state_caret() {
 	display:block;
 	content:"";
-	 
+
 	position:absolute !important;
 	right:0; top:4px;
 
@@ -403,7 +403,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 		display:inline-block !important;
 	}
  }
-}//end of .nav-list li 
+}//end of .nav-list li
 
 
 
@@ -414,7 +414,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 	position:absolute;
 	top:9px; right:11px;
 	opacity:0.88;
-	[class*="icon-"] {
+	[class*="fa-"] {
 		vertical-align:middle;
 		margin:0;
 	}
@@ -429,7 +429,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 		opacity:1;
 	}
   }
- 
+
 }
 
 .nav-list .submenu .submenu a {
@@ -445,36 +445,36 @@ li [class^="icon-"], li [class*=" icon-"]{
 .sidebar-collapse  {
  border-bottom:1px solid @menumin-btn-border;
  background-color:@menumin-btn-bg;
- 
+
  text-align:center;
  padding:3px 0;
- 
+
  position:relative;
- 
- 
- > [class*="icon-"]{
+
+
+ > [class*="fa-"]{
 	 display:inline-block;
-	 
+
 	 cursor:pointer;
 	 font-size:14px;
 	 color:@menumin-icon-color;
-	 
+
 	 border:1px solid @menumin-icon-border;
 	 padding:0 5px;
 	 line-height:18px;
-	 
+
 	 border-radius:16px;
 
 	 background-color:@menumin-icon-bg;
 	 position:relative;
  }
- 
+
  &:before {
 	content:"";
 	display:inline-block;
-	 
+
 	height:0;
-	border-top:1px solid @menumin-btn-border; 
+	border-top:1px solid @menumin-btn-border;
 	position:absolute;
 	left:15px; right:15px; top:13px;
  }
@@ -488,27 +488,27 @@ li [class^="icon-"], li [class*=" icon-"]{
  background-color:@shortcuts-bg;
  border-bottom:1px solid @shortcuts-border;
  text-align:center;
- 
+
  line-height:@breadcrumb-height - 2;
  max-height:@breadcrumb-height;
  margin-bottom:0;
 }
 .sidebar-shortcuts-large {
  padding-bottom:4px;
- 
+
  > .btn {
 	width:41px;
 	line-height:24px;
-	
+
 	margin-top:-2px;
 	padding:0;
-	
+
 	border-width:4px;
-	
+
 	text-align:center;
-	> [class*="icon-"] { margin:0; }	
+	> [class*="fa-"] { margin:0; }
  }
- 
+
 }
 .sidebar-shortcuts-mini {
  display:none;
@@ -516,22 +516,22 @@ li [class^="icon-"], li [class*=" icon-"]{
  width:42px;
  line-height:18px;
  padding-top:2px; padding-bottom:2px;
- 
+
  background-color:@submenu-bg;
- 
+
   > .btn{
 	 border-width:0 !important;
 	 font-size:0;
 	 line-height:0;
 	 padding:8px !important;
 	 margin:0 1px;
-	 
+
 	 border-radius:0 !important;
 	 .opacity(0.85);
   }
 }
 
-@media screen and (-webkit-min-device-pixel-ratio:0) { 
+@media screen and (-webkit-min-device-pixel-ratio:0) {
     ::safari-only,.sidebar-shortcuts-mini > .btn {//safari only
 		margin: 0;
     }
@@ -554,7 +554,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 	font-size:16px;
 	color:#6B828E;
   }
-  
+
   .open > a, .open > a:hover, .open > a:focus {
 	background-color: transparent;
 	border-color: @submenu-item-border;
@@ -581,11 +581,11 @@ li [class^="icon-"], li [class*=" icon-"]{
 			padding-left:38px;
 		}
 
-		a > [class*="icon-"]:first-child {
+		a > [class*="fa-"]:first-child {
 			display:inline-block;
 			color:inherit;
 			font-size:14px;
-			
+
 			position:static;
 			background-color:transparent;
 			margin-right: 1px;
@@ -595,11 +595,11 @@ li [class^="icon-"], li [class*=" icon-"]{
 		a {
 			font-size:13px;
 			color:#777;
-			
+
 			&:hover {
 				color:desaturate(@menu-focus-color, 25%);
 				text-decoration:underline;
-				[class*="icon-"] {
+				[class*="fa-"] {
 					text-decoration:none;
 					color:desaturate(@menu-focus-color, 25%);
 				}
@@ -610,7 +610,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
   li.open > a {
 	color:desaturate(@menu-focus-color, 12%);
-	>  [class*="icon-"]:first-child {
+	>  [class*="fa-"]:first-child {
 		display:inline-block;
 	}
 	.arrow {
@@ -619,11 +619,11 @@ li [class^="icon-"], li [class*=" icon-"]{
   }
   li > .submenu li.open > a {
 	color:desaturate(@menu-focus-color, 12%);
-	>  [class*="icon-"]:first-child {
+	>  [class*="fa-"]:first-child {
 		display:inline-block;
 		color:@menu-focus-color;
 	}
-	
+
 	.arrow {
 		color:desaturate(@menu-focus-color, 12%);
 	}
@@ -631,7 +631,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
   li > .submenu li.active > a {
 	color:desaturate(@menu-active-color, 8%);
-	>  [class*="icon-"]:first-child {
+	>  [class*="fa-"]:first-child {
 		display:inline-block;
 		color:desaturate(@menu-active-color, 8%);
 	}
@@ -664,7 +664,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 
 /* side menu toggler in mobile view */
-.menu-toggler { 
+.menu-toggler {
  display:none;
 }
 
@@ -678,7 +678,7 @@ li [class^="icon-"], li [class*=" icon-"]{
  .sidebar {
 	display:none;
 	float:none;
-	
+
 	position:absolute;
 	z-index:999;
 	left:0;
@@ -690,7 +690,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 	border-left-width:0;
 	box-shadow:2px 1px 2px 0 rgba(0,0,0,0.2);
  }
- 
+
  .sidebar.display {
 	display:block;
  }
@@ -701,18 +701,18 @@ li [class^="icon-"], li [class*=" icon-"]{
 	position:absolute; left:0; z-index:998;
 	width:52px; height:32px;
 	margin-right:2px;
-	
+
 	line-height:normal;
 	padding-left:33px; padding-top:7px; padding-bottom:1px;
-	
+
 	font-size:13px; font-weight:bold;
 	text-transform:uppercase;
 
 	background-color:#444;
 	color:#F3F3F3;
-	
+
 	.box-sizing(content-box);
-	
+
  }
  .menu-toggler:hover {
 	text-decoration:none;
@@ -727,7 +727,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 	.transition(~"all 0.1s ease");
 	-o-transition: none;
-	
+
 	.box-sizing(content-box);
  }
  .menu-toggler:after {
@@ -741,7 +741,7 @@ li [class^="icon-"], li [class*=" icon-"]{
 
 	.transition(~"all 0.1s ease");
 	-o-transition: none;
-	
+
 	.box-sizing(content-box);
  }
  .menu-toggler.display:before {
@@ -767,16 +767,16 @@ li [class^="icon-"], li [class*=" icon-"]{
  .menu-toggler > .menu-text:after {
 	display:block;
 	color:#FFF;
-	
+
 	content: @menu-button-text;
-	
+
 	position:absolute;
 	left: -8px;//change these to adjust text placement
 	top: -41px;
  }
 
- 
- 
+
+
  .nav-list > li.active:after {
 	display:none;
  }
@@ -787,7 +787,7 @@ li [class^="icon-"], li [class*=" icon-"]{
  .nav-list li.active.open > .submenu > li.active > a:after {
 	display:none;
  }
- 
+
  .menu-min .nav-list > li.active:after {
 	display:block;
  }
@@ -839,7 +839,7 @@ li [class^="icon-"], li [class*=" icon-"]{
    float:none;
    position:absolute;
    border-width:0 1px 1px 0;
-  
+
    border-left:none;
    box-shadow:none;
    margin-top:0;
