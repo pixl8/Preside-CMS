@@ -1,3 +1,5 @@
+@import url( 'globals.less' );
+
 .presidecms {
 
 	.dataTables_wrapper {
@@ -5,16 +7,16 @@
 		.dataTables_filter {
 			.input-icon {
 				.data-table-search {
-					border        : 1px solid #6fb3e0;
+					border        : 1px solid @default-selected-input-border-colour;
 					width         : 300px;
 					border-radius : 4px !important;
 					font-size     : 13px;
-					color         : #666666;
+					color         : @default-input-font-colour;
 					padding-left  : 25px;
 				}
 
 				.data-table-search-icon {
-					color        : #6fb3e0 !important;
+					color        : @default-selected-input-border-colour !important;
 					font-size    : 14px;
 					line-height  : 24px;
 					margin-left  : 3px;

@@ -37,7 +37,7 @@ html.presidecms.iframe {
 }
 .presidecms .dataTable tbody tr.focus td,
 .presidecms .dataTable tbody tr.focus th {
-  background-color: #f0f0ff;
+  background-color: default-selected-row-colour;
 }
 .presidecms .dataTable tbody tr.clickable td,
 .presidecms .dataTable tbody tr.clickable th {
@@ -50,7 +50,7 @@ html.presidecms.iframe {
 }
 .presidecms .gritter-item a:hover,
 .presidecms .gritter-item a:visited:hover {
-  color: white;
+  color: #ffffff;
 }
 .presidecms .top-right-button-group {
   position: absolute;
@@ -61,7 +61,7 @@ html.presidecms.iframe {
   margin-left: 1em;
 }
 .presidecms .form-group .required sup i {
-  color: #d87464;
+  color: #f5962d;
   font-size: 8px;
 }
 .presidecms .form-group .required span {
@@ -103,12 +103,12 @@ html.presidecms.iframe {
 .presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-choice {
   margin: 0 0 7px 7px;
   padding: 5px 20px 5px 5px;
-  background-color: #f5f5f5;
+  background-color: #eeeeee;
   background-image: none;
   box-shadow: none;
 }
 .presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-choice:hover {
-  background-color: #e5e5e5;
+  background-color: #dddddd;
 }
 .presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-choice .search-choice-close {
   top: 6px;
@@ -118,7 +118,7 @@ html.presidecms.iframe {
 }
 .presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-field input[type="text"] {
   height: 25px;
-  color: #999 !important;
+  color: #666666 !important;
   padding: 0 5px;
 }
 .presidecms .chosen-container.chosen-container-multi .chosen-choices li.search-field:first-child {
