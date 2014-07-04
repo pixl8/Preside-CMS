@@ -8287,7 +8287,7 @@ html.presidecms {
   right: 20px;
   top: 11px;
   text-shadow: none;
-  color: #ABBAC3;
+  color: #abbac3;
   font-size: 13px;
   font-weight: bold;
   padding-right: 18px;
@@ -8298,7 +8298,7 @@ html.presidecms {
   content: "";
   width: 8px;
   height: 11px;
-  background-color: #ABBAC3;
+  background-color: #abbac3;
   position: absolute;
   right: 4px;
   top: 7px;
@@ -8311,7 +8311,7 @@ html.presidecms {
   top: -8px;
   border: 12px solid transparent;
   border-width: 8px 7px;
-  border-bottom-color: #ABBAC3;
+  border-bottom-color: #abbac3;
 }
 .presidecms .infobox > .stat.stat-success {
   /*pointing up*/
@@ -10249,7 +10249,7 @@ html.presidecms {
 .presidecms .fc-event-skin {
   border: none !important;
   /* default BORDER color */
-  background-color: #ABBAC3;
+  background-color: #abbac3;
   padding: 0 0 1px 2px;
 }
 .presidecms .label-yellow .fc-event-skin {
@@ -10294,7 +10294,7 @@ html.presidecms {
 .presidecms .fc-state-default,
 .presidecms .fc-state-default .fc-button-inner {
   border: none;
-  background-color: #ABBAC3;
+  background-color: #abbac3;
   color: #FFF;
   background-image: none;
   box-shadow: none;
@@ -10317,7 +10317,7 @@ html.presidecms {
 }
 .presidecms .fc-state-hover,
 .presidecms .fc-state-hover .fc-button-inner {
-  background-color: #8B9AA3;
+  background-color: #8b9aa3;
 }
 .presidecms .external-event {
   margin: 6px 0;
@@ -10325,7 +10325,7 @@ html.presidecms {
   cursor: default;
   display: block;
   color: #FFF;
-  background-color: #ABBAC3;
+  background-color: #abbac3;
   font-size: 13px;
   line-height: 28px;
 }

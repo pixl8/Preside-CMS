@@ -61,20 +61,20 @@
 .presidecms .chosen-container.asset-picker .result-container .folder-and-text .folder {
   display: block;
   font-style: italic;
-  color: #777;
+  color: #999999;
   margin-bottom: 3px;
 }
 .presidecms .chosen-container.asset-picker .result-container .folder-and-text .title {
   display: block;
 }
 .presidecms .chosen-container.asset-picker .chosen-results .highlighted .result-container .folder-and-text .folder {
-  color: #eee;
+  color: #dddddd;
 }
 .presidecms .chosen-container.asset-picker .chosen-results .result-selected .result-container img {
   opacity: 0.3;
 }
 .presidecms .chosen-container.asset-picker .chosen-results .result-selected .result-container .folder-and-text .folder {
-  color: #ccc;
+  color: #dddddd;
 }
 .presidecms .chosen-container.asset-picker .chosen-results .icon-container {
   min-width: 48px;
