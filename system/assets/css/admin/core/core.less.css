@@ -25085,6 +25085,13 @@ img.presidecms .editable-click:hover {
 .presidecms .asset-picker-browser-container .tab-content {
   padding: 8px 12px;
 }
+.presidecms .asset-picker-browser-container .tab-content .asset-upload-dropzone {
+  margin: 0;
+  padding: 10px 0 0;
+}
+.presidecms .asset-picker-browser-container .tab-content .asset-upload-dropzone .dz-preview {
+  margin: 10px;
+}
 .presidecms .asset-picker-browser-container .breadcrumbs {
   background: none;
   line-height: 1;
