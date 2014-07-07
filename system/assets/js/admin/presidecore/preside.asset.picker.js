@@ -1,16 +1,16 @@
 ( function( $ ){
 
-	var UberSelectWithBrowser;
+	var UberAssetSelect;
 
-	UberSelectWithBrowser = (function() {
-		function UberSelectWithBrowser( $originalInput ) {
+	UberAssetSelect = (function() {
+		function UberAssetSelect( $originalInput ) {
 			this.$originalInput = $originalInput;
 
 			this.setupUberSelect();
 			this.setupBrowser();
 		}
 
-		UberSelectWithBrowser.prototype.setupUberSelect = function(){
+		UberAssetSelect.prototype.setupUberSelect = function(){
 			this.$originalInput.uberSelect({
 				  allow_single_deselect  : true
 				, inherit_select_classes : true
@@ -19,7 +19,7 @@
 			this.uberSelect = this.$originalInput.data( "uberSelect" );
 		};
 
-		UberSelectWithBrowser.prototype.setupBrowser = function(){
+		UberAssetSelect.prototype.setupBrowser = function(){
 			var iframeSrc   = this.$originalInput.data( "browserUrl" )
 			  , modalTitle  = this.$originalInput.data( "modalTitle" )
 			  , iframeId    = this.$originalInput.attr('id') + "_browser_frame"
@@ -37,7 +37,7 @@
 			} );
 		};
 
-		UberSelectWithBrowser.prototype.processDialogOk = function(){
+		UberAssetSelect.prototype.processDialogOk = function(){
 			var iFramePicker = this.getPickerIframe();
 
 			if ( typeof iFramePicker !== "undefined" ) {
@@ -50,20 +50,20 @@
 			}
 		};
 
-		UberSelectWithBrowser.prototype.getPickerIframe = function(){
+		UberAssetSelect.prototype.getPickerIframe = function(){
 			var $iframe = $( '.modal-dialog iframe' )
 			if ( $iframe.length ) {
 				return $iframe.get(0).contentWindow.uberBrowser;
 			}
 		};
 
-		return UberSelectWithBrowser;
+		return UberAssetSelect;
 	})();
 
 
-	$.fn.uberSelectWithBrowser = function(){
+	$.fn.uberAssetSelect = function(){
 		return this.each( function(){
-			new UberSelectWithBrowser( $(this) );
+			new UberAssetSelect( $(this) );
 		} );
 	};
 

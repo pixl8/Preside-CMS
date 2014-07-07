@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	$(".uber-select").uberSelect( { allow_single_deselect : true, inherit_select_classes : true } );
-	$(".uber-select-with-browser").uberSelectWithBrowser();
+	$(".asset-picker").uberAssetSelect();
 	$(".image-dimension-picker").imageDimensionPicker();
 
 	$(".auto-slug").each( function(){
