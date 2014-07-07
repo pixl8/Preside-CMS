@@ -24922,6 +24922,9 @@ img.presidecms .editable-click:hover {
 .presidecms .asset-upload-dropzone .upload-instructions * {
   cursor: pointer;
 }
+.presidecms .asset-upload-dropzone .dz-message {
+  text-align: center;
+}
 .presidecms .asset-upload-dropzone .dz-message .upload-buttons {
   display: none;
 }
