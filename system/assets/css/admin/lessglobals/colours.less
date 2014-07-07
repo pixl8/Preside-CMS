@@ -20,6 +20,7 @@
 @brown               : #a52a2a;
 @brown-lighter       : #996633;
 @clay-brown          : #c96338;
+@mud-brown           : #7b3f25;
 
 // blues
 @blue                : #4c8fbd;
@@ -33,10 +34,17 @@
 @pale-blue           : #f0f7fc;
 @blue-grey           : #abbac3;
 @blue-grey-darker    : #8b9aa3;
+@blue-grey-dark      : #576373;
 @blue-grey-lighter   : #bcc9d5;
+@royal-blue          : #1144eb;
+@aqua-marine         : #0490a6;
+@dusty-blue          : #4b89aa;
+
 
 // reds
-@red                 : #dd5a43;
+@red                 : #d53f40;
+@red-skin            : #dd5a43;
+@pale-red            : #e2755f;
 @red-darker          : #b74635;
 @light-red           : #ff7777;
 
@@ -49,21 +57,40 @@
 @green               : #87b87f;
 @green-darker        : #629b58;
 @pale-green          : #dff0d8;
+@paler-green         : #e4e6e9;
+@palid-green         : #c5d0dc;
 @light-green         : #b0d877;
+@yellow-green        : #9abc32;
+@forest-green        : #2e8965;
 
 // oranges
 @orange              : #f5962d;
 @bright-orange       : #feb902;
+@bright-orange-duller: #e8b110;
 @peachy-orange       : #fcac6f;
+@pale-orange         : #ffe8a5;
+@dark-orange         : #c67a3e;
+@skin-orange         : #f59942;
+@blood-orange        : #855d10;
+@tan                 : #ffc657;
+@pale-tan            : #efad62;
 
 // purples
 @purple              : #a069c3;
 @purple-darker       : #7461aa;
+@pale-purple         : #8a7cb4;
+@rich-purple         : #892e65;
+@plum-purple         : #6f3cc4;
+@purple-grey         : #a696ce;
+@light-violet        : #6379aa;
 
 // pinks
 @lilac-pink          : #c6699f;
+@lilac-pink-lighter  : #cb6fd7;
 @fusia-pink          : #d6487e;
 @fusia-pink-darker   : #b73766;
+@skin-pink           : #ca5952;
+@pale-pink           : #f4dae5;
 
 // preside implementations
 @default-font-colour                  : @grey2;
@@ -88,12 +115,12 @@
 
 @terminal-bg-colour   : @black;
 @terminal-font-colour : @grey10;
-@terminal-error       : @red;
+@terminal-error       : @red-skin;
 
 @frontendeditor-overlay-label-background-colour : @white;
 @frontendeditor-overlay-label-font-colour       : @grey7;
 @frontendeditor-overlay-label-border-colour     : @grey12;
-@frontendeditor-overlay-draft-warning-color     : @red;
+@frontendeditor-overlay-draft-warning-color     : @red-skin;
 @frontendeditor-overlay-stripes-colour1         : @grey12;
 @frontendeditor-overlay-stripes-colour2         : @grey11;
 @frontendeditor-preview-pane-border-colour      : @grey13;
@@ -115,7 +142,7 @@
 // ace colours
 @ace-dark         : @grey3;
 @ace-white        : @white;
-@ace-red          : @red;
+@ace-red          : @red-skin;
 @ace-light-red    : @light-red;
 @ace-blue         : @blue;
 @ace-light-blue   : @light-blue;
@@ -148,7 +175,7 @@
 @btn-warning       : @bright-orange;
 @btn-warning-hover : @orange;
 
-@btn-danger        : @red;
+@btn-danger        : @red-skin;
 @btn-danger-hover  : @red-darker;
 
 @btn-inverse       : @grey5;
@@ -178,222 +205,217 @@
 
 
 //application button colors
-@btn-app-default-1 : @blue-grey-lighter;
-@btn-app-default-2 : @blue-grey;
+@btn-app-default-1     : @blue-grey-lighter;
+@btn-app-default-2     : @blue-grey;
 
-@btn-app-primary-1 : @blue;
-@btn-app-primary-2 : @blue-darker;
+@btn-app-primary-1     : @blue;
+@btn-app-primary-2     : @blue-darker;
 
-@btn-app-info-1    : @lighter-blue-darker;
-@btn-app-info-2    : @lighter-blue;
+@btn-app-info-1        : @lighter-blue-darker;
+@btn-app-info-2        : @lighter-blue;
 
-@btn-app-success-1 : @light-green;
-@btn-app-success-2 : @green;
+@btn-app-success-1     : @light-green;
+@btn-app-success-2     : @green;
 
-@btn-app-danger-1  : @red;
-@btn-app-danger-2  : @red-darker;
+@btn-app-danger-1      : @red-skin;
+@btn-app-danger-2      : @red-darker;
 
-@btn-app-warning-1 : @bright-orange;
-@btn-app-warning-2 : @orange;
+@btn-app-warning-1     : @bright-orange;
+@btn-app-warning-2     : @orange;
 
-@btn-app-purple-1:#a696ce;
-@btn-app-purple-2:#8a7cb4;
+@btn-app-purple-1      : @purple-grey;
+@btn-app-purple-2      : @pale-purple;
 
-@btn-app-pink-1:#db5e8c;
-@btn-app-pink-2:#ce3970;
+@btn-app-pink-1        : @lilac-pink;
+@btn-app-pink-2        : @fusia-pink;
 
-@btn-app-inverse-1:#555555;
-@btn-app-inverse-2:#333333;
+@btn-app-inverse-1     : @grey5;
+@btn-app-inverse-2     : @grey3;
 
-@btn-app-grey-1:#898989;
-@btn-app-grey-2:#696969;
+@btn-app-grey-1        : @grey8;
+@btn-app-grey-2        : @grey6;
 
-@btn-app-light-1:#f4f4f4;
-@btn-app-light-2:#e6e6e6;
+@btn-app-light-1       : @grey14;
+@btn-app-light-2       : @grey13;
 
-@btn-app-yellow-1:#ffe8a5;
-@btn-app-yellow-2:#fcd76a;
+@btn-app-yellow-1      : @pale-orange;
+@btn-app-yellow-2      : @yellow;
 
-@btn-app-active:#fff;
-@btn-app-yellow-color:#963;
-@btn-app-yellow-border:@yellow;
-@btn-app-light-color:#5a5a5a;
-@btn-app-light-active:#515151;
+@btn-app-active        : @white;
+@btn-app-yellow-color  : @brown-lighter;
+@btn-app-yellow-border : @yellow;
+@btn-app-light-color   : @grey6;
+@btn-app-light-active  : @grey5;
 
 
 
 
 //label & badge colors
 @label-default:@blue-grey;
-@label-primary:@btn-primary;
-@label-info:#3a87ad;
-@label-success:#82af6f;
-@label-danger:@red;
-@label-important:@label-danger;//!ignore
-@label-warning:#f89406;
-@label-inverse:#333333;
+@label-primary:@blue;
+@label-info:@blue;
+@label-success:@green;
+@label-danger:@red-skin;
+@label-inverse:@grey3;
 @label-pink:@fusia-pink;
 @label-purple:@purple;
 @label-yellow:@yellow;
-@label-light:#e7e7e7;
+@label-light:@grey14;
 @label-grey:@btn-grey;
+@label-important:@label-danger;//!ignore
+@label-warning:@orange;
 
 
 
 //menu colors
-@dropdown-menu:#4f99c6;
-@dropdown-default:@btn-default;
-@dropdown-primary:@btn-primary;
-@dropdown-info:@btn-info;
-@dropdown-success:@btn-success;
-@dropdown-warning:#ffa24d;
-@dropdown-danger:@btn-danger;
-@dropdown-inverse:@btn-inverse;
-@dropdown-pink:@btn-pink;
-@dropdown-purple:@btn-purple;
-@dropdown-grey:@btn-grey;
-@dropdown-light:@btn-light;
-@dropdown-lighter:#efefef;
-@dropdown-lightest:#f3f3f3;
-@dropdown-yellow:@btn-yellow;
-@dropdown-yellow2:#f9e8b3;
-@dropdown-light-blue:#ecf3f9;
+@dropdown-menu       : @lighter-blue-darker;
+@dropdown-default    : @btn-default;
+@dropdown-primary    : @btn-primary;
+@dropdown-info       : @btn-info;
+@dropdown-success    : @btn-success;
+@dropdown-warning    : @skin-orange;
+@dropdown-danger     : @btn-danger;
+@dropdown-inverse    : @btn-inverse;
+@dropdown-pink       : @btn-pink;
+@dropdown-purple     : @btn-purple;
+@dropdown-grey       : @btn-grey;
+@dropdown-light      : @btn-light;
+@dropdown-lighter    : @grey13;
+@dropdown-lightest   : @grey14;
+@dropdown-yellow     : @btn-yellow;
+@dropdown-yellow2    : @pale-orange;
+@dropdown-light-blue : @pale-green;
 
 //slider colors
-@slider-color:#4aa4ce;
-@slider-green:#8bbc67;
-@slider-red:#d36e6e;
-@slider-purple:#ac68ba;
-@slider-orange:#efad62;
-@slider-dark:#606060;
-@slider-pink:@btn-pink;
+@slider-color  : @lighter-blue;
+@slider-green  : @green;
+@slider-red    : @pale-red;
+@slider-purple : @purple;
+@slider-orange : @pale-tan;
+@slider-dark   : @grey6;
+@slider-pink   : @btn-pink;
 
 
 //infobox colors
-@infobox-purple:#6f3cc4;
-@infobox-purple2:#5f47b0;
-@infobox-pink:#cb6fd7;
-@infobox-blue:@lighter-blue;
-@infobox-blue2:#3983c2;
-@infobox-blue3:#1144eb;
-@infobox-red:#d53f40;
-@infobox-brown:#c67a3e;
-@infobox-light-brown:#cebea5;
-@infobox-wood:#7b3f25;
-@infobox-orange:#e8b110;
-@infobox-orange2:#f79263;
-@infobox-green:#9abc32;
-@infobox-green2:#0490a6;
-@infobox-grey:#999999;
-@infobox-black:#393939;
+@infobox-purple      : @plum-purple;
+@infobox-purple2     : @purple-darker;
+@infobox-pink        : @lilac-pink-lighter;
+@infobox-blue        : @lighter-blue;
+@infobox-blue2       : @blue;
+@infobox-blue3       : @royal-blue;
+@infobox-red         : @red;
+@infobox-brown       : @dark-orange;
+@infobox-light-brown : @pale-yellow;
+@infobox-wood        : @mud-brown;
+@infobox-orange      : @bright-orange-duller;
+@infobox-orange2     : @peachy-orange;
+@infobox-green       : @yellow-green;
+@infobox-green2      : @aqua-marine;
+@infobox-grey        : @grey9;
+@infobox-black       : @grey3;
 
 
 //widget colors
-@widget-blue:#307ecc;
-@widget-blue2:#5090c1;
-@widget-blue3:#6379aa;
-@widget-green:#82af6f;
-@widget-green2:#2e8965;
-@widget-green3:#4ebc30;
-@widget-red:#e2755f;
-@widget-red2:#e04141;
-@widget-red3:@red;
-@widget-purple:#7e6eb0;
-@widget-pink:#ce6f9e;
-@widget-dark:#404040;
-@widget-grey:#848484;
+@widget-blue   : @blue;
+@widget-blue2  : @dusty-blue;
+@widget-blue3  : @light-violet;
+@widget-green  : @green;
+@widget-green2 : @forest-green;
+@widget-green3 : @green-darker;
+@widget-red    : @pale-red;
+@widget-red2   : @red;
+@widget-red3   : @red-skin;
+@widget-purple : @pale-purple;
+@widget-pink   : @lilac-pink;
+@widget-dark   : @grey4;
+@widget-grey   : @grey8;
 
-@widget-orange:#ffc657;
-@widget-orange-txt:#855d10;
-@widget-orange-border:#e8b10d;
+@widget-orange        : @tan;
+@widget-orange-txt    : @blood-orange;
+@widget-orange-border : @bright-orange-duller;
 
-@ace-nav-default:#2e6589;//ace nav button default background color
-@ace-nav-grey:#555;//ace nav button grey background color
-@ace-nav-purple:#892e65;//ace nav button purple background color
-@ace-nav-green:#2e8965;
-@ace-nav-red:@red-darker;
-@ace-nav-light-green:#9abc32;
-@ace-nav-light-purple:#cb6fd7;
-@ace-nav-light-orange:#f79263;
-@ace-nav-light-blue:#62a8d1;
-@ace-nav-light-blue2:#42a8e1;
-@ace-nav-light-pink:#f4dae5;
-@ace-nav-dark:#404040;
+@ace-nav-default      : @dark-blue-highlight;
+@ace-nav-grey         : @grey5;
+@ace-nav-purple       : @rich-purple;
+@ace-nav-green        : @forest-green;
+@ace-nav-red          : @red-darker;
+@ace-nav-light-green  : @yellow-green;
+@ace-nav-light-purple : @lilac-pink-lighter;
+@ace-nav-light-orange : @peachy-orange;
+@ace-nav-light-blue   : @lighter-blue;
+@ace-nav-light-blue2  : @lighter-blue;
+@ace-nav-light-pink   : @pale-pink;
+@ace-nav-dark         : @grey4;
 
-@navbar-bg:#438eb9;//navbar background color
-@navbar-text-color:#fff;
+@navbar-bg         : @dusty-blue;
+@navbar-text-color : @white;
 
-@body-bg:#e4e6e9;
-@text-color:#393939;
+@body-bg    : @paler-green;
+@text-color : @grey3;
 
 
 //form
-@help-button-bg:#65bcda;
-@input-border:#d5d5d5;
-@input-bg:#fff;
-@input-color:#858585;
+@help-button-bg : @lighter-blue;
+@input-border   : @grey13;
+@input-bg       : @white;
+@input-color    : @grey8;
 
-@input-focus-border:#f59942;
-@input-focus-bg:#fff;
-@input-focus-color:#696969;
-//@input-focus-shadow:~"0px 0px 0px 2px rgba(245, 153, 66, 0.3)";
-
-
+@input-focus-border : @skin-orange;
+@input-focus-bg     : @white;
+@input-focus-color  : @grey6;
 
 //tabs & accordion
-@tab-border:#c5d0dc;
-@tab-active-color:#576373;
-@tab-active-border:#4c8fbd;
-@tab-hover-color:#4c8fbd;
-
-
+@tab-border        : @palid-green;
+@tab-active-color  : @blue-grey-dark;
+@tab-active-border : @blue;
+@tab-hover-color   : @blue;
 
 //tooltip
-@tooltip-color:#333;
-@tooltip-error-color:#c94d32;
-@tooltip-success-color:@green-darker;
-@tooltip-warning-color:#ed9421;
-@tooltip-info-color       : #4b89aa;
+@tooltip-color         : @grey3;
+@tooltip-error-color   : @red-skin;
+@tooltip-success-color : @green-darker;
+@tooltip-warning-color : @orange;
+@tooltip-info-color    : @dusty-blue;
 
 
 //progress bar
-@progress-color:#2a91d8;
-@progress-danger:#ca5952;
-@progress-success:#59a84b;
-@progress-warning:#f2bb46;
-@progress-pink:@fusia-pink;
-@progress-purple:@purple;
-@progress-yellow:#ffd259;
-@progress-inverse:#404040;
-@progress-grey:#8a8a8a;
+@progress-color   : @blue;
+@progress-danger  : @skin-pink;
+@progress-success : @green-darker;
+@progress-warning : @tan;
+@progress-pink    : @fusia-pink;
+@progress-purple  : @purple;
+@progress-yellow  : @tan;
+@progress-inverse : @grey4;
+@progress-grey    : @grey8;
 
-@breadcrumb-arrow-color:#b2b6bf;
+@breadcrumb-arrow-color : @blue-grey-lighter;
 
-@menu-focus-color:#1963aa;
-@menu-active-color:#2b7dbc;
+@menu-focus-color  : @blue-darker;
+@menu-active-color : @blue;
 
-@submenu-left-border:mix(#bccfe0 , #7eaacb);
-@submenu-active-left-border:mix(mix(#bccfe0 , #7eaacb) , #7eaacb);
+@submenu-left-border        : mix(@blue-grey-lighter , @lighter-blue);
+@submenu-active-left-border : mix(mix(@blue-grey-lighter, @lighter-blue) , @lighter-blue);
 
-@menumin-border:#ccc;
+@menumin-border : @grey12;
 
 //widget
-@widget-header-color:#669fc7;//text color
-@tag-bg:#91b8d0;
+@widget-header-color : @lighter-blue;
+@tag-bg              : @lighter-blue;
 
 //items
-@item-list-orange-border:#e8b110;
-@item-list-orange2-border:#f79263;
-@item-list-red-border:#d53f40;
-@item-list-red2-border:@red;
-@item-list-green-border:#9abc32;
-@item-list-green2-border:#0490a6;
-@item-list-blue-border:@btn-info-hover;
-@item-list-blue2-border:#3983c2;
-@item-list-blue3-border:#1144eb;
-@item-list-pink-border:#cb6fd7;
-@item-list-purple-border:#6f3cc4;
-@item-list-black-border:#505050;
-@item-list-grey-border:#a0a0a0;
-@item-list-brown-border:brown;
-@item-list-default-border:@btn-default;
+@item-list-orange-border  : @bright-orange-duller;
+@item-list-orange2-border : @peachy-orange;
+@item-list-red-border     : @red;
+@item-list-red2-border    : @red;
+@item-list-green-border   : @yellow-green;
+@item-list-green2-border  : @aqua-marine;
+@item-list-blue-border    : @btn-info-hover;
+@item-list-blue2-border   : @blue;
+@item-list-blue3-border   : @royal-blue;
+@item-list-pink-border    : @lilac-pink-lighter;
+@item-list-purple-border  : @plum-purple;
+@item-list-black-border   : @grey5;
+@item-list-grey-border    : @grey10;
+@item-list-brown-border   : @brown;
+@item-list-default-border : @btn-default;
