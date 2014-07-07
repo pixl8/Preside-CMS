@@ -25082,3 +25082,6 @@ img.presidecms .editable-click:hover {
 .presidecms .page-header + .row > .col-xs-12 > .version-navigator {
   margin-top: -12px;
 }
+.modal-dialog-layout-container .main-content {
+  margin-left: 0;
+}
