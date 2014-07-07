@@ -6,14 +6,22 @@
 'use strict';
 ( function( $ ){
 
+	var $window      = $( window )
+	  , dialogWidth  = $window.width()  - 100
+	  , dialogHeight = $window.height() - 200;
+
+	if ( dialogWidth  < 800 ) { dialogWidth  = 800; }
+	if ( dialogHeight < 300 ) { dialogHeight = 300; }
+
 	CKEDITOR.dialog.add( 'widgets', function( editor ) {
 		var lang = editor.lang.widgets
-		  , associatedWidget;
+		  , associatedWidget
+
 
 		return {
 			title: lang.title,
-			minWidth: 800,
-			minHeight: 400,
+			minWidth: dialogWidth,
+			minHeight: dialogHeight,
 			onShow:function(){
 				this.disableButton( "ok" );
 			},
@@ -25,8 +33,8 @@
 					elements: [{
 						type   : 'iframe',
 						src    : '',
-						width  : '800px',
-						height : '400px',
+						width  : dialogWidth  + 'px',
+						height : dialogHeight + 'px',
 						setup  : function( widget ) {
 							var params = {}
 							  , dlg    = this;
