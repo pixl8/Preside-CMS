@@ -7,10 +7,6 @@
 	  , fileUploadedHandler
 	  , fileRemovedHandler;
 
-	if ( !$form.length ) {
-		return;
-	}
-
 	initDz = function(){
 		dz = this;
 		setupEventHandlers();

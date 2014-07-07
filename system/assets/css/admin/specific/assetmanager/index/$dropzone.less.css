@@ -1,0 +1,21 @@
+.presidecms .asset-upload-dropzone {
+  cursor: pointer;
+}
+.presidecms .asset-upload-dropzone .upload-instructions {
+  cursor: pointer;
+}
+.presidecms .asset-upload-dropzone .upload-instructions * {
+  cursor: pointer;
+}
+.presidecms .asset-upload-dropzone .dz-message .upload-buttons {
+  display: none;
+}
+.presidecms .asset-upload-dropzone.dz-started .dz-message {
+  display: block;
+}
+.presidecms .asset-upload-dropzone.dz-started .dz-message .upload-buttons {
+  display: block;
+}
+.presidecms .asset-upload-dropzone.dz-started .dz-message .upload-instructions {
+  display: none;
+}
