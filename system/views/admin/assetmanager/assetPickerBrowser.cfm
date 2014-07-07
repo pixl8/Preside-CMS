@@ -30,20 +30,44 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( 'admin/layout/breadcrumbs' )#
-	<table id="asset-listing-table" class="table table-striped table-bordered table-hover asset-listing-table" data-multiple="#multiple#">
-		<thead>
-			<tr>
-				<th>&nbsp;</th>
-				<th>#translateResource( "cms:assetManager.browser.name.column" )#</th>
-			</tr>
-		</thead>
-		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
-			<cfif activeFolder neq rootFolder>
-				#renderView( view="admin/assetManager/_folderBrowserListingUpOneLevelForPicker", presideObject="asset_folder", id=activeFolder )#
-			</cfif>
-			#folders#
-			#assets#
-		</tbody>
-	</table>
+	<div class="asset-picker-browser-container">
+		<div class="tabbable">
+			<ul class="nav nav-tabs" role="tablist">
+				<li class="active">
+					<a role="tab" data-toggle="tab" href="##browser">
+						Browse
+					</a>
+				</li>
+				<li>
+					<a role="tab" data-toggle="tab" href="##uploader">
+						Upload
+					</a>
+				</li>
+			</ul>
+
+			<div class="tab-content">
+				<div class="tab-pane active" id="browser">
+					#renderView( 'admin/layout/breadcrumbs' )#
+					<table id="asset-listing-table" class="table table-striped table-bordered table-hover asset-listing-table" data-multiple="#multiple#">
+						<thead>
+							<tr>
+								<th>&nbsp;</th>
+								<th>#translateResource( "cms:assetManager.browser.name.column" )#</th>
+							</tr>
+						</thead>
+						<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
+							<cfif activeFolder neq rootFolder>
+								#renderView( view="admin/assetManager/_folderBrowserListingUpOneLevelForPicker", presideObject="asset_folder", id=activeFolder )#
+							</cfif>
+							#folders#
+							#assets#
+						</tbody>
+					</table>
+				</div>
+				<div id="uploader" class="tab-pane">
+					#renderView( view='admin/assetManager/assetDropzone' )#
+				</div>
+			</div>
+		</div>
+	</div>
 </cfoutput>

@@ -1,0 +1,30 @@
+.asset-upload-dropzone {
+	cursor : pointer;
+
+	.upload-instructions {
+		 cursor : pointer;
+		 * {
+ 			cursor : pointer;
+		 }
+	}
+
+	.dz-message {
+		.upload-buttons {
+			display : none;
+		}
+	}
+
+	&.dz-started {
+		.dz-message {
+			display : block;
+
+			.upload-buttons {
+				display : block;
+			}
+
+			.upload-instructions {
+				display : none;
+			}
+		}
+	}
+}
