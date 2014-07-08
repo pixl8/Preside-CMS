@@ -1,12 +1,11 @@
 ( function( $ ){
 
-	var UberAssetSelect;
-
-	UberAssetSelect = (function() {
+	var UberAssetSelect = (function() {
 		function UberAssetSelect( $originalInput ) {
 			this.$originalInput = $originalInput;
 
 			this.setupUberSelect();
+			this.setupUploader();
 			this.setupBrowser();
 		}
 
@@ -25,7 +24,7 @@
 			  , iframeId    = this.$originalInput.attr('id') + "_browser_frame"
 			  , uberBrowser = this;
 
-			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
+			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="browse-iframe" src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
 			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-ellipsis-h"></i></a>' );
 
 			this.$uberSelect.after( this.$browserIframeContainer );
@@ -33,11 +32,29 @@
 
 			this.$browserButton.data( 'modalClass', 'uber-browser-dialog' );
 			this.$browserButton.on( 'bootboxModalok', function(){
-				uberBrowser.processDialogOk();
+				uberBrowser.processBrowserOk();
 			} );
 		};
 
-		UberAssetSelect.prototype.processDialogOk = function(){
+		UberAssetSelect.prototype.setupUploader = function(){
+			var iframeSrc   = this.$originalInput.data( "uploaderUrl" )
+			  , modalTitle  = this.$originalInput.data( "uploaderModalTitle" )
+			  , iframeId    = this.$originalInput.attr('id') + "_uploader_frame"
+			  , uberBrowser = this;
+
+			this.$uploaderIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="upload-iframe" src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
+			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-cloud-upload"></i></a>' );
+
+			this.$uberSelect.after( this.$uploaderIframeContainer );
+			this.$uberSelect.after( this.$uploaderButton );
+
+			this.$uploaderButton.data( 'modalClass', 'uber-browser-dialog' );
+			this.$uploaderButton.on( 'bootboxModalok', function(){
+				uberBrowser.processUploadOk();
+			} );
+		};
+
+		UberAssetSelect.prototype.processBrowserOk = function(){
 			var iFramePicker = this.getPickerIframe();
 
 			if ( typeof iFramePicker !== "undefined" ) {
@@ -50,8 +67,28 @@
 			}
 		};
 
+		UberAssetSelect.prototype.processUploadOk = function(){
+			var uploadIFrame = this.getUploadIframe();
+
+			if ( typeof uploadIFrame !== "undefined" ) {
+				var selectedAssets = uploadIFrame.getUploaded()
+				  , i=0, len = selectedAssets.length;
+
+				for( ; i<len; i++ ){
+					this.uberSelect.select( selectedAssets[i] );
+				}
+			}
+		};
+
 		UberAssetSelect.prototype.getPickerIframe = function(){
-			var $iframe = $( '.modal-dialog iframe' )
+			var $iframe = $( '.modal-dialog iframe.browse-iframe' );
+			if ( $iframe.length ) {
+				return $iframe.get(0).contentWindow.uberBrowser;
+			}
+		};
+
+		UberAssetSelect.prototype.getUploadIframe = function(){
+			var $iframe = $( '.modal-dialog iframe.upload-iframe' );
 			if ( $iframe.length ) {
 				return $iframe.get(0).contentWindow.uberBrowser;
 			}

@@ -1,7 +1,7 @@
 .chosen-container.asset-picker {
-	.calc-width( ~"100% - 50px" ) !important;
+	.calc-width( ~"100% - 100px" ) !important;
 
-	+ .btn {
+	~ .btn {
 		font-size         : 17px;
 		padding           : 0;
 		height            : 46px;
@@ -16,12 +16,12 @@
 			display        : inline-block;
 			vertical-align : middle;
 			line-height    : normal;
-			margin         : 0;
+			margin         : -4px 0 0;
 		}
 	}
 
 	&.chosen-container-multi {
-		+ .btn {
+		~ .btn {
 			height : 48px;
 		}
 
@@ -112,10 +112,13 @@
 	}
 
 	&.chosen-container-active {
-		+ .btn {
+		~ .btn {
 			border-top-color    : @default-selected-input-border-colour;
-			border-right-color  : @default-selected-input-border-colour;
 			border-bottom-color : @default-selected-input-border-colour;
+		}
+
+		~ .upload-btn {
+			border-right-color  : @default-selected-input-border-colour;
 		}
 	}
 
