@@ -159,6 +159,8 @@ component output=false singleton=true {
 		,          any     validationResult     = ""
 		,          boolean includeValidationJs  = true
 		,          struct  savedData            = {}
+		,          string  fieldNamePrefix      = ""
+		,          string  fieldNameSuffix      = ""
 	) output=false {
 		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
 		var coldbox           = _getColdbox();
@@ -181,7 +183,7 @@ component output=false singleton=true {
 				for( var field in fieldset.fields ) {
 					if ( ( field.control ?: "default" ) neq "none" ) {
 						renderArgs = {
-							  name      = field.name    ?: ""
+							  name      = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
 							, type      = field.control ?: "default"
 							, context   = arguments.context
 							, label     = _getFieldLabel( field=field, formName=arguments.formName )
