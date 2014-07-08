@@ -1,15 +1,7 @@
 ( function( $ ){
 	window.assetUploader = {
-		getUploaded : function(){
-			if ( typeof cfrequest.uploadedAssets === "undefined" ) {
-				return [];
-			}
-
-			return cfrequest.uploadedAssets;
-		},
-
 		isComplete : function(){
-			return typeof cfrequest.uploadedAssets !== "undefined";
+			return false;
 		},
 
 		nextStep : function(){

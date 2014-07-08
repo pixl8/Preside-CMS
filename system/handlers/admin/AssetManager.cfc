@@ -89,12 +89,16 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		if ( validationResult.validated() ) {
 			try {
-				assetManagerService.saveTemporaryFileAsAsset(
+				var assetId = assetManagerService.saveTemporaryFileAsAsset(
 					  tmpId     = fileId
 					, folder    = folder
 					, assetData = formData
 				);
-				event.renderData( data={ success=true, title=( rc.label ?: "" ) }, type="json" );
+				event.renderData( type="json", data={
+					  success = true
+					, title   = ( rc.label ?: "" )
+					, id      = assetId
+				} );
 			} catch ( any e ) {
 				event.renderData( data={
 					  success = false
@@ -108,6 +112,20 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, validationResult = translateValidationMessages( validationResult )
 			}, type="json" );
 		}
+	}
+
+	function addAssetsInPicker( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
+
+		var fileIds = ListToArray( rc.fileId ?: "" );
+
+		prc.tempFileDetails = {};
+		for( var fileId in fileIds ){
+			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId );
+		}
+
+		event.setLayout( "adminModalDialog" );
+		event.setView( "admin/assetManager/addAssetsInPicker" );
 	}
 
 	function trashAssetAction( event, rc, prc ) output=false {

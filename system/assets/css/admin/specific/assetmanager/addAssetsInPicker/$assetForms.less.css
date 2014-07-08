@@ -1,0 +1,6 @@
+.add-asset-forms .add-asset-form {
+  display: none;
+}
+.add-asset-forms .add-asset-form.active {
+  display: block;
+}
