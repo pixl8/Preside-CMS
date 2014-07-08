@@ -341,6 +341,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
+	function assetPickerUploader( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
+
+		event.setLayout( "adminModalDialog" );
+		event.setView( "admin/assetmanager/assetPickerUploader" );
+	}
+
 	function getAssetsForAjaxPicker( event, rc, prc ) output=false {
 		var records = assetManagerService.getAssetsForAjaxSelect(
 			  maxRows      = rc.maxRows      ?: 1000

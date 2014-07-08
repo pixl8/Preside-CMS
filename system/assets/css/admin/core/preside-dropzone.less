@@ -1,0 +1,46 @@
+.asset-upload-dropzone {
+	cursor : pointer;
+
+	.upload-instructions {
+		 cursor : pointer;
+		 * {
+ 			cursor : pointer;
+		 }
+	}
+
+	.dz-message {
+		text-align : center;
+
+		.upload-buttons {
+			display : none;
+		}
+	}
+
+	&.dz-started {
+		.dz-message {
+			display    : block;
+
+			.upload-buttons {
+				display : block;
+			}
+
+			.upload-instructions {
+				display : none;
+			}
+		}
+	}
+}
+
+&.iframe {
+	.asset-upload-dropzone {
+		.dz-message {
+			margin : 80px 0;
+		}
+
+		&.dz-started {
+			.dz-message {
+				display : none;
+			}
+		}
+	}
+}

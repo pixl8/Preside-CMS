@@ -5,7 +5,8 @@
 	defaultValue       = args.defaultValue     ?: "";
 	remoteUrl          = args.remoteUrl        ?: "";
 	prefetchUrl        = args.prefetchUrl      ?: "";
-	browserUrl         = args.browserUrl      ?: "";
+	browserUrl         = args.browserUrl       ?: "";
+	uploaderUrl        = args.uploaderUrl      ?: "";
 	sortable           = args.sortable         ?: "";
 	multiple           = args.multiple         ?: "";
 	resultTemplate     = selectedTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
@@ -34,6 +35,8 @@
 	    	data-result-template="#resultTemplateId#"
 	    	data-selected-template="#selectedTemplateId#"
 	    	data-modal-title="#translateResource( 'cms:assetmanager.browser.title' )#"
+	    	data-uploader-url="#uploaderUrl#"
+			data-uploader-modal-title="#translateResource( 'cms:assetmanager.uploader.title' )#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
 	        </cfif>
