@@ -1,9 +1,25 @@
 .add-asset-forms {
 	.add-asset-form {
 		display : none;
+		padding : 10px;
 
 		&.active {
 			display : block;
 		}
 	}
+
+	.completed-steps {
+		display : none;
+	}
+
+	&.completed {
+		.completed-steps {
+			display : block;
+		}
+
+		.upload-steps {
+			display : none;
+		}
+	}
+
 }

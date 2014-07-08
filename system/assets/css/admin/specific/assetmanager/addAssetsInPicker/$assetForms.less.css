@@ -1,6 +1,16 @@
 .add-asset-forms .add-asset-form {
   display: none;
+  padding: 10px;
 }
 .add-asset-forms .add-asset-form.active {
   display: block;
+}
+.add-asset-forms .completed-steps {
+  display: none;
+}
+.add-asset-forms.completed .completed-steps {
+  display: block;
+}
+.add-asset-forms.completed .upload-steps {
+  display: none;
 }

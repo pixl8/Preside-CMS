@@ -78,7 +78,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileId           = rc.fileId ?: "";
-		var folder           = rc.folder ?: "";
+		var folder           = rc.folder ?: assetManagerService.getRootFolderId();
 		var formName         = "preside-objects.asset.admin.add";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
@@ -88,7 +88,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 		validationResult = validateForm( formName, formData );
 
 		if ( validationResult.validated() ) {
-			try {
 				var assetId = assetManagerService.saveTemporaryFileAsAsset(
 					  tmpId     = fileId
 					, folder    = folder
@@ -99,6 +98,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 					, title   = ( rc.label ?: "" )
 					, id      = assetId
 				} );
+			try {
 			} catch ( any e ) {
 				event.renderData( data={
 					  success = false

@@ -454,6 +454,7 @@
 			this.container.append( '<input type="hidden" class="chosen-hidden-field" />');
 			this.hidden_field = this.container.find( 'input.chosen-hidden-field' ).first();
 			this.hidden_field.attr( 'name', this.form_field_jq.attr( 'name' ) );
+			this.hidden_field.data( "uberSelect", this );
 			this.form_field_jq.removeAttr( 'name' );
 
 			this.form_field_jq.hide().after(this.container);

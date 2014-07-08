@@ -72,9 +72,9 @@
 		UberAssetSelect.prototype.processUploadOk = function(){
 			var uploadIFrame = this.getUploadIframe();
 
-			if ( typeof uploadIFrame !== "undefined" ) {
-				if ( uploadIFrame.isComplete() ) {
-					var selectedAssets = uploadIFrame.getUploaded()
+			if ( typeof uploadIFrame.assetUploader !== "undefined" ) {
+				if ( uploadIFrame.assetUploader.isComplete() ) {
+					var selectedAssets = uploadIFrame.assetUploader.getUploaded()
 					  , i=0, len = selectedAssets.length;
 
 					for( ; i<len; i++ ){
@@ -84,7 +84,8 @@
 					return true;
 				}
 
-				uploadIFrame.nextStep();
+				$( uploadIFrame ).focus();
+				uploadIFrame.assetUploader.nextStep();
 
 				return false;
 			}
@@ -102,8 +103,10 @@
 		UberAssetSelect.prototype.getUploadIframe = function(){
 			var $iframe = $( '.modal-dialog iframe.upload-iframe' );
 			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow.assetUploader;
+				return $iframe.get(0).contentWindow;
 			}
+
+			return {};
 		};
 
 		return UberAssetSelect;
