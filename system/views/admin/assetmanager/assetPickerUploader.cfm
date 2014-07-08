@@ -4,7 +4,7 @@
 </cfscript>
 
 <cfoutput>
-	<form id="assetUploadDropzone" class="dropzone asset-upload-dropzone" action="#addAssetsUrl#" data-upload-url="#uploadTempFileUrl#" method="post">
+	<form id="assetUploadDropzone" class="dropzone asset-upload-dropzone asset-picker-upload-form" action="#addAssetsUrl#" data-upload-url="#uploadTempFileUrl#" method="post">
 		<div class="fallback">
 			<input name="file" type="file" multiple="" />
 		</div>

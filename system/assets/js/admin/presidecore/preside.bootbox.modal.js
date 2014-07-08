@@ -43,13 +43,13 @@
 							config.buttons.cancel = {
 								label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" ),
 								className : "btn-default",
-								callback  : function(){ btnCallBack( $modalLink, "cancel" ); }
+								callback  : function(){ return btnCallBack( $modalLink, "cancel" ); }
 							};
 						} else if ( buttonList[i] === "ok" ) {
 							config.buttons.ok = {
 								label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" ),
 								className : "btn-primary",
-								callback  : function(){ btnCallBack( $modalLink, "ok" ); }
+								callback  : function(){ return btnCallBack( $modalLink, "ok" ); }
 							};
 						}
 					}
@@ -74,7 +74,7 @@
 			};
 
 			btnCallBack = function( $modalLink, action ){
-				$modalLink.trigger( "bootboxModal" + action );
+				return $modalLink.triggerHandler( "bootboxModal" + action );
 			};
 
 			$modalLink.on( "click", launchHandler );

@@ -32,7 +32,7 @@
 
 			this.$browserButton.data( 'modalClass', 'uber-browser-dialog' );
 			this.$browserButton.on( 'bootboxModalok', function(){
-				uberBrowser.processBrowserOk();
+				return uberBrowser.processBrowserOk();
 			} );
 		};
 
@@ -50,7 +50,7 @@
 
 			this.$uploaderButton.data( 'modalClass', 'uber-browser-dialog' );
 			this.$uploaderButton.on( 'bootboxModalok', function(){
-				uberBrowser.processUploadOk();
+				return uberBrowser.processUploadOk();
 			} );
 		};
 
@@ -65,32 +65,44 @@
 					this.uberSelect.select( selectedAssets[i] );
 				}
 			}
+
+			return true;
 		};
 
 		UberAssetSelect.prototype.processUploadOk = function(){
 			var uploadIFrame = this.getUploadIframe();
 
 			if ( typeof uploadIFrame !== "undefined" ) {
-				var selectedAssets = uploadIFrame.getUploaded()
-				  , i=0, len = selectedAssets.length;
+				if ( uploadIFrame.isComplete() ) {
+					var selectedAssets = uploadIFrame.getUploaded()
+					  , i=0, len = selectedAssets.length;
 
-				for( ; i<len; i++ ){
-					this.uberSelect.select( selectedAssets[i] );
+					for( ; i<len; i++ ){
+						this.uberSelect.select( selectedAssets[i] );
+					}
+
+					return true;
 				}
+
+				uploadIFrame.nextStep();
+
+				return false;
 			}
+
+			return true;
 		};
 
 		UberAssetSelect.prototype.getPickerIframe = function(){
 			var $iframe = $( '.modal-dialog iframe.browse-iframe' );
 			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow.uberBrowser;
+				return $iframe.get(0).contentWindow.assetBrowser;
 			}
 		};
 
 		UberAssetSelect.prototype.getUploadIframe = function(){
 			var $iframe = $( '.modal-dialog iframe.upload-iframe' );
 			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow.uberBrowser;
+				return $iframe.get(0).contentWindow.assetUploader;
 			}
 		};
 

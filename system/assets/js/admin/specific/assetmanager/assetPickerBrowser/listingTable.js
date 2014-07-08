@@ -12,7 +12,7 @@
 		$tr.toggleClass( "selected" );
 	} );
 
-	window.uberBrowser = {
+	window.assetBrowser = {
 		getSelected : function(){
 			var selected = [];
 			$listingTable.find( "tr.selected" ).each( function(){
