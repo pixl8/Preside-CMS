@@ -7,7 +7,7 @@
 	<div id="add-asset-forms" class="add-asset-forms">
 		<div class="upload-steps">
 			<div class="alert alert-info">
-				<p><i class="fa fa-edit"></i> #formTitle#</p>
+				<p><i class="fa fa-lg fa-edit"></i> #formTitle#</p>
 			</div>
 			<cfloop collection="#tempFileDetails#" item="tmpId">
 				<cfif StructCount( tempFileDetails[tmpId] )>
@@ -35,9 +35,8 @@
 		</div>
 		<div class="completed-steps">
 			<div class="alert alert-success">
-				<p><i class="fa fa-check"></i> #translateResource( uri="cms:assetmanager.uploader.form.completed.title" )#</p>
+				<p><i class="fa fa-lg fa-check"></i> #translateResource( uri="cms:assetmanager.uploader.form.completed.title" )#</p>
 			</div>
-			<p>#translateResource( uri="cms:assetmanager.uploader.form.completed.message" )#</p>
 		</div>
 	</div>
 </cfoutput>

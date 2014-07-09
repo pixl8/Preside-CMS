@@ -24937,8 +24937,11 @@ img.presidecms .editable-click:hover {
 .presidecms .asset-upload-dropzone.dz-started .dz-message .upload-instructions {
   display: none;
 }
+.presidecms.iframe .asset-upload-dropzone {
+  margin: 0 16px;
+}
 .presidecms.iframe .asset-upload-dropzone .dz-message {
-  margin: 80px 0;
+  margin: 55px 0;
 }
 .presidecms.iframe .asset-upload-dropzone.dz-started .dz-message {
   display: none;

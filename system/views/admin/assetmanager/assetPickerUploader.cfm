@@ -4,6 +4,10 @@
 </cfscript>
 
 <cfoutput>
+	<div class="alert alert-info">
+		<p><i class="fa fa-lg fa-cloud-upload"></i> #translateResource( uri="cms:assetmanager.uploader.step1.title" )#</p>
+	</div>
+
 	<form id="assetUploadDropzone" class="dropzone asset-upload-dropzone asset-picker-upload-form" action="#addAssetsUrl#" data-upload-url="#uploadTempFileUrl#" method="post">
 		<div class="fallback">
 			<input name="file" type="file" multiple="" />
