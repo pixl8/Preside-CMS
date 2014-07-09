@@ -26,6 +26,7 @@ window.presideTerminal = ( function( $ ){
 				, ignoreSystemDescribe : true
 				, exit                 : false
 				, processRPCResponse   : responseProcessor
+				, historySize          : 20
 				, keypress             : function( e ){ if( e.which == 96 ){ return false; } }
 				, onClear              : function( terminal ){ terminal.echo( '[[b;white;]:: Welcome to Preside developer console! Type "help" for commands.\n\n]' ); }
 			};
