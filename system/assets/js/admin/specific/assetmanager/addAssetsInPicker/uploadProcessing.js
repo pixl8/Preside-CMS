@@ -55,6 +55,8 @@
 					} else {
 						uberAssetSelect.uploadStepsFinished();
 					}
+				} else if ( typeof data.validationResult === "object" ) {
+					getActiveForm().validate().showErrors( data.validationResult );
 				}
 			} );
 		}
