@@ -362,6 +362,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function assetPickerUploader( event, rc, prc ) output=false {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
+		var multiple = rc.multiple ?: "";
+
+		if ( !IsBoolean( multiple ) || !multiple ) {
+			event.includeData( { maxFiles : 1 } );
+		}
+
 		event.setLayout( "adminModalDialog" );
 		event.setView( "admin/assetmanager/assetPickerUploader" );
 	}

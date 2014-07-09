@@ -58,6 +58,7 @@
 			, clickable       : $form.find( '.upload-instructions' ).get()
 			, addRemoveLinks  : true
 			, maxFilesize     : cfrequest.maxFileSize || 5
+			, maxFiles        : cfrequest.maxFiles    || null
 			, acceptedFiles   : cfrequest.allowedExtensions || ''
 			, previewTemplate : '<div class="dz-preview dz-file-preview">\
 			                        <div class="dz-details">\
