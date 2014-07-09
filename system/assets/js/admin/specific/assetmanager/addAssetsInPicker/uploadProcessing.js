@@ -53,7 +53,7 @@
 						setDefaultFormValuesForSubsequentForms();
 						setActiveForm( ++activeFormIndex );
 					} else {
-						$container.addClass( "completed" );
+						uberAssetSelect.uploadStepsFinished();
 					}
 				}
 			} );
@@ -88,7 +88,6 @@
 
 	window.assetUploader = {
 		getUploaded : getUploaded,
-		isComplete  : isComplete,
 		nextStep    : nextStep
 	};
 

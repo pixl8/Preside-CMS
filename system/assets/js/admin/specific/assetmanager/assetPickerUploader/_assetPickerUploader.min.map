@@ -1,1 +1,1 @@
-{"version":3,"file":"_assetPickerUploader.min.js","sources":["uploadProcessing.js"],"names":["$","window","assetUploader","isComplete","nextStep","submit","presideJQuery"],"mappings":"CAAA,SAAYA,GACXC,OAAOC,eACNC,WAAa,WACZ,OAAO,GAGRC,SAAW,WACVJ,EAAG,mCAAoCK,YAIrCC"}
+{"version":3,"file":"_assetPickerUploader.min.js","sources":["uploadProcessing.js"],"names":["$","window","assetUploader","nextStep","submit","presideJQuery"],"mappings":"CAAA,SAAYA,GACXC,OAAOC,eACNC,SAAW,WACVH,EAAG,mCAAoCI,YAIrCC"}

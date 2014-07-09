@@ -21,6 +21,7 @@
 
 			openModal = function( config ){
 				var modal = presideBootbox.dialog( config );
+				$modalLink.data( 'modal', modal );
 				if ( typeof modalOptions === "object" && typeof modalOptions.onShow === "function" ) {
 					modalOptions.onShow( modal );
 				}
@@ -31,26 +32,28 @@
 				  , config, i, setupConfig;
 
 				setupConfig = function( content ){
-					config = {
+					config = $.extend( {
 						  title     : $modalLink.data( "title" ) || $modalLink.attr( "title" )
 						, message   : content
 						, className : $modalLink.data( "modalClass" )
 						, buttons   : {}
-					};
+					}, modalOptions );
 
-					for( i=0; i < buttonList.length; i++ ){
-						if ( buttonList[i] === "cancel" ) {
-							config.buttons.cancel = {
-								label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" ),
-								className : "btn-default",
-								callback  : function(){ return btnCallBack( $modalLink, "cancel" ); }
-							};
-						} else if ( buttonList[i] === "ok" ) {
-							config.buttons.ok = {
-								label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" ),
-								className : "btn-primary",
-								callback  : function(){ return btnCallBack( $modalLink, "ok" ); }
-							};
+					if ( $.isEmptyObject( config.buttons ) ) {
+						for( i=0; i < buttonList.length; i++ ){
+							if ( buttonList[i] === "cancel" ) {
+								config.buttons.cancel = {
+									label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" ),
+									className : "btn-default",
+									callback  : function(){ return btnCallBack( $modalLink, "cancel" ); }
+								};
+							} else if ( buttonList[i] === "ok" ) {
+								config.buttons.ok = {
+									label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" ),
+									className : "btn-primary",
+									callback  : function(){ return btnCallBack( $modalLink, "ok" ); }
+								};
+							}
 						}
 					}
 
