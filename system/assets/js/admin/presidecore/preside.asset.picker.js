@@ -45,6 +45,7 @@
 
 			window[ onLoadCallback ] = function( iframe ){
 				iframe.uberAssetSelect = uberAssetSelect;
+				iframe.assetUploader.checkLastStep();
 			};
 			this.$uploaderIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="upload-iframe" src="' + iframeSrc + '" width="800" height="320" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-cloud-upload"></i></a>' );
@@ -113,6 +114,15 @@
   				modal.remove();
 			} );
 			modal.modal( 'hide' );
+		};
+
+		UberAssetSelect.prototype.enteredLastStep = function(){
+			var $modal      = this.$uploaderButton.data( 'modal' )
+			  , $nextButton = $modal.length && $modal.find( "button[data-bb-handler='next']" );
+
+			if ( $nextButton.length ) {
+				$nextButton.html( '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:done.btn" ) );
+			}
 		};
 
 		UberAssetSelect.prototype.getPickerIframe = function(){

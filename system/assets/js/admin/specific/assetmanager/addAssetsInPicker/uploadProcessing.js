@@ -5,7 +5,7 @@
 	  , $activeFormNum  = $container.find( '.asset-number:first' )
 	  , savedAssets     = []
 	  , activeFormIndex = 0
-	  , getActiveForm, setActiveForm, processActiveForm, isComplete, getUploaded, nextStep, setDefaultFormValuesForSubsequentForms;
+	  , getActiveForm, setActiveForm, processActiveForm, isComplete, getUploaded, nextStep, setDefaultFormValuesForSubsequentForms, checkLastStep;
 
 	getActiveForm = function(){
 		return $forms.filter( ".active" ).first();
@@ -19,6 +19,8 @@
 
 		$activeForm.addClass( "active" );
 		$activeForm.find( "input,select,textarea" ).not( ":hidden" ).first().focus();
+
+		checkLastStep();
 	};
 
 	processActiveForm = function( callback ){
@@ -85,6 +87,12 @@
 		}
 	};
 
+	checkLastStep = function(){
+		if ( typeof uberAssetSelect !== "undefined" && activeFormIndex === $forms.length-1 ){
+			uberAssetSelect.enteredLastStep();
+		}
+	};
+
 	setActiveForm( activeFormIndex );
 	$forms.find( "input,select,textarea" ).keydown( "ctrl+return", function( e ){
 		e.preventDefault();
@@ -92,8 +100,8 @@
 	} );
 
 	window.assetUploader = {
-		getUploaded : getUploaded,
-		nextStep    : nextStep
+		  getUploaded   : getUploaded
+		, nextStep      : nextStep
+		, checkLastStep : checkLastStep
 	};
-
 } )( presideJQuery );
