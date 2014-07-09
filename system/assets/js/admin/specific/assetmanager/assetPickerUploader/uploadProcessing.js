@@ -14,7 +14,8 @@
 				}
 			}
 
-		}
+		},
+		checkLastStep : function(){}
 	};
 
 } )( presideJQuery );

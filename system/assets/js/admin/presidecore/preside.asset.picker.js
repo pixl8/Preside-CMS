@@ -45,7 +45,9 @@
 
 			window[ onLoadCallback ] = function( iframe ){
 				iframe.uberAssetSelect = uberAssetSelect;
-				iframe.assetUploader.checkLastStep();
+				if ( typeof iframe.assetUploader !== "undefined" ) {
+					iframe.assetUploader.checkLastStep();
+				}
 			};
 			this.$uploaderIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="upload-iframe" src="' + iframeSrc + '" width="800" height="320" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-cloud-upload"></i></a>' );

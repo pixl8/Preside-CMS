@@ -53,7 +53,12 @@
 
 					if ( activeFormIndex+1 < $forms.length ) {
 						setDefaultFormValuesForSubsequentForms();
-						setActiveForm( ++activeFormIndex );
+
+						getActiveForm().fadeOut( 100, function(){
+							$( $forms.get( activeFormIndex+1 ) ).fadeIn( 100, function(){
+								setActiveForm( ++activeFormIndex );
+							} );
+						} );
 					} else {
 						uberAssetSelect.uploadStepsFinished();
 					}
