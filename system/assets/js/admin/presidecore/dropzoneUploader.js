@@ -13,6 +13,7 @@
 
 	initDz = function(){
 		dz = this;
+		$form.data( 'dropzone', dz );
 		setupEventHandlers();
 	};
 
