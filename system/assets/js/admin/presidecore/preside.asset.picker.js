@@ -26,10 +26,10 @@
 
 			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="browse-iframe" src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
 			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-ellipsis-h"></i></a>' );
-
 			this.$uberSelect.after( this.$browserIframeContainer );
 			this.$uberSelect.after( this.$browserButton );
 
+			this.$browserButton.presideBootboxModal( {} );
 			this.$browserButton.data( 'modalClass', 'uber-browser-dialog' );
 			this.$browserButton.on( 'bootboxModalok', function(){
 				return uberAssetSelect.processBrowserOk();
