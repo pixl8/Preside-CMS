@@ -86,7 +86,10 @@
 	};
 
 	setActiveForm( activeFormIndex );
-
+	$forms.find( "input,select,textarea" ).keydown( "ctrl+return", function( e ){
+		e.preventDefault();
+		nextStep();
+	} );
 
 	window.assetUploader = {
 		getUploaded : getUploaded,
