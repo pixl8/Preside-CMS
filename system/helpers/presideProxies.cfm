@@ -8,6 +8,11 @@
 	#renderViewlet( ... )# instead of #getController().renderviewlet( .... )#
 --->
 
+<!--- system settings --->
+	<cffunction name="getSystemSetting" access="public" returntype="any" output="false">
+		<cfreturn getController().getWireBox().getInstance( "systemConfigurationService" ).getSetting( argumentCollection = arguments ) />
+	</cffunction>
+
 <!--- preside objects --->
 	<cffunction name="getPresideObject" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "PresideObjectService" ).getObject( argumentCollection = arguments ) />
