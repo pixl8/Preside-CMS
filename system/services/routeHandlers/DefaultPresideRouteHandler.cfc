@@ -71,6 +71,10 @@ component implements="iRouteHandler" output=false singleton=true {
 			link &= ".html";
 		}
 
+		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
+			link &= "?" & buildArgs.queryString;
+		}
+
 		return link;
 	}
 
