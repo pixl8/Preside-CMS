@@ -15,12 +15,14 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API
-	public array function listPageTypes() output=false {
+	public array function listPageTypes( string allowedBeneathParent="" ) output=false {
 		var pageTypes = _getRegisteredPageTypes();
 		var result    = [];
 
 		for( var id in pageTypes ){
-			ArrayAppend( result, pageTypes[ id ] );
+			if ( !Len( Trim( arguments.allowedBeneathParent ) ) || typeIsAllowedBeneathParentType( id, arguments.allowedBeneathParent ) ) {
+				ArrayAppend( result, pageTypes[ id ] );
+			}
 		}
 
 		return result;
@@ -47,6 +49,26 @@ component output=false singleton=true {
 	public void function reload() output=false {
 		_setRegisteredPageTypes({});
 		_autoDiscoverPageTypes();
+	}
+
+	public boolean function typeIsAllowedBeneathParentType( required string child, required string parent ) output=false {
+		var allowedParentTypes = getPageType( arguments.child ).getAllowedParentTypes();
+		var allowedChildTypes  = getPageType( arguments.parent ).getAllowedChildTypes();
+
+		if ( allowedChildTypes == "none" || allowedParentTypes == "none" ) {
+			return false;
+		}
+
+		if ( allowedParentTypes != "*" && !ListFindNoCase( allowedParentTypes, arguments.parent ) ) {
+			return false;
+		}
+
+		if ( allowedChildTypes != "*" && !ListFindNoCase( allowedChildTypes, arguments.child ) ) {
+			return false;
+		}
+
+
+		return true;
 	}
 
 // PRIVATE HELPERS

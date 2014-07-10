@@ -92,6 +92,38 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( "casestudy", pageTypeBean.getAllowedParentTypes() );
 	}
 
+	function test12_listPageTypes_shouldExcludePageTypesThatHaveAnExplicitAllowedParentsListThatDoesNotMatchTheGivenParent() {
+		var expected     = [ "blog", "casestudy", "page", "some_page_type", "teammember" ];
+		var pageTypes    = _getPageTypesSvc( testDirs ).listPageTypes( allowedBeneathParent="some_page_type" );
+		var ids          = [];
+
+		for( var pType in pageTypes ){
+			ArrayAppend( ids, pType.getid() );
+		}
+
+		ids.sort( "textnocase" );
+		super.assertEquals( expected, ids );
+	}
+
+	function test13_listPageTypes_shouldOnlyAllowExplicitListOfChildTypes_whenParentHasExplicitChildList() {
+		var expected     = [ "page", "teammember" ];
+		var pageTypes    = _getPageTypesSvc( testDirs ).listPageTypes( allowedBeneathParent="blog" );
+		var ids          = [];
+
+		for( var pType in pageTypes ){
+			ArrayAppend( ids, pType.getid() );
+		}
+
+		ids.sort( "textnocase" );
+		super.assertEquals( expected, ids );
+	}
+
+	function test12_listPageTypes_shouldReturnEmptyArrayWhenParentDoesNotAllowChildren() {
+		var pageTypes  = _getPageTypesSvc( testDirs ).listPageTypes( allowedBeneathParent="event" );
+
+		super.assertEquals( [], pageTypes );
+	}
+
 // private helpers
 	private any function _getPageTypesSvc( array autoDiscoverDirectories=[] ) output=false {
 		return new preside.system.services.pageTypes.PageTypesService(
