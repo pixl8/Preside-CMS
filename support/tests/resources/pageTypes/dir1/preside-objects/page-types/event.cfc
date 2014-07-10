@@ -1,1 +1,1 @@
-component output=false {}
+component allowedParentPageTypes="casestudy" allowedChildPageTypes="none"  output=false {}

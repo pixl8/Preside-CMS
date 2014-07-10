@@ -3,9 +3,12 @@ component output=false singleton=true {
 // CONSTRUCTOR
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
+	 * @presideObjectService.inject    presideObjectService
 	 */
-	public any function init( required array autoDiscoverDirectories ) output=false {
+	public any function init( required array autoDiscoverDirectories, required any presideObjectService ) output=false {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
+		_setPresideObjectService( arguments.presideObjectService );
+
 		reload();
 
 		return this;
@@ -92,16 +95,18 @@ component output=false singleton=true {
 		var pageTypes = _getRegisteredPageTypes();
 
 		pageTypes[ arguments.id ] = new PageType(
-			  id               = arguments.id
-			, name             = _getConventionsBasePageTypeName( arguments.id )
-			, description      = _getConventionsBasePageTypeDescription( arguments.id )
-			, viewlet          = _getConventionsBasePageTypeViewlet( arguments.id )
-			, addForm          = _getConventionsBasePageTypeAddForm( arguments.id )
-			, defaultForm      = _getConventionsBasePageTypeDefaultForm( arguments.id )
-			, editForm         = _getConventionsBasePageTypeEditForm( arguments.id )
-			, presideObject    = _getConventionsBasePageTypePresideObject( arguments.id )
-			, hasHandler       = arguments.hasHandler
-			, layouts          = arguments.layouts
+			  id                 = arguments.id
+			, name               = _getConventionsBasePageTypeName( arguments.id )
+			, description        = _getConventionsBasePageTypeDescription( arguments.id )
+			, viewlet            = _getConventionsBasePageTypeViewlet( arguments.id )
+			, addForm            = _getConventionsBasePageTypeAddForm( arguments.id )
+			, defaultForm        = _getConventionsBasePageTypeDefaultForm( arguments.id )
+			, editForm           = _getConventionsBasePageTypeEditForm( arguments.id )
+			, presideObject      = _getConventionsBasePageTypePresideObject( arguments.id )
+			, hasHandler         = arguments.hasHandler
+			, layouts            = arguments.layouts
+			, allowedChildTypes  = _getPresideObjectService().getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*" )
+			, allowedParentTypes = _getPresideObjectService().getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*" )
 		);
 	}
 
@@ -140,5 +145,12 @@ component output=false singleton=true {
 	}
 	private void function _setRegisteredPageTypes( required struct registeredPageTypes ) output=false {
 		_registeredPageTypes = arguments.registeredPageTypes;
+	}
+
+	private any function _getPresideObjectService() output=false {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+		_presideObjectService = arguments.presideObjectService;
 	}
 }

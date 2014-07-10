@@ -2,10 +2,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // SETUP, TEARDOWN, ETC.
 	function setup() {
-		mockPresideObjectService = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
-		mockLogger               = _getTestLogger();
-
-		mockPresideObjectService.$( "objectExists" ).$results( true );
 		testDirs = [ "/tests/resources/pageTypes/dir1", "/tests/resources/pageTypes/dir2", "/tests/resources/pageTypes/dir3" ];
 	}
 
@@ -39,12 +35,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test05_getPageType_shouldReturnPageTypeBeanWithConventionBasedIdNameDescriptionViewletAndFormNames() {
 		var pageTypeBean = _getPageTypesSvc( testDirs ).getPageType( "casestudy" );
 
-		super.assertEquals( "casestudy"                       , pageTypeBean.getId()          );
-		super.assertEquals( "page-types.casestudy:name"       , pageTypeBean.getName()        );
-		super.assertEquals( "page-types.casestudy:description", pageTypeBean.getDescription() );
-		super.assertEquals( "page-types.casestudy"            , pageTypeBean.getViewlet()     );
-		super.assertEquals( "page-types.casestudy.add"        , pageTypeBean.getAddForm()     );
-		super.assertEquals( "page-types.casestudy.edit"       , pageTypeBean.getEditForm()    );
+		super.assertEquals( "casestudy"                       , pageTypeBean.getId()                 );
+		super.assertEquals( "page-types.casestudy:name"       , pageTypeBean.getName()               );
+		super.assertEquals( "page-types.casestudy:description", pageTypeBean.getDescription()        );
+		super.assertEquals( "page-types.casestudy"            , pageTypeBean.getViewlet()            );
+		super.assertEquals( "page-types.casestudy.add"        , pageTypeBean.getAddForm()            );
+		super.assertEquals( "page-types.casestudy.edit"       , pageTypeBean.getEditForm()           );
+		super.assertEquals( "*"                               , pageTypeBean.getAllowedChildTypes()  );
+		super.assertEquals( "*"                               , pageTypeBean.getAllowedParentTypes() );
 	}
 
 	function test06_hasHandler_shouldReturnFalse_whenPageTypeDoesNotHaveAHandler() {
@@ -87,11 +85,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( [ "course", "index", "special" ], layouts );
 	}
 
+	function test11_getPageType_shouldReturnAllowedChildAndParentPageTypes_whenTheyAreDefinedInPresideObjectAttributes() {
+		var pageTypeBean = _getPageTypesSvc( testDirs ).getPageType( "event" );
+
+		super.assertEquals( "none", pageTypeBean.getAllowedChildTypes()  );
+		super.assertEquals( "casestudy", pageTypeBean.getAllowedParentTypes() );
+	}
+
 // private helpers
 	private any function _getPageTypesSvc( array autoDiscoverDirectories=[] ) output=false {
 		return new preside.system.services.pageTypes.PageTypesService(
-			  presideObjectService    = mockPresideObjectService
-			, logger                  = mockLogger
+			  presideObjectService    = _getPresideObjectService( objectDirectories=[ "/tests/resources/pageTypes/dir1/preside-objects", "/tests/resources/pageTypes/dir2/preside-objects", "/tests/resources/pageTypes/dir3/preside-objects" ] )
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 		);
 	}
