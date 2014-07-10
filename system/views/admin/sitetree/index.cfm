@@ -2,9 +2,9 @@
 	prc.pageIcon  = "sitemap";
 	prc.pageTitle = translateResource( "cms:sitetree" );
 
-	activeTree           = event.getValue( name="activeTree", defaultValue=ArrayNew(1), private=true );
-	treeTrash            = event.getValue( name="treeTrash" , defaultValue=ArrayNew(1), private=true );
-	noneSelectedText     = translateResource( "cms:sitetree.context.pane.noneselected" );
+	activeTree       = event.getValue( name="activeTree", defaultValue=ArrayNew(1), private=true );
+	treeTrash        = event.getValue( name="treeTrash" , defaultValue=ArrayNew(1), private=true );
+	noneSelectedText = translateResource( "cms:sitetree.context.pane.noneselected" );
 </cfscript>
 
 <cfoutput>

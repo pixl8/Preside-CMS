@@ -14,7 +14,6 @@
 			super.preHandler( argumentCollection = arguments );
 
 			if ( !hasPermission( "sitetree.navigate" ) ) {
-				WriteDump( getModel( "permissionService" ).listPermissionKeys( user="41EE6157-9DCD-4F3B-A7D505972A9B4FAE" ) ); abort;
 				event.adminAccessDenied();
 			}
 
@@ -423,16 +422,21 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="pageTypeDialog" access="private" returntype="string" output="false">
+	<cffunction name="pageTypeDialog" access="public" returntype="string" output="false">
 		<cfargument name="event"       type="any"    required="true" />
 		<cfargument name="rc"          type="struct" required="true" />
 		<cfargument name="prc"         type="struct" required="true" />
-		<cfargument name="args" type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
-			args.pageTypes = pageTypesService.listPageTypes();
+			var parentPage = sitetreeService.getPage( id=rc.parentPage, selectFields=[ "page_type" ] );
 
-			return renderView( view="admin/sitetree/pageTypeDialog", args=args );
+			if ( parentPage.recordCount ) {
+				prc.pageTypes = pageTypesService.listPageTypes( allowedBeneathParent=parentPage.page_type );
+			} else {
+				prc.pageTypes = pageTypesService.listPageTypes();
+			}
+
+			event.setView( view="admin/sitetree/pageTypeDialog", nolayout=true );
 		</cfscript>
 	</cffunction>
 

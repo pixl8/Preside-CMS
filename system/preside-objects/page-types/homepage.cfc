@@ -1,1 +1,1 @@
-component output=false extends="preside.system.base.SystemPresideObject" {}
+component extends="preside.system.base.SystemPresideObject" allowedParentPageTypes="none" output=false  {}

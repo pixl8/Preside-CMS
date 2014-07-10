@@ -1,11 +1,11 @@
-<cfparam name="args.parent"    type="string" />
-<cfparam name="args.pageTypes" type="array"  />
+<cfparam name="rc.parentPage" type="string" default="" />
+<cfparam name="prc.pageTypes" type="array"  />
 
-<cfset rootLink = event.buildAdminLink( linkTo="sitetree.addPage", querystring="parent_page=#args.parent#&page_type=" ) />
+<cfset rootLink = event.buildAdminLink( linkTo="sitetree.addPage", querystring="parent_page=#rc.parentPage#&page_type=" ) />
 
 <cfoutput>
 	<ul class="list-unstyled page-type-list">
-		<cfloop array="#args.pageTypes#" index="pageType">
+		<cfloop array="#prc.pageTypes#" index="pageType">
 			<li class="page-type">
 				<h3 class="page-type-title">
 					<a href="#rootLink##pageType.getId()#">

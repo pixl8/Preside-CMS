@@ -85,5 +85,13 @@
 		} );
 	};
 
-	$( '[data-toggle="bootbox-modal"]' ).presideBootboxModal( {} );
+	$( 'body' ).on( "click", '[data-toggle="bootbox-modal"]', function( e ){
+		e.preventDefault();
+
+		var $link = $( this );
+
+		if ( !$link.data( "presideBootboxModal" ) ) {
+			$link.presideBootboxModal( {} ).click();
+		}
+	} );
 } )( presideJQuery );

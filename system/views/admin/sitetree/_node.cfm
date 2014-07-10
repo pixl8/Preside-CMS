@@ -16,6 +16,9 @@
 	selected   = event.getValue( "selected", "" );
 	homepageId = prc.homepage.id ?: "";
 	pageIcon   = translateResource( "page-types.#args.page_type#:iconclass", "fa-file-o" );
+
+	allowableChildPageTypes = getAllowableChildPageTypes( args.page_type );
+
 </cfscript>
 
 <cfoutput>
@@ -24,7 +27,11 @@
 			<cfif not args.trashed>
 				<a data-context-key="p" href="#event.buildLink( page=args.id )#" title="#translateResource( "cms:sitetree.preview.page.link" )#" target="_blank"><i class="fa fa-external-link"></i></a>
 
-				<a data-context-key="a" href="##add-dialog-#args.id#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.label ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+				<cfif allowableChildPageTypes eq "*" or ListLen( allowableChildPageTypes ) gt 1>
+					<a data-context-key="a" href="#event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage=#args.id#" )#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.label ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+				<cfelseif allowableChildPageTypes neq "none">
+					<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#args.id#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.label ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+				</cfif>
 
 				<a data-context-key="e" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
 				<cfif args.id neq homepageId>
@@ -55,10 +62,6 @@
 			<p class="created">#renderField( object="page", property="datecreated", data="#args.datecreated#", context="admin" )#</p>
 			<p class="modified">#renderField( object="page", property="datemodified", data="#args.datemodified#", context="admin" )#</p>
 			<p class="id">#args.id#</p>
-		</div>
-
-		<div id="add-dialog-#args.id#" class="hide">
-			#renderViewlet( event="admin.sitetree.pageTypeDialog", args={ parent=args.id } )#
 		</div>
 	</cfsavecontent>
 
