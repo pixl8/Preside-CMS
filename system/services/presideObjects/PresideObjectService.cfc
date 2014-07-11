@@ -904,7 +904,16 @@ component output=false singleton=true {
 
 		for( key in arguments.data ){
 			if ( ListLen( key, "." ) == 2 && ListFirst( key, "." ) != arguments.tableAlias ) {
-				cols = _getObject( ListFirst( key, "." ) ).meta.properties;
+				objectName = ListFirst( key, "." );
+
+				if ( arguments.columnDefinitions.keyExists( objectName ) && arguments.columnDefinitions[ objectName ].relatedTo != "none" ) {
+					objectName = arguments.columnDefinitions[ objectName ].relatedTo;
+				}
+
+
+				if ( objectExists( objectName ) ) {
+					cols = _getObject( objectName ).meta.properties;
+				}
 			} else {
 				cols = arguments.columnDefinitions;
 			}
