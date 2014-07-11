@@ -42,7 +42,7 @@ component implements="iRouteHandler" output=false singleton=true {
 				if ( i mod 2 ) {
 					key = params[i];
 				} else {
-					rc[ key ] = params[i];
+					rc[ key ] = UrlDecode( params[i] );
 				}
 			}
 		}
