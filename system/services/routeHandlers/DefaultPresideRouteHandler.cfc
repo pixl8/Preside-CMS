@@ -21,6 +21,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		var slug        = "";
 		var id          = "";
 		var subaction   = "";
+		var params      = "";
 		var rc          = event.getCollection();
 		var prc         = event.getCollection( private=true );
 
@@ -30,6 +31,20 @@ component implements="iRouteHandler" output=false singleton=true {
 			slug      = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
 			subaction = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
 			id        = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
+		}
+
+		if ( Find( "!", slug ) ) {
+			params = ListToArray( ListRest( slug, "!" ), "/" );
+			slug   = ListFirst( slug, "!" );
+
+			var key="";
+			for( var i=1; i <= params.len(); i++ ){
+				if ( i mod 2 ) {
+					key = params[i];
+				} else {
+					rc[ key ] = params[i];
+				}
+			}
 		}
 
 		if ( Len( Trim( id ) ) ) {
@@ -68,12 +83,23 @@ component implements="iRouteHandler" output=false singleton=true {
 				link &= "." & buildArgs.id;
 			}
 
+			if ( buildArgs.keyExists( "params" ) && IsStruct( buildArgs.params ) && StructCount( buildArgs.params ) ) {
+				var delim = "/!";
+				for( var key in buildArgs.params ){
+					if ( IsSimpleValue( buildArgs.params[ key ] ) ) {
+						link &= delim & UrlEncodedFormat( key ) & "/" & UrlEncodedFormat( buildArgs.params[ key ] );
+						delim = "/";
+					}
+				}
+			}
+
 			link &= ".html";
+
+			if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
+				link &= "?" & buildArgs.queryString;
+			}
 		}
 
-		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
-			link &= "?" & buildArgs.queryString;
-		}
 
 		return link;
 	}
