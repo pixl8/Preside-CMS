@@ -28,4 +28,11 @@
 			<field sortorder="20" binding="page.expiry_date"  control="datepicker" />
 		</fieldset>
 	</tab>
+
+	<tab id="navigation" title="preside-objects.page:editform.navigationtab.title" description="preside-objects.page:editform.navigationtab.description">
+		<fieldset id="navigation">
+			<field sortorder="10" binding="page.navigation_title" control="textinput" placeholder="preside-objects.page:field.navigation_title.placeholder" />
+			<field sortorder="20" binding="page.exclude_from_navigation" />
+		</fieldset>
+	</tab>
 </form>

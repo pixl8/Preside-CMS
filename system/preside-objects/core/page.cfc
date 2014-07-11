@@ -26,6 +26,9 @@
 	<cfproperty name="embargo_date"              type="date"    dbtype="datetime"                 required="false"                                            control="datetimepicker" />
 	<cfproperty name="expiry_date"               type="date"    dbtype="datetime"                 required="false"                                            control="datetimepicker" />
 
+	<cfproperty name="exclude_from_navigation"   type="boolean" dbtype="boolean"                  required="false" default="false" />
+	<cfproperty name="navigation_title"          type="string"  dbtype="varchar" maxLength="200"  required="false"  />
+
 	<cfproperty name="_hierarchy_id"             type="numeric" dbtype="int"     maxLength="0"    required="true"                                                            uniqueindexes="hierarchyId" />
 	<cfproperty name="_hierarchy_sort_order"     type="string"  dbtype="varchar" maxLength="200"  required="true"                                             control="none" indexes="sortOrder" />
 	<cfproperty name="_hierarchy_lineage"        type="string"  dbtype="varchar" maxLength="200"  required="true"                                             control="none" indexes="lineage" />
