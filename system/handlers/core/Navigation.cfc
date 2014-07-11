@@ -6,8 +6,7 @@ component output=false {
 		args.homePage  = siteTreeSvc.getSiteHomepage();
 		args.menuItems = siteTreeSvc.getDescendants(
 			  id       = args.homepage.id
-			, depth        = 1
-			, selectFields = [ "id", "label as title" ]
+			, depth    = 1
 		);
 
 		return renderView( view="core/navigation/singleLevelMainNav", args=args );
