@@ -190,6 +190,13 @@ component output="false" singleton=true {
 			args.selectFields.append( "label" );
 		}
 
+		if ( _getPresideObjectService().isPageType( arguments.objectName ) ) {
+			args.selectFields.delete( "id" );
+			args.selectFields.delete( "label" );
+			args.selectFields.append( "page.id" );
+			args.selectFields.append( "page.label" );
+		}
+
 		if ( arguments.ids.len() ) {
 			args.filter = { id = arguments.ids };
 		} elseif ( Len( Trim( arguments.searchQuery ) ) ) {
