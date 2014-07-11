@@ -29,20 +29,18 @@
 					<cfloop query="widgets">
 						<cfset widgetLink = event.buildAdminLink( linkTo="widgets.dialog", queryString="widget=#widgets.id#") />
 						<li>
-							<div class="row">
-								<div class="col-xs-3 col-sm-1 col-m-1">
-									<a href="#widgetLink#" class="widget-image-link">
-										<i class="fa #widgets.icon# fa-4x"></i>
+							<div class="pull-left widget-icon-container">
+								<a href="#widgetLink#" class="widget-image-link">
+									<i class="fa #widgets.icon# fa-4x"></i>
+								</a>
+							</div>
+							<div class="pull-left widget-text-container">
+								<h4 class="smallest">
+									<a href="#widgetLink#" class="widget-title">
+										#widgets.title#
 									</a>
-								</div>
-								<div class="col-xs-9 col-sm-11 col-m-11">
-									<h4 class="smallest">
-										<a href="#widgetLink#" class="widget-title">
-											#widgets.title#
-										</a>
-									</h4>
-									<p class="widget-description">#widgets.description#</p>
-								</div>
+								</h4>
+								<p class="widget-description">#widgets.description#</p>
 							</div>
 						</li>
 					</cfloop>

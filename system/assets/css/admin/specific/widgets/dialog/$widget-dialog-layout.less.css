@@ -19,9 +19,13 @@ html.presidecms {
   color: #666666;
   padding-left: 25px;
 }
+.presidecms .widget-search .input-icon .fa {
+  top: -5px !important;
+}
 .presidecms .widget-list li {
   border-bottom: 1px solid #dddddd;
   padding: 0 5px 5px 5px;
+  overflow: auto;
 }
 .presidecms .widget-list li:last-child {
   border-bottom: none;
@@ -32,4 +36,7 @@ html.presidecms {
   cursor: pointer;
   outline: none;
   background-color: #eeeeee;
+}
+.presidecms .widget-list li .widget-icon-container {
+  margin-right: 1em;
 }

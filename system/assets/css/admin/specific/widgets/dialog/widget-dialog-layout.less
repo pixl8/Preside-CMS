@@ -27,6 +27,10 @@ html.presidecms {
 				color         : @default-input-font-colour;
 				padding-left  : 25px;
 			}
+
+			.fa {
+				top: -5px !important;
+			}
 		}
 	}
 
@@ -34,6 +38,7 @@ html.presidecms {
 		li {
 			border-bottom  : 1px solid @default-panel-border-colour;
 			padding        : 0 5px 5px 5px;
+			overflow       : auto;
 
 			&:last-child {
 				border-bottom  : none;
@@ -43,6 +48,10 @@ html.presidecms {
 				cursor           : pointer;
 				outline          : none;
 				background-color : @default-panel-background-colour;
+			}
+
+			.widget-icon-container {
+				margin-right : 1em;
 			}
 		}
 	}
