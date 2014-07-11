@@ -6,8 +6,9 @@
 			<field sortorder="20" binding="page.main_image" />
 			<field sortorder="30" binding="page.slug" control="autoslug" required="true" />
 			<field sortorder="40" binding="page.layout" />
-			<field sortorder="50" binding="page.main_content" />
-			<field sortorder="60" binding="page.active" />
+			<field sortorder="50" binding="page.teaser" />
+			<field sortorder="60" binding="page.main_content" />
+			<field sortorder="70" binding="page.active" />
 		</fieldset>
 	</tab>
 

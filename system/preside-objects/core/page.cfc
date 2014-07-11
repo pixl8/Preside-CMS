@@ -3,6 +3,7 @@
 <!--- properties --->
 	<cfproperty name="label" maxLength="200"     />
 	<cfproperty name="main_content"              type="string"  dbtype="text"                     required="false"  />
+	<cfproperty name="teaser"                    type="string"  dbtype="varchar"  maxLength="500" required="false"  />
 	<cfproperty name="slug"                      type="string"  dbtype="varchar"  maxLength="50"  required="false" uniqueindexes="slug|3" format="slug" />
 	<cfproperty name="page_type"                 type="string"  dbtype="varchar"  maxLength="100" required="true"                                             control="pageTypePicker" />
 	<cfproperty name="layout"                    type="string"  dbtype="varchar"  maxLength="100" required="false"                                            control="pageLayoutPicker" />
