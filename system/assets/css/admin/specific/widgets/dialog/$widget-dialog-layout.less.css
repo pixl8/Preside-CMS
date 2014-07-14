@@ -38,5 +38,6 @@ html.presidecms {
   background-color: #eeeeee;
 }
 .presidecms .widget-list li .widget-icon-container {
+  margin-right: 1em;
   min-width: 60px;
 }
