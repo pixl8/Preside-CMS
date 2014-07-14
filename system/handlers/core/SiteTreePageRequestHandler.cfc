@@ -26,7 +26,7 @@ component output=false {
 			layout       = validLayouts.len() == 1 ? validLayouts[1] : "index";
 		}
 
-		if ( pageType.hasHandler() ) {
+		if ( pageType.hasHandler() && getController().handlerExists( pageType.getViewlet() & "." & layout ) ) {
 			rc.body = renderViewlet( pageType.getViewlet() & "." & layout );
 		} else {
 			rc.body = renderView(
