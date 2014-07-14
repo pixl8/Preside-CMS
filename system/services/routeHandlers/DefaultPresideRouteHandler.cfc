@@ -14,7 +14,10 @@ component implements="iRouteHandler" output=false singleton=true {
 
 // route handler methods
 	public boolean function match( required string path, required any event ) output=false {
-		return arguments.path eq "/" or arguments.path eq "/index.cfm" or ReFindNoCase( "\.html$", arguments.path );
+		if ( arguments.path eq "/" or arguments.path eq "/index.cfm" ) {
+			return !Len( Trim( event.getValue( "event", "" ) ) );
+		}
+		return ReFindNoCase( "\.html$", arguments.path );
 	}
 
 	public void function translate( required string path, required any event ) output=false {
