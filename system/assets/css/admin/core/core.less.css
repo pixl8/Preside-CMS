@@ -25115,6 +25115,13 @@ img.presidecms .editable-click:hover {
 .presidecms .page-header + .row > .col-xs-12 > .version-navigator {
   margin-top: -12px;
 }
+.presidecms .form-group .read-only {
+  font-size: 14px;
+  padding-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+  color: #999999;
+}
 .modal-dialog-layout-container .main-content {
   margin-left: 0;
 }
