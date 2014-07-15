@@ -470,10 +470,10 @@ component output=false singleton=true {
 		var obj                  = _getObject( arguments.objectName ).meta;
 		var adapter              = _getAdapter( obj.dsn );
 		var params               = [];
-		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=arguments.selectFields, filter=arguments.filter, orderBy=arguments.orderBy );
+		var compiledSelectFields = _parseSelectFields( arguments.objectName, Duplicate( arguments.selectFields ) );
+		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=compiledSelectFields, filter=arguments.filter, orderBy=arguments.orderBy );
 		var joins                = [];
 		var i                    = "";
-		var compiledSelectFields = Duplicate( arguments.selectFields );
 
 		if ( Len( Trim( arguments.id ) ) ) {
 			arguments.filter = { id = arguments.id };
@@ -1398,6 +1398,13 @@ component output=false singleton=true {
 				_getDefaultQueryCache().clearMulti( keysToClear );
 			}
 		}
+	}
+
+	private array function _parseSelectFields( required string objectName, required array selectFields ) output=false {
+		for( var i=1; i <=arguments.selectFields.len(); i++ ){
+			arguments.selectFields[i] = Replace( arguments.selectFields[i], "${labelfield}", getObjectAttribute( arguments.objectName, "labelfield", "label" ), "all" );
+		}
+		return arguments.selectFields;
 	}
 
 // SIMPLE PRIVATE PROXIES

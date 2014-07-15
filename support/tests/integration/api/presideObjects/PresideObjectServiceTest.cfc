@@ -2508,6 +2508,20 @@ test04
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test77_selectData_shouldUseDefinedLabelFieldInPlaceOfSelectField_whenSelectFieldDefinedWithSpecialLabelFieldSyntax" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDifferentLabels" ] );
+
+			poService.dbSync();
+
+			var newId     = poService.insertData( "object_with_email_label", { email="test@test.com" } );
+			var recordset = poService.selectData( objectName="object_with_email_label", id=newId, selectFields=[ "${labelfield} as label" ] );
+
+			super.assertEquals( 1, recordSet.recordcount );
+			super.assertEquals( "test@test.com", recordSet.label );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />
