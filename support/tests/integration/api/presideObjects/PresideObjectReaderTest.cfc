@@ -277,10 +277,23 @@
 
 	<cffunction name="test22_readObject_shouldSetManyToManyFieldsDbTypeToNone" returntype="void">
 		<cfscript>
-			var targetObject  = CreateObject( "tests.resources.presideObjectReader.object_with_many_to_many_field" );
-			var object        = getReader().readObject( targetObject );
+			var targetObject = CreateObject( "tests.resources.presideObjectReader.object_with_many_to_many_field" );
+			var object       = getReader().readObject( targetObject );
 
 			super.assertEquals( "none", object.properties.dave.dbtype );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test23_readObject_shouldNotDefineLabelField_whenObjectSpecifiesItsOwnWithTheLabelFieldAttribute" returntype="void">
+		<cfscript>
+			var targetObject = CreateObject( "tests.resources.presideObjectReader.object_with_different_label_field" );
+			var object       = getReader().readObject( targetObject );
+
+			var expectedProps = [ "datecreated","datemodified","email","id" ];
+
+			object.propertyNames.sort( "textNoCase" );
+
+			super.assertEquals( expectedProps, object.propertyNames );
 		</cfscript>
 	</cffunction>
 

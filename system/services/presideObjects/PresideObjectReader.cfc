@@ -28,7 +28,11 @@ component output=false singleton=true {
 		param name="meta.propertyNames" default=ArrayNew(1);
 
 		meta.isPageType = _isPageTypeObject( meta );
-		meta.noLabel    = meta.noLabel ?: meta.isPageType;
+		if ( meta.isPageType ) {
+			meta.labelfield = "page.label";
+		}
+
+		meta.noLabel    = meta.noLabel ?: ( Len( Trim( meta.labelfield ?: "" ) ) );
 
 		_mergeSystemPropertyDefaults( meta );
 		_fixOrderOfProperties( meta );
