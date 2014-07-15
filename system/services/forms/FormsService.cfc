@@ -112,7 +112,9 @@ component output=false singleton=true {
 		for( var tab in frm.tabs ){
 			for( var fieldset in tab.fieldsets ) {
 				for( var field in fieldset.fields ) {
-					ArrayAppend( fields, field.name ?: "" );
+					if ( ( field.control ?: "" ) != "readonly" ) {
+						ArrayAppend( fields, field.name ?: "" );
+					}
 				}
 			}
 		}

@@ -85,6 +85,10 @@ component output="false" singleton=true {
 		var conventionBasedMessageKey = "";
 		var poService = _getPresideObjectService();
 
+		if ( ( field.control ?: "" ) == "readonly" ) {
+			return [];
+		}
+
 		// required
 		if ( IsBoolean( field.required ) and field.required
 			 and not ListFindNoCase( "datecreated,datemodified", arguments.fieldName )
