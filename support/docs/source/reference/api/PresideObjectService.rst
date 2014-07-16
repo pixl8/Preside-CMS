@@ -6,6 +6,8 @@ Overview
 
 **Full path:** *preside.system.services.presideObjects.PresideObjectService*
 
+The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
+
 Public API Methods
 ------------------
 

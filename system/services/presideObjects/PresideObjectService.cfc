@@ -1,4 +1,8 @@
-component output=false singleton=true {
+/**
+ * The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
+ */
+
+component output=false singleton=true autodoc=true {
 
 // CONSTRUCTOR
 	/**

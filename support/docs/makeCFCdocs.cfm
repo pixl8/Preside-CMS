@@ -17,8 +17,13 @@
 		return arguments.title & newline & RepeatString( arguments.lineChar, Len( arguments.title ) );
 	}
 
-	void function writeDocs( required string componentPath ) {
+	boolean function writeDoc( required string componentPath ) {
 		var objMeta     = GetComponentMetaData( arguments.componentPath );
+
+		if ( !IsBoolean( objMeta.autodoc ?: "" ) || !objMeta.autodoc ) {
+			return false;
+		}
+
 		var objName     = ListLast( arguments.componentPath, '.' );
 		var docFilePath = "#apiDocsPath#/#objName#.rst";
 		var doc         = CreateObject( "java", "java.lang.StringBuffer" );
@@ -42,7 +47,12 @@
 		}
 
 		FileWrite( docFilePath, doc.toString() );
+
+		return true;
 	}
+
+	DirectoryDelete( apiDocsPath, true );
+	DirectoryCreate( apiDocsPath );
 
 	indexDoc = CreateObject( "java", "java.lang.StringBuffer" );
 	indexDoc.append( title( "System Service API", "=" ) & doubleline );
@@ -54,8 +64,9 @@
 		componentPath = ReReplace( componentPath, "\.cfc$", "" );
 		componentPath = ListChangeDelims( componentPath, ".", "\/" );
 
-		WriteDocs( componentPath );
-		indexDoc.append( indent & ListLast( componentPath, "." ) & newline );
+		if ( writeDoc( componentPath ) ) {
+			indexDoc.append( indent & ListLast( componentPath, "." ) & newline );
+		}
 	}
 
 	FileWrite( indexDocPath, indexDoc.toString() )
