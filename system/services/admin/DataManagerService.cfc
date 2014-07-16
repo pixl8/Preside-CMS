@@ -227,21 +227,22 @@ component output="false" singleton=true {
 		var i            = "";
 		var props        = _getPresideObjectService().getObjectProperties( arguments.objectName );
 		var prop         = "";
+		var objName      = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
 
 		sqlFields.delete( "id" );
 		sqlFields.delete( "label" );
-		sqlFields.append( "#arguments.objectName#.id" );
-		sqlFields.append( "#arguments.objectName#.${labelfield} as label" );
+		sqlFields.append( "#objName#.id" );
+		sqlFields.append( "#objName#.${labelfield} as label" );
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
 			field = sqlFields[i];
-			if ( field == "#arguments.objectName#.id" || field == "#arguments.objectName#.${labelfield} as label" ) {
+			if ( field == "#objName#.id" || field == "#objName#.${labelfield} as label" ) {
 				continue;
 			}
 			if ( not StructKeyExists( props, field ) ) {
 				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
-					sqlFields[i] = "vrsn_" & arguments.objectName & "." & field;
+					sqlFields[i] = objName & "." & field;
 				} else {
 					sqlFields[i] = "'' as " & field;
 				}
@@ -261,15 +262,11 @@ component output="false" singleton=true {
 				break;
 
 				default:
-					if ( !versionTable ) {
-						sqlFields[i] = arguments.objectName & "." & field;
-					} else {
-						sqlFields[i] = "vrsn_" & arguments.objectName & "." & field;
-					}
+					sqlFields[i] = objName & "." & field;
 			}
 
 			if ( arguments.versionTable ) {
-				sqlFields.append( "vrsn_" & arguments.objectName & "._version_number" );
+				sqlFields.append( objName & "._version_number" );
 			}
 		}
 

@@ -328,17 +328,23 @@ component singleton=true output="false" {
 	}
 
 	private string function _getRendererForPresideObjectProperty( required string objectName, required string property ) output=false {
-		var cacheKey = "rendererFor: #arguments.objectName#.#arguments.property#";
-		var cache    = _getCache();
-		var renderer = cache.get( cacheKey );
+		var cacheKey  = "rendererFor: #arguments.objectName#.#arguments.property#";
+		var cache     = _getCache();
+		var renderer  = cache.get( cacheKey );
+		var poService = _getPresideObjectService();
+		var fieldName = arguments.property;
 
 		if ( not IsNull( renderer ) ) {
 			return renderer;
 		}
 
-		var field = _getPresideObjectService().getObjectProperty(
+		if ( !poService.fieldExists( arguments.objectName, arguments.property ) && ListFindNoCase( "label,${label}", arguments.property ) ) {
+			fieldName = poService.getObjectAttribute( arguments.objectName, "labelfield", "label" );
+		}
+
+		var field = poService.getObjectProperty(
 			  objectName   = arguments.objectName
-			, propertyName = arguments.property
+			, propertyName = fieldName
 		);
 		renderer = getRendererForField( fieldAttributes=field.getMemento() );
 
