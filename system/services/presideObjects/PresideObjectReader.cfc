@@ -334,7 +334,7 @@ component output=false singleton=true {
 
 	private void function _defineLabelField( required struct objectMeta ) output=false {
 		if ( arguments.objectMeta.isPageType ) {
-			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.label";
+			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
 		}
 		if ( IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel ) {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "";

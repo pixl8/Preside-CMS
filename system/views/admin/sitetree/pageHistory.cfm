@@ -1,7 +1,7 @@
 <cfscript>
 	prc.pageIcon  = "history";
-	prc.pageTitle = translateResource( uri="cms:sitetree.pageHistory.title", data=[ prc.page.label ] );
-	prc.pageSubTitle = translateResource( uri="cms:sitetree.pageHistory.subtitle", data=[ prc.page.label ] );
+	prc.pageTitle = translateResource( uri="cms:sitetree.pageHistory.title", data=[ prc.page.title ] );
+	prc.pageSubTitle = translateResource( uri="cms:sitetree.pageHistory.subtitle", data=[ prc.page.title ] );
 
 	id = rc.id ?: ""
 </cfscript>

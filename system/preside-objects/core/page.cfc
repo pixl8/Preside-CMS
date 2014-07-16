@@ -1,7 +1,7 @@
-<cfcomponent extends="preside.system.base.SystemPresideObject" output="false">
+<cfcomponent extends="preside.system.base.SystemPresideObject" labelfield="title" output="false">
 
 <!--- properties --->
-	<cfproperty name="label" maxLength="200"     />
+	<cfproperty name="title"                     type="string"  dbtype="varchar"  maxLength="200" required="true" control="textinput" />
 	<cfproperty name="main_content"              type="string"  dbtype="text"                     required="false"  />
 	<cfproperty name="teaser"                    type="string"  dbtype="varchar"  maxLength="500" required="false"  />
 	<cfproperty name="slug"                      type="string"  dbtype="varchar"  maxLength="50"  required="false" uniqueindexes="slug|3" format="slug" />

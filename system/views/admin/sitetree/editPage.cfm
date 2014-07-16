@@ -7,12 +7,12 @@
 	editPagePrompt    = translateResource( uri="preside-objects.page:editRecord.prompt", defaultValue="" );
 
 	prc.pageIcon     = "pencil";
-	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.label ] );
+	prc.pageTitle    = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.page.title ] );
 
 	pageId  = rc.id      ?: "";
 	version = rc.version ?: "";
 
-	safeTitle = HtmlEditFormat( page.label );
+	safeTitle = HtmlEditFormat( page.title );
 </cfscript>
 
 <cfoutput>

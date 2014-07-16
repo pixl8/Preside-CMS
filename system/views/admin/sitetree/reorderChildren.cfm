@@ -4,7 +4,7 @@
 	formId           = "editForm-" & CreateUUId();
 
 	prc.pageIcon     = "sort-by-attributes";
-	prc.pageTitle    = translateResource( uri="cms:sitetree.reorderChildren.title", data=[ prc.page.label ] );
+	prc.pageTitle    = translateResource( uri="cms:sitetree.reorderChildren.title", data=[ prc.page.title ] );
 
 </cfscript>
 

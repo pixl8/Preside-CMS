@@ -108,12 +108,12 @@ component output=false singleton=true {
 			params.id = { value=ArrayToList( arguments.ids ), list=true };
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			filter &= " and ( page.label like (:label) )";
-			params.label = "%#arguments.searchQuery#%";
+			filter &= " and ( page.title like (:title) )";
+			params.title = "%#arguments.searchQuery#%";
 		}
 
 		return _getPobj().selectData(
-			  selectFields = [ "page.id as value", "page.label as text", "parent_page.label as parent", "page._hierarchy_depth as depth" ]
+			  selectFields = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth" ]
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows
@@ -303,7 +303,7 @@ component output=false singleton=true {
 		}
 
 		homepage = addPage(
-			  label         = "Home"
+			  title         = "Home"
 			, slug          = ""
 			, page_type     = "homepage"
 			, site          = arguments.site
@@ -315,7 +315,7 @@ component output=false singleton=true {
 	}
 
 	public string function addPage(
-		  required string label
+		  required string title
 		, required string slug
 		, required string page_type
 		,          string parent_page

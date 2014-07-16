@@ -32,8 +32,8 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "label", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed" ] );
-			prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "label", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "old_slug" ] );
+			prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed" ] );
+			prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "old_slug" ] );
 		</cfscript>
 	</cffunction>
 
@@ -54,7 +54,7 @@
 			prc.parentPage = siteTreeService.getPage(
 				  id              = parentPageId
 				, includeInactive = true
-				, selectFields    = [ "label" ]
+				, selectFields    = [ "title" ]
 			);
 			if ( not prc.parentPage.recordCount ) {
 				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
@@ -116,7 +116,7 @@
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
 				persist = formData;
 				StructDelete( persist, "id" );
-				StructDelete( persist, "label" );
+				StructDelete( persist, "title" );
 				StructDelete( persist, "slug" );
 
 				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
@@ -158,7 +158,7 @@
 			StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.label ] )
+				  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
 				, link  = ""
 			);
 		</cfscript>
@@ -181,7 +181,7 @@
 			}
 
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.label ] )
+				  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
 				, link  = ""
 			);
 		</cfscript>
@@ -328,7 +328,7 @@
 			prc.page = QueryRowToStruct( prc.page );
 
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.restorePage.crumb", data=[ prc.page.label ] )
+				  title = translateResource( uri="cms:sitetree.restorePage.crumb", data=[ prc.page.title ] )
 				, link  = ""
 			);
 		</cfscript>
@@ -390,11 +390,11 @@
 			prc.childPages = siteTreeService.getDescendants(
 				  id       = pageId
 				, depth        = 1
-				, selectFields = [ "id", "label" ]
+				, selectFields = [ "id", "title" ]
 			);
 
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.reorderChildren.crumb", data=[ prc.page.label ] )
+				  title = translateResource( uri="cms:sitetree.reorderChildren.crumb", data=[ prc.page.title ] )
 				, link  = ""
 			);
 		</cfscript>
@@ -483,7 +483,7 @@
 				, eventArguments = {
 					  object     = "page"
 					, recordId   = pageId
-					, gridFields = ( rc.gridFields ?: 'datemodified,_version_author,label' )
+					, gridFields = ( rc.gridFields ?: 'datemodified,_version_author,title' )
 					, actionsView = "admin/sitetree/_historyActions"
 				}
 			);

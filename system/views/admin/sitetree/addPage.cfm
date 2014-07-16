@@ -8,7 +8,7 @@
 
 	prc.pageIcon     = "plus";
 	if ( parentPage.recordCount ) {
-		prc.pageTitle    = translateResource( uri="cms:sitetree.addChildPage.title", data=[ parentPage.label ] );
+		prc.pageTitle    = translateResource( uri="cms:sitetree.addChildPage.title", data=[ parentPage.title ] );
 	} else {
 		prc.pageTitle    = translateResource( "cms:sitetree.addPage.title" );
 	}

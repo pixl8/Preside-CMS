@@ -4,7 +4,7 @@
 	formId           = "restoreForm-" & CreateUUId();
 
 	prc.pageIcon     = "pencil";
-	prc.pageTitle    = translateResource( uri="cms:sitetree.restorePage.title", data=[ prc.page.label ] );
+	prc.pageTitle    = translateResource( uri="cms:sitetree.restorePage.title", data=[ prc.page.title ] );
 
 	page.parent_page = "";
 	if ( Len( Trim( page.old_slug ) ) ) {
