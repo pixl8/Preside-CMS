@@ -124,3 +124,13 @@ The DateCreated and DateModified fields
 
 These do exactly what they say on the tin. If you use the APIs to insert and update your records, the values of these fields will be set automatically for you.
 
+Keeping in sync with the database
+---------------------------------
+
+When you reload your application (see :doc:`reloading`), the system will attempt to synchronize your object definitions with the database. While it does a reasonably good job at doing this, there are some considerations:
+
+* If you add a new, required, field to an object that has existing data in the database, an exception will be raised. This is because you cannot add a :code:`NOT NULL` field to a table that already has data. *You will need to provide upgrade scripts to make this type of change to an existing system.*
+
+* When you delete properties from your objects, the system will rename the field in the database to :code:`_deprecated_yourfield`. This prevents accidental loss of data but can lead to a whole load of extra fields in your DB during development.
+
+* The system never deletes whole tables from your database, even when you delete the object file
