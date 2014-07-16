@@ -145,7 +145,7 @@ component singleton=true output=false {
 			for ( var view in views ) {
 				if ( views.type eq "Dir" ) {
 					ids[ views.name ] = 1;
-				} elseif ( views.type eq "File" and ReFindNoCase( "\.cfm$", views.name ) ) {
+				} elseif ( views.type == "File" && ReFindNoCase( "\.cfm$", views.name ) && !views.name.startsWith( "_" ) ) {
 					ids[ ReReplaceNoCase( views.name, "\.cfm$", "" ) ] = 1;
 				}
 			}
