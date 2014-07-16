@@ -9,15 +9,44 @@ Overview
 Object CFC Files
 ----------------
 
-Data objects are represented by ColdFusion Components (CFCs). A singe CFC file represents a table in your database. Properties defined using the :code:`<cfproperty>` tag represent fields or relationships on the table. 
+Data objects are represented by ColdFusion Components (CFCs). A typical object will look something like this:
 
-.. tip::
+.. code-block:: js
+
+    component output=false {
+        property name="name"          type="string" dbtype="varchar" maxlength="200" required=true;
+        property name="email_address" type="string" dbtype="varchar" maxlength="255" required=true uniqueindexes="email";
+
+        property name="tags" relationship="many-to-many" relatedto="tag";
+    }
+
+A singe CFC file represents a table in your database. Properties defined using the :code:`property` tag represent fields and/or relationships on the table. 
+
+Database table names
+~~~~~~~~~~~~~~~~~~~~
+
+By default, the name of the database table will be the name of the CFC file prefixed with **pobj_**. For example, if the file was :code:`person.cfc`, the table name would be **pobj_person**.
+
+You can override these defaults with the :code:`tablename` and :code:`tableprefix` attributes:
+
+.. code-block:: js
+
+    component output=false tablename="mytable" tableprefix="mysite_" output=false {
+        // .. etc.
+    }
+
+.. note::
+
+    All of the preside objects that are provided by the core PresideCMS system have their tablenames prefixed with **psys_**.
+
+Registering objects
+~~~~~~~~~~~~~~~~~~~~
     
-    In order for the system to use your CFC file as a Preside Data Object, it must live somewhere beneath your site's :code:`/application/preside-objects` directory.
+The system will automatically register any CFC files that live under the :code:`/application/preside-objects` folder of your site (and any of its sub-folders).
 
-    If you are developing an extension, the files must live beneath the :code:`/application/extensions/my-extension/preside-objects` directory.
+For extensions, the system will search for CFC files in a :code:`/preside-objects` folder at the root of your extension.
 
-    Core system Preside Objects can be found under :code:`/preside/system/preside-objects`.
+Core system Preside Objects can be found at :code:`/preside/system/preside-objects`.
 
 
 Default properties
@@ -51,7 +80,7 @@ The ID field will be the primary key for your object. We have chosen to use a UU
         property name="id" type="numeric" dbtype="int" generator="increment";
     }
 
-The same technique can be used to have a primary key that does not use any sort of generator, in this case you would need to pass the ID value when inserting records:
+The same technique can be used to have a primary key that does not use any sort of generator (you would need to pass your own IDs when inserting data):
 
 .. code-block:: js
 
