@@ -50,7 +50,7 @@
 			super.assertEquals( 2, records.recordCount, "Expected two records to have been created. #records.recordCount# was reported instead." );
 
 			for( var i = 1; i lte 2; i++ ){
-				super.assertEquals( args[i].detail     , records.label[i]  );
+				super.assertEquals( args[i].detail     , records.detail[i]  );
 				super.assertEquals( args[i].source     , records.source[i]     );
 				super.assertEquals( args[i].action     , records.action[i]     );
 				super.assertEquals( args[i].type       , records.type[i]       );

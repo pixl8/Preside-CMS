@@ -20,7 +20,7 @@ component output="false" singleton=true {
 		, required string userId
 	) output=false {
 		_getDao().insertData( {
-			  label      = arguments.detail
+			  detail     = arguments.detail
 			, source     = arguments.source
 			, action     = arguments.action
 			, type       = arguments.type
