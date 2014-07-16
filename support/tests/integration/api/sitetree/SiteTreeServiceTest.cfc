@@ -1134,7 +1134,7 @@
 			);
 			variables.dummySite = _insertData(
 				  objectName="site"
-				, data={ label="dummy", path="", domain="*" }
+				, data={ name="dummy", path="", domain="*" }
 			);
 		</cfscript>
 	</cffunction>

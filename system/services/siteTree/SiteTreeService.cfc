@@ -603,7 +603,7 @@ component output=false singleton=true {
 			return result.id;
 		}
 
-		return _getPresideObject( "site" ).insertData( { label="Default site", domain="*", path="/" } );
+		return _getPresideObject( "site" ).insertData( { name="Default site", domain="*", path="/" } );
 	}
 
 // PRIVATE HELPERS
