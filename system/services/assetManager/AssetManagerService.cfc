@@ -141,8 +141,8 @@ component singleton=true output=false {
 			}
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			filter &= " and ( asset.label like (:label) )";
-			params.label = "%#arguments.searchQuery#%";
+			filter &= " and ( asset.title like (:title) )";
+			params.title = "%#arguments.searchQuery#%";
 		}
 
 		if ( params.isEmpty() ) {
@@ -250,7 +250,7 @@ component singleton=true output=false {
 			StructAppend( details, file );
 		}
 
-		details.label = details.name ?: "";
+		details.title = details.name ?: "";
 
 		return details;
 	}
@@ -365,7 +365,7 @@ component singleton=true output=false {
 
 	public boolean function trashAsset( required string id ) output=false {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "label" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
@@ -379,8 +379,8 @@ component singleton=true output=false {
 
 		return assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
-			, label          = CreateUUId()
-			, original_label = asset.label
+			, title          = CreateUUId()
+			, original_title = asset.title
 			, asset_folder   = _getTrashFolderId()
 		} );
 	}

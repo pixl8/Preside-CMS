@@ -1,9 +1,9 @@
-component extends="preside.system.base.SystemPresideObject" output=false {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false {
 
 	property name="asset_folder" relationship="many-to-one"                          required=true   uniqueindexes="assetfolder|1";
 
-	property name="label"                                             maxLength=150     required=true   uniqueindexes="assetfolder|2";
-	property name="original_label"    type="string"  dbtype="varchar" maxLength=200     required=false;
+	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
+	property name="original_title"    type="string"  dbtype="varchar" maxLength=200     required=false;
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";
 	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=255     required=false;
 	property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;

@@ -2,7 +2,7 @@
 <form>
 	<tab>
 		<fieldset>
-			<field binding="asset.label" />
+			<field binding="asset.title" />
 			<field binding="asset.asset_folder" name="folder" control="assetFolderPicker" />
 			<field binding="asset.author" control="textinput" />
 			<field binding="asset.description" control="textarea" />

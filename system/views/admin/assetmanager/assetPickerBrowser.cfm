@@ -23,7 +23,7 @@
 		  view           = "admin/assetManager/_assetBrowserListingForPicker"
 		, presideObject  = "asset"
 		, filter         = assetFilter
-		, orderBy        = "label asc"
+		, orderBy        = "title asc"
 	);
 
 	multiple = IsBoolean( rc.multiple ?: "" ) && rc.multiple;

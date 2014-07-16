@@ -17,7 +17,7 @@
 		  view           = "admin/assetManager/_assetBrowserListing"
 		, presideObject  = "asset"
 		, filter         = { asset_folder = activeFolder }
-		, orderBy        = "label asc"
+		, orderBy        = "title asc"
 	);
 </cfscript>
 

@@ -144,7 +144,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		if ( trashed ) {
-			messageBox.info( translateResource( uri="cms:assetmanager.trash.asset.success", data=[ asset.label ] ) );
+			messageBox.info( translateResource( uri="cms:assetmanager.trash.asset.success", data=[ asset.title ] ) );
 		} else {
 			messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
 		}
