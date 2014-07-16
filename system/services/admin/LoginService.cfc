@@ -73,7 +73,7 @@ component output="false" singleton=true {
 		}
 
 		return _getUserDao().insertData( {
-			  label         = "System administrator"
+			  known_as      = "System administrator"
 			, login_id      = systemUser
 			, password      = _getBCryptService().hashPw( "password" )
 			, email_address = ""
@@ -84,7 +84,7 @@ component output="false" singleton=true {
 	private void function _persistUserSession( required query usr ) output=false {
 		var persistData = {
 			  loginId      = arguments.usr.login_id
-			, knownAs      = arguments.usr.label
+			, knownAs      = arguments.usr.known_as
 			, emailAddress = arguments.usr.email_address
 			, userId       = arguments.usr.id
 		};

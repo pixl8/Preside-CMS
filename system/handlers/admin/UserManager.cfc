@@ -121,7 +121,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, eventArguments = {
 				  object          = "security_user"
-				, gridFields      = "active,login_id,label,email_address"
+				, gridFields      = "active,login_id,known_as,email_address"
 				, actionsView     = "/admin/usermanager/_usersGridActions"
 				, useMultiActions = false
 			}
@@ -176,7 +176,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.record = queryRowToStruct( prc.record );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:usermanager.editUser.page.title", data=[ prc.record.label ] )
+			  title = translateResource( uri="cms:usermanager.editUser.page.title", data=[ prc.record.known_as ] )
 			, link  = event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#(rc.id ?: '')#" )
 		);
 	}
@@ -213,7 +213,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		var object = "security_user";
 		var obj    = presideObjectService.getObject( object );
-		var record = obj.selectData( selectField=['label'], filter={ id = id } );
+		var record = obj.selectData( selectField=['known_as'], filter={ id = id } );
 
 		if ( !record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:usermanager.userNotFound.error" ) );
@@ -223,12 +223,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 		var blockers = presideObjectService.listForeignObjectsBlockingDelete( object, id );
 		if ( ArrayLen( blockers ) ) {
 			if ( obj.updateData( id=id, data = { active=0 } ) ) {
-				messageBox.warn( translateResource( uri="cms:usermanager.userDeActivated.confirmation", data=[ record.label ] ) );
+				messageBox.warn( translateResource( uri="cms:usermanager.userDeActivated.confirmation", data=[ record.known_as ] ) );
 				setNextEvent( url=postActionUrl );
 			}
 		} else {
 			if ( obj.deleteData( filter={ id = id } ) ) {
-				messageBox.info( translateResource( uri="cms:usermanager.userDeleted.confirmation", data=[ record.label ] ) );
+				messageBox.info( translateResource( uri="cms:usermanager.userDeleted.confirmation", data=[ record.known_as ] ) );
 				setNextEvent( url=postActionUrl );
 			}
 		}

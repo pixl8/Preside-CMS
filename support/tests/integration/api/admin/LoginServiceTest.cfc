@@ -201,7 +201,7 @@
 				, { loginId="sysadmin", pw="ajdlfjasfas&&^" , name="System Admin", email="test6@test.com", id="" }
 			];
 			for( var user in testUsers ){
-				user.id = _insertData( objectName="security_user", data={ label=user.name, login_id=user.loginId, password=_bCryptPassword( user.pw ), email_address=user.email } );
+				user.id = _insertData( objectName="security_user", data={ known_as=user.name, login_id=user.loginId, password=_bCryptPassword( user.pw ), email_address=user.email } );
 			}
 		</cfscript>
 	</cffunction>

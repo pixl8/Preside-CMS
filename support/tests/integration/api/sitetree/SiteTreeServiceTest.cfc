@@ -1130,7 +1130,7 @@
 		<cfscript>
 			variables.dummyUser = _insertData(
 				  objectName="security_user"
-				, data={ label="dummy", login_id="dummy", email_address="dummy", password=_bCryptPassword( "dummy" ) }
+				, data={ known_as="dummy", login_id="dummy", email_address="dummy", password=_bCryptPassword( "dummy" ) }
 			);
 			variables.dummySite = _insertData(
 				  objectName="site"

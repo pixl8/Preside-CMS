@@ -120,7 +120,7 @@
 						description = "",
 						id="",
 						fields=[ {
-							  name         = "label"
+							  name         = "known_as"
 							, type         = "string"
 							, dbtype       = "varchar"
 							, maxLength    = "50"
@@ -130,7 +130,7 @@
 							, relatedto    = "none"
 							, relationship = "none"
 							, sourceObject = "security_user"
-							, binding      = "security_user.label"
+							, binding      = "security_user.known_as"
 							, rules        = []
 						} ]
 					}]
