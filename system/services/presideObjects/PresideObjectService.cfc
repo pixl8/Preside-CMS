@@ -1404,16 +1404,22 @@ component output=false singleton=true {
 
 	private array function _parseSelectFields( required string objectName, required array selectFields ) output=false {
 		for( var i=1; i <=arguments.selectFields.len(); i++ ){
-			var match = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.selectFields[i], 1, true );
-				match = match.len[1] ? Mid( arguments.selectFields[i], match.pos[1], match.len[1] ) : "";
+			var objName = "";
+			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.selectFields[i], 1, true );
+
+			match = match.len[1] ? Mid( arguments.selectFields[i], match.pos[1], match.len[1] ) : "";
 
 			if ( Len( Trim( match ) ) ) {
 				var labelField = "";
 				if ( ListLen( match, "." ) == 1 ) {
-					labelField = getObjectAttribute( arguments.objectName, "labelfield", "label" );
+					objName = arguments.objectName;
 				} else {
-					var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
-					labelField = getObjectAttribute( relatedObjectName, "labelfield", "label" );
+					objName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
+				}
+
+				labelField = getObjectAttribute( objName, "labelfield", "label" );
+				if ( !Len( labelField ) ) {
+					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
 				}
 
 				arguments.selectFields[i] = Replace( arguments.selectFields[i], "${labelfield}", labelField, "all" );

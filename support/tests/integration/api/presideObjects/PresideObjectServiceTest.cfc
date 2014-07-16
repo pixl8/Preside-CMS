@@ -2537,6 +2537,24 @@ test04
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test79_selectData_shouldThrowError_whenAttemptingToSelectLabelFieldOnAnObjectWithNoLabel" returntype="void">
+		<cfscript>
+			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDifferentLabels" ] );
+			var errorThrown = false;
+
+			poService.dbSync();
+
+			try {
+				poService.selectData( objectName="object_with_no_label", id="whatever", selectFields=[ "${labelfield} as label" ] );
+			} catch( "PresideObjectService.no.label.field" e ) {
+				super.assertEquals( "The object [object_with_no_label] has no label field", e.message );
+				errorThrown = true;
+			}
+
+			super.assert( errorThrown, "A suitable error was not thrown" );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />

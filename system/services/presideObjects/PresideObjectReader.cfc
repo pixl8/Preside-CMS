@@ -28,12 +28,7 @@ component output=false singleton=true {
 		param name="meta.propertyNames" default=ArrayNew(1);
 
 		meta.isPageType = _isPageTypeObject( meta );
-		if ( meta.isPageType ) {
-			meta.labelfield = "page.label";
-		}
-
-		meta.noLabel    = meta.noLabel ?: ( Len( Trim( meta.labelfield ?: "" ) ) );
-
+		_defineLabelField( meta );
 		_mergeSystemPropertyDefaults( meta );
 		_fixOrderOfProperties( meta );
 		meta.properties = _convertPropertiesToBeans( meta.properties );
@@ -335,6 +330,18 @@ component output=false singleton=true {
 		var objectPath = arguments.objectMeta.name ?: "";
 
 		return ReFindNoCase( "\.page-types\.", objectPath );
+	}
+
+	private void function _defineLabelField( required struct objectMeta ) output=false {
+		if ( arguments.objectMeta.isPageType ) {
+			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.label";
+		}
+		if ( IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel ) {
+			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "";
+		} else {
+			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "label";
+		}
+		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
 	}
 
 	private void function _injectPageTypeFields( required struct meta ) output=false {
