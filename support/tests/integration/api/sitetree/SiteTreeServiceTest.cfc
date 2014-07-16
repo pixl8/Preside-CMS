@@ -40,14 +40,14 @@
 		<cfscript>
 			var treeSvc = siteTreeService;
 			var pageId = treeSvc.addPage(
-				  label         = "Home"
+				  title         = "Home"
 				, slug          = "home"
 				, page_type = "homepage"
 			);
 			var hierarchyId = _getHierarchyIdForPage( pageId, treeSvc );
 			var expected = {
 				  id                    = pageId
-				, label                 = "Home"
+				, title                 = "Home"
 				, slug                      = "home"
 				, page_type             = "homepage"
 				, sort_order                = 1
@@ -78,7 +78,7 @@
 		<cfscript>
 			var treeSvc = siteTreeService;
 			var rootPageId = treeSvc.addPage(
-				  label     = "Home"
+				  title     = "Home"
 				, slug      = "home"
 				, page_type = "homepage"
 			);
@@ -91,7 +91,7 @@
 			for( var i=1; i lte 5; i++ ) {
 				childPageIds[i] = treeSvc.addPage(
 					  parent_page   = rootPageId
-					, label     = "Child #i#"
+					, title     = "Child #i#"
 					, slug          = "child-#i#"
 					, page_type = "standard_page"
 				);
@@ -104,7 +104,7 @@
 				page = treeSvc.getPage( id=childPageIds[i], includeTrash=true );
 				expected = {
 					  id                    = childPageIds[i]
-					, label                 = "Child #i#"
+					, title                 = "Child #i#"
 					, slug                      = "child-#i#"
 					, page_type             = "standard_page"
 					, sort_order                = i
@@ -130,7 +130,7 @@
 		<cfscript>
 			var treeSvc = siteTreeService;
 			var pageId = treeSvc.addPage(
-				  label                     = "some page"
+				  title                     = "some page"
 				, slug                      = "some-slug"
 				, page_type                 = "standard_page"
 				, active                    = 1
@@ -149,7 +149,7 @@
 			var hierarchyId = _getHierarchyIdForPage( pageId, treeSvc );
 			var expected = {
 				  id                        = pageId
-				, label                     = "some page"
+				, title                     = "some page"
 				, slug                      = "some-slug"
 				, page_type                 = "standard_page"
 				, sort_order                = 1
@@ -184,7 +184,7 @@
 
 			try {
 				treeSvc.addPage(
-					  label       = "some page"
+					  title       = "some page"
 					, slug        = "some-slug"
 					, page_type   = "standard_page"
 					, parent_page = dummyId
@@ -203,7 +203,7 @@
 		<cfscript>
 			var treeSvc = siteTreeService;
 			var pageId = treeSvc.addPage(
-				  label     = "Home"
+				  title     = "Home"
 				, slug      = "home"
 				, page_type = "homepage"
 			);
@@ -1000,7 +1000,7 @@
 
 			super.assert( page.recordCount );
 			super.assert( page.active );
-			super.assertEquals( "Home"    , page.label );
+			super.assertEquals( "Home"    , page.title );
 			super.assertEquals( "homepage", page.page_type );
 			super.assertEquals( ""        , page.slug );
 			super.assertEquals( dummySite , page.site );
@@ -1015,7 +1015,7 @@
 
 			try {
 				treeSvc.addPage(
-					  label     = "testdatahere"
+					  title     = "testdatahere"
 					, slug      = "testdatahere"
 					, page_type = "standard_page"
 				);
@@ -1036,7 +1036,7 @@
 			var errorThrown = false;
 
 			var page = treeSvc.addPage(
-				  label       = "testdatahere"
+				  title       = "testdatahere"
 				, slug        = "testdatahere"
 				, page_type   = "standard_page"
 				, parent_page = parentpage.id
@@ -1154,7 +1154,7 @@
 			var id    = 0;
 
 			pages[1] = {
-				  id       = treeSvc.addPage( label="Home", slug="home", page_type="homepage", active=true, trashed=arguments.inRecycleBin )
+				  id       = treeSvc.addPage( title="Home", slug="home", page_type="homepage", active=true, trashed=arguments.inRecycleBin )
 				, children = []
 			};
 			if ( includeHierarchyIds ) {
@@ -1163,7 +1163,7 @@
 
 			for( var i=1; i lte 5; i++ ) {
 				pages[1].children[i] = {
-					  id = treeSvc.addPage( parent_page=pages[1].id, label="Child #i#", slug="child-#i#", page_type="standard_page", active=true, trashed=arguments.inRecycleBin )
+					  id = treeSvc.addPage( parent_page=pages[1].id, title="Child #i#", slug="child-#i#", page_type="standard_page", active=true, trashed=arguments.inRecycleBin )
 					, children = []
 				}
 				if ( includeHierarchyIds ) {
@@ -1172,7 +1172,7 @@
 
 				for( var n=1; n lte 5; n++ ) {
 					pages[1].children[i].children[n] = {
-						  id = treeSvc.addPage( parent_page=pages[1].children[i].id, label="Child #i#-#n#", slug="child-#i#-#n#", page_type="standard_page", active=true, trashed=arguments.inRecycleBin )
+						  id = treeSvc.addPage( parent_page=pages[1].children[i].id, title="Child #i#-#n#", slug="child-#i#-#n#", page_type="standard_page", active=true, trashed=arguments.inRecycleBin )
 						, children = []
 					}
 					if ( includeHierarchyIds ) {
@@ -1181,7 +1181,7 @@
 
 					for( var x=1; x lte 5; x++ ) {
 						pages[1].children[i].children[n].children[x] = {
-							  id = treeSvc.addPage( parent_page=pages[1].children[i].children[n].id, label="Child #i#-#n#-#x#", slug="child-#i#-#n#-#x#", page_type="standard_page", active=true, trashed=arguments.inRecycleBin )
+							  id = treeSvc.addPage( parent_page=pages[1].children[i].children[n].id, title="Child #i#-#n#-#x#", slug="child-#i#-#n#-#x#", page_type="standard_page", active=true, trashed=arguments.inRecycleBin )
 							, children = []
 						}
 						if ( includeHierarchyIds ) {
