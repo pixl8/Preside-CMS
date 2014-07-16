@@ -11,5 +11,6 @@ Contents:
    quickstart
    devguides/index
    contribguides/index
+   reference/index
 
 .. _Railo: http://www.getrailo.org
