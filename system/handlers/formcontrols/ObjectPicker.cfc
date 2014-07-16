@@ -17,9 +17,9 @@ component output=false {
 		} else {
 			args.records = presideObjectService.selectData(
 				  objectName   = targetObject
-				, selectFields = [ "id", "label" ]
+				, selectFields = [ "#targetObject#.id", "${labelfield} as label" ]
 				, orderBy      = "label"
-		 	);
+			);
 		}
 
 		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {

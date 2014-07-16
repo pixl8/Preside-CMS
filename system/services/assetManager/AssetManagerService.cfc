@@ -150,7 +150,7 @@ component singleton=true output=false {
 		}
 
 		records = assetDao.selectData(
-			  selectFields = [ "asset.id as value", "asset.label as text", "asset_folder.label as folder" ]
+			  selectFields = [ "asset.id as value", "asset.${labelfield} as text", "asset_folder.${labelfield} as folder" ]
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows

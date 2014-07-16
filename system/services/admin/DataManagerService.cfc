@@ -183,19 +183,11 @@ component output="false" singleton=true {
 			return result;
 		};
 
-		if ( !args.selectFields.findNoCase( "id" ) ) {
-			args.selectFields.append( "id" );
-		}
-		if ( !args.selectFields.findNoCase( "label" ) ) {
-			args.selectFields.append( "label" );
-		}
+		args.selectFields.delete( "label" );
+		args.selectFields.append( "#arguments.objectName#.${labelfield} as label" );
+		args.selectFields.delete( "id" );
+		args.selectFields.append( "#arguments.objectName#.id" );
 
-		if ( _getPresideObjectService().isPageType( arguments.objectName ) ) {
-			args.selectFields.delete( "id" );
-			args.selectFields.delete( "label" );
-			args.selectFields.append( "page.id" );
-			args.selectFields.append( "page.label" );
-		}
 
 		if ( arguments.ids.len() ) {
 			args.filter = { id = arguments.ids };
@@ -236,16 +228,17 @@ component output="false" singleton=true {
 		var props        = _getPresideObjectService().getObjectProperties( arguments.objectName );
 		var prop         = "";
 
-		if ( not sqlFields.find( "id" ) ) {
-			sqlFields.append( "id" );
-		}
-		if ( not sqlFields.find( "label" ) ) {
-			sqlFields.append( "label" );
-		}
+		sqlFields.delete( "id" );
+		sqlFields.delete( "label" );
+		sqlFields.append( "#arguments.objectName#.id" );
+		sqlFields.append( "#arguments.objectName#.${labelfield} as label" );
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
 			field = sqlFields[i];
+			if ( field == "#arguments.objectName#.id" || field == "#arguments.objectName#.${labelfield} as label" ) {
+				continue;
+			}
 			if ( not StructKeyExists( props, field ) ) {
 				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
 					sqlFields[i] = "vrsn_" & arguments.objectName & "." & field;
@@ -264,7 +257,7 @@ component output="false" singleton=true {
 				break;
 
 				case "many-to-one":
-					sqlFields[i] = prop.getAttribute( "relatedTo", "" ) & ".label as " & field;
+					sqlFields[i] = prop.getAttribute( "relatedTo", "" ) & ".${labelfield} as " & field;
 				break;
 
 				default:
@@ -289,6 +282,7 @@ component output="false" singleton=true {
 		var delim  = "";
 
 		for( field in arguments.gridFields ){
+			field = ListFirst( field, " " );
 			if ( _propertyIsSearchable( field, arguments.objectName ) ) {
 				filter &= delim & _getFullFieldName( field, arguments.objectName ) & " like :q";
 				delim = " or ";
@@ -299,19 +293,25 @@ component output="false" singleton=true {
 	}
 
 	private string function _getFullFieldName( required string field, required string objectName ) output=false {
-		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
+		var poService = "";
+		var fieldName = ( arguments.field == "#arguments.objectName#.${labelfield}" ) ? _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" ) : arguments.field;
+		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=fieldName );
 		var relatedTo = prop.getAttribute( "relatedTo", "none" );
 
 		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
-			return relatedTo & ".label";
+			return relatedTo & "." & _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
 		}
 
-		return arguments.objectName & "." & arguments.field;
+		return arguments.objectName & "." & fieldName;
 	}
 
 	private string function _propertyIsSearchable( required string field, required string objectName ) output=false {
-		if ( ListFindNoCase( "id,datecreated,datemodified", field ) ){
+		if ( ListFindNoCase( "#arguments.objectName#.id,datecreated,datemodified", field ) ){
 			return false;
+		}
+
+		if ( FindNoCase( "${labelfield}", arguments.field ) ) {
+			return true;
 		}
 
 		var prop      = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
