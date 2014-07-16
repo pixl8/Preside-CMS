@@ -126,7 +126,8 @@ component output=false singleton=true {
 
 		if ( IsStruct( arguments.filter ) ) {
 			params = _convertDataToQueryParams(
-				  columnDefinitions = obj.properties
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
 				, data              = arguments.filter
 				, dbAdapter         = adapter
 			);
@@ -217,7 +218,8 @@ component output=false singleton=true {
 
 			sql    = adapter.getInsertSql( tableName = obj.tableName, insertColumns = StructKeyArray( cleanedData ) );
 			params = _convertDataToQueryParams(
-				  columnDefinitions = obj.properties
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
 				, data              = cleanedData
 				, dbAdapter         = adapter
 			);
@@ -303,7 +305,8 @@ component output=false singleton=true {
 
 		if ( IsStruct( arguments.filter ) ) {
 			params = _convertDataToQueryParams(
-				  columnDefinitions = obj.properties
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
 				, data              = arguments.filter
 				, dbAdapter         = adapter
 			);
@@ -329,7 +332,8 @@ component output=false singleton=true {
 			}
 
 			params = _arrayMerge( params, _convertDataToQueryParams(
-				  columnDefinitions = obj.properties
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
 				, data              = cleanedData
 				, dbAdapter         = adapter
 				, preFix            = "set__"
@@ -481,7 +485,8 @@ component output=false singleton=true {
 
 		if ( IsStruct( arguments.filter ) ) {
 			params = _convertDataToQueryParams(
-				  columnDefinitions = obj.properties
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
 				, data              = arguments.filter
 				, dbAdapter         = adapter
 			);
@@ -892,11 +897,11 @@ component output=false singleton=true {
 		return paths;
 	}
 
-	private array function _convertDataToQueryParams( required struct columnDefinitions, required struct data, required any dbAdapter, string prefix="", string tableAlias="" ) {
+	private array function _convertDataToQueryParams( required string objectName, required struct columnDefinitions, required struct data, required any dbAdapter, string prefix="", string tableAlias="" ) {
 		var key        = "";
 		var params     = [];
 		var param      = "";
-		var objectName = "";
+		var objName = "";
 		var cols       = "";
 		var i          = 0;
 		var paramName  = "";
@@ -904,15 +909,11 @@ component output=false singleton=true {
 
 		for( key in arguments.data ){
 			if ( ListLen( key, "." ) == 2 && ListFirst( key, "." ) != arguments.tableAlias ) {
-				objectName = ListFirst( key, "." );
 
-				if ( arguments.columnDefinitions.keyExists( objectName ) && arguments.columnDefinitions[ objectName ].relatedTo != "none" ) {
-					objectName = arguments.columnDefinitions[ objectName ].relatedTo;
-				}
+				objName = _resolveObjectNameFromColumnJoinSyntax( startObject = arguments.objectName, joinSyntax = ListFirst( key, "." ) );
 
-
-				if ( objectExists( objectName ) ) {
-					cols = _getObject( objectName ).meta.properties;
+				if ( objectExists( objName ) ) {
+					cols = _getObject( objName ).meta.properties;
 				}
 			} else {
 				cols = arguments.columnDefinitions;
@@ -1125,7 +1126,8 @@ component output=false singleton=true {
 			compiledFilter = _mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
 			arguments.params = _arrayMerge( arguments.params, _convertDataToQueryParams(
-				  columnDefinitions = versionObj.properties
+				  objectName        = arguments.objectName
+				, columnDefinitions = versionObj.properties
 				, data              = versionFilter
 				, dbAdapter         = adapter
 				, tableAlias        = arguments.objectName
@@ -1402,9 +1404,47 @@ component output=false singleton=true {
 
 	private array function _parseSelectFields( required string objectName, required array selectFields ) output=false {
 		for( var i=1; i <=arguments.selectFields.len(); i++ ){
-			arguments.selectFields[i] = Replace( arguments.selectFields[i], "${labelfield}", getObjectAttribute( arguments.objectName, "labelfield", "label" ), "all" );
+			var match = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.selectFields[i], 1, true );
+				match = match.len[1] ? Mid( arguments.selectFields[i], match.pos[1], match.len[1] ) : "";
+
+			if ( Len( Trim( match ) ) ) {
+				var labelField = "";
+				if ( ListLen( match, "." ) == 1 ) {
+					labelField = getObjectAttribute( arguments.objectName, "labelfield", "label" );
+				} else {
+					var relatedObjectName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( match, "." ) );
+					labelField = getObjectAttribute( relatedObjectName, "labelfield", "label" );
+				}
+
+				arguments.selectFields[i] = Replace( arguments.selectFields[i], "${labelfield}", labelField, "all" );
+			}
 		}
+
 		return arguments.selectFields;
+	}
+
+	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) output=false {
+		var currentObject = arguments.startObject;
+		var columns       = _getObject( currentObject ).meta.properties;
+		var steps         = ListToArray( arguments.joinSyntax, "$" );
+
+		for( var i=1; i <= steps.len(); i++ ){
+			var step = steps[i];
+
+			if ( columns.keyExists( step ) && ( columns[step].relatedTo ?: "none" ) !== "none" ) {
+				currentObject = columns[step].relatedTo;
+			} elseif ( objectExists( step ) ) {
+				currentObject = step;
+			} else {
+				return ""; // cannot resolve
+			}
+
+			if ( i < steps.len() ) {
+				columns = _getObject( currentObject ).meta.properties;
+			}
+		}
+
+		return currentObject;
 	}
 
 // SIMPLE PRIVATE PROXIES
