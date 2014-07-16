@@ -39,7 +39,6 @@ component output=false singleton=true {
 				  key     = arguments.key
 				, owner   = arguments.owner
 				, content = _serialize( arguments.content )
-				, label = "Draft"
 			} ) );
 		}
 	}
