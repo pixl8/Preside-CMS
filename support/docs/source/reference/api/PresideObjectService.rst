@@ -14,6 +14,30 @@ For a full developer guide on using Preside Objects and this service, see :doc:`
 Public API Methods
 ------------------
 
+.. _dbsync:
+
+DbSync()
+~~~~~~~~
+
+.. code-block:: java
+
+    public void function dbSync( )
+
+Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
+as modifying and retiring existing ones.
+
+
+See :ref:`preside-objects-keeping-in-sync-with-db`.
+
+
+.. note::
+     You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
 .. _getobject:
 
 GetObject()
@@ -396,26 +420,6 @@ Example
         , sourceId       = rc.eventId
         , targetIdList   = rc.tags // e.g. "635,1,52,24"
     );
-
-.. _dbsync:
-
-DbSync()
-~~~~~~~~
-
-.. code-block:: java
-
-    public void function dbSync( )
-
-Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
-as modifying and retiring existing ones.
-
-
-See :ref:`preside-objects-keeping-in-sync-with-db`.
-
-Arguments
-.........
-
-*This method does not accept any arguments.*
 
 .. _listobjects:
 
