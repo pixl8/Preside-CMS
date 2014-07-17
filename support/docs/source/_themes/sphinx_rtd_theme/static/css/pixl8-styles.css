@@ -1,3 +1,7 @@
+.wy-nav-content-wrap .wy-nav-content  {
+	max-width : 1000px;
+}
+
 #page-toc li { list-style : none; }
 #page-toc >ul >li, #page-toc >ul >li >ul >li { margin-left : 0; }
 #page-toc >ul >li >a { display : none; }
