@@ -61,6 +61,7 @@ component output=false {
 		var argsRenderedInHint = false;
 		var functionTitle      = UCase( Left( fun.name, 1 ) ) & Right( fun.name, Len( fun.name )-1 );
 
+		functionDoc.append( DOUBLELINE & ".. _#Trim( LCase( fun.name ) )#:")
 		functionDoc.append( DOUBLELINE & _rstTitle( functionTitle & "()", "~" ) );
 		functionDoc.append( DOUBLELINE & ".. code-block:: java" );
 

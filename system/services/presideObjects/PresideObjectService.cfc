@@ -305,14 +305,38 @@ component output=false singleton=true autodoc=true {
 		return result;
 	}
 
+	/**
+	 * Returns true if records exist that match the supplied fillter, false otherwise.
+	 * \n
+	 * .. note::
+	 * \n
+	 * \tIn addition to the named arguments here, you can also supply any valid arguments
+	 * \tthat can be supplied to the :ref:`selectdata` method
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \teventsExist = presideObjectService.dataExists(
+	 * \t      objectName = "event"
+	 * \t    , filter     = { category = rc.category }
+	 * \t);
+	 *
+	 * @objectName.hint         Name of the object in which the records may or may not exist
+	 * @filter.hint             Plain SQL or simple structured filter (see :ref:`SelectData`)
+	 * @filterParams.hint       Filter params for plain sql filter (see :ref:`SelectData`)
+	 * @fromVersionTable.hint   Whether or not to query against the version history table
+	 * @maxVersion.hint         If querying against the version history table, maximum version to select
+	 * @specificVersion.hint    If querying against the version history table, specific version to select
+	 */
 	public boolean function dataExists(
 		  required string  objectName
-		,          any     filter           = {}
-		,          struct  filterParams     = {}
-		,          boolean fromVersionTable = false
-		,          string  maxVersion       = "HEAD"
-		,          numeric specificVersion  = 0
-	) output=false {
+		,          any     filter       = {}
+		,          struct  filterParams = {}
+	) output=false autodoc=true {
 		var args = arguments;
 		args.useCache     = false;
 		args.selectFields = [ "1" ];

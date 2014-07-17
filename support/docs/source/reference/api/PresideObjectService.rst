@@ -11,6 +11,8 @@ The Preside Object Service is the main entry point API for interacting with **Pr
 Public API Methods
 ------------------
 
+.. _listobjects:
+
 ListObjects()
 ~~~~~~~~~~~~~
 
@@ -24,6 +26,8 @@ Arguments
 .........
 
 *This method does not accept any arguments.*
+
+.. _getobject:
 
 GetObject()
 ~~~~~~~~~~~
@@ -55,6 +59,8 @@ Example
     eventService = presideObjectService.getObject( "event" );
     eventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
     event        = eventService.selectData( id=eventId )
+
+.. _getobjectattribute:
 
 GetObjectAttribute()
 ~~~~~~~~~~~~~~~~~~~~
@@ -91,6 +97,8 @@ Example
         , attributeName = "labelField"
         , defaultValue  = "label"
     );
+
+.. _selectdata:
 
 SelectData()
 ~~~~~~~~~~~~
@@ -153,4 +161,48 @@ Examples
           objectName   = "event"
         , filter       = "category.label like :category.label"
         , filterParams = { "category.label" = "%#rc.search#%" }
+    );
+
+.. _dataexists:
+
+DataExists()
+~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function dataExists( required string objectName, any filter, struct filterParams )
+
+Returns true if records exist that match the supplied fillter, false otherwise.
+
+
+.. note::
+
+
+    In addition to the named arguments here, you can also supply any valid arguments
+    that can be supplied to the :ref:`selectdata` method
+
+
+Arguments
+.........
+
+============  ======  ========  =============================================================
+Name          Type    Required  Description                                                  
+============  ======  ========  =============================================================
+objectName    string  Yes       Name of the object in which the records may or may not exist 
+filter        any     No        Plain SQL or simple structured filter (see :ref:`SelectData`)
+filterParams  struct  No        Filter params for plain sql filter (see :ref:`SelectData`)   
+============  ======  ========  =============================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    eventsExist = presideObjectService.dataExists(
+          objectName = "event"
+        , filter     = { category = rc.category }
     );
