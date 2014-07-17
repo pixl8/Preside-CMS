@@ -7,7 +7,7 @@
 	local.description  = Trim( event.getPageProperty( "description" ) );
 	local.keywords     = Trim( event.getPageProperty( "keywords" ) );
 	local.browserTitle = Trim( event.getPageProperty( "browser_title" ) );
-	local.title        = Trim( event.getPageProperty( "label"         ) );
+	local.title        = Trim( event.getPageProperty( "title"         ) );
 
 	local.title  = Len( local.browserTitle ) ? local.browserTitle : local.title;
 </cfscript>
