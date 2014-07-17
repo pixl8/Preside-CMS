@@ -1,0 +1,13 @@
+#page-toc >ul >li > ul > li > ul > li > ul { display : none; }
+
+div[role="main"] > .section > .section > .section {
+	margin-top : 50px;
+}
+
+div[role="main"] > .section > .section > .section > * {
+	margin-left : 25px;
+}
+div[role="main"] > .section > .section > .section > h3 {
+	margin-left : 0;
+	margin-bottom : 25px;
+}

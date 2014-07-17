@@ -98,16 +98,211 @@ component output=false singleton=true autodoc=true {
 		return obj.decoratedInstance;
 	}
 
-	public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" ) output=false {
+	/**
+	 * Returns whether or not the passed object name has been registered
+	 *
+	 * @objectName.hint Name of the object that you wish to check the existance of
+	 */
+	public boolean function objectExists( required string objectName ) output=false {
+		var objects = _getAllObjects();
+
+		return StructKeyExists( objects, arguments.objectName );
+	}
+
+	/**
+	 * Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \teventLabelField = presideObjectService.getObjectAttribute(
+	 * \t      objectName    = "event"
+	 * \t    , attributeName = "labelField"
+	 * \t    , defaultValue  = "label"
+	 * \t);
+	 *
+	 * @objectName.hint    Name of the object who's attribute we wish to get
+	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @defaultValue.hint  Default value for the attribute, should it not exist
+	 *
+	 */
+	public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" ) output=false autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		return obj.meta[ arguments.attributeName ] ?: arguments.defaultValue;
 	}
 
-	public boolean function objectExists( required string objectName ) output=false {
-		var objects = _getAllObjects();
+	/**
+	 * Selects database records for the given object based on a variety of input parameters
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Examples
+	 * ........
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \t// select a record by ID
+	 * \tevent = presideObjectService.selectData( objectName="event", id=rc.id );
+	 * \n
+	 * \t// select records using a simple filter.
+	 * \t// notice the 'category.label as categoryName' field - this will
+	 * \t// be automatically selected from the related 'category' object
+	 * \tevents = presideObjectService.selectData(
+	 * \t      objectName   = "event"
+	 * \t    , filter       = { category = rc.category }
+	 * \t    , selectFields = [ "event.name", "category.label as categoryName", "event.category" ]
+	 * \t    , orderby      = "event.name"
+	 * \t);
+	 * \n
+	 * \t// select records with a plain SQL filter with added SQL params
+	 * \tevents = presideObjectService.selectData(
+	 * \t      objectName   = "event"
+	 * \t    , filter       = "category.label like :category.label"
+	 * \t    , filterParams = { "category.label" = "%#rc.search#%" }
+	 * \t);
+	 *
+	 * @objectName.hint         Name of the object from which to select data
+	 * @id.hint                 ID of a record to select
+	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @filter.hint             Either a structure or plain string SQL filter, see examples
+	 * @filterParams.hint       If the filter is a plaing string SQL filter, use this structure to pass in SQL param data
+	 * @orderBy.hint            Plain SQL order by string
+	 * @groupBy.hint            Plain SQL group by string
+	 * @maxRows.hint            Maximum number of rows to select
+	 * @startRow.hint           Offset the recordset when using maxRows
+	 * @useCache.hint           Whether or not to automatically cache the result internally
+	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
+	 * @maxVersion.hint         Can be used to set a maximum version number when selecting from the version table
+	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
+	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @selectFields.docdefault []
+	 * @filter.docdefault       {}
+	 * @filterParams.docdefault {}
+	 */
+	public query function selectData(
+		  required string  objectName
+		,          string  id               = ""
+		,          array   selectFields     = []
+		,          any     filter           = {}
+		,          struct  filterParams     = {}
+		,          string  orderBy          = ""
+		,          string  groupBy          = ""
+		,          numeric maxRows          = 0
+		,          numeric startRow         = 1
+		,          boolean useCache         = true
+		,          boolean fromVersionTable = false
+		,          string  maxVersion       = "HEAD"
+		,          numeric specificVersion  = 0
+		,          string  forceJoins       = ""
 
-		return StructKeyExists( objects, arguments.objectName );
+	) output=false autodoc=true {
+		var result     = "";
+		var queryCache = "";
+		var cachekey   = "";
+
+		if ( arguments.useCache ) {
+			queryCache = _getDefaultQueryCache();
+			cachekey   = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
+			result     = queryCache.get( cacheKey );
+
+			if ( not IsNull( result ) ) {
+				return result;
+			}
+		}
+
+		var sql                  = "";
+		var obj                  = _getObject( arguments.objectName ).meta;
+		var adapter              = _getAdapter( obj.dsn );
+		var params               = [];
+		var compiledSelectFields = _parseSelectFields( arguments.objectName, Duplicate( arguments.selectFields ) );
+		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=compiledSelectFields, filter=arguments.filter, orderBy=arguments.orderBy );
+		var joins                = [];
+		var i                    = "";
+
+		if ( Len( Trim( arguments.id ) ) ) {
+			arguments.filter = { id = arguments.id };
+		}
+
+		if ( IsStruct( arguments.filter ) ) {
+			params = _convertDataToQueryParams(
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
+				, data              = arguments.filter
+				, dbAdapter         = adapter
+			);
+		} else {
+			params = _convertUserFilterParamsToQueryParams(
+				  columnDefinitions = obj.properties
+				, params            = arguments.filterParams
+				, dbAdapter         = adapter
+			);
+		}
+
+		if ( not ArrayLen( compiledSelectFields ) ) {
+			compiledSelectFields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+		}
+
+		if ( ArrayLen( joinTargets ) ) {
+			var joinsCache    = _getObjectCache();
+			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( joinTargets )#"
+
+			joins = joinsCache.get( joinsCacheKey );
+
+			if ( IsNull( joins ) ) {
+				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
+
+				joinsCache.set( joinsCacheKey, joins );
+			}
+		}
+
+		if ( arguments.fromVersionTable && objectIsVersioned( arguments.objectName ) ) {
+			result = _selectFromVersionTables(
+				  objectName        = arguments.objectName
+				, originalTableName = obj.tableName
+				, joins             = joins
+				, selectFields      = arguments.selectFields
+				, maxVersion        = arguments.maxVersion
+				, specificVersion   = arguments.specificVersion
+				, filter            = arguments.filter
+				, params            = params
+				, orderBy           = arguments.orderBy
+				, groupBy           = arguments.groupBy
+				, maxRows           = arguments.maxRows
+				, startRow          = arguments.startRow
+			);
+		} else {
+			sql = adapter.getSelectSql(
+				  tableName     = obj.tableName
+				, tableAlias    = arguments.objectName
+				, selectColumns = compiledSelectFields
+				, filter        = arguments.filter
+				, joins         = _convertObjectJoinsToTableJoins( joins )
+				, orderBy       = arguments.orderBy
+				, groupBy       = arguments.groupBy
+				, maxRows       = arguments.maxRows
+				, startRow      = arguments.startRow
+			);
+			result = _runSql( sql=sql, dsn=obj.dsn, params=params );
+		}
+
+
+		if ( arguments.useCache ) {
+			queryCache.set( cacheKey, result );
+			_recordCacheSoThatWeCanClearThemWhenDataChanges(
+				  objectName   = arguments.objectName
+				, cacheKey     = cacheKey
+				, filter       = arguments.filter
+				, filterParams = arguments.filterParams
+				, joinTargets  = joinTargets
+			);
+		}
+
+		return result;
 	}
 
 	public boolean function dataExists(
@@ -461,127 +656,6 @@ component output=false singleton=true autodoc=true {
 		}
 
 		return true;
-	}
-
-	public query function selectData(
-		  required string  objectName
-		,          string  id               = ""
-		,          array   selectFields     = []
-		,          any     filter           = {}
-		,          struct  filterParams     = {}
-		,          string  orderBy          = ""
-		,          string  groupBy          = ""
-		,          numeric maxRows          = 0
-		,          numeric startRow         = 1
-		,          boolean useCache         = true
-		,          boolean fromVersionTable = false
-		,          string  maxVersion       = "HEAD"
-		,          numeric specificVersion  = 0
-		,          string  forceJoins       = ""
-
-	) output=false {
-		var result     = "";
-		var queryCache = "";
-		var cachekey   = "";
-
-		if ( arguments.useCache ) {
-			queryCache = _getDefaultQueryCache();
-			cachekey   = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
-			result     = queryCache.get( cacheKey );
-
-			if ( not IsNull( result ) ) {
-				return result;
-			}
-		}
-
-		var sql                  = "";
-		var obj                  = _getObject( arguments.objectName ).meta;
-		var adapter              = _getAdapter( obj.dsn );
-		var params               = [];
-		var compiledSelectFields = _parseSelectFields( arguments.objectName, Duplicate( arguments.selectFields ) );
-		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=compiledSelectFields, filter=arguments.filter, orderBy=arguments.orderBy );
-		var joins                = [];
-		var i                    = "";
-
-		if ( Len( Trim( arguments.id ) ) ) {
-			arguments.filter = { id = arguments.id };
-		}
-
-		if ( IsStruct( arguments.filter ) ) {
-			params = _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = arguments.filter
-				, dbAdapter         = adapter
-			);
-		} else {
-			params = _convertUserFilterParamsToQueryParams(
-				  columnDefinitions = obj.properties
-				, params            = arguments.filterParams
-				, dbAdapter         = adapter
-			);
-		}
-
-		if ( not ArrayLen( compiledSelectFields ) ) {
-			compiledSelectFields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
-		}
-
-		if ( ArrayLen( joinTargets ) ) {
-			var joinsCache    = _getObjectCache();
-			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( joinTargets )#"
-
-			joins = joinsCache.get( joinsCacheKey );
-
-			if ( IsNull( joins ) ) {
-				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
-
-				joinsCache.set( joinsCacheKey, joins );
-			}
-		}
-
-		if ( arguments.fromVersionTable && objectIsVersioned( arguments.objectName ) ) {
-			result = _selectFromVersionTables(
-				  objectName        = arguments.objectName
-				, originalTableName = obj.tableName
-				, joins             = joins
-				, selectFields      = arguments.selectFields
-				, maxVersion        = arguments.maxVersion
-				, specificVersion   = arguments.specificVersion
-				, filter            = arguments.filter
-				, params            = params
-				, orderBy           = arguments.orderBy
-				, groupBy           = arguments.groupBy
-				, maxRows           = arguments.maxRows
-				, startRow          = arguments.startRow
-			);
-		} else {
-			sql = adapter.getSelectSql(
-				  tableName     = obj.tableName
-				, tableAlias    = arguments.objectName
-				, selectColumns = compiledSelectFields
-				, filter        = arguments.filter
-				, joins         = _convertObjectJoinsToTableJoins( joins )
-				, orderBy       = arguments.orderBy
-				, groupBy       = arguments.groupBy
-				, maxRows       = arguments.maxRows
-				, startRow      = arguments.startRow
-			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=params );
-		}
-
-
-		if ( arguments.useCache ) {
-			queryCache.set( cacheKey, result );
-			_recordCacheSoThatWeCanClearThemWhenDataChanges(
-				  objectName   = arguments.objectName
-				, cacheKey     = cacheKey
-				, filter       = arguments.filter
-				, filterParams = arguments.filterParams
-				, joinTargets  = joinTargets
-			);
-		}
-
-		return result;
 	}
 
 	public query function selectManyToManyData(

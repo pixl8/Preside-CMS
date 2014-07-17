@@ -36,9 +36,13 @@
   <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
 
   {% set css_files = css_files + ["_static/css/pixl8-styles.css"] %}
+  {% if 'reference' in sourcename %}
+    {% set css_files = css_files + ["_static/css/pixl8-reference-docs-styles.css"] %}
+  {% endif %}
   {% for cssfile in css_files %}
     <link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
   {% endfor %}
+
 
   {%- block linktags %}
     {%- if hasdoc('about') %}

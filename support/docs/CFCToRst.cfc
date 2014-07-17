@@ -183,6 +183,10 @@ component output=false {
 
 	private string function _parseArgumentDefault( required struct arg ) output=false {
 		if ( arg.keyExists( "default" ) && arg.default != "[runtime expression]" ) {
+			if ( IsBoolean( arg.default ) || IsNumeric( arg.default ) ) {
+				return arg.default;
+			}
+
 			return '"#arg.default#"';
 		} else if ( arg.keyExists( "docdefault" ) ) {
 			return arg.docdefault;

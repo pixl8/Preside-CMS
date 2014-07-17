@@ -55,3 +55,102 @@ Example
     eventService = presideObjectService.getObject( "event" );
     eventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
     event        = eventService.selectData( id=eventId )
+
+getObjectAttribute()
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" )
+
+Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
+
+
+Arguments
+.........
+
+=============  ======  ========  =======  ====================================================
+Name           Type    Required  Default  Description                                         
+=============  ======  ========  =======  ====================================================
+objectName     string  Yes       *none*   Name of the object who's attribute we wish to get   
+attributeName  string  Yes       *none*   Name of the attribute who's value we wish to get    
+defaultValue   string  No        ""       Default value for the attribute, should it not exist
+=============  ======  ========  =======  ====================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    eventLabelField = presideObjectService.getObjectAttribute(
+          objectName    = "event"
+        , attributeName = "labelField"
+        , defaultValue  = "label"
+    );
+
+selectData()
+~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public query function selectData( required string objectName, string id="", array selectFields=[], any filter={}, struct filterParams={}, string orderBy="", string groupBy="", numeric maxRows=0, numeric startRow=1, boolean useCache=true, boolean fromVersionTable=false, string maxVersion="HEAD", numeric specificVersion=0, string forceJoins="" )
+
+Selects database records for the given object based on a variety of input parameters
+
+
+Arguments
+.........
+
+================  =======  ========  =======  ==========================================================================================
+Name              Type     Required  Default  Description                                                                               
+================  =======  ========  =======  ==========================================================================================
+objectName        string   Yes       *none*   Name of the object from which to select data                                              
+id                string   No        ""       ID of a record to select                                                                  
+selectFields      array    No        []       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']     
+filter            any      No        {}       Either a structure or plain string SQL filter, see examples                               
+filterParams      struct   No        {}       If the filter is a plaing string SQL filter, use this structure to pass in SQL param data 
+orderBy           string   No        ""       Plain SQL order by string                                                                 
+groupBy           string   No        ""       Plain SQL group by string                                                                 
+maxRows           numeric  No        0        Maximum number of rows to select                                                          
+startRow          numeric  No        1        Offset the recordset when using maxRows                                                   
+useCache          boolean  No        true     Whether or not to automatically cache the result internally                               
+fromVersionTable  boolean  No        false    Whether or not to select the data from the version history table for the object           
+maxVersion        string   No        "HEAD"   Can be used to set a maximum version number when selecting from the version table         
+specificVersion   numeric  No        0        Can be used to select a specific version when selecting from the version table            
+forceJoins        string   No        ""       Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+================  =======  ========  =======  ==========================================================================================
+
+
+
+Examples
+........
+
+
+.. code-block:: java
+
+
+    // select a record by ID
+    event = presideObjectService.selectData( objectName="event", id=rc.id );
+
+
+    // select records using a simple filter.
+    // notice the 'category.label as categoryName' field - this will
+    // be automatically selected from the related 'category' object
+    events = presideObjectService.selectData(
+          objectName   = "event"
+        , filter       = { category = rc.category }
+        , selectFields = [ "event.name", "category.label as categoryName", "event.category" ]
+        , orderby      = "event.name"
+    );
+
+
+    // select records with a plain SQL filter with added SQL params
+    events = presideObjectService.selectData(
+          objectName   = "event"
+        , filter       = "category.label like :category.label"
+        , filterParams = { "category.label" = "%#rc.search#%" }
+    );
