@@ -975,6 +975,35 @@ component output=false singleton=true autodoc=true {
 		return obj.meta[ arguments.attributeName ] ?: arguments.defaultValue;
 	}
 
+	/**
+	 * Returns an arbritary attribute value that is defined on a specified property for an object.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \tmaxLength = presideObjectService.getObjectPropertyAttribute(
+	 * \t      objectName    = "event"
+	 * \t    , propertyName  = "name"
+	 * \t    , attributeName = "maxLength"
+	 * \t    , defaultValue  = 200
+	 * \t);
+	 *
+	 * @objectName.hint    Name of the object who's property attribute we wish to get
+	 * @objectName.hint    Name of the property who's attribute we wish to get
+	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @defaultValue.hint  Default value for the attribute, should it not exist
+	 *
+	 */
+	public string function getObjectPropertyAttribute( required string objectName, required string propertyName, required string attributeName, string defaultValue="" ) output=false autodoc=true {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta.properties[ arguments.propertyName ][ arguments.attributeName ] ?: arguments.defaultValue;
+	}
+
 	public any function getObjectProperties( required string objectName ) output=false {
 		return _getObject( arguments.objectName ).meta.properties;
 	}
@@ -983,11 +1012,6 @@ component output=false singleton=true autodoc=true {
 		return _getObject( arguments.objectName ).meta.properties[ arguments.propertyName ];
 	}
 
-	public string function getObjectPropertyAttribute( required string objectName, required string propertyName, required string attributeName, string defaultValue="" ) output=false {
-		var obj = _getObject( arguments.objectName );
-
-		return obj.meta.properties[ arguments.propertyName ][ arguments.attributeName ] ?: arguments.defaultValue;
-	}
 
 	public boolean function isPageType( required string objectName ) output=false {
 		var objMeta = _getObject( arguments.objectName ).meta;

@@ -582,3 +582,43 @@ Example
         , attributeName = "labelField"
         , defaultValue  = "label"
     );
+
+.. _getobjectpropertyattribute:
+
+GetObjectPropertyAttribute()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public string function getObjectPropertyAttribute( required string objectName, required string propertyName, required string attributeName, string defaultValue="" )
+
+Returns an arbritary attribute value that is defined on a specified property for an object.
+
+
+Arguments
+.........
+
+=============  ======  ===============  ====================================================
+Name           Type    Required         Description                                         
+=============  ======  ===============  ====================================================
+objectName     string  Yes              Name of the property who's attribute we wish to get 
+propertyName   string  Yes                                                                  
+attributeName  string  Yes              Name of the attribute who's value we wish to get    
+defaultValue   string  No (default="")  Default value for the attribute, should it not exist
+=============  ======  ===============  ====================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    maxLength = presideObjectService.getObjectPropertyAttribute(
+          objectName    = "event"
+        , propertyName  = "name"
+        , attributeName = "maxLength"
+        , defaultValue  = 200
+    );
