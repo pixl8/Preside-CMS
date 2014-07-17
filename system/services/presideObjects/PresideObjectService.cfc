@@ -825,6 +825,89 @@ component output=false singleton=true autodoc=true {
 	}
 
 	/**
+	 * Returns a structure of many to many data for a given record. Each structure key represents a many-to-many type property on the object. The value for each key will be a comma separated list of IDs of the related data.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \trelatedData = presideObjectService.getDeNormalizedManyToManyData(
+	 * \t    objectName = "event"
+	 * \t  , id         = rc.id
+	 * \t);
+	 * \n
+	 * \t// the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
+	 *
+	 * @objectName.hint       Name of the object who's related data we wish to retrieve
+	 * @id.hint               ID of the record who's related data we wish to retrieve
+	 * @fromVersionTable.hint Whether or not to retrieve the data from the version history table for the object
+	 * @maxVersion.hint       If retrieving from the version history, set a max version number
+	 * @specificVersion.hint  If retrieving from the version history, set a specific version number to retrieve
+	 */
+	public struct function getDeNormalizedManyToManyData(
+		  required string  objectName
+		, required string  id
+		,          boolean fromVersionTable = false
+		,          string  maxVersion       = "HEAD"
+		,          numeric specificVersion  = 0
+	) output=false autodoc=true {
+		var props          = getObjectProperties( arguments.objectName );
+		var manyToManyData = {};
+
+		for( var prop in props ) {
+			if ( isManyToManyProperty( arguments.objectName, prop ) ) {
+
+				var records = selectData(
+					  objectName       = arguments.objectName
+					, id               = arguments.id
+					, selectFields     = [ "#prop#.id" ]
+					, fromVersionTable = arguments.fromVersionTable
+					, maxVersion       = arguments.maxVersion
+					, specificVersion  = arguments.specificVersion
+				);
+
+				manyToManyData[ prop ] = records.recordCount ? ValueList( records.id ) : "";
+			}
+		}
+
+		return manyToManyData;
+	}
+
+	/**
+	 * Returns a summary query of all the versions of a given record (by ID),  optionally filtered by field name
+	 *
+	 * @objectName.hint Name of the object who's record we wish to retrieve the version history for
+	 * @id.hint         ID of the record who's history we wish to view
+	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
+	 *
+	 */
+	public query function getRecordVersions( required string objectName, required string id, string fieldName ) output=false autodoc=true {
+		var args = {};
+
+		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
+			args[ key ] = arguments[ key ];
+		}
+
+		args.append( {
+			  objectName   = getVersionObjectName( arguments.objectName )
+			, orderBy      = "_version_number desc"
+			, useCache     = false
+		} );
+
+		if ( args.keyExists( "fieldName" ) ) {
+			args.filter       = "id = :id and _version_changed_fields like :_version_changed_fields";
+			args.filterParams = { id = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
+			args.delete( "fieldName" );
+			args.delete( "id" );
+		}
+
+		return selectData( argumentCollection = args );
+	}
+
+	/**
 	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
 	 */
 	public array function listObjects() autodoc=true output=false {
@@ -890,58 +973,6 @@ component output=false singleton=true autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		return obj.meta[ arguments.attributeName ] ?: arguments.defaultValue;
-	}
-
-	public query function getRecordVersions( required string objectName, required string id, string fieldName ) output=false {
-		var args = {};
-
-		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
-			args[ key ] = arguments[ key ];
-		}
-
-		args.append( {
-			  objectName   = getVersionObjectName( arguments.objectName )
-			, orderBy      = "_version_number desc"
-			, useCache     = false
-		} );
-
-		if ( args.keyExists( "fieldName" ) ) {
-			args.filter       = "id = :id and _version_changed_fields like :_version_changed_fields";
-			args.filterParams = { id = arguments.id, _version_changed_fields = "%,#args.fieldName#,%" };
-			args.delete( "fieldName" );
-			args.delete( "id" );
-		}
-
-		return selectData( argumentCollection = args );
-	}
-
-	public struct function getDeNormalizedManyToManyData(
-		  required string  objectName
-		, required string  id
-		,          boolean fromVersionTable = false
-		,          string  maxVersion       = "HEAD"
-		,          numeric specificVersion  = 0
-	) output=false {
-		var props          = getObjectProperties( arguments.objectName );
-		var manyToManyData = {};
-
-		for( var prop in props ) {
-			if ( isManyToManyProperty( arguments.objectName, prop ) ) {
-
-				var records = selectData(
-					  objectName       = arguments.objectName
-					, id               = arguments.id
-					, selectFields     = [ "#prop#.id" ]
-					, fromVersionTable = arguments.fromVersionTable
-					, maxVersion       = arguments.maxVersion
-					, specificVersion  = arguments.specificVersion
-				);
-
-				manyToManyData[ prop ] = records.recordCount ? ValueList( records.id ) : "";
-			}
-		}
-
-		return manyToManyData;
 	}
 
 	public any function getObjectProperties( required string objectName ) output=false {

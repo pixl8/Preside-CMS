@@ -421,6 +421,71 @@ Example
         , targetIdList   = rc.tags // e.g. "635,1,52,24"
     );
 
+.. _getdenormalizedmanytomanydata:
+
+GetDeNormalizedManyToManyData()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public struct function getDeNormalizedManyToManyData( required string objectName, required string id, boolean fromVersionTable=false, string maxVersion="HEAD", numeric specificVersion=0 )
+
+Returns a structure of many to many data for a given record. Each structure key represents a many-to-many type property on the object. The value for each key will be a comma separated list of IDs of the related data.
+
+
+Arguments
+.........
+
+================  =======  ===================  =================================================================================
+Name              Type     Required             Description                                                                      
+================  =======  ===================  =================================================================================
+objectName        string   Yes                  Name of the object who's related data we wish to retrieve                        
+id                string   Yes                  ID of the record who's related data we wish to retrieve                          
+fromVersionTable  boolean  No (default=false)   Whether or not to retrieve the data from the version history table for the object
+maxVersion        string   No (default="HEAD")  If retrieving from the version history, set a max version number                 
+specificVersion   numeric  No (default=0)       If retrieving from the version history, set a specific version number to retrieve
+================  =======  ===================  =================================================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    relatedData = presideObjectService.getDeNormalizedManyToManyData(
+        objectName = "event"
+      , id         = rc.id
+    );
+
+
+    // the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
+
+.. _getrecordversions:
+
+GetRecordVersions()
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public query function getRecordVersions( required string objectName, required string id, string fieldName )
+
+Returns a summary query of all the versions of a given record (by ID),  optionally filtered by field name
+
+Arguments
+.........
+
+==========  ======  ========  ==============================================================================================================================================
+Name        Type    Required  Description                                                                                                                                   
+==========  ======  ========  ==============================================================================================================================================
+objectName  string  Yes       Name of the object who's record we wish to retrieve the version history for                                                                   
+id          string  Yes       ID of the record who's history we wish to view                                                                                                
+fieldName   string  No        Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
+==========  ======  ========  ==============================================================================================================================================
+
+
 .. _listobjects:
 
 ListObjects()
