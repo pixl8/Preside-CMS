@@ -11,89 +11,47 @@ The Preside Object Service is the main entry point API for interacting with **Pr
 Public API Methods
 ------------------
 
-listObjects
+listObjects()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public array function listObjects( )
+
+Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+getObject()
 ~~~~~~~~~~~
 
-getObject
-~~~~~~~~~
+.. code-block:: java
 
-getObjectAttribute
-~~~~~~~~~~~~~~~~~~
+    public any function getObject( required string objectName )
 
-objectExists
-~~~~~~~~~~~~
+Returns an instance of the Preside Object who's name is passed through the 'objectName' argument.
+The instance will be decorated with CRUD methods so that you can use it as a basic auto service object for your object.
 
-dataExists
-~~~~~~~~~~
 
-fieldExists
-~~~~~~~~~~~
+Arguments
+.........
 
-deleteData
-~~~~~~~~~~
+==========  ======  ========  =======  =============================
+Name        Type    Required  Default  Description                  
+==========  ======  ========  =======  =============================
+objectName  string  Yes       *none*   The name of the object to get
+==========  ======  ========  =======  =============================
 
-insertData
-~~~~~~~~~~
 
-updateData
-~~~~~~~~~~
 
-syncManyToManyData
-~~~~~~~~~~~~~~~~~~
+Example
+.......
+.. code-block:: java
 
-selectData
-~~~~~~~~~~
 
-selectManyToManyData
-~~~~~~~~~~~~~~~~~~~~
-
-getRecordVersions
-~~~~~~~~~~~~~~~~~
-
-getDeNormalizedManyToManyData
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-getObjectProperties
-~~~~~~~~~~~~~~~~~~~
-
-getObjectProperty
-~~~~~~~~~~~~~~~~~
-
-getObjectPropertyAttribute
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-isPageType
-~~~~~~~~~~
-
-getResourceBundleUriRoot
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-isManyToManyProperty
-~~~~~~~~~~~~~~~~~~~~
-
-getVersionObjectName
-~~~~~~~~~~~~~~~~~~~~
-
-getDbAdapterForObject
-~~~~~~~~~~~~~~~~~~~~~
-
-reload
-~~~~~~
-
-dbSync
-~~~~~~
-
-listForeignObjectsBlockingDelete
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-deleteRelatedData
-~~~~~~~~~~~~~~~~~
-
-getDefaultFormControlForPropertyAttributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-objectIsVersioned
-~~~~~~~~~~~~~~~~~
-
-getNextVersionNumber
-~~~~~~~~~~~~~~~~~~~~
+    eventService = presideObjectService.getObject( "event" );
+    eventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
+    event        = eventService.selectData( id=eventId )

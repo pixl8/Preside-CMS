@@ -47,7 +47,10 @@ component output=false singleton=true autodoc=true {
 	}
 
 // PUBLIC API METHODS
-	public array function listObjects() output=false {
+	/**
+	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
+	 */
+	public array function listObjects() autodoc=true output=false {
 		var objects     = _getAllObjects();
 		var objectNames = [];
 
@@ -62,7 +65,24 @@ component output=false singleton=true autodoc=true {
 		return objectNames;
 	}
 
-	public any function getObject( required string objectName ) output=false {
+	/**
+	 * Returns an instance of the Preside Object who's name is passed through the 'objectName' argument.
+	 * The instance will be decorated with CRUD methods so that you can use it as a basic auto service object for your object.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 *
+	 * .. code-block:: java
+	 * \n
+	 * \teventService = presideObjectService.getObject( "event" );
+	 * \teventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
+	 * \tevent        = eventService.selectData( id=eventId )
+	 *
+	 * @objectName.hint The name of the object to get
+	 */
+	public any function getObject( required string objectName ) autodoc=true output=false {
 		var obj = _getObject( arguments.objectName );
 
 		if ( not StructKeyExists( obj, "decoratedInstance" ) ) {
