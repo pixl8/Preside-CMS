@@ -50,22 +50,6 @@ component output=false singleton=true autodoc=true {
 
 // PUBLIC API METHODS
 	/**
-	 * Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
-	 * as modifying and retiring existing ones.
-	 * \n
-	 * See :ref:`preside-objects-keeping-in-sync-with-db`.
-	 * \n
-	 * .. note::
-	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
-	 */
-	public void function dbSync() output=false autodoc=true {
-		_getSqlSchemaSynchronizer().synchronize(
-			  dsns    = _getAllDsns()
-			, objects = _getAllObjects()
-		);
-	}
-
-	/**
 	 * Returns an instance of the Preside Object who's name is passed through the 'objectName' argument.
 	 * The instance will be decorated with CRUD methods so that you can use it as a basic auto service object for your object.
 	 * \n
@@ -908,6 +892,34 @@ component output=false singleton=true autodoc=true {
 	}
 
 	/**
+	 * Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
+	 * as modifying and retiring existing ones.
+	 * \n
+	 * See :ref:`preside-objects-keeping-in-sync-with-db`.
+	 * \n
+	 * .. note::
+	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+	 */
+	public void function dbSync() output=false autodoc=true {
+		_getSqlSchemaSynchronizer().synchronize(
+			  dsns    = _getAllDsns()
+			, objects = _getAllObjects()
+		);
+	}
+
+	/**
+	 * Reloads all the object definitions by reading them all from file.
+	 * \n
+	 * .. note::
+	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+	 */
+	public void function reload() output=false autodoc=true {
+		_getObjectCache().clearAll();
+		_getDefaultQueryCache().clearAll();
+		_loadObjects();
+	}
+
+	/**
 	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
 	 */
 	public array function listObjects() autodoc=true output=false {
@@ -1040,12 +1052,6 @@ component output=false singleton=true autodoc=true {
 		var obj = _getObject( arguments.objectName ).meta;
 
 		return _getAdapter( obj.dsn );
-	}
-
-	public void function reload() output=false {
-		_getObjectCache().clearAll();
-		_getDefaultQueryCache().clearAll();
-		_loadObjects();
 	}
 
 	public array function listForeignObjectsBlockingDelete( required string objectName, required any recordId ) output=false {

@@ -14,30 +14,6 @@ For a full developer guide on using Preside Objects and this service, see :doc:`
 Public API Methods
 ------------------
 
-.. _dbsync:
-
-DbSync()
-~~~~~~~~
-
-.. code-block:: java
-
-    public void function dbSync( )
-
-Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
-as modifying and retiring existing ones.
-
-
-See :ref:`preside-objects-keeping-in-sync-with-db`.
-
-
-.. note::
-     You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
-
-Arguments
-.........
-
-*This method does not accept any arguments.*
-
 .. _getobject:
 
 GetObject()
@@ -485,6 +461,50 @@ id          string  Yes       ID of the record who's history we wish to view
 fieldName   string  No        Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 ==========  ======  ========  ==============================================================================================================================================
 
+
+.. _dbsync:
+
+DbSync()
+~~~~~~~~
+
+.. code-block:: java
+
+    public void function dbSync( )
+
+Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
+as modifying and retiring existing ones.
+
+
+See :ref:`preside-objects-keeping-in-sync-with-db`.
+
+
+.. note::
+     You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _reload:
+
+Reload()
+~~~~~~~~
+
+.. code-block:: java
+
+    public void function reload( )
+
+Reloads all the object definitions by reading them all from file.
+
+
+.. note::
+     You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
 
 .. _listobjects:
 
