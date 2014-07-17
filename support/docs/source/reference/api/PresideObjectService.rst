@@ -8,6 +8,9 @@ Overview
 
 The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
 
+
+For a full developer guide on using Preside Objects and this service, see :doc:`/devguides/presideobjects`.
+
 Public API Methods
 ------------------
 
@@ -156,24 +159,24 @@ Selects database records for the given object based on a variety of input parame
 Arguments
 .........
 
-================  =======  ===================  ==========================================================================================
-Name              Type     Required             Description                                                                               
-================  =======  ===================  ==========================================================================================
-objectName        string   Yes                  Name of the object from which to select data                                              
-id                string   No (default="")      ID of a record to select                                                                  
-selectFields      array    No (default=[])      Array of field names to select. Can include relationships, e.g. ['tags.label as tag']     
-filter            any      No (default={})      Filter the records returned, see :ref:`preside-objects-filtering-data`                    
-filterParams      struct   No (default={})      Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`             
-orderBy           string   No (default="")      Plain SQL order by string                                                                 
-groupBy           string   No (default="")      Plain SQL group by string                                                                 
-maxRows           numeric  No (default=0)       Maximum number of rows to select                                                          
-startRow          numeric  No (default=1)       Offset the recordset when using maxRows                                                   
-useCache          boolean  No (default=true)    Whether or not to automatically cache the result internally                               
-fromVersionTable  boolean  No (default=false)   Whether or not to select the data from the version history table for the object           
-maxVersion        string   No (default="HEAD")  Can be used to set a maximum version number when selecting from the version table         
-specificVersion   numeric  No (default=0)       Can be used to select a specific version when selecting from the version table            
-forceJoins        string   No (default="")      Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-================  =======  ===================  ==========================================================================================
+================  =======  ===================  =================================================================================================================
+Name              Type     Required             Description                                                                                                      
+================  =======  ===================  =================================================================================================================
+objectName        string   Yes                  Name of the object from which to select data                                                                     
+id                string   No (default="")      ID of a record to select                                                                                         
+selectFields      array    No (default=[])      Array of field names to select. Can include relationships, e.g. ['tags.label as tag']                            
+filter            any      No (default={})      Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`       
+filterParams      struct   No (default={})      Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+orderBy           string   No (default="")      Plain SQL order by string                                                                                        
+groupBy           string   No (default="")      Plain SQL group by string                                                                                        
+maxRows           numeric  No (default=0)       Maximum number of rows to select                                                                                 
+startRow          numeric  No (default=1)       Offset the recordset when using maxRows                                                                          
+useCache          boolean  No (default=true)    Whether or not to automatically cache the result internally                                                      
+fromVersionTable  boolean  No (default=false)   Whether or not to select the data from the version history table for the object                                  
+maxVersion        string   No (default="HEAD")  Can be used to set a maximum version number when selecting from the version table                                
+specificVersion   numeric  No (default=0)       Can be used to select a specific version when selecting from the version table                                   
+forceJoins        string   No (default="")      Can be set to "inner" / "left" to force *all* joins in the query to a particular join type                       
+================  =======  ===================  =================================================================================================================
 
 
 
@@ -228,13 +231,13 @@ Returns true if records exist that match the supplied fillter, false otherwise.
 Arguments
 .........
 
-============  ======  ========  =============================================================================
-Name          Type    Required  Description                                                                  
-============  ======  ========  =============================================================================
-objectName    string  Yes       Name of the object in which the records may or may not exist                 
-filter        any     No        Filter the records queried, see :ref:`preside-objects-filtering-data`        
-filterParams  struct  No        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
-============  ======  ========  =============================================================================
+============  ======  ========  =================================================================================================================
+Name          Type    Required  Description                                                                                                      
+============  ======  ========  =================================================================================================================
+objectName    string  Yes       Name of the object in which the records may or may not exist                                                     
+filter        any     No        Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`        
+filterParams  struct  No        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+============  ======  ========  =================================================================================================================
 
 
 
@@ -309,8 +312,8 @@ Name                     Type     Required            Description
 objectName               string   Yes                 Name of the object who's records you want to update                                                                                        
 data                     struct   Yes                 Structure of data containing new values. Keys should map to properties on the object.                                                      
 id                       string   No (default="")     ID of a single record to update                                                                                                            
-filter                   any      No                  Filter for which records are updated, see :ref:`preside-objects-filtering-data`                                                            
-filterParams             struct   No                  Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`                                                              
+filter                   any      No                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`                        
+filterParams             struct   No                  Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`                          
 forceUpdateAll           boolean  No (default=false)  If no ID and no filters are supplied, this must be set to **true** in order for the update to process                                      
 updateManyToManyRecords  boolean  No (default=false)  Whether or not to update multiple relationship records for properties that have a many-to-many relationship                                
 useVersioning            boolean  No (default=auto)   Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
@@ -347,4 +350,61 @@ Examples
           objectName     = "event"
         , data           = { cancelled = true }
         , forceUpdateAll = true
+    );
+
+.. _deletedata:
+
+DeleteData()
+~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public numeric function deleteData( required string objectName, string id="", any filter, struct filterParams, boolean forceDeleteAll=false )
+
+Deletes records from the database. Returns the number of records deleted.
+
+
+Arguments
+.........
+
+==============  =======  ==================  =================================================================================================================
+Name            Type     Required            Description                                                                                                      
+==============  =======  ==================  =================================================================================================================
+objectName      string   Yes                 Name of the object from who's database table records are to be deleted                                           
+id              string   No (default="")     ID of a record to delete                                                                                         
+filter          any      No                  Filter for records to delete, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`      
+filterParams    struct   No                  Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+forceDeleteAll  boolean  No (default=false)  If no id or filter supplied, this must be set to **true** in order for the delete to process                     
+==============  =======  ==================  =================================================================================================================
+
+
+
+Examples
+........
+
+
+.. code-block:: java
+
+
+    // delete a single record
+    deleted = presideObjectService.deleteData(
+          objectName = "event"
+        , id         = rc.id
+    );
+
+
+    // delete multiple records using a filter
+    // (note we are filtering on a column in a related object, "category")
+    deleted = presideObjectService.deleteData(
+          objectName   = "event"
+        , filter       = "category.label = :category.label"
+        , filterParams = { "category.label" = "BBQs" }
+    );
+
+
+    // delete all records
+    // (note we are filtering on a column in a related object, "category")
+    deleted = presideObjectService.deleteData(
+          objectName     = "event"
+        , forceDeleteAll = true
     );

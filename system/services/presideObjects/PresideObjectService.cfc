@@ -1,5 +1,7 @@
 /**
  * The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
+ * \n
+ * For a full developer guide on using Preside Objects and this service, see :doc:`/devguides/presideobjects`.
  */
 
 component output=false singleton=true autodoc=true {
@@ -181,8 +183,8 @@ component output=false singleton=true autodoc=true {
 	 * @objectName.hint         Name of the object from which to select data
 	 * @id.hint                 ID of a record to select
 	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
+	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @orderBy.hint            Plain SQL order by string
 	 * @groupBy.hint            Plain SQL group by string
 	 * @maxRows.hint            Maximum number of rows to select
@@ -338,8 +340,8 @@ component output=false singleton=true autodoc=true {
 	 * \t);
 	 *
 	 * @objectName.hint         Name of the object in which the records may or may not exist
-	 * @filter.hint             Filter the records queried, see :ref:`preside-objects-filtering-data`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
+	 * @filter.hint             Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @fromVersionTable.hint   Whether or not to query against the version history table
 	 * @maxVersion.hint         If querying against the version history table, maximum version to select
 	 * @specificVersion.hint    If querying against the version history table, specific version to select
@@ -354,62 +356,6 @@ component output=false singleton=true autodoc=true {
 		args.selectFields = [ "1" ];
 
 		return selectData( argumentCollection=args ).recordCount;
-	}
-
-	public numeric function deleteData(
-		  required string  objectName
-		,          string  id             = ""
-		,          any     filter         = {}
-		,          struct  filterParams   = {}
-		,          boolean forceDeleteAll = false
-	) output=false {
-		var obj     = _getObject( arguments.objectName ).meta;
-		var adapter = _getAdapter( obj.dsn );
-		var sql     = "";
-		var params  = [];
-		var result = "";
-
-		if ( Len( Trim( arguments.id ) ) ) {
-			arguments.filter = { id = arguments.id };
-		}
-
-		if ( IsStruct( arguments.filter ) ) {
-			params = _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = arguments.filter
-				, dbAdapter         = adapter
-			);
-		} else {
-			params = _convertUserFilterParamsToQueryParams(
-				  columnDefinitions = obj.properties
-				, params            = arguments.filterParams
-				, dbAdapter         = adapter
-			);
-		}
-
-		if ( not Len( Trim( arguments.id ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceDeleteAll ) {
-			throw(
-				  type    = "PresideObjects.deleteAllProtection"
-				, message = "A call to delete records in [#arguments.objectName#] was made without any filter which would lead to all records being deleted"
-				, detail  = "If you wish to delete all records, you must set the [forceDeleteAll] argument of the [deleteData] method to true"
-			);
-		}
-
-		sql = adapter.getDeleteSql(
-			  tableName = obj.tableName
-			, filter    = filter
-		);
-
-		result = _runSql( sql=sql, dsn=obj.dsn, params=params, returnType="info" );
-
-		_clearRelatedCaches(
-			  objectName   = arguments.objectName
-			, filter       = arguments.filter
-			, filterParams = arguments.filterParams
-		);
-
-		return Val( result.recordCount ?: 0 );
 	}
 
 	/**
@@ -554,8 +500,8 @@ component output=false singleton=true autodoc=true {
 	 * @objectName.hint              Name of the object who's records you want to update
 	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
 	 * @id.hint                      ID of a single record to update
-	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data`
-	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
+	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
 	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
 	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
@@ -698,6 +644,100 @@ component output=false singleton=true autodoc=true {
 
 		return Val( result.recordCount ?: 0 );
 	}
+
+	/**
+	 * Deletes records from the database. Returns the number of records deleted.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Examples
+	 * ........
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \t// delete a single record
+	 * \tdeleted = presideObjectService.deleteData(
+	 * \t      objectName = "event"
+	 * \t    , id         = rc.id
+	 * \t);
+	 * \n
+	 * \t// delete multiple records using a filter
+	 * \t// (note we are filtering on a column in a related object, "category")
+	 * \tdeleted = presideObjectService.deleteData(
+	 * \t      objectName   = "event"
+	 * \t    , filter       = "category.label = :category.label"
+	 * \t    , filterParams = { "category.label" = "BBQs" }
+	 * \t);
+	 * \n
+	 * \t// delete all records
+	 * \t// (note we are filtering on a column in a related object, "category")
+	 * \tdeleted = presideObjectService.deleteData(
+	 * \t      objectName     = "event"
+	 * \t    , forceDeleteAll = true
+	 * \t);
+	 *
+	 * @objectName.hint     Name of the object from who's database table records are to be deleted
+	 * @id.hint             ID of a record to delete
+	 * @filter.hint         Filter for records to delete, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint   Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @forceDeleteAll.hint If no id or filter supplied, this must be set to **true** in order for the delete to process
+	 */
+	public numeric function deleteData(
+		  required string  objectName
+		,          string  id             = ""
+		,          any     filter         = {}
+		,          struct  filterParams   = {}
+		,          boolean forceDeleteAll = false
+	) output=false autodoc=true {
+		var obj     = _getObject( arguments.objectName ).meta;
+		var adapter = _getAdapter( obj.dsn );
+		var sql     = "";
+		var params  = [];
+		var result = "";
+
+		if ( Len( Trim( arguments.id ) ) ) {
+			arguments.filter = { id = arguments.id };
+		}
+
+		if ( IsStruct( arguments.filter ) ) {
+			params = _convertDataToQueryParams(
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
+				, data              = arguments.filter
+				, dbAdapter         = adapter
+			);
+		} else {
+			params = _convertUserFilterParamsToQueryParams(
+				  columnDefinitions = obj.properties
+				, params            = arguments.filterParams
+				, dbAdapter         = adapter
+			);
+		}
+
+		if ( not Len( Trim( arguments.id ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceDeleteAll ) {
+			throw(
+				  type    = "PresideObjects.deleteAllProtection"
+				, message = "A call to delete records in [#arguments.objectName#] was made without any filter which would lead to all records being deleted"
+				, detail  = "If you wish to delete all records, you must set the [forceDeleteAll] argument of the [deleteData] method to true"
+			);
+		}
+
+		sql = adapter.getDeleteSql(
+			  tableName = obj.tableName
+			, filter    = filter
+		);
+
+		result = _runSql( sql=sql, dsn=obj.dsn, params=params, returnType="info" );
+
+		_clearRelatedCaches(
+			  objectName   = arguments.objectName
+			, filter       = arguments.filter
+			, filterParams = arguments.filterParams
+		);
+
+		return Val( result.recordCount ?: 0 );
+	}
+
 
 	public boolean function syncManyToManyData(
 		  required string sourceObject
