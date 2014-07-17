@@ -6,3 +6,9 @@
 	margin-top : 4px;
 	font-style : italic;
 }
+
+.wy-table thead th,
+.rst-content table.docutils thead th,
+.rst-content table.field-list thead th {
+	border-right-color : #E1E4E5;
+}

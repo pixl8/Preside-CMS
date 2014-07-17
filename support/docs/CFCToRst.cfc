@@ -92,15 +92,15 @@ component output=false {
 
 		var tableData = [];
 		for( var arg in args ) {
+			var def = _parseArgumentDefault( arg );
 			tableData.append({
 				  Name        = arg.name
 				, Type        = arg.type
-				, Required    = YesNoFormat( arg.required )
-				, Default     = _parseArgumentDefault( arg )
 				, Description = arg.hint ?: ""
+				, Required    = YesNoFormat( arg.required ) & ( ( def != "*none*" ) ? " (default=#def#)" : "" )
 			});
 		}
-		argsDoc &= _createTable( tableData, [ "Name", "Type", "Required", "Default", "Description" ] );
+		argsDoc &= _createTable( tableData, [ "Name", "Type", "Required", "Description" ] );
 
 
 		return argsDoc;

@@ -39,11 +39,11 @@ The instance will be decorated with CRUD methods so that you can use it as a bas
 Arguments
 .........
 
-==========  ======  ========  =======  =============================
-Name        Type    Required  Default  Description                  
-==========  ======  ========  =======  =============================
-objectName  string  Yes       *none*   The name of the object to get
-==========  ======  ========  =======  =============================
+==========  ======  ========  =============================
+Name        Type    Required  Description                  
+==========  ======  ========  =============================
+objectName  string  Yes       The name of the object to get
+==========  ======  ========  =============================
 
 
 
@@ -69,13 +69,13 @@ Returns an arbritary attribute value that is defined on the object's :code:`comp
 Arguments
 .........
 
-=============  ======  ========  =======  ====================================================
-Name           Type    Required  Default  Description                                         
-=============  ======  ========  =======  ====================================================
-objectName     string  Yes       *none*   Name of the object who's attribute we wish to get   
-attributeName  string  Yes       *none*   Name of the attribute who's value we wish to get    
-defaultValue   string  No        ""       Default value for the attribute, should it not exist
-=============  ======  ========  =======  ====================================================
+=============  ======  ===============  ====================================================
+Name           Type    Required         Description                                         
+=============  ======  ===============  ====================================================
+objectName     string  Yes              Name of the object who's attribute we wish to get   
+attributeName  string  Yes              Name of the attribute who's value we wish to get    
+defaultValue   string  No (default="")  Default value for the attribute, should it not exist
+=============  ======  ===============  ====================================================
 
 
 
@@ -105,24 +105,24 @@ Selects database records for the given object based on a variety of input parame
 Arguments
 .........
 
-================  =======  ========  =======  ==========================================================================================
-Name              Type     Required  Default  Description                                                                               
-================  =======  ========  =======  ==========================================================================================
-objectName        string   Yes       *none*   Name of the object from which to select data                                              
-id                string   No        ""       ID of a record to select                                                                  
-selectFields      array    No        []       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']     
-filter            any      No        {}       Either a structure or plain string SQL filter, see examples                               
-filterParams      struct   No        {}       If the filter is a plaing string SQL filter, use this structure to pass in SQL param data 
-orderBy           string   No        ""       Plain SQL order by string                                                                 
-groupBy           string   No        ""       Plain SQL group by string                                                                 
-maxRows           numeric  No        0        Maximum number of rows to select                                                          
-startRow          numeric  No        1        Offset the recordset when using maxRows                                                   
-useCache          boolean  No        true     Whether or not to automatically cache the result internally                               
-fromVersionTable  boolean  No        false    Whether or not to select the data from the version history table for the object           
-maxVersion        string   No        "HEAD"   Can be used to set a maximum version number when selecting from the version table         
-specificVersion   numeric  No        0        Can be used to select a specific version when selecting from the version table            
-forceJoins        string   No        ""       Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-================  =======  ========  =======  ==========================================================================================
+================  =======  ===================  ==========================================================================================
+Name              Type     Required             Description                                                                               
+================  =======  ===================  ==========================================================================================
+objectName        string   Yes                  Name of the object from which to select data                                              
+id                string   No (default="")      ID of a record to select                                                                  
+selectFields      array    No (default=[])      Array of field names to select. Can include relationships, e.g. ['tags.label as tag']     
+filter            any      No (default={})      Either a structure or plain string SQL filter, see examples                               
+filterParams      struct   No (default={})      If the filter is a plaing string SQL filter, use this structure to pass in SQL param data 
+orderBy           string   No (default="")      Plain SQL order by string                                                                 
+groupBy           string   No (default="")      Plain SQL group by string                                                                 
+maxRows           numeric  No (default=0)       Maximum number of rows to select                                                          
+startRow          numeric  No (default=1)       Offset the recordset when using maxRows                                                   
+useCache          boolean  No (default=true)    Whether or not to automatically cache the result internally                               
+fromVersionTable  boolean  No (default=false)   Whether or not to select the data from the version history table for the object           
+maxVersion        string   No (default="HEAD")  Can be used to set a maximum version number when selecting from the version table         
+specificVersion   numeric  No (default=0)       Can be used to select a specific version when selecting from the version table            
+forceJoins        string   No (default="")      Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+================  =======  ===================  ==========================================================================================
 
 
 
