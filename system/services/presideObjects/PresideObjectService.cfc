@@ -103,10 +103,22 @@ component output=false singleton=true autodoc=true {
 	 *
 	 * @objectName.hint Name of the object that you wish to check the existance of
 	 */
-	public boolean function objectExists( required string objectName ) output=false {
+	public boolean function objectExists( required string objectName ) output=false autodoc=true {
 		var objects = _getAllObjects();
 
 		return StructKeyExists( objects, arguments.objectName );
+	}
+
+	/**
+	 * Returns whether or not the passed field exists on the passed object
+	 *
+	 * @objectName.hint Name of the object who's field you wish to check
+	 * @fieldName.hint  Name of the field you wish to check the existance of
+	 */
+	public boolean function fieldExists( required string objectName, required string fieldName ) output=false autodoc=true {
+		var obj = _getObject( arguments.objectName );
+
+		return StructKeyExists( obj.meta.properties, arguments.fieldName );
 	}
 
 	/**
@@ -344,12 +356,6 @@ component output=false singleton=true autodoc=true {
 		return selectData( argumentCollection=args ).recordCount;
 	}
 
-	public boolean function fieldExists( required string objectName, required string fieldName ) output=false {
-		var obj = _getObject( arguments.objectName );
-
-		return StructKeyExists( obj.meta.properties, arguments.fieldName );
-	}
-
 	public numeric function deleteData(
 		  required string  objectName
 		,          string  id             = ""
@@ -406,6 +412,27 @@ component output=false singleton=true autodoc=true {
 		return Val( result.recordCount ?: 0 );
 	}
 
+	/**
+	 * Inserts a record into the database, returning the ID of the newly created record
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example:
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \tnewId = presideObjectService.insertData(
+	 * \t      objectName = "event"
+	 * \t    , data       = { name="Summer BBQ", startdate="2015-08-23", enddate="2015-08-23" }
+	 * \t);
+	 *
+	 * @objectName.hint              Name of the object in which to to insert a record
+	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
+	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
+	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
+	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
+	 * @useVersioning.docdefault     automatic
+	 */
 	public any function insertData(
 		  required string  objectName
 		, required struct  data
@@ -413,7 +440,7 @@ component output=false singleton=true autodoc=true {
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 
-	) output=false {
+	) output=false autodoc=true {
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";

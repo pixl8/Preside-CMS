@@ -60,6 +60,49 @@ Example
     eventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
     event        = eventService.selectData( id=eventId )
 
+.. _objectexists:
+
+ObjectExists()
+~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function objectExists( required string objectName )
+
+Returns whether or not the passed object name has been registered
+
+Arguments
+.........
+
+==========  ======  ========  ==========================================================
+Name        Type    Required  Description                                               
+==========  ======  ========  ==========================================================
+objectName  string  Yes       Name of the object that you wish to check the existance of
+==========  ======  ========  ==========================================================
+
+
+.. _fieldexists:
+
+FieldExists()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function fieldExists( required string objectName, required string fieldName )
+
+Returns whether or not the passed field exists on the passed object
+
+Arguments
+.........
+
+==========  ======  ========  ====================================================
+Name        Type    Required  Description                                         
+==========  ======  ========  ====================================================
+objectName  string  Yes       Name of the object who's field you wish to check    
+fieldName   string  Yes       Name of the field you wish to check the existance of
+==========  ======  ========  ====================================================
+
+
 .. _getobjectattribute:
 
 GetObjectAttribute()
@@ -205,4 +248,42 @@ Example
     eventsExist = presideObjectService.dataExists(
           objectName = "event"
         , filter     = { category = rc.category }
+    );
+
+.. _insertdata:
+
+InsertData()
+~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public any function insertData( required string objectName, required struct data, boolean insertManyToManyRecords=false, boolean useVersioning=automatic, numeric versionNumber=0 )
+
+Inserts a record into the database, returning the ID of the newly created record
+
+
+Arguments
+.........
+
+=======================  =======  ======================  ===========================================================================================================================================
+Name                     Type     Required                Description                                                                                                                                
+=======================  =======  ======================  ===========================================================================================================================================
+objectName               string   Yes                     Name of the object in which to to insert a record                                                                                          
+data                     struct   Yes                     Structure of data who's keys map to the properties that are defined on the object                                                          
+insertManyToManyRecords  boolean  No (default=false)      Whether or not to insert multiple relationship records for properties that have a many-to-many relationship                                
+useVersioning            boolean  No (default=automatic)  Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
+versionNumber            numeric  No (default=0)          If using versioning, specify a version number to save against (if none specified, one will be created automatically)                       
+=======================  =======  ======================  ===========================================================================================================================================
+
+
+
+Example:
+
+
+.. code-block:: java
+
+
+    newId = presideObjectService.insertData(
+          objectName = "event"
+        , data       = { name="Summer BBQ", startdate="2015-08-23", enddate="2015-08-23" }
     );
