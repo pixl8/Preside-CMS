@@ -49,23 +49,6 @@ component output=false singleton=true autodoc=true {
 	}
 
 // PUBLIC API METHODS
-	/**
-	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
-	 */
-	public array function listObjects() autodoc=true output=false {
-		var objects     = _getAllObjects();
-		var objectNames = [];
-
-		for( var objectName in objects ){
-			if ( !IsSimpleValue( objects[ objectName ].instance ?: "" ) ) {
-				objectNames.append( objectName );
-			}
-		}
-
-		ArraySort( objectNames, "textnocase" );
-
-		return objectNames;
-	}
 
 	/**
 	 * Returns an instance of the Preside Object who's name is passed through the 'objectName' argument.
@@ -98,56 +81,6 @@ component output=false singleton=true autodoc=true {
 		}
 
 		return obj.decoratedInstance;
-	}
-
-	/**
-	 * Returns whether or not the passed object name has been registered
-	 *
-	 * @objectName.hint Name of the object that you wish to check the existance of
-	 */
-	public boolean function objectExists( required string objectName ) output=false autodoc=true {
-		var objects = _getAllObjects();
-
-		return StructKeyExists( objects, arguments.objectName );
-	}
-
-	/**
-	 * Returns whether or not the passed field exists on the passed object
-	 *
-	 * @objectName.hint Name of the object who's field you wish to check
-	 * @fieldName.hint  Name of the field you wish to check the existance of
-	 */
-	public boolean function fieldExists( required string objectName, required string fieldName ) output=false autodoc=true {
-		var obj = _getObject( arguments.objectName );
-
-		return StructKeyExists( obj.meta.properties, arguments.fieldName );
-	}
-
-	/**
-	 * Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
-	 * \n
-	 * ${arguments}
-	 * \n
-	 * Example
-	 * .......
-	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \teventLabelField = presideObjectService.getObjectAttribute(
-	 * \t      objectName    = "event"
-	 * \t    , attributeName = "labelField"
-	 * \t    , defaultValue  = "label"
-	 * \t);
-	 *
-	 * @objectName.hint    Name of the object who's attribute we wish to get
-	 * @attributeName.hint Name of the attribute who's value we wish to get
-	 * @defaultValue.hint  Default value for the attribute, should it not exist
-	 *
-	 */
-	public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" ) output=false autodoc=true {
-		var obj = _getObject( arguments.objectName );
-
-		return obj.meta[ arguments.attributeName ] ?: arguments.defaultValue;
 	}
 
 	/**
@@ -317,45 +250,6 @@ component output=false singleton=true autodoc=true {
 		}
 
 		return result;
-	}
-
-	/**
-	 * Returns true if records exist that match the supplied fillter, false otherwise.
-	 * \n
-	 * .. note::
-	 * \n
-	 * \tIn addition to the named arguments here, you can also supply any valid arguments
-	 * \tthat can be supplied to the :ref:`selectdata` method
-	 * \n
-	 * ${arguments}
-	 * \n
-	 * Example
-	 * .......
-	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \teventsExist = presideObjectService.dataExists(
-	 * \t      objectName = "event"
-	 * \t    , filter     = { category = rc.category }
-	 * \t);
-	 *
-	 * @objectName.hint         Name of the object in which the records may or may not exist
-	 * @filter.hint             Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @fromVersionTable.hint   Whether or not to query against the version history table
-	 * @maxVersion.hint         If querying against the version history table, maximum version to select
-	 * @specificVersion.hint    If querying against the version history table, specific version to select
-	 */
-	public boolean function dataExists(
-		  required string  objectName
-		,          any     filter       = {}
-		,          struct  filterParams = {}
-	) output=false autodoc=true {
-		var args = arguments;
-		args.useCache     = false;
-		args.selectFields = [ "1" ];
-
-		return selectData( argumentCollection=args ).recordCount;
 	}
 
 	/**
@@ -665,7 +559,7 @@ component output=false singleton=true autodoc=true {
 	 * \t// (note we are filtering on a column in a related object, "category")
 	 * \tdeleted = presideObjectService.deleteData(
 	 * \t      objectName   = "event"
-	 * \t    , filter       = "category.label = :category.label"
+	 * \t    , filter       = "category.label != :category.label"
 	 * \t    , filterParams = { "category.label" = "BBQs" }
 	 * \t);
 	 * \n
@@ -738,13 +632,136 @@ component output=false singleton=true autodoc=true {
 		return Val( result.recordCount ?: 0 );
 	}
 
+	/**
+	 * Returns true if records exist that match the supplied fillter, false otherwise.
+	 * \n
+	 * .. note::
+	 * \n
+	 * \tIn addition to the named arguments here, you can also supply any valid arguments
+	 * \tthat can be supplied to the :ref:`selectdata` method
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \teventsExist = presideObjectService.dataExists(
+	 * \t      objectName = "event"
+	 * \t    , filter     = { category = rc.category }
+	 * \t);
+	 *
+	 * @objectName.hint         Name of the object in which the records may or may not exist
+	 * @filter.hint             Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @fromVersionTable.hint   Whether or not to query against the version history table
+	 * @maxVersion.hint         If querying against the version history table, maximum version to select
+	 * @specificVersion.hint    If querying against the version history table, specific version to select
+	 */
+	public boolean function dataExists(
+		  required string  objectName
+		,          any     filter       = {}
+		,          struct  filterParams = {}
+	) output=false autodoc=true {
+		var args = arguments;
+		args.useCache     = false;
+		args.selectFields = [ "1" ];
 
+		return selectData( argumentCollection=args ).recordCount;
+	}
+
+	/**
+	 * Selects records from many-to-many relationships
+	 * \n
+	 * .. note::
+	 * \n
+	 * \tYou can pass additional arguments to those specified below and they will all be passed to the :ref:`selectdata` method
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \ttags = presideObjectService.selectManyToManyData(
+	 * \t      objectName   = "event"
+	 * \t    , propertyName = "tags"
+	 * \t    , orderby      = "tags.label"
+	 * \t);
+	 *
+	 * @objectName.hint   Name of the object that has the many-to-many property defined
+	 * @propertyName.hint Name of the many-to-many property
+	 * @selectFields.hint Array of fields to select
+	 * @orderBy.hint      Plain SQL order by statement
+	 */
+	public query function selectManyToManyData(
+		  required string  objectName
+		, required string  propertyName
+		,          array   selectFields = []
+		,          string  orderBy      = ""
+	) output=false autodoc=true {
+		if ( !isManyToManyProperty( arguments.objectName, arguments.propertyName ) ) {
+			throw(
+				  type    = "PresideObjectService.notManyToMany"
+				, message = "The property [#arguments.propertyName#] of object [#arguments.objectName#] is not a many-to-many field"
+			);
+		}
+
+		var relatedTo      = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedTo", "" );
+		var obj            = _getObject( relatedTo );
+		var selectDataArgs = Duplicate( arguments );
+
+		StructDelete( selectDataArgs, "propertyName" );
+		selectDataArgs.forceJoins = "inner"; // many-to-many joins are not required so "left" by default. Here we absolutely want inner joins.
+
+		if ( not ArrayLen( selectDataArgs.selectFields ) ) {
+			var dbAdapter = getDbAdapterForObject( relatedTo );
+			selectDataArgs.selectFields = ListToArray( obj.meta.dbFieldList );
+			for( var i=1; i <= selectDataArgs.selectFields.len(); i++ ) {
+				selectDataArgs.selectFields[i] = arguments.propertyName & "." & selectDataArgs.selectFields[i];
+			}
+		}
+
+		if ( not Len( Trim( selectDataArgs.orderBy ) ) ) {
+			var relatedVia = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
+			if ( Len( Trim( relatedVia ) ) ) {
+				selectDataArgs.orderBy = relatedVia & ".sort_order"
+			}
+		}
+
+		return selectData( argumentCollection = selectDataArgs );
+	}
+
+	/**
+	 * Synchronizes a record's related object data for a given property. Returns true on success, false otherwise.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \tpresideObjectService.syncManyToManyData(
+	 * \t      sourceObject   = "event"
+	 * \t    , sourceProperty = "tags"
+	 * \t    , sourceId       = rc.eventId
+	 * \t    , targetIdList   = rc.tags // e.g. "635,1,52,24"
+	 * \t);
+	 *
+	 * @sourceObject.hint   The object that contains the many-to-many property
+	 * @sourceProperty.hint The name of the property that is defined as a many-to-many relationship
+	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
+	 */
 	public boolean function syncManyToManyData(
 		  required string sourceObject
 		, required string sourceProperty
 		, required string sourceId
 		, required string targetIdList
-	) output=false {
+	) output=false autodoc=true {
 		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
@@ -792,42 +809,85 @@ component output=false singleton=true autodoc=true {
 		return true;
 	}
 
-	public query function selectManyToManyData(
-		  required string  objectName
-		, required string  propertyName
-		,          array   selectFields = []
-		,          string  orderBy      = ""
-	) output=false {
-		if ( !isManyToManyProperty( arguments.objectName, arguments.propertyName ) ) {
-			throw(
-				  type    = "PresideObjectService.notManyToMany"
-				, message = "The property [#arguments.propertyName#] of object [#arguments.objectName#] is not a many-to-many field"
-			);
-		}
+	/**
+	 * Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
+	 * as modifying and retiring existing ones.
+	 * \n
+	 * See :ref:`preside-objects-keeping-in-sync-with-db`.
+	 */
+	public void function dbSync() output=false autodoc=true {
+		_getSqlSchemaSynchronizer().synchronize(
+			  dsns    = _getAllDsns()
+			, objects = _getAllObjects()
+		);
+	}
 
-		var relatedTo      = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedTo", "" );
-		var obj            = _getObject( relatedTo );
-		var selectDataArgs = Duplicate( arguments );
+	/**
+	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
+	 */
+	public array function listObjects() autodoc=true output=false {
+		var objects     = _getAllObjects();
+		var objectNames = [];
 
-		StructDelete( selectDataArgs, "propertyName" );
-		selectDataArgs.forceJoins = "inner"; // many-to-many joins are not required so "left" by default. Here we absolutely want inner joins.
-
-		if ( not ArrayLen( selectDataArgs.selectFields ) ) {
-			var dbAdapter = getDbAdapterForObject( relatedTo );
-			selectDataArgs.selectFields = ListToArray( obj.meta.dbFieldList );
-			for( var i=1; i <= selectDataArgs.selectFields.len(); i++ ) {
-				selectDataArgs.selectFields[i] = arguments.propertyName & "." & selectDataArgs.selectFields[i];
+		for( var objectName in objects ){
+			if ( !IsSimpleValue( objects[ objectName ].instance ?: "" ) ) {
+				objectNames.append( objectName );
 			}
 		}
 
-		if ( not Len( Trim( selectDataArgs.orderBy ) ) ) {
-			var relatedVia = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			if ( Len( Trim( relatedVia ) ) ) {
-				selectDataArgs.orderBy = relatedVia & ".sort_order"
-			}
-		}
+		ArraySort( objectNames, "textnocase" );
 
-		return selectData( argumentCollection = selectDataArgs );
+		return objectNames;
+	}
+
+	/**
+	 * Returns whether or not the passed object name has been registered
+	 *
+	 * @objectName.hint Name of the object that you wish to check the existance of
+	 */
+	public boolean function objectExists( required string objectName ) output=false autodoc=true {
+		var objects = _getAllObjects();
+
+		return StructKeyExists( objects, arguments.objectName );
+	}
+
+	/**
+	 * Returns whether or not the passed field exists on the passed object
+	 *
+	 * @objectName.hint Name of the object who's field you wish to check
+	 * @fieldName.hint  Name of the field you wish to check the existance of
+	 */
+	public boolean function fieldExists( required string objectName, required string fieldName ) output=false autodoc=true {
+		var obj = _getObject( arguments.objectName );
+
+		return StructKeyExists( obj.meta.properties, arguments.fieldName );
+	}
+
+	/**
+	 * Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Example
+	 * .......
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \teventLabelField = presideObjectService.getObjectAttribute(
+	 * \t      objectName    = "event"
+	 * \t    , attributeName = "labelField"
+	 * \t    , defaultValue  = "label"
+	 * \t);
+	 *
+	 * @objectName.hint    Name of the object who's attribute we wish to get
+	 * @attributeName.hint Name of the attribute who's value we wish to get
+	 * @defaultValue.hint  Default value for the attribute, should it not exist
+	 *
+	 */
+	public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" ) output=false autodoc=true {
+		var obj = _getObject( arguments.objectName );
+
+		return obj.meta[ arguments.attributeName ] ?: arguments.defaultValue;
 	}
 
 	public query function getRecordVersions( required string objectName, required string id, string fieldName ) output=false {
@@ -929,13 +989,6 @@ component output=false singleton=true autodoc=true {
 		_getObjectCache().clearAll();
 		_getDefaultQueryCache().clearAll();
 		_loadObjects();
-	}
-
-	public void function dbSync() output=false {
-		_getSqlSchemaSynchronizer().synchronize(
-			  dsns    = _getAllDsns()
-			, objects = _getAllObjects()
-		);
 	}
 
 	public array function listForeignObjectsBlockingDelete( required string objectName, required any recordId ) output=false {

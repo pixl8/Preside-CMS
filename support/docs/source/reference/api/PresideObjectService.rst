@@ -14,22 +14,6 @@ For a full developer guide on using Preside Objects and this service, see :doc:`
 Public API Methods
 ------------------
 
-.. _listobjects:
-
-ListObjects()
-~~~~~~~~~~~~~
-
-.. code-block:: java
-
-    public array function listObjects( )
-
-Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
-
-Arguments
-.........
-
-*This method does not accept any arguments.*
-
 .. _getobject:
 
 GetObject()
@@ -62,87 +46,6 @@ Example
     eventService = presideObjectService.getObject( "event" );
     eventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
     event        = eventService.selectData( id=eventId )
-
-.. _objectexists:
-
-ObjectExists()
-~~~~~~~~~~~~~~
-
-.. code-block:: java
-
-    public boolean function objectExists( required string objectName )
-
-Returns whether or not the passed object name has been registered
-
-Arguments
-.........
-
-==========  ======  ========  ==========================================================
-Name        Type    Required  Description                                               
-==========  ======  ========  ==========================================================
-objectName  string  Yes       Name of the object that you wish to check the existance of
-==========  ======  ========  ==========================================================
-
-
-.. _fieldexists:
-
-FieldExists()
-~~~~~~~~~~~~~
-
-.. code-block:: java
-
-    public boolean function fieldExists( required string objectName, required string fieldName )
-
-Returns whether or not the passed field exists on the passed object
-
-Arguments
-.........
-
-==========  ======  ========  ====================================================
-Name        Type    Required  Description                                         
-==========  ======  ========  ====================================================
-objectName  string  Yes       Name of the object who's field you wish to check    
-fieldName   string  Yes       Name of the field you wish to check the existance of
-==========  ======  ========  ====================================================
-
-
-.. _getobjectattribute:
-
-GetObjectAttribute()
-~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: java
-
-    public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" )
-
-Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
-
-
-Arguments
-.........
-
-=============  ======  ===============  ====================================================
-Name           Type    Required         Description                                         
-=============  ======  ===============  ====================================================
-objectName     string  Yes              Name of the object who's attribute we wish to get   
-attributeName  string  Yes              Name of the attribute who's value we wish to get    
-defaultValue   string  No (default="")  Default value for the attribute, should it not exist
-=============  ======  ===============  ====================================================
-
-
-
-Example
-.......
-
-
-.. code-block:: java
-
-
-    eventLabelField = presideObjectService.getObjectAttribute(
-          objectName    = "event"
-        , attributeName = "labelField"
-        , defaultValue  = "label"
-    );
 
 .. _selectdata:
 
@@ -207,50 +110,6 @@ Examples
           objectName   = "event"
         , filter       = "category.label like :category.label"
         , filterParams = { "category.label" = "%#rc.search#%" }
-    );
-
-.. _dataexists:
-
-DataExists()
-~~~~~~~~~~~~
-
-.. code-block:: java
-
-    public boolean function dataExists( required string objectName, any filter, struct filterParams )
-
-Returns true if records exist that match the supplied fillter, false otherwise.
-
-
-.. note::
-
-
-    In addition to the named arguments here, you can also supply any valid arguments
-    that can be supplied to the :ref:`selectdata` method
-
-
-Arguments
-.........
-
-============  ======  ========  =================================================================================================================
-Name          Type    Required  Description                                                                                                      
-============  ======  ========  =================================================================================================================
-objectName    string  Yes       Name of the object in which the records may or may not exist                                                     
-filter        any     No        Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`        
-filterParams  struct  No        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-============  ======  ========  =================================================================================================================
-
-
-
-Example
-.......
-
-
-.. code-block:: java
-
-
-    eventsExist = presideObjectService.dataExists(
-          objectName = "event"
-        , filter     = { category = rc.category }
     );
 
 .. _insertdata:
@@ -397,7 +256,7 @@ Examples
     // (note we are filtering on a column in a related object, "category")
     deleted = presideObjectService.deleteData(
           objectName   = "event"
-        , filter       = "category.label = :category.label"
+        , filter       = "category.label != :category.label"
         , filterParams = { "category.label" = "BBQs" }
     );
 
@@ -407,4 +266,250 @@ Examples
     deleted = presideObjectService.deleteData(
           objectName     = "event"
         , forceDeleteAll = true
+    );
+
+.. _dataexists:
+
+DataExists()
+~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function dataExists( required string objectName, any filter, struct filterParams )
+
+Returns true if records exist that match the supplied fillter, false otherwise.
+
+
+.. note::
+
+
+    In addition to the named arguments here, you can also supply any valid arguments
+    that can be supplied to the :ref:`selectdata` method
+
+
+Arguments
+.........
+
+============  ======  ========  =================================================================================================================
+Name          Type    Required  Description                                                                                                      
+============  ======  ========  =================================================================================================================
+objectName    string  Yes       Name of the object in which the records may or may not exist                                                     
+filter        any     No        Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`        
+filterParams  struct  No        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+============  ======  ========  =================================================================================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    eventsExist = presideObjectService.dataExists(
+          objectName = "event"
+        , filter     = { category = rc.category }
+    );
+
+.. _selectmanytomanydata:
+
+SelectManyToManyData()
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public query function selectManyToManyData( required string objectName, required string propertyName, array selectFields, string orderBy="" )
+
+Selects records from many-to-many relationships
+
+
+.. note::
+
+
+    You can pass additional arguments to those specified below and they will all be passed to the :ref:`selectdata` method
+
+
+Arguments
+.........
+
+============  ======  ===============  =============================================================
+Name          Type    Required         Description                                                  
+============  ======  ===============  =============================================================
+objectName    string  Yes              Name of the object that has the many-to-many property defined
+propertyName  string  Yes              Name of the many-to-many property                            
+selectFields  array   No               Array of fields to select                                    
+orderBy       string  No (default="")  Plain SQL order by statement                                 
+============  ======  ===============  =============================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    tags = presideObjectService.selectManyToManyData(
+          objectName   = "event"
+        , propertyName = "tags"
+        , orderby      = "tags.label"
+    );
+
+.. _syncmanytomanydata:
+
+SyncManyToManyData()
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function syncManyToManyData( required string sourceObject, required string sourceProperty, required string sourceId, required string targetIdList )
+
+Synchronizes a record's related object data for a given property. Returns true on success, false otherwise.
+
+
+Arguments
+.........
+
+==============  ======  ========  =================================================================================
+Name            Type    Required  Description                                                                      
+==============  ======  ========  =================================================================================
+sourceObject    string  Yes       The object that contains the many-to-many property                               
+sourceProperty  string  Yes       The name of the property that is defined as a many-to-many relationship          
+sourceId        string  Yes       ID of the record who's related data we are to synchronize                        
+targetIdList    string  Yes       Comma separated list of IDs of records representing records in the related object
+==============  ======  ========  =================================================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    presideObjectService.syncManyToManyData(
+          sourceObject   = "event"
+        , sourceProperty = "tags"
+        , sourceId       = rc.eventId
+        , targetIdList   = rc.tags // e.g. "635,1,52,24"
+    );
+
+.. _dbsync:
+
+DbSync()
+~~~~~~~~
+
+.. code-block:: java
+
+    public void function dbSync( )
+
+Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
+as modifying and retiring existing ones.
+
+
+See :ref:`preside-objects-keeping-in-sync-with-db`.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _listobjects:
+
+ListObjects()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public array function listObjects( )
+
+Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _objectexists:
+
+ObjectExists()
+~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function objectExists( required string objectName )
+
+Returns whether or not the passed object name has been registered
+
+Arguments
+.........
+
+==========  ======  ========  ==========================================================
+Name        Type    Required  Description                                               
+==========  ======  ========  ==========================================================
+objectName  string  Yes       Name of the object that you wish to check the existance of
+==========  ======  ========  ==========================================================
+
+
+.. _fieldexists:
+
+FieldExists()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function fieldExists( required string objectName, required string fieldName )
+
+Returns whether or not the passed field exists on the passed object
+
+Arguments
+.........
+
+==========  ======  ========  ====================================================
+Name        Type    Required  Description                                         
+==========  ======  ========  ====================================================
+objectName  string  Yes       Name of the object who's field you wish to check    
+fieldName   string  Yes       Name of the field you wish to check the existance of
+==========  ======  ========  ====================================================
+
+
+.. _getobjectattribute:
+
+GetObjectAttribute()
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" )
+
+Returns an arbritary attribute value that is defined on the object's :code:`component` tag.
+
+
+Arguments
+.........
+
+=============  ======  ===============  ====================================================
+Name           Type    Required         Description                                         
+=============  ======  ===============  ====================================================
+objectName     string  Yes              Name of the object who's attribute we wish to get   
+attributeName  string  Yes              Name of the attribute who's value we wish to get    
+defaultValue   string  No (default="")  Default value for the attribute, should it not exist
+=============  ======  ===============  ====================================================
+
+
+
+Example
+.......
+
+
+.. code-block:: java
+
+
+    eventLabelField = presideObjectService.getObjectAttribute(
+          objectName    = "event"
+        , attributeName = "labelField"
+        , defaultValue  = "label"
     );

@@ -124,6 +124,8 @@ The DateCreated and DateModified fields
 
 These do exactly what they say on the tin. If you use the APIs to insert and update your records, the values of these fields will be set automatically for you.
 
+.. _preside-objects-keeping-in-sync-with-db:
+
 Keeping in sync with the database
 ---------------------------------
 
