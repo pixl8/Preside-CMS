@@ -162,8 +162,8 @@ Name              Type     Required             Description
 objectName        string   Yes                  Name of the object from which to select data                                              
 id                string   No (default="")      ID of a record to select                                                                  
 selectFields      array    No (default=[])      Array of field names to select. Can include relationships, e.g. ['tags.label as tag']     
-filter            any      No (default={})      Either a structure or plain string SQL filter, see examples                               
-filterParams      struct   No (default={})      If the filter is a plaing string SQL filter, use this structure to pass in SQL param data 
+filter            any      No (default={})      Filter the records returned, see :ref:`preside-objects-filtering-data`                    
+filterParams      struct   No (default={})      Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`             
 orderBy           string   No (default="")      Plain SQL order by string                                                                 
 groupBy           string   No (default="")      Plain SQL group by string                                                                 
 maxRows           numeric  No (default=0)       Maximum number of rows to select                                                          
@@ -228,13 +228,13 @@ Returns true if records exist that match the supplied fillter, false otherwise.
 Arguments
 .........
 
-============  ======  ========  =============================================================
-Name          Type    Required  Description                                                  
-============  ======  ========  =============================================================
-objectName    string  Yes       Name of the object in which the records may or may not exist 
-filter        any     No        Plain SQL or simple structured filter (see :ref:`SelectData`)
-filterParams  struct  No        Filter params for plain sql filter (see :ref:`SelectData`)   
-============  ======  ========  =============================================================
+============  ======  ========  =============================================================================
+Name          Type    Required  Description                                                                  
+============  ======  ========  =============================================================================
+objectName    string  Yes       Name of the object in which the records may or may not exist                 
+filter        any     No        Filter the records queried, see :ref:`preside-objects-filtering-data`        
+filterParams  struct  No        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
+============  ======  ========  =============================================================================
 
 
 
@@ -286,4 +286,65 @@ Example:
     newId = presideObjectService.insertData(
           objectName = "event"
         , data       = { name="Summer BBQ", startdate="2015-08-23", enddate="2015-08-23" }
+    );
+
+.. _updatedata:
+
+UpdateData()
+~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public numeric function updateData( required string objectName, required struct data, string id="", any filter, struct filterParams, boolean forceUpdateAll=false, boolean updateManyToManyRecords=false, boolean useVersioning=auto, numeric versionNumber=0 )
+
+Updates records in the database with a new set of data. Returns the number of records affected by the operation.
+
+
+Arguments
+.........
+
+=======================  =======  ==================  ===========================================================================================================================================
+Name                     Type     Required            Description                                                                                                                                
+=======================  =======  ==================  ===========================================================================================================================================
+objectName               string   Yes                 Name of the object who's records you want to update                                                                                        
+data                     struct   Yes                 Structure of data containing new values. Keys should map to properties on the object.                                                      
+id                       string   No (default="")     ID of a single record to update                                                                                                            
+filter                   any      No                  Filter for which records are updated, see :ref:`preside-objects-filtering-data`                                                            
+filterParams             struct   No                  Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`                                                              
+forceUpdateAll           boolean  No (default=false)  If no ID and no filters are supplied, this must be set to **true** in order for the update to process                                      
+updateManyToManyRecords  boolean  No (default=false)  Whether or not to update multiple relationship records for properties that have a many-to-many relationship                                
+useVersioning            boolean  No (default=auto)   Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
+versionNumber            numeric  No (default=0)      If using versioning, specify a version number to save against (if none specified, one will be created automatically)                       
+=======================  =======  ==================  ===========================================================================================================================================
+
+
+
+Examples
+........
+
+
+.. code-block:: java
+
+
+    // update a single record
+    updated = presideObjectService.updateData(
+          objectName = "event"
+        , id         = eventId
+        , data       = { enddate = "2015-01-31" }
+    );
+
+
+    // update multiple records
+    updated = presideObjectService.updateData(
+          objectName     = "event"
+        , data           = { cancelled = true }
+        , filter         = { category = rc.category }
+    );
+
+
+    // update all records
+    updated = presideObjectService.updateData(
+          objectName     = "event"
+        , data           = { cancelled = true }
+        , forceUpdateAll = true
     );

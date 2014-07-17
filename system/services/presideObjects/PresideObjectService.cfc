@@ -181,8 +181,8 @@ component output=false singleton=true autodoc=true {
 	 * @objectName.hint         Name of the object from which to select data
 	 * @id.hint                 ID of a record to select
 	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @filter.hint             Either a structure or plain string SQL filter, see examples
-	 * @filterParams.hint       If the filter is a plaing string SQL filter, use this structure to pass in SQL param data
+	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data`
+	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
 	 * @orderBy.hint            Plain SQL order by string
 	 * @groupBy.hint            Plain SQL group by string
 	 * @maxRows.hint            Maximum number of rows to select
@@ -338,8 +338,8 @@ component output=false singleton=true autodoc=true {
 	 * \t);
 	 *
 	 * @objectName.hint         Name of the object in which the records may or may not exist
-	 * @filter.hint             Plain SQL or simple structured filter (see :ref:`SelectData`)
-	 * @filterParams.hint       Filter params for plain sql filter (see :ref:`SelectData`)
+	 * @filter.hint             Filter the records queried, see :ref:`preside-objects-filtering-data`
+	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
 	 * @fromVersionTable.hint   Whether or not to query against the version history table
 	 * @maxVersion.hint         If querying against the version history table, maximum version to select
 	 * @specificVersion.hint    If querying against the version history table, specific version to select
@@ -519,6 +519,49 @@ component output=false singleton=true autodoc=true {
 		return newId;
 	}
 
+	/**
+	 * Updates records in the database with a new set of data. Returns the number of records affected by the operation.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * Examples
+	 * ........
+	 * \n
+	 * .. code-block:: java
+	 * \n
+	 * \t// update a single record
+	 * \tupdated = presideObjectService.updateData(
+	 * \t      objectName = "event"
+	 * \t    , id         = eventId
+	 * \t    , data       = { enddate = "2015-01-31" }
+	 * \t);
+	 * \n
+	 * \t// update multiple records
+	 * \tupdated = presideObjectService.updateData(
+	 * \t      objectName     = "event"
+	 * \t    , data           = { cancelled = true }
+	 * \t    , filter         = { category = rc.category }
+	 * \t);
+	 * \n
+	 * \t// update all records
+	 * \tupdated = presideObjectService.updateData(
+	 * \t      objectName     = "event"
+	 * \t    , data           = { cancelled = true }
+	 * \t    , forceUpdateAll = true
+	 * \t);
+	 *
+	 *
+	 * @objectName.hint              Name of the object who's records you want to update
+	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
+	 * @id.hint                      ID of a single record to update
+	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data`
+	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data`
+	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
+	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
+	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
+	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
+	 * @useVersioning.docdefault     auto
+	 */
 	public numeric function updateData(
 		  required string  objectName
 		, required struct  data
@@ -529,7 +572,7 @@ component output=false singleton=true autodoc=true {
 		,          boolean updateManyToManyRecords = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
-	) output=false {
+	) output=false autodoc=true {
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";

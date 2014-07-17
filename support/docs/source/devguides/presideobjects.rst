@@ -134,3 +134,15 @@ When you reload your application (see :doc:`reloading`), the system will attempt
 * When you delete properties from your objects, the system will rename the field in the database to :code:`_deprecated_yourfield`. This prevents accidental loss of data but can lead to a whole load of extra fields in your DB during development.
 
 * The system never deletes whole tables from your database, even when you delete the object file
+
+Interacting with data
+---------------------
+
+TODO
+
+.. _preside-objects-filtering-data:
+
+Filtering data
+##############
+
+TODO
