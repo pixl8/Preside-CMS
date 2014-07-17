@@ -11,7 +11,7 @@ The Preside Object Service is the main entry point API for interacting with **Pr
 Public API Methods
 ------------------
 
-listObjects()
+ListObjects()
 ~~~~~~~~~~~~~
 
 .. code-block:: java
@@ -25,7 +25,7 @@ Arguments
 
 *This method does not accept any arguments.*
 
-getObject()
+GetObject()
 ~~~~~~~~~~~
 
 .. code-block:: java
@@ -56,7 +56,7 @@ Example
     eventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
     event        = eventService.selectData( id=eventId )
 
-getObjectAttribute()
+GetObjectAttribute()
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: java
@@ -92,7 +92,7 @@ Example
         , defaultValue  = "label"
     );
 
-selectData()
+SelectData()
 ~~~~~~~~~~~~
 
 .. code-block:: java

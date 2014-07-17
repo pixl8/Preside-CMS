@@ -59,8 +59,9 @@ component output=false {
 		var functionDoc        = CreateObject( "java", "java.lang.StringBuffer" );
 		var argumentsDoc       = _createArgumentsDoc( fun.parameters );
 		var argsRenderedInHint = false;
+		var functionTitle      = UCase( Left( fun.name, 1 ) ) & Right( fun.name, Len( fun.name )-1 );
 
-		functionDoc.append( DOUBLELINE & _rstTitle( fun.name & "()", "~" ) );
+		functionDoc.append( DOUBLELINE & _rstTitle( functionTitle & "()", "~" ) );
 		functionDoc.append( DOUBLELINE & ".. code-block:: java" );
 
 		functionDoc.append( DOUBLELINE & INDENT & _createFunctionSignature( fun ) );
