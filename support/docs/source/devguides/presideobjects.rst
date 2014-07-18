@@ -91,7 +91,7 @@ Attributes of the properties describe details such as data type, data length and
 Standard attributes
 -------------------
 
-A non-exhaustive list of valid attributes for *non-relationship* type properties:
+While you can add any arbitrary attributes to properties (and use them for your own business logic needs), the system will interpret and use the following standard attributes:
 
 =================  =============  =========  ===============================================================================================================================================================================================================================================================
 Name               Required       Default    Description
@@ -111,6 +111,8 @@ Name               Required       Default    Description
 **format**         No             *N/A*      Either a regular expression or named validation filter (reference needed) to validate the incoming data for this field
 **pk**             No             **false**  Whether or not this field is the primary key for the object, *one field per object*. By default, your object will have an *id* field that is defined as the primary key. See :ref:`preside-objects-default-properties` below.
 **generator**      No             "none"     Named generator for generating a value for this field when inserting a new record with the value of this field ommitted. Valid values are *increment* and *UUID*. Useful for primary key generation.
+**relationship**   No             "none"     Either *none*, *many-to-one* or *many-to-many*. See :ref:`preside-objects-relationships`, below.
+**relatedTo**      No             "none"     Name of the Preside Object that the property is defining a relationship with. See :ref:`preside-objects-relationships`, below.
 =================  =============  =========  ===============================================================================================================================================================================================================================================================
 
 
@@ -191,6 +193,9 @@ The DateCreated and DateModified fields
 
 These do exactly what they say on the tin. If you use the APIs to insert and update your records, the values of these fields will be set automatically for you.
 
+
+.. _preside-objects-relationships:
+
 Defining relationships with properties
 --------------------------------------
 
@@ -227,7 +232,7 @@ The :code:`category` property will be created as a field in the :code:`event` ob
 
 .. note::
 
-    The :code:`category` property lives on the **many** side of this particular relationship (there are *many events* to *one category*), hence why we use the relationship type, *many-to-one*.
+    The :code:`event` object lives on the **many** side of this relationship (there are *many events* to *one category*), hence why we use the relationship type, *many-to-one*.
 
 Many to Many relationships
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
