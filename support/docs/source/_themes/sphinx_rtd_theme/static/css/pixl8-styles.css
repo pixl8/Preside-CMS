@@ -16,3 +16,14 @@
 .rst-content table.field-list thead th {
 	border-right-color : #E1E4E5;
 }
+
+.wy-table-responsive table td,
+.wy-table-responsive table th {
+	white-space : normal;
+}
+
+.wy-table td,
+.rst-content table.docutils td,
+.rst-content table.field-list td {
+	vertical-align : top;
+}
