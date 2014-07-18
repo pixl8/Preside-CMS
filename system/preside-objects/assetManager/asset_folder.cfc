@@ -1,4 +1,7 @@
-component output="false" extends="preside.system.base.SystemPresideObject" {
+/**
+ * An asset folder is a hierarchy of named storage locations for assets (see :doc:`/reference/presideobjects/asset`)
+ */
+component output="false" extends="preside.system.base.SystemPresideObject" displayName="Asset folder" {
 	property name="label" uniqueindexes="folderName|2";
 	property name="original_label" type="string" dbtype="varchar" maxLength=200 required="false";
 

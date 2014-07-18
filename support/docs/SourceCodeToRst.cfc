@@ -19,9 +19,10 @@ component output=false {
 		var meta = GetComponentMetaData( arguments.componentPath );
 		var doc  = CreateObject( "java", "java.lang.StringBuffer" );
 		var objName = ListLast( arguments.componentPath, "." );
+		var title = meta.displayName ?: objName;
 
 
-		doc.append( _rstTitle( objName ) );
+		doc.append( _rstTitle( title ) );
 
 		doc.append( DOUBLELINE & _rstTitle( "Overview", "-" ) & DOUBLELINE );
 		doc.append( "**Full path:** *#arguments.componentPath#*" );
@@ -30,16 +31,63 @@ component output=false {
 			doc.append( DOUBLELINE & _parseHint( meta.hint ) );
 		}
 
-		doc.append( DOUBLELINE & _rstTitle( "Public API Methods", "-" ) );
 
-		for( var fun in meta.functions ){
-			if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
-				doc.append( _createFunctionDoc( fun ) );
+		if ( ( meta.functions ?: [] ).len() ) {
+			doc.append( DOUBLELINE & _rstTitle( "Public API Methods", "-" ) );
+
+			for( var fun in meta.functions ){
+				if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
+					doc.append( _createFunctionDoc( fun ) );
+				}
 			}
 		}
 
 		return doc.toString();
 	}
+
+	/**
+	 * Returns a string containing the reStructuredText documentation
+	 * for the given preside object
+	 *
+	 * @componentPath.hint Component path used to instantiate the component, e.g. "preside.system.preside-objects.page"
+	 *
+	 */
+	public string function createPresideObjectDocumentation( required string componentPath ) output=false {
+		var meta = GetComponentMetaData( arguments.componentPath );
+		var doc  = CreateObject( "java", "java.lang.StringBuffer" );
+		var objName = ListLast( arguments.componentPath, "." );
+		var title = meta.displayName ?: objName;
+
+		doc.append( _rstTitle( title ) );
+
+		doc.append( DOUBLELINE & _rstTitle( "Overview", "-" ) & DOUBLELINE );
+
+		if ( Len( Trim( meta.hint ?: "" ) ) ) {
+			doc.append( _parseHint( meta.hint ) & DOUBLELINE );
+		}
+
+		doc.append( "**Object name:**" & NEWLINE & INDENT & ListLast( arguments.componentPath, "." ) & DOUBLELINE );
+		doc.append( "**Table name:**" & NEWLINE & INDENT & "psys_" & ListLast( arguments.componentPath, "." ) & DOUBLELINE );
+		doc.append( "**Path:**" & NEWLINE & INDENT & "/" & Replace( Replace( arguments.componentPath, "preside.system.", "" ), ".", "/", "all" ) & ".cfc" );
+
+
+		doc.append( DOUBLELINE & _rstTitle( "Properties", "-" ) & DOUBLELINE );
+		doc.append( ".. code-block:: java" & DOUBLELINE );
+		doc.append( _parsePresideObjectPropertiesAsCode( arguments.componentPath ) );
+
+		if ( ( meta.functions ?: [] ).len() ) {
+			doc.append( DOUBLELINE & _rstTitle( "Public API Methods", "-" ) );
+
+			for( var fun in meta.functions ){
+				if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
+					doc.append( _createFunctionDoc( fun ) );
+				}
+			}
+		}
+
+		return doc.toString();
+	}
+
 
 	/**
 	 * Takes a Preside XML Form path and writes an .rst file to the passed folder.
@@ -245,5 +293,30 @@ component output=false {
 		}
 
 		return "*none*";
+	}
+
+	private string function _parsePresideObjectPropertiesAsCode( required string componentPath ) output=false {
+		var filePath            = "/" & Replace( arguments.componentPath, ".", "/", "all" ) & ".cfc";
+		var fileContent         = FileRead( filePath );
+		var lines               = ListToArray( ReReplace( fileContent, "\n", "`$$$", "all" ), "`" );
+		var props               = [];
+		var prevLineWasProperty = false;
+
+		for( var line in lines ){
+			line = Trim( Replace( line, "$$$", "" ) );
+			if ( prevLineWasProperty && line == "" ) {
+				props.append( "$$$" );
+			}
+
+			prevLineWasProperty = ReFindNoCase( "^property\s.*$", line );
+			if ( prevLineWasProperty ) {
+				props.append( INDENT & line );
+			}
+		}
+
+		props = ArrayToList( props, NEWLINE );
+		props = Replace( props, "$$$", "", "all" );
+
+		return props;
 	}
 }
