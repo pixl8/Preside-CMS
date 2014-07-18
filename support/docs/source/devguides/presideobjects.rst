@@ -281,7 +281,25 @@ In this scenario, there will be no :code:`eventCategory` field created in the da
 Defining indexes and unique constraints
 ---------------------------------------
 
+The Preside Object system allows you to define database indexes on your fields using the :code:`indexes` and :code:`uniqueindexes` attributes. The attributes expect a comma separated list of index definitions. An index definition can be either an index name or combination of index name and field position, separated by a pipe character. For example:
 
+.. code-block:: java
+
+    // event.cfc
+    component output=false {
+        property name="category" indexes="category,categoryName|1" required=true relationship="many-to-one" ;
+        property name="name"     indexes="categoryName|2"          required=true type="string" dbtype="varchar" maxlength="100";
+        // ...
+    }
+
+The example above would result in the following index definitions:
+
+.. code-block:: sql
+
+    create index ix_category     on pobj_event( category );
+    create index ix_categoryName on pobj_event( category, name );
+
+The exact same syntax applies to unique indexes, the only difference being the generated index names are prefixed with :code:`ux_` rather than :code:`ix_`.
 
 .. _preside-objects-keeping-in-sync-with-db:
 
