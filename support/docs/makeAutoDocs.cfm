@@ -10,7 +10,7 @@
 	fullPresidePath = ExpandPath( "/preside" );
 	apiDocsPath     = "/preside/support/docs/source/reference/api";
 	indexDocPath    = apiDocsPath & "/index.rst";
-	cfcToRst        = new CFCToRst();
+	srcToRst        = new SourceCodeToRst();
 
 	DirectoryDelete( apiDocsPath, true );
 	DirectoryCreate( apiDocsPath );
@@ -27,7 +27,7 @@
 
 		meta = GetComponentMetaData( componentPath );
 		if ( IsBoolean( meta.autodoc ?: "" ) && meta.autodoc ) {
-			FileWrite( "#apiDocsPath#/#ListLast( componentPath, '.' )#.rst", cfcToRst.createDocumentation( componentPath ) );
+			FileWrite( "#apiDocsPath#/#ListLast( componentPath, '.' )#.rst", srcToRst.createCFCDocumentation( componentPath ) );
 			indexDoc.append( "    " & ListLast( componentPath, "." ) & Chr(10) );
 		}
 	}

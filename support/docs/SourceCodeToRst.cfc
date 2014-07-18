@@ -15,7 +15,7 @@ component output=false {
 	 * @componentPath.hint Component path used to instantiate the component, e.g. "preside.system.presideobjects.PresideObjectService"
 	 *
 	 */
-	public string function createDocumentation( required string componentPath ) output=false {
+	public string function createCFCDocumentation( required string componentPath ) output=false {
 		var meta = GetComponentMetaData( arguments.componentPath );
 		var doc  = CreateObject( "java", "java.lang.StringBuffer" );
 		var objName = ListLast( arguments.componentPath, "." );

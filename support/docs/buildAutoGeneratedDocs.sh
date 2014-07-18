@@ -2,5 +2,5 @@
 
 CWD=$(pwd)
 
-box execute $CWD/makeCFCdocs.cfm
+box execute $CWD/makeAutoDocs.cfm
 make html
