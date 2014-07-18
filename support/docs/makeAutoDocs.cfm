@@ -29,8 +29,9 @@
 
 		meta = GetComponentMetaData( componentPath );
 		if ( IsBoolean( meta.autodoc ?: "" ) && meta.autodoc ) {
-			FileWrite( "#apiDocsPath#/#ListLast( componentPath, '.' )#.rst", srcToRst.createCFCDocumentation( componentPath ) );
-			indexDoc.append( "    " & ListLast( componentPath, "." ) & Chr(10) );
+			filename = LCase( ListLast( componentPath, '.' ) );
+			FileWrite( "#apiDocsPath#/#filename#.rst", srcToRst.createCFCDocumentation( componentPath ) );
+			indexDoc.append( "    " & filename & Chr(10) );
 		}
 	}
 
