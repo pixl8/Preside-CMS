@@ -58,39 +58,41 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 		var sql    = "update #getTableName()# set datemodified = ?";
 
 		q.setDatasource( getDsn() );
-		q.addParam( value=Now(), type="timestamp" );
+		q.addParam( value=Now(), cfsqltype="timestamp" );
 
 		for( var field in [ "_hierarchy_lineage", "_hierarchy_slug", "_hierarchy_depth", "_hierarchy_sort_order", "trashed" ] ) {
-			switch( field ) {
-				case "_hierarchy_lineage":
-					sql &= ', _hierarchy_child_selector = Concat( ?, Right( _hierarchy_child_selector, Length( _hierarchy_child_selector ) - ? ) )';
-					q.addParam( value=arguments.newData[ field ]          , type="varchar" );
-					q.addParam( value=Len( arguments.oldData[ field ][1] ), type="integer" );
-					// deliberate no break!
+			if ( arguments.newData.keyExists( field ) ) {
+				switch( field ) {
+					case "_hierarchy_lineage":
+						sql &= ', _hierarchy_child_selector = Concat( ?, Right( _hierarchy_child_selector, Length( _hierarchy_child_selector ) - ? ) )';
+						q.addParam( value=arguments.newData[ field ]          , cfsqltype="varchar" );
+						q.addParam( value=Len( arguments.oldData[ field ][1] ), cfsqltype="integer" );
+						// deliberate no break!
 
-				case "_hierarchy_slug":
-				case "_hierarchy_sort_order":
-					sql &= ', #field# = Concat( ?, Right( #field#, Length( #field# ) - ? ) )';
-					q.addParam( value=arguments.newData[ field ]   , type="varchar" );
-					q.addParam( value=arguments.oldData[ field ][1], type="varchar" );
-					break;
+					case "_hierarchy_slug":
+					case "_hierarchy_sort_order":
+						sql &= ', #field# = Concat( ?, Right( #field#, Length( #field# ) - ? ) )';
+						q.addParam( value=arguments.newData[ field ]          , cfsqltype="varchar" );
+						q.addParam( value=Len( arguments.oldData[ field ][1] ), cfsqltype="integer" );
+						break;
 
 
-				case "_hierarchy_depth":
-					sql &= ', #field# = #field# - ?';
-					q.addParam( value=arguments.oldData[ field ][1] - arguments.newData[ field ], type="integer" );
-					break;
+					case "_hierarchy_depth":
+						sql &= ', #field# = #field# - ?';
+						q.addParam( value=arguments.oldData[ field ][1] - arguments.newData[ field ], cfsqltype="integer" );
+						break;
 
-				case "trashed":
-					sql &= ', #field# = ?';
-					q.addParam( value=( arguments.newData.trashed ? 1 : 0 ), type="bit" );
-					break;
+					case "trashed":
+						sql &= ', #field# = ?';
+						q.addParam( value=( arguments.newData.trashed ? 1 : 0 ), cfsqltype="bit" );
+						break;
 
+				}
 			}
 		}
 
-		sql &= "where  _hierarchy_lineage like ?";
-		q.addParam( lue=arguments.oldData._hierarchy_child_selector, type="varchar" );
+		sql &= " where  _hierarchy_lineage like ?";
+		q.addParam( value=arguments.oldData._hierarchy_child_selector, cfsqltype="varchar" );
 
 		q.setSQL( sql );
 		q.execute();
