@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset: add through picker form
+
+This form is used as the add asset form when a user is uploading assets through the asset picker.
+The form will be shown once for each file that has been uploaded.
+-->
 <form>
 	<tab>
 		<fieldset>

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+User group: add form
+
+This form is used for the "edit user group" form in the user admin section of the administrator.
+-->
 <form>
 	<tab id="basic">
 		<fieldset id="basic">

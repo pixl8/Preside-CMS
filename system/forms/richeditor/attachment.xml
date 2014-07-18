@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Richeditor: attachment form
+
+This form is used for the add/edit attachment screen in the richeditor.
+-->
 <form>
 	<tab id="main">
 		<fieldset id="main">

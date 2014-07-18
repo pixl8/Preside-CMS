@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+User: add form
+
+This form is used for the "add user" form in the user admin section of the administrator.
+-->
 <form>
 	<tab>
 		<fieldset title="preside-objects.security_user:fieldset.details" description="preside-objects.security_user:fieldset.details.description">

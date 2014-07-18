@@ -41,6 +41,56 @@ component output=false {
 		return doc.toString();
 	}
 
+	/**
+	 * Takes a Preside XML Form path and writes an .rst file to the passed folder.
+	 * Returns a structure with information about the operation and parsed file.
+	 *
+	 * @xmlFilePath.hint  Full path to the XML file
+	 * @docDirectory.hint Full directory path for the location of the rst file
+	 */
+	public struct function writeXmlFormDocumentation( required string xmlFilePath, required string docDirectory ) output=true {
+		var returnStruct       = { success=true };
+		var fileContent        = FileRead( arguments.xmlFilePath );
+		var documentationMatch = ReFind( "<!--##!autodoc(.*?)-->", fileContent, 1, true );
+
+		if ( !documentationMatch.len.len() == 2 || !documentationMatch.len[2] ) {
+			return { success = false };
+		}
+
+		var documentation = Trim( Mid( fileContent, documentationMatch.pos[2], documentationMatch.len[2] ) );
+		var title         = ListFirst( documentation, Chr(10) & Chr(13) );
+		var description   = ListRest( documentation, Chr(10) & Chr(13) );
+		var relativePath  = Replace( Replace( xmlFilePath, "\", "/", "all" ), ExpandPath( "/preside/system" ), "" );
+		var source        = ReReplace( fileContent, "<!--##!autodoc(.*?)-->", "" );
+
+		source = ReReplace( source, "\n", "`$$$", "all" );
+		source = ListToArray( source, "`" );
+		for( var i=1; i <= source.len(); i++ ){
+			var line = source[i];
+			if ( line != "$$$" ) {
+				source[i] = INDENT & line;
+			}
+		}
+		source = ArrayToList( source, NEWLINE );
+		source = Replace( source, "$$$", "", "all" );
+		source = Replace( source, Chr(9), INDENT, "all" );
+
+		returnStruct.filename = LCase( ReReplace( title, "\W", "", "all" ) );
+
+		var doc = CreateObject( "java", "java.lang.StringBuffer" );
+
+		doc.append( _rstTitle( title ) & DOUBLELINE );
+		doc.append( "*#relativePath#*" & DOUBLELINE );
+		doc.append( description & DOUBLELINE );
+		doc.append( ".. code-block:: xml" & DOUBLELINE );
+		doc.append( source & DOUBLELINE );
+
+		FileWrite( arguments.docDirectory & "/#returnStruct.filename#.rst", doc.toString() );
+
+		return returnStruct;
+
+	}
+
 // PRIVATE METHODS
 	private string function _rstTitle( required string title, string underLineChar="=" ) output=false {
 		return arguments.title & NEWLINE & RepeatString( arguments.underLineChar, Len( arguments.title ) );

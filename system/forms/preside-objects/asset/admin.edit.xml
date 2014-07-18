@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset: edit form
+
+This form is used when editing assets in the asset manager section of the administrator.
+-->
 <form>
 	<tab>
 		<fieldset>

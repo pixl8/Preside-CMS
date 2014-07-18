@@ -1,0 +1,23 @@
+Asset: add through picker form
+==============================
+
+*/forms/preside-objects/asset/picker.add.xml*
+
+This form is used as the add asset form when a user is uploading assets through the asset picker.
+The form will be shown once for each file that has been uploaded.
+
+.. code-block:: xml
+
+    <?xml version="1.0" encoding="UTF-8"?>
+
+    <form>
+        <tab>
+            <fieldset>
+                <field binding="asset.title" />
+                <field binding="asset.asset_folder" name="folder" control="assetFolderPicker" />
+                <field binding="asset.author" control="textinput" />
+                <field binding="asset.description" control="textarea" />
+            </fieldset>
+        </tab>
+    </form>
+

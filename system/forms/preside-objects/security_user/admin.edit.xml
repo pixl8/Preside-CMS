@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+User: edit form
+
+This form is used for the "edit user" form in the user admin section of the administrator.
+-->
 <form>
 	<tab id="basic">
 		<fieldset id="basic" title="preside-objects.security_user:fieldset.details" description="preside-objects.security_user:fieldset.details.description">

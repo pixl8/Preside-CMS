@@ -1,0 +1,22 @@
+Asset: edit form
+================
+
+*/forms/preside-objects/asset/admin.edit.xml*
+
+This form is used when editing assets in the asset manager section of the administrator.
+
+.. code-block:: xml
+
+    <?xml version="1.0" encoding="UTF-8"?>
+
+    <form>
+        <tab>
+            <fieldset>
+                <field binding="asset.title" />
+                <field binding="asset.asset_folder" control="assetFolderPicker" required="true" />
+                <field binding="asset.author" control="textinput" />
+                <field binding="asset.description" control="textarea" />
+            </fieldset>
+        </tab>
+    </form>
+

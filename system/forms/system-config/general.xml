@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+System config form: General configuration
+
+This form is used for the "general" system configuration section.
+-->
 <form>
 	<tab id="administrator">
 		<fieldset id="administrator">
