@@ -24,7 +24,7 @@ Data objects are represented by ColdFusion Components (CFCs). A typical object w
         property name="tags" relationship="many-to-many" relatedto="tag";
     }
 
-A singe CFC file represents a table in your database. Properties defined using the :code:`property` tag represent fields and/or relationships on the table. 
+A singe CFC file represents a table in your database. Properties defined using the :code:`property` tag represent fields and/or relationships on the table (see :ref:`preside-objects-properties`, below). 
 
 Database table names
 --------------------
@@ -41,17 +41,38 @@ You can override these defaults with the :code:`tablename` and :code:`tableprefi
 
 .. note::
 
-    All of the preside objects that are provided by the core PresideCMS system have their tablenames prefixed with **psys_**.
+    All of the preside objects that are provided by the core PresideCMS system have their table names prefixed with **psys_**.
 
 Registering objects
 -------------------
     
-The system will automatically register any CFC files that live under the :code:`/application/preside-objects` folder of your site (and any of its sub-folders).
+The system will automatically register any CFC files that live under the :code:`/application/preside-objects` folder of your site (and any of its sub-folders). Each .cfc file will be registered with an ID that is the name of the file without the ".cfc" extension. 
+
+For example, given the directory structure below, *four* objects will be registered with the IDs *blog*, *blogAuthor*, *event*, *eventCategory*:
+
+.. code-block:: txt
+
+    /application
+        /preside-objects
+            /blogs
+                blog.cfc
+                blogAuthor.cfc
+            /events
+                event.cfc
+                eventCategory.cfc
+
+.. note::
+
+    Notice how folder names are ignored. While it is useful to use folders to organise your Preside Objects, they carry no logical meaning in the system.
+
+Extensions and core objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For extensions, the system will search for CFC files in a :code:`/preside-objects` folder at the root of your extension.
 
-Core system Preside Objects can be found at :code:`/preside/system/preside-objects`.
+Core system Preside Objects can be found at :code:`/preside/system/preside-objects`. See :doc:`/reference/presideobjects/index` for reference documentation.
 
+.. _preside-objects-properties:
 
 Properties
 ##########

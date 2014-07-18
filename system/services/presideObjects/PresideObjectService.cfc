@@ -4,7 +4,7 @@
  * For a full developer guide on using Preside Objects and this service, see :doc:`/devguides/presideobjects`.
  */
 
-component output=false singleton=true autodoc=true {
+component output=false singleton=true autodoc=true displayName="Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
