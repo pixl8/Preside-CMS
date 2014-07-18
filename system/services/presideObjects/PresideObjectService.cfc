@@ -50,8 +50,9 @@ component output=false singleton=true autodoc=true {
 
 // PUBLIC API METHODS
 	/**
-	 * Returns an instance of the Preside Object who's name is passed through the 'objectName' argument.
-	 * The instance will be decorated with CRUD methods so that you can use it as a basic auto service object for your object.
+	 * Returns an 'auto service' object instance of the given Preside Object.
+	 * \n
+	 * See :ref:`preside-objects-auto-service-objects` for a full guide.
 	 * \n
 	 * ${arguments}
 	 * \n
@@ -60,9 +61,11 @@ component output=false singleton=true autodoc=true {
 	 *
 	 * .. code-block:: java
 	 * \n
-	 * \teventService = presideObjectService.getObject( "event" );
-	 * \teventId      = eventService.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
-	 * \tevent        = eventService.selectData( id=eventId )
+	 *
+	 * \teventObject = presideObjectService.getObject( "event" );
+	 * \n
+	 * \teventId     = eventObject.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
+	 * \tevent       = eventObject.selectData( id=eventId )
 	 *
 	 * @objectName.hint The name of the object to get
 	 */

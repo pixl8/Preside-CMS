@@ -148,3 +148,10 @@ Filtering data
 ##############
 
 TODO
+
+.. _preside-objects-auto-service-objects:
+
+Using Auto Service Objects
+##########################
+
+TODO
