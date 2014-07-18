@@ -50,7 +50,7 @@ The system will automatically register any CFC files that live under the :code:`
 
 For example, given the directory structure below, *four* objects will be registered with the IDs *blog*, *blogAuthor*, *event*, *eventCategory*:
 
-.. code-block:: txt
+.. code-block:: text
 
     /application
         /preside-objects
@@ -76,6 +76,45 @@ Core system Preside Objects can be found at :code:`/preside/system/preside-objec
 
 Properties
 ##########
+
+Properties represent fields on your database table or mark relationships between objects (or both).
+
+Attributes of the properties describe details such as data type, data length and validation requirements. At a minimum, your properties should define a *name*, *type* and *dbtype* attribute. For *varchar* fields, a *maxLength* attribute is also required. You will also typically need to add a *required* attribute for any properties that are a required field for the object:
+
+.. code-block:: java
+
+    component output=false {
+        property name="name"          type="string"  dbtype="varchar" maxLength="200" required=true;
+        property name="max_delegates" type="numeric" dbtype="int"; // not required
+    }
+
+Standard attributes
+-------------------
+
+A non-exhaustive list of valid attributes for *non-relationship* type properties:
+
+=================  =============  =========  ===============================================================================================================================================================================================================================================================
+Name               Required       Default    Description
+=================  =============  =========  ===============================================================================================================================================================================================================================================================
+**name**           Yes            *N/A*      Name of the field
+**type**           No             "string"   CFML type of the field. Valid values: *string*, *numeric*, *boolean*, *date*
+**dbtype**         No             "varchar"  Database type of the field to be define on the database table field        
+**maxLength**      No             0          For dbtypes that require a length specification. If zero, the max size will be used.
+**required**       No             **false**  Whether or not the field is required.    
+**indexes**        No             ""         List of indexes for the field, see :ref:`preside-objects-indexes`
+**uniqueindexes**  No             ""         List of unique indexes for the field, see :ref:`preside-objects-indexes`
+**control**        No             "default"  The default form control to use when rendering this field in a Preside Form. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. See :doc:`/devguides/formcontrols` and :doc:`/devguides/formlayouts`.
+**renderer**       No             "default"  The default content renderer to use when rendering this field in a view. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. (reference needed here).
+**minLength**      No             *none*     Minimum length of the data that can be saved to this field. Used in form validation, etc. 
+**minValue**       No             *none*     The minumum numeric value of data that can be saved to this field. *For numeric types only*.
+**maxValue**       No             *N/A*      The maximum numeric value of data that can be saved to this field. *For numeric types only*.
+**format**         No             *N/A*      Either a regular expression or named validation filter (reference needed) to validate the incoming data for this field
+**pk**             No             **false**  Whether or not this field is the primary key for the object, *one field per object*. By default, your object will have an *id* field that is defined as the primary key. See :ref:`preside-objects-default-properties` below.
+**generator**      No             "none"     Named generator for generating a value for this field when inserting a new record with the value of this field ommitted. Valid values are *increment* and *UUID*. Useful for primary key generation.
+=================  =============  =========  ===============================================================================================================================================================================================================================================================
+
+
+.. _preside-objects-default-properties:
 
 Default properties
 ------------------
@@ -152,8 +191,8 @@ The DateCreated and DateModified fields
 
 These do exactly what they say on the tin. If you use the APIs to insert and update your records, the values of these fields will be set automatically for you.
 
-Defining relationships
-######################
+Defining relationships with properties
+--------------------------------------
 
 Relationships are defined on **property** tags using the :code:`relationship` and :code:`relatedTo` attributes. For example:
 
@@ -180,7 +219,7 @@ If you do not specify a :code:`relatedTo` attribute, the system will assume that
     }    
 
 One to Many relationships
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the examples, above, we define a **one to many** style relationship between :code:`event` and :code:`eventCategory` by adding a foreign key property to the :code:`event` object.
 
@@ -191,7 +230,7 @@ The :code:`category` property will be created as a field in the :code:`event` ob
     The :code:`category` property lives on the **many** side of this particular relationship (there are *many events* to *one category*), hence why we use the relationship type, *many-to-one*.
 
 Many to Many relationships
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If we wanted an event to be associated with multiple event categories, we would want to use a **Many to Many** relationship:
 
@@ -230,6 +269,14 @@ In this scenario, there will be no :code:`eventCategory` field created in the da
 .. note::
 
     Unlike **many to one** relationships, the **many to many** relationship can be defined on either or both objects in the relationship. That said, you will want to define it on the object(s) that make use of the relationship. In the event / eventCategory example, this will most likely be the event object. i.e. :code:`event.insertData( label=eventName, eventCategory=listOfCategoryIds )`.
+
+
+.. _preside-objects-indexes:
+
+Defining indexes and unique constraints
+---------------------------------------
+
+
 
 .. _preside-objects-keeping-in-sync-with-db:
 
