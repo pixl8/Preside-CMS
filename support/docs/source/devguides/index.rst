@@ -2,7 +2,7 @@ Developer guides & recipes
 ==========================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    developeroverview
    designeroverview
