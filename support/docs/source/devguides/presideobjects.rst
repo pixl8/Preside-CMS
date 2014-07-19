@@ -35,7 +35,7 @@ You can override these defaults with the :code:`tablename` and :code:`tableprefi
 
 .. code-block:: java
 
-    component output=false tablename="mytable" tableprefix="mysite_" output=false {
+    component tablename="mytable" tableprefix="mysite_" output=false {
         // .. etc.
     }
 
