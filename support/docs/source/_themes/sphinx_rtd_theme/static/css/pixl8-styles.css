@@ -38,9 +38,17 @@
 	border-top : none; /* remove top border 'shadow' doesn't fit with Presideish theme */
 }
 
-
 .wy-nav-content-wrap .wy-nav-content  {
 	max-width : 1000px;
+	padding   : 1em;
+}
+
+.wy-nav-side .wy-menu {
+	padding-top : 1em;
+}
+
+hr {
+	margin : 12px 0;
 }
 
 #page-toc li { list-style : none; }
