@@ -319,9 +319,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			}
 		}
 
-		if ( objectIsUsingSiteTenancy( arguments.objectName ) && !cleanedData.keyExists( "site" ) ) {
-			var site = _getColdboxRequestContext().getSite();
-			cleanedData.site = ( site.id ?: "" );
+		if ( objectIsUsingSiteTenancy( arguments.objectName ) && !Len( Trim( cleanedData.site ?: "" ) ) ) {
+			cleanedData.site = _getActiveSiteId();
 		}
 
 		transaction {
@@ -1838,6 +1837,12 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		}
 
 		return currentObject;
+	}
+
+	private string function _getActiveSiteId() output=false {
+		var site = _getColdboxRequestContext().getSite();
+
+		return ( site.id ?: "" );
 	}
 
 // SIMPLE PRIVATE PROXIES
