@@ -646,3 +646,67 @@ Example
         , attributeName = "maxLength"
         , defaultValue  = 200
     );
+
+.. _presideobjectservice-getversionobjectname:
+
+GetVersionObjectName()
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public string function getVersionObjectName( required string sourceObjectName )
+
+This method, returns the object name that can be used to reference the version history object
+for a given object.
+
+Arguments
+.........
+
+================  ======  ========  ================================================================
+Name              Type    Required  Description                                                     
+================  ======  ========  ================================================================
+sourceObjectName  string  Yes       Name of the object who's version object name we wish to retrieve
+================  ======  ========  ================================================================
+
+
+.. _presideobjectservice-objectisversioned:
+
+ObjectIsVersioned()
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function objectIsVersioned( required string objectName )
+
+Returns whether or not the given object is using the versioning system
+
+Arguments
+.........
+
+==========  ======  ========  ====================================
+Name        Type    Required  Description                         
+==========  ======  ========  ====================================
+objectName  string  Yes       Name of the object you wish to check
+==========  ======  ========  ====================================
+
+
+.. _presideobjectservice-getnextversionnumber:
+
+GetNextVersionNumber()
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public numeric function getNextVersionNumber( )
+
+Returns the next available version number that can
+be used for saving a new version record.
+
+
+This is an auto incrementing integer that is global to all versioning tables
+in the system.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*

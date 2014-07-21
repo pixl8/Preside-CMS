@@ -1019,6 +1019,42 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return obj.meta.properties[ arguments.propertyName ][ arguments.attributeName ] ?: arguments.defaultValue;
 	}
 
+
+	/**
+	 * This method, returns the object name that can be used to reference the version history object
+	 * for a given object.
+	 *
+	 * @sourceObjectName.hint Name of the object who's version object name we wish to retrieve
+	 */
+	public string function getVersionObjectName( required string sourceObjectName ) output=false autodoc=true {
+		var obj = _getObject( arguments.sourceObjectName );
+
+		return obj.meta.versionObjectName;
+	}
+
+	/**
+	 * Returns whether or not the given object is using the versioning system
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 */
+	public boolean function objectIsVersioned( required string objectName ) output=false autodoc=true {
+		var obj = _getObject( objectName );
+
+		return IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned;
+	}
+
+	/**
+	 * Returns the next available version number that can
+	 * be used for saving a new version record.
+	 * \n
+	 * This is an auto incrementing integer that is global to all versioning tables
+	 * in the system.
+	 */
+	public numeric function getNextVersionNumber() output=false autodoc=true {
+		return _getVersioningService().getNextVersionNumber();
+	}
+
+
 	public any function getObjectProperties( required string objectName ) output=false {
 		return _getObject( arguments.objectName ).meta.properties;
 	}
@@ -1043,12 +1079,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 	public boolean function isManyToManyProperty( required string objectName, required string propertyName ) output=false {
 		return getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relationship", "" ) == "many-to-many";
-	}
-
-	public string function getVersionObjectName( required string sourceObjectName ) output=false {
-		var obj = _getObject( arguments.sourceObjectName );
-
-		return obj.meta.versionObjectName;
 	}
 
 	public any function getDbAdapterForObject( required string objectName ) output=false {
@@ -1138,17 +1168,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		return "textinput";
 	}
-
-	public boolean function objectIsVersioned( required string objectName ) output=false {
-		var obj = _getObject( objectName );
-
-		return IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned;
-	}
-
-	public numeric function getNextVersionNumber() output=false {
-		return _getVersioningService().getNextVersionNumber();
-	}
-
 
 // PRIVATE HELPERS
 	private void function _loadObjects() output=false {

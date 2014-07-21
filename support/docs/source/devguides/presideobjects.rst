@@ -6,7 +6,7 @@ Overview
 
 **Preside Data Objects** are the data layer implementation for PresideCMS. Just about everything in the system that persists data to the database uses Preside Data Objects to do so. 
 
-The Preside Data Objects system is deeply integrated into the CMS; input forms and other administrative GUIs can be automatically generated for your preside objects (see :doc:`formlayouts`) and :doc:`presideobjectviews` provide a way to present your data to end users without the need for handler or service layers.
+The Preside Data Objects system is deeply integrated into the CMS; input forms and other administrative GUIs can be automatically generated for your preside objects (see :doc:`formlayouts`) and :doc:`presideobjectviews` provide a way to present your data to end users without the need for handler or service layers. There is also a complete GUI data manager that can be configured for your clients that is based on entirely on Preside Data Objects; see :doc:`datamanager`.
 
 The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation, see :doc:`/reference/api/presideobjectservice` (service layer) and :doc:`/reference/presideobjects/index` (system provided data objects).
 
@@ -609,7 +609,7 @@ By default, all :ref:`presideobjectservice-selectData` calls have their recordse
 
 You can specify *not* to cache results with the :code:`useCache` argument.
 
-TODO: references here for configuring caches.
+See :doc:`caching` for a full guide to configuring and creating caches, including how to configure the default query cache used here.
 
 
 Extending Objects
@@ -655,7 +655,34 @@ Then, in your site, you may have some client specific requirements that you need
 Versioning
 ##########
 
-TODO
+By default, Preside Data Objects will maintain a version history of each database record. It does this by creating a separate database table that is prefixed with :code:`_version_`. For example, for an object named 'news', a version table named **_version_pobj_news** would be created.
+
+The version history table contains the same fields as its twin as well as a few specific fields for dealing with version numbers, etc. All foreign key constraints and unique indexes are removed.
+
+Opting out
+----------
+
+To opt out of versioning for an object, you can set the :code:`versioned` attribute to **false** on your CFC file:
+
+.. code-block:: java
+    
+    component versioned=false output=false {
+        // ...
+    }
+
+Interacting with versions
+-------------------------
+
+Various admin GUIs such as the :doc:`datamanager` implement user interfaces to deal with versioning records. However, if you find the need to create your own, or need to deal with version history records in any other way, you can use methods provided by the service api:
+
+* :ref:`presideobjectservice-getrecordversions`
+* :ref:`presideobjectservice-getversionobjectname`
+* :ref:`presideobjectservice-objectisversioned`
+* :ref:`presideobjectservice-getnextversionnumber`
+
+In addition, you can specify whether or not you wish to use the versioning system, and also what version number to use if you are, when calling the :ref:`presideobjectservice-insertData`, :ref:`presideobjectservice-updateData` and :ref:`presideobjectservice-deleteData` methods by using the :code:`useVersioning` and :code:`versionNumber` arguments.
+
+Finally, you can select data from the version history tables with the :ref:`presideobjectservice-selectdata` method by using the :code:`fromVersionTable`, :code:`maxVersion` and :code:`specificVersion` arguments.
 
 
 .. _Wirebox: http://wiki.coldbox.org/wiki/WireBox.cfm
