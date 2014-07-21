@@ -6,6 +6,30 @@
 <cfcomponent extends="coldbox.system.web.context.RequestContextDecorator" output="false">
 
 <!--- URL related --->
+	<cffunction name="setSite" access="public" returntype="void" output="false">
+		<cfargument name="site" type="struct" required="true" />
+
+		<cfscript>
+			getRequestContext().setValue(
+				  name    = "_site"
+				, value   =  arguments.site
+				, private =  true
+			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="getSite" access="public" returntype="struct" output="false">
+		<cfscript>
+			var site = getRequestContext().getValue( name="_site", private=true, defaultValue={} );
+
+			if ( IsStruct( site ) ) {
+				return site;
+			}
+
+			return {};
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="buildLink" access="public" returntype="string" output="false">
 		<cfscript>
 			var prc = getRequestContext().getCollection( private=true );
@@ -70,6 +94,8 @@
 			return collection;
 		</cfscript>
 	</cffunction>
+
+
 
 <!--- Admin specific --->
 	<cffunction name="buildAdminLink" access="public" returntype="string" output="false">
@@ -261,8 +287,8 @@
 
 <!--- FRONT END, dealing with current page --->
 	<cffunction name="initializePresideSiteteePage" access="public" returntype="void" output="false">
-		<cfargument name="slug"      type="string" required="false"  />
-		<cfargument name="pageId"    type="string" required="false"  />
+		<cfargument name="slug"      type="string" required="false" />
+		<cfargument name="pageId"    type="string" required="false" />
 		<cfargument name="subaction" type="string" required="false" />
 
 		<cfscript>

@@ -1,5 +1,7 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
+	property name="siteService" inject="siteService";
+
 	public void function configure() output=false {
 		instance.presideRoutes = [];
 
@@ -8,9 +10,9 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 // the interceptor method
 	public void function onRequestCapture( event, interceptData ) output=false {
-		var routed = _routePresideSESRequest( argumentCollection = arguments );
+		_detectIncomingSite( argumentCollection=arguments );
 
-		if ( not routed ) {
+		if ( !_routePresideSESRequest( argumentCollection = arguments ) ) {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
 	}
@@ -30,8 +32,19 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	}
 
 // private utility methods
+	private void function _detectIncomingSite( event, interceptData ) output=false {
+		var site   = siteService.matchSite(
+			  domain = super.getCGIElement( "server_name", event )
+			, path   = super.getCGIElement( "path_info"  , event )
+		);
+
+		event.setSite( site );
+	}
+
 	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
 		var path = super.getCGIElement( "path_info", event );
+
+
 
 		for( var route in instance.presideRoutes ){
 			if ( route.match( path=path, event=event ) ) {

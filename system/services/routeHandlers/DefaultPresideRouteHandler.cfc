@@ -27,6 +27,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		var params      = "";
 		var rc          = event.getCollection();
 		var prc         = event.getCollection( private=true );
+		var site        = event.getSite();
 
 		if ( arguments.path eq "/index.cfm" or arguments.path eq "/" ) {
 			slug      = "/";
@@ -47,6 +48,13 @@ component implements="iRouteHandler" output=false singleton=true {
 				} else {
 					rc[ key ] = UrlDecode( params[i] );
 				}
+			}
+		}
+
+		if ( Len( site.path ?: "" ) > 1 ) {
+			slug = Right( slug, Len( slug ) - Len( site.path ) );
+			if ( Left( slug, 1 ) != "/" ) {
+				slug = "/" & slug;
 			}
 		}
 
