@@ -315,13 +315,133 @@ When you reload your application (see :doc:`reloading`), the system will attempt
 
 * The system never deletes whole tables from your database, even when you delete the object file
 
-Interacting with data
-#####################
+Working with the API
+####################
 
-The :doc:`/reference/api/presideobjectservice` service object provides a number of CRUD methods for interacting with the data stored in your objects' database tables.
+The :doc:`/reference/api/presideobjectservice` service object provides methods for performing CRUD operations on the data along with other useful methods for querying the metadata of each of your data objects. There are two ways in which to interact with the API:
 
-Making use of relationships
----------------------------
+1. Obtain an instance the :doc:`/reference/api/presideobjectservice` and call its methods directly, see :ref:`preside-objects-get-api-instance`
+2. Obtain an "auto service object" for the specific object you wish to work with and call its decorated CRUD methods as well as any of its own custom methods, see :ref:`preside-objects-auto-service-objects`
+
+You may find that all you wish to do is to render a view with some data that is stored through the Preside Object service. In this case, you can bypass the service layer APIs and use the :doc:`presideobjectviews` system instead.
+
+
+.. _preside-objects-get-api-instance:
+
+Getting an instance of the Service API
+--------------------------------------
+
+We use Wirebox_ to auto wire our service layer. To inject an instance of the service API into your service objects and/or handlers, you can use wirebox's "inject" syntax as shown below:
+
+.. code-block:: java
+
+    // a handler example
+    component output=false {
+        property name="presideObjectService" inject="presideObjectService";
+
+        function index( event, rc, prc ) output=false {
+            prc.eventRecord = presideObjectService.selectData( objectName="event", id=rc.id ?: "" );
+
+            // ...
+        }
+    }
+
+    // a service layer example
+    // (here at Pixl8, we prefer to inject constructor args over setting properties)
+    component output=false {
+
+        /**
+         * @presideObjectService.inject presideObjectService
+         */
+         public any function init( required any presideObjectService ) output=false {
+            _setPresideObjectService( arguments.presideObjectService );
+
+            return this;
+         }
+
+         public query function getEvent( required string id ) output=false {
+            return _getPresideObjectService().selectData(
+                  objectName = "event"
+                , id         = arguments.id
+            );
+         }
+
+         // we prefer private getters and setters for accessing private properties, this is our house style
+         private any function _getPresideObjectService() output=false {
+             return variables._presideObjectService;
+         }
+         private void function _setPresideObjectService( required any presideObjectService ) output=false {
+             variables._presideObjectService = arguments.presideObjectService;
+         }
+
+    }
+
+
+.. _preside-objects-auto-service-objects:
+
+Using Auto Service Objects
+--------------------------
+
+An auto service object represents an individual data object. They are an instance of the given object that has been decorated with the service API CRUD methods.
+
+Calling the CRUD methods works in the same way as with the main API with the exception that the objectName argument is no longer required. So:
+
+.. code-block:: java
+
+    record = presideObjectService.selectData( objectName="event", id=id );
+
+    // is equivalent to:
+    eventObject = presideObjectService.getObject( "event" );
+    record      = eventObject.selectData( id=id );
+
+
+Getting an auto service object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This can be done using either the :ref:`presideobjectservice-getobject` method of the Preside Object Service or by using a special Wirebox DSL injection syntax, i.e.
+
+.. code-block:: java
+
+    // a handler example
+    component output=false {
+        property name="eventObject" inject="presidecms:object:event";
+
+        function index( event, rc, prc ) output=false {
+            prc.eventRecord = eventObject.selectData( id=rc.id ?: "" );
+
+            // ...
+        }
+    }
+
+    // a service layer example
+    component output=false {
+
+        /**
+         * @eventObject.inject presidecms:object:event
+         */
+         public any function init( required any eventObject ) output=false {
+            _setPresideObjectService( arguments.eventObject );
+
+            return this;
+         }
+
+         public query function getEvent( required string id ) output=false {
+            return _getEventObject().selectData( id = arguments.id );
+         }
+
+         // we prefer private getters and setters for accessing private properties, this is our house style
+         private any function _getEventObject() output=false {
+             return variables._eventObject;
+         }
+         private void function _setEventObject( required any eventObject ) output=false {
+             variables._eventObject = arguments.eventObject;
+         }
+
+    }
+
+CRUD Operations
+---------------
+
 
 .. _preside-objects-filtering-data:
 
@@ -330,12 +450,13 @@ Filtering data
 
 TODO
 
-.. _preside-objects-auto-service-objects:
-
-Using Auto Service Objects
-##########################
+Making use of relationships
+---------------------------
 
 TODO
 
 Versioning
 ##########
+
+
+.. _Wirebox: http://wiki.coldbox.org/wiki/WireBox.cfm
