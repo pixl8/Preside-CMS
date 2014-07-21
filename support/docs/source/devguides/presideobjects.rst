@@ -615,7 +615,42 @@ TODO: references here for configuring caches.
 Extending Objects
 #################
 
-TODO
+.. tip::
+
+    You can easily extend core data objects and objects that have been provided by extensions simply by creating :code:`.cfc` file with the same name. 
+
+Objects with the same name, but from different sources, are merged at runtime so that you can have multiple extensions all contributing to the final object definition.
+
+Take the :doc:`/reference/presideobjects/page` object, for example. You might write an extension that adds an **allow_comments** property to the object. That CFC would look like this:
+
+.. code-block:: java
+
+    // /extensions/myextension/preside-objects/page.cfc
+    component output=false {
+        property name="allow_comments" type="boolean" dbtype="boolean" required=false default=true;
+    }
+
+After adding that code and reloading your application, you would find that the **psys_page** table now had an **allow_comments** field added.
+
+Then, in your site, you may have some client specific requirements that you need to implement for all pages. Simply by creating a :code:`page.cfc` file under your site, you can mix in properties along with the **allow_comments** mixin above:
+
+.. code-block:: java
+
+    // /application/preside-objects/page.cfc
+    component output=false {
+        // remove a property that has been defined elsewhere
+        property name="embargo_date" deleted=true;
+
+        // alter attributes of an existing property
+        property name="title" maxLength="50"; // strict client requirement?!
+
+        // add a new property
+        property name="search_engine_boost" type="numeric" dbtype="integer" minValue=0 maxValue=100 default=0;
+    }
+
+.. note::
+
+    To have your object changes reflected in GUI forms (i.e. the add and edit page forms in the example above), you will likely need to modify the form definitions for the object you have changed. See :doc:`formlayouts` for a full guide and reference (hint: the same system of mixed in extensions is used for form layouts).
 
 Versioning
 ##########
