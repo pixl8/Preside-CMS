@@ -457,6 +457,9 @@ In addition to the four core methods above, there are also further utility metho
 * :ref:`presideobjectservice-getdenormalizedmanytomanydata`
 * :ref:`presideobjectservice-getrecordversions`
 
+
+.. _presideobjectsselectfields:
+
 Specifying fields for selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -533,7 +536,71 @@ More complex filters can be achieved with a plain SQL filter combined with filte
 Making use of relationships
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+As seen in the examples above, you can use a special field syntax to reference properties in objects that are related to the object that you are selecting data from / updating data on. When you do this, the service layer will automatically create the necessery SQL joins for you. 
+
+The syntax takes the form: :code:`(relatedObjectReference).(propertyName)`. The related object reference can either be the name of the related object, or a :code:`$` delimited path of property names that navigate through the relationships (see examples below).
+
+This syntax can be used in:
+
+* Select fields, see :ref:`presideobjectsselectfields`
+* Filters. see :ref:`preside-objects-filtering-data`
+* Order by statements
+* Group by statements
+
+To help with the examples, we'll illustrate a simple relationship between three objects:
+
+.. code-block:: java
+
+    // tag.cfc
+    component output=false {}
+
+    // category.cfc
+    component output=false {
+        property name="category_tag" relationship="many-to-one" relatedto="tag" required=true;
+        // ..
+    }
+
+    // news.cfc
+    component output=false {
+        property name="news_category" relationship="many-to-one" relatedto="category" required=true;
+        // ..
+    }
+
+Syntax by example:
+
+.. code-block:: java
+
+    // flavour 1: auto join on just object name
+    // update news items who's category tag = "red"
+    presideObjectService.updateData(
+          objectName = "news"
+        , data       = { archived = true }
+        , filter     = { "tag.label" = "red" } // the system will automatically figure out the relationship path between the news object and the tag object
+    );
+
+    // flavour 2: using property names that define relationships
+    // 2a. joining to one immediately related object
+    // delete news items who's category label = "red"
+    presideObjectService.deleteData(
+          objectName = "news"
+        , data       = { archived = true }
+        , filter     = { "news_category.label" = "red" } 
+    );
+
+    // 2b. joining through multiple objects (note the $ delimiter to denote that the next property will also define a relationship)
+    // select title and category tag from all news objects, order by the category tag
+    presideObjectService.selectData(
+          objectName   = "news"
+        , selectFields = [ "news.title", "news_category$category_tag.label as tag" ]
+        , orderby      = "news_category$category_tag.label"
+    );
+    
+
+
+Auto joins vs. specific column join mappings
+............................................
+
+While the auto join syntax (just referencing by related object name) can be really useful, it is limited to cases where there is only a single relationship path between the two objects. If there are multiple ways in which you could join the two objects, the system can have no way of knowing which path it should take.
 
 Caching
 ~~~~~~~
