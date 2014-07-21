@@ -59,7 +59,7 @@ Properties
 Public API Methods
 ------------------
 
-.. _updatechildhierarchyhelpers:
+.. _page-updatechildhierarchyhelpers:
 
 UpdateChildHierarchyHelpers()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -14,7 +14,7 @@ For a full developer guide on using Preside Objects and this service, see :doc:`
 Public API Methods
 ------------------
 
-.. _getobject:
+.. _presideobjectservice-getobject:
 
 GetObject()
 ~~~~~~~~~~~
@@ -51,7 +51,7 @@ Example
     eventId     = eventObject.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
     event       = eventObject.selectData( id=eventId )
 
-.. _selectdata:
+.. _presideobjectservice-selectdata:
 
 SelectData()
 ~~~~~~~~~~~~
@@ -116,7 +116,7 @@ Examples
         , filterParams = { "category.label" = "%#rc.search#%" }
     );
 
-.. _insertdata:
+.. _presideobjectservice-insertdata:
 
 InsertData()
 ~~~~~~~~~~~~
@@ -154,7 +154,7 @@ Example:
         , data       = { name="Summer BBQ", startdate="2015-08-23", enddate="2015-08-23" }
     );
 
-.. _updatedata:
+.. _presideobjectservice-updatedata:
 
 UpdateData()
 ~~~~~~~~~~~~
@@ -215,7 +215,7 @@ Examples
         , forceUpdateAll = true
     );
 
-.. _deletedata:
+.. _presideobjectservice-deletedata:
 
 DeleteData()
 ~~~~~~~~~~~~
@@ -272,7 +272,7 @@ Examples
         , forceDeleteAll = true
     );
 
-.. _dataexists:
+.. _presideobjectservice-dataexists:
 
 DataExists()
 ~~~~~~~~~~~~
@@ -288,7 +288,7 @@ Returns true if records exist that match the supplied fillter, false otherwise.
 
 
     In addition to the named arguments here, you can also supply any valid arguments
-    that can be supplied to the :ref:`selectdata` method
+    that can be supplied to the :ref:`presideobjectservice-selectdata` method
 
 
 Arguments
@@ -316,7 +316,7 @@ Example
         , filter     = { category = rc.category }
     );
 
-.. _selectmanytomanydata:
+.. _presideobjectservice-selectmanytomanydata:
 
 SelectManyToManyData()
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -331,7 +331,7 @@ Selects records from many-to-many relationships
 .. note::
 
 
-    You can pass additional arguments to those specified below and they will all be passed to the :ref:`selectdata` method
+    You can pass additional arguments to those specified below and they will all be passed to the :ref:`presideobjectservice-selectdata` method
 
 
 Arguments
@@ -361,7 +361,7 @@ Example
         , orderby      = "tags.label"
     );
 
-.. _syncmanytomanydata:
+.. _presideobjectservice-syncmanytomanydata:
 
 SyncManyToManyData()
 ~~~~~~~~~~~~~~~~~~~~
@@ -401,7 +401,7 @@ Example
         , targetIdList   = rc.tags // e.g. "635,1,52,24"
     );
 
-.. _getdenormalizedmanytomanydata:
+.. _presideobjectservice-getdenormalizedmanytomanydata:
 
 GetDeNormalizedManyToManyData()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -443,7 +443,7 @@ Example
 
     // the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
 
-.. _getrecordversions:
+.. _presideobjectservice-getrecordversions:
 
 GetRecordVersions()
 ~~~~~~~~~~~~~~~~~~~
@@ -466,7 +466,7 @@ fieldName   string  No        Optional name of one of the object's property whic
 ==========  ======  ========  ==============================================================================================================================================
 
 
-.. _dbsync:
+.. _presideobjectservice-dbsync:
 
 DbSync()
 ~~~~~~~~
@@ -490,7 +490,7 @@ Arguments
 
 *This method does not accept any arguments.*
 
-.. _reload:
+.. _presideobjectservice-reload:
 
 Reload()
 ~~~~~~~~
@@ -510,7 +510,7 @@ Arguments
 
 *This method does not accept any arguments.*
 
-.. _listobjects:
+.. _presideobjectservice-listobjects:
 
 ListObjects()
 ~~~~~~~~~~~~~
@@ -526,7 +526,7 @@ Arguments
 
 *This method does not accept any arguments.*
 
-.. _objectexists:
+.. _presideobjectservice-objectexists:
 
 ObjectExists()
 ~~~~~~~~~~~~~~
@@ -547,7 +547,7 @@ objectName  string  Yes       Name of the object that you wish to check the exis
 ==========  ======  ========  ==========================================================
 
 
-.. _fieldexists:
+.. _presideobjectservice-fieldexists:
 
 FieldExists()
 ~~~~~~~~~~~~~
@@ -569,7 +569,7 @@ fieldName   string  Yes       Name of the field you wish to check the existance 
 ==========  ======  ========  ====================================================
 
 
-.. _getobjectattribute:
+.. _presideobjectservice-getobjectattribute:
 
 GetObjectAttribute()
 ~~~~~~~~~~~~~~~~~~~~
@@ -607,7 +607,7 @@ Example
         , defaultValue  = "label"
     );
 
-.. _getobjectpropertyattribute:
+.. _presideobjectservice-getobjectpropertyattribute:
 
 GetObjectPropertyAttribute()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

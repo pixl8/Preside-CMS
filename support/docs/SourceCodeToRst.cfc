@@ -37,7 +37,7 @@ component output=false {
 
 			for( var fun in meta.functions ){
 				if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
-					doc.append( _createFunctionDoc( fun ) );
+					doc.append( _createFunctionDoc( fun, LCase( objName ) ) );
 				}
 			}
 		}
@@ -80,7 +80,7 @@ component output=false {
 
 			for( var fun in meta.functions ){
 				if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
-					doc.append( _createFunctionDoc( fun ) );
+					doc.append( _createFunctionDoc( fun, LCase( objName ) ) );
 				}
 			}
 		}
@@ -153,13 +153,13 @@ component output=false {
 		return parsed;
 	}
 
-	private string function _createFunctionDoc( required struct fun ) output=false {
+	private string function _createFunctionDoc( required struct fun, required string objectName ) output=false {
 		var functionDoc        = CreateObject( "java", "java.lang.StringBuffer" );
 		var argumentsDoc       = _createArgumentsDoc( fun.parameters );
 		var argsRenderedInHint = false;
 		var functionTitle      = UCase( Left( fun.name, 1 ) ) & Right( fun.name, Len( fun.name )-1 );
 
-		functionDoc.append( DOUBLELINE & ".. _#Trim( LCase( fun.name ) )#:")
+		functionDoc.append( DOUBLELINE & ".. _#arguments.objectName#-#Trim( LCase( fun.name ) )#:")
 		functionDoc.append( DOUBLELINE & _rstTitle( functionTitle & "()", "~" ) );
 		functionDoc.append( DOUBLELINE & ".. code-block:: java" );
 

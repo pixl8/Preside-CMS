@@ -640,7 +640,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * .. note::
 	 * \n
 	 * \tIn addition to the named arguments here, you can also supply any valid arguments
-	 * \tthat can be supplied to the :ref:`selectdata` method
+	 * \tthat can be supplied to the :ref:`presideobjectservice-selectdata` method
 	 * \n
 	 * ${arguments}
 	 * \n
@@ -678,7 +678,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * \n
 	 * .. note::
 	 * \n
-	 * \tYou can pass additional arguments to those specified below and they will all be passed to the :ref:`selectdata` method
+	 * \tYou can pass additional arguments to those specified below and they will all be passed to the :ref:`presideobjectservice-selectdata` method
 	 * \n
 	 * ${arguments}
 	 * \n
