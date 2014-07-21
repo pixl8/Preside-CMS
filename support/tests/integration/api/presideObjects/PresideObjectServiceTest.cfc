@@ -2555,6 +2555,23 @@ test04
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test80_insertData_shouldAddSiteIdOfCurrentRequest_forObjectsUsingSiteTenantSystem" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
+
+			poService.dbSync();
+
+			var siteId    = poService.getObject( "site" ).insertData( { label="test site" } );
+
+			mockColdboxEvent.$( "getSite", { id=siteId } );
+
+			var newRecordId = poService.getObject( "object_using_site_tenant" ).insertData( { label="test record" } );
+			var newRecord   = poService.getObject( "object_using_site_tenant" ).selectData( id=newRecordId );
+
+			super.assertEquals( siteId, newRecord.site );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />
@@ -2582,13 +2599,20 @@ test04
 		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
 
 		<cfscript>
-			cachebox = _getCachebox( forceNewInstance = true );
+			cachebox         = _getCachebox( forceNewInstance = true );
+			mockColdbox      = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+			mockColdboxEvent = getMockbox().createStub();
+
+			mockColdboxEvent.$( "isAdminUser", true );
+			mockColdboxEvent.$( "getAdminUserId", "" );
+			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
 			return _getPresideObjectService(
 				  objectDirectories = arguments.objectDirectories
 				, defaultPrefix     = arguments.defaultPrefix
 				, forceNewInstance  = true
 				, cacheBox          = cacheBox
+				, coldbox           = mockColdbox
 			)
 		</cfscript>
 	</cffunction>

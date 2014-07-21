@@ -42,6 +42,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
 		_setCacheMaps( {} );
+		_setColdboxController( arguments.coldboxController );
 
 		_loadObjects();
 
@@ -316,6 +317,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			if ( Len( Trim( newId ) ) ) {
 				cleanedData.id = newId;
 			}
+		}
+
+		if ( objectIsUsingSiteTenancy( arguments.objectName ) && !cleanedData.keyExists( "site" ) ) {
+			var site = _getColdboxRequestContext().getSite();
+			cleanedData.site = ( site.id ?: "" );
 		}
 
 		transaction {
@@ -1052,6 +1058,17 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 */
 	public numeric function getNextVersionNumber() output=false autodoc=true {
 		return _getVersioningService().getNextVersionNumber();
+	}
+
+	/**
+	 * Returns whether or not the given object is the site tenancy system
+	 *
+	 * @objectName.hint Name of the object you wish to check
+	 */
+	public boolean function objectIsUsingSiteTenancy( required string objectName ) output=false autodoc=true {
+		var obj = _getObject( objectName );
+
+		return IsBoolean( obj.meta.sitetenant ?: "" ) && obj.meta.sitetenant;
 	}
 
 
@@ -1908,5 +1925,16 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 	private void function _setCacheMaps( required struct cacheMaps ) output=false {
 		_cacheMaps = arguments.cacheMaps;
+	}
+
+	private any function _getColdboxController() output=false {
+		return _coldboxController;
+	}
+	private void function _setColdboxController( required any coldboxController ) output=false {
+		_coldboxController = arguments.coldboxController;
+	}
+
+	private any function _getColdboxRequestContext() output=false {
+		return _getColdboxController().getRequestContext();
 	}
 }

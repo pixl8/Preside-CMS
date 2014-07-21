@@ -32,6 +32,7 @@
 		<cfargument name="defaultPrefix"     type="string"  required="false" default="pobj_" />
 		<cfargument name="forceNewInstance"  type="boolean" required="false" default="false" />
 		<cfargument name="cachebox"          type="any"     required="false" />
+		<cfargument name="coldbox"           type="any"     required="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -66,12 +67,14 @@
 				);
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
-				var coldbox = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
-				var event   = getMockbox().createStub();
-				event.$( "isAdminUser", true );
-				event.$( "getAdminUserId", "" );
-				coldbox.$( "getRequestContext", event );
+				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+				if ( !arguments.keyExists( "coldbox" ) ) {
+					var event   = getMockbox().createStub();
 
+					event.$( "isAdminUser", true );
+					event.$( "getAdminUserId", "" );
+					coldbox.$( "getRequestContext", event );
+				}
 
 				request[ key ] = new preside.system.services.presideObjects.PresideObjectService(
 					  objectDirectories      = arguments.objectDirectories
