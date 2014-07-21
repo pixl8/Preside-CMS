@@ -18,7 +18,7 @@ component output=false displayname="Site service" autodoc=true {
 	 * @domain.hint The domain name used in the incoming request, e.g. testsite.com
 	 * @path.hint   The URL path of the incoming request, e.g. /path/to/somepage.html
 	 */
-	public string function matchSite( required string domain, required string path ) output=false {
+	public string function matchSite( required string domain, required string path ) output=false autodoc=true {
 		var possibleMatches = _getSiteDao().selectData(
 			  filter       = "( domain = '*' or domain = :domain )"
 			, selectFields = [ "id", "path" ]
