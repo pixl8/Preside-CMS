@@ -297,6 +297,28 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test24_readObject_shouldAddASiteProperty_plusModifyAllIndexesToBePrefixedWithTheSiteProperty_whenUseSiteTenancyIsSetToTrue">
+		<cfscript>
+			var targetObject        = CreateObject( "tests.resources.presideObjectReader.object_with_site_tenancy" );
+			var object              = getReader().readObject( targetObject );
+			var expectedProps       = [ "datecreated","datemodified", "id", "label", "parent", "site", "slug" ];
+			var expectedDbFieldList = "datecreated,datemodified,id,label,parent,site,slug";
+			var siteProp            = { name="site", relationship="many-to-one", relatedto="site", required=false, onupdate="cascade", ondelete="cascade", indexes="_site,someindex|1", uniqueindexes="label|1,slug|1", generator="none" }
+
+			object.propertyNames.sort( "textNoCase" );
+			object.dbFieldList = ListSort(  object.dbFieldList, "textNoCase" );
+
+			super.assertEquals( expectedProps, object.propertyNames );
+			super.assertEquals( expectedDbFieldList, object.dbFieldList );
+			super.assertEquals( siteProp, object.properties.site.getMemento() );
+
+			super.assertEquals( "site,label"      , object.indexes.ix_object_with_site_tenancy_someindex.fields );
+			super.assertEquals( "site,label"      , object.indexes.ux_object_with_site_tenancy_label.fields );
+			super.assertEquals( "site,parent,slug", object.indexes.ux_object_with_site_tenancy_slug.fields );
+			super.assertEquals( { fields="site", unique=false }, object.indexes.ix_object_with_site_tenancy__site );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="getReader" access="private" returntype="any" output="false">
 		<cfargument name="dsn"         type="string" required="false" default="default_dsn" />

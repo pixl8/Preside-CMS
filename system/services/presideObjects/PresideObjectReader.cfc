@@ -19,21 +19,27 @@ component output=false singleton=true {
 		var componentName = ListLast( meta.name, "." );
 		var key           = "";
 
-		param name="meta.tablePrefix"   default=_getTablePrefix();
-		param name="meta.tableName"     default=componentName;
-		param name="meta.versioned"     default=true;
-		param name="meta.dsn"           default=_getDsn();
-		param name="meta.properties"    default=StructNew();
-		param name="meta.dbFieldList"   default="";
-		param name="meta.propertyNames" default=ArrayNew(1);
+		meta.tablePrefix   = meta.tablePrefix   ?: _getTablePrefix();
+		meta.tableName     = meta.tableName     ?: componentName;
+		meta.versioned     = meta.versioned     ?: true;
+		meta.dsn           = meta.dsn           ?: _getDsn();
+		meta.properties    = meta.properties    ?: StructNew();
+		meta.dbFieldList   = meta.dbFieldList   ?: "";
+		meta.propertyNames = meta.propertyNames ?: ArrayNew(1);
+		meta.sitetenant    = meta.sitetenant    ?: false;
+		meta.isPageType    = _isPageTypeObject( meta );
 
-		meta.isPageType = _isPageTypeObject( meta );
+		if ( meta.sitetenant ) {
+			_injectSiteTenancyFields( meta );
+		}
+
 		_defineLabelField( meta );
 		_mergeSystemPropertyDefaults( meta );
 		_fixOrderOfProperties( meta );
 		meta.properties = _convertPropertiesToBeans( meta.properties );
 
 		meta.tableName = meta.tablePrefix & meta.tableName;
+
 
 		meta.indexes = _discoverIndexes( meta.properties, componentName );
 
@@ -345,7 +351,7 @@ component output=false singleton=true {
 	}
 
 	private void function _injectPageTypeFields( required struct meta ) output=false {
-		var defaultConfiguration = { relationship="many-to-one", relatedto="page", required="true", uniqueindexes="page", ondelete="cascade", onupdate="cascade", generator="none" };
+		var defaultConfiguration = { relationship="many-to-one", relatedto="page", required=true, uniqueindexes="page", ondelete="cascade", onupdate="cascade", generator="none" };
 
 		param name="arguments.meta.properties.page" default={};
 		StructAppend( arguments.meta.properties.page, defaultConfiguration, false );
@@ -356,6 +362,67 @@ component output=false singleton=true {
 
 		if ( not ListFindNoCase( arguments.meta.dbFieldList, "page" ) ) {
 			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "page" );
+		}
+	}
+
+	private void function _injectSiteTenancyFields( required struct meta ) output=false {
+		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="" };
+		var indexNames           = [];
+
+		for( var prop in arguments.meta.properties ){
+			if ( prop == "site" ) { continue; }
+
+			prop = arguments.meta.properties[ prop ];
+
+			if ( Len( Trim( prop.indexes ?: "" ) ) ) {
+				var newIndexDefinition = "";
+
+				for( var ix in ListToArray( prop.indexes ) ) {
+					var siteIndexName = ListFirst( ix, "|" ) & "|1";
+					if ( !ListFindNoCase( defaultConfiguration.indexes, siteIndexName ) ) {
+						defaultConfiguration.indexes = ListAppend( defaultConfiguration.indexes, siteIndexName );
+					}
+
+					if ( ListLen( ix, "|" ) > 1 ) {
+						newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+					} else {
+						newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+					}
+				}
+
+				prop.indexes = newIndexDefinition;
+			}
+
+			if ( Len( Trim( prop.uniqueindexes ?: "" ) ) ) {
+				var newIndexDefinition = "";
+
+				for( var ix in ListToArray( prop.uniqueindexes ) ) {
+					var siteIndexName = ListFirst( ix, "|" ) & "|1";
+					if ( !ListFindNoCase( defaultConfiguration.uniqueIndexes, siteIndexName ) ) {
+						defaultConfiguration.uniqueIndexes = ListAppend( defaultConfiguration.uniqueIndexes, siteIndexName );
+					}
+
+					if ( ListLen( ix, "|" ) > 1 ) {
+						newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+					} else {
+						newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+					}
+				}
+
+				prop.uniqueindexes = newIndexDefinition;
+			}
+		}
+
+		arguments.meta.properties.site = arguments.meta.properties.site ?: {};
+
+		StructAppend( arguments.meta.properties.site, defaultConfiguration, false );
+
+		if ( not arguments.meta.propertyNames.find( "site" ) ) {
+			ArrayAppend( arguments.meta.propertyNames, "site" );
+		}
+
+		if ( not ListFindNoCase( arguments.meta.dbFieldList, "site" ) ) {
+			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "site" );
 		}
 	}
 
