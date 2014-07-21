@@ -18,9 +18,9 @@ MatchSite()
 
 .. code-block:: java
 
-    public string function matchSite( required string domain, required string path )
+    public struct function matchSite( required string domain, required string path )
 
-Returns the ID of the site that matches the incoming domain and URL path.
+Returns the site record that matches the incoming domain and URL path.
 
 Arguments
 .........

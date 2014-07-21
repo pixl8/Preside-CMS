@@ -12,35 +12,35 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var siteService = _getSiteService();
 		var site        = siteService.matchSite( domain="anyolddomain.com", path="/anyoldpath.html" );
 
-		super.assertEquals( sites[1], site );
+		super.assertEquals( sites[1], site.id ?: "" );
 	}
 
 	public void function test02_matchSite_shouldReturnDefaultSite_whenDomainMatchedButNoPathsMatch() output=false {
 		var siteService = _getSiteService();
 		var site        = siteService.matchSite( domain="www.oddsite.com", path="/anyoldpath.html" );
 
-		super.assertEquals( sites[1], site );
+		super.assertEquals( sites[1], site.id ?: "" );
 	}
 
 	public void function test03_matchSite_shouldReturnSpecificSiteThatMatchesDomain_whenNoSpecificPathsRegisteredForThatDomain() output=false {
 		var siteService = _getSiteService();
 		var site        = siteService.matchSite( domain="fubar.anothersite.com", path="/some/path/" );
 
-		super.assertEquals( sites[4], site );
+		super.assertEquals( sites[4], site.id ?: "" );
 	}
 
 	public void function test04_matchSite_shouldReturnSpecificSiteThatMatchesDomainAndPath_whenSpecificPathsRegisteredForThatDomain() output=false {
 		var siteService = _getSiteService();
 		var site        = siteService.matchSite( domain="testsite.com", path="/sub/path/" );
 
-		super.assertEquals( sites[3], site );
+		super.assertEquals( sites[3], site.id ?: "" );
 	}
 
 	public void function test05_matchSite_shouldReturnSpecificSiteThatMatchesJustDomain_whenBothGeneralAndSpecificPathRegisteredButSpecificPathNotMatches() output=false {
 		var siteService = _getSiteService();
 		var site        = siteService.matchSite( domain="testsite.com", path="/any/old/path.html" );
 
-		super.assertEquals( sites[2], site );
+		super.assertEquals( sites[2], site.id ?: "" );
 	}
 
 // private utility
