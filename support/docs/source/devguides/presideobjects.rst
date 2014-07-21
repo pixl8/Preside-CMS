@@ -442,21 +442,118 @@ This can be done using either the :ref:`presideobjectservice-getobject` method o
 CRUD Operations
 ---------------
 
+The service layer provides core methods for creating, reading, updating and deleting records (see individual method documentation for reference and examples):
+
+* :ref:`presideobjectservice-selectdata`
+* :ref:`presideobjectservice-insertdata`
+* :ref:`presideobjectservice-updatedata`
+* :ref:`presideobjectservice-deletedata`
+
+In addition to the four core methods above, there are also further utility methods for specific scanarios:
+
+* :ref:`presideobjectservice-dataexists`
+* :ref:`presideobjectservice-selectmanytomanydata`
+* :ref:`presideobjectservice-syncmanytomanydata`
+* :ref:`presideobjectservice-getdenormalizedmanytomanydata`
+* :ref:`presideobjectservice-getrecordversions`
+
+Specifying fields for selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :ref:`presideobjectservice-selectdata` method accepts a :code:`selectFields` argument that can be used to specify which fields you wish to select. This can be used to select properties on your object as well as properties on related objects and any plain SQL aggregates or other SQL operations. For example:
+
+.. code-block:: java
+
+    records = newsObject.selectData(
+        selectFields = [ "news.id", "news.title", "Concat( category.label, category$tag.label ) as catandtag"  ]
+    );
+
+The example above would result in SQL that looked something like:
+
+.. code-block:: sql
+
+    select      news.id
+              , news.title
+              , Concat( category.label, tag.label ) as catandtag
+
+    from        pobj_news     as news
+    inner join  pobj_category as category on category.id = news.category
+    inner join  pobj_tag      as tag      on tag.id      = category.tag
+
+.. note:: 
+
+    The funky looking :code:`category$tag.label` is expressing a field selection across related objects - in this case **news** -> **category** -> **tag**. See :ref:`presideobjectsrelationships` for full details.
 
 .. _preside-objects-filtering-data:
 
 Filtering data
---------------
+~~~~~~~~~~~~~~
+
+All but the **insertData()** methods accept a data filter to either refine the returned recordset or the records to be updated / deleted. The API provides two arguments for filtering, :code:`filter` and :code:`filterParams`. Depending on the type of filtering you need, the :code:`filterParams` argument will be optional.
+
+Simple filtering
+................
+
+A simple filter consists of one or more strict equality checks, all of which must be true. This can be expressed as a simple CFML structure; the structure keys represent the object fields; their values represent the expected record values:
+
+.. code-block:: java
+
+    records = newsObject.selectData( filter={
+          category             = chosenCategory
+        , "category$tag.label" = "red"
+    } );
+
+.. note:: 
+
+    The funky looking :code:`category$tag.label` is expressing a filter across related objects - in this case **news** -> **category** -> **tag**. We are filtering news items whos category is tagged with a tag who's label field = "red". See :ref:`presideobjectsrelationships`.
+
+Complex filters
+...............
+
+More complex filters can be achieved with a plain SQL filter combined with filter params to make use of parametized SQL statements:
+
+.. code-block:: java
+
+    records = newsObject.selectData( 
+          filter       = "category != :category and DateDiff( publishdate, :publishdate ) > :daysold and category$tag.label = :category$tag.label"
+        , filterParams = {
+               category             = chosenCategory
+             , publishdate          = publishDateFilter
+             , "category$tag.label" = "red"
+             , daysOld              = { type="integer", value=3 }
+          } 
+    );
+
+.. note::
+
+    Notice that all but the *daysOld* filter param do not specify a datatype. This is because the parameters can be mapped to fields on the object/s and their data types derived from there. The *daysOld* filter has no field mapping and so its data type must also be defined here.
+
+.. _presideobjectsrelationships:
+
+Making use of relationships
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TODO
 
-Making use of relationships
----------------------------
+Caching
+~~~~~~~
+
+By default, all :ref:`presideobjectservice-selectData` calls have their recordset results cached. These caches are automatically cleared when the data changes.
+
+You can specify *not* to cache results with the :code:`useCache` argument.
+
+TODO: references here for configuring caches.
+
+
+Extending Objects
+#################
 
 TODO
 
 Versioning
 ##########
+
+TODO
 
 
 .. _Wirebox: http://wiki.coldbox.org/wiki/WireBox.cfm
