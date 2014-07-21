@@ -4,11 +4,12 @@ Preside Data Objects
 Overview
 ########
 
-**Preside Data Objects** are the data layer implementation for PresideCMS. Just about everything in the system that persists data to the database uses **Preside Data Objects** to do so.
+**Preside Data Objects** are the data layer implementation for PresideCMS. Just about everything in the system that persists data to the database uses Preside Data Objects to do so. 
 
-.. tip::
-    
-    For an indepth API reference, you may wish to view the documenation for the :doc:`/reference/api/presideobjectservice`.
+The Preside Data Objects system is deeply integrated into the CMS; input forms and other administrative GUIs can be automatically generated for your preside objects (see :doc:`formlayouts`) and :doc:`presideobjectviews` provide a way to present your data to end users without the need for handler or service layers.
+
+The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation, see :doc:`/reference/api/presideobjectservice` (service layer) and :doc:`/reference/presideobjects/index` (system provided data objects).
+
 
 Object CFC Files
 ################
