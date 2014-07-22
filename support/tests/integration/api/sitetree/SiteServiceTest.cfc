@@ -48,10 +48,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testSiteId  = "testsiteid";
 
 		mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( true );
-		mockSessionStorage.$( "getVar" ).$args( "_activeSite" ).$results( testSiteId );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=testSiteId ).$results( true );
+		mockSessionStorage.$( "getVar" ).$args( "_activeSite" ).$results( { id=testSiteId } );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ testSiteId ] ).$results( true );
 
-		super.assertEquals( testSiteId, siteService.getActiveAdminSite() );
+		super.assertEquals( testSiteId, siteService.getActiveAdminSite().id );
 	}
 
 	public void function test07_getActiveAdminSite_shouldReturnFirstSiteThatUserHasAccessTo_whenNoActiveSiteAlreadySet() output=false {
@@ -60,13 +60,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( false );
 		mockSessionStorage.$( "setVar", NullValue() );
 
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[1] ).$results( false );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[2] ).$results( true );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[3] ).$results( true );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[4] ).$results( false );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[5] ).$results( true );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[1] ] ).$results( false );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[2] ] ).$results( true );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[3] ] ).$results( true );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[4] ] ).$results( false );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[5] ] ).$results( true );
 
-		super.assertEquals( sites[2], siteService.getActiveAdminSite() );
+		super.assertEquals( sites[2], siteService.getActiveAdminSite().id );
 	}
 
 // private utility

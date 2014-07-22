@@ -18,7 +18,7 @@
 					<cfif ArrayLen( args.sites )>
 						<cfloop array="#args.sites#" index="i" item="site">
 							<li>
-								<a href="##">
+								<a href="#event.buildAdminLink( linkTo='sites.setActiveSite', queryString='id=#site.id#' )#">
 									<i class="fa fa-globe"></i>
 									#site.name#
 								</a>

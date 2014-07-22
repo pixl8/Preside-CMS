@@ -53,34 +53,38 @@ component output=false displayname="Site service" autodoc=true {
 	 * Returns the id of the currently active site for the administrator. If no site selected, chooses the first site
 	 * that the logged in user has rights to
 	 */
-	public string function getActiveAdminSite() output=false autodoc=true{
+	public struct function getActiveAdminSite() output=false autodoc=true{
 		var sessionStorage    = _getSessionStorage();
 		var permissionService = _getPermissionService();
 
 		if ( sessionStorage.exists( "_activeSite" ) ) {
 			var activeSite = sessionStorage.getVar( "_activeSite" );
-			if ( Len( Trim( activeSite ) ) && permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKey=activeSite ) ) {
+			if ( IsStruct( activeSite ) && Len( Trim( activeSite.id ?: "" ) ) && permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ activeSite.id ] ) ) {
 				return activeSite;
 			}
 		}
 
 		var sites = _getSiteDao().selectData( orderBy = "Length( domain ), Length( path )" );
 		for( var site in sites ) {
-			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKey=site.id ) ) {
-				setActiveAdminSite( site.id );
+			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ site.id ] ) ) {
+				_getSessionStorage().setVar( "_activeSite", site );
 
-				return site.id;
+				return site;
 			}
 		}
 
-		return "";
+		return {};
 	}
 
 	/**
 	 * Sets the current active admin site id
 	 */
 	public void function setActiveAdminSite( required string siteId ) output=false autodoc=true {
-		_getSessionStorage().setVar( "_activeSite", arguments.siteId );
+		var site = _getSiteDao().selectData( id=arguments.siteId );
+
+		for( var s in site ) {
+			_getSessionStorage().setVar( "_activeSite", s ); // little query to struct hack
+		}
 	}
 
 

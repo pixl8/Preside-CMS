@@ -1,6 +1,7 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
 	property name="siteService" inject="siteService";
+	property name="adminRouteHandler" inject="adminRouteHandler";
 
 	public void function configure() output=false {
 		instance.presideRoutes = [];
@@ -33,10 +34,17 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 // private utility methods
 	private void function _detectIncomingSite( event, interceptData ) output=false {
-		var site   = siteService.matchSite(
-			  domain = super.getCGIElement( "server_name", event )
-			, path   = super.getCGIElement( "path_info"  , event )
-		);
+		var pathInfo = super.getCGIElement( "path_info"  , event );
+		var site     = "";
+
+		if ( adminRouteHandler.match( pathInfo, event ) ) {
+			site = siteService.getActiveAdminSite();
+		} else {
+			site = siteService.matchSite(
+				  domain = super.getCGIElement( "server_name", event )
+				, path   = pathInfo
+			);
+		}
 
 		event.setSite( site );
 	}

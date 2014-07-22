@@ -158,6 +158,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		if ( arguments.useCache ) {
 			queryCache = _getDefaultQueryCache();
 			cachekey   = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
+
+			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
+				cacheKey &= "_" & _getActiveSiteId();
+			}
+
 			result     = queryCache.get( cacheKey );
 
 			if ( not IsNull( result ) ) {
