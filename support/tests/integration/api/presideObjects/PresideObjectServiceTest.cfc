@@ -2708,6 +2708,38 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test85_dataExists_shouldAutomaticallyFilterByCurrentSite_whenObjectIsUsingSiteTenancy" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
+			var obj       = poService.getObject( "object_using_site_tenant" );
+
+			poService.dbSync();
+
+			var siteIds = [];
+
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
+			var newRecordIds = [];
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
+			newRecordIds.append( obj.insertData( { label="test record 1" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			newRecordIds.append( obj.insertData( { label="test record 2" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
+			newRecordIds.append( obj.insertData( { label="test record 3" } ) );
+
+
+			super.assert( obj.dataExists( id=newRecordIds[3] ) );
+			super.assertFalse( obj.dataExists( filter={ label="test record 1" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			super.assert( obj.dataExists( filter="label = :label", filterParams={ label="test record 2" } ) );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />
