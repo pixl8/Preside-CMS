@@ -35,7 +35,7 @@
 								<li class="divider"></li>
 							</cfif>
 							<li>
-								<a href="##">
+								<a href="#event.buildAdminLink( linkTo="sites.manage" )#">
 									<i class="fa fa-pencil-square-o"></i>
 									#translateResource( "cms:sitenav.managesites" )#
 								</a>
