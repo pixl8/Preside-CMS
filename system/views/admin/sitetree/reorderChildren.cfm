@@ -13,7 +13,7 @@
 		<ol class="dd-list">
 			<cfloop query="childPages">
 				<li class="dd-item" data-id="#childPages.id#">
-					<div class="dd-handle">#childPages.label#</div>
+					<div class="dd-handle">#childPages.title#</div>
 				</li>
 			</cfloop>
 		</ol>
