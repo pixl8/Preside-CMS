@@ -168,35 +168,18 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var sql                  = "";
 		var obj                  = _getObject( arguments.objectName ).meta;
 		var adapter              = _getAdapter( obj.dsn );
-		var params               = [];
 		var compiledSelectFields = _parseSelectFields( arguments.objectName, Duplicate( arguments.selectFields ) );
 		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=compiledSelectFields, filter=arguments.filter, orderBy=arguments.orderBy );
 		var joins                = [];
 		var i                    = "";
-		var f                    = "";
-
-		if ( Len( Trim( arguments.id ) ) ) {
-			arguments.filter = { id = arguments.id };
-		}
-
-		f = _prepareFilter( arguments.objectName, arguments.filter, arguments.filterParams, adapter );
-		arguments.filter       = f.filter;
-		arguments.filterParams = f.params;
-
-		if ( IsStruct( arguments.filter ) ) {
-			params = _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = arguments.filter
-				, dbAdapter         = adapter
-			);
-		} else {
-			params = _convertUserFilterParamsToQueryParams(
-				  columnDefinitions = obj.properties
-				, params            = arguments.filterParams
-				, dbAdapter         = adapter
-			);
-		}
+		var preparedFilter       = _prepareFilter(
+			  objectName        = arguments.objectName
+			, id                = arguments.id
+			, filter            = arguments.filter
+			, filterParams      = arguments.filterParams
+			, adapter           = adapter
+			, columnDefinitions = obj.properties
+		);
 
 		if ( not ArrayLen( compiledSelectFields ) ) {
 			compiledSelectFields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
@@ -223,8 +206,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, selectFields      = arguments.selectFields
 				, maxVersion        = arguments.maxVersion
 				, specificVersion   = arguments.specificVersion
-				, filter            = arguments.filter
-				, params            = params
+				, filter            = preparedFilter.filter
+				, params            = preparedFilter.params
 				, orderBy           = arguments.orderBy
 				, groupBy           = arguments.groupBy
 				, maxRows           = arguments.maxRows
@@ -235,14 +218,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				  tableName     = obj.tableName
 				, tableAlias    = arguments.objectName
 				, selectColumns = compiledSelectFields
-				, filter        = arguments.filter
+				, filter        = preparedFilter.filter
 				, joins         = _convertObjectJoinsToTableJoins( joins )
 				, orderBy       = arguments.orderBy
 				, groupBy       = arguments.groupBy
 				, maxRows       = arguments.maxRows
 				, startRow      = arguments.startRow
 			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=params );
+			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params );
 		}
 
 
@@ -251,8 +234,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			_recordCacheSoThatWeCanClearThemWhenDataChanges(
 				  objectName   = arguments.objectName
 				, cacheKey     = cacheKey
-				, filter       = arguments.filter
-				, filterParams = arguments.filterParams
+				, filter       = preparedFilter.filter
+				, filterParams = preparedFilter.filterParams
 				, joinTargets  = joinTargets
 			);
 		}
@@ -429,13 +412,13 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";
 		var result             = "";
-		var params             = [];
 		var joinTargets        = "";
 		var joins              = [];
 		var cleanedData        = Duplicate( arguments.data );
 		var manyToManyData     = {}
 		var key                = "";
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
+		var preparedFilter     = "";
 
 		for( key in cleanedData ){
 			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ) eq "many-to-many" ) {
@@ -464,43 +447,29 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			joins = _convertObjectJoinsToTableJoins( joins );
 		}
 
-		if ( Len( Trim( arguments.id ) ) ) {
-			arguments.filter = { id = arguments.id };
-		}
-
-		var f = _prepareFilter( arguments.objectName, arguments.filter, arguments.filterParams, adapter );
-		arguments.filter       = f.filter;
-		arguments.filterParams = f.params;
-
-		if ( IsStruct( arguments.filter ) ) {
-			params = _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = arguments.filter
-				, dbAdapter         = adapter
-			);
-		} else {
-			params = _convertUserFilterParamsToQueryParams(
-				  columnDefinitions = obj.properties
-				, params            = arguments.filterParams
-				, dbAdapter         = adapter
-			);
-		}
+		preparedFilter = _prepareFilter(
+			  objectName        = arguments.objectName
+			, id                = arguments.id
+			, filter            = arguments.filter
+			, filterParams      = arguments.filterParams
+			, adapter           = adapter
+			, columnDefinitions = obj.properties
+		);
 
 		transaction {
 			if ( requiresVersioning ) {
 				_getVersioningService().saveVersionForUpdate(
 					  objectName     = arguments.objectName
 					, id             = arguments.id
-					, filter         = arguments.filter
-					, filterParams   = arguments.filterParams
+					, filter         = preparedFilter.filter
+					, filterParams   = preparedFilter.filterParams
 					, data           = cleanedData
 					, manyToManyData = manyToManyData
 					, versionNumber  = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 				);
 			}
 
-			params = _arrayMerge( params, _convertDataToQueryParams(
+			preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = obj.properties
 				, data              = cleanedData
@@ -512,11 +481,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				  tableName     = obj.tableName
 				, tableAlias    = arguments.objectName
 				, updateColumns = StructKeyArray( cleanedData )
-				, filter        = filter
+				, filter        = preparedFilter.filter
 				, joins         = joins
 			);
 
-			result = _runSql( sql=sql, dsn=obj.dsn, params=params, returnType="info" );
+			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
 			if ( StructCount( manyToManyData ) ) {
 				var updatedRecords = [];
@@ -527,8 +496,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 					updatedRecords = selectData(
 						  objectName   = arguments.objectName
 						, selectFields = [ "id" ]
-						, filter       = arguments.filter
-						, filterParams = arguments.filterParams
+						, filter       = preparedFilter.filter
+						, filterParams = preparedFilter.filterParams
 					);
 					updatedRecords = ListToArray( updatedRecords.id );
 				}
@@ -548,8 +517,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		_clearRelatedCaches(
 			  objectName   = arguments.objectName
-			, filter       = arguments.filter
-			, filterParams = arguments.filterParams
+			, filter       = preparedFilter.filter
+			, filterParams = preparedFilter.filterParams
 		);
 
 		return Val( result.recordCount ?: 0 );
@@ -599,37 +568,13 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          struct  filterParams   = {}
 		,          boolean forceDeleteAll = false
 	) output=false autodoc=true {
-		var obj     = _getObject( arguments.objectName ).meta;
-		var adapter = _getAdapter( obj.dsn );
-		var sql     = "";
-		var params  = [];
-		var result = "";
+		var obj            = _getObject( arguments.objectName ).meta;
+		var adapter        = _getAdapter( obj.dsn );
+		var sql            = "";
+		var result         = "";
+		var preparedFilter = "";
 
-		if ( Len( Trim( arguments.id ) ) ) {
-			arguments.filter = { id = arguments.id };
-		}
-
-		var f = _prepareFilter( arguments.objectName, arguments.filter, arguments.filterParams, adapter );
-		arguments.filter       = f.filter;
-		arguments.filterParams = f.params;
-
-
-		if ( IsStruct( arguments.filter ) ) {
-			params = _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = arguments.filter
-				, dbAdapter         = adapter
-			);
-		} else {
-			params = _convertUserFilterParamsToQueryParams(
-				  columnDefinitions = obj.properties
-				, params            = arguments.filterParams
-				, dbAdapter         = adapter
-			);
-		}
-
-		if ( not Len( Trim( arguments.id ) ) and _isEmptyFilter( arguments.filter ) and not arguments.forceDeleteAll ) {
+		if ( !Len( Trim( arguments.id ) ) && _isEmptyFilter( arguments.filter ) && !arguments.forceDeleteAll ) {
 			throw(
 				  type    = "PresideObjects.deleteAllProtection"
 				, message = "A call to delete records in [#arguments.objectName#] was made without any filter which would lead to all records being deleted"
@@ -637,18 +582,27 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			);
 		}
 
+		preparedFilter = _prepareFilter(
+			  objectName        = arguments.objectName
+			, id                = arguments.id
+			, filter            = arguments.filter
+			, filterParams      = arguments.filterParams
+			, adapter           = adapter
+			, columnDefinitions = obj.properties
+		);
+
 		sql = adapter.getDeleteSql(
 			  tableName  = obj.tableName
 			, tableAlias = arguments.objectName
-			, filter     = filter
+			, filter     = preparedFilter.filter
 		);
 
-		result = _runSql( sql=sql, dsn=obj.dsn, params=params, returnType="info" );
+		result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
 		_clearRelatedCaches(
 			  objectName   = arguments.objectName
-			, filter       = arguments.filter
-			, filterParams = arguments.filterParams
+			, filter       = preparedFilter.filter
+			, filterParams = preparedFilter.filterParams
 		);
 
 		return Val( result.recordCount ?: 0 );
@@ -1860,29 +1814,59 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return ( site.id ?: "" );
 	}
 
-	private struct function _prepareFilter( required string objectName, required any filter, required struct filterParams, required any adapter ) output=false {
-		if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-			return _addSiteFilterForObjectsThatUseSiteTenancy( argumentCollection=arguments );
+	private struct function _prepareFilter(
+		  required string objectName
+		, required string id
+		, required any    filter
+		, required struct filterParams
+		, required any    adapter
+		, required struct columnDefinitions
+	) output=false {
+		var result = "";
+
+		if ( Len( Trim( arguments.id ) ) ) {
+			arguments.filter = { id = arguments.id };
 		}
 
-		return {
-			  filter = arguments.filter
-			, params = arguments.filterParams
-		};
+		if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
+			result = _addSiteFilterForObjectsThatUseSiteTenancy( argumentCollection=arguments );
+		} else {
+			result = {
+				  filter       = arguments.filter
+				, filterParams = arguments.filterParams
+			};
+		}
+
+		if ( IsStruct( result.filter ) ) {
+			result.params = _convertDataToQueryParams(
+				  objectName        = arguments.objectName
+				, columnDefinitions = arguments.columnDefinitions
+				, data              = result.filter
+				, dbAdapter         = adapter
+			);
+		} else {
+			result.params = _convertUserFilterParamsToQueryParams(
+				  columnDefinitions = arguments.columnDefinitions
+				, params            = result.filterParams
+				, dbAdapter         = adapter
+			);
+		}
+
+		return result;
 	}
 
 	private struct function _addSiteFilterForObjectsThatUseSiteTenancy( required string objectName, required any filter, required struct filterParams, required any adapter ) output=false {
 		var site   = _getActiveSiteId();
 		var result = {
-			  filter = arguments.filter
-			, params = arguments.filterParams
+			  filter       = arguments.filter
+			, filterParams = arguments.filterParams
 		};
 
 		if ( IsStruct( arguments.filter ) ) {
 			result.filter.site = site;
 		} else {
-			result.params.site = site;
-			result.filter      = _mergeFilters( result.filter, "#arguments.objectName#.site = :site", arguments.adapter, arguments.objectName );
+			result.filter = _mergeFilters( result.filter, "#arguments.objectName#.site = :site", arguments.adapter, arguments.objectName );
+			result.filterParams.site = site;
 		}
 
 		return result;
