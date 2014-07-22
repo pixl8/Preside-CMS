@@ -1,18 +1,39 @@
 component output=false extends="preside.system.base.AdminHandler" {
 
 	property name="siteService" inject="siteService";
+	property name="siteDao"     inject="presidecms:object:site";
 
 	public void function manage( event, rc, prc ) output=false {
 		_checkPermissions( event );
+		_addRootBreadcrumb( event );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:sites.manage.breadcrumb" )
-			, link  = event.buildAdminLink( linkTo="sites.manage" )
-		);
 
 		prc.pageIcon     = "globe";
 		prc.pageTitle    = translateResource( "cms:sites.manage.title" );
 		prc.pageSubTitle = translateResource( "cms:sites.manage.subtitle" );
+	}
+
+	public void function editSite() output=false {
+		_checkPermissions( event );
+
+		prc.record = siteDao.selectData( id=rc.id ?: "" );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+		_addRootBreadcrumb( event );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sites.editsite.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#(rc.id ?: '')#" )
+		);
+
+		prc.pageIcon  = "globe";
+		prc.pageTitle = translateResource( uri="cms:sites.editSite.title", data=[ prc.record.name ?: "" ] );
+
+		event.setView( "/admin/sites/editSite" );
 	}
 
 	public void function setActiveSite( event, rc, prc ) output=false {
@@ -43,6 +64,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 	}
 
 
+
 // VIEWLETS
 	private string function sitePicker( event, rc, prc, struct args={} ) output=false {
 		var sites         = siteService.listSites();
@@ -69,5 +91,12 @@ component output=false extends="preside.system.base.AdminHandler" {
 		if ( !hasPermission( "sites.manage" ) ) {
 			event.adminAccessDenied();
 		}
+	}
+
+	private void function _addRootBreadcrumb( event ) output=false {
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sites.manage.breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="sites.manage" )
+		);
 	}
 }

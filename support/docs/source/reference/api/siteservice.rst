@@ -11,6 +11,22 @@ The site service provides methods for interacting with the core "Site" system
 Public API Methods
 ------------------
 
+.. _siteservice-listsites:
+
+ListSites()
+~~~~~~~~~~~
+
+.. code-block:: java
+
+    public query function listSites( )
+
+Returns a query of all the registered sites
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
 .. _siteservice-matchsite:
 
 MatchSite()
@@ -31,3 +47,41 @@ Name    Type    Required  Description
 domain  string  Yes       The domain name used in the incoming request, e.g. testsite.com  
 path    string  Yes       The URL path of the incoming request, e.g. /path/to/somepage.html
 ======  ======  ========  =================================================================
+
+
+.. _siteservice-getactiveadminsite:
+
+GetActiveAdminSite()
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public struct function getActiveAdminSite( )
+
+Returns the id of the currently active site for the administrator. If no site selected, chooses the first site
+that the logged in user has rights to
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _siteservice-setactiveadminsite:
+
+SetActiveAdminSite()
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public void function setActiveAdminSite( required string siteId )
+
+Sets the current active admin site id
+
+Arguments
+.........
+
+======  ======  ========  ===========
+Name    Type    Required  Description
+======  ======  ========  ===========
+siteId  string  Yes                  
+======  ======  ========  ===========

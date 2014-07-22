@@ -11,6 +11,8 @@ System form layouts
     richeditorattachmentform
     richeditorattachmentform
     richeditorimageform
+    siteaddform
+    siteeditform
     sitetreepageaddform
     sitetreepageeditform
     sitetreepagerestoreform
