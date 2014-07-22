@@ -366,7 +366,7 @@ component output=false singleton=true {
 	}
 
 	private void function _injectSiteTenancyFields( required struct meta ) output=false {
-		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="" };
+		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none" };
 		var indexNames           = [];
 
 		for( var prop in arguments.meta.properties ){

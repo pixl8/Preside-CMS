@@ -303,7 +303,7 @@
 			var object              = getReader().readObject( targetObject );
 			var expectedProps       = [ "datecreated","datemodified", "id", "label", "parent", "site", "slug" ];
 			var expectedDbFieldList = "datecreated,datemodified,id,label,parent,site,slug";
-			var siteProp            = { name="site", relationship="many-to-one", relatedto="site", required=false, onupdate="cascade", ondelete="cascade", indexes="_site,someindex|1", uniqueindexes="label|1,slug|1", generator="none" }
+			var siteProp            = { name="site", relationship="many-to-one", relatedto="site", required=false, onupdate="cascade", ondelete="cascade", indexes="_site,someindex|1", uniqueindexes="label|1,slug|1", generator="none", control="none" }
 
 			object.propertyNames.sort( "textNoCase" );
 			object.dbFieldList = ListSort(  object.dbFieldList, "textNoCase" );
