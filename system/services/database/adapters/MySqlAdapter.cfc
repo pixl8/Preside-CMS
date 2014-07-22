@@ -205,7 +205,7 @@ component output=false singleton=true {
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= "#escapeEntity( arguments.tableAlias )# using #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )#";
 		} else {
-			sql &= " #escapeEntity( arguments.tableName )#";
+			sql &= "#escapeEntity( arguments.tableName )#";
 		}
 
 		return sql & getClauseSql(
