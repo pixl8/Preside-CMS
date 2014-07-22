@@ -75,17 +75,18 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs ) output=false {
- 		var treeSvc  = _getSiteTreeService();
+		var treeSvc  = _getSiteTreeService();
 		var homepage = treeSvc.getSiteHomepage();
-		var page     = treeSvc.getPage( id = buildArgs.page, selectFields=[ "id", "_hierarchy_slug as slug" ] );
-		var link     = "";
+		var page     = treeSvc.getPage( id = buildArgs.page, selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.path" ] );
+		var link     = ReReplace( page.path, "/$", "" );
+
 
 		if ( page.recordCount ) {
 			if ( page.id eq homepage.id ) {
-				return "/";
+				return link & "/";
 			}
 
-			link = ReReplace( page.slug, "/$", "" );
+			link &= ReReplace( page.slug, "/$", "" );
 
 			if ( Len( Trim( buildArgs.subaction ?: "" ) ) ) {
 				link &= "_" & buildArgs.subaction;
@@ -110,7 +111,6 @@ component implements="iRouteHandler" output=false singleton=true {
 				link &= "?" & buildArgs.queryString;
 			}
 		}
-
 
 		return link;
 	}

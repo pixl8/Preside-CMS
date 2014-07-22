@@ -58,16 +58,16 @@ component output=false singleton=true {
 		var args = { filter="", filterParams={}, useCache=arguments.useCache };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
-			args.filter          = "id = :id";
+			args.filter          = "page.id = :id";
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
-			args.filter                       = "slug = :slug and _hierarchy_slug = :_hierarchy_slug"; // this double match is for performance - the full slug cannot be indexed because of its potential size
+			args.filter                       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug"; // this double match is for performance - the full slug cannot be indexed because of its potential size
 			args.filterParams.slug            = ListLast( arguments.slug, "/" );
 			args.filterParams._hierarchy_slug = arguments.slug;
 
 		} else if ( StructKeyExists( arguments, "system_key" ) ) {
-			args.filter                  = "system_key = :system_key";
+			args.filter                  = "page.system_key = :system_key";
 			args.filterParams.system_key = arguments.system_key;
 
 		} else {
@@ -78,7 +78,7 @@ component output=false singleton=true {
 		}
 
 		if ( not arguments.includeTrash ) {
-			args.filter &= " and trashed = 0";
+			args.filter &= " and page.trashed = 0";
 		}
 
 		if ( ArrayLen( arguments.selectFields ) ) {
