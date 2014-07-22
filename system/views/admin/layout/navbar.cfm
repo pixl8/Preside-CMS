@@ -9,6 +9,8 @@
 				<a href="##" class="navbar-brand">#translateResource( uri="cms:cms.title" )#</a>
 			</div><!-- /.navbar-header -->
 
+			#renderViewlet( "admin.sites.sitePicker" )#
+
 			<div class="navbar-header pull-right" role="navigation">
 				<ul class="nav ace-nav">
 					<li>

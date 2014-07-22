@@ -70,6 +70,7 @@ component output=false {
 		settings.permissions = {
 			  cms                 = [ "login" ]
 			, sitetree            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
+			, sites               = [ "navigate", "add", "edit", "delete", "manageContextPerms" ]
 			, datamanager         = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, usermanager         = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager        = [ "navigate", "read", "add", "edit", "delete" ]

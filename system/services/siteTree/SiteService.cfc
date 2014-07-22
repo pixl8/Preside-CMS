@@ -12,6 +12,14 @@ component output=false displayname="Site service" autodoc=true {
 	}
 
 // PUBLIC API
+
+	/**
+	 * Returns a query of all the registered sites
+	 */
+	public query function listSites() output=false autodoc=true {
+		return _getSiteDao().selectData( orderBy = "name" );
+	}
+
 	/**
 	 * Returns the site record that matches the incoming domain and URL path.
 	 *
