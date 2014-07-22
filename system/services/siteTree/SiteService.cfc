@@ -5,10 +5,17 @@ component output=false displayname="Site service" autodoc=true {
 
 // CONSTRUCTOR
 	/**
-	 * @siteDao.inject presidecms:object:site
+	 * @siteDao.inject           presidecms:object:site
+	 * @sessionStorage.inject    coldbox:plugin:sessionStorage
+	 * @permissionService.inject permissionService
+	 *
 	 */
-	public any function init( required any siteDao ) output=false {
+	public any function init( required any siteDao, required any sessionStorage, required any permissionService ) output=false {
 		_setSiteDao( arguments.siteDao );
+		_setSessionStorage( arguments.sessionStorage );
+		_setPermissionService( arguments.permissionService );
+
+		return this;
 	}
 
 // PUBLIC API
@@ -42,6 +49,40 @@ component output=false displayname="Site service" autodoc=true {
 		return {};
 	}
 
+	/**
+	 * Returns the id of the currently active site for the administrator. If no site selected, chooses the first site
+	 * that the logged in user has rights to
+	 */
+	public string function getActiveAdminSite() output=false autodoc=true{
+		var sessionStorage    = _getSessionStorage();
+		var permissionService = _getPermissionService();
+
+		if ( sessionStorage.exists( "_activeSite" ) ) {
+			var activeSite = sessionStorage.getVar( "_activeSite" );
+			if ( Len( Trim( activeSite ) ) && permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKey=activeSite ) ) {
+				return activeSite;
+			}
+		}
+
+		var sites = _getSiteDao().selectData( orderBy = "Length( domain ), Length( path )" );
+		for( var site in sites ) {
+			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKey=site.id ) ) {
+				setActiveAdminSite( site.id );
+
+				return site.id;
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Sets the current active admin site id
+	 */
+	public void function setActiveAdminSite( required string siteId ) output=false autodoc=true {
+		_getSessionStorage().setVar( "_activeSite", arguments.siteId );
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getSiteDao() output=false {
@@ -51,4 +92,17 @@ component output=false displayname="Site service" autodoc=true {
 		_siteDao = arguments.siteDao;
 	}
 
+	private any function _getSessionStorage() output=false {
+		return _sessionStorage;
+	}
+	private void function _setSessionStorage( required any sessionStorage ) output=false {
+		_sessionStorage = arguments.sessionStorage;
+	}
+
+	private any function _getPermissionService() output=false {
+		return _permissionService;
+	}
+	private void function _setPermissionService( required any permissionService ) output=false {
+		_permissionService = arguments.permissionService;
+	}
 }

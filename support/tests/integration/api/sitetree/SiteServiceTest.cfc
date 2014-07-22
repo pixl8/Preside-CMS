@@ -43,9 +43,42 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( sites[2], site.id ?: "" );
 	}
 
+	public void function test06_getActiveAdminSite_shouldReturnActiveSiteStoredInSession_whenUserHasPermissionToNavigateIt() output=false {
+		var siteService = _getSiteService();
+		var testSiteId  = "testsiteid";
+
+		mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( true );
+		mockSessionStorage.$( "getVar" ).$args( "_activeSite" ).$results( testSiteId );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=testSiteId ).$results( true );
+
+		super.assertEquals( testSiteId, siteService.getActiveAdminSite() );
+	}
+
+	public void function test07_getActiveAdminSite_shouldReturnFirstSiteThatUserHasAccessTo_whenNoActiveSiteAlreadySet() output=false {
+		var siteService = _getSiteService();
+
+		mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( false );
+		mockSessionStorage.$( "setVar", NullValue() );
+
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[1] ).$results( false );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[2] ).$results( true );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[3] ).$results( true );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[4] ).$results( false );
+		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=sites[5] ).$results( true );
+
+		super.assertEquals( sites[2], siteService.getActiveAdminSite() );
+	}
+
 // private utility
 	private any function _getSiteService() output=false {
-		return new preside.system.services.sitetree.SiteService( siteDao=_getPresideObjectService().getObject( "site" ) );
+		mockSessionStorage    = getMockBox().createStub();
+		mockPermissionService = getMockBox().createStub();
+
+		return new preside.system.services.sitetree.SiteService(
+			  siteDao           = _getPresideObjectService().getObject( "site" )
+			, sessionStorage    = mockSessionStorage
+			, permissionService = mockPermissionService
+		);
 	}
 
 	private void function _setupTestData() output=false {
