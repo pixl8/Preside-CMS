@@ -36,6 +36,21 @@ component output=false extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/editSite" );
 	}
 
+	function editSiteAction( event, rc, prc ) output=false {
+		_checkPermissions( event );
+
+		runEvent(
+			  event          = "admin.DataManager._editRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object        = "site"
+				, errorAction   = "sites.editSite"
+				, successAction = "sites.manage"
+			}
+		);
+	}
+
 	public void function setActiveSite( event, rc, prc ) output=false {
 		var activeSiteId = rc.id ?: "";
 
