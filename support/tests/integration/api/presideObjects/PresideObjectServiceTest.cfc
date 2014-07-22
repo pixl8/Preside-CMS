@@ -2575,6 +2575,7 @@ test04
 	<cffunction name="test81_selectData_shouldAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystem" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
+			var obj       = poService.getObject( "object_using_site_tenant" );
 
 			poService.dbSync();
 
@@ -2586,22 +2587,22 @@ test04
 			var newRecordIds = [];
 
 			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			newRecordIds.append( poService.getObject( "object_using_site_tenant" ).insertData( { label="test record" } ) );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
 
 			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecordIds.append( poService.getObject( "object_using_site_tenant" ).insertData( { label="test record" } ) );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
 
 			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
-			newRecordIds.append( poService.getObject( "object_using_site_tenant" ).insertData( { label="test record" } ) );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
 
 			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			var newRecord = poService.getObject( "object_using_site_tenant" ).selectData( filter={ label="test record" } );
+			var newRecord = obj.selectData( filter={ label="test record" } );
 
 			super.assertEquals( 1, newRecord.recordCount );
 			super.assertEquals( newRecordIds[1], newRecord.id );
 
 			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecord = poService.getObject( "object_using_site_tenant" ).selectData( filter="label = :label", filterParams={ label="test record" } );
+			newRecord = obj.selectData( filter="label = :label", filterParams={ label="test record" } );
 
 			super.assertEquals( 1, newRecord.recordCount );
 			super.assertEquals( newRecordIds[2], newRecord.id );
