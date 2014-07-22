@@ -474,6 +474,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		}
 
 		if ( IsStruct( arguments.filter ) ) {
+			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
+				arguments.filter.site = _getActiveSiteId();
+			}
+
 			params = _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = obj.properties
@@ -481,6 +485,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
+			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
+				arguments.filterParams.site = _getActiveSiteId();
+				arguments.filter            = _mergeFilters( arguments.filter, "#arguments.objectName#.site = :site", adapter, arguments.objectName );
+			}
+
 			params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = obj.properties
 				, params            = arguments.filterParams

@@ -2605,7 +2605,41 @@ test04
 
 			super.assertEquals( 1, newRecord.recordCount );
 			super.assertEquals( newRecordIds[2], newRecord.id );
+		</cfscript>
+	</cffunction>
 
+	<cffunction name="test82_updateData_shouldAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystem" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
+			var obj       = poService.getObject( "object_using_site_tenant" );
+
+			poService.dbSync();
+
+			var siteIds = [];
+
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
+			var newRecordIds = [];
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			super.assertEquals( 0, obj.updateData( id=newRecordIds[1], data={ label="new label" } ) );
+			super.assertEquals( 2, obj.updateData( filter={ label="test record" }, data={ label="new label" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
+			super.assertEquals( 1, obj.updateData( data={ label="another new label" }, forceUpdateAll=true ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			super.assertEquals( 1, obj.updateData( filter="label != :label", filterParams={ label="whatever" }, data={ label="new label" } ) );
 		</cfscript>
 	</cffunction>
 
