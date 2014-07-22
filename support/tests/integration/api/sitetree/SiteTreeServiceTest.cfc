@@ -2,6 +2,8 @@
 
 	<cffunction name="setup" access="public" returntype="any" output="false">
 		<cfscript>
+			mockColdboxEvent.$( "getSite", "" );
+
 			_wipeData();
 			_setupDummyTreeData();
 
@@ -11,7 +13,14 @@
 
 	<cffunction name="beforeTests" access="public" returntype="any" output="false">
 		<cfscript>
-			var poService = _getPresideObjectService( forceNewInstance=true );
+			mockColdbox      = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+			mockColdboxEvent = getMockbox().createStub();
+
+			mockColdboxEvent.$( "isAdminUser", true );
+			mockColdboxEvent.$( "getAdminUserId", "" );
+			mockColdbox.$( "getRequestContext", mockColdboxEvent );
+
+			var poService = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
 			var logger    = _getTestLogger();
 			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ] );
 
@@ -1136,6 +1145,8 @@
 				  objectName="site"
 				, data={ name="dummy", path="", domain="*" }
 			);
+
+			mockColdboxEvent.$( "getSite", { id=dummySite } );
 		</cfscript>
 	</cffunction>
 

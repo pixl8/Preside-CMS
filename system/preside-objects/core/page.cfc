@@ -3,13 +3,13 @@
  */
 
 
-component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayname="Sitetree Page" {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayname="Sitetree Page" sitetenant=true {
 
 <!--- properties --->
 	property name="title"                     type="string"  dbtype="varchar"  maxLength="200" required="true" control="textinput";
 	property name="main_content"              type="string"  dbtype="text"                     required="false";
 	property name="teaser"                    type="string"  dbtype="varchar"  maxLength="500" required="false";
-	property name="slug"                      type="string"  dbtype="varchar"  maxLength="50"  required="false" uniqueindexes="slug|3" format="slug";
+	property name="slug"                      type="string"  dbtype="varchar"  maxLength="50"  required="false" uniqueindexes="slug|2" format="slug";
 	property name="page_type"                 type="string"  dbtype="varchar"  maxLength="100" required="true"                                             control="pageTypePicker";
 	property name="layout"                    type="string"  dbtype="varchar"  maxLength="100" required="false"                                            control="pageLayoutPicker";
 
@@ -19,8 +19,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="old_slug"                  type="string"  dbtype="varchar" maxLength="50"   required="false";
 
 	property name="main_image"  relationship="many-to-one" relatedTo="asset"                   required="false" allowedTypes="image";
-	property name="site"        relationship="many-to-one" relatedTo="site"                    required="true"                      uniqueindexes="slug|1" control="none";
-	property name="parent_page" relationship="many-to-one" relatedTo="page"                    required="false"                     uniqueindexes="slug|2" control="none";
+	property name="parent_page" relationship="many-to-one" relatedTo="page"                    required="false"                     uniqueindexes="slug|1" control="none";
 	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required="true"                                             control="none" generator="loggedInUserId";
 	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required="true"                                             control="none" generator="loggedInUserId";
 

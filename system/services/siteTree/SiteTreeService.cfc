@@ -20,13 +20,12 @@ component output=false singleton=true {
 		, array   selectFields = []
 		, string  format       = "query"
 		, boolean useCache     = true
-		, string  site         = getDefaultSiteId()
 
 	) output=false {
 		var tree = "";
 		var args = {
 			  orderBy  = "_hierarchy_sort_order"
-			, filter   = { trashed = arguments.trash, site = arguments.site }
+			, filter   = { trashed = arguments.trash }
 			, useCache = arguments.useCache
 		};
 
@@ -98,10 +97,9 @@ component output=false singleton=true {
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
 		, array   ids         = []
-		, string  site        = getDefaultSiteId()
 	) output=false {
-		var filter = "( page.trashed = 0 and page.site = :site )";
-		var params = { site = arguments.site };
+		var filter = "( page.trashed = 0 )";
+		var params = {};
 
 		if ( arguments.ids.len() ) {
 			filter &= " and ( page.id in (:id) )";
@@ -285,7 +283,7 @@ component output=false singleton=true {
 		return QueryNew('');
 	}
 
-	public query function getSiteHomepage( array selectFields=[], string site=getDefaultSiteId(), boolean createIfNotExists=true ) output=false {
+	public query function getSiteHomepage( array selectFields=[], boolean createIfNotExists=true ) output=false {
 		var loginSvc       = _getLoginService();
 		var homepage       = _getPobj().selectData(
 			  maxRows      = 1
@@ -294,7 +292,6 @@ component output=false singleton=true {
 			, filter       = {
 				  active  = true
 				, trashed = false
-				, site    = arguments.site
 			  }
 		);
 
@@ -306,7 +303,6 @@ component output=false singleton=true {
 			  title         = "Home"
 			, slug          = ""
 			, page_type     = "homepage"
-			, site          = arguments.site
 			, active        = 1
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		);
@@ -319,12 +315,11 @@ component output=false singleton=true {
 		, required string slug
 		, required string page_type
 		,          string parent_page
-		,          string site        = getDefaultSiteId()
 		,          string userId      = _getLoginService().getLoggedInUserId()
 
 	) output=false {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
-		var homepage        = getSiteHomepage( [ "id" ], arguments.site, false );
+		var homepage        = getSiteHomepage( [ "id" ], false );
 		var pageType        = _getPageTypesService().getPageType( arguments.page_type );
 		var pobj            = _getPObj();
 		var page            = "";
@@ -344,7 +339,6 @@ component output=false singleton=true {
 		StructAppend( data, {
 			  created_by                = arguments.userId
 			, updated_by                = arguments.userId
-			, site                      = arguments.site
 			, _hierarchy_child_selector = ""
 			, _hierarchy_lineage        = "/"
 			, _hierarchy_depth          = 0
@@ -567,7 +561,7 @@ component output=false singleton=true {
 
 	public boolean function permanentlyDeletePage( required string id ) output=false {
 		var pobj     = _getPObj();
-		var homepage = getSiteHomepage( [ "id" ], getDefaultSiteId() );
+		var homepage = getSiteHomepage( [ "id" ] );
 		var rootPage = "";
 		var nDeleted = 0;
 
@@ -591,30 +585,18 @@ component output=false singleton=true {
 		return nDeleted;
 	}
 
-	public boolean function emptyTrash( string site=getDefaultSiteId() ) output=false {
-		return _getPObj().deleteData( filter = { trashed = true, site = arguments.site } );
-	}
-
-	public string function getDefaultSiteId( ) output=false {
-		/* this is temporary - until we support multiple sites */
-		var result = _getPresideObject( "site" ).selectData( selectFields=[ "id" ], maxRows=1 );
-
-		if ( result.recordCount ) {
-			return result.id;
-		}
-
-		return _getPresideObject( "site" ).insertData( { name="Default site", domain="*", path="/" } );
+	public boolean function emptyTrash() output=false {
+		return _getPObj().deleteData( filter = { trashed = true } );
 	}
 
 // PRIVATE HELPERS
-	private numeric function _calculateSortOrder( string parent_page, string site=getDefaultSiteId() ) output=false {
+	private numeric function _calculateSortOrder( string parent_page ) output=false {
 		var result       = "";
 		var filter       = "";
 		var filterParams = {};
 
 		if ( not StructKeyExists( arguments, "parent_page" ) or not Len( Trim( arguments.parent_page ) ) ) {
-			filter       = "parent_page is null and site = :site";
-			filterParams = { site = arguments.site };
+			filter       = "parent_page is null";
 		} else {
 			filter = { parent_page = arguments.parent_page };
 		}
@@ -681,7 +663,7 @@ component output=false singleton=true {
 	}
 
 	private void function _checkForBadHomepageOperations( required string id ) output=false {
-		var homepage = getSiteHomepage( [ "id" ], getDefaultSiteId(), false );
+		var homepage = getSiteHomepage( [ "id" ], false );
 
 		if ( arguments.id != homepage.id ) {
 			return;

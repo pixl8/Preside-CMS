@@ -99,7 +99,6 @@
 			formData             = event.getCollectionForForm( formName );
 			formData.parent_page = parent;
 			formData.page_type   = rc.page_type;
-			formData.site        = siteTreeService.getDefaultSiteId();
 
 			validationResult = validateForm( formName=formName, formData=formData );
 
@@ -222,7 +221,6 @@
 
 			formData         = event.getCollectionForForm( formName );
 			formData.id      = pageId;
-			formData.site    = siteTreeService.getDefaultSiteId();
 			validationResult = validateForm( formName=formName, formData=formData );
 
 			if ( not validationResult.validated() ) {
@@ -347,7 +345,6 @@
 			var newId             = "";
 			var persist           = "";
 
-			formData.site = siteTreeService.getDefaultSiteId();
 			validationResult = validateForm( formName = formName, formData = formData );
 
 			if ( not validationResult.validated() ) {

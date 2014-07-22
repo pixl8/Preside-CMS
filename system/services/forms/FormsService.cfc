@@ -288,18 +288,22 @@ component output=false singleton=true {
 
 	public any function validateForm( required string formName, required struct formData, boolean preProcessData=true ) output=false {
 		var ruleset = _getValidationRulesetFromFormName( arguments.formName );
+		var data    = Duplicate( arguments.formData );
+
+		// add active "site" id to form data, should unique indexes require checking against a specific site
+		data.site = data.site ?: _getColdBox().getRequestContext().getSiteId();
 
 		if ( arguments.preProcessData ) {
 			return _getValidationEngine().validate(
 				  ruleset = ruleset
-				, data    = arguments.formData
+				, data    = data
 				, result  = preProcessForm( argumentCollection = arguments )
 			);
 		}
 
 		return _getValidationEngine().validate(
 			  ruleset = ruleset
-			, data    = arguments.formData
+			, data    = data
 		);
 	}
 

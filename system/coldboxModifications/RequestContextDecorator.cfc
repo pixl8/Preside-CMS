@@ -30,6 +30,14 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getSiteId" access="public" returntype="string" output="false">
+		<cfscript>
+			var site = getSite();
+
+			return site.id ?: "";
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="buildLink" access="public" returntype="string" output="false">
 		<cfscript>
 			var prc = getRequestContext().getCollection( private=true );
