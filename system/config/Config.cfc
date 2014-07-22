@@ -87,6 +87,8 @@ component output=false {
 
 		settings.roles.user           = [ "cms.login" ];
 		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*" ];
+		settings.roles.siteManager    = [ "sites.*" ];
+		settings.roles.siteUser       = [ "sites.navigate" ];
 		settings.roles.sitetreeAdmin  = [ "sitetree.*" ];
 		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
 		settings.roles.dataAdmin      = [ "datamanager.*" ];

@@ -2,6 +2,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 
 	property name="siteService" inject="siteService";
 	property name="siteDao"     inject="presidecms:object:site";
+	property name="messagebox"  inject="coldbox:plugin:messagebox";
 
 	public void function manage( event, rc, prc ) output=false {
 		_checkPermissions( event );
@@ -36,7 +37,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/editSite" );
 	}
 
-	function editSiteAction( event, rc, prc ) output=false {
+	public void function editSiteAction( event, rc, prc ) output=false {
 		_checkPermissions( event );
 
 		runEvent(
@@ -49,6 +50,45 @@ component output=false extends="preside.system.base.AdminHandler" {
 				, successAction = "sites.manage"
 			}
 		);
+	}
+
+	public void function editPermissions( event, rc, prc ) output=false {
+		_checkPermissions( event );
+
+		prc.record = siteDao.selectData( id=rc.id ?: "" );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+		_addRootBreadcrumb( event );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sites.editPermissions.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#(rc.id ?: '')#" )
+		);
+
+		prc.pageIcon  = "globe";
+		prc.pageTitle = translateResource( uri="cms:sites.editPermissions.title", data=[ prc.record.name ?: "" ] );
+
+		event.setView( "/admin/sites/editPermissions" );
+	}
+
+	public void function saveSitePermissionsAction( event, rc, prc ) output=false {
+		var siteId = rc.id ?: "";
+
+		_checkPermissions( event );
+
+		var success = runEvent( event="admin.Permissions.saveContextPermsAction", private=true );
+
+		if ( success ) {
+			messageBox.info( translateResource( uri="cms:sites.permsSaved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
+		}
+
+		messageBox.error( translateResource( uri="cms:sites.permsSaved.error" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sites.editPermissions", queryString="id=#siteId#" ) );
 	}
 
 	public void function setActiveSite( event, rc, prc ) output=false {
