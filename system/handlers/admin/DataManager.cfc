@@ -618,6 +618,7 @@
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
 			var postActionUrl    = event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) );
+			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 
 			obj = presideObjectService.getObject( object );
 
@@ -646,7 +647,7 @@
 			if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
 				for( record in records ) {
 					event.audit(
-						  detail   = "#objectName#, '#record.label#', was deleted"
+						  detail   = "#objectName#, '#record[labelField]#', was deleted"
 						, source   = "datamanager"
 						, action   = "deleteRecord"
 						, type     = object
@@ -656,7 +657,7 @@
 
 				if ( redirectOnSuccess ) {
 					if ( ids.len() eq 1 ) {
-						messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records.label ] ) );
+						messageBox.info( translateResource( uri="cms:datamanager.recordDeleted.confirmation", data=[ objectName, records[labelField][1] ] ) );
 					} else {
 						messageBox.info( translateResource( uri="cms:datamanager.recordsDeleted.confirmation", data=[ objectNamePlural, ids.len() ] ) );
 					}
