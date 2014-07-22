@@ -199,8 +199,19 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public string function getDeleteSql( required string tableName, required any filter ) output=false {
-		return "delete from #escapeEntity( arguments.tableName )#" & getClauseSql( filter = arguments.filter );
+	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) output=false {
+		var sql = "delete from "
+
+		if ( Len( Trim( arguments.tableAlias ) ) ) {
+			sql &= "#escapeEntity( arguments.tableAlias )# using #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )#";
+		} else {
+			sql &= " #escapeEntity( arguments.tableName )#";
+		}
+
+		return sql & getClauseSql(
+			  filter     = arguments.filter
+			, tableAlias = arguments.tableAlias
+		);
 	}
 
 	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) output=false {

@@ -1,4 +1,3 @@
-test04
 <cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
 
 	<cffunction name="setup" access="public" returntype="void" output="false">
@@ -2641,6 +2640,41 @@ test04
 
 			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
 			super.assertEquals( 1, obj.updateData( filter="label != :label", filterParams={ label="whatever" }, data={ label="new label" } ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test83_deleteData_shouldAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystem" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
+			var obj       = poService.getObject( "object_using_site_tenant" );
+
+			poService.dbSync();
+
+			var siteIds = [];
+
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
+			var newRecordIds = [];
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			super.assertEquals( 0, obj.deleteData( id=newRecordIds[1] ) );
+			super.assertEquals( 2, obj.deleteData( filter={ label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
+			super.assertEquals( 1, obj.deleteData( forceDeleteAll=true ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			super.assertEquals( 1, obj.deleteData( filter="label != :label", filterParams={ label="whatever" } ) );
 		</cfscript>
 	</cffunction>
 
