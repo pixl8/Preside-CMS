@@ -173,17 +173,17 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=compiledSelectFields, filter=arguments.filter, orderBy=arguments.orderBy );
 		var joins                = [];
 		var i                    = "";
+		var f                    = "";
 
 		if ( Len( Trim( arguments.id ) ) ) {
 			arguments.filter = { id = arguments.id };
 		}
 
+		f = _prepareFilter( arguments.objectName, arguments.filter, arguments.filterParams, adapter );
+		arguments.filter       = f.filter;
+		arguments.filterParams = f.params;
+
 		if ( IsStruct( arguments.filter ) ) {
-
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				arguments.filter.site = _getActiveSiteId();
-			}
-
 			params = _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = obj.properties
@@ -191,11 +191,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				arguments.filterParams.site = _getActiveSiteId();
-				arguments.filter            = _mergeFilters( arguments.filter, "#arguments.objectName#.site = :site", adapter, arguments.objectName );
-			}
-
 			params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = obj.properties
 				, params            = arguments.filterParams
@@ -473,11 +468,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			arguments.filter = { id = arguments.id };
 		}
 
-		if ( IsStruct( arguments.filter ) ) {
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				arguments.filter.site = _getActiveSiteId();
-			}
+		var f = _prepareFilter( arguments.objectName, arguments.filter, arguments.filterParams, adapter );
+		arguments.filter       = f.filter;
+		arguments.filterParams = f.params;
 
+		if ( IsStruct( arguments.filter ) ) {
 			params = _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = obj.properties
@@ -485,11 +480,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				arguments.filterParams.site = _getActiveSiteId();
-				arguments.filter            = _mergeFilters( arguments.filter, "#arguments.objectName#.site = :site", adapter, arguments.objectName );
-			}
-
 			params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = obj.properties
 				, params            = arguments.filterParams
@@ -619,11 +609,12 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			arguments.filter = { id = arguments.id };
 		}
 
-		if ( IsStruct( arguments.filter ) ) {
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				arguments.filter.site = _getActiveSiteId();
-			}
+		var f = _prepareFilter( arguments.objectName, arguments.filter, arguments.filterParams, adapter );
+		arguments.filter       = f.filter;
+		arguments.filterParams = f.params;
 
+
+		if ( IsStruct( arguments.filter ) ) {
 			params = _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = obj.properties
@@ -631,11 +622,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				arguments.filterParams.site = _getActiveSiteId();
-				arguments.filter            = _mergeFilters( arguments.filter, "#arguments.objectName#.site = :site", adapter, arguments.objectName );
-			}
-
 			params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = obj.properties
 				, params            = arguments.filterParams
@@ -1872,6 +1858,34 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var site = _getColdboxRequestContext().getSite();
 
 		return ( site.id ?: "" );
+	}
+
+	private struct function _prepareFilter( required string objectName, required any filter, required struct filterParams, required any adapter ) output=false {
+		if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
+			return _addSiteFilterForObjectsThatUseSiteTenancy( argumentCollection=arguments );
+		}
+
+		return {
+			  filter = arguments.filter
+			, params = arguments.filterParams
+		};
+	}
+
+	private struct function _addSiteFilterForObjectsThatUseSiteTenancy( required string objectName, required any filter, required struct filterParams, required any adapter ) output=false {
+		var site   = _getActiveSiteId();
+		var result = {
+			  filter = arguments.filter
+			, params = arguments.filterParams
+		};
+
+		if ( IsStruct( arguments.filter ) ) {
+			result.filter.site = site;
+		} else {
+			result.params.site = site;
+			result.filter      = _mergeFilters( result.filter, "#arguments.objectName#.site = :site", arguments.adapter, arguments.objectName );
+		}
+
+		return result;
 	}
 
 // SIMPLE PRIVATE PROXIES
