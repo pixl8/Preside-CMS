@@ -68,7 +68,7 @@
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
 				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
-				if ( !arguments.keyExists( "coldbox" ) ) {
+				if ( !StructKeyExists( arguments, "coldbox" ) ) {
 					var event   = getMockbox().createStub();
 
 					event.$( "isAdminUser", true );
