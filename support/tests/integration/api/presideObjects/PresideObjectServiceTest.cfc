@@ -2678,6 +2678,36 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test84_selectData_shouldNotAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystemButCurrentSiteIdIsEmpty" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
+			var obj       = poService.getObject( "object_using_site_tenant" );
+
+			poService.dbSync();
+
+			var siteIds = [];
+
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
+			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
+			var newRecordIds = [];
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
+			newRecordIds.append( obj.insertData( { label="test record" } ) );
+
+			mockColdboxEvent.$( "getSite", { id="" } );
+			var newRecord = obj.selectData( filter={ label="test record" } );
+
+			super.assertEquals( 3, newRecord.recordCount );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />

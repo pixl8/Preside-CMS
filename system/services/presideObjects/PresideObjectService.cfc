@@ -1862,11 +1862,13 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filterParams = arguments.filterParams
 		};
 
-		if ( IsStruct( arguments.filter ) ) {
-			result.filter.site = site;
-		} else {
-			result.filter = _mergeFilters( result.filter, "#arguments.objectName#.site = :site", arguments.adapter, arguments.objectName );
-			result.filterParams.site = site;
+		if ( Len( Trim( site ) ) ) {
+			if ( IsStruct( arguments.filter ) ) {
+				result.filter.site = site;
+			} else {
+				result.filter = _mergeFilters( result.filter, "#arguments.objectName#.site = :site", arguments.adapter, arguments.objectName );
+				result.filterParams.site = site;
+			}
 		}
 
 		return result;
