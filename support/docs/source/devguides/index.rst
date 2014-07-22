@@ -8,14 +8,17 @@ Developer guides & recipes
    designeroverview
    presideobjects
    presideobjectviews
+   datamanager
    formlayouts
    formcontrols
    viewlets
    widgets
    pagetypes
+   sites
    richeditor
    routing
    configcfc
+   caching
    reloading
    cssandjs
    permissioning

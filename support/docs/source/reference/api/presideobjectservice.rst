@@ -710,3 +710,23 @@ Arguments
 .........
 
 *This method does not accept any arguments.*
+
+.. _presideobjectservice-objectisusingsitetenancy:
+
+ObjectIsUsingSiteTenancy()
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function objectIsUsingSiteTenancy( required string objectName )
+
+Returns whether or not the given object is using the site tenancy system, see :ref:`presideobjectssites`
+
+Arguments
+.........
+
+==========  ======  ========  ====================================
+Name        Type    Required  Description                         
+==========  ======  ========  ====================================
+objectName  string  Yes       Name of the object you wish to check
+==========  ======  ========  ====================================

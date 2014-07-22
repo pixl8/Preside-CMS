@@ -6,7 +6,12 @@ Overview
 
 **Preside Data Objects** are the data layer implementation for PresideCMS. Just about everything in the system that persists data to the database uses Preside Data Objects to do so. 
 
-The Preside Data Objects system is deeply integrated into the CMS; input forms and other administrative GUIs can be automatically generated for your preside objects (see :doc:`formlayouts`) and :doc:`presideobjectviews` provide a way to present your data to end users without the need for handler or service layers. There is also a complete GUI data manager that can be configured for your clients that is based on entirely on Preside Data Objects; see :doc:`datamanager`.
+The Preside Data Objects system is deeply integrated into the CMS:
+
+* Input forms and other administrative GUIs can be automatically generated for your preside objects (see :doc:`formlayouts`)
+* :doc:`presideobjectviews` provide a way to present your data to end users without the need for handler or service layers
+*  The see :doc:`datamanager` provides a GUI for managing your client specific data and is based on entirely on Preside Data Objects
+* Your preside objects can have their data tied to individual :doc:`sites`, without the need for any extra programming of site filters, see :ref:`presideobjectssites`
 
 The following guide is intended as a thorough overview of Preside Data Objects. For API reference documentation, see :doc:`/reference/api/presideobjectservice` (service layer) and :doc:`/reference/presideobjects/index` (system provided data objects).
 
@@ -683,6 +688,23 @@ Various admin GUIs such as the :doc:`datamanager` implement user interfaces to d
 In addition, you can specify whether or not you wish to use the versioning system, and also what version number to use if you are, when calling the :ref:`presideobjectservice-insertData`, :ref:`presideobjectservice-updateData` and :ref:`presideobjectservice-deleteData` methods by using the :code:`useVersioning` and :code:`versionNumber` arguments.
 
 Finally, you can select data from the version history tables with the :ref:`presideobjectservice-selectdata` method by using the :code:`fromVersionTable`, :code:`maxVersion` and :code:`specificVersion` arguments.
+
+.. _presideobjectssites:
+
+Organising data by sites
+########################
+
+You can instruct the Preside Data Objects system to organise your objects' data into your system's individual sites (see :doc:`sites`). Doing so will mean that any data reads and writes will be specific to the currently active site.
+
+To enable this feature for an object, simply add the :code:`siteTenant` attribute to the :code:`component` tag:
+
+.. code-block:: java
+
+    component output=false siteTenant=true {
+        // ...
+    }
+
+
 
 
 .. _Wirebox: http://wiki.coldbox.org/wiki/WireBox.cfm

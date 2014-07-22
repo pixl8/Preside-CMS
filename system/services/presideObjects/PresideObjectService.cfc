@@ -1029,7 +1029,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 
 	/**
-	 * Returns whether or not the given object is the site tenancy system
+	 * Returns whether or not the given object is using the site tenancy system, see :ref:`presideobjectssites`
 	 *
 	 * @objectName.hint Name of the object you wish to check
 	 */
