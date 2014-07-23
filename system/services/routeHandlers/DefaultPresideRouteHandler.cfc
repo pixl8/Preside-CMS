@@ -4,37 +4,64 @@ component implements="iRouteHandler" output=false singleton=true {
 	/**
 	 * @eventName.inject       coldbox:setting:eventName
 	 * @sitetreeService.inject SitetreeService
+	 * @siteService.inject     siteService
 	 */
-	public any function init( required string eventName, required any sitetreeService ) output=false {
+	public any function init( required string eventName, required any sitetreeService, required any siteService ) output=false {
 		_setEventName( arguments.eventName );
 		_setSiteTreeService( arguments.siteTreeService );
+		_setSiteService( arguments.siteService );
 
 		return this;
 	}
 
 // route handler methods
 	public boolean function match( required string path, required any event ) output=false {
-		if ( arguments.path eq "/" or arguments.path eq "/index.cfm" ) {
-			return !Len( Trim( event.getValue( "event", "" ) ) );
+		if ( Len( Trim( event.getValue( "event", "" ) ) ) ) {
+			return false;
 		}
-		return ReFindNoCase( "\.html$", arguments.path );
+
+		if ( arguments.path eq "/" or arguments.path eq "/index.cfm" ) {
+			return true;
+		}
+
+		if ( ReFindNoCase( "\.html$", arguments.path ) ) {
+			return true;
+		}
+
+		var incomingPathNoSlashes = ReReplace( arguments.path, "^/?(.*?)/?$", "\1" );
+		for ( var site in _getSiteService().listSites() ) {
+			var sitePathNoSlashes = ReReplace( site.path, "^/?(.*?)/?$", "\1" );
+			if ( sitePathNoSlashes == incomingPathNoSlashes ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void function translate( required string path, required any event ) output=false {
-		var slug        = "";
-		var id          = "";
-		var subaction   = "";
-		var params      = "";
-		var rc          = event.getCollection();
-		var prc         = event.getCollection( private=true );
-		var site        = event.getSite();
+		var slug          = "";
+		var id            = "";
+		var subaction     = "";
+		var params        = "";
+		var rc            = event.getCollection();
+		var prc           = event.getCollection( private=true );
+		var site          = event.getSite();
+		var pathMinusSite = arguments.path;
 
-		if ( arguments.path eq "/index.cfm" or arguments.path eq "/" ) {
+		if ( Len( site.path ?: "" ) > 1 ) {
+			pathMinusSite = Right( pathMinusSite, Len( pathMinusSite ) - Len( site.path ) );
+			if ( Left( pathMinusSite, 1 ) != "/" ) {
+				pathMinusSite = "/" & pathMinusSite;
+			}
+		}
+
+		if ( pathMinusSite eq "/index.cfm" or pathMinusSite eq "/" ) {
 			slug      = "/";
 		} else {
-			slug      = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
-			subaction = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
-			id        = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
+			slug      = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
+			subaction = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
+			id        = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
 		}
 
 		if ( Find( "!", slug ) ) {
@@ -48,13 +75,6 @@ component implements="iRouteHandler" output=false singleton=true {
 				} else {
 					rc[ key ] = UrlDecode( params[i] );
 				}
-			}
-		}
-
-		if ( Len( site.path ?: "" ) > 1 ) {
-			slug = Right( slug, Len( slug ) - Len( site.path ) );
-			if ( Left( slug, 1 ) != "/" ) {
-				slug = "/" & slug;
 			}
 		}
 
@@ -128,5 +148,12 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 	private void function _setSiteTreeService( required any siteTreeService ) output=false {
 		_siteTreeService = arguments.siteTreeService;
+	}
+
+	private any function _getSiteService() output=false {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) output=false {
+		_siteService = arguments.siteService;
 	}
 }
