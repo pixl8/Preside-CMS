@@ -180,7 +180,8 @@
     	<cfargument name="explicitModule">
 
     	<cfscript>
-    		var locationKey 	= arguments.view & arguments.module & arguments.explicitModule;
+    		var site            = getRequestContext().getSite();
+    		var locationKey 	= ( site.template ?: "" ) & arguments.view & arguments.module & arguments.explicitModule;
 			var locationUDF 	= variables.locateView;
 			var dPath			= "";
 			var refMap			= "";
@@ -710,12 +711,21 @@
 			var subDir      = instance.viewsConvention;
 			var directories = [ "/preside/system/#subDir#" ];
 			var extensions  = getController().getSetting( name="activeExtensions", defaultValue=[] );
+			var site        = getRequestContext().getSite();
 
 			for( var i=extensions.len(); i > 0; i-- ){
-				ArrayAppend( directories, extensions[i].directory & "/" & subDir );
+				directories.append( extensions[i].directory & "/" & subDir );
 			}
 
-			ArrayAppend( directories, "/app/#subDir#" );
+			directories.append( "/app/#subDir#" );
+
+			if ( Len( Trim( site.template ?: "" ) ) ) {
+				for( var i=extensions.len(); i > 0; i-- ){
+					directories.append( extensions[i].directory & "/site-templates/#site.template#/" & subDir );
+				}
+
+				directories.append( "/app/site-templates/#site.template#/#subDir#" );
+			}
 
 			return directories;
 		</cfscript>
