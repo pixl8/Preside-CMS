@@ -14,6 +14,22 @@ component output=false extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:sites.manage.subtitle" );
 	}
 
+	public void function addSite() output=false {
+		_checkPermissions( event );
+
+		_addRootBreadcrumb( event );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sites.addSite.breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="sites.addSite" )
+		);
+
+		prc.pageIcon  = "globe";
+		prc.pageTitle = translateResource( uri="cms:sites.addSite.title" );
+
+		event.setView( "/admin/sites/addSite" );
+	}
+
+
 	public void function editSite() output=false {
 		_checkPermissions( event );
 
