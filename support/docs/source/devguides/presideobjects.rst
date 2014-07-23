@@ -696,11 +696,11 @@ Organising data by sites
 
 You can instruct the Preside Data Objects system to organise your objects' data into your system's individual sites (see :doc:`sites`). Doing so will mean that any data reads and writes will be specific to the currently active site.
 
-To enable this feature for an object, simply add the :code:`siteTenant` attribute to the :code:`component` tag:
+To enable this feature for an object, simply add the :code:`siteFiltered` attribute to the :code:`component` tag:
 
 .. code-block:: java
 
-    component output=false siteTenant=true {
+    component output=false siteFiltered=true {
         // ...
     }
 

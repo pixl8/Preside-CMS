@@ -1,3 +1,3 @@
-component output=false sitetenant=true versioned=false {
+component output=false siteFiltered=true versioned=false {
 
 }

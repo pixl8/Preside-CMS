@@ -1041,7 +1041,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	public boolean function objectIsUsingSiteTenancy( required string objectName ) output=false autodoc=true {
 		var obj = _getObject( objectName );
 
-		return IsBoolean( obj.meta.sitetenant ?: "" ) && obj.meta.sitetenant;
+		return IsBoolean( obj.meta.siteFiltered ?: "" ) && obj.meta.siteFiltered;
 	}
 
 

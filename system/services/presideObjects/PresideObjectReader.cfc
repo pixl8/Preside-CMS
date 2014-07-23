@@ -26,10 +26,10 @@ component output=false singleton=true {
 		meta.properties    = meta.properties    ?: StructNew();
 		meta.dbFieldList   = meta.dbFieldList   ?: "";
 		meta.propertyNames = meta.propertyNames ?: ArrayNew(1);
-		meta.sitetenant    = meta.sitetenant    ?: false;
+		meta.siteFiltered    = meta.siteFiltered    ?: false;
 		meta.isPageType    = _isPageTypeObject( meta );
 
-		if ( meta.sitetenant ) {
+		if ( meta.siteFiltered ) {
 			_injectSiteTenancyFields( meta );
 		}
 

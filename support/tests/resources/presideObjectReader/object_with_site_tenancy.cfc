@@ -1,4 +1,4 @@
-component sitetenant=true output=false {
+component siteFiltered=true output=false {
 
 <!--- properties --->
 	property name="label" uniqueindexes="label" indexes="someindex";
