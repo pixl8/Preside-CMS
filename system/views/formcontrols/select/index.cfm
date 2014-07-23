@@ -6,8 +6,11 @@
 	multiple           = args.multiple         ?: false;
 	sortable           = args.sortable         ?: "";
 	extraClasses       = args.extraClasses     ?: "";
-	values             = ListToArray( args.values ?: "" );
-	labels             = ListToArray( args.labels ?: args.values );
+	values             = args.values           ?: "";
+	labels             = args.labels           ?: args.values;
+
+	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
+	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {

@@ -6,7 +6,7 @@ component output=false displayname="Site Templates service" autodoc=true {
 
 // CONSTRUCTOR
 	/**
-	 * @templateDirectories.inject presidecms:directories:page-templates
+	 * @templateDirectories.inject presidecms:directories:site-templates
 	 *
 	 */
 	public any function init( required array templateDirectories ) output=false {
