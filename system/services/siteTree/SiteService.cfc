@@ -87,6 +87,21 @@ component output=false displayname="Site service" autodoc=true {
 		}
 	}
 
+	/**
+	 * Ensures that at least one site is registered with the system, called internally
+	 * before checking valid routes
+	 */
+	public void function ensureDefaultSiteExists() output=false autodoc=true {
+		if ( !_getSiteDao().dataExists() ) {
+			_getSiteDao().insertData( useVersioning = false, data = {
+				  protocol      = "http"
+				, domain        = cgi.server_name ?: "127.0.0.1"
+				, path          = "/"
+				, name          = "Default site"
+			} );
+		}
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getSiteDao() output=false {

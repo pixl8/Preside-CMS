@@ -37,6 +37,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		var pathInfo = super.getCGIElement( "path_info"  , event );
 		var site     = "";
 
+		siteService.ensureDefaultSiteExists();
+
 		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
 			site = siteService.getActiveAdminSite();
 		} else {
@@ -51,8 +53,6 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
 		var path = super.getCGIElement( "path_info", event );
-
-
 
 		for( var route in instance.presideRoutes ){
 			if ( route.match( path=path, event=event ) ) {
