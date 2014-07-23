@@ -29,6 +29,22 @@ component output=false extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/sites/addSite" );
 	}
 
+	public void function addSiteAction( event, rc, prc ) output=false {
+		_checkPermissions( event );
+
+		runEvent(
+			  event          = "admin.DataManager._addRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object           = "site"
+				, errorAction      = "sites.addSite"
+				, successAction    = "sites.manage"
+				, viewRecordAction = "sites.editSite"
+			}
+		);
+	}
+
 
 	public void function editSite() output=false {
 		_checkPermissions( event );

@@ -550,6 +550,7 @@
 		<cfscript>
 			var formName         = "preside-objects.#object#.admin.add";
 			var formData         = event.getCollectionForForm( formName );
+			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
 			var newId            = "";
@@ -580,7 +581,7 @@
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
 				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
-				, '<a href="#newRecordLink#">#event.getValue( name="label", defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+				, '<a href="#newRecordLink#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
 			] ) );
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
@@ -590,7 +591,7 @@
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
 				}
 			} else {
-				if ( Len( addAnotherAction ?: "" ) ) {
+				if ( Len( successAction ?: "" ) ) {
 					setNextEvent( url=event.buildAdminLink( linkTo=successAction ) );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
