@@ -7,21 +7,26 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		var handlersExternalLocation     = controller.getSetting("HandlersExternalLocation");
 		var activeExtensions             = controller.getSetting( name="activeExtensions", defaultValue=[] );
 		var handlerMappings              = [];
+		var siteTemplateHandlerMappings  = {};
 
 		ArrayAppend( handlerMappings, { invocationPath=handlersInvocationPath, handlers=getHandlerListing( handlersPath ) } );
 		controller.setSetting( name="RegisteredHandlers", value=ArrayToList( handlerMappings[1].handlers ) );
+
+		_addSiteTemplateHandlerMappings( "/app/site-templates/", "app.site-templates", siteTemplateHandlerMappings );
 
 		for( var ext in activeExtensions ) {
 			var extensionHandlersPath   = ExpandPath( "/app/extensions/#ext.name#/handlers" );
 			var extensionInvocationPath = "app.extensions.#ext.name#.handlers";
 
 			ArrayAppend( handlerMappings, { invocationPath=extensionInvocationPath, handlers=getHandlerListing( extensionHandlersPath ) } );
+			_addSiteTemplateHandlerMappings( "/app/extensions/#ext.name#/site-templates/", "app.extensions.#ext.name#.site-templates", siteTemplateHandlerMappings );
 		}
 
 		ArrayAppend( handlerMappings, { invocationPath=handlersExternalLocation, handlers=getHandlerListing( HandlersExternalLocationPath ) } );
 		controller.setSetting( name="RegisteredExternalHandlers", value=ArrayToList( handlerMappings[ handlerMappings.len() ].handlers ) );
 
-		instance.handlerMappings = handlerMappings;
+		instance.handlerMappings             = handlerMappings;
+		instance.siteTemplateHandlerMappings = siteTemplateHandlerMappings;
 	}
 
 	public any function getRegisteredHandler( required string event ) output=false {
@@ -32,8 +37,23 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		var moduleSettings  = instance.modules;
 		var handlerIndex    = 0;
 		var moduleReceived  = "";
+		var currentSite     = controller.getRequestContext().getSite();
 
 		if( !isModuleCall ){
+
+			if ( Len( Trim( currentSite.template ?: "" ) ) && instance.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
+				for ( var handlerSource in instance.siteTemplateHandlerMappings[ currentSite.template ] ) {
+					handlerIndex = ArrayFindNoCase( handlerSource.handlers, handlerReceived );
+
+					if ( handlerIndex ) {
+						return handlerBean
+							.setInvocationPath( handlerSource.invocationPath           )
+							.setHandler       ( handlerSource.handlers[ handlerIndex ] )
+							.setMethod        ( methodReceived                         );
+					}
+				}
+			}
+
 			for ( var handlerSource in instance.handlerMappings ) {
 				handlerIndex = ArrayFindNoCase( handlerSource.handlers, handlerReceived );
 
@@ -90,5 +110,24 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		handlers.sort( "textnocase" );
 
 		return handlers;
+	}
+
+// hELPERS
+	private void function _addSiteTemplateHandlerMappings( required string siteTemplatesPath, required string siteTemplatesInvocationPath, required struct existingMappings ) output=false {
+		if ( !DirectoryExists( arguments.siteTemplatesPath ) ) {
+			return;
+		}
+
+		for( var subDir in DirectoryList( arguments.siteTemplatesPath, false, "query" ) ) {
+			if ( subDir.type == "Dir" ) {
+				var handlersDir    = arguments.siteTemplatesPath & "/#subDir.name#/handlers";
+				var invocationPath = arguments.siteTemplatesInvocationPath & ".#subDir.name#.handlers"
+
+				if ( DirectoryExists( handlersDir ) ) {
+					arguments.existingMappings[ subDir.name ] = arguments.existingMappings[ subDir.name ] ?: [];
+					arguments.existingMappings[ subDir.name ].append( { invocationPath=invocationPath, handlers=getHandlerListing( ExpandPath( handlersDir ) ) } );
+				}
+			}
+		}
 	}
 }
