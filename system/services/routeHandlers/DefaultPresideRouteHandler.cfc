@@ -97,13 +97,19 @@ component implements="iRouteHandler" output=false singleton=true {
 	public string function build( required struct buildArgs ) output=false {
 		var treeSvc  = _getSiteTreeService();
 		var homepage = treeSvc.getSiteHomepage();
-		var page     = treeSvc.getPage( id = buildArgs.page, selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.path" ] );
-		var link     = ReReplace( page.path, "/$", "" );
+		var page     = treeSvc.getPage( id = buildArgs.page, selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.protocol", "site.domain", "site.path" ] );
+		var link     = "";
+		var root     = "#page.protocol#://#page.domain#";
+
+		if ( ( cgi.server_port ?: 80 ) != 80 ) {
+			root &= ":" & cgi.server_port;
+		}
+		root &= ReReplace( page.path, '/$', '' );
 
 
 		if ( page.recordCount ) {
 			if ( page.id eq homepage.id ) {
-				return link & "/";
+				return root & "/";
 			}
 
 			link &= ReReplace( page.slug, "/$", "" );
@@ -132,7 +138,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			}
 		}
 
-		return link;
+		return root & link;
 	}
 
 // private getters and setters

@@ -55,6 +55,7 @@
 			}
 
 			link = Replace( link, "//", "/", "all" );
+			link = ReReplace( link, "^(https?):/", "\1://" );
 
 			return link;
 		</cfscript>
