@@ -401,6 +401,7 @@
 		<cfset var iData					= arguments>
 		<cfset var viewLocations            = "" />
 		<cfset var event                    = getRequestContext()>
+		<cfset var site                     = event.getSite()>
 
 		<!--- Are we doing a nested view/layout explicit combo or already in its rendering algorithm? --->
 		<cfif len(trim(arguments.view))>
@@ -453,7 +454,7 @@
 			<cfset iData.renderedLayout = renderView( module = arguments.viewModule )>
 		<cfelse>
 			<!--- Layout location key --->
-			<cfset cbox_layoutLocationKey = cbox_currentLayout & arguments.module & cbox_explicitModule>
+			<cfset cbox_layoutLocationKey = ( site.template ?: "" ) & cbox_currentLayout & arguments.module & cbox_explicitModule>
 
 			<!--- Check cached paths first --->
 			<cfif structkeyExists( controller.getSetting("layoutsRefMap") ,cbox_layoutLocationKey) AND instance.isDiscoveryCaching>
@@ -736,12 +737,20 @@
 			var subDir      = instance.layoutsConvention;
 			var directories = [ "/preside/system/#subDir#" ];
 			var extensions  = getController().getSetting( name="activeExtensions", defaultValue=[] );
+			var site        = getRequestContext().getSite();
 
 			for( var i=extensions.len(); i > 0; i-- ){
 				ArrayAppend( directories, extensions[i].directory & "/" & subDir );
 			}
 
 			ArrayAppend( directories, "/app/#subDir#" );
+			if ( Len( Trim( site.template ?: "" ) ) ) {
+				for( var i=extensions.len(); i > 0; i-- ){
+					directories.append( extensions[i].directory & "/site-templates/#site.template#/" & subDir );
+				}
+
+				directories.append( "/app/site-templates/#site.template#/#subDir#" );
+			}
 
 			return directories;
 		</cfscript>
