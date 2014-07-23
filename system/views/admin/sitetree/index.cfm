@@ -1,6 +1,8 @@
 <cfscript>
+	site = event.getSite();
+
 	prc.pageIcon  = "sitemap";
-	prc.pageTitle = translateResource( "cms:sitetree" );
+	prc.pageTitle = site.name ?: translateResource( "cms:sitetree" );
 
 	activeTree       = event.getValue( name="activeTree", defaultValue=ArrayNew(1), private=true );
 	treeTrash        = event.getValue( name="treeTrash" , defaultValue=ArrayNew(1), private=true );
