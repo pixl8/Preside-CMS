@@ -555,8 +555,8 @@
 
 <!--- private --->
 	<cffunction name="_getFormsService" access="private" returntype="any" output="false">
-		<cfargument name="formDirectories" type="string" required="true" />
-		<cfargument name="activeSite"      type="string" required="false" default="" />
+		<cfargument name="formDirectories"    type="string" required="true" />
+		<cfargument name="activeSiteTemplate" type="string" required="false" default="" />
 
 		<cfscript>
 			mockI18nPlugin              = getMockBox().createMock( "preside.system.coldboxModifications.plugins.i18n" );
@@ -565,7 +565,7 @@
 			mockValidationRuleGenerator = getMockBox().createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
 			poService                   = _getPresideObjectService();
 
-			mockRc.$( "getSiteId", arguments.activeSite );
+			mockRc.$( "getSite", { id="blah", template=arguments.activeSiteTemplate } );
 			mockColdBox.$( "getRequestContext", mockRc );
 
 			mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );

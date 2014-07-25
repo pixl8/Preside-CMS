@@ -43,12 +43,41 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
 		var extensions  = _getInjector().getInstance( dsl="coldbox" ).getSetting( name="activeExtensions", defaultValue=[] );
 
 		for( var i=extensions.len(); i > 0; i-- ){
-			ArrayAppend( directories, extensions[i].directory & subDir );
+			for( var dir in _findSiteTemplateDirectories( extensions[i].directory, subDir ) ){
+				directories.append( dir );
+			}
 		}
 
-		ArrayAppend( directories, "/app#subDir#" );
+		directories.append( "/app#subDir#" );
+
+		for( var i=extensions.len(); i > 0; i-- ){
+			for( var dir in _findSiteTemplateDirectories( extensions[i].directory, subDir ) ){
+				directories.append( dir );
+			}
+		}
+		for( var dir in _findSiteTemplateDirectories( "/app", subDir ) ){
+			directories.append( dir );
+		}
 
 		return directories;
+	}
+
+	private array function _findSiteTemplateDirectories( required string parentDir, required string subDir ) output=false {
+		var dirs             = [];
+		var siteTemplatesDir = arguments.parentDir & "/site-templates";
+
+		if ( DirectoryExists( siteTemplatesDir ) ) {
+			for( var dir in DirectoryList( siteTemplatesDir, false, "query" ) ) {
+				if ( dir.type == "dir" ) {
+					var fullDir = siteTemplatesDir & "/#dir.name##arguments.subDir#";
+					if ( DirectoryExists( fullDir ) ) {
+						dirs.append( fullDir );
+					}
+				}
+			}
+		}
+
+		return dirs;
 	}
 
 

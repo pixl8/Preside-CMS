@@ -51,14 +51,15 @@ component output=false singleton=true {
 	}
 
 	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) output=false {
-		var forms       = _getForms();
-		var objectName  = "";
-		var currentSite = _getColdBox().getRequestContext().getSiteId();
-		var form        = "";
+		var forms        = _getForms();
+		var objectName   = "";
+		var currentSite  = _getColdBox().getRequestContext().getSite();
+		var siteTemplate = currentSite.template ?: "";
+		var form         = "";
 
 
-		if ( arguments.autoMergeSiteForm && Len( Trim( currentSite ) ) && formExists( "site-template::#currentSite#.#arguments.formName#" ) ) {
-			return mergeForms( arguments.formName, "site-template::#currentSite#.#arguments.formName#", false );
+		if ( arguments.autoMergeSiteForm && Len( Trim( siteTemplate ) ) && formExists( "site-template::#siteTemplate#.#arguments.formName#" ) ) {
+			return mergeForms( arguments.formName, "site-template::#siteTemplate#.#arguments.formName#", false );
 		}
 
 		if ( formExists( arguments.formName ) ) {
