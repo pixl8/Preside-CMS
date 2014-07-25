@@ -2,8 +2,8 @@ language: java
 
 env:
   matrix:
-  - PLATFORM=railo42beta TARGET=test-ci
-  - PLATFORM=railo42beta TARGET=build
+  - PLATFORM=railo42 TARGET=test-ci
+  - PLATFORM=railo42 TARGET=build
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
 

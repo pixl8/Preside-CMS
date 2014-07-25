@@ -15,16 +15,11 @@
 	<property name="artifacts.dir" value="./artifacts" />
 	<property name="build.number.file" value="${artifacts.dir}/build.number" />
 
-	<property name="railo40.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.0.4.001-nojre.tar.gz" />
-	<property name="railo41.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.1.2.005-nojre.tar.gz" />
-	<property name="railo42beta.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.2.0.000-nojre.tar.gz" />
+	<property name="railo42.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.2.1.000-nojre.tar.gz" />
 
 	<property name="source" value="remote" />
 
-	<property name="railo40.helper" value="railo" />
-	<property name="railo41.helper" value="railo" />
-	<property name="railo41-osx.helper" value="railo" />
-	<property name="railo42beta.helper" value="railo" />
+	<property name="railo42.helper" value="railo" />
 
 	<macrodef name="propertycopy">
 		<attribute name="name"/>
@@ -125,10 +120,7 @@
 		<fail unless="${platform}.${source}.url">Unkown platform ${platform} for source ${source}.
 
 Valid values are:
- railo40
- railo41
- railo41-osx
- railo42beta
+ railo42
 		</fail>
 		<propertycopy name="platform.url" from="${platform}.${source}.url" />
 		<propertycopy name="platform.helper" from="${platform}.helper" />
