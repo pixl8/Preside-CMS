@@ -96,7 +96,7 @@ component output=false singleton=true {
 					ids[ id ] = true;
 
 					if ( isInSiteTemplate ) {
-						var siteTemplate = ReReplaceNoCase( dir & objectsPath, "^site-templates[\\/]([^\\/])+/preside-objects/page-types$", "\1" );
+						var siteTemplate = ReReplaceNoCase( dir & objectsPath, "^.*?site-templates[\\/]([^\\/]+)/preside-objects/page-types$", "\1" );
 
 						siteTemplateMapping[ id ] = siteTemplateMapping[ id ] ?: "";
 

@@ -130,6 +130,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( [], pageTypes );
 	}
 
+	function test14_listPageTypes_shouldListPageTypesThatAreDeclaredInTheActiveSiteTemplate() {
+		var pageTypes  = _getPageTypesSvc( [ "/tests/resources/pageTypes/site-templates/template1" ], "template1" ).listPageTypes();
+
+		super.assertEquals( 1, pageTypes.len() );
+		super.assertEquals( "event", pageTypes[1].getId() );
+	}
+
+
 // private helpers
 	private any function _getPageTypesSvc( array autoDiscoverDirectories=[], string activeSiteTemplate="" ) output=false {
 		var objDirs                 = [];
