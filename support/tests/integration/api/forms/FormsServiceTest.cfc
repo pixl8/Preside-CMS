@@ -442,15 +442,71 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test24_formsInSiteTemplates_shouldNotBeMerged_whenTheSiteTemplateIsNotActiveForTheRequest" returntype="void">
+		<cfscript>
+			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/site-templates/mysite/forms" );
+			var result   = "";
+			var expected = {
+				tabs = [{
+					title="{forms:tab1.title}",
+					description="{forms:tab1.description}",
+					id="",
+					fieldsets=[{
+						title="",
+						description="",
+						id="",
+						fields=[{
+							name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+						},{
+							name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+						}]
+					}]
+
+				},{
+					title="{forms:tab2.title}",
+					description="{forms:tab2.description}",
+					id="",
+					fieldsets=[{
+						title="{test:test.fieldset.title}",
+						description="",
+						id="",
+						fields=[{
+							name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+						}]
+					},{
+						title="{test:test.fieldset2.title}",
+						description="{test:test.fieldset2.description}",
+						id="",
+						fields=[{
+							name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
+								  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
+								, { validator="sameAs", params={field="somefield1"} }
+							]
+						}]
+					}]
+				}]
+			};
+
+			result = formsSvc.getForm( "test.form" );
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
 <!--- private --->
 	<cffunction name="_getFormsService" access="private" returntype="any" output="false">
 		<cfargument name="formDirectories" type="string" required="true" />
+		<cfargument name="activeSite"      type="string" required="false" default="" />
 
 		<cfscript>
 			mockI18nPlugin              = getMockBox().createMock( "preside.system.coldboxModifications.plugins.i18n" );
 			mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
+			mockRc                      = getMockBox().createStub();
 			mockValidationRuleGenerator = getMockBox().createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
 			poService                   = _getPresideObjectService();
+
+			mockRc.$( "getSiteId", arguments.activeSite );
+			mockColdBox.$( "getRequestContext", mockRc );
 
 			mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
 

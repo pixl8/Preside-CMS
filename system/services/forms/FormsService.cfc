@@ -374,6 +374,7 @@ component output=false singleton=true {
 // PRIVATE HELPERS
 	private void function _loadForms() output=false {
 		var dirs     = _getFormDirectories();
+		var prefix   = "";
 		var dir      = "";
 		var formName = "";
 		var files    = "";
@@ -384,11 +385,16 @@ component output=false singleton=true {
 
 		for( dir in dirs ) {
 			dir = ExpandPath( dir );
+			prefix = _getSiteTemplatePrefixForDirectory( dir );
 			files = DirectoryList( dir, true, "path", "*.xml" );
 			for( file in files ){
 				formName = ReplaceNoCase( file, dir, "" );
 				formName = ReReplace( formName, "\.xml$", "" );
 				formName = ListChangeDelims( formName, ".", "\/" );
+
+				if ( Len( Trim( prefix ) ) ) {
+					formName = ListPrepend( formName, prefix, "." );
+				}
 
 				forms[ formName ] = forms[ formName ] ?: [];
 				forms[ formName ].append( _readForm( filePath=file ) );
@@ -735,6 +741,16 @@ component output=false singleton=true {
 		}
 
 		return form1;
+	}
+
+	private string function _getSiteTemplatePrefixForDirectory( required string directory ) output=false {
+		var matchRegex = "^.*?site-templates[\\/]([^/]+)[\\/]forms.*$";
+
+		if (  ReFindNoCase( matchRegex, arguments.directory ) ) {
+			return "site-template::" & ReReplace( arguments.directory, matchRegex, "\1" );
+		}
+
+		return "";
 	}
 
 // GETTERS AND SETTERS
