@@ -4,6 +4,7 @@ component output=false singleton=true {
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @presideObjectService.inject    presideObjectService
+	 * @coldbox.inject                 coldbox
 	 */
 	public any function init( required array autoDiscoverDirectories, required any presideObjectService, required any coldbox ) output=false {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
