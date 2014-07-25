@@ -72,10 +72,10 @@
 	<target name="setup-railo-settings">
 		<mkdir dir="${work.dir}/railo" />
 		<mkdir dir="${work.dir}/railo/webapps" />
-		<mkdir dir="${work.dir}/railo/webapps/www" />
-		<mkdir dir="${work.dir}/railo/webapps/www/WEB-INF" />
-		<mkdir dir="${work.dir}/railo/webapps/www/WEB-INF/railo" />
-		<copy file="railo-web.xml.cfm" todir="${work.dir}/railo/webapps/www/WEB-INF/railo" />
+		<mkdir dir="${work.dir}/railo/webapps/ROOT" />
+		<mkdir dir="${work.dir}/railo/webapps/ROOT/WEB-INF" />
+		<mkdir dir="${work.dir}/railo/webapps/ROOT/WEB-INF/railo" />
+		<copy file="railo-web.xml.cfm" todir="${work.dir}/railo/webapps/ROOT/WEB-INF/railo" />
 	</target>
 
 	<target name="start-server" depends="setup-railo-settings">
