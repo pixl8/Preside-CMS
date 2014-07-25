@@ -5,9 +5,10 @@ component output=false singleton=true {
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @presideObjectService.inject    presideObjectService
 	 */
-	public any function init( required array autoDiscoverDirectories, required any presideObjectService ) output=false {
+	public any function init( required array autoDiscoverDirectories, required any presideObjectService, required any coldbox ) output=false {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setColdbox( arguments.coldbox );
 
 		reload();
 
@@ -16,12 +17,17 @@ component output=false singleton=true {
 
 // PUBLIC API
 	public array function listPageTypes( string allowedBeneathParent="" ) output=false {
-		var pageTypes = _getRegisteredPageTypes();
-		var result    = [];
+		var pageTypes           = _getRegisteredPageTypes();
+		var result              = [];
+		var currentSite         = _getColdbox().getRequestContext().getSite();
+		var currentSiteTemplate = currentSite.template ?: "";
 
 		for( var id in pageTypes ){
-			if ( !Len( Trim( arguments.allowedBeneathParent ) ) || typeIsAllowedBeneathParentType( id, arguments.allowedBeneathParent ) ) {
-				ArrayAppend( result, pageTypes[ id ] );
+			var allowedBeneathParent = !Len( Trim( arguments.allowedBeneathParent ) ) || typeIsAllowedBeneathParentType( id, arguments.allowedBeneathParent );
+			var allowedInSiteTemplate = pageTypes[ id ].getSiteTemplates() == "*" || ListFindNoCase( pageTypes[ id ].getSiteTemplates(), currentSiteTemplate );
+
+			if ( allowedBeneathParent && allowedInSiteTemplate  ) {
+				result.append( pageTypes[ id ] );
 			}
 		}
 
@@ -76,16 +82,35 @@ component output=false singleton=true {
 		var objectsPath             = "/preside-objects/page-types";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
+		var siteTemplateMapping     = {};
 
 		for( var dir in autoDiscoverDirectories ) {
 			dir   = ReReplace( dir, "/$", "" );
 			var objects = DirectoryList( dir & objectsPath, false, "query", "*.cfc" );
+			var isInSiteTemplate = ReFindNoCase( "site-templates[\\/][^\\/]+/preside-objects/page-types$", dir & objectsPath );
 
 			for ( var obj in objects ) {
 				if ( obj.type eq "File" ) {
-					ids[ ReReplace( obj.name, "\.cfc$", "" ) ] = true;
+					var id = ReReplace( obj.name, "\.cfc$", "" );
+
+					ids[ id ] = true;
+
+					if ( isInSiteTemplate ) {
+						var siteTemplate = ReReplaceNoCase( dir & objectsPath, "^site-templates[\\/]([^\\/])+/preside-objects/page-types$", "\1" );
+
+						siteTemplateMapping[ id ] = siteTemplateMapping[ id ] ?: "";
+
+						if ( siteTemplateMapping[ id ] == "*" || ListFindNoCase( siteTemplateMapping[ id ], siteTemplate ) ) {
+							continue;
+						} else {
+							siteTemplateMapping[ id ] = ListAppend( siteTemplateMapping[ id ], siteTemplate );
+						}
+					} else {
+						siteTemplateMapping[ id ] = "*";
+					}
 				}
 			}
+
 		}
 
 		for( var id in ids ) {
@@ -109,12 +134,18 @@ component output=false singleton=true {
 				}
 			}
 
-			_registerPageType( id = LCase( id ), hasHandler = handlerExists, layouts=layouts.keyList() );
+			_registerPageType(
+				  id                   = LCase( id )
+				, hasHandler           = handlerExists
+				, layouts              = layouts.keyList()
+				, defaultSiteTemplates = siteTemplateMapping[ id ]
+			);
 		}
 	}
 
-	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts ) output=false {
+	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts, required string defaultSiteTemplates ) output=false {
 		var pageTypes = _getRegisteredPageTypes();
+		var poService = _getPresideObjectService();
 
 		pageTypes[ arguments.id ] = new PageType(
 			  id                 = arguments.id
@@ -127,8 +158,9 @@ component output=false singleton=true {
 			, presideObject      = _getConventionsBasePageTypePresideObject( arguments.id )
 			, hasHandler         = arguments.hasHandler
 			, layouts            = arguments.layouts
-			, allowedChildTypes  = _getPresideObjectService().getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*" )
-			, allowedParentTypes = _getPresideObjectService().getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*" )
+			, allowedChildTypes  = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*" )
+			, allowedParentTypes = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*" )
+			, siteTemplates      = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue=arguments.defaultSiteTemplates )
 		);
 	}
 
@@ -174,5 +206,12 @@ component output=false singleton=true {
 	}
 	private void function _setPresideObjectService( required any presideObjectService ) output=false {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private any function _getColdbox() output=false {
+		return _coldbox;
+	}
+	private void function _setColdbox( required any coldbox ) output=false {
+		_coldbox = arguments.coldbox;
 	}
 }

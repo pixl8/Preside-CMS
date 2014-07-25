@@ -124,11 +124,29 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( [], pageTypes );
 	}
 
+	function test13_listPageTypes_shouldNotListPageTypesThatAreDeclaredInNonActiveSiteTemplates() {
+		var pageTypes  = _getPageTypesSvc( [ "/tests/resources/pageTypes/site-templates/template1" ] ).listPageTypes();
+
+		super.assertEquals( [], pageTypes );
+	}
+
 // private helpers
-	private any function _getPageTypesSvc( array autoDiscoverDirectories=[] ) output=false {
+	private any function _getPageTypesSvc( array autoDiscoverDirectories=[], string activeSiteTemplate="" ) output=false {
+		var objDirs                 = [];
+		mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
+		mockRc                      = getMockBox().createStub();
+
+		for( dir in autoDiscoverDirectories ){
+			objDirs.append( dir & "/preside-objects" );
+		}
+
+		mockRc.$( "getSite", { id="blah", template=arguments.activeSiteTemplate } );
+		mockColdBox.$( "getRequestContext", mockRc );
+
 		return new preside.system.services.pageTypes.PageTypesService(
-			  presideObjectService    = _getPresideObjectService( objectDirectories=[ "/tests/resources/pageTypes/dir1/preside-objects", "/tests/resources/pageTypes/dir2/preside-objects", "/tests/resources/pageTypes/dir3/preside-objects" ] )
+			  presideObjectService    = _getPresideObjectService( objectDirectories=objDirs )
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
+			, coldbox                 = mockColdbox
 		);
 	}
 

@@ -9,8 +9,9 @@ component output=false accessors=true {
 	property name="presideObject"      type="string"  default="";
 	property name="hasHandler"         type="boolean" default=false;
 	property name="layouts"            type="string"  default="";
-	property name="allowedChildTypes"  type="string" default="*";
-	property name="allowedParentTypes" type="string" default="*";
+	property name="allowedChildTypes"  type="string"  default="*";
+	property name="allowedParentTypes" type="string"  default="*";
+	property name="siteTemplates"      type="string"  default="*";
 
 	public boolean function hasHandler() output=false {
 		return getHasHandler();
@@ -33,6 +34,7 @@ component output=false accessors=true {
 			, layouts            = listLayouts()
 			, allowedChildTypes  = getAllowedChildTypes()
 			. allowedParentTypes = getAllowedParentTypes()
+			. siteTemplates      = getSiteTemplates()
 		};
 	}
 }
