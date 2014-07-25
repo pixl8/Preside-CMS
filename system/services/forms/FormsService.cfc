@@ -50,9 +50,16 @@ component output=false singleton=true {
 		return StructKeyExists( forms, arguments.formName );
 	}
 
-	public struct function getForm( required string formName ) output=false {
-		var forms = _getForms();
-		var objectName = "";
+	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) output=false {
+		var forms       = _getForms();
+		var objectName  = "";
+		var currentSite = _getColdBox().getRequestContext().getSiteId();
+		var form        = "";
+
+
+		if ( arguments.autoMergeSiteForm && Len( Trim( currentSite ) ) && formExists( "site-template::#currentSite#.#arguments.formName#" ) ) {
+			return mergeForms( arguments.formName, "site-template::#currentSite#.#arguments.formName#", false );
+		}
 
 		if ( formExists( arguments.formName ) ) {
 			return StructFind( _getForms(), arguments.formName );
@@ -69,7 +76,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public struct function mergeForms( required string formName, required string mergeWithFormName ) output=false {
+	public struct function mergeForms( required string formName, required string mergeWithFormName, boolean autoMergeSiteForm=true ) output=false {
 		var mergedName = getMergedFormName( arguments.formName, arguments.mergeWithFormName, false );
 
 		if ( formExists( mergedName ) ) {
@@ -77,8 +84,8 @@ component output=false singleton=true {
 		}
 
 		var merged = _mergeForms(
-			  form1 = Duplicate( getForm( arguments.formName ) )
-			, form2 = Duplicate( getForm( arguments.mergeWithFormName ) )
+			  form1 = Duplicate( getForm( arguments.formName, arguments.autoMergeSiteForm ) )
+			, form2 = Duplicate( getForm( arguments.mergeWithFormName, arguments.autoMergeSiteForm ) )
 		);
 
 		_registerForm( mergedName, merged );
