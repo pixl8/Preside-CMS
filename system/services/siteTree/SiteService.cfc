@@ -8,12 +8,14 @@ component output=false displayname="Site service" autodoc=true {
 	 * @siteDao.inject           presidecms:object:site
 	 * @sessionStorage.inject    coldbox:plugin:sessionStorage
 	 * @permissionService.inject permissionService
+	 * @coldbox.inject           coldbox
 	 *
 	 */
-	public any function init( required any siteDao, required any sessionStorage, required any permissionService ) output=false {
+	public any function init( required any siteDao, required any sessionStorage, required any permissionService, required any coldbox ) output=false {
 		_setSiteDao( arguments.siteDao );
 		_setSessionStorage( arguments.sessionStorage );
 		_setPermissionService( arguments.permissionService );
+		_setColdbox( arguments.coldbox );
 
 		return this;
 	}
@@ -102,6 +104,25 @@ component output=false displayname="Site service" autodoc=true {
 		}
 	}
 
+	/**
+	 * Retrieves the current active site id. This is based either on the URL, for front-end requests, or the currently
+	 * selected site when in the administrator
+	 */
+	public string function getActiveSiteId() output=false autodoc=true {
+		var site = _getColdbox().getRequestContext().getSite();
+
+		return site.id ?: "";
+	}
+
+	/**
+	 * Retrieves the current active site template. This is based either on the URL, for front-end requests, or the currently
+	 * selected site when in the administrator
+	 */
+	public string function getActiveSiteTemplate() output=false autodoc=true {
+		var site = _getColdbox().getRequestContext().getSite();
+
+		return site.template ?: "";
+	}
 
 // GETTERS AND SETTERS
 	private any function _getSiteDao() output=false {
@@ -123,5 +144,12 @@ component output=false displayname="Site service" autodoc=true {
 	}
 	private void function _setPermissionService( required any permissionService ) output=false {
 		_permissionService = arguments.permissionService;
+	}
+
+	private any function _getColdbox() output=false {
+		return _coldbox;
+	}
+	private void function _setColdbox( required any coldbox ) output=false {
+		_coldbox = arguments.coldbox;
 	}
 }

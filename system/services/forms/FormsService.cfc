@@ -4,6 +4,7 @@ component output=false singleton=true {
 	/**
 	 * @formDirectories.inject           presidecms:directories:forms
 	 * @presideObjectService.inject      PresideObjectService
+	 * @siteService.inject               SiteService
 	 * @validationEngine.inject          ValidationEngine
 	 * @i18n.inject                      coldbox:plugin:i18n
 	 * @coldbox.inject                   coldbox
@@ -14,6 +15,7 @@ component output=false singleton=true {
 	public any function init(
 		  required array  formDirectories
 		, required any    presideObjectService
+		, required any    siteService
 		, required any    validationEngine
 		, required any    i18n
 		, required any    coldbox
@@ -29,6 +31,7 @@ component output=false singleton=true {
 		_setPresideFieldRuleGenerator( arguments.presideFieldRuleGenerator );
 		_setDefaultContextName( arguments.defaultContextName );
 		_setConfiguredControls( arguments.configuredControls );
+		_setSiteService( arguments.siteService );
 
 		_loadForms();
 
@@ -53,8 +56,7 @@ component output=false singleton=true {
 	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) output=false {
 		var forms        = _getForms();
 		var objectName   = "";
-		var currentSite  = _getColdBox().getRequestContext().getSite();
-		var siteTemplate = currentSite.template ?: "";
+		var siteTemplate = _getSiteService().getActiveSiteTemplate();
 		var form         = "";
 
 
@@ -823,5 +825,12 @@ component output=false singleton=true {
 	}
 	private void function _setPresideFieldRuleGenerator( required any presideFieldRuleGenerator ) output=false {
 		_presideFieldRuleGenerator = arguments.presideFieldRuleGenerator;
+	}
+
+	private any function _getSiteService() output=false {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) output=false {
+		_siteService = arguments.siteService;
 	}
 }

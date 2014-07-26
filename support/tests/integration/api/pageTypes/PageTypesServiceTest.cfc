@@ -140,21 +140,19 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getPageTypesSvc( array autoDiscoverDirectories=[], string activeSiteTemplate="" ) output=false {
-		var objDirs                 = [];
-		mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
-		mockRc                      = getMockBox().createStub();
+		var objDirs     = [];
+
+		mockSiteService = getMockBox().createMock( "preside.system.services.siteTree.SiteService" );
+		mockSiteService.$( "getActiveSiteTemplate", arguments.activeSiteTemplate );
 
 		for( dir in autoDiscoverDirectories ){
 			objDirs.append( dir & "/preside-objects" );
 		}
 
-		mockRc.$( "getSite", { id="blah", template=arguments.activeSiteTemplate } );
-		mockColdBox.$( "getRequestContext", mockRc );
-
 		return new preside.system.services.pageTypes.PageTypesService(
 			  presideObjectService    = _getPresideObjectService( objectDirectories=objDirs )
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
-			, coldbox                 = mockColdbox
+			, siteService             = mockSiteService
 		);
 	}
 

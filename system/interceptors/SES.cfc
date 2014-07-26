@@ -2,6 +2,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	property name="siteService" inject="siteService";
 	property name="adminRouteHandler" inject="adminRouteHandler";
+	property name="presideObjectService" inject="presideObjectService";
 
 	public void function configure() output=false {
 		instance.presideRoutes = [];

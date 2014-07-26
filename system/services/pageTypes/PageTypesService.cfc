@@ -4,12 +4,12 @@ component output=false singleton=true {
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @presideObjectService.inject    presideObjectService
-	 * @coldbox.inject                 coldbox
+	 * @siteService.inject             siteService
 	 */
-	public any function init( required array autoDiscoverDirectories, required any presideObjectService, required any coldbox ) output=false {
+	public any function init( required array autoDiscoverDirectories, required any presideObjectService, required any siteService ) output=false {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setPresideObjectService( arguments.presideObjectService );
-		_setColdbox( arguments.coldbox );
+		_setSiteService( arguments.siteService );
 
 		reload();
 
@@ -18,14 +18,13 @@ component output=false singleton=true {
 
 // PUBLIC API
 	public array function listPageTypes( string allowedBeneathParent="" ) output=false {
-		var pageTypes           = _getRegisteredPageTypes();
-		var result              = [];
-		var currentSite         = _getColdbox().getRequestContext().getSite();
-		var currentSiteTemplate = currentSite.template ?: "";
+		var pageTypes          = _getRegisteredPageTypes();
+		var result             = [];
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
 
 		for( var id in pageTypes ){
 			var allowedBeneathParent = !Len( Trim( arguments.allowedBeneathParent ) ) || typeIsAllowedBeneathParentType( id, arguments.allowedBeneathParent );
-			var allowedInSiteTemplate = pageTypes[ id ].getSiteTemplates() == "*" || ListFindNoCase( pageTypes[ id ].getSiteTemplates(), currentSiteTemplate );
+			var allowedInSiteTemplate = pageTypes[ id ].getSiteTemplates() == "*" || ListFindNoCase( pageTypes[ id ].getSiteTemplates(), activeSiteTemplate );
 
 			if ( allowedBeneathParent && allowedInSiteTemplate  ) {
 				result.append( pageTypes[ id ] );
@@ -209,10 +208,10 @@ component output=false singleton=true {
 		_presideObjectService = arguments.presideObjectService;
 	}
 
-	private any function _getColdbox() output=false {
-		return _coldbox;
+	private any function _getSiteService() output=false {
+		return _siteService;
 	}
-	private void function _setColdbox( required any coldbox ) output=false {
-		_coldbox = arguments.coldbox;
+	private void function _setSiteService( required any siteService ) output=false {
+		_siteService = arguments.siteService;
 	}
 }

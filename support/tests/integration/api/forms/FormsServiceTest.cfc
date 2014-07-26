@@ -561,17 +561,17 @@
 		<cfscript>
 			mockI18nPlugin              = getMockBox().createMock( "preside.system.coldboxModifications.plugins.i18n" );
 			mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
-			mockRc                      = getMockBox().createStub();
+			mockSiteService             = getMockBox().createMock( "preside.system.services.siteTree.SiteService" );
 			mockValidationRuleGenerator = getMockBox().createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
 			poService                   = _getPresideObjectService();
 
-			mockRc.$( "getSite", { id="blah", template=arguments.activeSiteTemplate } );
-			mockColdBox.$( "getRequestContext", mockRc );
+			mockSiteService.$( "getActiveSiteTemplate", arguments.activeSiteTemplate );
 
 			mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
 
 			return new preside.system.services.forms.FormsService(
 				  presideObjectService = poService
+				, siteService          = mockSiteService
 				, logger               = _getTestLogger()
 				, formDirectories      = ListToArray( arguments.formDirectories )
 				, validationEngine     = new preside.system.services.validation.ValidationEngine()

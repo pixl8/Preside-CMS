@@ -73,11 +73,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	private any function _getSiteService() output=false {
 		mockSessionStorage    = getMockBox().createStub();
 		mockPermissionService = getMockBox().createStub();
+		mockColdbox           = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
 		return new preside.system.services.sitetree.SiteService(
 			  siteDao           = _getPresideObjectService().getObject( "site" )
 			, sessionStorage    = mockSessionStorage
 			, permissionService = mockPermissionService
+			, coldbox           = mockColdbox
 		);
 	}
 

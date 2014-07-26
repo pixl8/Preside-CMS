@@ -22,7 +22,8 @@
 
 			var poService = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
 			var logger    = _getTestLogger();
-			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ] );
+			var siteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
+			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ], siteService=SiteService );
 
 			loginService = new preside.system.services.admin.loginService(
 				  logger               = logger
