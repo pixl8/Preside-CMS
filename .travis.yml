@@ -16,7 +16,6 @@ script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Db
 notifications:
   email: false
   hipchat:
-    format: html
     rooms:
       secure: EZhnjtmz1hRai2fd2P9a48pFDcqvLOl347amWALojbQmPhw2GkfZ2E2L/WKjg2kqcRHs70nC3+YonLcZIjmrzsjez8eRLtnwH2NP3deFPAhmHXbtRlXDnLbbFhb/p4uORzZB2aNKCKKOPsYeGz5oCtF4mL8826KYbka1WupTZLc=
 
