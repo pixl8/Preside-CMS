@@ -26,8 +26,10 @@ component output=false singleton=true {
 		meta.properties    = meta.properties    ?: StructNew();
 		meta.dbFieldList   = meta.dbFieldList   ?: "";
 		meta.propertyNames = meta.propertyNames ?: ArrayNew(1);
-		meta.siteFiltered    = meta.siteFiltered    ?: false;
+		meta.siteTemplates = meta.siteTemplates ?: _getSiteTemplateForObject( meta.name );
+		meta.siteFiltered  = meta.siteFiltered  ?: false;
 		meta.isPageType    = _isPageTypeObject( meta );
+
 
 		if ( meta.siteFiltered ) {
 			_injectSiteTenancyFields( meta );
@@ -426,7 +428,15 @@ component output=false singleton=true {
 		}
 	}
 
+	private string function _getSiteTemplateForObject( required string objectPath ) output=false {
+		var regex = "^.*?\.site-templates\.([^\.]+)\.preside-objects\..+$";
 
+		if ( !ReFindNoCase( regex, arguments.objectPath ) ) {
+			return "*";
+		}
+
+		return ReReplaceNoCase( arguments.objectPath, regex, "\1" );
+	}
 
 // GETTERS AND SETTERS
 	private string function _getDsn() output=false {

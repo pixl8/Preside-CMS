@@ -7,8 +7,9 @@ component output=false hint="I do the logic for merging two objects to make one"
 
 // PUBLIC API METHODS
 	public struct function mergeObjects( required struct object1, required struct object2 ) output=false {
-		object1.meta.properties = _mergeObjectProperties( object1.meta.properties, object2.meta.properties, object1.meta );
-		object1.instance        = _mergeObjectInstances( object1.instance, object2.instance );
+		object1.meta.properties    = _mergeObjectProperties( object1.meta.properties, object2.meta.properties, object1.meta );
+		object1.instance           = _mergeObjectInstances( object1.instance, object2.instance );
+		object1.meta.siteTemplates = _mergeSiteTemplatesSpecification( object1, object2 );
 
 		return object1;
 	}
@@ -57,6 +58,29 @@ component output=false hint="I do the logic for merging two objects to make one"
 
 		return instanceA;
 	}
+
+	private string function _mergeSiteTemplatesSpecification( required struct object1, required struct object2 ) output=false {
+		var mergedSiteTemplates = "";
+
+		arguments.object1.meta.siteTemplates = arguments.object1.meta.siteTemplates ?: "*";
+		arguments.object2.meta.siteTemplates = arguments.object2.meta.siteTemplates ?: "*";
+
+		if ( arguments.object1.meta.siteTemplates == "*" || arguments.object2.meta.siteTemplates == "*" || !Len( Trim( arguments.object2.meta.siteTemplates  && arguments.object1.meta.siteTemplates ) ) ) {
+			return "*";
+		}
+
+		mergedSiteTemplates = arguments.object1.meta.siteTemplates;
+		if ( Len( Trim( arguments.object2.meta.siteTemplates ) ) ) {
+			for( var template in ListToArray( arguments.object2.meta.siteTemplates ) ) {
+				if ( !ListFindNoCase( mergedSiteTemplates, template ) ) {
+					mergedSiteTemplates = ListAppend( mergedSiteTemplates, template );
+				}
+			}
+		}
+
+		return mergedSiteTemplates;
+	}
+
 
 // MIXIN METHODS
 	public void function $addFunction( required string name, required function func ) output=false {

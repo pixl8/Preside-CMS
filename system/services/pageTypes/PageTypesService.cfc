@@ -82,35 +82,16 @@ component output=false singleton=true {
 		var objectsPath             = "/preside-objects/page-types";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
-		var siteTemplateMapping     = {};
 
 		for( var dir in autoDiscoverDirectories ) {
 			dir   = ReReplace( dir, "/$", "" );
 			var objects = DirectoryList( dir & objectsPath, false, "query", "*.cfc" );
-			var isInSiteTemplate = ReFindNoCase( "site-templates[\\/][^\\/]+/preside-objects/page-types$", dir & objectsPath );
 
 			for ( var obj in objects ) {
 				if ( obj.type eq "File" ) {
-					var id = ReReplace( obj.name, "\.cfc$", "" );
-
-					ids[ id ] = true;
-
-					if ( isInSiteTemplate ) {
-						var siteTemplate = ReReplaceNoCase( dir & objectsPath, "^.*?site-templates[\\/]([^\\/]+)/preside-objects/page-types$", "\1" );
-
-						siteTemplateMapping[ id ] = siteTemplateMapping[ id ] ?: "";
-
-						if ( siteTemplateMapping[ id ] == "*" || ListFindNoCase( siteTemplateMapping[ id ], siteTemplate ) ) {
-							continue;
-						} else {
-							siteTemplateMapping[ id ] = ListAppend( siteTemplateMapping[ id ], siteTemplate );
-						}
-					} else {
-						siteTemplateMapping[ id ] = "*";
-					}
+					ids[ ReReplace( obj.name, "\.cfc$", "" ) ] = true;
 				}
 			}
-
 		}
 
 		for( var id in ids ) {
@@ -138,12 +119,11 @@ component output=false singleton=true {
 				  id                   = LCase( id )
 				, hasHandler           = handlerExists
 				, layouts              = layouts.keyList()
-				, defaultSiteTemplates = siteTemplateMapping[ id ]
 			);
 		}
 	}
 
-	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts, required string defaultSiteTemplates ) output=false {
+	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts ) output=false {
 		var pageTypes = _getRegisteredPageTypes();
 		var poService = _getPresideObjectService();
 
@@ -160,7 +140,7 @@ component output=false singleton=true {
 			, layouts            = arguments.layouts
 			, allowedChildTypes  = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*" )
 			, allowedParentTypes = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*" )
-			, siteTemplates      = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue=arguments.defaultSiteTemplates )
+			, siteTemplates      = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*" )
 		);
 	}
 
