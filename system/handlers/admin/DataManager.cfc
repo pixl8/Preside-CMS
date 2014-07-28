@@ -1,9 +1,10 @@
 <cfcomponent output="false" extends="preside.system.base.AdminHandler">
 
 	<cfproperty name="presideObjectService" inject="presideObjectService"        />
-	<cfproperty name="dataManagerService"   inject="dataManagerService" />
+	<cfproperty name="dataManagerService"   inject="dataManagerService"          />
 	<cfproperty name="formsService"         inject="formsService"                />
 	<cfproperty name="validationEngine"     inject="validationEngine"            />
+	<cfproperty name="siteService"          inject="siteService"                 />
 	<cfproperty name="messageBox"           inject="coldbox:plugin:messageBox"   />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -756,6 +757,11 @@
 
 		<cfscript>
 			if ( !hasPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) ) {
+				event.adminAccessDenied();
+			}
+			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
+
+			if ( allowedSiteTemplates != "*" && !ListFindNoCase( allowedSiteTemplates, siteService.getActiveSiteTemplate() ) ) {
 				event.adminAccessDenied();
 			}
 		</cfscript>
