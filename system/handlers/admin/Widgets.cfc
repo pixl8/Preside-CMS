@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="widgetsService" inject="widgetsService";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
+	property name="siteService"    inject="siteService";
+	property name="messageBox"     inject="coldbox:plugin:messageBox";
 
 	public void function dialog( event, rc, prc ) output=false {
 		var widget            = rc.widget            ?: "";
@@ -63,15 +64,18 @@ component extends="preside.system.base.AdminHandler" output=false {
 		// todo, cache this operation (per locale)
 		var unsortedOrTranslated = widgetsService.getWidgets();
 		var tempArray            = [];
+		var activeSiteTemplate   = siteService.getActiveSiteTemplate();
 
 		for( var id in unsortedOrTranslated ) {
 			var widget = Duplicate( unsortedOrTranslated[ id ] );
 
-			widget.title       = translateResource( uri=widget.title      , defaultValue=widget.title );
-			widget.description = translateResource( uri=widget.description, defaultValue=widget.description );
-			widget.icon        = translateResource( uri=widget.icon       , defaultValue="fa-magic" );
+			if ( widget.siteTemplates == "*" || ListFindNoCase( widget.siteTemplates, activeSiteTemplate ) ) {
+				widget.title       = translateResource( uri=widget.title      , defaultValue=widget.title );
+				widget.description = translateResource( uri=widget.description, defaultValue=widget.description );
+				widget.icon        = translateResource( uri=widget.icon       , defaultValue="fa-magic" );
 
-			tempArray.append( widget );
+				tempArray.append( widget );
+			}
 		}
 
 		tempArray.sort( function( widget1, widget2 ){

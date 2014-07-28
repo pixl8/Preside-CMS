@@ -136,34 +136,48 @@ component singleton=true output=false {
 		var handlersPath            = "/handlers/widgets";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDicoverDirectories();
+		var siteTemplateMap         = {};
 
 		for( var dir in autoDiscoverDirectories ) {
-			dir = ReReplace( dir, "/$", "" );
-			var views    = DirectoryList( dir & viewsPath   , false, "query" );
-			var handlers = DirectoryList( dir & handlersPath, false, "query", "*.cfc" );
+			dir              = ReReplace( dir, "/$", "" );
+			var views        = DirectoryList( dir & viewsPath   , false, "query" );
+			var handlers     = DirectoryList( dir & handlersPath, false, "query", "*.cfc" );
+			var siteTemplate = _getSiteTemplateFromPath( dir );
 
 			for ( var view in views ) {
+				var id = "";
 				if ( views.type eq "Dir" ) {
-					ids[ views.name ] = 1;
+					id = views.name;
 				} elseif ( views.type == "File" && ReFindNoCase( "\.cfm$", views.name ) && !views.name.startsWith( "_" ) ) {
-					ids[ ReReplaceNoCase( views.name, "\.cfm$", "" ) ] = 1;
+					id = ReReplaceNoCase( views.name, "\.cfm$", "" );
+				} else {
+					continue;
 				}
+
+				ids[ id ] = 1;
+				siteTemplateMap[ id ] = siteTemplateMap[ id ] ?: [];
+				siteTemplateMap[ id ].append( siteTemplate );
 			}
 
 			for ( var handler in handlers ) {
 				if ( handlers.type eq "File" ) {
-					ids[ ReReplace( handlers.name, "\.cfc$", "" ) ] = 1;
+					var id = ReReplace( handlers.name, "\.cfc$", "" );
+					ids[ id ] = 1;
+
+					siteTemplateMap[ id ] = siteTemplateMap[ id ] ?: [];
+					siteTemplateMap[ id ].append( siteTemplate );
 				}
 			}
 		}
 
 		for( var id in ids ) {
-			widgets[ id ].id          = id;
-			widgets[ id ].configForm  = _getFormNameByConvention( id );
-			widgets[ id ].viewlet     = _getViewletEventByConvention( id );
-			widgets[ id ].icon        = _getIconByConvention( id );
-			widgets[ id ].title       = _getTitleByConvention( id );
-			widgets[ id ].description = _getDescriptionByConvention( id );
+			widgets[ id ].id            = id;
+			widgets[ id ].configForm    = _getFormNameByConvention( id );
+			widgets[ id ].viewlet       = _getViewletEventByConvention( id );
+			widgets[ id ].icon          = _getIconByConvention( id );
+			widgets[ id ].title         = _getTitleByConvention( id );
+			widgets[ id ].description   = _getDescriptionByConvention( id );
+			widgets[ id ].siteTemplates = _mergeSiteTemplates( siteTemplateMap[id] );
 		}
 
 		_setWidgets( widgets );
@@ -211,6 +225,29 @@ component singleton=true output=false {
 
 	private string function _getDescriptionByConvention( required string widgetId ) output=false {
 		return "widgets.#widgetId#:description";
+	}
+
+	private string function _getSiteTemplateFromPath( required string path ) output=false {
+		var regex = "^.*[\\/]site-templates[\\/]([^\\/]+)$";
+
+		if ( !ReFindNoCase( regex, arguments.path ) ) {
+			return "*";
+		}
+
+		return ReReplaceNoCase( arguments.path, regex, "\1" );
+	}
+
+	private string function _mergeSiteTemplates( required array templates ) ouptut=false {
+		var merged = "";
+
+		for( var template in arguments.templates ) {
+			if ( template == "*" ) {
+				return "*";
+			}
+			merged = ListAppend( merged, template );
+		}
+
+		return merged;
 	}
 
 
