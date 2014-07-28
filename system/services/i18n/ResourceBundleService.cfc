@@ -3,9 +3,11 @@ component output=false {
 // CONSTRUCTOR
 	/**
 	 * @bundleDirectories.inject presidecms:directories:i18n
+	 * @siteService.inject       siteService
 	 */
-	public any function init( required array bundleDirectories ) output=false {
+	public any function init( required array bundleDirectories, required any siteService ) output=false {
 		_setBundleDirectories( arguments.bundleDirectories );
+		_setSiteService( arguments.siteService );
 		_setBundleDataCache( {} );
 		_discoverBundles();
 
@@ -127,10 +129,11 @@ component output=false {
 	}
 
 	private struct function _getBundleData( required string bundleName, string language, string country ) output=false {
-		var bundleDataCache = _getBundleDataCache();
-		var bundleCacheKey  = arguments.bundleName;
-		var languageCacheKey  = "";
-		var countryCacheKey  =  "";
+		var bundleDataCache    = _getBundleDataCache();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var bundleCacheKey     = activeSiteTemplate & arguments.bundleName;
+		var languageCacheKey   = "";
+		var countryCacheKey    =  "";
 
 		if ( not StructKeyExists( bundleDataCache, bundleCacheKey  ) ) {
 			bundleDataCache[ bundleCacheKey ] = _readBundleData( arguments.bundleName );
@@ -163,13 +166,15 @@ component output=false {
 	}
 
 	private struct function _readBundleData( required string bundleName, string language, string country ) output=false {
-		var directories  = _getBundleDirectories();
-		var subDirectory = "";
-		var files        = "";
-		var directory    = "";
-		var file         = "";
-		var bundleData   = StructNew( "linked" );
-		var filePattern  = ListLast( arguments.bundleName, "." );
+		var directories        = _getBundleDirectories();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
+		var siteTemplate       = "";
+		var subDirectory       = "";
+		var files              = "";
+		var directory          = "";
+		var file               = "";
+		var bundleData         = StructNew( "linked" );
+		var filePattern        = ListLast( arguments.bundleName, "." );
 
 		if ( ListLen( arguments.bundleName, "." ) gt 1 ) {
 			subDirectory = ListDeleteAt( arguments.bundleName, ListLen( arguments.bundleName, "." ), "." );
@@ -185,10 +190,15 @@ component output=false {
 
 		for( directory in directories ){
 			directory = ReReplace( directory, "[\\/]$", "" );
-			files = DirectoryList( directory & subDirectory, false, "path", filePattern & ".properties" );
 
-			for( file in files ){
-				StructAppend( bundleData, _propertiesFileToStruct( file ) );
+			siteTemplate = _getSiteTemplateFromPath( directory );
+
+			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
+				files = DirectoryList( directory & subDirectory, false, "path", filePattern & ".properties" );
+
+				for( file in files ){
+					StructAppend( bundleData, _propertiesFileToStruct( file ) );
+				}
 			}
 		}
 
@@ -228,12 +238,29 @@ component output=false {
 		}
 	}
 
+	private string function _getSiteTemplateFromPath( required string path ) output=false {
+		var regex = "^.*[\\/]site-templates[\\/]([^\\/]+)/.*$";
+
+		if ( !ReFindNoCase( regex, arguments.path ) ) {
+			return "*";
+		}
+
+		return ReReplaceNoCase( arguments.path, regex, "\1" );
+	}
+
 // GETTERS AND SETTERS
 	private array function _getBundleDirectories() output=false {
 		return _bundleDirectories;
 	}
 	private void function _setBundleDirectories( required array bundleDirectories ) output=false {
 		_bundleDirectories = arguments.bundleDirectories;
+	}
+
+	private any function _getSiteService() output=false {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) output=false {
+		_siteService = arguments.siteService;
 	}
 
 	private array function _getBundleNames() output=false {

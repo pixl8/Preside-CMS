@@ -222,11 +222,41 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test19_getResource_shouldNotReturnSiteTemplateSpecificValue_whenSiteTemplateIsNotActive" returntype="void">
+		<cfscript>
+			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/", "/tests/resources/ResourceBundleService/site-templates/test-template/i18n/" ];
+			var rbService  = _getRBService( bundleDirs );
+			var expected   = "This is not a pipe";
+			var result     = rbService.getResource( "secondary:some.key" );
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test20_getResource_shouldReturnSiteTemplateSpecificValue_whenSiteTemplateIsActive" returntype="void">
+		<cfscript>
+			var bundleDirs = [ "/tests/resources/ResourceBundleService/testBundles/", "/tests/resources/ResourceBundleService/site-templates/test-template/i18n/" ];
+			var rbService  = _getRBService( bundleDirs );
+			var expected   = "Specific to site template";
+
+			mockSiteService.$( "getActiveSiteTemplate", "test-template" );
+
+			var result     = rbService.getResource( "secondary:some.key" );
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getRBService" access="private" returntype="any" output="false">
 		<cfargument name="bundleDirectories" type="array" required="true" />
 
-		<cfreturn new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories ) />
+		<cfscript>
+			mockSiteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
+			mockSiteService.$( "getActiveSiteTemplate", "" );
+
+			return new preside.system.services.i18n.ResourceBundleService( bundleDirectories = arguments.bundleDirectories, siteService=mockSiteService );
+		</cfscript>
 	</cffunction>
 
 </cfcomponent>
