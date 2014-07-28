@@ -85,3 +85,55 @@ Name    Type    Required  Description
 ======  ======  ========  ===========
 siteId  string  Yes                  
 ======  ======  ========  ===========
+
+
+.. _siteservice-ensuredefaultsiteexists:
+
+EnsureDefaultSiteExists()
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public void function ensureDefaultSiteExists( )
+
+Ensures that at least one site is registered with the system, called internally
+before checking valid routes
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _siteservice-getactivesiteid:
+
+GetActiveSiteId()
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public string function getActiveSiteId( )
+
+Retrieves the current active site id. This is based either on the URL, for front-end requests, or the currently
+selected site when in the administrator
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _siteservice-getactivesitetemplate:
+
+GetActiveSiteTemplate()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public string function getActiveSiteTemplate( )
+
+Retrieves the current active site template. This is based either on the URL, for front-end requests, or the currently
+selected site when in the administrator
+
+Arguments
+.........
+
+*This method does not accept any arguments.*

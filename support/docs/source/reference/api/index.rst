@@ -5,4 +5,5 @@ System Service API
     :maxdepth: 1
 
     presideobjectservice
+    sitetemplatesservice
     siteservice
