@@ -15,11 +15,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		];
 		var actual = templatesService.listTemplates();
 
+		super.assertEquals( ArrayLen( expected ), ArrayLen( actual ) );
+
 		actual.sort( function( a, b ){
 			return a.getId() > b.getId() ? 1 : -1;
 		} );
-
-		super.assertEquals( expected.len(), actual.len() );
 
 		for( var i=1; i <= expected.len(); i++ ){
 			super.assertEquals( expected[i], actual[i].getMemento() );
