@@ -2,7 +2,11 @@
 
 	<cffunction name="setup" access="public" returntype="any" output="false">
 		<cfscript>
-			mockColdboxEvent.$( "getSite", "" );
+			try {
+				mockColdboxEvent.getSite();
+			} catch( expression e ) {
+				mockColdboxEvent.$( "getSite", "" );
+			}
 
 			_wipeData();
 			_setupDummyTreeData();
