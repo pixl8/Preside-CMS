@@ -40,6 +40,10 @@ component singleton=true output=false {
 	}
 
 	public string function renderWidget( required string widgetId, string configJson="", string context="", struct config={} ) output=false {
+		if ( !widgetExists( arguments.widgetId ) ) {
+			return "";
+		}
+
 		var args = Duplicate( arguments.config );
 
 		if ( Len( Trim( arguments.configJson ) ) ) {
