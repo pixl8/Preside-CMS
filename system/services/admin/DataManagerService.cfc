@@ -32,7 +32,7 @@ component output="false" singleton=true {
 		for( var objectName in objectNames ){
 			var groupId            = poService.getObjectAttribute( objectName=objectName, attributeName="datamanagerGroup", defaultValue="" );
 			var siteTemplates      = poService.getObjectAttribute( objectName=objectName, attributeName="siteTemplates"   , defaultValue="*" );
-			var isInActiveTemplate = !Len( Trim( activeSiteTemplate ) ) || siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
+			var isInActiveTemplate = siteTemplates == "*" || ListFindNoCase( siteTemplates, activeSiteTemplate );
 
 			if ( isInActiveTemplate && Len( Trim( groupId ) ) && permsService.hasPermission( permissionKey="datamanager.navigate", context="datamanager", contextKeys=[ objectName ] ) ) {
 				if ( !StructKeyExists( groups, groupId ) ) {
