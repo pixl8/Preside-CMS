@@ -17,7 +17,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, keywords = "Test keywords"
 		};
 
-		super.assert( StructCount( meta ) );
+		for( var key in expectedMeta ) {
+			super.assertEquals( expectedMeta[ key ], meta[ key ] ?: "" );
+		}
+	}
+
+	function test02_getMetaData_shouldExtractMetaDataFromThePassedDocumentFilePath() output=false {
+		var meta = tikaWrapper.getMetaData( ExpandPath( "/tests/resources/tikaWrapper/jpg_with_exif.jpg" ) );
+		var expectedMeta = {
+			  comment   = "Finlay McWalter made this"
+			, Copyright = "Copyright Cthulhu"
+		};
 
 		for( var key in expectedMeta ) {
 			super.assertEquals( expectedMeta[ key ], meta[ key ] ?: "" );

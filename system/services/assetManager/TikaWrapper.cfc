@@ -7,7 +7,7 @@ component output=false autodoc=true {
 
 // CONSTRUCTOR
 	public any function init() output=false {
-		_setTikaJarPath( "/preside/system/externals/tika/tika-app-1.5.jar" );
+		_setTikaJarPath( "/preside/system/externals/tika/tika-app-1.2.jar" );
 
 		return this;
 	}
@@ -20,7 +20,9 @@ component output=false autodoc=true {
 	 */
 	public struct function getMetaData( required string filePath ) output=false {
 		var result = _parse( filePath = arguments.filePath, includeText = false );
-
+if ( result.keyExists( "error" ) ) {
+	WriteDump(result.error); abort;
+}
 		return result.metadata ?: {};
 	}
 
