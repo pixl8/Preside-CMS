@@ -5,6 +5,7 @@ component singleton=true output=false {
 	 * @storageProvider.inject          assetStorageProvider
 	 * @temporaryStorageProvider.inject tempStorageProvider
 	 * @assetTransformer.inject         AssetTransformer
+	 * @tikaWrapper.inject              TikaWrapper
 	 * @configuredDerivatives.inject    coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject   coldbox:setting:assetManager.types
 	 * @assetDao.inject                 presidecms:object:asset
@@ -15,6 +16,7 @@ component singleton=true output=false {
 		  required any    storageProvider
 		, required any    temporaryStorageProvider
 		, required any    assetTransformer
+		, required any    tikaWrapper
 		, required any    assetDao
 		, required any    folderDao
 		, required any    derivativeDao
@@ -29,6 +31,8 @@ component singleton=true output=false {
 		_setStorageProvider( arguments.storageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
+		_setTikaWrapper( arguments.tikaWrapper );
+
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
 		_setDerivativeDao( arguments.derivativeDao );
@@ -242,15 +246,22 @@ component singleton=true output=false {
 		}
 	}
 
-	public struct function getTemporaryFileDetails( required string tmpId ) output=false {
-		var details = {};
-		var files   = _getTemporaryStorageProvider().listObjects( "/#arguments.tmpId#/" );
+	public struct function getTemporaryFileDetails( required string tmpId, boolean includeMeta=false ) output=false {
+		var storageProvider = _getTemporaryStorageProvider();
+		var files           = storageProvider.listObjects( "/#arguments.tmpId#/" );
+		var details         = {};
 
 		for( var file in files ) {
+			if ( arguments.includeMeta ) {
+				details = _getTikaWrapper().getMetadata( storageProvider.getObject( file.path ) );
+			}
+
 			StructAppend( details, file );
+
+			break;
 		}
 
-		details.title = details.name ?: "";
+		details.title = details.title ?: ( details.name ?: "" );
 
 		return details;
 	}
@@ -604,5 +615,12 @@ component singleton=true output=false {
 	}
 	private void function _setDerivativeDao( required any derivativeDao ) output=false {
 		_derivativeDao = arguments.derivativeDao;
+	}
+
+	private any function _getTikaWrapper() output=false {
+		return _tikaWrapper;
+	}
+	private void function _setTikaWrapper( required any tikaWrapper ) output=false {
+		_tikaWrapper = arguments.tikaWrapper;
 	}
 }

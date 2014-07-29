@@ -16,7 +16,7 @@ component output=false autodoc=true {
 	/**
 	 * This method returns any metadata as a cfml structure that Tika can extract from the passed file (path)
 	 *
-	 * @fileContent.hint Path to the file that you wish to extract metadata from (must be absolute)
+	 * @fileContent.hint Binary content of the file for which you want to extract meta data
 	 */
 	public struct function getMetaData( required any fileContent ) output=false {
 		var result = _parse( fileContent = arguments.fileContent, includeText = false );

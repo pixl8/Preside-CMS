@@ -70,7 +70,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		prc.tempFileDetails = {};
 		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId );
+			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, true );
 		}
 	}
 
@@ -121,7 +121,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		prc.tempFileDetails = {};
 		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId );
+			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, true );
 		}
 
 		event.setLayout( "adminModalDialog" );
