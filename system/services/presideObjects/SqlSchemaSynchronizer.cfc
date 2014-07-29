@@ -222,13 +222,14 @@ component output=false singleton=true {
 
 		for( column in columnsFromDb ){
 			if ( not column.column_name contains "__deprecated__" ) {
+				if ( column.is_foreignkey ){
+					_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=column.column_name, dsn=arguments.dsn );
+				}
+
 				if ( StructKeyExists( colsSql, column.column_name ) ) {
 					colSql = colsSql[ column.column_name ];
 
 					if ( not StructKeyExists( columnVersions, column.column_name ) or colSql.version neq columnVersions[ column.column_name ] ) {
-						if ( column.is_foreignkey ){
-							_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=column.column_name, dsn=arguments.dsn );
-						}
 						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 						_setDatabaseObjectVersion(
 							  entityType   = "column"
