@@ -8,8 +8,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 // TESTS
-	function test01_getMetaData_shouldExtractMetaDataFromThePassedDocumentFilePath() output=false {
-		var meta = tikaWrapper.getMetaData( ExpandPath( "/tests/resources/tikaWrapper/testdocument.pdf" ) );
+	function test01_getMetaData_shouldExtractMetaDataFromThePassedDocument() output=false {
+		var fileBinary = FileReadBinary( "/tests/resources/tikaWrapper/testdocument.pdf" );
+		var meta = tikaWrapper.getMetaData( fileBinary );
 		var expectedMeta = {
 			  author   = "Dominic Watson"
 			, title    = "Test document"
@@ -23,7 +24,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test02_getMetaData_shouldExtractMetaDataFromThePassedJpgFilePath() output=false {
-		var meta = tikaWrapper.getMetaData( ExpandPath( "/tests/resources/tikaWrapper/jpg_with_exif.jpg" ) );
+		var fileBinary = FileReadBinary( "/tests/resources/tikaWrapper/jpg_with_exif.jpg" );
+		var meta = tikaWrapper.getMetaData( fileBinary );
 		var expectedMeta = {
 			  comment   = "Finlay McWalter made this"
 			, Copyright = "Copyright Cthulhu"
