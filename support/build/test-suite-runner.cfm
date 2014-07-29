@@ -12,6 +12,15 @@
 		resultObject    = testbox.getResult();
 		errors          = resultObject.getTotalFail() + resultObject.getTotalError();
 
+		plainTextResult = ListToArray( plainTextResult, Chr(10) & Chr(13) );
+		for( i=plainTextResult.len(); i >= 1; i-- ){
+			if ( !Len( Trim( plainTextResult[i] ) ) ) {
+				ArrayDeleteAt( plainTextResult, i );
+			}
+		}
+
+		plainTextResult = ArrayToList( plainTextResult, Chr(10) );
+
 		FileWrite( reportpath & "/testbox.properties", errors ? "testbox.failed=true" : "testbox.passed=true" );
 		FileWrite( reportPath & "/output.txt", plainTextResult );
 		content reset=true;Writeoutput( Trim( plainTextResult ) );
