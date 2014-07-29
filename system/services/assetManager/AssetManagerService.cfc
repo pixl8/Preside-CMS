@@ -11,6 +11,7 @@ component singleton=true output=false {
 	 * @assetDao.inject                 presidecms:object:asset
 	 * @folderDao.inject                presidecms:object:asset_folder
 	 * @derivativeDao.inject            presidecms:object:asset_derivative
+	 * @assetMetaDao.inject             presidecms:object:asset_meta
 	 */
 	public any function init(
 		  required any    storageProvider
@@ -20,6 +21,7 @@ component singleton=true output=false {
 		, required any    assetDao
 		, required any    folderDao
 		, required any    derivativeDao
+		, required any    assetMetaDao
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 	) output=false {
@@ -36,6 +38,7 @@ component singleton=true output=false {
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
 		_setDerivativeDao( arguments.derivativeDao );
+		_setAssetMetaDao( arguments.assetMetaDao );
 
 		return this;
 	}
@@ -283,21 +286,27 @@ component singleton=true output=false {
 			return "";
 		}
 
+		var fileBinary  = _getTemporaryStorageProvider().getObject( fileDetails.path );
+
 		_getStorageProvider().putObject(
-			  object = _getTemporaryStorageProvider().getObject( fileDetails.path )
+			  object = fileBinary
 			, path   = newFileName
 		);
 
-		asset.asset_folder = arguments.folder;
-		asset.asset_type   = fileTypeInfo.typeName;
-		asset.storage_path = newFileName;
+		asset.asset_folder    = arguments.folder;
+		asset.asset_type      = fileTypeInfo.typeName;
+		asset.storage_path    = newFileName;
+
 		StructAppend( asset, fileDetails, false );
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
 			asset.asset_folder = getRootFolderId();
 		}
 
 		newId = _getAssetDao().insertData( data=asset );
+
 		deleteTemporaryFile( arguments.tmpId );
+
+		_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( fileBinary ) );
 
 		return newId;
 	}
@@ -539,6 +548,19 @@ component singleton=true output=false {
 		_setTypes( types );
 	}
 
+	private void function _saveAssetMetaData( required string assetId, required struct metaData ) output=false {
+		var dao = _getAssetMetaDao();
+
+		dao.deleteData( filter={ asset=assetId } );
+		for( var key in arguments.metaData ) {
+			dao.insertData( {
+				  asset = arguments.assetId
+				, key   = key
+				, value = arguments.metaData[ key ]
+			} );
+		}
+	}
+
 // GETTERS AND SETTERS
 	private any function _getStorageProvider() output=false {
 		return _storageProvider;
@@ -615,6 +637,13 @@ component singleton=true output=false {
 	}
 	private void function _setDerivativeDao( required any derivativeDao ) output=false {
 		_derivativeDao = arguments.derivativeDao;
+	}
+
+	private any function _getAssetMetaDao() output=false {
+		return _assetMetaDao;
+	}
+	private void function _setAssetMetaDao( required any assetMetaDao ) output=false {
+		_assetMetaDao = arguments.assetMetaDao;
 	}
 
 	private any function _getTikaWrapper() output=false {
