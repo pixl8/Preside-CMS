@@ -19,15 +19,39 @@
 		</cfif>
 	</div>
 
-	<div class="row">
-		<div class="#( hasUploadPermission ? 'col-lg-8 col-md-8 col-sm-7 col-xs-6' : 'col-md-12' )#">
-			#renderView( "admin/assetmanager/listingtable" )#
-		</div>
+	<cfif hasUploadPermission>
+		<div class="tabbable">
+			<ul class="nav nav-tabs">
+				<li class="active">
+					<a data-toggle="tab" href="##browse">
+						<i class="green fa fa-search bigger-110"></i>
+						#translateResource( uri="cms:assetmanager.browse.tab" )#
+					</a>
+				</li>
 
-		<cfif hasUploadPermission>
-			<div class="col-lg-4 col-md-4 col-sm-5 col-xs-6">
-				#renderView( "admin/assetmanager/assetDropZone" )#
+				<li>
+					<a data-toggle="tab" href="##upload">
+						<i class="blue fa fa-cloud-upload bigger-110"></i>
+						#translateResource( uri="cms:assetmanager.upload.tab" )#
+					</a>
+				</li>
+			</ul>
+
+
+			<div class="tab-content">
+				<div id="browse" class="tab-pane in active">
+	</cfif>
+
+	#renderView( "admin/assetmanager/listingtable" )#
+
+	<cfif hasUploadPermission>
+				</div>
+
+				<div id="upload" class="tab-pane">
+					#renderView( "admin/assetmanager/assetDropZone" )#
+				</div>
 			</div>
-		</cfif>
-	</div>
+		</div>
+	</cfif>
 </cfoutput>
+
