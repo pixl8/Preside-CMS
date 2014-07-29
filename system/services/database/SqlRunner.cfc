@@ -28,10 +28,9 @@ component output=false singleton=true {
 
 		if ( StructKeyExists( arguments, "params" ) ) {
 			for( param in arguments.params ){
-				param name="param.value" default="";
+				param.value = param.value ?: "";
 
 				if ( not IsSimpleValue( param.value ) ) {
-					param name="param.name"  default="";
 					throw(
 						  type = "SqlRunner.BadParam"
 						, message = "SQL Param values must be simple values"
@@ -46,6 +45,8 @@ component output=false singleton=true {
 				if ( not Len( Trim( param.value ) ) ) {
 					param.null = true;
 				}
+
+				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
 
 				q.addParam( argumentCollection = param );
 			}

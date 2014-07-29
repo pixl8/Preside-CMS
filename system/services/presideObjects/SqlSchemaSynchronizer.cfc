@@ -115,9 +115,6 @@ component output=false singleton=true {
 				, autoIncrement = colMeta.generator eq "increment"
 				, maxLength     = colMeta.maxLength
 			};
-			if ( StructKeyExists( colMeta, "default" ) ) {
-				args.defaultValue = colMeta.default;
-			}
 
 			column.definitionSql = adapter.getColumnDefinitionSql( argumentCollection = args );
 			column.alterSql      = adapter.getAlterColumnSql( argumentCollection = args );

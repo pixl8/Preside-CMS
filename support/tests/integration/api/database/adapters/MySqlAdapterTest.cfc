@@ -63,21 +63,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test04_getColumnDefinitionSql_shouldReturnWellFormattedDefaultValue" returntype="void">
-		<cfscript>
-			var adapter  = _getAdapter();
-			var expected = "`some_col` bit null default 0";
-			var result   = adapter.getColumnDefinitionSql(
-				  columnName   = "some_col"
-				, dbType       = "bit"
-				, nullable     = false
-				, defaultValue = "0"
-			);
-
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="test05_getColumnDefinitionSql_shouldReturnWellFormattedPrimaryKey" returntype="void">
 		<cfscript>
 			var adapter  = _getAdapter();

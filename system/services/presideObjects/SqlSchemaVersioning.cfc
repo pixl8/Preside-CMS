@@ -67,7 +67,7 @@ component output=false singleton=true {
 			  { value=arguments.entityType, type="cf_sql_varchar" }
 			, { value=arguments.entityName, type="cf_sql_varchar" }
 			, { value=arguments.version   , type="cf_sql_varchar" }
-			, { value=ts                  , type="cf_sql_ddatetime" }
+			, { value=ts                  , type="cf_sql_timestamp" }
 		];
 
 		if ( StructKeyExists( arguments, "parentEntity" ) ) {

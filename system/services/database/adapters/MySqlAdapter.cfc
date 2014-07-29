@@ -15,7 +15,6 @@ component output=false singleton=true {
 	public string function getColumnDefinitionSql(
 		  required string   columnName
 		, required string   dbType
-		,          string   defaultValue
 		,          numeric  maxLength     = 0
 		,          boolean  nullable      = true
 		,          boolean  primaryKey    = false
@@ -38,10 +37,6 @@ component output=false singleton=true {
 		}
 
 		columnDef &= ( isNullable ? " null" : " not null" );
-
-		if ( StructKeyExists( arguments, 'defaultValue' ) ) {
-			columnDef &= " default " & arguments.defaultValue;
-		}
 
 		if ( arguments.autoIncrement ) {
 			columnDef &= " auto_increment";

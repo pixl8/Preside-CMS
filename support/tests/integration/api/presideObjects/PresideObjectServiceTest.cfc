@@ -2740,6 +2740,24 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test86_insertData_shouldPopulateUnprovidedFieldsWithTheirDefaultValues" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDefaults" ] );
+
+			poService.dbSync();
+
+			var obj       = poService.getObject( "object_with_defaulted_fields" );
+			var recordId  = obj.insertData( data={ label="Hello world" } );
+			var record    = obj.selectData( id=recordId );
+
+
+			super.assertEquals( "property_a default", record.property_a );
+			super.assertEquals( 0, DateDiff( "n", record.property_b, Now() ), "Generated date was not within a minute of now" );
+			super.assertEquals( 1, record.property_c );
+			super.assertEquals( "Hello world", record.property_d );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />

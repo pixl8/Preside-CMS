@@ -285,7 +285,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var result             = "";
 		var newId              = "";
 		var rightNow           = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
-		var cleanedData        = Duplicate( arguments.data );
+		var cleanedData        = _addDefaultValuesToDataSet( arguments.objectName, arguments.data );
 		var manyToManyData     = {};
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
 
@@ -1877,6 +1877,35 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		}
 
 		return result;
+	}
+
+	private struct function _addDefaultValuesToDataSet( required string objectName, required struct data ) output=false {
+		var props   = getObjectProperties( arguments.objectName );
+		var newData = Duplicate( arguments.data );
+
+		for( var propName in props ){
+			if ( !StructKeyExists( arguments.data, propName ) && Len( Trim( props[ propName ].default ?: "" ) ) ) {
+				var default = props[ propName ].default;
+				switch( ListFirst( default, ":" ) ) {
+					case "cfml":
+						newData[ propName ] = Evaluate( ListRest( default, ":" ) );
+					break;
+					case "closure":
+						var func = Evaluate( ListRest( default, ":" ) );
+						newData[ propName ] = func( arguments.data );
+					break;
+					case "method":
+						var obj = getObject( arguments.objectName );
+
+						newData[ propName ] = obj[ ListRest( default, ":" ) ]( arguments.data );
+					break;
+					default:
+						newData[ propName ] = default;
+				}
+			}
+		}
+
+		return newData;
 	}
 
 // SIMPLE PRIVATE PROXIES
