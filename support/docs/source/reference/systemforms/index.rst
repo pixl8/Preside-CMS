@@ -8,6 +8,7 @@ System form layouts
     assetaddthroughpickerform
     asseteditform
     assetfolderaddform
+    assetfoldereditform
     richeditorattachmentform
     richeditorattachmentform
     richeditorimageform

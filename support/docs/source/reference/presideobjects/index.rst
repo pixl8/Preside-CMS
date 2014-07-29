@@ -5,6 +5,7 @@ System Preside Objects
     :maxdepth: 1
 
     asset_derivative
+    asset_meta
     asset_folder
     asset
     security_group
