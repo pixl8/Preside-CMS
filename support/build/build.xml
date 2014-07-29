@@ -49,13 +49,14 @@
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
 
-	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installsticker,installckeditor">
+	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installsticker,installckeditor,installtika">
 	</target>
 
 	<target name="clean-preside-deps">
 		<delete dir="${coldbox.installdir}" failonerror="false" />
 		<delete dir="${sticker.installdir}" failonerror="false" />
 		<delete dir="${ckeditor.installdir}" failonerror="false" />
+		<delete dir="${tika.installdir}" failonerror="false" />
 	</target>
 
 	<target name="install-ci-deps" depends="setupTestRunnerEnvironment">
@@ -173,6 +174,11 @@ Valid values are:
 				<globmapper from="${ckeditor.zipsubdir}/*" to="*"/>
 			</mapper>
 		</unzip>
+	</target>
+
+	<target name="installtika">
+		<mkdir dir="${tika.installdir}" />
+		<get src="${tika.src}" dest="${tika.installdir}" />
 	</target>
 
 	<target name="setupreleaselabel" depends="incrementBuildNumber">
