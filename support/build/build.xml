@@ -97,7 +97,7 @@
 		</exec>
 	</target>
 
-	<target name="test-ci" depends="setupTestRunnerEnvironment,setupoutputdir,installcoldbox,installsticker,start-server,test,stop-server">
+	<target name="test-ci" depends="setupTestRunnerEnvironment,setupoutputdir,installcoldbox,installsticker,installtika,start-server,test,stop-server">
 		<property file="${output.dir}/testbox.properties" />
 		<fail if="testbox.failed" message="At least one test failure!" />
 	</target>
