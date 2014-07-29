@@ -20,9 +20,7 @@ component output=false autodoc=true {
 	 */
 	public struct function getMetaData( required string filePath ) output=false {
 		var result = _parse( filePath = arguments.filePath, includeText = false );
-if ( result.keyExists( "error" ) ) {
-	WriteDump(result.error); abort;
-}
+
 		return result.metadata ?: {};
 	}
 
