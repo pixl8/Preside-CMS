@@ -20,8 +20,8 @@
 
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
-			var poService = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
-			var logger    = _getTestLogger();
+			var poService   = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
+			var logger      = _getTestLogger();
 			var siteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ], siteService=SiteService );
 
@@ -505,6 +505,7 @@
 				  objectName   = "page"
 				, filter       = { trashed = true }
 				, selectFields = [ "count(*) as nPages" ]
+				, useCache     = false
 			);
 
 			// THE METHOD WE ARE TESTING
