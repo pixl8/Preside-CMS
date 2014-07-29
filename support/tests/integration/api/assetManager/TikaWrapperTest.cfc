@@ -22,7 +22,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		}
 	}
 
-	function test02_getMetaData_shouldExtractMetaDataFromThePassedDocumentFilePath() output=false {
+	function test02_getMetaData_shouldExtractMetaDataFromThePassedJpgFilePath() output=false {
 		var meta = tikaWrapper.getMetaData( ExpandPath( "/tests/resources/tikaWrapper/jpg_with_exif.jpg" ) );
 		var expectedMeta = {
 			  comment   = "Finlay McWalter made this"
