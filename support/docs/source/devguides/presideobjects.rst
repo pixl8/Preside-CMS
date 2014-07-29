@@ -107,6 +107,7 @@ Name               Required       Default    Description
 **dbtype**         No             "varchar"  Database type of the field to be define on the database table field        
 **maxLength**      No             0          For dbtypes that require a length specification. If zero, the max size will be used.
 **required**       No             **false**  Whether or not the field is required.    
+**default**        No             ""         A default value for the property. Can be dynamically created, see :ref:`presideobjectsdefaults`
 **indexes**        No             ""         List of indexes for the field, see :ref:`preside-objects-indexes`
 **uniqueindexes**  No             ""         List of unique indexes for the field, see :ref:`preside-objects-indexes`
 **control**        No             "default"  The default form control to use when rendering this field in a Preside Form. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. See :doc:`/devguides/formcontrols` and :doc:`/devguides/formlayouts`.
@@ -199,6 +200,42 @@ The DateCreated and DateModified fields
 
 These do exactly what they say on the tin. If you use the APIs to insert and update your records, the values of these fields will be set automatically for you.
 
+
+.. _presideobjectsdefaults:
+
+Default values for properties
+-----------------------------
+
+You can use the :code:`default` attribute on a property tag to define a default value for a property. This value will be used during an :ref:`presideobjectservice-insertdata` operation when no value is supplied for the property. E.g.
+
+.. code-block:: java
+
+    component output=false {
+        // ...
+        property name="max_attendees" type="numeric" dbtype="int" required=false default=100;
+    }
+
+Dynamic defaults
+~~~~~~~~~~~~~~~~
+
+Default values can also be generated dynamically at runtime. Currently, this comes in two flavours: 
+
+1. Supplying raw CFML to be evaluated at runtime
+2. Supplying the name of a method defined in your object that will be called at runtime, this method will be passed a 'data' argument that is a structure containing the data to be inserted
+
+For raw CFML, prefix your value with :code:`cfml:`, e.g. :code:`cfml:CreateUUId()`. For methods that are defined on your object, use :code:`method:methodName`. e.g.
+
+.. code-block:: java
+
+    component output=false  {
+        // ...
+        property name="event_start_date" type="date"   dbtype="timestamp"                 required=false default="cfml:Now()";
+        property name="slug"             type="string" dbtype="varchar"   maxlength="200" required=false default="method:calculateSlug";
+
+        public string function calculateSlug( required struct data ) output=false {
+            return LCase( ReReplace( data.label ?: "", "\W", "_", "all" ) );
+        }
+    }
 
 .. _preside-objects-relationships:
 
