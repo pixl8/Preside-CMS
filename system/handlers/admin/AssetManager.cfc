@@ -215,6 +215,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
 
+		formData.id            = folderId;
 		formData.parent_folder = formData.parent_folder ?: parentFolder;
 		formData.updated_by    = event.getAdminUserId();
 
