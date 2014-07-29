@@ -2,8 +2,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 // test lifecycle methods
 	public any function beforeTests() output=false {
 		_emptyDatabase();
-		_dbSync();
-		_wipeTestData();
+
+		presideObjectService = _getPresideObjectService( forceNewInstance=true );
+		presideObjectService.dbSync();
+
 		_setupTestData();
 	}
 
@@ -76,7 +78,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockColdbox           = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
 		return new preside.system.services.sitetree.SiteService(
-			  siteDao           = _getPresideObjectService().getObject( "site" )
+			  siteDao           = presideObjectService.getObject( "site" )
 			, sessionStorage    = mockSessionStorage
 			, permissionService = mockPermissionService
 			, coldbox           = mockColdbox
@@ -91,9 +93,5 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		sites.append( _insertData( objectName="site", data={ name="Test site sub", domain="testsite.com"         , path="/sub"       } ) );
 		sites.append( _insertData( objectName="site", data={ name="Another site" , domain="fubar.anothersite.com", path="/"          } ) );
 		sites.append( _insertData( objectName="site", data={ name="An odd site"  , domain="www.oddsite.com"      , path="/specific"  } ) );
-	}
-
-	private void function _wipeTestData() output=false {
-		_deleteData( objectName="site", forceDeleteAll=true );
 	}
 }
