@@ -2,12 +2,6 @@
 
 	<cffunction name="setup" access="public" returntype="any" output="false">
 		<cfscript>
-			try {
-				mockColdboxEvent.getSite();
-			} catch( expression e ) {
-				mockColdboxEvent.$( "getSite", "" );
-			}
-
 			_wipeData();
 			_setupDummyTreeData();
 
@@ -20,8 +14,10 @@
 			mockColdbox      = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 			mockColdboxEvent = getMockbox().createStub();
 
-			mockColdboxEvent.$( "isAdminUser", true );
-			mockColdboxEvent.$( "getAdminUserId", "" );
+			mockColdboxEvent.$( "isAdminUser"   , true );
+			mockColdboxEvent.$( "getAdminUserId", ""   );
+			mockColdboxEvent.$( "getSite"       , {}   );
+
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
 			var poService = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
