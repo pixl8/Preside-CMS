@@ -51,10 +51,14 @@ component singleton=true output=false {
 		return _getFolderDao().insertData( arguments );
 	}
 
-	public boolean function renameFolder( required string id, required string label ) output=false {
+	public boolean function editFolder( required string id, required struct data ) output=false {
+		if ( arguments.data.keyExists( "parent_folder" ) && not Len( Trim( arguments.data.parent_folder ) ) ) {
+			arguments.data.parent_folder = getRootFolderId();
+		}
+
 		return _getFolderDao().updateData(
 			  id   = arguments.id
-			, data = { label=arguments.label }
+			, data = arguments.data
 		);
 	}
 

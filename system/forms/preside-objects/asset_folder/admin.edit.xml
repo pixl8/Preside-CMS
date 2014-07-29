@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset folder: edit form
+
+This form is used for editing folders in the asset manager section of the administrator.
+-->
+<form>
+	<tab>
+		<fieldset>
+			<field binding="asset_folder.label" />
+		</fieldset>
+	</tab>
+</form>

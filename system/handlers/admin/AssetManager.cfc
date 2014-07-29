@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="assetManagerService"      inject="assetManagerService";
-	property name="contentRendererService"          inject="contentRendererService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="contentRendererService"   inject="contentRendererService";
 	property name="imageManipulationService" inject="imageManipulationService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 
@@ -152,21 +153,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
-	function renameFolderAction( event, rc, prc ) output=false {
-		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
-
-		var success = assetManagerService.renameFolder(
-			  id    = rc.folder ?: ""
-			, label = rc.label  ?: ""
-		);
-
-		if ( success ) {
-			event.renderData( data={ success=true }, type="json" );
-		} else {
-			event.renderData( data={ error=true }, type="json" );
-		}
-	}
-
 	function addFolder( event, rc, prc ) output=false {
 		_checkPermissions( argumentCollection=arguments, key="folders.add" );
 	}
@@ -206,6 +192,53 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#formData.parent_folder#" ) );
 		}
+	}
+
+	function editFolder( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
+
+		prc.record = presideObjectService.selectData( objectName="asset_folder", filter={ id=rc.id ?: "" } );
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:assetmanager.folderNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+	}
+
+	function editFolderAction( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
+
+		var parentFolder     = ( rc.folder ?: "" );
+		var folderId         = ( rc.id ?: "" );
+		var formName         = "preside-objects.asset_folder.admin.edit";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = "";
+
+		formData.parent_folder = formData.parent_folder ?: parentFolder;
+		formData.updated_by    = event.getAdminUserId();
+
+		validationResult = validateForm(
+			  formName = formName
+			, formData = formData
+		);
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:assetmanager.edit.folder.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=persist );
+		}
+
+		try {
+			assetManagerService.editFolder( id=rc.id, data=formData );
+		} catch ( any e ) {
+			messageBox.error( translateResource( "cms:assetmanager.edit.folder.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
+		}
+
+		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ formData.label ?: '' ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
 	function trashFolderAction( event, rc, prc ) output=false {
