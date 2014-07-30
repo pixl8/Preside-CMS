@@ -6,12 +6,13 @@
 	  , $tableHeaders    = $listingTable.find( 'thead > tr > th')
 	  , colConfig        = []
 	  , assets           = i18n.translateResource( "preside-objects.asset:title" )
-	  , i;
+	  , activeFolder     = ""
+	  , i, nodeClickHandler;
 
-	var nodeClickHandler = function( $node ){
+	nodeClickHandler = function( $node ){
 		$nodes.removeClass( "selected" );
-
 		$node.addClass( "selected" );
+		activeFolder = $node.data( "folderId" ) || "";
 	};
 
 	$tree.presideTreeNav( { onClick : nodeClickHandler } );
@@ -33,6 +34,9 @@
 		aoColumns     : colConfig,
 		bServerSide   : true,
 		sAjaxSource   : buildAjaxLink( "assetmanager.assetsForListingGrid" ),
+		fnServerParams: function ( aoData ) {
+	    	aoData.push( { name : "folder", value : activeFolder } );
+		},
 		bProcessing   : false,
 		bStateSave    : false,
 		aLengthMenu   : [ 5, 10, 25, 50, 100 ],
