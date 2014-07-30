@@ -63,7 +63,7 @@ component singleton=true output=false {
 	}
 
 	public query function getFolder( required string id ) output=false {
-		return _getFolderDao().selectData( filter="id = :id and parent_folder is not null", filterParams={ id = id } );
+		return _getFolderDao().selectData( filter="id = :id", filterParams={ id = id } );
 	}
 
 	public query function getFolderAncestors( required string id ) output=false {

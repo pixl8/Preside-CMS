@@ -7403,7 +7403,7 @@ td.presidecms .visible-print {
   font-size: 5em;
 }
 .presidecms .fa-fw {
-  width: 1.28571429em;
+  width: 1.28571429em !important;
   text-align: center;
 }
 .presidecms .fa-ul {
@@ -13062,7 +13062,6 @@ fieldset[disabled] .presidecms .btn-light.active {
 .presidecms .btn-group > .btn,
 .presidecms .btn-group + .btn {
   margin: 0 1px 0 0;
-  border-width: 3px;
   /* the border under an active button in button groups */
 }
 .presidecms .btn-group > .btn.active:after,
@@ -13074,7 +13073,6 @@ fieldset[disabled] .presidecms .btn-light.active {
 }
 .presidecms .btn-group > .btn-large,
 .presidecms .btn-group + .btn-large {
-  border-width: 4px;
   /* the border under an active button in button groups */
 }
 .presidecms .btn-group > .btn-large.active:after,
@@ -13086,7 +13084,6 @@ fieldset[disabled] .presidecms .btn-light.active {
 }
 .presidecms .btn-group > .btn-sm,
 .presidecms .btn-group + .btn-sm {
-  border-width: 2px;
   /* the border under an active button in button groups */
 }
 .presidecms .btn-group > .btn-sm.active:after,
@@ -13098,7 +13095,6 @@ fieldset[disabled] .presidecms .btn-light.active {
 }
 .presidecms .btn-group > .btn-xs,
 .presidecms .btn-group + .btn-xs {
-  border-width: 1px;
   /* the border under an active button in button groups */
 }
 .presidecms .btn-group > .btn-xs.active:after,
@@ -13110,7 +13106,6 @@ fieldset[disabled] .presidecms .btn-light.active {
 }
 .presidecms .btn-group > .btn-minier,
 .presidecms .btn-group + .btn-minier {
-  border-width: 1px;
   /* the border under an active button in button groups */
 }
 .presidecms .btn-group > .btn-minier.active:after,

@@ -10,7 +10,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:assetManager" )
 			, link  = event.buildAdminLink( linkTo="assetmanager" )
@@ -25,28 +24,35 @@ component extends="preside.system.base.AdminHandler" output=false {
 			rc.folder = prc.asset.asset_folder;
 		}
 
-		if ( Len( Trim( rc.folder ?: "" ) ) ) {
-			prc.folderAncestors   = assetManagerService.getFolderAncestors( id=rc.folder ?: "" );
-			prc.permissionContext = [];
-			prc.inheritedPermissionContext = [];
+		prc.rootFolderId = assetManagerService.getRootFolderId();
+		if ( !Len( Trim( rc.folder ?: "" ) ) ) {
+			rc.folder = prc.rootFolderId;
+		}
 
-			for( var f in prc.folderAncestors ){
-				prc.permissionContext.prepend( f.id );
-				prc.inheritedPermissionContext.prepend( f.id );
-				event.addAdminBreadCrumb(
-					  title = f.label
-					, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#f.id#" )
-				);
-			}
+		prc.folderAncestors   = assetManagerService.getFolderAncestors( id=rc.folder ?: "" );
+		prc.permissionContext = [];
+		prc.inheritedPermissionContext = [];
 
-			prc.folder = assetManagerService.getFolder( id=rc.folder );
-			if ( prc.folder.recordCount ){
-				prc.permissionContext.prepend( rc.folder );
-				event.addAdminBreadCrumb(
-					  title = prc.folder.label
-					, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#prc.folder.id#" )
-				);
+		for( var f in prc.folderAncestors ){
+			prc.permissionContext.prepend( f.id );
+			prc.inheritedPermissionContext.prepend( f.id );
+			event.addAdminBreadCrumb(
+				  title = f.label
+				, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#f.id#" )
+			);
+		}
+
+		prc.folder = assetManagerService.getFolder( id=rc.folder );
+
+		if ( prc.folder.recordCount ){
+			if ( prc.folder.id == assetManagerService.getRootFolderId() ) {
+				prc.folder.label[1] = translateResource( "cms:assetmanager.root.folder" );
 			}
+			prc.permissionContext.prepend( rc.folder );
+			event.addAdminBreadCrumb(
+				  title = prc.folder.label
+				, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#prc.folder.id#" )
+			);
 		}
 
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
@@ -62,7 +68,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, allowedExtensions = settings.allowedExtensions ?: ""
 		} );
 
-		prc.rootFolderId = assetManagerService.getRootFolderId();
 		prc.folderTree   = assetManagerService.getFolderTree();
 	}
 
@@ -165,6 +170,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		var formName         = "preside-objects.asset_folder.admin.add";
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = "";
+		var newFolderId      = "";
 
 		formData.parent_folder = rc.folder ?: "";
 		formData.created_by = formData.updated_by = event.getAdminUserId();
@@ -182,7 +188,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		try {
-			assetManagerService.addFolder( argumentCollection = formData );
+			newFolderId = assetManagerService.addFolder( argumentCollection = formData );
 		} catch ( any e ) {
 			messageBox.error( translateResource( "cms:assetmanager.add.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.addFolder", querystring="folder=#formData.parent_folder#" ), persistStruct=formData );
@@ -192,14 +198,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( Val( rc._addanother ?: 0 ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.addFolder", queryString="folder=#formData.parent_folder#" ), persist="_addAnother" );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#formData.parent_folder#" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#newFolderId#" ) );
 		}
 	}
 
 	function editFolder( event, rc, prc ) output=false {
 		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
 
-		prc.record = presideObjectService.selectData( objectName="asset_folder", filter={ id=rc.id ?: "" } );
+		prc.record = prc.folder ?: QueryNew('');
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:assetmanager.folderNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index" ) );
@@ -366,7 +372,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 		var allowedTypes = rc.allowedTypes ?: "";
 		var multiple     = rc.multiple ?: "";
 
-		prc.rootFolderId = assetManagerService.getRootFolderId();
 		prc.allowedTypes = assetManagerService.expandTypeList( ListToArray( allowedTypes ) );
 
 		event.setLayout( "adminModalDialog" );
@@ -459,6 +464,18 @@ component extends="preside.system.base.AdminHandler" output=false {
 		gridFields.append( "_options" );
 
 		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
+	}
+
+	function getFolderTitleAndActions( event, rc, prc ) output=false {
+
+		if ( Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
+			event.renderData(
+				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label } )
+				, type = "html"
+			);
+		} else {
+			event.renderData( data="", type="html" );
+		}
 	}
 
 	public void function pickerForEditorDialog( event, rc, prc ) output=false {

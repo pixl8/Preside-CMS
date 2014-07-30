@@ -1,5 +1,8 @@
-.presidecms h3.folder-title {
+.presidecms .title-and-actions-container {
   border-bottom: 1px solid #eeeeee;
   margin: 0 0 1em;
   padding-bottom: 3px;
+}
+.presidecms h3.folder-title {
+  margin: 0;
 }

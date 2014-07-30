@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset folder: edit root folder form
+
+This form is used to modify the default edit folder form for the root folder only.
+i.e. the root folder cannot have its name or parent changed
+-->
+<form>
+	<tab id="basic" deleted="true" />
+</form>

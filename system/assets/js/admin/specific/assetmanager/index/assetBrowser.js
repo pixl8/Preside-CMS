@@ -3,8 +3,8 @@
 	var $tree  = $( ".preside-tree-nav" )
 	  , $nodes = $tree.find( ".tree-node" )
 	  , $listingTable     = $( '#asset-listing-table' )
-	  , $folderTitle      = $( ".folder-title .title" ).first()
 	  , $tableHeaders     = $listingTable.find( 'thead > tr > th')
+	  , $titleAndActions  = $( '.title-and-actions-container' ).first()
 	  , colConfig         = []
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
@@ -18,12 +18,18 @@
 		$node.addClass( "selected" );
 
 		if ( activeFolder !== newActiveFolder ) {
-			activeFolder      = newActiveFolder;
-			activeFolderTitle = $node.find( ".folder-name" ).html();
+			$.ajax({
+				  url     : buildAjaxLink( "assetmanager.getFolderTitleAndActions" )
+				, data    : { folder : newActiveFolder }
+				, method  : "POST"
+				, success : function( html ){
+					activeFolder = newActiveFolder;
+					$titleAndActions.html( html );
 
-			$folderTitle.html( activeFolderTitle );
+					dataTable && dataTable.fnPageChange( 'first' );
+				}
+			});
 
-			dataTable && dataTable.fnPageChange( 'first' );
 		}
 	};
 
