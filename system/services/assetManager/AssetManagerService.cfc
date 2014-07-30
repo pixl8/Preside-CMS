@@ -110,6 +110,22 @@ component singleton=true output=false {
 		return finalQuery;
 	}
 
+	public array function getFolderTree( string parentFolder="" ) {
+		var tree    = [];
+		var folders = _getFolderDao().selectData(
+			  selectFields = [ "id", "label" ]
+			, filter       = { parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId() }
+			, orderBy      = "label"
+		);
+
+		for ( var folder in folders ) {
+			folder.append( { children=getFolderTree( folder.id ) } );
+			tree.append( folder );
+		}
+
+		return tree;
+	}
+
 	public array function expandTypeList( required array types ) output=false {
 		var expanded = [];
 		var types       = _getTypes();
@@ -125,6 +141,46 @@ component singleton=true output=false {
 		}
 
 		return expanded;
+	}
+
+	public struct function getAssetsForGridListing(
+		  numeric startRow    = 1
+		, numeric maxRows     = 10
+		, string  orderBy     = ""
+		, string  searchQuery = ""
+		, string  folder      = ""
+
+	) output=false {
+
+		var result       = { totalRecords = 0, records = "" };
+		var parentFolder = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
+		var args         = {
+			  selectFields = [ "id", "title" ]
+			, startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
+			, orderBy      = arguments.orderBy
+		};
+
+		if ( Len( Trim( arguments.searchQuery ) ) ) {
+			args.filter       = "asset_folder = :asset_folder and title like :q";
+			args.filterParams = { asset_folder=parentFolder, q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
+		} else {
+			args.filter = { asset_folder = parentFolder };
+		}
+
+		result.records = _getAssetDao().selectData( argumentCollection = args );
+
+		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+			result.totalRecords = result.records.recordCount;
+		} else {
+			args.selectFields = [ "count( * ) as nRows" ];
+			StructDelete( args, "startRow" );
+			StructDelete( args, "maxRows" );
+
+			result.totalRecords = _getAssetDao().selectData( argumentCollection = args ).nRows;
+		}
+
+		return result;
 	}
 
 	public array function getAssetsForAjaxSelect( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) output=false {

@@ -24384,41 +24384,66 @@ img.presidecms .editable-click:hover {
 .presidecms .table tfoot > tr > td {
   padding: 5px;
 }
-.presidecms .site-tree {
+.presidecms .navigation-tree-container {
+  border-right: 1px solid #eeeeee;
+  min-height: 400px;
+}
+.presidecms .site-tree,
+.presidecms .preside-tree-nav {
   overflow: auto;
   padding-left: 6px;
 }
-.presidecms .site-tree .node-options {
+.presidecms .site-tree .node-options,
+.presidecms .preside-tree-nav .node-options {
   display: none;
 }
-.presidecms .site-tree .tree-node .fa-stack {
+.presidecms .site-tree .tree-node .fa-stack,
+.presidecms .preside-tree-nav .tree-node .fa-stack {
   font-size: 8px;
 }
 .presidecms .site-tree .tree-item,
-.presidecms .site-tree .tree-folder-header {
+.presidecms .preside-tree-nav .tree-item,
+.presidecms .site-tree .tree-folder-header,
+.presidecms .preside-tree-nav .tree-folder-header {
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
 }
 .presidecms .site-tree .tree-item:hover,
+.presidecms .preside-tree-nav .tree-item:hover,
 .presidecms .site-tree .tree-folder-header:hover,
+.presidecms .preside-tree-nav .tree-folder-header:hover,
 .presidecms .site-tree .tree-item:focus,
+.presidecms .preside-tree-nav .tree-item:focus,
 .presidecms .site-tree .tree-folder-header:focus,
+.presidecms .preside-tree-nav .tree-folder-header:focus,
 .presidecms .site-tree .tree-item.selected,
+.presidecms .preside-tree-nav .tree-item.selected,
 .presidecms .site-tree .tree-folder-header.selected,
+.presidecms .preside-tree-nav .tree-folder-header.selected,
 .presidecms .site-tree .tree-item.focused,
-.presidecms .site-tree .tree-folder-header.focused {
+.presidecms .preside-tree-nav .tree-item.focused,
+.presidecms .site-tree .tree-folder-header.focused,
+.presidecms .preside-tree-nav .tree-folder-header.focused {
   background-color: #f0f7fc;
   outline: none;
 }
 .presidecms .site-tree .tree-item:hover .node-options,
+.presidecms .preside-tree-nav .tree-item:hover .node-options,
 .presidecms .site-tree .tree-folder-header:hover .node-options,
+.presidecms .preside-tree-nav .tree-folder-header:hover .node-options,
 .presidecms .site-tree .tree-item:focus .node-options,
+.presidecms .preside-tree-nav .tree-item:focus .node-options,
 .presidecms .site-tree .tree-folder-header:focus .node-options,
+.presidecms .preside-tree-nav .tree-folder-header:focus .node-options,
 .presidecms .site-tree .tree-item.selected .node-options,
+.presidecms .preside-tree-nav .tree-item.selected .node-options,
 .presidecms .site-tree .tree-folder-header.selected .node-options,
+.presidecms .preside-tree-nav .tree-folder-header.selected .node-options,
 .presidecms .site-tree .tree-item.focused .node-options,
-.presidecms .site-tree .tree-folder-header.focused .node-options {
+.presidecms .preside-tree-nav .tree-item.focused .node-options,
+.presidecms .site-tree .tree-folder-header.focused .node-options,
+.presidecms .preside-tree-nav .tree-folder-header.focused .node-options {
   background-color: #f0f7fc;
   display: block;
   position: absolute;
@@ -24427,70 +24452,107 @@ img.presidecms .editable-click:hover {
   padding: 5px;
 }
 .presidecms .site-tree .tree-item:hover .node-options a,
+.presidecms .preside-tree-nav .tree-item:hover .node-options a,
 .presidecms .site-tree .tree-folder-header:hover .node-options a,
+.presidecms .preside-tree-nav .tree-folder-header:hover .node-options a,
 .presidecms .site-tree .tree-item:focus .node-options a,
+.presidecms .preside-tree-nav .tree-item:focus .node-options a,
 .presidecms .site-tree .tree-folder-header:focus .node-options a,
+.presidecms .preside-tree-nav .tree-folder-header:focus .node-options a,
 .presidecms .site-tree .tree-item.selected .node-options a,
+.presidecms .preside-tree-nav .tree-item.selected .node-options a,
 .presidecms .site-tree .tree-folder-header.selected .node-options a,
+.presidecms .preside-tree-nav .tree-folder-header.selected .node-options a,
 .presidecms .site-tree .tree-item.focused .node-options a,
-.presidecms .site-tree .tree-folder-header.focused .node-options a {
+.presidecms .preside-tree-nav .tree-item.focused .node-options a,
+.presidecms .site-tree .tree-folder-header.focused .node-options a,
+.presidecms .preside-tree-nav .tree-folder-header.focused .node-options a {
   padding-left: 5px;
 }
 .presidecms .site-tree .tree-item.selected,
+.presidecms .preside-tree-nav .tree-item.selected,
 .presidecms .site-tree .tree-folder-header.selected,
+.presidecms .preside-tree-nav .tree-folder-header.selected,
 .presidecms .site-tree .tree-item.selected .node-options,
-.presidecms .site-tree .tree-folder-header.selected .node-options {
+.presidecms .preside-tree-nav .tree-item.selected .node-options,
+.presidecms .site-tree .tree-folder-header.selected .node-options,
+.presidecms .preside-tree-nav .tree-folder-header.selected .node-options {
   background-color: #dff0d8 !important;
 }
 .presidecms .site-tree .tree-item .node-data,
-.presidecms .site-tree .tree-folder-header .node-data {
+.presidecms .preside-tree-nav .tree-item .node-data,
+.presidecms .site-tree .tree-folder-header .node-data,
+.presidecms .preside-tree-nav .tree-folder-header .node-data {
   display: none;
 }
 .presidecms .site-tree .tree-item .tree-item-name,
-.presidecms .site-tree .tree-folder-header .tree-item-name {
+.presidecms .preside-tree-nav .tree-item .tree-item-name,
+.presidecms .site-tree .tree-folder-header .tree-item-name,
+.presidecms .preside-tree-nav .tree-folder-header .tree-item-name {
   margin-left: 0;
 }
 .presidecms .site-tree .tree-item::before,
-.presidecms .site-tree .tree-folder::before {
+.presidecms .preside-tree-nav .tree-item::before,
+.presidecms .site-tree .tree-folder::before,
+.presidecms .preside-tree-nav .tree-folder::before {
   width: 11px;
   left: -6px;
 }
 .presidecms .site-tree .tree-folder .tree-folder-header .fa-folder,
-.presidecms .site-tree .tree-folder .tree-folder-header .fa-folder-open {
+.presidecms .preside-tree-nav .tree-folder .tree-folder-header .fa-folder,
+.presidecms .site-tree .tree-folder .tree-folder-header .fa-folder-open,
+.presidecms .preside-tree-nav .tree-folder .tree-folder-header .fa-folder-open {
   margin-right: 2px !important;
 }
-.presidecms .site-tree .tree-folder .tree-folder-content {
+.presidecms .site-tree .tree-folder .tree-folder-content,
+.presidecms .preside-tree-nav .tree-folder .tree-folder-content {
   display: none;
   margin-left: 13px;
 }
-.presidecms .site-tree .tree-folder .tree-folder-content.open {
+.presidecms .site-tree .tree-folder .tree-folder-content.open,
+.presidecms .preside-tree-nav .tree-folder .tree-folder-content.open {
   display: block;
 }
-.presidecms .site-tree .tree-folder .tree-folder-content::before {
+.presidecms .site-tree .tree-folder .tree-folder-content::before,
+.presidecms .preside-tree-nav .tree-folder .tree-folder-content::before {
   left: -7px;
 }
-.presidecms .site-tree .inactive {
+.presidecms .site-tree .inactive,
+.presidecms .preside-tree-nav .inactive {
   text-decoration: line-through;
 }
-.presidecms .site-tree .inactive i {
+.presidecms .site-tree .inactive i,
+.presidecms .preside-tree-nav .inactive i {
   text-decoration: none;
 }
 .presidecms .site-tree.site-tree-picker .tree-item:hover .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-item:hover .node-options,
 .presidecms .site-tree.site-tree-picker .tree-folder-header:hover .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-folder-header:hover .node-options,
 .presidecms .site-tree.site-tree-picker .tree-item:focus .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-item:focus .node-options,
 .presidecms .site-tree.site-tree-picker .tree-folder-header:focus .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-folder-header:focus .node-options,
 .presidecms .site-tree.site-tree-picker .tree-item.selected .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-item.selected .node-options,
 .presidecms .site-tree.site-tree-picker .tree-folder-header.selected .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-folder-header.selected .node-options,
 .presidecms .site-tree.site-tree-picker .tree-item.focused .node-options,
-.presidecms .site-tree.site-tree-picker .tree-folder-header.focused .node-options {
+.presidecms .preside-tree-nav.site-tree-picker .tree-item.focused .node-options,
+.presidecms .site-tree.site-tree-picker .tree-folder-header.focused .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .tree-folder-header.focused .node-options {
   display: none;
 }
 .presidecms .site-tree.site-tree-picker .picked.tree-item,
-.presidecms .site-tree.site-tree-picker .picked > .tree-folder-header {
+.presidecms .preside-tree-nav.site-tree-picker .picked.tree-item,
+.presidecms .site-tree.site-tree-picker .picked > .tree-folder-header,
+.presidecms .preside-tree-nav.site-tree-picker .picked > .tree-folder-header {
   background-color: #dff0d8;
 }
 .presidecms .site-tree.site-tree-picker .picked.tree-item .node-options,
-.presidecms .site-tree.site-tree-picker .picked > .tree-folder-header .node-options {
+.presidecms .preside-tree-nav.site-tree-picker .picked.tree-item .node-options,
+.presidecms .site-tree.site-tree-picker .picked > .tree-folder-header .node-options,
+.presidecms .preside-tree-nav.site-tree-picker .picked > .tree-folder-header .node-options {
   display: block;
   background-color: #dff0d8;
   position: absolute;

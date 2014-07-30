@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	property name="contentRendererService"   inject="contentRendererService";
 	property name="imageManipulationService" inject="imageManipulationService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
+	property name="datatableHelper"         inject="coldbox:myplugin:JQueryDatatablesHelpers";
 
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -62,6 +63,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} );
 
 		prc.rootFolderId = assetManagerService.getRootFolderId();
+		prc.folderTree   = assetManagerService.getFolderTree();
 	}
 
 	function addAssets( event, rc, prc ) output=false {
@@ -430,6 +432,27 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		event.renderData( type="json", data=recordsWithIcons );
+	}
+
+	function assetsForListingGrid( event, rc, prc ) output=false {
+		var result = assetManagerService.getAssetsForGridListing(
+			  startRow    = datatableHelper.getStartRow()
+			, maxRows     = datatableHelper.getMaxRows()
+			, orderBy     = datatableHelper.getSortOrder()
+			, searchQuery = datatableHelper.getSearchQuery()
+			, folder      = rc.folder ?: ""
+		);
+		var gridFields = [ "title" ];
+
+		var records = Duplicate( result.records );
+
+		for( var record in records ){
+			for( var field in gridFields ){
+				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], "adminDataTable" );
+			}
+		}
+
+		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
 	}
 
 	public void function pickerForEditorDialog( event, rc, prc ) output=false {

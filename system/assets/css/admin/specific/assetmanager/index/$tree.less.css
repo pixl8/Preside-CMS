@@ -1,0 +1,12 @@
+.presidecms .preside-tree-nav .tree-node .tree-item-name .fa:first-child,
+.presidecms .preside-tree-nav .tree-folder .tree-folder-header .fa {
+  margin-left: -2px;
+  margin-right: 0 !important;
+  position: relative;
+  z-index: 2;
+  min-width: 15px;
+  text-align: left;
+}
+.presidecms .preside-tree-nav .tree-node .node-name {
+  margin-left: 0;
+}
