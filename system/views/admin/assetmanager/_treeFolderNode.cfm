@@ -3,8 +3,12 @@
 	param name="args.label"    type="string";
 	param name="args.children" type="array";
 
-	selected    = rc.selected ?: "";
+	selected    = rc.folder ?: "";
 	hasChildren = args.children.len();
+
+	if ( args.label == "$root" ) {
+		args.label = translateResource( "cms:assetmanager.root.folder" );
+	}
 </cfscript>
 
 <cfoutput>
@@ -14,7 +18,7 @@
 				<i class="fa fa-folder"></i>
 
 				<div class="tree-folder-name node-name">
-					#args.label#
+					<span class="folder-name">#args.label#</span>
 				</div>
 			</div>
 			<div class="tree-folder-content">
@@ -27,7 +31,7 @@
 		<div class="tree-node tree-item<cfif selected eq args.id> selected-node</cfif>" data-context-container="#args.id#" data-folder-id="#args.id#">
 			<div class="tree-item-name node-name">
 				<i class="fa fa-folder"></i>
-				#args.label#
+				<span class="folder-name">#args.label#</span>
 			</div>
 		</div>
 	</cfif>

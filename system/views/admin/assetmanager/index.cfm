@@ -3,6 +3,7 @@
 	prc.pageTitle = translateResource( "cms:assetManager" );
 
 	folder              = rc.folder ?: "";
+	folderTitle         = prc.folder.label ?: translateResource( "cms:assetmanager.root.folder" );
 	permissionContext   = prc.permissionContext ?: [];
 	folderTree          = prc.folderTree ?: [];
 	hasUploadPermission = hasPermission( permissionKey="assetmanager.assets.upload", context="assetmanagerfolder", contextKeys=permissionContext )
@@ -10,7 +11,7 @@
 
 <cfoutput>
 	<div class="row">
-		<div class="col-md-3 col-lg-2">
+		<div class="col-sm-5 col-md-4 col-lg-3">
 			<div class="navigation-tree-container">
 				<div class="preside-tree-nav tree tree-unselectable" data-nav-list="1" data-nav-list-child-selector=".tree-folder-header,.tree-item">
 					<cfloop array="#folderTree#" index="node">
@@ -19,7 +20,9 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-9 col-lg-10">
+		<div class="col-sm-7 col-md-8 col-lg-9">
+			<h3 class="blue folder-title"><i class="fa fa-folder"></i> <span class="title">#folderTitle#</span></h3>
+
 			<cfif hasUploadPermission>
 				<div class="tabbable">
 					<ul class="nav nav-tabs">

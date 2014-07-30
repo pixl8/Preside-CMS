@@ -2,11 +2,13 @@
 
 	var $tree  = $( ".preside-tree-nav" )
 	  , $nodes = $tree.find( ".tree-node" )
-	  , $listingTable    = $( '#asset-listing-table' )
-	  , $tableHeaders    = $listingTable.find( 'thead > tr > th')
-	  , colConfig        = []
-	  , assets           = i18n.translateResource( "preside-objects.asset:title" )
-	  , activeFolder     = ""
+	  , $listingTable     = $( '#asset-listing-table' )
+	  , $folderTitle      = $( ".folder-title .title" ).first()
+	  , $tableHeaders     = $listingTable.find( 'thead > tr > th')
+	  , colConfig         = []
+	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
+	  , activeFolder      = cfrequest.folder || ""
+	  , activeFolderTitle = ""
 	  , dataTable, i, nodeClickHandler;
 
 	nodeClickHandler = function( $node ){
@@ -16,7 +18,11 @@
 		$node.addClass( "selected" );
 
 		if ( activeFolder !== newActiveFolder ) {
-			activeFolder = newActiveFolder;
+			activeFolder      = newActiveFolder;
+			activeFolderTitle = $node.find( ".folder-name" ).html();
+
+			$folderTitle.html( activeFolderTitle );
+
 			dataTable && dataTable.fnPageChange( 'first' );
 		}
 	};
