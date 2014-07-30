@@ -35,12 +35,6 @@
 
 	$tree.presideTreeNav( { onClick : nodeClickHandler } );
 
-
-	// colConfig.push( {
-	// 	sClass    : "center",
-	// 	bSortable : false,
-	// 	sWidth    : "40px"
-	// } );
 	colConfig.push( { mData : "title" } );
 	colConfig.push( {
 		sClass    : "center",
@@ -56,11 +50,12 @@
 		fnServerParams: function ( aoData ) {
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
+		bFilter       : false,
+		bLengthChange : false,
 		bProcessing   : false,
 		bStateSave    : false,
-		aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 		aaSorting     : [],
-		sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+		sDom          : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
