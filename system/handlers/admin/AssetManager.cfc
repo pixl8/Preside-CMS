@@ -211,7 +211,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
-
 	}
 
 	function editFolderAction( event, rc, prc ) output=false {
@@ -272,6 +271,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
+	}
+
+	function uploadAssets( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 	}
 
 	function uploadTempFileAction( event, rc, prc ) output=false {

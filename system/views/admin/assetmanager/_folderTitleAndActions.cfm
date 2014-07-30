@@ -17,7 +17,7 @@
 
 	<div class="pull-right">
 		<cfif hasUploadPermission>
-			<a class="inline" href="##upload" data-global-key="u" class="upload-button">
+			<a class="inline" href="#event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString="folder=#args.folderId#" )#" data-global-key="l" class="upload-button">
 				<button class="btn btn-primary btn-sm">
 					<i class="fa fa-cloud-upload"></i>
 					#translateResource( "cms:assetmanager.upload.button" )#
