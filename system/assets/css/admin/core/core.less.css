@@ -24987,6 +24987,7 @@ img.presidecms .editable-click:hover {
 }
 .presidecms .asset-upload-dropzone.dz-started .dz-message {
   display: block;
+  margin-top: 0;
 }
 .presidecms .asset-upload-dropzone.dz-started .dz-message .upload-buttons {
   display: block;

@@ -90,6 +90,34 @@ component singleton=true output=false {
 		return ancestors;
 	}
 
+	public struct function getCascadingFolderSettings( required string id, required array settings ) output=false {
+		var folder            = getFolder( arguments.id );
+		var collectedSettings = {};
+
+		for( var setting in arguments.settings ) {
+			if ( Len( Trim( folder[ setting ] ?: "" ) ) ) {
+				collectedSettings[ setting ] = folder[ setting ];
+			}
+		}
+
+		if ( StructCount( collectedSettings ) == arguments.settings.len() ) {
+			return collectedSettings;
+		}
+
+		for( var folder in getFolderAncestors( arguments.id ) ) {
+			for( var setting in arguments.settings ) {
+				if ( !collectedSettings.keyExists( setting ) && Len( Trim( folder[ setting ] ?: "" ) ) ) {
+					collectedSettings[ setting ] = folder[ setting ];
+					if ( StructCount( collectedSettings ) == arguments.settings.len() ) {
+						return collectedSettings;
+					}
+				}
+			}
+		}
+
+		return collectedSettings;
+	}
+
 	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) output=false {
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
@@ -126,9 +154,9 @@ component singleton=true output=false {
 		return tree;
 	}
 
-	public array function expandTypeList( required array types ) output=false {
+	public array function expandTypeList( required array types, boolean prefixExtensionsWithPeriod=false ) output=false {
 		var expanded = [];
-		var types       = _getTypes();
+		var types    = _getTypes();
 
 		for( var typeName in arguments.types ){
 			if ( types.keyExists( typeName ) ) {
@@ -137,6 +165,12 @@ component singleton=true output=false {
 				for( var typeName in listTypesForGroup( typeName ) ){
 					expanded.append( typeName );
 				}
+			}
+		}
+
+		if ( arguments.prefixExtensionsWithPeriod ) {
+			for( var i=1; i <= expanded.len(); i++ ){
+				expanded[i] = "." & expanded[i];
 			}
 		}
 
