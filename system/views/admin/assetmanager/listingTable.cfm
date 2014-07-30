@@ -13,6 +13,7 @@
 		<thead>
 			<tr>
 				<th>#translateResource( "preside-objects.asset:title.singular" )#</th>
+				<th>&nbsp;</th>
 			</tr>
 		</thead>
 		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">

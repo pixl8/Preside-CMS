@@ -30,11 +30,12 @@
 	// 	sWidth    : "40px"
 	// } );
 	colConfig.push( { mData : "title" } );
-	// colConfig.push( {
-	// 	sClass    : "center",
-	// 	bSortable : false,
-	// 	sWidth    : "8em"
-	// } );
+	colConfig.push( {
+		sClass    : "center",
+		bSortable : false,
+		sWidth    : "8em",
+		mData     : "_options"
+	} );
 
 	dataTable = $listingTable.dataTable( {
 		aoColumns     : colConfig,

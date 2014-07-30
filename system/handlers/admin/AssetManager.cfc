@@ -443,6 +443,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, folder      = rc.folder ?: ""
 		);
 		var gridFields = [ "title" ];
+		var renderedOptions = [];
 
 		var records = Duplicate( result.records );
 
@@ -450,7 +451,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & renderField( "asset", field, record[ field ], "adminDataTable" );
 			}
+
+			renderedOptions.append( renderView( view="/admin/assetmanager/_assetGridActions", args=record ) );
 		}
+
+		QueryAddColumn( records, "_options" , renderedOptions );
+		gridFields.append( "_options" );
 
 		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
 	}
