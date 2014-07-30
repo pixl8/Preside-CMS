@@ -61,25 +61,6 @@
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
 			$row.addClass( "clickable" ); // make work with clickable tr Preside system
 		},
-		fnInitComplete : function( settings ){
-			var $searchContainer = $( settings.aanFeatures.f[0] )
-			  , $input           = $searchContainer.find( "input" ).first();
-
-			$input.addClass( "data-table-search" );
-			$input.attr( "data-global-key", "s" );
-			$input.attr( "autocomplete", "off" );
-			$input.attr( "placeholder", i18n.translateResource( "cms:assetmanager.search.placeholder" ) );
-			$input.wrap( '<span class="input-icon"></span>' );
-			$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
-
-			$input.keydown( "down", function( e ){
-				var $firstResult = $listingTable.find( 'tbody :checkbox:first' );
-
-				if ( $firstResult.length ) {
-					$firstResult.focus();
-				}
-			} );
-		},
 		oLanguage : {
 			oAria : {
 				sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
