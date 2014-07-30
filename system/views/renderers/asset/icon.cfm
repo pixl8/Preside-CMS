@@ -3,4 +3,4 @@
 	iconUrl = event.buildLink( systemStaticAsset = "/images/asset-type-icons/32px/#LCase( ext )#.png" );
 </cfscript>
 
-<cfoutput><img src="#iconUrl#" /></cfoutput>
+<cfoutput><img src="#iconUrl#" class="icon-derivative" /></cfoutput>

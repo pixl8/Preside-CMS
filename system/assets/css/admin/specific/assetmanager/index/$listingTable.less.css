@@ -1,24 +1,9 @@
-.presidecms .asset-listing-table .edit-folder-form {
-  display: none;
-}
-.presidecms .asset-listing-table .edit-folder-form .form-control {
-  display: inline;
-  width: 75%;
-}
-.presidecms .asset-listing-table .folder-name {
-  margin-left: 0.3em;
-  color: #222222;
-}
-.presidecms .asset-listing-table tbody tr.editing .edit-folder-form {
-  display: inline;
-}
-.presidecms .asset-listing-table tbody tr.editing .folder-view-link {
-  display: none;
-}
 .presidecms .asset-listing-table tbody tr td {
   height: 45px;
   vertical-align: middle;
 }
-.presidecms .asset-listing-table tbody tr .folder-icon {
-  font-size: 22px;
+.presidecms .asset-listing-table tbody tr td .icon-derivative {
+  margin-right: 1em;
+  height: 32px;
+  width: 32px;
 }

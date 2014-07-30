@@ -448,7 +448,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], "adminDataTable" );
+				records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & renderField( "asset", field, record[ field ], "adminDataTable" );
 			}
 		}
 

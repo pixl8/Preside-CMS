@@ -1,7 +1,6 @@
 <cfscript>
-	imgSrc     = event.buildLink( assetId=args.id ?: "", derivative='icon' );
-	imgTitle   = HtmlEditFormat( args.label ?: '' );
-	loadingGif = event.buildLink( systemStaticAsset="/images/loading-gifs/small.gif" );
+	imgSrc   = event.buildLink( assetId=args.id ?: "", derivative='icon' );
+	imgTitle = HtmlEditFormat( args.title ?: '' );
 </cfscript>
 
-<cfoutput><img class="lazy" src="#loadingGif#" data-src="#imgSrc#" alt="#imgTitle#" title="#imgTitle#" /></cfoutput>
+<cfoutput><img src="#imgSrc#" alt="#imgTitle#" title="#imgTitle#" class="icon-derivative" /></cfoutput>
