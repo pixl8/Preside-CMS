@@ -7,12 +7,18 @@
 	  , colConfig        = []
 	  , assets           = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder     = ""
-	  , i, nodeClickHandler;
+	  , dataTable, i, nodeClickHandler;
 
 	nodeClickHandler = function( $node ){
+		var newActiveFolder = $node.data( "folderId" ) || "";
+
 		$nodes.removeClass( "selected" );
 		$node.addClass( "selected" );
-		activeFolder = $node.data( "folderId" ) || "";
+
+		if ( activeFolder !== newActiveFolder ) {
+			activeFolder = newActiveFolder;
+			dataTable && dataTable.fnPageChange( 'first' );
+		}
 	};
 
 	$tree.presideTreeNav( { onClick : nodeClickHandler } );
@@ -30,7 +36,7 @@
 	// 	sWidth    : "8em"
 	// } );
 
-	$listingTable.dataTable( {
+	dataTable = $listingTable.dataTable( {
 		aoColumns     : colConfig,
 		bServerSide   : true,
 		sAjaxSource   : buildAjaxLink( "assetmanager.assetsForListingGrid" ),

@@ -114,7 +114,7 @@ component singleton=true output=false {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
-			, filter       = { parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId() }
+			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
 			, orderBy      = "label"
 		);
 
