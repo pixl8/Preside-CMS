@@ -16,7 +16,6 @@
 				_registerPresideListeners();
 			}
 
-			applicationReloadService.dbSync();
 			_autoRegisterPresideObjectValidators();
 
 			prc._presideReloaded = true;

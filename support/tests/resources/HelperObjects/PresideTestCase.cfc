@@ -87,6 +87,7 @@
 					, objectCache            = cachebox.getCache( "SystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
 					, coldboxController      = coldbox
+					, reloadDb               = false
 				);
 			}
 

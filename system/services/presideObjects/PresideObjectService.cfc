@@ -20,16 +20,17 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @coldboxController.inject      coldbox
 	 */
 	public any function init(
-		  required array objectDirectories
-		, required any   objectReader
-		, required any   sqlSchemaSynchronizer
-		, required any   adapterFactory
-		, required any   sqlRunner
-		, required any   relationshipGuidance
-		, required any   presideObjectDecorator
-		, required any   objectCache
-		, required any   defaultQueryCache
-		, required any   coldboxController
+		  required array   objectDirectories
+		, required any     objectReader
+		, required any     sqlSchemaSynchronizer
+		, required any     adapterFactory
+		, required any     sqlRunner
+		, required any     relationshipGuidance
+		, required any     presideObjectDecorator
+		, required any     objectCache
+		, required any     defaultQueryCache
+		, required any     coldboxController
+		,          boolean reloadDb = true
 	) output=false {
 		_setObjectDirectories( arguments.objectDirectories );
 		_setObjectReader( arguments.objectReader );
@@ -45,6 +46,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setColdboxController( arguments.coldboxController );
 
 		_loadObjects();
+
+		if ( arguments.reloadDb ) {
+			dbSync();
+		}
 
 		return this;
 	}
