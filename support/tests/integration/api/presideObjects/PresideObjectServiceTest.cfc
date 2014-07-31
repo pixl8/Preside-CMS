@@ -35,10 +35,10 @@
 				super.assertFalse( columns.label.nullable, "The label column should not be nullable" );
 
 				super.assert( StructKeyExists( columns, "datecreated" ), "The datecreated column was not created." );
-				super.assertEquals( "timestamp", columns.datecreated.type_name, "The datecreated column was not a timestamp." );
+				super.assertEquals( "datetime", columns.datecreated.type_name, "The datecreated column was not a datetime field." );
 				super.assertFalse( columns.datecreated.nullable, "The datecreated column should not be nullable" );
 				super.assert( StructKeyExists( columns, "datemodified" ), "The datemodified column was not created." );
-				super.assertEquals( "timestamp", columns.datemodified.type_name, "The datemodified column was not a timestamp." );
+				super.assertEquals( "datetime", columns.datemodified.type_name, "The datemodified column was not a datetime field." );
 				super.assertFalse( columns.datemodified.nullable, "The datemodified column should not be nullable" );
 			}
 		</cfscript>
@@ -539,32 +539,32 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('a test' )" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values (  Now(), Now(), 'a test' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( id, label ) values ('#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values (  Now(), Now(), '#eId#','e test' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_d ( label, object_e ) values ('d test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values (  Now(), Now(), 'd test', '#eId#' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_b ( id, label, related_to_a, object_d ) values ( '#bId#', 'b test', 1, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  Now(), Now(),  '#bId#', 'b test', 1, 1 )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_c ( id, label, object_b ) values ( '#cId#', 'testing c', '#bId#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  Now(), Now(),  '#cId#', 'testing c', '#bId#' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_f ( id, label, object_c ) values ( '#fId#', 'testing f', '#cId#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  Now(), Now(),  '#fId#', 'testing f', '#cId#' )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -622,7 +622,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('test'),('test2'),('test3'),('test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test'),( Now(), Now(), 'test2'),( Now(), Now(), 'test3'),( Now(), Now(), 'test4')" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -648,7 +648,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('test'),('test2'),('test3'),('test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test'),( Now(), Now(), 'test2'),( Now(), Now(), 'test3'),( Now(), Now(), 'test4')" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -800,7 +800,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('test1' ), ('test2'), ('test3'), ('test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test1' ), ( Now(), Now(), 'test2'), ( Now(), Now(), 'test3'), ( Now(), Now(), 'test4')" );
 			q.execute();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "Test failed, data should have been inserted into the table before attempting the delete" );
@@ -848,7 +848,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('test1' ), ('test2'), ('test3'), ('test4'), ('test5')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test1' ), ( Now(), Now(), 'test2'), ( Now(), Now(), 'test3'), ( Now(), Now(), 'test4'), ( Now(), Now(), 'test5')" );
 			q.execute();
 
 			result = poService.updateData(
@@ -883,22 +883,22 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('a test' ), ('another test')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'a test' ), ( Now(), Now(), 'another test')" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_e ( id, label ) values ('#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( Now(), Now(), '#eId#','e test' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_d ( label, object_e ) values ('d test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( Now(), Now(), 'd test', '#eId#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_b ( id, label, related_to_a, object_d ) values ( '#bId#', 'b test', 1, 1 ),( '#bId2#', 'b test', 2, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  Now(), Now(), '#bId#', 'b test', 1, 1 ),(  Now(), Now(), '#bId2#', 'b test', 2, 1 )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_c ( id, label, object_b ) values ( '#cId#', 'testing c', '#bId#' ),( '#cId2#', 'testing c 2', '#bId2#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  Now(), Now(), '#cId#', 'testing c', '#bId#' ),(  Now(), Now(), '#cId2#', 'testing c 2', '#bId2#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_f ( id, label, object_c ) values ( '#fId#', 'testing f', '#cId#' ),( '#fId2#', 'testing f again', '#cId2#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  Now(), Now(), '#fId#', 'testing f', '#cId#' ),(  Now(), Now(), '#fId2#', 'testing f again', '#cId2#' )" );
 			q.execute();
 
 			result = poService.updateData(
@@ -932,22 +932,22 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label ) values ('a test' ), ('another test')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'a test' ), ( Now(), Now(), 'another test')" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_e ( id, label ) values ('#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( Now(), Now(), '#eId#','e test' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_d ( label, object_e ) values ('d test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( Now(), Now(), 'd test', '#eId#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_b ( id, label, related_to_a, object_d ) values ( '#bId#', 'b test', 1, 1 ),( '#bId2#', 'b test', 2, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values ( Now(), Now(), '#bId#', 'b test', 1, 1 ),(  Now(), Now(), '#bId2#', 'b test', 2, 1 )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_c ( id, label, object_b ) values ( '#cId#', 'testing c', '#bId#' ),( '#cId2#', 'testing c 2', '#bId2#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values ( Now(), Now(), '#cId#', 'testing c', '#bId#' ),(  Now(), Now(), '#cId2#', 'testing c 2', '#bId2#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_f ( id, label, object_c ) values ( '#fId#', 'testing f', '#cId#' ),( '#fId2#', 'testing f again', '#cId2#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values ( Now(), Now(), '#fId#', 'testing f', '#cId#' ),( Now(), Now(),  '#fId2#', 'testing f again', '#cId2#' )" );
 			q.execute();
 
 			result = poService.updateData(
@@ -976,7 +976,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified ) values ('test1',  '1980-12-09 03:15:34'), ('test2', '1980-12-09 03:15:34'), ('test3', '1980-12-09 03:15:34'), ('test4', '1980-12-09 03:15:34'), ('test5', '1980-12-09 03:15:34')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, label, datemodified ) values ( Now(), 'test1',  '1980-12-09 03:15:34'), ( Now(), 'test2', '1980-12-09 03:15:34'), ( Now(), 'test3', '1980-12-09 03:15:34'), ( Now(), 'test4', '1980-12-09 03:15:34'), ( Now(), 'test5', '1980-12-09 03:15:34')" );
 			q.execute();
 
 			result = poService.updateData(
@@ -1323,10 +1323,10 @@
 			var result    = "";
 			var key       = "";
 			var expected  = {
-				  datecreated  = { name="datecreated" , control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified = { name="datemodified", control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, id           = { name="id"          , control="none"     , dbtype="varchar"  , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label        = { name="label"       , control="textinput", dbtype="varchar"  , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
+				  datecreated  = { name="datecreated" , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
+				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 				, object_d         = { name="object_d"        , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade" }
 				, related_to_a     = { name="related_to_a"    , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade" }
 			};
@@ -1857,10 +1857,10 @@
 			var obj                      = poService.getObject( "object_to_be_merged" );
 			var mergedProperties         = poService.getObjectProperties( "object_to_be_merged" );
 			var expectedMergedProperties = {
-				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, datemodified                = { name="datemodified"               , control="none"     , dbtype="timestamp", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
-				, id                          = { name="id"                         , control="none"     , dbtype="varchar"  , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
-				, label                       = { name="label"                      , control="textinput", dbtype="varchar"  , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
+				  datecreated                 = { name="datecreated"                , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, datemodified                = { name="datemodified"               , control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
+				, id                          = { name="id"                         , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
+				, label                       = { name="label"                      , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
 
 				, propertyThatWillBePreserved = { name="propertyThatWillBePreserved", type="string" , dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }
 				, propertyWhosTypeWillChange  = { name="propertyWhosTypeWillChange" , type="numeric", dbtype="varchar", control="default", maxLength="0", relationship="none", relatedto="none", generator="none", required="false" }

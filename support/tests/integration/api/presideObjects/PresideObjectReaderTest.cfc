@@ -70,10 +70,10 @@
 			var targetObject = new tests.resources.presideObjectReader.simple_object();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  id           = { name="id"          , type="string", dbtype="varchar"  , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-				, label        = { name="label"       , type="string", dbtype="varchar"  , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
-				, datecreated  = { name="datecreated" , type="date"  , dbtype="timestamp", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
-				, datemodified = { name="datemodified", type="date"  , dbtype="timestamp", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
+				  id           = { name="id"          , type="string", dbtype="varchar" , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
+				, label        = { name="label"       , type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
+				, datecreated  = { name="datecreated" , type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
+				, datemodified = { name="datemodified", type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
 			};
 
 			super.assertEquals( expectedResult, _propertiesToStruct( object.properties ) );
@@ -85,10 +85,10 @@
 			var targetObject = new tests.resources.presideObjectReader.object_with_redifined_standard_properties();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  id           = { name="id"          , label="Test ID"           , type="numeric", dbtype="integer"  , control="none"      , maxLength="9" , relationship="none", relatedto="none", generator="AUTOINCREMENT", required="true", pk="true"  }
-				, label        = { name="label"       , label="Test Label"        , type="string" , dbtype="varchar"  , control="textinput" , maxLength="250", relationship="none", relatedto="none", generator="none"         , required="true"  }
-				, datecreated  = { name="datecreated" , label="Test Created"      , type="date"   , dbtype="timestamp", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
-				, datemodified = { name="datemodified", label="Test Last modified", type="date"   , dbtype="timestamp", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
+				  id           = { name="id"          , label="Test ID"           , type="numeric", dbtype="integer" , control="none"      , maxLength="9" , relationship="none", relatedto="none", generator="AUTOINCREMENT", required="true", pk="true"  }
+				, label        = { name="label"       , label="Test Label"        , type="string" , dbtype="varchar" , control="textinput" , maxLength="250", relationship="none", relatedto="none", generator="none"         , required="true"  }
+				, datecreated  = { name="datecreated" , label="Test Created"      , type="date"   , dbtype="datetime", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
+				, datemodified = { name="datemodified", label="Test Last modified", type="date"   , dbtype="datetime", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
 			};
 
 			super.assertEquals( expectedResult, _propertiesToStruct( object.properties ) );
@@ -100,10 +100,10 @@
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  id                = { name="id"                                     , type="string" , dbtype="varchar"  , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
-				, label             = { name="label"                                  , type="string" , dbtype="varchar"  , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datecreated       = { name="datecreated"                            , type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datemodified      = { name="datemodified"                           , type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				  id                = { name="id"                                     , type="string" , dbtype="varchar" , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
+				, label             = { name="label"                                  , type="string" , dbtype="varchar" , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				, datecreated       = { name="datecreated"                            , type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				, datemodified      = { name="datemodified"                           , type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, test_property         = { name="test_property"                              , type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }
 				, related_prop          = { name="related_prop"                               , type="string" , dbtype="varchar"  , control="objectpicker", maxLength="35" , relationship="many-to-one", relatedto="someobject", generator="none", required="false" }
 				, another_property      = { name="another_property"     , label="My property" , type="date"   , dbtype="datetime" , control="datepicker"  , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
@@ -119,10 +119,10 @@
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties_and_inheritance();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  id                = { name="id"               ,                       type="string" , dbtype="varchar"  , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
-				, label             = { name="label"            ,                       type="string" , dbtype="varchar"  , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datecreated       = { name="datecreated"      ,                       type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datemodified      = { name="datemodified"     ,                       type="date"   , dbtype="timestamp", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				  id                = { name="id"               ,                       type="string" , dbtype="varchar" , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
+				, label             = { name="label"            ,                       type="string" , dbtype="varchar" , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				, datecreated       = { name="datecreated"      ,                       type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
+				, datemodified      = { name="datemodified"     ,                       type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
 				, test_property         = { name="test_property"        , label="New label"   , type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }
 				, related_prop          = { name="related_prop"         ,                       type="string" , dbtype="varchar"  , control="objectpicker", maxLength="35" , relationship="many-to-one", relatedto="someobject", generator="none", required="false" }
 				, another_property      = { name="another_property"     , label="My property" , type="date"   , dbtype="datetime" , control="datepicker"  , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
