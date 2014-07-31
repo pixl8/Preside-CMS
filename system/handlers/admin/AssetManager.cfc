@@ -459,14 +459,17 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title" ];
+		var gridFields = [ "title", "datemodified", "datecreated" ];
 		var renderedOptions = [];
 
 		var records = Duplicate( result.records );
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & renderField( "asset", field, record[ field ], "adminDataTable" );
+				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], "adminDataTable" );
+				if ( field == "title" ) {
+					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & records[ field ][ records.currentRow ];
+				}
 			}
 
 			renderedOptions.append( renderView( view="/admin/assetmanager/_assetGridActions", args=record ) );

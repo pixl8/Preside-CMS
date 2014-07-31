@@ -12,7 +12,9 @@
 	<table id="asset-listing-table" class="table table-hover asset-listing-table">
 		<thead>
 			<tr>
-				<th>#translateResource( "preside-objects.asset:title.singular" )#</th>
+				<th data-width="50%" data-field="title">#translateResource( "preside-objects.asset:title.singular" )#</th>
+				<th data-width="auto" data-field="datemodified">#translateResource( "preside-objects.asset:field.datemodified.title" )#</th>
+				<th data-width="auto" data-field="datecreated">#translateResource( "preside-objects.asset:field.datecreated.title" )#</th>
 				<th>&nbsp;</th>
 			</tr>
 		</thead>

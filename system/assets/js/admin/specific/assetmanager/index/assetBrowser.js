@@ -35,7 +35,12 @@
 
 	$tree.presideTreeNav( { onClick : nodeClickHandler } );
 
-	colConfig.push( { mData : "title" } );
+	for( i=0; i < $tableHeaders.length-1; i++ ){
+		colConfig.push( {
+			  mData  : $( $tableHeaders.get(i) ).data( 'field' )
+			, sWidth : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
+		} );
+	}
 	colConfig.push( {
 		sClass    : "center",
 		bSortable : false,
@@ -50,16 +55,25 @@
 		fnServerParams: function ( aoData ) {
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
-		bFilter       : false,
-		bLengthChange : false,
 		bProcessing   : false,
 		bStateSave    : false,
 		aaSorting     : [],
-		sDom          : "t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+		sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
 			$row.addClass( "clickable" ); // make work with clickable tr Preside system
+		},
+		fnInitComplete : function( settings ){
+			var $searchContainer = $( settings.aanFeatures.f[0] )
+			  , $input           = $searchContainer.find( "input" ).first();
+
+			$input.addClass( "data-table-search" );
+			$input.attr( "data-global-key", "s" );
+			$input.attr( "autocomplete", "off" );
+			$input.attr( "placeholder", i18n.translateResource( "cms:datamanager.search.placeholder", { data : [ assets ], defaultValue : "" } ) );
+			$input.wrap( '<span class="input-icon"></span>' );
+			$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
 		},
 		oLanguage : {
 			oAria : {

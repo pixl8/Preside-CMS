@@ -189,10 +189,9 @@ component singleton=true output=false {
 		var result       = { totalRecords = 0, records = "" };
 		var parentFolder = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
 		var args         = {
-			  selectFields = [ "id", "title" ]
-			, startRow     = arguments.startRow
-			, maxRows      = arguments.maxRows
-			, orderBy      = arguments.orderBy
+			  startRow = arguments.startRow
+			, maxRows  = arguments.maxRows
+			, orderBy  = arguments.orderBy
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
