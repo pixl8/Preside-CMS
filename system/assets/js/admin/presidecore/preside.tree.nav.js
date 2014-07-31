@@ -71,7 +71,7 @@
 		};
 
 		PresideTreeNav.prototype.initializeSelection = function(){
-			var $selectedNode = this.$tree.find( ".selected-node" )
+			var $selectedNode = this.$tree.find( ".selected" )
 			  , treeNav       = this;
 
 			if ( $selectedNode.length ) {
