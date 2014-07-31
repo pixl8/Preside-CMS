@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="assetManagerService"      inject="assetManagerService";
+	property name="formsService"             inject="formsService";
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="contentRendererService"   inject="contentRendererService";
 	property name="imageManipulationService" inject="imageManipulationService";
@@ -214,14 +215,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function editFolderAction( event, rc, prc ) output=false {
 		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
 
-		var parentFolder     = ( rc.folder ?: "" );
-		var folderId         = ( rc.id ?: "" );
-		var formName         = "preside-objects.asset_folder.admin.edit";
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = "";
+		var folderId          = ( rc.id ?: "" );
+		var formName          = folderId == prc.rootFolderId ? formsService.getMergedFormName( "preside-objects.asset_folder.admin.edit", "preside-objects.asset_folder.admin.edit.root" ) : "preside-objects.asset_folder.admin.edit";
+		var formData          = event.getCollectionForForm( formName );
+		var validationResult  = "";
 
 		formData.id            = folderId;
-		formData.parent_folder = formData.parent_folder ?: parentFolder;
 		formData.updated_by    = event.getAdminUserId();
 
 		validationResult = validateForm(
@@ -244,7 +243,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ formData.label ?: '' ] ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 
 	function trashFolderAction( event, rc, prc ) output=false {

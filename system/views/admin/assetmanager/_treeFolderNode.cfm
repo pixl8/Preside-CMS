@@ -11,27 +11,29 @@
 	}
 </cfscript>
 
-<cfoutput>
-	<cfif hasChildren>
-		<div class="tree-folder">
-			<div class="tree-node tree-folder-header<cfif selected eq args.id> selected-node</cfif>" data-folder-id="#args.id#">
-				<i class="fa fa-plus fa-fw tree-node-toggler"></i>
+<cfif hasPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ args.id ] )>
+	<cfoutput>
+		<cfif hasChildren>
+			<div class="tree-folder">
+				<div class="tree-node tree-folder-header<cfif selected eq args.id> selected-node</cfif>" data-folder-id="#args.id#">
+					<i class="fa fa-plus fa-fw tree-node-toggler"></i>
 
-				<div class="tree-folder-name node-name">
+					<div class="tree-folder-name node-name">
+						<span class="folder-name">#args.label#</span>
+					</div>
+				</div>
+				<div class="tree-folder-content">
+					<cfloop array="#args.children#" index="child">
+						#renderView( view="/admin/assetmanager/_treeFolderNode", args=child )#
+					</cfloop>
+				</div>
+			</div>
+		<cfelse>
+			<div class="tree-node tree-item<cfif selected eq args.id> selected-node</cfif>" data-folder-id="#args.id#">
+				<div class="tree-item-name node-name">
 					<span class="folder-name">#args.label#</span>
 				</div>
 			</div>
-			<div class="tree-folder-content">
-				<cfloop array="#args.children#" index="child">
-					#renderView( view="/admin/assetmanager/_treeFolderNode", args=child )#
-				</cfloop>
-			</div>
-		</div>
-	<cfelse>
-		<div class="tree-node tree-item<cfif selected eq args.id> selected-node</cfif>" data-folder-id="#args.id#">
-			<div class="tree-item-name node-name">
-				<span class="folder-name">#args.label#</span>
-			</div>
-		</div>
-	</cfif>
-</cfoutput>
+		</cfif>
+	</cfoutput>
+</cfif>

@@ -158,6 +158,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 		var currentSiteId = event.getSiteId();
 
 		args.sites = [];
+		args.currentSite = { id="" };
 
 		for( var site in sites ){
 			if ( hasPermission( "sites.navigate", "site", [ site.id ] ) ) {

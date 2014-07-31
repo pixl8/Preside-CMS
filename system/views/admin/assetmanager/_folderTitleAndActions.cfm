@@ -25,13 +25,13 @@
 			</a>
 		</cfif>
 
-		<div class="btn-group">
-			<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
-				<span class="fa fa-caret-down"></span>
-				#translateResource( "cms:assetmanager.folder.options.button" )#
-			</button>
+		<cfif hasAnyFolderPermissions>
+			<div class="btn-group">
+				<button data-toggle="dropdown" class="btn btn-sm btn-default inline">
+					<span class="fa fa-caret-down"></span>
+					#translateResource( "cms:assetmanager.folder.options.button" )#
+				</button>
 
-			<cfif hasAnyFolderPermissions>
 				<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
 					<cfif hasAddFolderPermission>
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.addFolder", queryString="folder=#args.folderId#" )#" data-global-key="a"><i class="fa fa-fw fa-plus"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.add" )#</a></li>
@@ -43,7 +43,7 @@
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-lock"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.manage.perms" )#</a></li>
 					</cfif>
 				</ul>
-			</cfif>
-		</div>
+			</div>
+		</cfif>
 	</div>
 </cfoutput>
