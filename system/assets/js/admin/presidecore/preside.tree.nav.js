@@ -23,16 +23,34 @@
 		PresideTreeNav.prototype.setupUxBehaviours = function(){
 			var treeNav = this;
 
-			treeNav.$tree.on( "click", ".tree-node", function( e ){
-				var $node = $( this );
+			treeNav.$tree.on( "click", ".tree-node-toggler", function( e ){
+				treeNav.toggleNode( $( this ).closest( ".tree-folder" ) );
+			} );
 
-				if ( $node.hasClass( "tree-folder-header" ) ) {
-					treeNav.toggleNode( $node.parent() );
-				}
+			if ( typeof treeNav.options.onClick === "function" ) {
+				treeNav.$tree.on( "click", ".tree-node", function( e ){
+					var $node = $( this );
 
-				if ( typeof treeNav.options.onClick === "function" ) {
 					treeNav.options.onClick( $node );
-				}
+				} );
+
+				treeNav.$tree.on( "keydown", ".tree-node", "return", function( e ){
+					var $node = $( this );
+
+					treeNav.options.onClick( $node );
+
+					e.stopPropagation();
+				} );
+			}
+
+			treeNav.$tree.on( "keydown", ".tree-folder-header", "left", function( e ){
+				e.stopPropagation();
+				treeNav.toggleNode( $( this ).parent(), false );
+			} );
+
+			treeNav.$tree.on( "keydown", ".tree-folder-header", "right", function( e ){
+				e.stopPropagation();
+				treeNav.toggleNode( $( this ).parent(), true );
 			} );
 		};
 
@@ -43,12 +61,12 @@
 
 			if ( typeof show === "undefined" ) {
 				$nodeChildren.toggleClass( "open" );
-				$plusMinusIcon.toggleClass( "fa-folder" );
-				$plusMinusIcon.toggleClass( "fa-folder-open" );
+				$plusMinusIcon.toggleClass( "fa-plus" );
+				$plusMinusIcon.toggleClass( "fa-minus" );
 			} else {
 				$nodeChildren.toggleClass( "open", show );
-				$plusMinusIcon.toggleClass( "fa-folder", !show );
-				$plusMinusIcon.toggleClass( "fa-folder-open", show );
+				$plusMinusIcon.toggleClass( "fa-plus", !show );
+				$plusMinusIcon.toggleClass( "fa-minus", show );
 			}
 		};
 

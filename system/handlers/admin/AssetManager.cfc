@@ -36,10 +36,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 		for( var f in prc.folderAncestors ){
 			prc.permissionContext.prepend( f.id );
 			prc.inheritedPermissionContext.prepend( f.id );
-			event.addAdminBreadCrumb(
-				  title = f.label
-				, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#f.id#" )
-			);
+
+			if ( f.id != prc.rootFolderId ) {
+				event.addAdminBreadCrumb(
+					  title = f.label
+					, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#f.id#" )
+				);
+			}
 		}
 
 		prc.folder = assetManagerService.getFolder( id=rc.folder );
@@ -47,12 +50,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( prc.folder.recordCount ){
 			if ( prc.folder.id == assetManagerService.getRootFolderId() ) {
 				prc.folder.label[1] = translateResource( "cms:assetmanager.root.folder" );
+			} else {
+				event.addAdminBreadCrumb(
+					  title = prc.folder.label
+					, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#prc.folder.id#" )
+				);
 			}
+
 			prc.permissionContext.prepend( rc.folder );
-			event.addAdminBreadCrumb(
-				  title = prc.folder.label
-				, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#prc.folder.id#" )
-			);
 		}
 
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
