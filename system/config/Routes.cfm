@@ -15,6 +15,12 @@
 			}
 		}
 
+		if ( Len( Trim( cgi.context_path ) ) > 1 && uri.startsWith( cgi.context_path ) ) {
+			uri = Right( uri, Len( uri ) - Len( cgi.context_path ) );
+		}
+
+		request[ "preside.path_info" ] = uri;
+
 		return uri;
 	}
 

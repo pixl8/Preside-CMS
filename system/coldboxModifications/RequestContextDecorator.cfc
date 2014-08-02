@@ -143,7 +143,7 @@
 				return arguments.includeQueryString ? currentUrl : ListFirst( currentUrl, "?" );
 			}
 
-			currentUrl = request[ "javax.servlet.forward.request_uri" ]  ?: cgi.path_info;
+			currentUrl = request[ "preside.path_info" ] ?: ( request[ "javax.servlet.forward.request_uri" ]  ?: cgi.path_info );
 
 			if ( arguments.includeQueryString ) {
 				qs = request[ "javax.servlet.forward.query_string" ] ?: cgi.query_string;
