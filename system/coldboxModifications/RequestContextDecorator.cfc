@@ -135,24 +135,11 @@
 		<cfargument name="includeQueryString" type="boolean" required="false" default="true" />
 
 		<cfscript>
-			var requestData = GetHttpRequestData();
-			var currentUrl  = requestData.headers['X-Original-URL'] ?: "";
-			var qs          = "";
+			var currentUrl  = request[ "preside.path_info"    ] ?: "";
+			var qs          = request[ "preside.query_string" ] ?: "";
+			var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
 
-			if ( Len( Trim( currentUrl ) ) ) {
-				return arguments.includeQueryString ? currentUrl : ListFirst( currentUrl, "?" );
-			}
-
-			currentUrl = request[ "preside.path_info" ] ?: ( request[ "javax.servlet.forward.request_uri" ]  ?: cgi.path_info );
-
-			if ( arguments.includeQueryString ) {
-				qs = request[ "javax.servlet.forward.query_string" ] ?: cgi.query_string;
-				if ( Len( Trim( qs ) ) ) {
-					return currentUrl & "?" & qs;
-				}
-			}
-
-			return currentUrl;
+			return includeQs ? currentUrl & qs : currentUrl;
 		</cfscript>
 	</cffunction>
 
