@@ -127,7 +127,9 @@
 			var overridenSetting = getModel( "systemConfigurationService" ).getSetting( "general", "admin_url" );
 			var path             = Len( Trim( overridenSetting ) ) ? overridenSetting : getController().getSetting( "preside_admin_path" );
 
-			return "/" & path  & "/";
+
+
+			return Len( Trim( path ) ) ? "/#path#/" : "/";
 		</cfscript>
 	</cffunction>
 
