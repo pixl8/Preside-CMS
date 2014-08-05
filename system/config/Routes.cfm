@@ -29,8 +29,9 @@
 		return uri;
 	}
 
-	if ( FileExists( "/config/Routes.cfm" ) ) {
-		includeRoutes( "/config/Routes.cfm" );
+
+	if ( FileExists( "/app/config/Routes.cfm" ) ) {
+		include template="/app/config/Routes.cfm";
 	}
 
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
