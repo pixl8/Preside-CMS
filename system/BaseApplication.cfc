@@ -5,8 +5,12 @@ component output=false {
 	_setupMappings();
 
 // APPLICATION LIFECYCLE EVENTS
+	public void function onError() output=false {
+		WriteDump(arguments); abort;
+	}
 	public boolean function onApplicationStart() output=false {
-		_initColdBox();
+		_initEveryEverything();
+
 		return true;
 	}
 
@@ -45,6 +49,12 @@ component output=false {
 		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
 	}
 
+	private void function _initEveryEverything() output=false {
+		_fetchInjectedSettings();
+		_setupInjectedDatasource();
+		_initColdBox();
+	}
+
 	private void function _initColdBox() output=false {
 		var bootstrap = new preside.system.coldboxModifications.Bootstrap(
 			  COLDBOX_CONFIG_FILE   = _discoverConfigPath()
@@ -62,7 +72,37 @@ component output=false {
 		var reloadRequired = not StructKeyExists( application, "cbBootstrap" ) or application.cbBootStrap.isfwReinit();
 
 		if ( reloadRequired ) {
-			_initColdBox();
+			_initEveryEverything();
+		}
+	}
+
+	private void function _fetchInjectedSettings() output=false {
+		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="/app/config" );
+		var config          = settingsManager.getConfig();
+
+		application.injectedConfig = config;
+	}
+
+	private void function _setupInjectedDatasource() output=false {
+		var config      = application.injectedConfig ?: {};
+		var dsnInjected = Len( Trim( config[ "datasource.user" ] ?: "" ) ) && Len( Trim( config[ "datasource.database_name" ] ?: "" ) ) && Len( Trim( config[ "datasource.host" ] ?: "" ) ) && Len( Trim( config[ "datasource.password" ] ?: "" ) );
+
+		if ( dsnInjected ) {
+			var dsn        = config[ "datasource.name" ] ?: "preside";
+			var useUnicode = config[ "datasource.character_encoding" ] ?: true;
+
+			this.datasources[ dsn ] = {
+				  type     : 'MySQL'
+				, port     : config[ "datasource.port"          ] ?: 3306
+				, host     : config[ "datasource.host"          ]
+				, database : config[ "datasource.database_name" ]
+				, username : config[ "datasource.user"          ]
+				, password : config[ "datasource.password"      ]
+				, custom   : {
+					  characterEncoding : config[ "datasource.character_encoding" ] ?: "UTF-8"
+					, useUnicode        : ( IsBoolean( useUnicode ) && useUnicode )
+				  }
+			};
 		}
 	}
 
