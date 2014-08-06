@@ -5,9 +5,6 @@ component output=false {
 	_setupMappings();
 
 // APPLICATION LIFECYCLE EVENTS
-	public void function onError() output=false {
-		WriteDump(arguments); abort;
-	}
 	public boolean function onApplicationStart() output=false {
 		_initEveryEverything();
 
@@ -15,6 +12,7 @@ component output=false {
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
+		_setupInjectedDatasource();
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 		_reloadCheck();
 
