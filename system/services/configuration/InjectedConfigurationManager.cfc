@@ -40,10 +40,8 @@ component output=false {
 		if ( Len( Trim( applicationId ) ) && Len( Trim( serverManagerUrl ) ) && Len( Trim( publicKey ) ) && Len( Trim( privateKey ) ) ) {
 			config = new preside.system.services.serverManager.PresideServerManagerApiClient( endpoint=serverManagerUrl, publicKey=publicKey, privateKey=privateKey ).getConfig(
 				  applicationId = applicationId
-				, serverAddress = cgi.remote_addr ?: ""
+				, serverAddress = cgi.local_addr ?: ""
 			);
-
-
 
 			if ( !config.isEmpty() ) {
 				_writeConfigToLocalFile( config );
