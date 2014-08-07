@@ -187,6 +187,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 			StructDelete( rc, "active" ); // ensure user cannot deactivate themselves!
 		}
 
+		if ( Len( rc.password ?: "" ) ) {
+			rc.password = bCryptService.hashPw( rc.password ?: "" );
+			if ( bCryptService.checkPw( rc.confirm_password, rc.password ) ) {
+				rc.confirm_password = rc.password;
+			}
+		}
+
 		runEvent(
 			  event          = "admin.dataManager._editRecordAction"
 			, private        = true
