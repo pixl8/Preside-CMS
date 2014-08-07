@@ -60,10 +60,10 @@ component output=false {
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
-			, allowedExtensions = ".jpg,.jpeg,.gif,.png,.doc,.docx,.pdf" // todo, many more please!
 			, types             = _getConfiguredFileTypes()
 			, derivatives       = _getConfiguredAssetDerivatives()
 		};
+		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
 		settings.activeExtensions = _loadExtensions();
 
@@ -170,14 +170,49 @@ component output=false {
 		};
 
 		types.document = {
-			  doc  = { serveAsAttachment=true, mimeType="application/msword"  }
+			  pdf  = { serveAsAttachment=true, mimeType="application/pdf"  }
+			, doc  = { serveAsAttachment=true, mimeType="application/msword" }
+			, dot  = { serveAsAttachment=true, mimeType="application/msword" }
 			, docx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
-			, pdf  = { serveAsAttachment=true, mimeType="application/pdf"  }
-		};
+			, dotx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.template" }
+			, docm = { serveAsAttachment=true, mimeType="application/vnd.ms-word.document.macroEnabled.12" }
+			, dotm = { serveAsAttachment=true, mimeType="application/vnd.ms-word.template.macroEnabled.12" }
+			, xls  = { serveAsAttachment=true, mimeType="application/vnd.ms-excel" }
+			, xlt  = { serveAsAttachment=true, mimeType="application/vnd.ms-excel" }
+			, xla  = { serveAsAttachment=true, mimeType="application/vnd.ms-excel" }
+			, xlsx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+			, xltx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.template" }
+			, xlsm = { serveAsAttachment=true, mimeType="application/vnd.ms-excel.sheet.macroEnabled.12" }
+			, xltm = { serveAsAttachment=true, mimeType="application/vnd.ms-excel.template.macroEnabled.12" }
+			, xlam = { serveAsAttachment=true, mimeType="application/vnd.ms-excel.addin.macroEnabled.12" }
+			, xlsb = { serveAsAttachment=true, mimeType="application/vnd.ms-excel.sheet.binary.macroEnabled.12" }
+			, ppt  = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint" }
+			, pot  = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint" }
+			, pps  = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint" }
+			, ppa  = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint" }
+			, pptx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" }
+			, potx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.presentationml.template" }
+			, ppsx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.presentationml.slideshow" }
+			, ppam = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.addin.macroEnabled.12" }
+			, pptm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.presentation.macroEnabled.12" }
+			, potm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.template.macroEnabled.12" }
+			, ppsm = { serveAsAttachment=true, mimeType="application/vnd.ms-powerpoint.slideshow.macroEnabled.12" }
+		}
 
 		// TODO, more types to be defined here!
 
 		return types;
+	}
+
+	private string function _typesToExtensions( required struct types ) output=false {
+		var extensions = [];
+		for( var cat in arguments.types ) {
+			for( var ext in arguments.types[ cat ] ) {
+				extensions.append( "." & ext );
+			}
+		}
+
+		return extensions.toList();
 	}
 
 	private struct function _getConfiguredAssetDerivatives() output=false {
