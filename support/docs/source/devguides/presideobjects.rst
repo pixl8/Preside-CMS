@@ -168,6 +168,8 @@ The same technique can be used to have a primary key that does not use any sort 
 
     Notice here that we are just changing the attributes that we want to modify (we do not specify :code:`required` or :code:`pk` attributes). All the default attributes will be applied unless you specify a different value for them.
 
+.. _presideobjectslabelfield:
+
 The Label field
 ~~~~~~~~~~~~~~~
 
