@@ -93,7 +93,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public any function getRequestContext() output=false {
-		return getRequestService().requestCapture();
+		return getRequestService().getContext();
 	}
 
 	public any function getSetting( required string name, boolean fwSetting=false, any defaultValue ) output=false {
