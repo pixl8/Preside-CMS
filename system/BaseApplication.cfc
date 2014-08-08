@@ -43,6 +43,7 @@ component output=false {
 // PRIVATE HELPERS
 	private void function _setupMappings() output=false {
 		this.mappings[ "/app"     ] = ExpandPath( "/application/" );
+		this.mappings[ "/assets"  ] = ExpandPath( "/assets/" );
 		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
 		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
 	}

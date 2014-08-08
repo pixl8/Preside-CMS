@@ -112,8 +112,8 @@ component output=false {
 
 		settings.static = {
 			  rootUrl        = ""
-			, siteAssetsPath = "/app/assets"
-			, siteAssetsUrl  = "/application/assets"
+			, siteAssetsPath = "/assets"
+			, siteAssetsUrl  = "/assets"
 		};
 
 	}
