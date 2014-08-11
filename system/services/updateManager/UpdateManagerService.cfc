@@ -7,13 +7,35 @@
 component output=false autodoc=true displayName="Update manager service" {
 
 // constructor
-	public any function init( required string repositoryUrl ) output=false {
+	/**
+	 * @repositoryUrl.inject coldbox:setting:updateRepositoryUrl
+	 *
+	 */
+	public any function init( required string repositoryUrl, string presidePath="/preside" ) output=false {
 		_setRepositoryUrl( arguments.repositoryUrl );
+		_setPresidePath( arguments.presidePath );
 
 		return this;
 	}
 
 // public methods
+	public string function getCurrentVersion() output=false {
+		var versionFile = ListAppend( _getPresidePath(), "version.json", "/" );
+		var versionInfo = "";
+
+		if ( !FileExists( versionFile ) ) {
+			return "unknown";
+		}
+
+		try {
+			versionInfo = DeSerializeJson( FileRead( versionFile ) );
+		} catch ( any e ) {
+			return "unknown";
+		}
+
+		return versionInfo.version ?: "unknown";
+	}
+
 	public array function listVersions( required string branch ) output=false {
 		var s3Listing         = _fetchS3BucketListing();
 		var branchPath        = _getRemoteBranchPath( arguments.branch );
@@ -72,6 +94,13 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 	private void function _setRepositoryUrl( required string repositoryUrl ) output=false {
 		_repositoryUrl = arguments.repositoryUrl;
+	}
+
+	private string function _getPresidePath() output=false {
+		return _presidePath;
+	}
+	private void function _setPresidePath( required string presidePath ) output=false {
+		_presidePath = arguments.presidePath;
 	}
 
 }
