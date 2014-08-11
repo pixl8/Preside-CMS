@@ -80,6 +80,15 @@
 					</ul>
 				</li>
 			</cfif>
+
+			<cfif hasPermission( "updateManager.manage" )>
+				<li<cfif listLast( handler, ".") eq "updateManager"> class="active"</cfif>>
+					<a href="#event.buildAdminLink( linkTo='updateManager' )#">
+						<i class="fa fa-cloud-download"></i>
+						<span class="menu-text">#translateResource( "cms:updateManager" )#</span>
+					</a>
+				</li>
+			</cfif>
 		</ul>
 
 

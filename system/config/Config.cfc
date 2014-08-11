@@ -57,6 +57,7 @@ component output=false {
 		settings.dsn                       = "preside";
 		settings.presideObjectsTablePrefix = "pobj_";
 		settings.system_users              = "sysadmin";
+		settings.updateRepositoryUrl       = "http://download.presidecms.com";
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
