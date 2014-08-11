@@ -46,6 +46,8 @@
 			</zipfileset>
 		</zip>
 
+		<echo file="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.json">{ "version":"${preside.version}.${build.number}" }</echo>
+
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
 
