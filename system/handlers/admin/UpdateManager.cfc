@@ -30,4 +30,19 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.setView( "/admin/updateManager/index" );
 	}
 
+	function editSettings( event, rc, prc ) output=false {
+		prc.pageTitle    = translateResource( "cms:updateManager.editSettings" );
+		prc.pageSubTitle = translateResource( "cms:updateManager.editSettings.subtitle" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:updateManager.editSettings.breadCrumb" )
+			, link  = event.buildAdminLink( linkTo="updateManager.editSettings" )
+		);
+
+		prc.settings = updateManagerService.getSettings();
+
+		event.setView( "/admin/updateManager/editSettings" );
+
+	}
+
 }

@@ -23838,6 +23838,9 @@ img.presidecms .editable-click:hover {
 .presidecms .top-right-button-group button {
   margin-left: 1em;
 }
+.presidecms .top-right-button-group .no-btn {
+  margin-top: 7px;
+}
 .presidecms .form-group .required sup i {
   color: #f5962d;
   font-size: 8px;

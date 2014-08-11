@@ -8,11 +8,13 @@ component output=false autodoc=true displayName="Update manager service" {
 
 // constructor
 	/**
-	 * @repositoryUrl.inject coldbox:setting:updateRepositoryUrl
+	 * @repositoryUrl.inject              coldbox:setting:updateRepositoryUrl
+	 * @systemConfigurationService.inject systemConfigurationService
 	 *
 	 */
-	public any function init( required string repositoryUrl, string presidePath="/preside" ) output=false {
+	public any function init( required string repositoryUrl, required any systemConfigurationService, string presidePath="/preside" ) output=false {
 		_setRepositoryUrl( arguments.repositoryUrl );
+		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setPresidePath( arguments.presidePath );
 
 		return this;
@@ -36,9 +38,21 @@ component output=false autodoc=true displayName="Update manager service" {
 		return versionInfo.version ?: "unknown";
 	}
 
-	public array function listVersions( required string branch ) output=false {
+	public string function getLatestVersion() output=false {
+		var versions = listVersions();
+
+		if ( versions.len() ) {
+			versions.sort( "textnocase" );
+
+			return versions[ versions.len() ];
+		}
+
+		return "unknown";
+	}
+
+	public array function listVersions() output=false {
 		var s3Listing         = _fetchS3BucketListing();
-		var branchPath        = _getRemoteBranchPath( arguments.branch );
+		var branchPath        = _getRemoteBranchPath();
 		var xPath             = "/:ListBucketResult/:Contents/:Key[starts-with(.,'#branchPath#')]/text()";
 		var versionFiles      = XmlSearch( s3Listing, xPath );
 		var jsonAndZipMatches = {};
@@ -62,6 +76,10 @@ component output=false autodoc=true displayName="Update manager service" {
 		return versions;
 	}
 
+	public struct function getSettings() output=false {
+		return _getSystemConfigurationService().getCategorySettings( category="updatemanager" );
+	}
+
 // private helpers
 	private xml function _fetchS3BucketListing() output=false {
 		return XmlParse( _getRepositoryUrl() );
@@ -77,15 +95,20 @@ component output=false autodoc=true displayName="Update manager service" {
 		return DeSerializeJson( result.fileContent );
 	}
 
-	private string function _getRemoteBranchPath( required string branch ) output=false {
-		var path = "presidecms/";
+	private string function _getRemoteBranchPath() output=false {
+		var branch = _getSetting( setting="branch", default="release" );
+		var path   = "presidecms/";
 
-		switch( arguments.branch ) {
+		switch( branch ) {
 			case "bleedingEdge": return path & "bleeding-edge/";
 			case "stable"      : return path & "stable/";
 		}
 
 		return path & "release/";
+	}
+
+	private string function _getSetting( required string setting, any default="" ) output=false {
+		return _getSystemConfigurationService().getSetting( category="updatemanager", setting=arguments.setting, default=arguments.default );
 	}
 
 // getters and setters
@@ -101,6 +124,13 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 	private void function _setPresidePath( required string presidePath ) output=false {
 		_presidePath = arguments.presidePath;
+	}
+
+	private any function _getSystemConfigurationService() output=false {
+		return _systemConfigurationService;
+	}
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 
 }
