@@ -80,6 +80,14 @@ component output=false autodoc=true displayName="Update manager service" {
 		return _getSystemConfigurationService().getCategorySettings( category="updatemanager" );
 	}
 
+	public void function saveSettings( required struct settings ) output=false {
+		var cfgService = _getSystemConfigurationService();
+
+		for( var key in arguments.settings ) {
+			cfgService.saveSetting( category="updatemanager", setting=key, value=arguments.settings[ key ] );
+		}
+	}
+
 // private helpers
 	private xml function _fetchS3BucketListing() output=false {
 		return XmlParse( _getRepositoryUrl() );

@@ -52,6 +52,18 @@ component output="false" extends="mxunit.framework.TestCase" {
 		super.assertEquals( dummySettings, adapter.getSettings() );
 	}
 
+	function test06_saveSettings_shouldSaveSettingsThroughSystemConfigurationService() output=false {
+		var adapter       = _getAdapter();
+		var dummySettings = { branch="stable", meh="test" };
+
+		mockSettingsService.$( "saveSetting" ).$args( category="updatemanager", setting="branch", value="stable" ).$results( 1 );
+		mockSettingsService.$( "saveSetting" ).$args( category="updatemanager", setting="meh"   , value="test"   ).$results( 1 );
+
+		adapter.saveSettings( settings=dummySettings );
+
+		super.assertEquals( 2, mockSettingsService.$callLog().saveSetting.len() );
+	}
+
 // PRIVATE HELPERS
 	private any function _getAdapter( repositoryUrl="", presidePath="/tests/resources/updateManager" ) output=false  {
 		mockSettingsService = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );

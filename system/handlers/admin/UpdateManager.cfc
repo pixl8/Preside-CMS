@@ -45,4 +45,24 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	}
 
+	function editSettingsAction( event, rc, prc ) output=false {
+		var formName         = "update-manager.general.settings";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName=formName, formData=formData );
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager.editSettings" ), persistStruct=persist );
+		}
+
+		updateManagerService.saveSettings( settings=formData );
+
+		messageBox.info( translateResource( uri="cms:updateManager.settings.saved.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+
+	}
+
 }
