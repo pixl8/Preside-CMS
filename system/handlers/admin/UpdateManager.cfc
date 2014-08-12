@@ -82,4 +82,21 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
+	function installVersion( event, rc, prc ) output=false {
+		try {
+			updateManagerService.installVersion( version = rc.version ?: "" );
+		} catch( "UpdateManagerService.unknown.version" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.install.version.not.found.error", data=[ rc.version ?: "" ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+
+		} catch( "UpdateManagerService.railo.admin.secured" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.install.railo.admin.access.denied", data=[ rc.version ?: "" ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+
+		}
+
+		messageBox.info( translateResource( uri="cms:updatemanager.installed.confirmation", data=[ rc.version ?: "" ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+	}
+
 }

@@ -28,7 +28,7 @@
 			<cfif latestVersionDownloaded>
 				#translateResource( uri="cms:updateManager.latest.version.installable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
 				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.installVersion', queryString='version=#latestVersion#' )#">
-					<i class="fa fa-"></i>
+					<i class="fa fa-bolt"></i>
 					#translateResource( uri="cms:updateManager.install.version.btn" )#
 				</a>
 			<cfelse>

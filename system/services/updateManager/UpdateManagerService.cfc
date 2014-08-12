@@ -126,6 +126,30 @@ component output=false autodoc=true displayName="Update manager service" {
 		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found in the [#_getSetting( 'branch', 'release' )#] branch" );
 	}
 
+	public boolean function installVersion( required string version ) output=false {
+		var versions = listDownloadedVersions();
+		for( var v in versions ){
+			if ( v.version == arguments.version ) {
+				try {
+					admin action="updateMapping"
+					      type     = "web"
+					      virtual  = "/preside"
+					      physical = v.path
+					      archive  = ""
+					      primary  = "physical"
+					      trusted  = true
+					      toplevel = false;
+
+					return true;
+				} catch( "security" e ) {
+					throw( type="UpdateManagerService.railo.admin.secured", message=e.message );
+				}
+			}
+		}
+
+		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found locally" );
+	}
+
 	public struct function getSettings() output=false {
 		return _getSystemConfigurationService().getCategorySettings( category="updatemanager" );
 	}
