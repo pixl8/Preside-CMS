@@ -38,15 +38,16 @@
 
 	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel">
 		<concat destfile="../../${build.label}">Built on ${start.TODAY}</concat>
+		<echo file="../../version.json">{ "version":"${preside.version}.${build.number}" }</echo>
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.zip">
-			<zipfileset dir="../../" prefix="preside">
+			<zipfileset dir="../../" prefix="presidecms-${preside.version}.${build.number}">
 				<exclude name="support/**"/>
 				<exclude name=".travis.yml"/>
 			</zipfileset>
 		</zip>
 
-		<echo file="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.json">{ "version":"${preside.version}.${build.number}" }</echo>
+		<copy file="../../version.json" tofile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.json" />
 
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
