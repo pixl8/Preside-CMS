@@ -10,11 +10,19 @@ component output=false autodoc=true displayName="Update manager service" {
 	/**
 	 * @repositoryUrl.inject              coldbox:setting:updateRepositoryUrl
 	 * @systemConfigurationService.inject systemConfigurationService
+	 * @applicationReloadService.inject   applicationReloadService
 	 *
 	 */
-	public any function init( required string repositoryUrl, required any systemConfigurationService, string presidePath="/preside" ) output=false {
+	public any function init(
+		  required string repositoryUrl
+		, required any    systemConfigurationService
+		, required any    applicationReloadService
+		,          string presidePath="/preside"
+
+	) output=false {
 		_setRepositoryUrl( arguments.repositoryUrl );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setApplicationReloadService( arguments.applicationReloadService );
 		_setPresidePath( arguments.presidePath );
 
 		return this;
@@ -142,6 +150,8 @@ component output=false autodoc=true displayName="Update manager service" {
 					      trusted  = true
 					      toplevel = false;
 
+					_getApplicationReloadService().reloadAll();
+
 					return true;
 				} catch( "security" e ) {
 					throw( type="UpdateManagerService.railo.admin.secured", message=e.message );
@@ -232,6 +242,13 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
 		_systemConfigurationService = arguments.systemConfigurationService;
+	}
+
+	private any function _getApplicationReloadService() output=false {
+		return _applicationReloadService;
+	}
+	private void function _setApplicationReloadService( required any applicationReloadService ) output=false {
+		_applicationReloadService = arguments.applicationReloadService;
 	}
 
 }

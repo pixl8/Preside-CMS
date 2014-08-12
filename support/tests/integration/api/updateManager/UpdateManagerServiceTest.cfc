@@ -91,7 +91,8 @@ component output="false" extends="mxunit.framework.TestCase" {
 // PRIVATE HELPERS
 	private any function _getAdapter( repositoryUrl="", presidePath="/tests/resources/updateManager" ) output=false  {
 		mockSettingsService = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
-		adapter = new preside.system.services.updateManager.UpdateManagerService( argumentCollection=arguments, systemConfigurationService=mockSettingsService );
+		mockApplicationReloadService = getMockBox().createEmptyMock( "preside.system.services.devtools.ApplicationReloadService" );
+		adapter = new preside.system.services.updateManager.UpdateManagerService( argumentCollection=arguments, systemConfigurationService=mockSettingsService, applicationReloadService=mockApplicationReloadService );
 
 		return getMockBox().createMock( object=adapter );
 	}
