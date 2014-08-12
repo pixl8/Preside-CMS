@@ -83,6 +83,7 @@ component output=false autodoc=true displayName="Update manager service" {
 			if ( jsonAndZipMatches[ fileKey ].keyExists( "json" ) && jsonAndZipMatches[ fileKey ].keyExists( "zip" ) ) {
 				var versionInfo = _fetchVersionInfo( fileKey & ".json" );
 				versionInfo.path = fileKey & ".zip";
+				versionInfo.downloaded = versionIsDownloaded( versionInfo.version );
 
 				versions.append( versionInfo );
 			}
@@ -108,6 +109,10 @@ component output=false autodoc=true displayName="Update manager service" {
 				}
 			}
 		}
+
+		versions.sort( function( a, b ){
+			return a.version > b.version ? 1 : -1;
+		} );
 
 		return versions;
 	}

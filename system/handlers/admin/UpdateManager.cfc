@@ -28,6 +28,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.currentVersion          = updateManagerService.getCurrentVersion();
 		prc.latestVersion           = updateManagerService.getLatestVersion();
 		prc.downloadedVersions      = updateManagerService.listDownloadedVersions();
+		prc.availableVersions       = updateManagerService.listAvailableVersions();
 		prc.versionUpToDate         = prc.currentVersion >= prc.latestVersion;
 		prc.latestVersionDownloaded = prc.versionUpToDate || updateManagerService.versionIsDownloaded( prc.latestVersion );
 

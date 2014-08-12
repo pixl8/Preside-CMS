@@ -4,6 +4,7 @@
 	versionUpToDate         = prc.versionUpToDate         ?: false;
 	latestVersionDownloaded = prc.latestVersionDownloaded ?: false;
 	downloadedVersions      = prc.downloadedVersions      ?: [];
+	availableVersions       = prc.availableVersions       ?: [];
 </cfscript>
 
 <cfoutput>
@@ -78,7 +79,7 @@
 						<cfset isCurrent = version.version eq currentVersion />
 						<tr<cfif IsCurrent> class="current"</cfif>>
 							<td>#version.version#</td>
-							<td><cfif isCurrent><i class="green fa fa-check"></i></cfif></td>
+							<td><cfif isCurrent><i class="green fa fa-check"></i><cfelse><i class="grey fa fa-times"></i></cfif></td>
 							<td>
 								<div class="action-buttons">
 									<cfif isCurrent>
@@ -101,7 +102,34 @@
 		</div>
 
 		<div id="remotely-available" class="tab-pane">
-			<p>TODO</p>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>#translateResource( uri="cms:updateManager.version.th" )#</th>
+						<th>#translateResource( uri="cms:updateManager.downloaded.th" )#</th>
+						<th>#translateResource( uri="cms:updateManager.version.actions.th" )#</th>
+					</tr>
+				</thead>
+				<tbody>
+					<cfloop array="#availableVersions#" item="version" index="i">
+						<tr<cfif version.downloaded> class="current"</cfif>>
+							<td>#version.version#</td>
+							<td><cfif version.downloaded><i class="green fa fa-check"></i><cfelse><i class="grey fa fa-times"></i></cfif></td>
+							<td>
+								<div class="action-buttons">
+									<cfif version.downloaded>
+										<a> <i class="grey fa fa-cloud-download bigger-130"></i> </a>
+									<cfelse>
+										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.downloadVersion", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
+											<i class="fa fa-cloud-download bigger-130"></i>
+										</a>
+									</cfif>
+								</div>
+							</td>
+						</tr>
+					</cfloop>
+				</tbody>
+			</table>
 		</div>
 	</div>
 </cfoutput>
