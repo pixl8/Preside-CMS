@@ -26,6 +26,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.pageSubTitle = translateResource( "cms:updateManager.subtitle" );
 
 		prc.currentVersion = updateManagerService.getCurrentVersion();
+		prc.latestVersion  = updateManagerService.getLatestVersion();
 
 		event.setView( "/admin/updateManager/index" );
 	}

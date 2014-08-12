@@ -95,7 +95,7 @@ component output=false autodoc=true displayName="Update manager service" {
 
 	private struct function _fetchVersionInfo( required string versionFilePath ) ouptut=false {
 		var result = "";
-		var versionFileUrl = ListAppend( _getRepositoryUrl(), arguments.versionFilePath );
+		var versionFileUrl = ListAppend( _getRepositoryUrl(), arguments.versionFilePath, "/" );
 
 		// todo, check for common errors and throw informative errors in their place
 		http url=versionFileUrl result="result";
