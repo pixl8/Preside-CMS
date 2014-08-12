@@ -99,4 +99,24 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
+	function removeLocalVersion( event, rc, prc ) output=false {
+		try {
+			updateManagerService.deleteVersion( version = rc.version ?: "" );
+		} catch( "UpdateManagerService.unknown.version" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.delete.version.not.found.error", data=[ rc.version ?: "" ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+
+		} catch( "UpdateManagerService.cannot.delete.current.version" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.cannot.delete.current.version.error", data=[ rc.version ?: "" ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+
+		} catch( "UpdateManagerService.failed.to.delete" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.cannot.delete.version.error", data=[ rc.version ?: "" ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+		}
+
+		messageBox.info( translateResource( uri="cms:updatemanager.version.deleted.confirmation", data=[ rc.version ?: "" ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+	}
+
 }

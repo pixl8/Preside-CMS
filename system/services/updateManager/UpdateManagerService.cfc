@@ -162,6 +162,26 @@ component output=false autodoc=true displayName="Update manager service" {
 		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found locally" );
 	}
 
+	public boolean function deleteVersion( required string version ) output=false {
+		if ( arguments.version == getCurrentVersion() ) {
+			throw( type="UpdateManagerService.cannot.delete.current.version", message="You cannot delete the currently installed version, [#arguments.version#] from the server" );
+		}
+		var versions = listDownloadedVersions();
+		for( var v in versions ){
+			if ( v.version == arguments.version ) {
+				try {
+					DirectoryDelete( v.path, true );
+
+					return true;
+				} catch( any e ) {
+					throw( type="UpdateManagerService.failed.to.delete", message=e.message );
+				}
+			}
+		}
+
+		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found locally" );
+	}
+
 	public struct function getSettings() output=false {
 		return _getSystemConfigurationService().getCategorySettings( category="updatemanager" );
 	}

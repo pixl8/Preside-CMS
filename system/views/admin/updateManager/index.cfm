@@ -3,6 +3,7 @@
 	latestVersion           = prc.latestVersion           ?: "unknown";
 	versionUpToDate         = prc.versionUpToDate         ?: false;
 	latestVersionDownloaded = prc.latestVersionDownloaded ?: false;
+	downloadedVersions      = prc.downloadedVersions      ?: [];
 </cfscript>
 
 <cfoutput>
@@ -45,4 +46,62 @@
 			#translateResource( uri="cms:updateManager.current.version.up.to.date", data=[ "<strong>#currentVersion#</strong>" ] )#
 		</div>
 	</cfif>
+
+ 	<ul class="nav nav-tabs">
+		<li class="active">
+			<a data-toggle="tab" href="##locally-installed">
+				<i class="green fa fa-hdd-o fa-lg"></i>&nbsp;
+				#translateResource( uri="cms:updateManager.locally.downloaded.tab" )#
+			</a>
+		</li>
+
+		<li>
+			<a data-toggle="tab" href="##remotely-available">
+				<i class="blue fa fa-cloud-download fa-lg"></i>&nbsp;
+				#translateResource( uri="cms:updateManager.remotely.available.tab" )#
+			</a>
+		</li>
+	</ul>
+
+	<div class="tab-content">
+		<div id="locally-installed" class="tab-pane in active">
+			<table class="table">
+				<thead>
+					<tr>
+						<th>#translateResource( uri="cms:updateManager.version.th" )#</th>
+						<th>#translateResource( uri="cms:updateManager.active.th" )#</th>
+						<th>#translateResource( uri="cms:updateManager.version.actions.th" )#</th>
+					</tr>
+				</thead>
+				<tbody>
+					<cfloop array="#downloadedVersions#" item="version" index="i">
+						<cfset isCurrent = version.version eq currentVersion />
+						<tr<cfif IsCurrent> class="current"</cfif>>
+							<td>#version.version#</td>
+							<td><cfif isCurrent><i class="green fa fa-check"></i></cfif></td>
+							<td>
+								<div class="action-buttons">
+									<cfif isCurrent>
+										<a> <i class="grey fa fa-bolt bigger-130"></i> </a>
+										<a> <i class="grey fa fa-trash-o bigger-130"></i> </a>
+									<cfelse>
+										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.installVersion", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
+											<i class="fa fa-bolt bigger-130"></i>
+										</a>
+										<a class="red confirmation-prompt" href="#event.buildAdminLink( linkTo="updateManager.removeLocalVersion", queryString="version=#version.version#")#" title="#translateResource( uri="cms:updateManager.trash.local.version.link", data=[ version.version ] )#">
+											<i class="fa fa-trash-o bigger-130"></i>
+										</a>
+									</cfif>
+								</div>
+							</td>
+						</tr>
+					</cfloop>
+				</tbody>
+			</table>
+		</div>
+
+		<div id="remotely-available" class="tab-pane">
+			<p>TODO</p>
+		</div>
+	</div>
 </cfoutput>
