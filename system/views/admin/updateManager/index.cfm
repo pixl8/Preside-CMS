@@ -42,7 +42,7 @@
 	<cfelse>
 		<div class="alert alert-success">
 			<i class="fa fa-info-circle fa-lg"></i>&nbsp;
-			#translateResource( uri="cms:updateManager.current.version", data=[ "<strong>#currentVersion#</strong>" ] )#
+			#translateResource( uri="cms:updateManager.current.version.up.to.date", data=[ "<strong>#currentVersion#</strong>" ] )#
 		</div>
 	</cfif>
 </cfoutput>

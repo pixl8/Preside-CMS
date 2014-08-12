@@ -72,10 +72,12 @@ component output=false autodoc=true displayName="Update manager service" {
 		}
 
 		for( var fileKey in jsonAndZipMatches ) {
-			var versionInfo = _fetchVersionInfo( fileKey & ".json" );
-			versionInfo.path = fileKey & ".zip";
+			if ( jsonAndZipMatches[ fileKey ].keyExists( "json" ) && jsonAndZipMatches[ fileKey ].keyExists( "zip" ) ) {
+				var versionInfo = _fetchVersionInfo( fileKey & ".json" );
+				versionInfo.path = fileKey & ".zip";
 
-			versions.append( versionInfo );
+				versions.append( versionInfo );
+			}
 		}
 
 		return versions;
@@ -171,10 +173,12 @@ component output=false autodoc=true displayName="Update manager service" {
 		var result = "";
 		var versionFileUrl = ListAppend( _getRepositoryUrl(), arguments.versionFilePath, "/" );
 
-		// todo, check for common errors and throw informative errors in their place
-		http url=versionFileUrl result="result";
-
-		return DeSerializeJson( result.fileContent );
+		try {
+			http url=versionFileUrl result="result" throwOnError=true;
+			return DeSerializeJson( result.fileContent );
+		} catch ( any e ) {
+			return { version="unknown" };
+		}
 	}
 
 	private string function _getRemoteBranchPath() output=false {
