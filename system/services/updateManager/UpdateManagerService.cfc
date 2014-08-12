@@ -76,6 +76,26 @@ component output=false autodoc=true displayName="Update manager service" {
 		return versions;
 	}
 
+	public array function listInstalledVersions() output=false {
+		var containerDirectory = _getVersionContainerDirectory();
+		var childDirectories   = DirectoryList( containerDirectory, false, "query" );
+		var versions           = [];
+
+		for( var dir in childDirectories ){
+			if ( dir.type == "Dir" ) {
+				var versionFile = containerDirectory & dir.name & "/version.json";
+				if ( FileExists( versionFile ) ) {
+					try {
+						var versionInfo = DeSerializeJson( FileRead( versionFile ) );
+						versions.append( versionInfo.version );
+					} catch( any e ) {}
+				}
+			}
+		}
+
+		return versions;
+	}
+
 	public struct function getSettings() output=false {
 		return _getSystemConfigurationService().getCategorySettings( category="updatemanager" );
 	}
@@ -117,6 +137,11 @@ component output=false autodoc=true displayName="Update manager service" {
 
 	private string function _getSetting( required string setting, any default="" ) output=false {
 		return _getSystemConfigurationService().getSetting( category="updatemanager", setting=arguments.setting, default=arguments.default );
+	}
+
+	private string function _getVersionContainerDirectory() output=false {
+		var presideDirectory = _getPresidePath();
+		return presideDirectory & "/../";
 	}
 
 // getters and setters

@@ -64,6 +64,13 @@ component output="false" extends="mxunit.framework.TestCase" {
 		super.assertEquals( 2, mockSettingsService.$callLog().saveSetting.len() );
 	}
 
+	function test07_listInstalledVersions_shouldExamineFileSystemToDiscoverInstalledPresideVersions() output=false  {
+		var adapter = _getAdapter( presidePath="/tests/resources/updateManager/multiversions/0.1.0" );
+		var expected = [ "0.1.0.049", "0.1.1.123", "0.1.10.9049", "0.2.0.2570" ];
+
+		super.assertEquals( expected, adapter.listInstalledVersions() );
+	}
+
 // PRIVATE HELPERS
 	private any function _getAdapter( repositoryUrl="", presidePath="/tests/resources/updateManager" ) output=false  {
 		mockSettingsService = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
