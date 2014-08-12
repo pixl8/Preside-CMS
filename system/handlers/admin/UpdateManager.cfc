@@ -25,8 +25,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.pageTitle    = translateResource( "cms:updateManager" );
 		prc.pageSubTitle = translateResource( "cms:updateManager.subtitle" );
 
-		prc.currentVersion = updateManagerService.getCurrentVersion();
-		prc.latestVersion  = updateManagerService.getLatestVersion();
+		prc.currentVersion          = updateManagerService.getCurrentVersion();
+		prc.latestVersion           = updateManagerService.getLatestVersion();
+		prc.downloadedVersions      = updateManagerService.listDownloadedVersions();
+		prc.versionUpToDate         = prc.currentVersion >= prc.latestVersion;
+		prc.latestVersionDownloaded = prc.versionUpToDate || updateManagerService.versionIsDownloaded( prc.latestVersion );
 
 		event.setView( "/admin/updateManager/index" );
 	}
@@ -64,6 +67,19 @@ component extends="preside.system.base.AdminHandler" output=false {
 		messageBox.info( translateResource( uri="cms:updateManager.settings.saved.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 
+	}
+
+	function downloadVersion( event, rc, prc ) output=false {
+		try {
+			updateManagerService.downloadVersion( version = rc.version ?: "" );
+		} catch( "UpdateManagerService.unknown.version" e ) {
+			messageBox.error( translateResource( uri="cms:updatemanager.download.version.not.found.error", data=[ rc.version ?: "" ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
+
+		}
+
+		messageBox.info( translateResource( uri="cms:updatemanager.download.started.confirmation", data=[ rc.version ?: "" ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
 }

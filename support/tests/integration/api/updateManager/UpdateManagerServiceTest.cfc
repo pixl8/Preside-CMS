@@ -6,9 +6,12 @@ component output="false" extends="mxunit.framework.TestCase" {
 	}
 
 // TESTS
-	function test01_listVersions_shouldReturnVersionsOfPresideBasedOnContentsOfS3BucketForGivenCurrentBranch() output=false {
+	function test01_listAvailableVersions_shouldReturnVersionsOfPresideBasedOnContentsOfS3BucketForGivenCurrentBranch() output=false {
 		var adapter  = _getAdapter();
-		var expected = [ "0.1.1.00089", "0.1.2.00345" ];
+		var expected = [
+			  { version="0.1.1.00089", path="presidecms/bleeding-edge/PresideCMS-0.1.1.zip" }
+			, { version="0.1.2.00345", path="presidecms/bleeding-edge/PresideCMS-0.1.2.zip" }
+		];
 
 		mockSettingsService.$( "getSetting" ).$args( category="updatemanager", setting="branch", default="release" ).$results( "bleedingEdge" );
 
@@ -16,7 +19,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 		adapter.$( "_fetchVersionInfo" ).$args( "presidecms/bleeding-edge/PresideCMS-0.1.1.json" ).$results( { version:"0.1.1.00089" } );
 		adapter.$( "_fetchVersionInfo" ).$args( "presidecms/bleeding-edge/PresideCMS-0.1.2.json" ).$results( { version:"0.1.2.00345" } );
 
-		super.assertEquals( expected, adapter.listVersions() );
+		super.assertEquals( expected, adapter.listAvailableVersions() );
 	}
 
 	function test02_getCurrentVersion_shouldReturnVersionAsIndicatedByVersionFileInRootOfPresideInstall() output=false {
@@ -64,11 +67,25 @@ component output="false" extends="mxunit.framework.TestCase" {
 		super.assertEquals( 2, mockSettingsService.$callLog().saveSetting.len() );
 	}
 
-	function test07_listInstalledVersions_shouldExamineFileSystemToDiscoverInstalledPresideVersions() output=false  {
-		var adapter = _getAdapter( presidePath="/tests/resources/updateManager/multiversions/0.1.0" );
-		var expected = [ "0.1.0.049", "0.1.1.123", "0.1.10.9049", "0.2.0.2570" ];
+	function test07_listDownloadedVersions_shouldExamineFileSystemToDiscoverInstalledPresideVersions() output=false  {
+		var adapter  = _getAdapter( presidePath="/tests/resources/updateManager/multiversions/0.1.0" );
+		var expected = [
+			  { version="0.1.0.049"  , path=ExpandPath( "/tests/resources/updateManager/multiversions/0.1.0"  ) }
+			, { version="0.1.1.123"  , path=ExpandPath( "/tests/resources/updateManager/multiversions/0.1.1"  ) }
+			, { version="0.1.10.9049", path=ExpandPath( "/tests/resources/updateManager/multiversions/0.1.10" ) }
+			, { version="0.2.0.2570" , path=ExpandPath( "/tests/resources/updateManager/multiversions/0.2.0"  ) }
+		];
 
-		super.assertEquals( expected, adapter.listInstalledVersions() );
+		super.assertEquals( expected, adapter.listDownloadedVersions() );
+	}
+
+	function test08_versionIsDownloaded_shouldReturnFalse_whenVersionIsNotLocallyDownloaded() output=false {
+	}
+
+	function test09_versionIsDownloaded_shouldReturnTrue_whenVersionIsLocallyDownloaded() output=false {
+		var adapter = _getAdapter( presidePath="/tests/resources/updateManager/multiversions/0.1.0" );
+
+		super.assert( adapter.versionIsDownloaded( "0.1.10.9049" ) );
 	}
 
 // PRIVATE HELPERS

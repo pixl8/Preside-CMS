@@ -39,18 +39,20 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 
 	public string function getLatestVersion() output=false {
-		var versions = listVersions();
+		var versions = listAvailableVersions();
 
 		if ( versions.len() ) {
-			versions.sort( "textnocase" );
+			versions.sort( function( a, b ){
+				return a.version > b.version ? 1 : -1;
+			} );
 
-			return versions[ versions.len() ];
+			return versions[ versions.len() ].version;
 		}
 
 		return "unknown";
 	}
 
-	public array function listVersions() output=false {
+	public array function listAvailableVersions() output=false {
 		var s3Listing         = _fetchS3BucketListing();
 		var branchPath        = _getRemoteBranchPath();
 		var xPath             = "/:ListBucketResult/:Contents/:Key[starts-with(.,'#branchPath#')]/text()";
@@ -70,13 +72,16 @@ component output=false autodoc=true displayName="Update manager service" {
 		}
 
 		for( var fileKey in jsonAndZipMatches ) {
-			versions.append( _fetchVersionInfo( fileKey & ".json" ).version );
+			var versionInfo = _fetchVersionInfo( fileKey & ".json" );
+			versionInfo.path = fileKey & ".zip";
+
+			versions.append( versionInfo );
 		}
 
 		return versions;
 	}
 
-	public array function listInstalledVersions() output=false {
+	public array function listDownloadedVersions() output=false {
 		var containerDirectory = _getVersionContainerDirectory();
 		var childDirectories   = DirectoryList( containerDirectory, false, "query" );
 		var versions           = [];
@@ -87,13 +92,38 @@ component output=false autodoc=true displayName="Update manager service" {
 				if ( FileExists( versionFile ) ) {
 					try {
 						var versionInfo = DeSerializeJson( FileRead( versionFile ) );
-						versions.append( versionInfo.version );
+						versionInfo.path = ExpandPath( containerDirectory & dir.name );
+						versions.append( versionInfo );
 					} catch( any e ) {}
 				}
 			}
 		}
 
 		return versions;
+	}
+
+	public boolean function versionIsDownloaded( required string version ) output=false {
+		var versions = listDownloadedVersions();
+		for( var v in versions ){
+			if ( v.version == arguments.version ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void function downloadVersion( required string version ) output=false {
+		var versions = listAvailableVersions();
+		for( var v in versions ){
+			if ( v.version == arguments.version ) {
+				var downloadUrl = _getRepositoryUrl() & "/" & v.path;
+
+				return _downloadAndUnpackVersionAsynchronously( downloadUrl );
+			}
+		}
+
+		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found in the [#_getSetting( 'branch', 'release' )#] branch" );
 	}
 
 	public struct function getSettings() output=false {
@@ -142,6 +172,16 @@ component output=false autodoc=true displayName="Update manager service" {
 	private string function _getVersionContainerDirectory() output=false {
 		var presideDirectory = _getPresidePath();
 		return presideDirectory & "/../";
+	}
+
+	private void function _downloadAndUnpackVersionAsynchronously( required string downloadUrl ) output=false {
+		var tempPath = getTempDirectory() & "/" & CreateUUId() & ".zip";
+
+		thread name=CreateUUId() downloadUrl=arguments.downloadUrl unpackToDir=_getVersionContainerDirectory() downloadPath=tempPath {
+
+			http url=attributes.downloadUrl path=attributes.downloadPath;
+			zip action="unzip" file=attributes.downloadPath destination=attributes.unpackToDir;
+		}
 	}
 
 // getters and setters
