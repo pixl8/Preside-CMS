@@ -337,6 +337,7 @@ component output=false autodoc=true displayName="Update manager service" {
 	private void function _updateMapping( required string newPath ) output=false {
 		try {
 			admin action   = "updateMapping"
+			      password = _getSetting( "railo_admin_pw", "password" )
 			      type     = "web"
 			      virtual  = "/preside"
 			      physical = arguments.newPath

@@ -2,6 +2,10 @@
 	inputName    = args.name        ?: "";
 	inputId      = args.id          ?: "";
 	placeholder  = args.placeholder ?: "";
+
+	if ( Len( Trim( placeholder ) ) ) {
+		placeholder = translateResource( uri=placeholder, defaultValue=placeholder );
+	}
 </cfscript>
 
 <cfoutput>
