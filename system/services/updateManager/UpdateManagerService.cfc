@@ -353,19 +353,19 @@ component output=false autodoc=true displayName="Update manager service" {
 
 	private void function _runDowngradeScripts( required string newVersion, required string currentVersion ) output=false {
 		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
-		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( getCurrentVersion() );
+		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( arguments.currentVersion );
 
-		if ( newVersionWithoutBuild < currentVersionWithoutBuild ) {
-			_runMigrations( "downgrade", arguments.newVersion, arguments.currentVersion );
+		if ( compareVersions( newVersionWithoutBuild, currentVersionWithoutBuild ) < 0 ) {
+			_runMigrations( "downgrade", newVersionWithoutBuild, currentVersionWithoutBuild );
 		}
 	}
 
 	private void function _runUpgradeScripts( required string newVersion, required string currentVersion ) output=false {
 		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
-		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( getCurrentVersion() );
+		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( arguments.currentVersion );
 
-		if ( newVersionWithoutBuild > currentVersionWithoutBuild ) {
-			_runMigrations( "upgrade", arguments.newVersion, arguments.currentVersion );
+		if ( compareVersions( newVersionWithoutBuild, currentVersionWithoutBuild ) > 0 ) {
+			_runMigrations( "upgrade", newVersionWithoutBuild, currentVersionWithoutBuild );
 		}
 	}
 
@@ -382,18 +382,20 @@ component output=false autodoc=true displayName="Update manager service" {
 		var versionNumberRegex = "^\d+\.\d+\.\d+$";
 
 		for( var file in migrationFiles ){
-			var versionNumber = ReReplaceNoCase( file, "\.cfc$", "" );
+			var versionNumber = ListChangeDelims( ReReplaceNoCase( file, "\.cfc$", "" ), ".", "-" );
 			if ( ReFind( versionNumberRegex, versionNumber ) ) {
-				if ( migrationType == "downgrade" && versionNumber <= arguments.currentVersion && versionNumber > arguments.newVersion ) {
-					migrations.append( ListAppend( componentPath, versionNumber, "." ) );
-				} elseif ( migrationType == "upgrade" && versionNumber > arguments.currentVersion && versionNumber <= arguments.newVersion ) {
-					migrations.append( ListAppend( componentPath, versionNumber, "." ) );
+				if ( migrationType == "downgrade" && compareVersions( versionNumber, arguments.currentVersion ) <= 0 && compareVersions( versionNumber, arguments.newVersion ) > 0 ) {
+					migrations.append( ListAppend( componentPath, ListChangeDelims( versionNumber, "-", "." ), "." ) );
+				} elseif ( migrationType == "upgrade" && compareVersions( versionNumber, arguments.currentVersion ) > 0 && compareVersions( versionNumber, arguments.newVersion ) <= 0 ) {
+					migrations.append( ListAppend( componentPath, ListChangeDelims( versionNumber, "-", "." ), "." ) );
 				}
 			}
 		}
 
 		migrations.sort( function( a, b ){
-			var comparison = compareVersions( a, b );
+			var aVersion = ListChangeDelims( ListLast( a, "." ), ".", "-" );
+			var bVersion = ListChangeDelims( ListLast( b, "." ), ".", "-" );
+			var comparison = compareVersions( aVersion, bVersion );
 			return migrationType == "downgrade" ? ( comparison * -1 ) : comparison;
 		} );
 
