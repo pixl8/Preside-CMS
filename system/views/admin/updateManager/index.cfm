@@ -123,18 +123,26 @@
 					<cfloop array="#availableVersions#" item="version" index="i">
 						<tr<cfif version.downloaded> class="current"</cfif>>
 							<td>#version.version#</td>
-							<td><cfif version.downloaded><i class="green fa fa-check"></i><cfelse><i class="grey fa fa-times"></i></cfif></td>
-							<td>
-								<div class="action-buttons">
-									<cfif version.downloaded>
-										<a> <i class="grey fa fa-cloud-download bigger-130"></i> </a>
-									<cfelse>
+							<cfif version.downloaded>
+								<td><i class="green fa fa-check"></i></td>
+								<td>
+									<div class="action-buttons"> <a> <i class="grey fa fa-cloud-download bigger-130"></i> </a> </div>
+								</td>
+							<cfelseif downloadingVersions.keyExists( version.version )>
+								<td><i class="green fa fa-download"></i>&nbsp; #translateResource( "cms:updateManager.download.in.progress" )#</td>
+								<td>
+									<div class="action-buttons"> <a> <i class="grey fa fa-cloud-download bigger-130"></i> </a> </div>
+								</td>
+							<cfelse>
+								<td><i class="grey fa fa-times"></i></td>
+								<td>
+									<div class="action-buttons">
 										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.downloadVersion", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
 											<i class="fa fa-cloud-download bigger-130"></i>
 										</a>
-									</cfif>
-								</div>
-							</td>
+									</div>
+								</td>
+							</cfif>
 						</tr>
 					</cfloop>
 				</tbody>
