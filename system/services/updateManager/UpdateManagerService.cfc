@@ -52,7 +52,7 @@ component output=false autodoc=true displayName="Update manager service" {
 
 		if ( versions.len() ) {
 			versions.sort( function( a, b ){
-				return a.version > b.version ? 1 : -1;
+				return compareVersions( a.version, b.version );
 			} );
 
 			return versions[ versions.len() ].version;
@@ -119,7 +119,7 @@ component output=false autodoc=true displayName="Update manager service" {
 		}
 
 		versions.sort( function( a, b ){
-			return a.version > b.version ? 1 : -1;
+			return compareVersions( a.version, b.version );
 		} );
 
 		return versions;
@@ -192,25 +192,17 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 
 	public boolean function installVersion( required string version ) output=false {
-		var versions = listDownloadedVersions();
+		var versions       = listDownloadedVersions();
+		var currentVersion = getCurrentVersion();
+
 		for( var v in versions ){
 			if ( v.version == arguments.version ) {
-				try {
-					admin action   = "updateMapping"
-					      type     = "web"
-					      virtual  = "/preside"
-					      physical = v.path
-					      archive  = ""
-					      primary  = "physical"
-					      trusted  = true
-					      toplevel = false;
+				_runDowngradeScripts( arguments.version, currentVersion );
+				_updateMapping( v.path );
+				_runUpgradeScripts( arguments.version, currentVersion );
+				_getApplicationReloadService().reloadAll();
 
-					_getApplicationReloadService().reloadAll();
-
-					return true;
-				} catch( "security" e ) {
-					throw( type="UpdateManagerService.railo.admin.secured", message=e.message );
-				}
+				return true;
 			}
 		}
 
@@ -247,6 +239,29 @@ component output=false autodoc=true displayName="Update manager service" {
 		for( var key in arguments.settings ) {
 			cfgService.saveSetting( category="updatemanager", setting=key, value=arguments.settings[ key ] );
 		}
+	}
+
+	public numeric function compareVersions( required string versionA, required string versionB ) output=false {
+		if ( versionA == versionB ) {
+			return 0;
+		}
+
+		var a = ListToArray( versionA, "." );
+		var b = ListToArray( versionB, "." );
+
+		for( var i=1; i <= a.len(); i++ ) {
+			if ( b.len() < i ) {
+				return 1;
+			}
+			if ( a[i] > b[i] ) {
+				return 1;
+			}
+			if ( a[i] < b[i] ) {
+				return -1;
+			}
+		}
+
+		return -1;
 	}
 
 // private helpers
@@ -316,6 +331,74 @@ component output=false autodoc=true displayName="Update manager service" {
 					FileDelete( attributes.downloadPath );
 				} catch ( any e ) {}
 			}
+		}
+	}
+
+	private void function _updateMapping( required string newPath ) output=false {
+		try {
+			admin action   = "updateMapping"
+			      type     = "web"
+			      virtual  = "/preside"
+			      physical = arguments.newPath
+			      archive  = ""
+			      primary  = "physical"
+			      trusted  = true
+			      toplevel = false;
+
+			pagePoolClear();
+		} catch( "security" e ) {
+			throw( type="UpdateManagerService.railo.admin.secured", message=e.message );
+		}
+	}
+
+	private void function _runDowngradeScripts( required string newVersion, required string currentVersion ) output=false {
+		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
+		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( getCurrentVersion() );
+
+		if ( newVersionWithoutBuild < currentVersionWithoutBuild ) {
+			_runMigrations( "downgrade", arguments.newVersion, arguments.currentVersion );
+		}
+	}
+
+	private void function _runUpgradeScripts( required string newVersion, required string currentVersion ) output=false {
+		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
+		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( getCurrentVersion() );
+
+		if ( newVersionWithoutBuild > currentVersionWithoutBuild ) {
+			_runMigrations( "upgrade", arguments.newVersion, arguments.currentVersion );
+		}
+	}
+
+	private string function _getVersionWithoutBuildNumber( required string version ) output=false {
+		return ListDeleteAt( arguments.version, ListLen( arguments.version, "." ), "." );
+	}
+
+	private string function _runMigrations( required string type, required string newVersion, required string currentVersion ) output=false {
+		var migrationType      = arguments.type == "upgrade" ? "upgrade" : "downgrade";
+		var parentDirectory    = "/preside/system/migrations/#migrationType#s";
+		var componentPath      = ReReplace( ListChangeDelims( parentDirectory, ".", "/" ), "^\.", "" );
+		var migrationFiles     = DirectoryList( parentDirectory, false, "name", "*.cfc" );
+		var migrations         = [];
+		var versionNumberRegex = "^\d+\.\d+\.\d+$";
+
+		for( var file in migrationFiles ){
+			var versionNumber = ReReplaceNoCase( file, "\.cfc$", "" );
+			if ( ReFind( versionNumberRegex, versionNumber ) ) {
+				if ( migrationType == "downgrade" && versionNumber <= arguments.currentVersion && versionNumber > arguments.newVersion ) {
+					migrations.append( ListAppend( componentPath, versionNumber, "." ) );
+				} elseif ( migrationType == "upgrade" && versionNumber > arguments.currentVersion && versionNumber <= arguments.newVersion ) {
+					migrations.append( ListAppend( componentPath, versionNumber, "." ) );
+				}
+			}
+		}
+
+		migrations.sort( function( a, b ){
+			var comparison = compareVersions( a, b );
+			return migrationType == "downgrade" ? ( comparison * -1 ) : comparison;
+		} );
+
+		for( var migration in migrations ) {
+			CreateObject( migration ).run();
 		}
 	}
 

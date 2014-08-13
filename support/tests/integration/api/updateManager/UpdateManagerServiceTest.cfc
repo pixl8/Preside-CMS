@@ -88,6 +88,24 @@ component output="false" extends="mxunit.framework.TestCase" {
 		super.assert( adapter.versionIsDownloaded( "0.1.10.9049" ) );
 	}
 
+	function test10_compareVersions_shouldReturnMinus1_whenFirstVersionIsLessThanSecond() output=false {
+		var adapter = _getAdapter();
+
+		super.assertEquals( -1, adapter.compareVersions( "0.9.5", "0.10.43" ) );
+	}
+
+	function test11_compareVersions_shouldReturn1_whenFirstVersionIsGreaterThanSecond() output=false {
+		var adapter = _getAdapter();
+
+		super.assertEquals( 1, adapter.compareVersions( "0.10.43", "0.9.5" ) );
+	}
+
+	function test11_compareVersions_shouldReturn0_whenVersionsAreEqual() output=false {
+		var adapter = _getAdapter();
+
+		super.assertEquals( 0, adapter.compareVersions( "0.10.43", "0.10.43" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getAdapter( repositoryUrl="", presidePath="/tests/resources/updateManager" ) output=false  {
 		mockSettingsService = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
