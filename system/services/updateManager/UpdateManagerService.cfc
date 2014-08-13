@@ -24,6 +24,7 @@ component output=false autodoc=true displayName="Update manager service" {
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setApplicationReloadService( arguments.applicationReloadService );
 		_setPresidePath( arguments.presidePath );
+		_setActiveDownloads( {} );
 
 		return this;
 	}
@@ -128,17 +129,31 @@ component output=false autodoc=true displayName="Update manager service" {
 		return false;
 	}
 
+	public struct function listDownloadingVersions() output=false {
+		return _getActiveDownloads();
+	}
+
 	public void function downloadVersion( required string version ) output=false {
+		if ( _getActiveDownloads().keyExists( arguments.version ) ) {
+			throw( type="UpdateManagerService.download.already.in.progress", message="Version [#arguments.version#] is already being downloaded" );
+		}
+
 		var versions = listAvailableVersions();
 		for( var v in versions ){
 			if ( v.version == arguments.version ) {
 				var downloadUrl = _getRepositoryUrl() & "/" & v.path;
 
-				return _downloadAndUnpackVersionAsynchronously( downloadUrl );
+				return _downloadAndUnpackVersionAsynchronously( v.version, downloadUrl );
 			}
 		}
 
 		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found in the [#_getSetting( 'branch', 'release' )#] branch" );
+	}
+
+	public void function clearDownload( required string version ) output=false {
+		var activeDownloads = listDownloadingVersions();
+
+		activeDownloads.delete( arguments.version );
 	}
 
 	public boolean function installVersion( required string version ) output=false {
@@ -237,13 +252,35 @@ component output=false autodoc=true displayName="Update manager service" {
 		return presideDirectory & "/../";
 	}
 
-	private void function _downloadAndUnpackVersionAsynchronously( required string downloadUrl ) output=false {
-		var tempPath = getTempDirectory() & "/" & CreateUUId() & ".zip";
+	private void function _downloadAndUnpackVersionAsynchronously( required string version, required string downloadUrl ) output=false {
+		var tempPath        = getTempDirectory() & "/" & CreateUUId() & ".zip";
+		var downloadId      = CreateUUId();
+		var activeDownloads = _getActiveDownloads();
 
-		thread name=CreateUUId() downloadUrl=arguments.downloadUrl unpackToDir=_getVersionContainerDirectory() downloadPath=tempPath {
+		activeDownloads[ arguments.version ] = { complete=false, success=false, id=downloadId };
 
-			http url=attributes.downloadUrl path=attributes.downloadPath;
-			zip action="unzip" file=attributes.downloadPath destination=attributes.unpackToDir;
+		thread name=downloadId downloadId=downloadId downloadUrl=arguments.downloadUrl unpackToDir=_getVersionContainerDirectory() downloadPath=tempPath updateManagerService=this version=arguments.version {
+			try {
+				http url=attributes.downloadUrl path=attributes.downloadPath throwOnError=true;
+			} catch ( any e ) {
+				activeDownloads = attributes.updateManagerService.listDownloadingVersions();
+				if ( activeDownloads[ attributes.version ].id ?: "" == attributes.downloadId ) {
+					activeDownloads[ attributes.version ] = { complete=true, success=false, error=e, id=attributes.downloadId };
+				}
+				abort;
+			}
+
+			activeDownloads = attributes.updateManagerService.listDownloadingVersions();
+			if ( activeDownloads[ attributes.version ].id ?: "" == attributes.downloadId ) {
+				try {
+					zip action="unzip" file=attributes.downloadPath destination=attributes.unpackToDir;
+				} catch( any e ) {
+					activeDownloads[ attributes.version ] = { complete=true, success=false, error=e, id=attributes.downloadId };
+					abort;
+				}
+
+				activeDownloads[ attributes.version ] = { complete=true, success=true, id=attributes.downloadId };
+			}
 		}
 	}
 
@@ -274,6 +311,13 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 	private void function _setApplicationReloadService( required any applicationReloadService ) output=false {
 		_applicationReloadService = arguments.applicationReloadService;
+	}
+
+	private struct function _getActiveDownloads() output=false {
+		return _activeDownloads;
+	}
+	private void function _setActiveDownloads( required struct activeDownloads ) output=false {
+		_activeDownloads = arguments.activeDownloads;
 	}
 
 }
