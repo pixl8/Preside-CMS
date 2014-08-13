@@ -5,6 +5,9 @@
 	latestVersionDownloaded = prc.latestVersionDownloaded ?: false;
 	downloadedVersions      = prc.downloadedVersions      ?: [];
 	availableVersions       = prc.availableVersions       ?: [];
+	downloadingVersions     = prc.downloadingVersions     ?: {}
+	completeDownloads       = prc.completeDownloads       ?: []
+	erroredDownloads        = prc.erroredDownloads        ?: []
 </cfscript>
 
 <cfoutput>
@@ -32,6 +35,12 @@
 				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.installVersion', queryString='version=#latestVersion#' )#">
 					<i class="fa fa-bolt"></i>
 					#translateResource( uri="cms:updateManager.install.version.btn" )#
+				</a>
+			<cfelseif downloadingVersions.keyExists( latestVersion )>
+				#translateResource( uri="cms:updateManager.latest.version.downloading", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
+				<a class="btn pull-right btn-disabled" disabled>
+					<i class="fa fa-cloud-download"></i>
+					#translateResource( uri="cms:updateManager.downloading.version.btn" )#
 				</a>
 			<cfelse>
 				#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#

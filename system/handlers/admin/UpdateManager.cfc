@@ -22,15 +22,26 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 // EVENTS
 	function index( event, rc, prc ) output=false {
-		prc.pageTitle    = translateResource( "cms:updateManager" );
-		prc.pageSubTitle = translateResource( "cms:updateManager.subtitle" );
-
+		prc.pageTitle               = translateResource( "cms:updateManager" );
+		prc.pageSubTitle            = translateResource( "cms:updateManager.subtitle" );
 		prc.currentVersion          = updateManagerService.getCurrentVersion();
 		prc.latestVersion           = updateManagerService.getLatestVersion();
 		prc.downloadedVersions      = updateManagerService.listDownloadedVersions();
 		prc.availableVersions       = updateManagerService.listAvailableVersions();
 		prc.versionUpToDate         = prc.currentVersion >= prc.latestVersion;
 		prc.latestVersionDownloaded = prc.versionUpToDate || updateManagerService.versionIsDownloaded( prc.latestVersion );
+		prc.downloadingVersions     = updateManagerService.listDownloadingVersions();
+
+		for( var version in prc.downloadingVersions ){
+			if ( prc.downloadingVersions[ version ].complete ) {
+				if ( prc.downloadingVersions[ version ].success ) {
+					messagebox.info( translateResource( uri="cms:updateManager.download.complete.confirmation", data=[ version ] ) );
+				} else {
+					messagebox.error( translateResource( uri="cms:updateManager.download.error.message", data=[ version ] ) );
+				}
+				updateManagerService.clearDownload( version );
+			}
+		}
 
 		event.setView( "/admin/updateManager/index" );
 	}

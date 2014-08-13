@@ -62,7 +62,14 @@ component output=false autodoc=true displayName="Update manager service" {
 	}
 
 	public array function listAvailableVersions() output=false {
-		var s3Listing         = _fetchS3BucketListing();
+		var s3Listing         = "";
+
+		try {
+			s3Listing = _fetchS3BucketListing();
+		} catch ( any e ) {
+			return [];
+		}
+
 		var branchPath        = _getRemoteBranchPath();
 		var xPath             = "/:ListBucketResult/:Contents/:Key[starts-with(.,'#branchPath#')]/text()";
 		var versionFiles      = XmlSearch( s3Listing, xPath );
@@ -154,6 +161,28 @@ component output=false autodoc=true displayName="Update manager service" {
 		var activeDownloads = listDownloadingVersions();
 
 		activeDownloads.delete( arguments.version );
+	}
+
+	public boolean function downloadIsActive( required string version, required string downloadId ) output=false {
+		var activeDownloads = listDownloadingVersions();
+
+		return ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId;
+	}
+
+	public void function markDownloadAsErrored( required string version, required string downloadId, required struct error ) output=false {
+		var activeDownloads = listDownloadingVersions();
+		if ( ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId ) {
+			activeDownloads[ arguments.version ].complete = true;
+			activeDownloads[ arguments.version ].success  = false;
+			activeDownloads[ arguments.version ].error    = arguments.error;
+		}
+	}
+	public void function markDownloadAsComplete( required string version, required string downloadId ) output=false {
+		var activeDownloads = listDownloadingVersions();
+		if ( ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId ) {
+			activeDownloads[ arguments.version ].complete = true;
+			activeDownloads[ arguments.version ].success  = true;
+		}
 	}
 
 	public boolean function installVersion( required string version ) output=false {
@@ -263,23 +292,19 @@ component output=false autodoc=true displayName="Update manager service" {
 			try {
 				http url=attributes.downloadUrl path=attributes.downloadPath throwOnError=true;
 			} catch ( any e ) {
-				activeDownloads = attributes.updateManagerService.listDownloadingVersions();
-				if ( activeDownloads[ attributes.version ].id ?: "" == attributes.downloadId ) {
-					activeDownloads[ attributes.version ] = { complete=true, success=false, error=e, id=attributes.downloadId };
-				}
+				attributes.updateManagerService.markDownloadAsErrored( attributes.version, attributes.downloadId, e );
 				abort;
 			}
 
-			activeDownloads = attributes.updateManagerService.listDownloadingVersions();
-			if ( activeDownloads[ attributes.version ].id ?: "" == attributes.downloadId ) {
+			if ( attributes.updateManagerService.downloadIsActive( attributes.version, attributes.downloadId ) ) {
 				try {
 					zip action="unzip" file=attributes.downloadPath destination=attributes.unpackToDir;
 				} catch( any e ) {
-					activeDownloads[ attributes.version ] = { complete=true, success=false, error=e, id=attributes.downloadId };
+					attributes.updateManagerService.markDownloadAsErrored( attributes.version, attributes.downloadId, e );
 					abort;
 				}
 
-				activeDownloads[ attributes.version ] = { complete=true, success=true, id=attributes.downloadId };
+				attributes.updateManagerService.markDownloadAsComplete( attributes.version, attributes.downloadId );
 			}
 		}
 	}
