@@ -528,7 +528,7 @@
 			deletedCount = trashedPagesBeforeDelete.nPages - trashedPagesAfterDelete.nPages;
 
 			super.assertEquals( reportedDeletedCount, deletedCount, "Reported (#reportedDeletedCount#) and actual (#deletedCount#) deleted counts differ!" );
-			super.assertEquals( 31, deletedCount, "Expected deleted count not correct" );
+			super.assertEquals( 31, deletedCount, "Expected deleted count not correct. Expected 31 but #deletedCount# were deleted instead." );
 			super.assert( trashedPagesAfterDelete.nPages, "Expected there still to be some pages left in the trash" );
 			super.assertFalse( pagesThatShouldBeDeleted.recordCount, "The correct pages were not removed from the sitetree trash" );
 		</cfscript>
