@@ -20,7 +20,7 @@
 
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
-			var poService   = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
+			poService   = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
 			var logger      = _getTestLogger();
 			var siteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ], siteService=SiteService );
@@ -71,7 +71,7 @@
 				, _hierarchy_slug           = "/home/"
 			};
 			var expectedNulls = [ "parent_page", "embargo_date", "expiry_date", "author" ,"browser_title","keywords","description" ];
-			var createdPage = _selectData( objectName="page", filter={ id = pageId } );
+			var createdPage = poService.selectData( objectName="page", filter={ id = pageId } );
 			var field = "";
 
 			super.assert( createdPage.recordCount, "No record was created" );
@@ -107,7 +107,7 @@
 				);
 			}
 
-			createdPages = _selectData( objectName="page", filter={ id = childPageIds }, orderBy="_hierarchy_sort_order" );
+			createdPages = poService.selectData( objectName="page", filter={ id = childPageIds }, orderBy="_hierarchy_sort_order" );
 
 			super.assertEquals( 5, createdPages.recordCount, "Expected 5 pages to be created, instead #createdPages.recordCount# were reported." )
 			for( var i=1; i lte 5; i++ ){
@@ -176,7 +176,7 @@
 				, _hierarchy_depth          = 0
 				, _hierarchy_slug           = "/some-slug/"
 			};
-			var createdPage = _selectData( objectName="page", filter={ id = pageId } );
+			var createdPage = poService.selectData( objectName="page", filter={ id = pageId } );
 			var field = "";
 
 			super.assert( createdPage.recordCount, "No record was created" );
@@ -223,7 +223,7 @@
 				, expiry_date  = "2050-08-15"
 				, browser_title = "test title"
 			);
-			var createdPage = _selectData( objectName="page", filter={ id = pageId } );
+			var createdPage = poService.selectData( objectName="page", filter={ id = pageId } );
 			var expected = {
 				  browser_title = "test title"
 				, embargo_date  = "{ts '2050-08-14 00:00:00'}"
@@ -250,7 +250,7 @@
 				  id     = dummyPages[1].children[3].id
 				, sort_order = newSortOrder
 			);
-			var allRows    = _selectData( objectName="page", selectFields=["_hierarchy_sort_order"], orderBy="_hierarchy_sort_order" );
+			var allRows    = poService.selectData( objectName="page", selectFields=["_hierarchy_sort_order"], orderBy="_hierarchy_sort_order" );
 			var expectedSortOrders = [ "/1/" ];
 
 			for( var i=1; i lte 5; i++ ) {
@@ -283,7 +283,7 @@
 				  id = dummyPages[1].children[2].id
 				, slug   = newSlug
 			);
-			var allRows    = _selectData( objectName="page", selectFields=["_hierarchy_slug"], orderBy="_hierarchy_sort_order" );
+			var allRows    = poService.selectData( objectName="page", selectFields=["_hierarchy_slug"], orderBy="_hierarchy_sort_order" );
 			var expectedSlugs = [ "/home/" ];
 
 			for( var i=1; i lte 5; i++ ) {
@@ -314,7 +314,7 @@
 				  id      = dummyPages[1].children[5].id
 				, parent_page = dummyPages[1].children[4].id
 			);
-			var allRows    = _selectData( objectName="page", orderBy="_hierarchy_sort_order" );
+			var allRows    = poService.selectData( objectName="page", orderBy="_hierarchy_sort_order" );
 			var expected   = [ { lineage="/", selector="/#dummyPages[1]._hierarchy_id#/%", sortorder="/1/", slug="/home/", depth=0 } ];
 
 			// MODEL THE EXPECTED NEW SORT ORDER OF DATA (a bit of a PITA!)
@@ -400,8 +400,8 @@
 				, slug        = newSlug
 			);
 			var expected    = [];
-			var newParent   = _selectData( objectName="page", filter={ id=dummyPages[1].children[2].children[1].id } );
-			var newChildren = _selectData(
+			var newParent   = poService.selectData( objectName="page", filter={ id=dummyPages[1].children[2].children[1].id } );
+			var newChildren = poService.selectData(
 				  objectName="page"
 				, filter="_hierarchy_lineage like :_hierarchy_lineage or id = :id"
 				, filterParams={ id=dummyPages[1].children[1].id, _hierarchy_lineage=newParent._hierarchy_lineage & newParent._hierarchy_id & "/" & dummyPages[1].children[1]._hierarchy_id & "/%" }
@@ -471,8 +471,8 @@
 
 			treeSvc.trashPage( dummyPages[1].children[3].id );
 
-			recycledPages            = _selectData( objectName="page", filter={ trashed = true }, orderBy="_hierarchy_sort_order", useCcahe=false );
-			pagesThatShouldBeDeleted = _selectData(
+			recycledPages            = poService.selectData( objectName="page", filter={ trashed = true }, orderBy="_hierarchy_sort_order", useCcahe=false );
+			pagesThatShouldBeDeleted = poService.selectData(
 				  objectName   = "page"
 				, orderBy      = "_hierarchy_sort_order"
 				, filter       = "trashed = 0 and ( _hierarchy_lineage like :_hierarchy_lineage or id = :id )"
@@ -501,7 +501,7 @@
 			var deletedCount             = "";
 			var reportedDeletedCount     = "";
 
-			trashedPagesBeforeDelete = _selectData(
+			trashedPagesBeforeDelete = poService.selectData(
 				  objectName   = "page"
 				, filter       = { trashed = true }
 				, selectFields = [ "count(*) as nPages" ]
@@ -512,14 +512,14 @@
 			reportedDeletedCount = treeSvc.permanentlyDeletePage( recycledPages[1].children[2].id );
 			// END THE METHOD WE ARE TESTING
 
-			trashedPagesAfterDelete = _selectData(
+			trashedPagesAfterDelete = poService.selectData(
 				  objectName   = "page"
  				, filter       = { trashed = true }
 				, selectFields = [ "count(*) as nPages" ]
 				, useCache     = false
 			);
 
-			pagesThatShouldBeDeleted = _selectData(
+			pagesThatShouldBeDeleted = poService.selectData(
 				  objectName   = "page"
 				, filter       = "_hierarchy_lineage like :_hierarchy_lineage or id = :id"
 				, filterParams = { id = recycledPages[1].children[2].id, _hierarchy_lineage="/#recycledPages[1].id#/#recycledPages[1].children[2].id#/%" }
@@ -527,7 +527,7 @@
 
 			deletedCount = trashedPagesBeforeDelete.nPages - trashedPagesAfterDelete.nPages;
 
-			super.assertEquals( reportedDeletedCount, deletedCount, "Reported and actual deleted counts differ!" );
+			super.assertEquals( reportedDeletedCount, deletedCount, "Reported (#reportedDeletedCount#) and actual (#deletedCount#) deleted counts differ!" );
 			super.assertEquals( 31, deletedCount, "Expected deleted count not correct" );
 			super.assert( trashedPagesAfterDelete.nPages, "Expected there still to be some pages left in the trash" );
 			super.assertFalse( pagesThatShouldBeDeleted.recordCount, "The correct pages were not removed from the sitetree trash" );
@@ -548,7 +548,7 @@
 			// SETUP THE DUMMY DATA AND EXPECTED RESULTS
 			treeSvc.trashPage( page.id );
 
-			recycledBefore = _selectData(
+			recycledBefore = poService.selectData(
 				  objectName   = "page"
 				, selectFields = [ "Count(*) as nPages" ]
 				, filter       = { trashed = 1 }
@@ -574,14 +574,14 @@
 			// END RESTORE THE PAGE
 
 			// TEST THE DATA
-			recycledAfter = _selectData(
+			recycledAfter = poService.selectData(
 				  objectName   = "page"
 				, selectFields = [ "Count(*) as nPages" ]
 				, filter       = { trashed = 1 }
 				, useCache     = false
 			);
 
-			restoredPages = _selectData(
+			restoredPages = poService.selectData(
 				  objectName   = "page"
 				, filter       = "trashed = 0 and ( id = :id or _hierarchy_lineage like :_hierarchy_lineage )"
 				, filterParams = { id = page.id, _hierarchy_lineage = "/#dummyPages[1]._hierarchy_id#/#page._hierarchy_id#/%" }
@@ -1139,11 +1139,11 @@
 
 	<cffunction name="_setupDummyTreeData" access="private" returntype="void" output="false">
 		<cfscript>
-			variables.dummyUser = _insertData(
+			variables.dummyUser = poService.insertData(
 				  objectName="security_user"
 				, data={ known_as="dummy", login_id="dummy", email_address="dummy", password=_bCryptPassword( "dummy" ) }
 			);
-			variables.dummySite = _insertData(
+			variables.dummySite = poService.insertData(
 				  objectName="site"
 				, data={ name="dummy", path="/", domain="127.0.0.1", protocol="http" }
 			);
