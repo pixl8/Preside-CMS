@@ -169,6 +169,12 @@ component output=false autodoc=true displayName="Update manager service" {
 		return ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId;
 	}
 
+	public boolean function downloadIsComplete( required string version ) output=false {
+		var activeDownloads = listDownloadingVersions();
+
+		return activeDownloads[ arguments.version ].complete ?: true;
+	}
+
 	public void function markDownloadAsErrored( required string version, required string downloadId, required struct error ) output=false {
 		var activeDownloads = listDownloadingVersions();
 		if ( ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId ) {

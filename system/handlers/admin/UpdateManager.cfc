@@ -131,4 +131,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
+	function downloadIsComplete( event, rc, prc ) output=false {
+		event.renderData( data={ complete=updateManagerService.downloadIsComplete( rc.version ?: "" ) }, type="json" );
+	}
+
 }

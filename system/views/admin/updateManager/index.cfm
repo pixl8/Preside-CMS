@@ -42,6 +42,7 @@
 					<i class="fa fa-cloud-download"></i>
 					#translateResource( uri="cms:updateManager.downloading.version.btn" )#
 				</a>
+				<cfset event.includeData( { downloadingVersion=latestVersion } ) />
 			<cfelse>
 				#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
 				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.downloadVersion', queryString='version=#latestVersion#' )#">
