@@ -32,7 +32,7 @@
 			<i class="fa fa-info-circle fa-lg"></i>&nbsp;
 			<cfif latestVersionDownloaded>
 				#translateResource( uri="cms:updateManager.latest.version.installable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
-				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.installVersion', queryString='version=#latestVersion#' )#">
+				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.installVersionAction', queryString='version=#latestVersion#' )#">
 					<i class="fa fa-bolt"></i>
 					#translateResource( uri="cms:updateManager.install.version.btn" )#
 				</a>
@@ -45,7 +45,7 @@
 				<cfset event.includeData( { downloadingVersion=latestVersion } ) />
 			<cfelse>
 				#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
-				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.downloadVersion', queryString='version=#latestVersion#' )#">
+				<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.downloadVersionAction', queryString='version=#latestVersion#' )#">
 					<i class="fa fa-cloud-download"></i>
 					#translateResource( uri="cms:updateManager.download.version.btn" )#
 				</a>
@@ -96,10 +96,10 @@
 										<a> <i class="grey fa fa-bolt bigger-130"></i> </a>
 										<a> <i class="grey fa fa-trash-o bigger-130"></i> </a>
 									<cfelse>
-										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.installVersion", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
+										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.installVersionAction", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
 											<i class="fa fa-bolt bigger-130"></i>
 										</a>
-										<a class="red confirmation-prompt" href="#event.buildAdminLink( linkTo="updateManager.removeLocalVersion", queryString="version=#version.version#")#" title="#translateResource( uri="cms:updateManager.trash.local.version.link", data=[ version.version ] )#">
+										<a class="red confirmation-prompt" href="#event.buildAdminLink( linkTo="updateManager.removeLocalVersionAction", queryString="version=#version.version#")#" title="#translateResource( uri="cms:updateManager.trash.local.version.link", data=[ version.version ] )#">
 											<i class="fa fa-trash-o bigger-130"></i>
 										</a>
 									</cfif>
@@ -138,7 +138,7 @@
 								<td><i class="grey fa fa-times"></i></td>
 								<td>
 									<div class="action-buttons">
-										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.downloadVersion", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
+										<a class="blue" href="#event.buildAdminLink( linkto="updateManager.downloadVersionAction", querystring="version=#version.version#" )#" title="#translateResource( uri='cms:updateManager.install.version.link', data=[ version.version ] )#">
 											<i class="fa fa-cloud-download bigger-130"></i>
 										</a>
 									</div>

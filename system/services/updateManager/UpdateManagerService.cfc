@@ -196,7 +196,7 @@ component output=false autodoc=true displayName="Update manager service" {
 		for( var v in versions ){
 			if ( v.version == arguments.version ) {
 				try {
-					admin action="updateMapping"
+					admin action   = "updateMapping"
 					      type     = "web"
 					      virtual  = "/preside"
 					      physical = v.path

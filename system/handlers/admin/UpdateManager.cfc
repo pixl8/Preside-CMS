@@ -81,7 +81,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	}
 
-	function downloadVersion( event, rc, prc ) output=false {
+	function downloadVersionAction( event, rc, prc ) output=false {
 		try {
 			updateManagerService.downloadVersion( version = rc.version ?: "" );
 		} catch( "UpdateManagerService.unknown.version" e ) {
@@ -94,7 +94,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
-	function installVersion( event, rc, prc ) output=false {
+	function installVersionAction( event, rc, prc ) output=false {
 		try {
 			updateManagerService.installVersion( version = rc.version ?: "" );
 		} catch( "UpdateManagerService.unknown.version" e ) {
@@ -111,7 +111,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
-	function removeLocalVersion( event, rc, prc ) output=false {
+	function removeLocalVersionAction( event, rc, prc ) output=false {
 		try {
 			updateManagerService.deleteVersion( version = rc.version ?: "" );
 		} catch( "UpdateManagerService.unknown.version" e ) {
