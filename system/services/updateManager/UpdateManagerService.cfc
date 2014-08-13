@@ -311,6 +311,10 @@ component output=false autodoc=true displayName="Update manager service" {
 				}
 
 				attributes.updateManagerService.markDownloadAsComplete( attributes.version, attributes.downloadId );
+
+				try {
+					FileDelete( attributes.downloadPath );
+				} catch ( any e ) {}
 			}
 		}
 	}
