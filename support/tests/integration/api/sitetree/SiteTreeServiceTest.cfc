@@ -491,59 +491,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test11_permanentlyDeletePage_shouldDeletePage_andAllItsChildren" returntype="void">
-		<cfscript>
-			var recycledPages            = _createADummySiteTreeWithAFewLevelsOfDepth( inRecycleBin = true );
-			var treeSvc                  = siteTreeService;
-			var pagesThatShouldBeDeleted = "";
-			var trashedPagesBeforeDelete = "";
-			var trashedPagesAfterDelete  = "";
-			var deletedCount             = "";
-			var reportedDeletedCount     = "";
-			var pagesWeExpectToBeDeleted = "";
-			var rootPage                 = "";
-
-			trashedPagesBeforeDelete = poService.selectData(
-				  objectName   = "page"
-				, filter       = { trashed = true }
-				, selectFields = [ "count(*) as nPages" ]
-				, useCache     = false
-			);
-
-			rootPage = poService.selectData( objectName="page", id = recycledPages[1].children[2].id, filter = { trashed=true } );
-			pagesWeExpectToBeDeleted = poService.selectData(
-				  objectName   = "page"
-				, selectFields = [ "Count(*) as nPages" ]
-				, filter       = "id = :id or _hierarchy_lineage like :_hierarchy_lineage"
-				, filterParams = { id = recycledPages[1].children[2].id, _hierarchy_lineage = rootPage._hierarchy_child_selector }
-			);
-
-			// THE METHOD WE ARE TESTING
-			reportedDeletedCount = treeSvc.permanentlyDeletePage( recycledPages[1].children[2].id );
-			// END THE METHOD WE ARE TESTING
-
-			trashedPagesAfterDelete = poService.selectData(
-				  objectName   = "page"
- 				, filter       = { trashed = true }
-				, selectFields = [ "count(*) as nPages" ]
-				, useCache     = false
-			);
-
-			pagesThatShouldBeDeleted = poService.selectData(
-				  objectName   = "page"
-				, filter       = "_hierarchy_lineage like :_hierarchy_lineage or id = :id"
-				, filterParams = { id = recycledPages[1].children[2].id, _hierarchy_lineage="/#recycledPages[1].id#/#recycledPages[1].children[2].id#/%" }
-			);
-
-			deletedCount = trashedPagesBeforeDelete.nPages - trashedPagesAfterDelete.nPages;
-
-			super.assertEquals( reportedDeletedCount, deletedCount, "Reported (#reportedDeletedCount#) and actual (#deletedCount#) deleted counts differ!" );
-			super.assertEquals( pagesWeExpectToBeDeleted.nPages, deletedCount, "Expected deleted count not correct. Expected #pagesWeExpectToBeDeleted.nPages# but #deletedCount# were deleted" );
-			super.assert( trashedPagesAfterDelete.nPages, "Expected there still to be some pages left in the trash" );
-			super.assertFalse( pagesThatShouldBeDeleted.recordCount, "The correct pages were not removed from the sitetree trash" );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="test12_restorePage_shouldRestorePage_andItsChildren_toSpecifiedParent" returntype="void">
 		<cfscript>
 			var treeSvc          = siteTreeService;
