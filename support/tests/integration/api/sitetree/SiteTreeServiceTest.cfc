@@ -500,12 +500,22 @@
 			var trashedPagesAfterDelete  = "";
 			var deletedCount             = "";
 			var reportedDeletedCount     = "";
+			var pagesWeExpectToBeDeleted = "";
+			var rootPage                 = "";
 
 			trashedPagesBeforeDelete = poService.selectData(
 				  objectName   = "page"
 				, filter       = { trashed = true }
 				, selectFields = [ "count(*) as nPages" ]
 				, useCache     = false
+			);
+
+			rootPage = poService.selectData( objectName="page", id = recycledPages[1].children[2].id, filter = { trashed=true } );
+			pagesWeExpectToBeDeleted = poService.selectData(
+				  objectName   = "page"
+				, selectFields = [ "Count(*) as nPages" ]
+				, filter       = "id = :id or _hierarchy_lineage like :_hierarchy_lineage"
+				, filterParams = { id = recycledPages[1].children[2].id, _hierarchy_lineage = rootPage._hierarchy_child_selector }
 			);
 
 			// THE METHOD WE ARE TESTING
@@ -528,7 +538,7 @@
 			deletedCount = trashedPagesBeforeDelete.nPages - trashedPagesAfterDelete.nPages;
 
 			super.assertEquals( reportedDeletedCount, deletedCount, "Reported (#reportedDeletedCount#) and actual (#deletedCount#) deleted counts differ!" );
-			super.assertEquals( 31, deletedCount, "Expected deleted count not correct. Expected 31 but #deletedCount# were deleted instead." );
+			super.assertEquals( pagesWeExpectToBeDeleted.nPages, deletedCount, "Expected deleted count not correct. Expected #pagesWeExpectToBeDeleted.nPages# but #deletedCount# were deleted" );
 			super.assert( trashedPagesAfterDelete.nPages, "Expected there still to be some pages left in the trash" );
 			super.assertFalse( pagesThatShouldBeDeleted.recordCount, "The correct pages were not removed from the sitetree trash" );
 		</cfscript>
