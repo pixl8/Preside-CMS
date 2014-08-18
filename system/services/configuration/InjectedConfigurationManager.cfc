@@ -32,15 +32,16 @@ component output=false {
 		var app              = _getApp();
 		var applicationId    = app.PRESIDE_APPLICATION_ID             ?: _getEnvironmentVariable( "PRESIDE_APPLICATION_ID"             );
 		var serverManagerUrl = app.PRESIDE_SERVER_MANAGER_URL         ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_URL"         );
+		var serverId         = app.PRESIDE_SERVER_MANAGER_SERVER_ID   ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_SERVER_ID"   );
 		var publicKey        = app.PRESIDE_SERVER_MANAGER_PUBLIC_KEY  ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_PUBLIC_KEY"  );
 		var privateKey       = app.PRESIDE_SERVER_MANAGER_PRIVATE_KEY ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_PRIVATE_KEY" );
 		var config           = {};
 
 
-		if ( Len( Trim( applicationId ) ) && Len( Trim( serverManagerUrl ) ) && Len( Trim( publicKey ) ) && Len( Trim( privateKey ) ) ) {
+		if ( Len( Trim( applicationId ) ) && Len( Trim( serverManagerUrl ) ) && Len( Trim( publicKey ) ) && Len( Trim( privateKey ) ) && Len( Trim( serverId ) ) ) {
 			config = new preside.system.services.serverManager.PresideServerManagerApiClient( endpoint=serverManagerUrl, publicKey=publicKey, privateKey=privateKey ).getConfig(
 				  applicationId = applicationId
-				, serverAddress = cgi.local_addr ?: ""
+				, serverId      = serverId
 			);
 
 			if ( !config.isEmpty() ) {

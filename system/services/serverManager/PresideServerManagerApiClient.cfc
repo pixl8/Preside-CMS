@@ -14,13 +14,13 @@ component output=false {
 	}
 
 // PUBLIC API METHODS
-	public struct function getConfig( required string serverAddress, required string applicationId  ) output=false{
+	public struct function getConfig( required string serverId, required string applicationId  ) output=false{
 		var result = "";
 
 		try {
 			result = _apiCall(
 				  apiMethod = "config"
-				, args      = { serverAddress=arguments.serverAddress, websiteApplicationId=arguments.applicationId }
+				, args      = { serverId=arguments.serverId, websiteApplicationId=arguments.applicationId }
 			);
 		} catch ( any e ) {
 			return {};
