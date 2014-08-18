@@ -107,7 +107,7 @@ component extends="coldbox.system.web.Controller" output=false {
 			return Evaluate( "target.#arguments.name#" );
 		}
 
-		if ( arguments.keyExists( "defaultValue" ) ) {
+		if ( StructKeyExists( arguments, "defaultValue" ) ) {
 			return arguments.defaultValue;
 		}
 
