@@ -46,8 +46,19 @@ component output="false" singleton=true {
 		var rules         = [];
 
 		for( tab in formObject.tabs ){
+			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
+				continue;
+			}
 			for( fieldset in tab.fieldsets ){
+				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+					continue;
+				}
+
 				for( field in fieldset.fields ){
+					if ( IsBoolean( field.deleted ?: "" ) && field.deleted ) {
+						continue;
+					}
+
 					param name="field.name" default="";
 					param name="field.binding" default="";
 

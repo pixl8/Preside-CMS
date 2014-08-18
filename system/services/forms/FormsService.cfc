@@ -120,9 +120,15 @@ component output=false singleton=true {
 		var fields = [];
 
 		for( var tab in frm.tabs ){
+			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
+				continue;
+			}
 			for( var fieldset in tab.fieldsets ) {
+				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+					continue;
+				}
 				for( var field in fieldset.fields ) {
-					if ( ( field.control ?: "" ) != "readonly" ) {
+					if ( ( field.control ?: "" ) != "readonly" && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}
@@ -184,15 +190,26 @@ component output=false singleton=true {
 		var renderArgs        = "";
 
 		for( var tab in frm.tabs ){
+			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
+				continue;
+			}
+
 			renderedFieldSets = CreateObject( "java", "java.lang.StringBuffer" );
 			if ( not Len( Trim( tab.id ?: "" ) ) ) {
 				tab.id = CreateUUId();
 			}
 
 			for( var fieldset in tab.fieldsets ) {
+				if ( IsBoolean( fieldset.deleted ?: "" ) && fieldset.deleted ) {
+					continue;
+				}
+
 				renderedFields = CreateObject( "java", "java.lang.StringBuffer" );
 
 				for( var field in fieldset.fields ) {
+					if ( IsBoolean( field.deleted ?: "" ) && field.deleted ) {
+						continue;
+					}
 					if ( ( field.control ?: "default" ) neq "none" ) {
 						renderArgs = {
 							  name      = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
@@ -712,10 +729,12 @@ component output=false singleton=true {
 
 				for( var field in fieldset.fields ) {
 					var fieldMatched = false;
+					var fieldDeleted = false;
 					for( var mField in matchingFieldset.fields ){
 						if ( mField.name == field.name ) {
 							if ( IsBoolean( field.deleted ?: "" ) and field.deleted ) {
 								ArrayDelete( matchingFieldset.fields, mField );
+								fieldDeleted = true;
 							} else {
 								StructAppend( mField, field );
 								fieldMatched = true;
@@ -723,7 +742,7 @@ component output=false singleton=true {
 							}
 						}
 					}
-					if ( !fieldMatched and !( IsBoolean( field.deleted ?: "" ) and field.deleted ) ) {
+					if ( !fieldMatched && !fieldDeleted ) {
 						ArrayAppend( matchingFieldset.fields, field );
 					}
 				}
