@@ -28,6 +28,9 @@ All pages in the tree must be associated with a page *type*; this page type will
 Creating a page type
 ####################
 
+The data model
+--------------
+
 A page type is defined by creating a **Preside Data Object** (see :doc:`presideobjects`) that lives in a subdirectory called "page-types". For example: :code:`/preside-objects/page-types/event.cfc`:
 
 .. code-block:: java
@@ -58,4 +61,21 @@ Under the hood, the system will add some fields for you to cement the relationsh
     Notice the "page.title" **labelfield** attribute on the component tag. This has the effect of the 'title' field of the related 'page' object being used as the labelfield (see :ref:`presideobjectslabelfield`).
 
     **You do not need to specify this yourself, written here as an illustration of what gets added under the hood**
+
+UI and i18n
+-----------
+
+In order for the page type to appear in a satisfactory way for your users when creating new pages (see screenshot below), you will also need to create a :code:`.properties` file for the page type. 
+
+.. figure:: /images/page_type_picker.png
+
+    Screenshot of a typical page type picker that appears when adding a new page to the tree.
+
+For example, if your page type **Preside data object** was, :code:`/preside-objects/page-types/event.cfc`, you would need to create a :code:`.properties` file at, :code:`/i18n/page-types/event.properties`. In it, you will need to add *name*, *description* and *iconclass* keys, e.g.
+
+.. code-block:: properties
+
+    name=Homepage
+    description=This page type is reserved for the very homepage of your site
+    iconclass=fa-home
 
