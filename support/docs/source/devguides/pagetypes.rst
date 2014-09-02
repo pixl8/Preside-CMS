@@ -4,29 +4,27 @@ Working with page types
 Overview
 ########
 
-Page types allow developers to wire structured content to website pages that are stored in the site tree. They are implemented in a way that is intuitive to the end-users and painless for developers.
-
-
+Page types allow developers to wire *structured content* to website pages that are stored in the *site tree*. They are implemented in a way that is intuitive to the end-users and painless for developers.
 
 Architecture
-############
+------------
 
 Pages
------
+~~~~~
 
 Pages in a site's tree are stored in the 'page' preside object (see :doc:`/reference/presideobjects/page`). This object stores information that is common to all pages such as *title* and *slug*.
 
-
 Page types
-----------
+~~~~~~~~~~
 
 All pages in the tree must be associated with a page *type*; this page type will define further fields that are specific to its purpose. Each page type will have its own Preside Object in which the specific data is stored. For example, you might have an "event" page type that had *Start date*, *End date* and *Location* fields.
 
 **A one-to-one relationship exists between each page type object and the page obejct**. This means that every **page type** record must and will have a corresponding **page** record.
 
-
 Creating a page type
 ####################
+
+The are four essential parts to building a page type. The data model, view layer, i18n properties file and form layout(s).
 
 The data model
 --------------
@@ -52,7 +50,7 @@ Under the hood, the system will add some fields for you to cement the relationsh
         property name="end_date"   type="date"   dbtype="date"                  required=true;
         property name="location"   type="string" dbtype="varchar" maxLength=100 required=false; 
 
-        // auto generated property (you don't need to create this yourself
+        // auto generated property (you don't need to create this yourself)
         property mame="page" relationship="many-to-one" relatedto="page" required=true uniqueindexes="page" ondelete="cascade" onupdate="cascade";
     }
 
@@ -60,7 +58,29 @@ Under the hood, the system will add some fields for you to cement the relationsh
 
     Notice the "page.title" **labelfield** attribute on the component tag. This has the effect of the 'title' field of the related 'page' object being used as the labelfield (see :ref:`presideobjectslabelfield`).
 
-    **You do not need to specify this yourself, written here as an illustration of what gets added under the hood**
+    **You do not need to specify this yourself, written here as an illustration of what gets added under the hood.**
+
+View layer
+----------
+
+The page types system takes advantage of auto wired views (see :doc:`presideobjectviews`). What this means is that we do not need to create a service layer or a coldbox handler for our page type, PresideCMS will take care of wiring your view to your object.
+
+Using our "event" page type example, we would create a view file at :code:`/views/page-types/event/index.cfm`. A simplified example might then look something like this:
+
+.. code-block:: cfm
+
+    <!--- /views/page-types/event/index.cfm --->
+    <cfparam name="args.title"      field="page.title"       editable="true" />
+    <cfparam name="args.start_date" field="event.start_date" editable="true" />
+    <cfparam name="args.end_date"   field="event.end_date"   editable="true" />
+    <cfparam name="args.location"   field="event.location"   editable="true" />
+
+    <cfoutput>
+        <h1>#page.title#</h1>
+        <div class="dates-and-location">
+            <p>From #args.start_date# to #args.end_date# @ #args.location#</p>
+        </div>
+    </cfoutput>
 
 UI and i18n
 -----------
@@ -76,11 +96,11 @@ For example, if your page type **Preside data object** was, :code:`/preside-obje
 .. code-block:: properties
 
     # mandatory keys
-    name=Homepage
-    description=This page type is reserved for the very homepage of your site
-    iconclass=fa-home
+    name=Event
+    description=An event page
+    iconclass=fa-calendar
 
-    # keys for labelling in the add / edit page forms (see below)
+    # keys for the add / edit page forms (completely up to you, see below)
     tab.title=Event fields
     field.title.label=Event name
     field.start_date.label=Start date
@@ -115,7 +135,7 @@ To achieve this, you can either create a single form layout that will be used to
     <form>
         <tab id="main">
             <fieldset id="main">
-                <!-- modify the field label for the 'title' field -->
+                <!-- modify the label for the 'title' field to be event specific (uses a key from our i18n properties file above) -->
                 <field name="title" label="page-types.event:field.title.label" />
 
                 <!-- delete some fields that we don't want to see for event pages -->
