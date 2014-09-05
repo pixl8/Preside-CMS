@@ -24,7 +24,11 @@ All pages in the tree must be associated with a page *type*; this page type will
 Creating a page type
 ####################
 
-The are four essential parts to building a page type. The data model, view layer, i18n properties file and form layout(s).
+There are four essential parts to building a page type. The data model, view layer, i18n properties file and form layout(s). 
+
+.. hint::
+
+    You can scaffold all the parts of a page template very quickly using the Developer console (see :doc:`developerconsole`). Once in the console, type :code:`new pagetype` and follow the prompts.
 
 The data model
 --------------
@@ -63,7 +67,7 @@ Under the hood, the system will add some fields for you to cement the relationsh
 View layer
 ----------
 
-The page types system takes advantage of auto wired views (see :doc:`presideobjectviews`). What this means is that we do not need to create a service layer or a coldbox handler for our page type, PresideCMS will take care of wiring your view to your object.
+The page types system takes advantage of auto wired views (see :doc:`presideobjectviews`). What this means is that we do not need to create a service layer or a coldbox handler for our page type, PresideCMS will take care of wiring your view to your page type data object.
 
 Using our "event" page type example, we would create a view file at :code:`/views/page-types/event/index.cfm`. A simplified example might then look something like this:
 
@@ -81,6 +85,57 @@ Using our "event" page type example, we would create a view file at :code:`/view
             <p>From #args.start_date# to #args.end_date# @ #args.location#</p>
         </div>
     </cfoutput>
+
+Using a handler
+~~~~~~~~~~~~~~~
+
+If you need to do some handler logic before rendering your page type, you take full control of fetching the data and rendering the view for your page type. 
+
+You will need to create a handler under a 'page-types' folder who's filename matches your page type object, e.g. :code:`/handlers/page-types/event.cfc`. The "index" action will be called by default and will be called as a Preside Viewlet (see :doc:`viewlets`). For example:
+
+.. code-block:: js
+
+    component output=false {
+
+        private string function index( event, rc, prc, args ) output=false {
+            args.someValue = getModel( "someServiceOrSomesuch" ).getSomeValue();
+
+            return renderView( 
+                  view          = "/page-types/event/index"
+                , presideObject = "event"
+                , id            = event.getCurrentPageId()
+                , args          = args 
+            );
+        }
+    }
+
+Multiple layouts
+~~~~~~~~~~~~~~~~
+
+You can create layout variations for your page type that the users of the CMS will be able to select when creating and editing the page. To do this, simply create m# ultiple views in your page type's view directory. For example:
+
+.. code-block:: text
+
+    /views
+        /page-types
+            /event
+                _ignoredView.cfm
+                index.cfm
+                special.cfm
+
+.. note::
+
+    Any views that begin with an underscore are ignored. Use these for reusable view snippets that are not templates in themselves.
+
+If your page type has more than one layout, a drop down will appear in the page form, allowing the user to select which template to use. 
+
+.. figure:: /images/layout_picker.png
+
+    Screenshot of a layout picker.
+
+
+You can control the labels of your layouts that appear in the dropdown menu by adding keys to your page type's i18n properties file (see UI and i18n below).
+
 
 UI and i18n
 -----------
@@ -106,6 +161,10 @@ For example, if your page type **Preside data object** was, :code:`/preside-obje
     field.start_date.label=Start date
     field.end_date.label=End date
     field.location.label=Location
+
+    # keys for the layout picker
+    layout.index=Default
+    layout.special=Special layout
 
 
 Add and edit page forms
