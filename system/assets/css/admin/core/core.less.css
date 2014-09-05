@@ -25217,6 +25217,19 @@ img.presidecms .editable-click:hover {
   display: block;
   color: #999999;
 }
+.presidecms .modal-dialog-layout-container .form-horizontal .form-group {
+  margin-left: 0px;
+  margin-right: 0px;
+}
 .modal-dialog-layout-container .main-content {
   margin-left: 0;
+}
+.quick-add-modal .modal-dialog {
+  width: 922px;
+}
+.quick-add-modal .modal-dialog .modal-body {
+  padding: 0;
+}
+.quick-add-modal .modal-dialog .modal-footer {
+  margin-top: 0;
 }

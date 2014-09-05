@@ -15,8 +15,8 @@
 	selectedTemplate   = args.selectedTemplate   ?: "";
 	disabledValues     = args.disabledValues     ?: "";
 	quickAdd           = args.quickAdd           ?: false;
-	quickAddUrl        = args.quickAddUrl        ?: "";
-	quickAddModalTitle = args.quickAddModalTitle ?: "";
+	quickAddUrl        = args.quickAddUrl        ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#" );
+	quickAddModalTitle = translateResource( args.quickAddModalTitle ?: "cms:datamanager.quick.add.modal.title" );
 
 	resultTemplateId   = Len( Trim( resultTemplate ) ) ? "result_template_" & CreateUUId() : "";
 	selectedTemplateId = Len( Trim( selectedTemplate ) ) ? "selected_template_" & CreateUUId() : "";
@@ -60,7 +60,7 @@
 		    </cfif>
 		    <cfif IsBoolean( quickAdd ) and quickAdd>
 				data-quick-add-url="#quickAddUrl#"
-				data-quick-add-modal-title=""
+				data-quick-add-modal-title="#quickAddModalTitle#"
 			</cfif>
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>

@@ -297,6 +297,21 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="quickAddForm" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object = rc.object ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+			event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="editRecord" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />

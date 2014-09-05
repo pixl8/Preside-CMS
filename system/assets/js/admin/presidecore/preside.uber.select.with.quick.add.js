@@ -30,13 +30,13 @@
 					// TODO, say hello to the iFrame!
 				}
 			};
-			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="800" height="320" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
+			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
 
 			this.$uberSelect.after( this.$quickAddIframeContainer );
 			this.$uberSelect.after( this.$quickAddButton );
 
-			this.$quickAddButton.data( 'modalClass', 'uber-browser-dialog' );
+			this.$quickAddButton.data( 'modalClass', 'quick-add-modal' );
 
 			this.$quickAddButton.presideBootboxModal({
 				buttons : {
