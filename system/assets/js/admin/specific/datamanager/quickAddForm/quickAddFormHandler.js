@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $quickAddForm = $( ".quick-add-form" ).first()
-	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, getParentControl, submitForm, addAnother;
+	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, getParentControl, submitForm, addAnother, showSuccessMessage;
 
 	setupBehaviours = function(){
 		$quickAddForm.submit( handleSubmission );
@@ -30,6 +30,7 @@
 				addRecordToCallingControl( data.recordId );
 				if ( addAnother() ) {
 					resetForm();
+					showSuccessMessage( data.message || i18n.translateResource( "cms:datamanager.quick.add.added.confirmation" ) );
 				} else {
 					getParentControl().closeQuickAddDialog();
 				}
@@ -57,8 +58,18 @@
 		return $quickAddForm.find( "input[name='_addAnother']:checked" ).length;
 	};
 
+	showSuccessMessage = function( message ){
+		$.gritter.add({
+			  title      : i18n.translateResource( "cms:info.notification.title" )
+			, text       : message
+			, class_name : "gritter-success"
+			, sticky     : false
+		});
+	};
+
 	resetForm = function(){
-		// TODO
+		$quickAddForm.trigger( "reset" );
+		$quickAddForm.find( "input,select,textarea" ).not( ":hidden" ).first().focus();
 	};
 
 
