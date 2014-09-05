@@ -112,7 +112,7 @@ You will need to create a handler under a 'page-types' folder who's filename mat
 Multiple layouts
 ~~~~~~~~~~~~~~~~
 
-You can create layout variations for your page type that the users of the CMS will be able to select when creating and editing the page. To do this, simply create m# ultiple views in your page type's view directory. For example:
+You can create layout variations for your page type that the users of the CMS will be able to select when creating and editing the page. To do this, simply create multiple views in your page type's view directory. For example:
 
 .. code-block:: text
 
