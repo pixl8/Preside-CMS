@@ -4,16 +4,20 @@
 	inputId            = args.id               ?: "";
 	placeholder        = args.placeholder      ?: "";
 	defaultValue       = args.defaultValue     ?: "";
-	sortable           = args.sortable         ?: "";
-	ajax               = args.ajax             ?: true;
-	remoteUrl          = args.remoteUrl        ?: "";
-	prefetchUrl        = args.prefetchUrl      ?: "";
-	records            = args.records          ?: QueryNew('');
-	multiple           = args.multiple         ?: false;
-	extraClasses       = args.extraClasses     ?: "";
-	resultTemplate     = args.resultTemplate   ?: "";
-	selectedTemplate   = args.selectedTemplate ?: "";
-	disabledValues     = args.disabledValues   ?: "";
+	sortable           = args.sortable           ?: "";
+	ajax               = args.ajax               ?: true;
+	remoteUrl          = args.remoteUrl          ?: "";
+	prefetchUrl        = args.prefetchUrl        ?: "";
+	records            = args.records            ?: QueryNew('');
+	multiple           = args.multiple           ?: false;
+	extraClasses       = args.extraClasses       ?: "";
+	resultTemplate     = args.resultTemplate     ?: "";
+	selectedTemplate   = args.selectedTemplate   ?: "";
+	disabledValues     = args.disabledValues     ?: "";
+	quickAdd           = args.quickAdd           ?: false;
+	quickAddUrl        = args.quickAddUrl        ?: "";
+	quickAddModalTitle = args.quickAddModalTitle ?: "";
+
 	resultTemplateId   = Len( Trim( resultTemplate ) ) ? "result_template_" & CreateUUId() : "";
 	selectedTemplateId = Len( Trim( selectedTemplate ) ) ? "selected_template_" & CreateUUId() : "";
 
@@ -21,6 +25,8 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	selectClass = quickAdd ? "uber-select quick-add" : "uber-select";
 </cfscript>
 
 <cfoutput>
@@ -30,7 +36,7 @@
 	<cfif Len( Trim( selectedTemplate ) ) >
 		<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	</cfif>
-	<select class="uber-select #extraClasses#"
+	<select class="#selectClass# #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
@@ -52,6 +58,10 @@
 		    <cfif Len( Trim( selectedTemplateId ) )>
 		    	data-selected-template="#selectedTemplateId#"
 		    </cfif>
+		    <cfif IsBoolean( quickAdd ) and quickAdd>
+				data-quick-add-url="#quickAddUrl#"
+				data-quick-add-modal-title=""
+			</cfif>
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
 			<option>#translateResource( "cms:option.pleaseselect", "" )#</option>

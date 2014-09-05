@@ -28,6 +28,7 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/preside.richeditor.js'
 					, 'js/admin/presidecore/preside.bootbox.modal.js'
 					, 'js/admin/presidecore/preside.asset.picker.js'
+					, 'js/admin/presidecore/preside.uber.select.with.quick.add.js'
 					, 'js/admin/presidecore/preside.uber.select.with.browser.js'
 					, 'js/admin/presidecore/preside.imageDimension.picker.js'
 					, 'js/admin/presidecore/formFields.js'

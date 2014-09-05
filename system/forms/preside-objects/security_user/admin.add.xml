@@ -10,7 +10,7 @@ This form is used for the "add user" form in the user admin section of the admin
 			<field binding="security_user.email_address" required="true" />
 			<field binding="security_user.known_as" />
 			<field binding="security_user.login_id" control="autoslug" basedOn="label" />
-			<field binding="security_user.groups" />
+			<field binding="security_user.groups" quickAdd="true" />
 		</fieldset>
 
 		<fieldset title="preside-objects.security_user:fieldset.security" description="preside-objects.security_user:fieldset.security.description">
