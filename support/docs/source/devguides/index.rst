@@ -23,3 +23,4 @@ Developer guides & recipes
    cssandjs
    permissioning
    systemsettings
+   developerconsole
