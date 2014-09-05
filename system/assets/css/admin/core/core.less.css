@@ -25160,6 +25160,29 @@ img.presidecms .editable-click:hover {
 .presidecms .uber-browser-dialog .modal-dialog .modal-body {
   padding: 0;
 }
+.presidecms .chosen-container.quick-add {
+  width: calc(100% - 50px) !important;
+  width: -moz-calc(100% - 50px) !important;
+  width: -webkit-calc(100% - 50px) !important;
+  width: -o-calc(100% - 50px) !important;
+}
+.presidecms .chosen-container.quick-add ~ .btn {
+  font-size: 17px;
+  padding: 0;
+  height: 41px;
+  line-height: 41px;
+  width: 51px;
+  margin-left: -1px;
+  text-align: center;
+  vertical-align: top;
+  border: 1px solid #abbac3;
+}
+.presidecms .chosen-container.quick-add ~ .btn i {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: normal;
+  margin: -4px 0 0;
+}
 .presidecms .chosen-container.sitetree-page-picker .result-container,
 .presidecms .chosen-container.sitetree-page-picker .parent,
 .presidecms .chosen-container.sitetree-page-picker .title {
