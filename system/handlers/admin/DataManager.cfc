@@ -312,6 +312,25 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="quickAddRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object = rc.object ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="add", object=object );
+
+			runEvent(
+				  event          = "admin.DataManager._quickAddRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="editRecord" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -612,6 +631,35 @@
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
 				}
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"  type="any"    required="true" />
+		<cfargument name="rc"     type="struct" required="true" />
+		<cfargument name="prc"    type="struct" required="true" />
+		<cfargument name="object" type="string" required="false" default="#( rc.object ?: '' )#" />
+
+		<cfscript>
+			var formName         = "preside-objects.#object#.admin.quickadd";
+			var formData         = event.getCollectionForForm( formName );
+ 			var validationResult = validateForm( formName=formName, formData=formData );
+
+			if ( validationResult.validated() ) {
+				var obj = presideObjectService.getObject( object );
+				var newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+
+				event.renderData( type="json", data={
+					  success  = true
+					, recordId = newId
+				});
+			} else {
+				event.renderData( type="json", data={
+					success  = false
+
+					// TODO, add validation structure details
+				});
 			}
 		</cfscript>
 	</cffunction>

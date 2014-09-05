@@ -7,6 +7,8 @@
 	addRecordPrompt     = translateResource( uri="preside-objects.#args.objectName#:addRecord.prompt", defaultValue="" );
 	objectTitleSingular = translateResource( uri="preside-objects.#args.objectName#:title.singular", defaultValue=args.objectName );
 	formId              = "addForm-" & CreateUUId();
+
+	event.include( "/js/admin/specific/datamanager/quickAddForm/" );
 </cfscript>
 
 <cfoutput>

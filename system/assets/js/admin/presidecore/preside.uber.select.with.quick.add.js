@@ -26,9 +26,6 @@
 
 			window[ onLoadCallback ] = function( iframe ){
 				iframe.uberSelectWithQuickAdd = uberSelectWithQuickAdd;
-				if ( typeof iframe.quickAdd !== "undefined" ) {
-					// TODO, say hello to the iFrame!
-				}
 			};
 			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
@@ -54,14 +51,28 @@
 
 		};
 
+		UberSelectWithQuickAdd.prototype.addRecordToControl = function( recordId ){
+			this.uberSelect.select( recordId );
+		};
+
+		UberSelectWithQuickAdd.prototype.closeQuickAddDialog = function(){
+			var modal = this.$quickAddButton.data( 'modal' );
+
+			modal.on('hidden.bs.modal', function (e) {
+  				modal.remove();
+			} );
+			modal.modal( 'hide' );
+		};
+
 		UberSelectWithQuickAdd.prototype.processAddRecord = function(){
 			var uploadIFrame = this.getQuickAddIFrame();
 
 			if ( typeof uploadIFrame.quickAdd !== "undefined" ) {
 				$( uploadIFrame ).focus();
-				// TODO, process the quick add and add the record to the uber select
 
-				return false; // or true...
+				uploadIFrame.quickAdd.submitForm();
+
+				return false;
 			}
 
 			return true;
