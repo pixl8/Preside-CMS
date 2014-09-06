@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $quickAddForm = $( ".quick-add-form" ).first()
-	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, getParentControl, submitForm, addAnother, showSuccessMessage;
+	  , setupBehaviours, handleSubmission, addRecordToCallingControl, ajaxSuccessHandler, ajaxErrorHandler, resetForm, focusForm, getParentControl, submitForm, addAnother, showSuccessMessage;
 
 	setupBehaviours = function(){
 		$quickAddForm.submit( handleSubmission );
@@ -30,6 +30,7 @@
 				addRecordToCallingControl( data.recordId );
 				if ( addAnother() ) {
 					resetForm();
+					focusForm();
 					showSuccessMessage( data.message || i18n.translateResource( "cms:datamanager.quick.add.added.confirmation" ) );
 				} else {
 					getParentControl().closeQuickAddDialog();
@@ -69,6 +70,9 @@
 
 	resetForm = function(){
 		$quickAddForm.trigger( "reset" );
+	};
+
+	focusForm = function(){
 		$quickAddForm.find( "input,select,textarea" ).not( ":hidden" ).first().focus();
 	};
 
@@ -76,7 +80,8 @@
 	setupBehaviours();
 
 	window.quickAdd = {
-		submitForm : submitForm
+		  submitForm : submitForm
+		, focusForm  : focusForm
 	};
 
 

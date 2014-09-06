@@ -23,11 +23,13 @@
 		<div class="form-actions row">
 			<cfif args.allowAddAnotherSwitch>
 				#renderFormControl(
-					  type    = "yesNoSwitch"
-					, context = "admin"
-					, name    = "_addAnother"
-					, id      = "_addAnother"
-					, label   = translateResource( uri="cms:datamanager.quick.add.another", data=[ objectTitleSingular ] )
+					  type         = "yesNoSwitch"
+					, context      = "admin"
+					, name         = "_addAnother"
+					, id           = "_addAnother"
+					, savedValue   = true
+					, defaultValue = true
+					, label        = translateResource( uri="cms:datamanager.quick.add.another", data=[ objectTitleSingular ] )
 				)#
 			</cfif>
 		</div>

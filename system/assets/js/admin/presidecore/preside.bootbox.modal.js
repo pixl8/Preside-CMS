@@ -23,8 +23,13 @@
 				var modal = presideBootbox.dialog( config );
 				$modalLink.data( 'modal', modal );
 				if ( typeof modalOptions === "object" && typeof modalOptions.onShow === "function" ) {
-					modalOptions.onShow( modal );
+					modal.on( "shown.bs.modal", function(){
+						modal.off( "shown.bs.modal" );
+						modalOptions.onShow( modal );
+					} );
 				}
+
+				modal.modal( "show" );
 			};
 
 			initModalConfig = function( callback ){
@@ -37,6 +42,7 @@
 						, message   : content
 						, className : $modalLink.data( "modalClass" )
 						, buttons   : {}
+						, show      : false
 					}, modalOptions );
 
 					if ( $.isEmptyObject( config.buttons ) ) {

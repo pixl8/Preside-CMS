@@ -46,9 +46,21 @@
 						, className : "btn-primary"
 						, callback  : function(){ return uberSelectWithQuickAdd.processAddRecord(); }
 					}
+				},
+				onShow : function( modal ){
+					var uploadIFrame = uberSelectWithQuickAdd.getQuickAddIFrame();
+
+					if ( typeof uploadIFrame.quickAdd !== "undefined" ) {
+						uploadIFrame.quickAdd.focusForm();
+
+						return false;
+					}
+
+					modal.on('hidden.bs.modal', function (e) {
+		  				modal.remove();
+					} );
 				}
 			});
-
 		};
 
 		UberSelectWithQuickAdd.prototype.addRecordToControl = function( recordId ){
@@ -58,9 +70,6 @@
 		UberSelectWithQuickAdd.prototype.closeQuickAddDialog = function(){
 			var modal = this.$quickAddButton.data( 'modal' );
 
-			modal.on('hidden.bs.modal', function (e) {
-  				modal.remove();
-			} );
 			modal.modal( 'hide' );
 		};
 
@@ -68,8 +77,6 @@
 			var uploadIFrame = this.getQuickAddIFrame();
 
 			if ( typeof uploadIFrame.quickAdd !== "undefined" ) {
-				$( uploadIFrame ).focus();
-
 				uploadIFrame.quickAdd.submitForm();
 
 				return false;
