@@ -54,7 +54,6 @@
 			this.form_field = form_field;
 			this.options = options != null ? options : {};
 			this.is_multiple = this.form_field.multiple;
-			this.has_quick_add = typeof this.form_field.getAttribute( "data-quick-add" ) !== "undefined";
 			this.selected = [];
 			this.setup_preselected_value();
 			this.set_sortable_options();

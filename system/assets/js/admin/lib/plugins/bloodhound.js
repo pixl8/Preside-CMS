@@ -649,7 +649,7 @@
                 matches = this.sorter(matches).slice(0, this.limit);
 
                 if (!cacheHit) {
-                    (matches.length > 0 || !this.transport) && cb && cb(matches);
+                    cb && cb(matches);
                 }
                 function returnRemoteMatches(remoteMatches) {
                     var matchesWithBackfill = matches.slice(0);

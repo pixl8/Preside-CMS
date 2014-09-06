@@ -223,7 +223,7 @@ component output="false" singleton=true {
 			selectFields = [ "Max( datemodified ) as lastmodified" ]
 		);
 
-		return records.recordCount ? Hash( records.lastmodified ) : Hash( Now() );
+		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
 // PRIVATE HELPERS
