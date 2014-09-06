@@ -36,6 +36,8 @@
 					getParentControl().closeQuickAddDialog();
 				}
 				return;
+			} else if ( typeof data.validationResult === "object" ) {
+				$quickAddForm.validate().showErrors( data.validationResult );
 			}
 		}
 

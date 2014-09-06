@@ -656,9 +656,8 @@
 				});
 			} else {
 				event.renderData( type="json", data={
-					success  = false
-
-					// TODO, add validation structure details
+					  success          = false
+					, validationResult = translateValidationMessages( validationResult )
 				});
 			}
 		</cfscript>
