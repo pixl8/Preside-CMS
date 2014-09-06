@@ -29,6 +29,10 @@
 			};
 			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
+			if ( this.$originalInput.attr( "tabindex" ) ) {
+				this.$quickAddButton.attr( "tabindex", this.$originalInput.attr( "tabindex" ) );
+			}
+
 
 			this.$uberSelect.after( this.$quickAddIframeContainer );
 			this.$uberSelect.after( this.$quickAddButton );
@@ -71,6 +75,8 @@
 			var modal = this.$quickAddButton.data( 'modal' );
 
 			modal.modal( 'hide' );
+
+			this.uberSelect.search_field.focus();
 		};
 
 		UberSelectWithQuickAdd.prototype.processAddRecord = function(){
