@@ -19,7 +19,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="uber-select #extraClasses#"
+	<select class="object-picker #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"

@@ -20,7 +20,7 @@
 <cfoutput>
 	<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
 	<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-	<select class="uber-select sitetree-page-picker"
+	<select class="object-picker sitetree-page-picker"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"

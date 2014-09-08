@@ -13,7 +13,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="uber-select" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
+	<select class="object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
 		<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
 		<option value="#root#"<cfif root eq value> selected="selected"</cfif>>#translateResource( "cms:assetmanager.folder.select.no.parent", "" )#</option>
 		<cfloop query="folders">

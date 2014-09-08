@@ -54,7 +54,7 @@
 	};
 
 	getParentControl = function(){
-		return uberSelectWithQuickAdd;
+		return window.presideObjectPicker;
 	};
 
 	addAnother = function(){

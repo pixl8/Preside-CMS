@@ -1,14 +1,16 @@
 ( function( $ ){
 
-	var UberSelectWithQuickAdd = (function() {
-		function UberSelectWithQuickAdd( $originalInput ) {
+	var PresideObjectPicker = (function() {
+		function PresideObjectPicker( $originalInput ) {
 			this.$originalInput = $originalInput;
 
 			this.setupUberSelect();
-			this.setupQuickAdd();
+			if ( this.$originalInput.hasClass( 'quick-add' ) ) {
+				this.setupQuickAdd();
+			}
 		}
 
-		UberSelectWithQuickAdd.prototype.setupUberSelect = function(){
+		PresideObjectPicker.prototype.setupUberSelect = function(){
 			this.$originalInput.uberSelect({
 				  allow_single_deselect  : true
 				, inherit_select_classes : true
@@ -17,15 +19,15 @@
 			this.uberSelect = this.$originalInput.data( "uberSelect" );
 		};
 
-		UberSelectWithQuickAdd.prototype.setupQuickAdd = function(){
+		PresideObjectPicker.prototype.setupQuickAdd = function(){
 			var iframeSrc       = this.$originalInput.data( "quickAddUrl" )
 			  , modalTitle      = this.$originalInput.data( "quickAddModalTitle" )
 			  , iframeId        = this.$originalInput.attr('id') + "_quickadd_frame"
 			  , onLoadCallback  = "cb" + iframeId
-			  , uberSelectWithQuickAdd = this;
+			  , presideObjectPicker = this;
 
 			window[ onLoadCallback ] = function( iframe ){
-				iframe.uberSelectWithQuickAdd = uberSelectWithQuickAdd;
+				iframe.presideObjectPicker = presideObjectPicker;
 			};
 			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
@@ -49,11 +51,11 @@
 					add : {
 						  label     : '<i class="fa fa-plus"></i> ' + i18n.translateResource( "cms:add.btn" )
 						, className : "btn-primary"
-						, callback  : function(){ return uberSelectWithQuickAdd.processAddRecord(); }
+						, callback  : function(){ return presideObjectPicker.processAddRecord(); }
 					}
 				},
 				onShow : function( modal ){
-					var uploadIFrame = uberSelectWithQuickAdd.getQuickAddIFrame();
+					var uploadIFrame = presideObjectPicker.getQuickAddIFrame();
 
 					if ( typeof uploadIFrame.quickAdd !== "undefined" ) {
 						uploadIFrame.quickAdd.focusForm();
@@ -68,11 +70,11 @@
 			});
 		};
 
-		UberSelectWithQuickAdd.prototype.addRecordToControl = function( recordId ){
+		PresideObjectPicker.prototype.addRecordToControl = function( recordId ){
 			this.uberSelect.select( recordId );
 		};
 
-		UberSelectWithQuickAdd.prototype.closeQuickAddDialog = function(){
+		PresideObjectPicker.prototype.closeQuickAddDialog = function(){
 			var modal = this.$quickAddButton.data( 'modal' );
 
 			modal.modal( 'hide' );
@@ -80,7 +82,7 @@
 			this.uberSelect.search_field.focus();
 		};
 
-		UberSelectWithQuickAdd.prototype.processAddRecord = function(){
+		PresideObjectPicker.prototype.processAddRecord = function(){
 			var uploadIFrame = this.getQuickAddIFrame();
 
 			if ( typeof uploadIFrame.quickAdd !== "undefined" ) {
@@ -92,7 +94,7 @@
 			return true;
 		};
 
-		UberSelectWithQuickAdd.prototype.quickAddFinished = function(){
+		PresideObjectPicker.prototype.quickAddFinished = function(){
 			var modal = this.$quickAddButton.data( 'modal' );
 
 			modal.on('hidden.bs.modal', function (e) {
@@ -101,7 +103,7 @@
 			modal.modal( 'hide' );
 		};
 
-		UberSelectWithQuickAdd.prototype.getQuickAddIFrame = function(){
+		PresideObjectPicker.prototype.getQuickAddIFrame = function(){
 			var $iframe = $( '.modal-dialog iframe.quick-add-iframe' );
 			if ( $iframe.length ) {
 				return $iframe.get(0).contentWindow;
@@ -110,13 +112,13 @@
 			return {};
 		};
 
-		return UberSelectWithQuickAdd;
+		return PresideObjectPicker;
 	})();
 
 
-	$.fn.uberSelectWithQuickAdd = function(){
+	$.fn.presideObjectPicker = function(){
 		return this.each( function(){
-			new UberSelectWithQuickAdd( $(this) );
+			new PresideObjectPicker( $(this) );
 		} );
 	};
 

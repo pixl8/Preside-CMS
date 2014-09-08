@@ -12,7 +12,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="uber-select" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
+	<select class="object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
 		<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
 		<cfloop array="#pageTypes#" index="pageType">
 			<option value="#pageType.getId()#"<cfif value eq pageType.getId()> selected="selected"</cfif>>#translateResource( uri=pageType.getName(), defaultVaue=pageType.getId() )#</option>

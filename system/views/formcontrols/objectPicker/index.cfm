@@ -28,8 +28,10 @@
 
 	if ( quickAdd ) {
 		quickAdd = args.hasQuickAddPermission ?: ( hasPermission( "presideobject.#object#.add" ) || hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
+		if ( quickAdd ) {
+			extraClasses = ListAppend( extraClasses, "quick-add", ' ' );
+		}
 	}
-	selectClass = quickAdd ? "uber-select quick-add" : "uber-select";
 </cfscript>
 
 <cfoutput>
@@ -39,7 +41,7 @@
 	<cfif Len( Trim( selectedTemplate ) ) >
 		<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	</cfif>
-	<select class="#selectClass# #extraClasses#"
+	<select class="object-picker #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"

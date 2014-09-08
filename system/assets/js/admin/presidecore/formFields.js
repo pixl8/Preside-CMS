@@ -1,13 +1,6 @@
 ( function( $ ){
 
-	$(".uber-select").each( function(){
-		var $select = $( this );
-		if ( $select.hasClass( "quick-add" ) ) {
-			$select.uberSelectWithQuickAdd();
-		} else {
-			$select.uberSelect( { allow_single_deselect : true, inherit_select_classes : true } )
-		}
-	} );
+	$(".object-picker").presideObjectPicker();
 	$(".asset-picker").uberAssetSelect();
 	$(".image-dimension-picker").imageDimensionPicker();
 
