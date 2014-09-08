@@ -15,10 +15,6 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
-			if ( !hasPermission( "datamanager.navigate" ) ) {
-				event.adminAccessDenied();
-			}
-
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:datamanager" )
 				, link  = event.buildAdminLink( linkTo="datamanager" )
@@ -32,6 +28,8 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
+			_checkNavigatePermission( argumentCollection=arguments );
+
 			prc.objectGroups = dataManagerService.getGroupedObjects();
 		</cfscript>
 	</cffunction>
@@ -63,7 +61,7 @@
 		<cfscript>
 			var objectName = rc.id ?: "";
 
-			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 			runEvent(
 				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -108,6 +106,10 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
+			var objectName = rc.object ?: "";
+
+			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
+
 			var records = dataManagerService.getRecordsForAjaxSelect(
 				  objectName  = rc.object  ?: ""
 				, maxRows     = rc.maxRows ?: 1000
@@ -810,6 +812,18 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_checkNavigatePermission" access="public" returntype="void" output="false">
+		<cfargument name="event"  type="any"    required="true" />
+		<cfargument name="rc"     type="struct" required="true" />
+		<cfargument name="prc"    type="struct" required="true" />
+
+		<cfscript>
+			if ( !hasPermission( "datamanager.navigate" ) ) {
+				event.adminAccessDenied();
+			}
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_checkPermission" access="public" returntype="void" output="false">
 		<cfargument name="event"  type="any"    required="true" />
 		<cfargument name="rc"     type="struct" required="true" />
@@ -818,7 +832,7 @@
 		<cfargument name="object" type="string" required="true" />
 
 		<cfscript>
-			if ( !hasPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) ) {
+			if ( !hasPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
 				event.adminAccessDenied();
 			}
 			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );

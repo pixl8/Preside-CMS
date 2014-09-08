@@ -27,7 +27,7 @@
 	}
 
 	if ( quickAdd ) {
-		quickAdd = args.hasQuickAddPermission ?: hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] );
+		quickAdd = args.hasQuickAddPermission ?: ( hasPermission( "presideobject.#object#.add" ) || hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
 	}
 	selectClass = quickAdd ? "uber-select quick-add" : "uber-select";
 </cfscript>

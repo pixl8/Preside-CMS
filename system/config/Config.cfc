@@ -77,6 +77,14 @@ component output=false {
 			, groupmanager        = [ "navigate", "read", "add", "edit", "delete" ]
 			, devtools            = [ "console" ]
 			, systemConfiguration = [ "manage" ]
+			, presideobject       = {
+				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
+				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
+				, page           = [ "read", "add", "edit", "delete", "viewversions" ]
+				, site           = [ "read", "add", "edit", "delete", "viewversions" ]
+				, asset          = [ "read", "add", "edit", "delete", "viewversions" ]
+				, asset_folder   = [ "read", "add", "edit", "delete", "viewversions" ]
+			}
 			, assetmanager        = {
 				  general = [ "navigate" ]
 				, folders = [ "add", "edit", "delete", "manageContextPerms" ]
@@ -87,14 +95,14 @@ component output=false {
 		settings.roles = StructNew( "linked" );
 
 		settings.roles.user           = [ "cms.login" ];
-		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*" ];
-		settings.roles.siteManager    = [ "sites.*" ];
-		settings.roles.siteUser       = [ "sites.navigate" ];
-		settings.roles.sitetreeAdmin  = [ "sitetree.*" ];
-		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add" ];
+		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*" ];
+		settings.roles.siteManager    = [ "sites.*", "presideobject.site.*" ];
+		settings.roles.siteUser       = [ "sites.navigate", "presideobject.site.read" ];
+		settings.roles.sitetreeAdmin  = [ "sitetree.*", "presideobject.page.*" ];
+		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add", "presideobject.page.*" ];
 		settings.roles.dataAdmin      = [ "datamanager.*" ];
-		settings.roles.assetAdmin     = [ "assetmanager.*" ];
-		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete" ];
+		settings.roles.assetAdmin     = [ "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete", "presideobject.asset.*", "presideobject.asset_folder.*" ];
 
 		// uploads directory - each site really should override this setting and provide an external location
 		settings.uploads_directory     = ExpandPath( "/uploads" );
