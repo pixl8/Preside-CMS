@@ -333,6 +333,48 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="quickEditForm" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object = rc.object ?: "";
+			var id     = rc.id     ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="edit", object=object );
+
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( prc.record.recordCount ) {
+				prc.record = queryRowToStruct( prc.record );
+			} else {
+				prc.record = {};
+			}
+
+			event.setView( view="/admin/datamanager/quickEditForm", layout="adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="quickEditRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var objectName = rc.object ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+
+			runEvent(
+				  event          = "admin.DataManager._quickEditRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="editRecord" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -794,6 +836,38 @@
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#id#" ) );
 				}
+			}
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_quickEditRecordAction" access="private" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+
+		<cfscript>
+			var formName         = "preside-objects.#object#.admin.quickedit";
+			var id               = rc.id      ?: "";
+			var formData         = event.getCollectionForForm( formName );
+			var validationResult = "";
+
+			if ( presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+				formData.id = id;
+				validationResult = validateForm( formName=formName, formData=formData );
+
+				if ( validationResult.validated() ) {
+					presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
+					event.renderData( type="json", data={ success  = true } );
+				} else {
+					event.renderData( type="json", data={
+						  success          = false
+						, validationResult = translateValidationMessages( validationResult )
+					});
+				}
+
+			} else {
+				event.renderData( type="json", data={ success = false });
 			}
 		</cfscript>
 	</cffunction>

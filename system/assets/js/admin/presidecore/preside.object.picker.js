@@ -90,7 +90,7 @@
 				var $quickEditLink = $( this )
 				  , href           = $quickEditLink.attr( "href" )
 
-				this.editModal = presideBootbox.dialog( {
+				presideObjectPicker.editModal = presideBootbox.dialog( {
 					  title     : $quickEditLink.data( "title" ) || $quickEditLink.attr( "title" )
 					, message   : '<div id="' + iframeId + '"><iframe class="quick-edit-iframe" src="' + href + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>'
 					, className : "quick-add-modal"
@@ -108,19 +108,19 @@
 					  }
 				} );
 
-				this.editModal.on( "shown.bs.modal", function(){
-					modal.off( "shown.bs.modal" );
+				presideObjectPicker.editModal.on( "shown.bs.modal", function(){
+					presideObjectPicker.editModal.off( "shown.bs.modal" );
 
 					var editIFrame = presideObjectPicker.getQuickEditIFrame();
 
-					if ( editIframe.quickEdit !== "undefined" ) {
-						uploadIFrame.quickEdit.focusForm();
+					if ( editIFrame.quickEdit !== "undefined" ) {
+						editIFrame.quickEdit.focusForm();
 
 						return false;
 					}
 				} );
 
-				this.editModal.modal( "show" );
+				presideObjectPicker.editModal.modal( "show" );
 			} );
 		};
 
@@ -152,12 +152,23 @@
 			var editIFrame = this.getQuickEditIFrame();
 
 			if ( typeof editIFrame.quickEdit !== "undefined" ) {
-				uploadIFrame.quickEdit.submitForm();
+				editIFrame.quickEdit.submitForm();
 
 				return false;
 			}
 
 			return true;
+		};
+
+		PresideObjectPicker.prototype.editSuccess = function( message ){
+			$.gritter.add({
+				  title      : i18n.translateResource( "cms:info.notification.title" )
+				, text       : message
+				, class_name : "gritter-success"
+				, sticky     : false
+			});
+
+			this.closeQuickEditDialog();
 		};
 
 		PresideObjectPicker.prototype.closeQuickEditDialog = function(){
