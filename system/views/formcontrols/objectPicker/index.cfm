@@ -4,18 +4,18 @@
 	inputId            = args.id               ?: "";
 	placeholder        = args.placeholder      ?: "";
 	defaultValue       = args.defaultValue     ?: "";
-	sortable           = args.sortable           ?: "";
-	ajax               = args.ajax               ?: true;
-	remoteUrl          = args.remoteUrl          ?: "";
-	prefetchUrl        = args.prefetchUrl        ?: "";
-	records            = args.records            ?: QueryNew('');
-	multiple           = args.multiple           ?: false;
-	extraClasses       = args.extraClasses       ?: "";
-	resultTemplate     = args.resultTemplate     ?: "";
-	selectedTemplate   = args.selectedTemplate   ?: "";
-	disabledValues     = args.disabledValues     ?: "";
-	quickAdd           = args.quickAdd           ?: false;
-	quickAddUrl        = args.quickAddUrl        ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#" );
+	sortable           = args.sortable         ?: "";
+	ajax               = args.ajax             ?: true;
+	remoteUrl          = args.remoteUrl        ?: "";
+	prefetchUrl        = args.prefetchUrl      ?: "";
+	records            = args.records          ?: QueryNew('');
+	multiple           = args.multiple         ?: false;
+	extraClasses       = args.extraClasses     ?: "";
+	resultTemplate     = args.resultTemplate   ?: "";
+	selectedTemplate   = args.selectedTemplate ?: "";
+	disabledValues     = args.disabledValues   ?: "";
+	quickAdd           = args.quickAdd         ?: false;
+	quickAddUrl        = args.quickAddUrl      ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#" );
 	quickAddModalTitle = translateResource( args.quickAddModalTitle ?: "cms:datamanager.quick.add.modal.title" );
 
 	resultTemplateId   = Len( Trim( resultTemplate ) ) ? "result_template_" & CreateUUId() : "";
@@ -26,6 +26,9 @@
 		value = "";
 	}
 
+	if ( quickAdd ) {
+		quickAdd = args.hasQuickAddPermission ?: hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] );
+	}
 	selectClass = quickAdd ? "uber-select quick-add" : "uber-select";
 </cfscript>
 
