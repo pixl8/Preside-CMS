@@ -575,7 +575,7 @@
 				if (evt && evt.type === "mousedown" && !this.results_showing) {
 					evt.preventDefault();
 				}
-				if (!((evt != null) && ($(evt.target)).hasClass("search-choice-close"))) {
+				if (!((evt != null) && ($(evt.target)).hasClass("remove-choice-link"))) {
 					if (!this.active_field) {
 						if (this.is_multiple) {
 							this.search_field.val("");
@@ -880,7 +880,7 @@
 				choice.addClass('search-choice-disabled');
 			} else {
 				close_link = $('<a />', {
-					"class": 'search-choice-close'
+					"class": 'remove-choice-link fa fa-times'
 				});
 				close_link.bind('click.chosen', function(evt) {
 					return _this.choice_destroy_link_click(evt);
@@ -1065,7 +1065,7 @@
 				return;
 			}
 			if (!this.selected_item.find("abbr").length) {
-				this.selected_item.find("span").first().after("<abbr class=\"search-choice-close\"></abbr>");
+				this.selected_item.find("span").first().after("<abbr class=\"remove-choice-link fa fa-times\"></abbr>");
 			}
 			return this.selected_item.addClass("chosen-single-with-deselect");
 		};
