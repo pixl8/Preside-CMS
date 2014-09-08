@@ -8,6 +8,9 @@
 			if ( this.$originalInput.hasClass( 'quick-add' ) ) {
 				this.setupQuickAdd();
 			}
+			if ( this.$originalInput.hasClass( 'quick-edit' ) ) {
+				this.setupQuickEdit();
+			}
 		}
 
 		PresideObjectPicker.prototype.setupUberSelect = function(){
@@ -70,6 +73,57 @@
 			});
 		};
 
+		PresideObjectPicker.prototype.setupQuickEdit = function(){
+			var iframeSrc           = this.$originalInput.data( "quickEditUrl" )
+			  , modalTitle          = this.$originalInput.data( "quickEditModalTitle" )
+			  , iframeId            = this.$originalInput.attr('id') + "_quickedit_frame"
+			  , onLoadCallback      = "cb" + iframeId
+			  , presideObjectPicker = this;
+
+			window[ onLoadCallback ] = function( iframe ){
+				iframe.presideObjectPicker = presideObjectPicker;
+			};
+
+			this.uberSelect.container.on( "click", ".quick-edit-link", function(e){
+				e.preventDefault();
+
+				var $quickEditLink = $( this )
+				  , href           = $quickEditLink.attr( "href" )
+
+				this.editModal = presideBootbox.dialog( {
+					  title     : $quickEditLink.data( "title" ) || $quickEditLink.attr( "title" )
+					, message   : '<div id="' + iframeId + '"><iframe class="quick-edit-iframe" src="' + href + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>'
+					, className : "quick-add-modal"
+					, show      : false
+					, buttons   : {
+						cancel : {
+							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+							, className : "btn-default"
+						},
+						ok : {
+							  label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" )
+							, className : "btn-primary"
+							, callback  : function(){ return presideObjectPicker.processEditRecord(); }
+						}
+					  }
+				} );
+
+				this.editModal.on( "shown.bs.modal", function(){
+					modal.off( "shown.bs.modal" );
+
+					var editIFrame = presideObjectPicker.getQuickEditIFrame();
+
+					if ( editIframe.quickEdit !== "undefined" ) {
+						uploadIFrame.quickEdit.focusForm();
+
+						return false;
+					}
+				} );
+
+				this.editModal.modal( "show" );
+			} );
+		};
+
 		PresideObjectPicker.prototype.addRecordToControl = function( recordId ){
 			this.uberSelect.select( recordId );
 		};
@@ -94,6 +148,24 @@
 			return true;
 		};
 
+		PresideObjectPicker.prototype.processEditRecord = function(){
+			var editIFrame = this.getQuickEditIFrame();
+
+			if ( typeof editIFrame.quickEdit !== "undefined" ) {
+				uploadIFrame.quickEdit.submitForm();
+
+				return false;
+			}
+
+			return true;
+		};
+
+		PresideObjectPicker.prototype.closeQuickEditDialog = function(){
+			typeof this.editModal !== "undefined" && this.editModal.modal( "hide" );
+
+			this.uberSelect.search_field.focus();
+		};
+
 		PresideObjectPicker.prototype.quickAddFinished = function(){
 			var modal = this.$quickAddButton.data( 'modal' );
 
@@ -105,6 +177,15 @@
 
 		PresideObjectPicker.prototype.getQuickAddIFrame = function(){
 			var $iframe = $( '.modal-dialog iframe.quick-add-iframe' );
+			if ( $iframe.length ) {
+				return $iframe.get(0).contentWindow;
+			}
+
+			return {};
+		};
+
+		PresideObjectPicker.prototype.getQuickEditIFrame = function(){
+			var $iframe = $( '.modal-dialog iframe.quick-edit-iframe' );
 			if ( $iframe.length ) {
 				return $iframe.get(0).contentWindow;
 			}
