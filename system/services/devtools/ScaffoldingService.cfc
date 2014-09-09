@@ -83,14 +83,20 @@ component output=false singleton=true {
 	}
 
 	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="", string datamanagerGroup="" ) output=false {
-		var filesCreated = [];
-		var i18nProps    = { title=arguments.pluralName, "title.singular"=arguments.name, description=arguments.description };
+		var filesCreated   = [];
+		var i18nProps      = { title=arguments.pluralName, "title.singular"=arguments.name, description=arguments.description };
+		var i18nGroupProps = { title=arguments.datamanagerGroup, description=arguments.datamanagerGroup & " data manager group", iconclass="fa-square-o" };
+		var root           = _getScaffoldRoot( arguments.extension );
 
 		if ( _getPresideObjectService().objectExists( arguments.objectName ) ) {
-			throw( type="scaffoldpagetype.object.exists", message="The '#arguments.objectName#' object already exists" );
+			throw( type="scaffoldPresideObject.object.exists", message="The '#arguments.objectName#' object already exists" );
 		}
 
 		filesCreated.append( scaffoldPresideObjectCfc( objectName=arguments.objectName, extension=arguments.extension, properties=ListToArray( arguments.properties ), datamanagerGroup=arguments.datamanagerGroup ) );
+
+		if( Len( Trim( arguments.datamanagerGroup ) ) && ! FileExists( root & "i18n/preside-objects/groups/" & arguments.datamanagerGroup & ".properties" ) ) {
+			filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.datamanagerGroup, subDir="preside-objects/groups", extension=arguments.extension, properties=i18nGroupProps ) );
+		}
 
 		for( var field in ListToArray( arguments.properties ) ) {
 			i18nProps[ "field.#field#.title" ] = field;
