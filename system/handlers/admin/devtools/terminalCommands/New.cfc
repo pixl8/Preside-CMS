@@ -93,7 +93,7 @@ component output=false hint="Create various preside system entities such as widg
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
 		if ( !StructKeyExists( params, "icon" ) ) {
-			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-page-o", paramName="icon"} );
+			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-file-o", paramName="icon"} );
 		}
 		if ( !StructKeyExists( params, "createHandler" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Create hanlder?", required=true, default="N", paramName="createHandler", validityRegex="^[YyNn]$" } );
