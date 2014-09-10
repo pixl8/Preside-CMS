@@ -1,5 +1,5 @@
 <!---
-	This view file has been automativally created by the preside dev tools
+	This view file has been automatically created by the preside dev tools
 	scaffolder. Please fill with meaningful content and remove this comment
 --->
 

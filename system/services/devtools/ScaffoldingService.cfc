@@ -127,7 +127,7 @@ component output=false singleton=true {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "views/" & arguments.subDir & "/" & arguments.viewName & ".cfm";
 		var fileContent = "<!---" & _nl()
-		                & "	This view file has been automativally created by the preside dev tools" & _nl()
+		                & "	This view file has been automatically created by the preside dev tools" & _nl()
 		                & "	scaffolder. Please fill with meaningful content and remove this comment" & _nl()
 		                & "--->" & _nl();
 
