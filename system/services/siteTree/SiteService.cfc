@@ -5,14 +5,16 @@ component output=false displayname="Site service" autodoc=true {
 
 // CONSTRUCTOR
 	/**
-	 * @siteDao.inject           presidecms:object:site
-	 * @sessionStorage.inject    coldbox:plugin:sessionStorage
-	 * @permissionService.inject permissionService
-	 * @coldbox.inject           coldbox
+	 * @siteDao.inject               presidecms:object:site
+	 * @siteRedirectDomainDao.inject presidecms:object:site_redirect_domain
+	 * @sessionStorage.inject        coldbox:plugin:sessionStorage
+	 * @permissionService.inject     permissionService
+	 * @coldbox.inject               coldbox
 	 *
 	 */
-	public any function init( required any siteDao, required any sessionStorage, required any permissionService, required any coldbox ) output=false {
+	public any function init( required any siteDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox ) output=false {
 		_setSiteDao( arguments.siteDao );
+		_setSiteRedirectDomainDao( arguments.siteRedirectDomainDao );
 		_setSessionStorage( arguments.sessionStorage );
 		_setPermissionService( arguments.permissionService );
 		_setColdbox( arguments.coldbox );
@@ -124,6 +126,24 @@ component output=false displayname="Site service" autodoc=true {
 		return site.template ?: "";
 	}
 
+	/**
+	 * Sync redirect domains with the site record
+	 */
+	public boolean function syncSiteRedirectDomains( required string siteId, required string domains ) output=false autodoc=true {
+		var redirectDomainsDao = _getSiteRedirectDomainDao();
+		var redirectDomains    = ListToArray( arguments.domains, Chr(10) & Chr(13) & "," );
+
+		redirectDomainsDao.deleteData( filter={ site = arguments.siteId } );
+		for( var domain in redirectDomains ){
+			try {
+				redirectDomainsDao.insertData( { site=arguments.siteId, domain=domain } )
+			} catch( any e ) {}
+		}
+
+
+		return true;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getSiteDao() output=false {
 		return _siteDao;
@@ -151,5 +171,12 @@ component output=false displayname="Site service" autodoc=true {
 	}
 	private void function _setColdbox( required any coldbox ) output=false {
 		_coldbox = arguments.coldbox;
+	}
+
+	private any function _getSiteRedirectDomainDao() output=false {
+		return _siteRedirectDomainDao;
+	}
+	private void function _setSiteRedirectDomainDao( required any siteRedirectDomainDao ) output=false {
+		_siteRedirectDomainDao = arguments.siteRedirectDomainDao;
 	}
 }

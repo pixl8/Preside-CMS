@@ -2,6 +2,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 
 	property name="siteService" inject="siteService";
 	property name="siteDao"     inject="presidecms:object:site";
+	property name="redirectDao" inject="presidecms:object:site_redirect_domain";
 	property name="messagebox"  inject="coldbox:plugin:messagebox";
 
 	public void function manage( event, rc, prc ) output=false {
@@ -32,35 +33,44 @@ component output=false extends="preside.system.base.AdminHandler" {
 	public void function addSiteAction( event, rc, prc ) output=false {
 		_checkPermissions( event );
 
-		runEvent(
+		var siteID = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
 				  object           = "site"
 				, errorAction      = "sites.addSite"
-				, successAction    = "sites.manage"
-				, viewRecordAction = "sites.editSite"
+				, redirectOnSuccess = false
 			}
 		);
+
+		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
+
+		messageBox.info( translateResource( "cms:sites.added.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 	}
 
 
 	public void function editSite() output=false {
 		_checkPermissions( event );
+		var siteId = rc.id ?: "";
 
-		prc.record = siteDao.selectData( id=rc.id ?: "" );
+		prc.record = siteDao.selectData( id=siteId );
 
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:sites.siteNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
+		var redirectDomains = redirectDao.selectData( filter={ site=siteId } );
+		if ( redirectDomains.recordCount ) {
+			prc.record.redirect_domains = ValueList( redirectDomains.domain, Chr(13) & Chr(10) );
+		}
 
 		_addRootBreadcrumb( event );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sites.editsite.breadcrumb", data=[ prc.record.name ] )
-			, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#(rc.id ?: '')#" )
+			, link  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=#siteId#" )
 		);
 
 		prc.pageIcon  = "globe";
@@ -71,17 +81,23 @@ component output=false extends="preside.system.base.AdminHandler" {
 
 	public void function editSiteAction( event, rc, prc ) output=false {
 		_checkPermissions( event );
+		var siteId = rc.id ?: "";
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object        = "site"
-				, errorAction   = "sites.editSite"
-				, successAction = "sites.manage"
+				  object            = "site"
+				, errorAction       = "sites.editSite"
+				, redirectOnSuccess = false
 			}
 		);
+
+		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
+
+		messageBox.info( translateResource( "cms:sites.saved.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 	}
 
 	public void function editPermissions( event, rc, prc ) output=false {
