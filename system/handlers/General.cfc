@@ -41,9 +41,11 @@
 			var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="core.Errors.notFound" );
 			var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
 
+			event.setLayout( notFoundLayout );
+			event.setView( view="/core/simpleBodyRenderer" );
+
 			rc.body = renderViewlet( event=notFoundViewlet );
 
-			event.setView( view="/core/simpleBodyRenderer", layout=notFoundLayout );
 		</cfscript>
 	</cffunction>
 
