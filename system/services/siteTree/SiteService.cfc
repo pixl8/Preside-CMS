@@ -144,6 +144,16 @@ component output=false displayname="Site service" autodoc=true {
 		return true;
 	}
 
+	/**
+	 * Returns a site record that has a redirect domain matching the given domain
+	 */
+	public query function getRedirectSiteForDomain( required string domain ) output=false {
+		return _getSiteRedirectDomainDao().selectData(
+			  selectFields = [ "site.id", "site.protocol", "site.domain" ]
+			, filter       = { domain = arguments.domain }
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getSiteDao() output=false {
 		return _siteDao;

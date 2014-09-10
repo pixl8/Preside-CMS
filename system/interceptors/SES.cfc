@@ -12,6 +12,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 // the interceptor method
 	public void function onRequestCapture( event, interceptData ) output=false {
+		_checkRedirectDomains( argumentCollection=arguments );
 		_detectIncomingSite( argumentCollection=arguments );
 
 		if ( !_routePresideSESRequest( argumentCollection = arguments ) ) {
@@ -35,7 +36,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 // private utility methods
 	private void function _detectIncomingSite( event, interceptData ) output=false {
-		var pathInfo = super.getCGIElement( "path_info"  , event );
+		var pathInfo = super.getCGIElement( "path_info", event );
 		var site     = "";
 
 		siteService.ensureDefaultSiteExists();
@@ -80,6 +81,22 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			}
 
 			rc[ instance.eventName ] = evName;
+		}
+	}
+
+	private void function _checkRedirectDomains( event, interceptData ) output=false {
+		var domain       = super.getCGIElement( "server_name", event );
+		var redirectSite = siteService.getRedirectSiteForDomain( domain );
+
+		if ( redirectSite.recordCount && redirectSite.domain != domain ) {
+			var path        = super.getCGIElement( 'path_info', event );
+			var qs          = super.getCGIElement( 'query_string', event );
+			var redirectUrl = redirectSite.protocol & "://" & redirectSite.domain & path;
+
+			if ( Len( Trim( qs ) ) ) {
+				redirectUrl &= "?" & qs;
+			}
+			getController().setNextEvent( url=redirectUrl, statusCode=301 );
 		}
 	}
 }
