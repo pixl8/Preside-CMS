@@ -19,6 +19,8 @@ component output=false {
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
 			, requestStartHandler       = "General.requestStart"
+			, missingTemplateHandler    = "General.notFound"
+			, onInvalidEvent            = "General.notFound"
 			, coldboxExtensionsLocation = "preside.system.coldboxModifications"
 		};
 

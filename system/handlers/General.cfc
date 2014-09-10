@@ -32,6 +32,21 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="notFound" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="core.Errors.notFound" );
+			var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+
+			rc.body = renderViewlet( event=notFoundViewlet );
+
+			event.setView( view="/core/simpleBodyRenderer", layout=notFoundLayout );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_registerPresideListeners" access="private" returntype="void" output="false">
 		<cfscript>
