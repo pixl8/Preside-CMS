@@ -78,10 +78,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockColdbox           = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
 		return new preside.system.services.sitetree.SiteService(
-			  siteDao           = presideObjectService.getObject( "site" )
-			, sessionStorage    = mockSessionStorage
-			, permissionService = mockPermissionService
-			, coldbox           = mockColdbox
+			  siteDao               = presideObjectService.getObject( "site" )
+			, siteRedirectDomainDao = presideObjectService.getObject( "site_redirect_domain" )
+			, sessionStorage        = mockSessionStorage
+			, permissionService     = mockPermissionService
+			, coldbox               = mockColdbox
 		);
 	}
 
