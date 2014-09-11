@@ -14,10 +14,8 @@ component output=false {
 		var layout       = event.getPageProperty( "layout", "index" );
 		var validLayouts = event.getPageProperty( "layout", "index" );
 
-		// todo, something much better here...
 		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
-			event.renderData( data="Not found", type="plain", statusCode=404 );
-			return;
+			event.notFound();
 		}
 
 		pageType = pageTypesService.getPageType( pageType );

@@ -176,8 +176,8 @@
 
 	<cffunction name="notFound" access="public" returntype="void" output="false">
 		<cfscript>
-			// todo, something much better here!
-			content reset=true type="text/html";header statusCode="404";WriteOutput("<h1>Not found</h1>");abort;
+			getController().runEvent( "general.notFound" );
+			content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 		</cfscript>
 	</cffunction>
 
