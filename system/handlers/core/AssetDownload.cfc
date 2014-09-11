@@ -29,7 +29,7 @@ component output=false {
 			}
 
 			if ( type.serveAsAttachment ) {
-				header name="Content-Disposition" value="attachment; filename=#asset.title#.#type.extension#";
+				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
 			}
 
 			header name="etag" value=etag;
