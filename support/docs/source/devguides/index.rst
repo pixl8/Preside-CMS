@@ -24,3 +24,4 @@ Developer guides & recipes
    permissioning
    systemsettings
    developerconsole
+   customerrorpages
