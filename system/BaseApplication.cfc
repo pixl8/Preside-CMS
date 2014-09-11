@@ -40,6 +40,26 @@ component output=false {
 		return application.cbBootstrap.onMissingTemplate( argumentCollection=arguments );
 	}
 
+	public void function onError(  required struct exception, required string eventName ) output=true {
+		// if we have made it here, something terrible has happened
+		// log the error and serve a flat error html file
+
+		thread name=CreateUUId() exception=arguments.exception {
+ 			log log="Exception" type="Error" text=SerializeJson( attributes.exception );
+		}
+
+		content reset=true;
+		header statuscode=500;
+
+		if ( FileExists( ExpandPath( "/500.html" ) ) ) {
+			Writeoutput( FileRead( ExpandPath( "/500.html" ) ) );
+		} else {
+			Writeoutput( FileRead( "/preside/system/html/500.html" ) );
+		}
+
+		return;
+	}
+
 // PRIVATE HELPERS
 	private void function _setupMappings() output=false {
 		this.mappings[ "/app"     ] = ExpandPath( "/application/" );
@@ -122,6 +142,7 @@ component output=false {
 	}
 
 	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() output=false {
+		foo = bar;
 		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 }
