@@ -142,7 +142,6 @@ component output=false {
 	}
 
 	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() output=false {
-		foo = bar;
 		request.http = { body = ToString( GetHttpRequestData().content ) };
 	}
 }
