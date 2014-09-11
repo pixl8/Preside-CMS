@@ -62,6 +62,8 @@ component output=false {
 		settings.updateRepositoryUrl       = "http://downloads.presidecms.com.s3.amazonaws.com";
 		settings.notFoundLayout            = "Main";
 		settings.notFoundViewlet           = "errors.notFound";
+		settings.serverErrorLayout         = "Main";
+		settings.serverErrorViewlet        = "errors.serverError";
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
