@@ -34,6 +34,7 @@
 		include template="/app/config/Routes.cfm";
 	}
 
+	addRouteHandler( getModel( "errorRouteHandler" ) );
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( "adminRouteHandler" ) );
 	addRouteHandler( getModel( "assetRouteHandler" ) );
