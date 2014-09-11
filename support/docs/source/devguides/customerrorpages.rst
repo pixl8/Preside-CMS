@@ -44,6 +44,7 @@ If you wish to perform some handler logic for your 404 template, you can simply 
 
 		private string function notFound( event, rc, prc, args={} ) output=false {
 			event.setHTTPHeader( statusCode="404" );
+			event.setHTTPHeader( name="X-Robots-Tag", value="noindex" );
 
 			return renderView( view="/errors/notFound", args=args );
 		}
@@ -78,6 +79,7 @@ You can also programatically set the layout for your 404 template in your handle
 
 		private string function notFound( event, rc, prc, args={} ) output=false {
 			event.setHTTPHeader( statusCode="404" );
+			event.setHTTPHeader( name="X-Robots-Tag", value="noindex" );
 			event.setLayout( "404Layout" );
 
 			return renderView( view="/errors/notFound", args=args );
