@@ -38,7 +38,7 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="core.Errors.notFound" );
+			var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="errors.notFound" );
 			var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
 
 			event.setLayout( notFoundLayout );

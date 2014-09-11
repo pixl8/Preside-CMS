@@ -61,7 +61,7 @@ component output=false {
 		settings.system_users              = "sysadmin";
 		settings.updateRepositoryUrl       = "http://downloads.presidecms.com.s3.amazonaws.com";
 		settings.notFoundLayout            = "Main";
-		settings.notFoundViewlet           = "core.errors.notFound";
+		settings.notFoundViewlet           = "errors.notFound";
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
