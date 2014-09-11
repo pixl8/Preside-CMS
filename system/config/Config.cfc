@@ -131,6 +131,15 @@ component output=false {
 			, siteAssetsUrl  = "/assets"
 		};
 
+		environments = {
+            local = "^local\.,\.local$,^localhost$,^127.0.0.1$"
+        }
+
+	}
+
+// ENVIRONMENT SPECIFIC
+	public void function local() output=false {
+		settings.showErrors = true;
 	}
 
 // PRIVATE UTILITY
