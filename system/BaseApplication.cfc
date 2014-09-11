@@ -41,23 +41,28 @@ component output=false {
 	}
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
-		// if we have made it here, something terrible has happened
-		// log the error and serve a flat error html file
+		// if server is configured to show errors, just rethrow
+		if ( IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors ) {
+			throw object=arguments.exception;
 
-		thread name=CreateUUId() exception=arguments.exception {
- 			log log="Exception" type="Error" text=SerializeJson( attributes.exception );
-		}
-
-		content reset=true;
-		header statuscode=500;
-
-		if ( FileExists( ExpandPath( "/500.html" ) ) ) {
-			Writeoutput( FileRead( ExpandPath( "/500.html" ) ) );
+		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
 		} else {
-			Writeoutput( FileRead( "/preside/system/html/500.html" ) );
-		}
 
-		return;
+			thread name=CreateUUId() exception=arguments.exception {
+	 			log log="Exception" type="Error" text=SerializeJson( attributes.exception );
+			}
+
+			content reset=true;
+			header statuscode=500;
+
+			if ( FileExists( ExpandPath( "/500.html" ) ) ) {
+				Writeoutput( FileRead( ExpandPath( "/500.html" ) ) );
+			} else {
+				Writeoutput( FileRead( "/preside/system/html/500.html" ) );
+			}
+
+			return;
+		}
 	}
 
 // PRIVATE HELPERS
