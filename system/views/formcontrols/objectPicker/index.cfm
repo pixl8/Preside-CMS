@@ -9,6 +9,7 @@
 	remoteUrl           = args.remoteUrl        ?: "";
 	prefetchUrl         = args.prefetchUrl      ?: "";
 	records             = args.records          ?: QueryNew('');
+	searchable          = args.searchable       ?: true;
 	multiple            = args.multiple         ?: false;
 	extraClasses        = args.extraClasses     ?: "";
 	resultTemplate      = args.resultTemplate   ?: "{{text}}";
@@ -45,6 +46,9 @@
 		}
 	}
 
+	if ( searchable ) {
+		extraClasses = ListAppend( extraClasses, "searchable", " " );
+	}
 </cfscript>
 
 <cfoutput>

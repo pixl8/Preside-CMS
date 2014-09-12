@@ -3,8 +3,8 @@
 	var PresideObjectPicker = (function() {
 		function PresideObjectPicker( $originalInput ) {
 			this.$originalInput = $originalInput;
-
 			this.setupUberSelect();
+
 			if ( this.$originalInput.hasClass( 'quick-add' ) ) {
 				this.setupQuickAdd();
 			}
@@ -17,6 +17,7 @@
 			this.$originalInput.uberSelect({
 				  allow_single_deselect  : true
 				, inherit_select_classes : true
+				, searchable             : this.$originalInput.hasClass( 'searchable' )
 			});
 			this.$uberSelect = this.$originalInput.next();
 			this.uberSelect = this.$originalInput.data( "uberSelect" );
@@ -34,7 +35,7 @@
 			};
 			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
-			if ( this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
+			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.uberSelect.search_field.attr( "tabindex" ) );
 			} else if ( this.$originalInput.attr( "tabindex" ) && this.$originalInput.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.$originalInput.attr( "tabindex" ) );
@@ -113,7 +114,7 @@
 
 					var editIFrame = presideObjectPicker.getQuickEditIFrame();
 
-					if ( editIFrame.quickEdit !== "undefined" ) {
+					if ( typeof editIFrame.quickEdit !== "undefined" ) {
 						editIFrame.quickEdit.focusForm();
 
 						return false;
@@ -133,7 +134,7 @@
 
 			modal.modal( 'hide' );
 
-			this.uberSelect.search_field.focus();
+			this.uberSelect.isSearchable() && this.uberSelect.search_field.focus();
 		};
 
 		PresideObjectPicker.prototype.processAddRecord = function(){
@@ -174,7 +175,7 @@
 		PresideObjectPicker.prototype.closeQuickEditDialog = function(){
 			typeof this.editModal !== "undefined" && this.editModal.modal( "hide" );
 
-			this.uberSelect.search_field.focus();
+			this.uberSelect.isSearchable() && this.uberSelect.search_field.focus();
 		};
 
 		PresideObjectPicker.prototype.quickAddFinished = function(){
