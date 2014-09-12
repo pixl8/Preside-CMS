@@ -55,10 +55,10 @@ component output=false {
 			content reset=true;
 			header statuscode=500;
 
-			if ( FileExists( ExpandPath( "/500.html" ) ) ) {
-				Writeoutput( FileRead( ExpandPath( "/500.html" ) ) );
+			if ( FileExists( ExpandPath( "/500.htm" ) ) ) {
+				Writeoutput( FileRead( ExpandPath( "/500.htm" ) ) );
 			} else {
-				Writeoutput( FileRead( "/preside/system/html/500.html" ) );
+				Writeoutput( FileRead( "/preside/system/html/500.htm" ) );
 			}
 
 			return;

@@ -6,8 +6,12 @@ Overview
 
 PresideCMS provides a simple mechanism for creating custom 404 and 500 error pages while providing the flexibility to allow you to implement more complex systems should you need it.
 
+
+404 Not found pages
+###################
+
 Creating a 404 template
-#######################
+-----------------------
 
 The 404 template is implemented as a Preside Viewlet (see :doc:`viewlets`) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the :code:`notFoundViewlet` setting. The default is "errors.notFound":
 
@@ -89,7 +93,7 @@ You can also programatically set the layout for your 404 template in your handle
 
 
 Programatically responding with a 404
-#####################################
+-------------------------------------
 
 If you ever need to programatically respond with a 404 status, you can use the :code:`event.notFound()` method to do so. This method will ensure that the 404 statuscode header is set and will render your configured 404 template for you. For example:
 
@@ -110,7 +114,7 @@ If you ever need to programatically respond with a 404 status, you can use the :
 	}
 
 Direct access to the 404 template
-#################################
+---------------------------------
 
 The 404 template can be directly accessed by visiting /404.html. This is achieved through a custom route dedicated to error pages (see :doc:`routing`).
 
