@@ -463,7 +463,7 @@
 				if (this.is_multiple) {
 					this.container.html('<ul class="chosen-choices"></ul>');
 				} else {
-					this.container.html('<a class="chosen-single chosen-default" tabindex="-1"><span>' + this.default_text + '</span><div class="chosen-action-icon"><b></b></div></a>');
+					this.container.html('<a class="chosen-single chosen-default" tabindex="-1"><span>' + this.default_text + '</span></a>');
 				}
 			}
 
