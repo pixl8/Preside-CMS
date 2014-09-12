@@ -121,7 +121,7 @@ component implements="iRouteHandler" output=false singleton=true {
 				link &= "." & buildArgs.id;
 			}
 
-			if ( buildArgs.keyExists( "params" ) && IsStruct( buildArgs.params ) && StructCount( buildArgs.params ) ) {
+			if ( StructKeyExists( buildArgs, "params" ) && IsStruct( buildArgs.params ) && StructCount( buildArgs.params ) ) {
 				var delim = "/!";
 				for( var key in buildArgs.params ){
 					if ( IsSimpleValue( buildArgs.params[ key ] ) ) {
