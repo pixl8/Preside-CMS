@@ -153,3 +153,53 @@ Another example is producing 404 responses for secured areas of the application.
 		<set type="status">404</set>
 		<to last="true">/404.html</to>
 	</rule>
+
+500 Error Pages
+###############
+
+The implementation of 500 error pages is more straight forward than the 404 templates and involves only creating a flat :code:`500.htm` file in your webroot. The reason behind this is that a server error may be caused by your site's layout code, or may even occur before PresideCMS code is called at all; in which case the code to render your error template will not be available.
+
+If you do not create a :code:`500.htm` in your webroot, PresideCMS will use it's own default template for errors. This can be found at :code:`/preside/system/html/500.htm`.
+
+Bypassing the error template
+----------------------------
+
+In your local development environment, you will want to be able see the details of errors, rather than view a simple error message. This can be achieved with the config setting, :code:`showErrors`:
+
+.. code-block:: java
+
+	// /application/config/Config.cfc
+	component extends="preside.system.config.Config" output=false {
+
+		public void function configure() output=false {
+			super.configure();
+
+			// other settings...
+
+			settings.showErrors = true;
+		}
+	}
+
+In most cases however, you will not need to configure this for your local environment. PresideCMS uses ColdBox's environment configuration (see :doc:`coldboxenvironments`) to configure a "local" environment that already has :code:`showErrors` set to **true** for you. If you wish to override that setting, you can do so by creating your own "local" environment function:
+
+.. code-block:: java
+
+	// /application/config/Config.cfc
+	component extends="preside.system.config.Config" output=false {
+
+		public void function configure() output=false {
+			super.configure();
+
+			// other settings...
+		}
+
+		public void function local() output=false {
+			super.local();
+
+			settings.showErrors = false;
+		}
+	}
+
+.. note::
+
+	PresideCMS's built-in local environment configuration will map URLs like "mysite.local", "local.mysite", "localhost" and "127.0.0.1" to the "local" environment.

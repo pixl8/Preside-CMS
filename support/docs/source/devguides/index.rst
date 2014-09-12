@@ -25,3 +25,4 @@ Developer guides & recipes
    systemsettings
    developerconsole
    customerrorpages
+   coldboxenvironments
