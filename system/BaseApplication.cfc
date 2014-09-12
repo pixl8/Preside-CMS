@@ -42,7 +42,7 @@ component output=false {
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
 		// if server is configured to show errors, just rethrow
-		if ( IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors ) {
+		if ( _showErrors() ) {
 			throw object=arguments.exception;
 
 		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
@@ -148,5 +148,20 @@ component output=false {
 
 	private void function _readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest() output=false {
 		request.http = { body = ToString( GetHttpRequestData().content ) };
+	}
+
+	private boolean function _showErrors() output=false {
+		var coldboxController  = _getColdboxController();
+		var defaultInjected    = IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors;
+
+		return IsNull( coldboxController ) ? defaultInjected : coldboxController.getSetting( name="showErrors", defaultValue=defaultInjected );
+	}
+
+	private any function _getColdboxController() output=false {
+		if ( StructKeyExists( application, "cbBootstrap" ) && IsDefined( 'application.cbBootstrap.getController' ) ) {
+			return application.cbBootstrap.getController();
+		}
+
+		return;
 	}
 }

@@ -34,8 +34,14 @@ component extends="coldbox.system.Coldbox" output="false" {
 		return true;
 	}
 
+	public any function getController() output=false {
+		lock type="readonly" name=instance.appHash timeout=instance.lockTimeout throwontimeout=true {
+			return application[ locateAppKey() ] ?: NullValue();
+		}
+	}
+
 	public void function processColdBoxRequest() output=true {
-		var cbController       = 0;
+		var cbController       = getController();
 		var event              = 0;
 		var exceptionService   = 0;
 		var exceptionBean      = 0;
@@ -47,10 +53,6 @@ component extends="coldbox.system.Coldbox" output="false" {
 		var debugPanel         = "";
 		var interceptorService = "";
 
-		// Start Application Requests
-		lock type="readonly" name=instance.appHash timeout=instance.lockTimeout throwontimeout=true {
-			cbController = application[ locateAppKey() ];
-		}
 
 		// Setup Local Vars
 		interceptorService = cbController.getInterceptorService();
