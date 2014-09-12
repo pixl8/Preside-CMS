@@ -71,7 +71,7 @@ component output=false autodoc=true displayName="Update manager service" {
 		}
 
 		var branchPath        = _getRemoteBranchPath();
-		var xPath             = "/:ListBucketResult/:Contents/:Key[starts-with(.,'#branchPath#')]/text()";
+		var xPath             = "/:ListBucketResult/:Contents/:Key[starts-with(.,'#branchPath#')]";
 		var versionFiles      = XmlSearch( s3Listing, xPath );
 		var jsonAndZipMatches = {};
 		var versions          = [];
