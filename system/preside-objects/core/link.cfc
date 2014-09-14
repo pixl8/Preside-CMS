@@ -6,7 +6,7 @@
 component extends="preside.system.base.SystemPresideObject" labelfield="internal_title" output=false displayname="Link" {
 
 	property name="internal_title" type="string" dbtype="varchar" maxlength="100" required=true  uniqueindexes="linktitle";
-	property name="type"           type="string" dbtype="varchar" maxlength="10"  required=false default="external"  format="regex:(external|sitetree|email)";
+	property name="type"           type="string" dbtype="varchar" maxlength="10"  required=false default="external"  format="regex:(email|url|sitetreelink)";
 	property name="title"          type="string" dbtype="varchar" maxlength="200" required=false;
 	property name="target"         type="string" dbtype="varchar" maxlength="20"  required=false format="regex:_(blank|self|parent|top)";
 

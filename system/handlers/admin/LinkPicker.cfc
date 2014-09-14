@@ -1,5 +1,7 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
+	property name="presideObjectService" inject="presideObjectService";
+
 	function index( event, rc, prc ) output=false {
 		event.setLayout( "adminModalDialog" );
 		event.setView( "admin/linkPicker/index" );
@@ -16,8 +18,17 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function quickEditForm( event, rc, prc ) output=false {
+		var id     = rc.id     ?: "";
+
 		if ( !hasPermission( permissionKey="presideobject.link.edit" ) ) {
 			event.adminAccessDenied();
+		}
+
+		prc.record = presideObjectService.selectData( objectName="link", filter={ id=id }, useCache=false );
+		if ( prc.record.recordCount ) {
+			prc.record = queryRowToStruct( prc.record );
+		} else {
+			prc.record = {};
 		}
 
 		event.include( "/js/admin/specific/linkpicker/" );
