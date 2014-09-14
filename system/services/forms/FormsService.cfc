@@ -216,7 +216,6 @@ component output=false singleton=true {
 							, type      = field.control ?: "default"
 							, context   = arguments.context
 							, label     = _getFieldLabel( field=field, formName=arguments.formName )
-							, layout    = arguments.fieldLayout
 							, savedData = arguments.savedData
 						};
 
@@ -237,6 +236,8 @@ component output=false singleton=true {
 						} else if ( StructKeyExists( field, "default" ) ) {
 							renderArgs.defaultValue = field.default;
 						}
+
+						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						StructAppend( renderArgs, field, false );
 
@@ -780,6 +781,15 @@ component output=false singleton=true {
 		}
 
 		return "";
+	}
+
+	private boolean function _formControlHasLayout( required string control ) output=false {
+		switch( arguments.control ){
+			case "hidden":
+				return false;
+		}
+
+		return true;
 	}
 
 // GETTERS AND SETTERS

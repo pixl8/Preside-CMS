@@ -21,7 +21,7 @@ component output="false" singleton=true {
 		var rule          = "";
 
 		for( field in fields ){
-			if ( fields[field].getAttribute( "control", "" ) != "none" ) {
+			if ( !ListFindNoCase( "hidden,none", fields[field].getAttribute( "control", "" ) ) ) {
 				fieldRules = getRulesForField(
 					  objectName      = presideObject.getName()
 					, fieldName       = field

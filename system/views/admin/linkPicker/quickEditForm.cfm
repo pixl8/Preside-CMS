@@ -21,12 +21,11 @@
 			</div>
 		</div>
 		<div class="col-sm-10">
-			<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-add-form" method="post" action="#editRecordAction#">
+			<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-edit-form" method="post" action="#editRecordAction#">
 				<input name="id" type="hidden" value="#( rc.id ?: '' )#" />
-				<input type="hidden" name="type" value="" />
 
 				#renderForm(
-					  formName         = "preside-objects.link.admin.quickadd"
+					  formName         = "preside-objects.link.admin.quickedit"
 					, context          = "admin"
 					, formId           = formId
 					, validationResult = validationResult

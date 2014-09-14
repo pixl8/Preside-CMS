@@ -21,8 +21,6 @@
 		</div>
 		<div class="col-sm-10">
 			<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal quick-add-form" method="post" action="#addRecordAction#">
-				<input type="hidden" name="type" value="" />
-
 				#renderForm(
 					  formName         = "preside-objects.link.admin.quickadd"
 					, context          = "admin"
