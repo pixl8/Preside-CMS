@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Link picker: add link form
+
+This form is used for the quick add link modal
+-->
+<form>
+	<tab id="basic" >
+		<fieldset id="standard">
+			<field binding="link.internal_title" />
+			<field binding="link.title" />
+			<field binding="link.target" />
+		</fieldset>
+
+		<!-- we will show/hide these fieldsets depending on the selected link type -->
+		<fieldset id="sitetree">
+			<field binding="link.page" />
+		</fieldset>
+
+		<fieldset id="url">
+			<field binding="link.external_protocol" control="select" values="http://,https://,ftp://,news://" />
+			<field binding="link.external_address" control="textinput" />
+		</fieldset>
+
+		<fieldset id="email">
+			<field binding="link.email_address" control="textinput" />
+			<field binding="link.email_subject" control="textinput" />
+			<field binding="link.email_body"     />
+		</fieldset>
+	</tab>
+</form>

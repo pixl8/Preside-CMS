@@ -4,7 +4,7 @@
 	  , $linkTypeItems       = $( ".link-type-list" ).find( ".link-type" )
 	  , $linkTypeInput       = $( "#link-picker-form input[name=type]" )
 	  , $links               = $typeLinkList.find( ".link-type-link" )
-	  , $toggleableFieldsets = $( "#tab-basic fieldset" )
+	  , $toggleableFieldsets = $( "#tab-basic fieldset" ).not( "#fieldset-standard" )
 	  , $basicTabLink        = $( "#link-picker-form a[href='#tab-basic']" )
 	  , setActiveFieldset, deactivateFieldset, activateFieldset, initializeBehaviour, setupAnchors;
 
