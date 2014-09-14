@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Formcontrols: link picker form
+
+This form is used for the adding and editing links used by the "linkpicker" form control
+-->
+<form>
+	<tab id="basic" title="cms:ckeditor.linkpicker.basic.tab">
+		<fieldset id="title">
+			<field name="title" control="textinput" required="true" maxlength="400" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" />
+		</fieldset>
+
+		<!-- we will show/hide these fieldsets depending on the selected link type -->
+		<fieldset id="sitetree">
+			<field name="page" control="sitetreePagePicker" required="true" label="cms:ckeditor.linkpicker.page.label" />
+		</fieldset>
+
+		<fieldset id="url">
+			<field name="protocol" control="select" required="true" label="cms:ckeditor.linkpicker.protocol.label" defaultValue="http://" values="http://,https://,ftp://,news://" />
+			<field name="address" control="textinput" required="true" label="cms:ckeditor.linkpicker.address.label" placeholder="cms:ckeditor.linkpicker.address.placeholder" />
+		</fieldset>
+
+		<fieldset id="email">
+			<field name="emailaddress" control="textinput" required="true"  maxlength="255" label="cms:ckeditor.linkpicker.emailaddress.label" placeholder="cms:ckeditor.linkpicker.emailaddress.placeholder" />
+			<field name="emailsubject" control="textinput" required="false" maxlength="100" label="cms:ckeditor.linkpicker.emailsubject.label" />
+			<field name="emailbody"    control="textarea"  required="false" maxlength="200" label="cms:ckeditor.linkpicker.emailbody.label" />
+		</fieldset>
+	</tab>
+
+	<tab id="advanced" title="cms:ckeditor.linkpicker.advanced.tab">
+		<fieldset id="advanced">
+			<field name="link_target" control="select" required="true" label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" />
+		</fieldset>
+	</tab>
+</form>

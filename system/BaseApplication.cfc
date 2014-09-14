@@ -42,7 +42,7 @@ component output=false {
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
 		// if server is configured to show errors, just rethrow
-		if ( _showErrors() ) {
+		if ( !_showErrors() ) {
 			throw object=arguments.exception;
 
 		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
