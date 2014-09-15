@@ -46,8 +46,8 @@
 		}
 	}
 
-	if ( searchable ) {
-		extraClasses = ListAppend( extraClasses, "searchable", " " );
+	if ( !searchable ) {
+		extraClasses = ListAppend( extraClasses, "non-searchable", " " );
 	}
 </cfscript>
 

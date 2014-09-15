@@ -17,7 +17,7 @@
 			this.$originalInput.uberSelect({
 				  allow_single_deselect  : true
 				, inherit_select_classes : true
-				, searchable             : this.$originalInput.hasClass( 'searchable' )
+				, searchable             : !this.$originalInput.hasClass( 'non-searchable' )
 			});
 			this.$uberSelect = this.$originalInput.next();
 			this.uberSelect = this.$originalInput.data( "uberSelect" );

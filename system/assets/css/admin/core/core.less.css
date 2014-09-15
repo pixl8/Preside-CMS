@@ -23906,7 +23906,7 @@ img.presidecms .editable-click:hover {
 .presidecms .chosen-container.chosen-container-multi .chosen-choices {
   padding-top: 7px;
 }
-.presidecms .chosen-container:not(.searchable) ul.chosen-choices {
+.presidecms .chosen-container.non-searchable ul.chosen-choices {
   min-height: 41px;
 }
 .presidecms .chosen-container.quick-add .chosen-single {
