@@ -33,7 +33,7 @@
 			window[ onLoadCallback ] = function( iframe ){
 				iframe.presideObjectPicker = presideObjectPicker;
 			};
-			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
+			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="400" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
 			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.uberSelect.search_field.attr( "tabindex" ) );
@@ -93,7 +93,7 @@
 
 				presideObjectPicker.editModal = presideBootbox.dialog( {
 					  title     : $quickEditLink.data( "title" ) || $quickEditLink.attr( "title" )
-					, message   : '<div id="' + iframeId + '"><iframe class="quick-edit-iframe" src="' + href + '" width="900" height="250" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>'
+					, message   : '<div id="' + iframeId + '"><iframe class="quick-edit-iframe" src="' + href + '" width="900" height="400" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>'
 					, className : "quick-add-modal"
 					, show      : false
 					, buttons   : {

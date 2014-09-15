@@ -14,7 +14,7 @@
 </cfscript>
 
 <cfoutput>
-	<div class="row">
+	<div class="row link-picker">
 		<div class="col-sm-2">
 			<div class="link-type-menu">
 				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes="email,url,sitetreelink" } )#

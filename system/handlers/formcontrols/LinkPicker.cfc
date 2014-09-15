@@ -8,8 +8,8 @@ component output=false {
 
 		args.quickAddUrl         = event.buildAdminLink( linkTo="LinkPicker.quickAddForm" );
 		args.quickEditUrl        = event.buildAdminLink( linkTo="LinkPicker.quickEditForm", queryString="id=" );
-		args.quickAddModalTitle  = translateResource( "cms:linkpicker.quick.add.modal.title" );
-		args.quickEditModalTitle = translateResource( "cms:linkpicker.quick.edit.modal.title" );
+		args.quickAddModalTitle  = "cms:linkpicker.quick.add.modal.title";
+		args.quickEditModalTitle = "cms:linkpicker.quick.edit.modal.title";
 
 		return renderViewlet( event="formcontrols.objectPicker.index", args=args );
 	}

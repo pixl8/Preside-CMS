@@ -14,6 +14,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		event.include( "/js/admin/specific/linkpicker/" );
 		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.include( "/css/admin/specific/quickLinkForms/" );
 		event.setView( view="/admin/linkpicker/quickAddForm", layout="adminModalDialog" );
 	}
 
@@ -33,6 +34,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		event.include( "/js/admin/specific/linkpicker/" );
 		event.include( "/js/admin/specific/datamanager/quickEditForm/" );
+		event.include( "/css/admin/specific/quickLinkForms/" );
 		event.setView( view="/admin/linkpicker/quickEditForm", layout="adminModalDialog" );
 	}
 
