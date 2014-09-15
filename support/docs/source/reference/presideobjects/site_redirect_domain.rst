@@ -1,8 +1,11 @@
-site_redirect_domain
+Site redirect domain
 ====================
 
 Overview
 --------
+
+The Site redirect domain object represents a single domain that will permanently redirect to the
+default domain for a site.
 
 **Object name:**
     site_redirect_domain
