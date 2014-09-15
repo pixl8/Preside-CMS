@@ -31,6 +31,8 @@ This form is used for the quick add link modal
 	<tab id="content" title="preside-objects.link:content.tab.title">
 		<fieldset id="content">
 			<field binding="link.title" control="textinput" />
+			<field binding="link.text" control="textinput" />
+			<field binding="link.image" />
 			<field binding="link.target" control="select" values="_self,_blank,_parent,_top" labels="preside-objects.link:targets.self,preside-objects.link:targets.blank,preside-objects.link:targets.parent,preside-objects.link:targets.top" />
 		</fieldset>
 	</tab>
