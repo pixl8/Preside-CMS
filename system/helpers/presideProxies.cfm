@@ -43,6 +43,11 @@
 		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).renderField( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderLink" access="public" returntype="any" output="false">
+		<cfargument name="id" type="string" required="true" />
+		<cfreturn getController().renderViewlet( event="renderers.link.default", args=arguments ) />
+	</cffunction>
+
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
