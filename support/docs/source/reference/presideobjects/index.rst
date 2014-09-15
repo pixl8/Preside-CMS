@@ -17,4 +17,6 @@ System Preside Objects
     homepage
     page
     draft
+    site_redirect_domain
+    link
     site

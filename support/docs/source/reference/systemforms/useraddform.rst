@@ -20,7 +20,7 @@ This form is used for the "add user" form in the user admin section of the admin
 
             <fieldset title="preside-objects.security_user:fieldset.security" description="preside-objects.security_user:fieldset.security.description">
                 <field binding="security_user.password" control="password" required="false" />
-                <field name="confirm_password"      control="password" label="preside-objects.security_user:field.confirm_password.title" required="false">
+                <field name="confirm_password" control="password" label="preside-objects.security_user:field.confirm_password.title" required="false">
                     <rule validator="sameAs">
                         <param name="field" value="password" />
                     </rule>

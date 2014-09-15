@@ -9,6 +9,9 @@ System form layouts
     asseteditform
     assetfolderaddform
     assetfoldereditform
+    assetfoldereditrootfolderform
+    linkpickeraddlinkform
+    linkpickereditlinkform
     richeditorattachmentform
     richeditorattachmentform
     richeditorimageform
@@ -19,6 +22,7 @@ System form layouts
     sitetreepagerestoreform
     sitetreepagetypehomepageeditform
     systemconfigformgeneralconfiguration
+    updatemanagersettingsform
     useraddform
     usereditform
     usereditselfform

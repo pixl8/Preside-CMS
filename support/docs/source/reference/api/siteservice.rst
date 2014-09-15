@@ -137,3 +137,24 @@ Arguments
 .........
 
 *This method does not accept any arguments.*
+
+.. _siteservice-syncsiteredirectdomains:
+
+SyncSiteRedirectDomains()
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function syncSiteRedirectDomains( required string siteId, required string domains )
+
+Sync redirect domains with the site record
+
+Arguments
+.........
+
+=======  ======  ========  ===========
+Name     Type    Required  Description
+=======  ======  ========  ===========
+siteId   string  Yes                  
+domains  string  Yes                  
+=======  ======  ========  ===========

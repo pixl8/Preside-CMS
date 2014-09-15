@@ -8,3 +8,4 @@ System Service API
     presideobjectservice
     sitetemplatesservice
     siteservice
+    updatemanagerservice

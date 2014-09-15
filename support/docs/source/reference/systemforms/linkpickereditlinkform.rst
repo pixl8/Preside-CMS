@@ -1,0 +1,45 @@
+Link picker: edit link form
+===========================
+
+*/forms/preside-objects/link/admin.quickedit.xml*
+
+This form is used for editing links through the link picker form control
+
+.. code-block:: xml
+
+    <?xml version="1.0" encoding="UTF-8"?>
+
+    <form>
+        <tab id="basic" title="preside-objects.link:basic.tab.title">
+            <fieldset id="standard">
+                <field binding="link.type" control="hidden" />
+                <field binding="link.internal_title" />
+            </fieldset>
+
+            <!-- we will show/hide these fieldsets depending on the selected link type -->
+            <fieldset id="sitetree">
+                <field binding="link.page" />
+            </fieldset>
+
+            <fieldset id="url">
+                <field binding="link.external_protocol" control="select" values="http://,https://,ftp://,news://" />
+                <field binding="link.external_address" control="textinput" />
+            </fieldset>
+
+            <fieldset id="email">
+                <field binding="link.email_address" control="textinput" />
+                <field binding="link.email_subject" control="textinput" />
+                <field binding="link.email_body"     />
+            </fieldset>
+        </tab>
+
+        <tab id="content" title="preside-objects.link:content.tab.title">
+            <fieldset id="content">
+                <field binding="link.title" control="textinput" />
+                <field binding="link.text" control="textinput" />
+                <field binding="link.image" />
+                <field binding="link.target" control="select" values="_self,_blank,_parent,_top" labels="preside-objects.link:targets.self,preside-objects.link:targets.blank,preside-objects.link:targets.parent,preside-objects.link:targets.top" />
+            </fieldset>
+        </tab>
+    </form>
+
