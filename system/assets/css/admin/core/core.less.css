@@ -25187,6 +25187,9 @@ img.presidecms .editable-click:hover {
   line-height: normal;
   margin: -4px 0 0;
 }
+.presidecms .chosen-container.quick-add.chosen-container-single .chosen-single .remove-choice-link {
+  top: 20px;
+}
 .presidecms .chosen-container .fa {
   color: #888888;
   margin-left: 3px;
@@ -25194,6 +25197,9 @@ img.presidecms .editable-click:hover {
 .presidecms .chosen-container .fa:hover {
   color: #444444;
   text-decoration: none;
+}
+.presidecms .chosen-container.chosen-container-single .chosen-single .remove-choice-link {
+  top: 13px;
 }
 .presidecms .chosen-container.sitetree-page-picker .result-container,
 .presidecms .chosen-container.sitetree-page-picker .parent,
