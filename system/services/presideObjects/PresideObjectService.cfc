@@ -1136,9 +1136,17 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	public string function getDefaultFormControlForPropertyAttributes( string type="string", string dbType="varchar", string relationship="none", string relatedTo="", numeric maxLength=0 ) output=false {
 		switch( arguments.relationship ){
 			case "many-to-one" :
-				return arguments.relatedTo == "asset" ? "assetPicker" : "manyToOneSelect";
+				switch( arguments.relatedTo ) {
+					case "asset": return "assetPicker";
+					case "link" : return "linkPicker";
+					default     : return "manyToOneSelect";
+				}
 			case "many-to-many":
-				return arguments.relatedTo == "asset" ? "assetPicker" : "manyToManySelect";
+				switch( arguments.relatedTo ) {
+					case "asset": return "assetPicker";
+					case "link" : return "linkPicker";
+					default     : return "manyToManySelect";
+				}
 		}
 
 		switch ( arguments.type ) {
