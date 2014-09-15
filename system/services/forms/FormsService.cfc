@@ -215,8 +215,6 @@ component output=false singleton=true {
 							  name      = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
 							, type      = field.control ?: "default"
 							, context   = arguments.context
-							, help      = field.help    ?: ""
-							, label     = _getFieldLabel( field=field, formName=arguments.formName )
 							, savedData = arguments.savedData
 						};
 
@@ -241,6 +239,7 @@ component output=false singleton=true {
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						StructAppend( renderArgs, field, false );
+						StructAppend( renderArgs, _getI18nFieldAttributes( field=field, formName=arguments.formName ) );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -648,22 +647,29 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private string function _getFieldLabel( required struct field, required string formName ) output=false {
-		var i18n       = _getI18n();
-		var fieldName  = arguments.field.name ?: "";
-		var objectName = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		var defaultUri = _getPresideObjectService().getResourceBundleUriRoot( objectName ) & "field.#fieldName#.title";
-		var backupUri  = "cms:preside-objects.default.field.#fieldName#.title";
-		var fieldLabel = arguments.field.label ?: "";
+	private struct function _getI18nFieldAttributes( required struct field, required string formName ) output=false {
+		var i18n            = _getI18n();
+		var fieldName       = arguments.field.name ?: "";
+		var objectName      = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+		var rootUri         = _getPresideObjectService().getResourceBundleUriRoot( objectName ) & "field.#fieldName#.";
+		var defaultLabelUri = rootUri & "title";
+		var backupLabelUri  = "cms:preside-objects.default.field.#fieldName#.title";
+		var fieldLabel      = arguments.field.label ?: "";
+		var attributes      = {};
 
 		if ( Len( Trim( fieldLabel ) ) ) {
-			return i18n.translateResource( uri=fieldLabel, defaultValue=fieldLabel );
+			attributes.label = i18n.translateResource( uri=fieldLabel, defaultValue=fieldLabel );
+		} else {
+			attributes.label = i18n.translateResource(
+				  uri          = defaultLabelUri
+				, defaultValue = i18n.translateResource( uri = backupLabelUri, defaultValue = fieldName )
+			);
 		}
 
-		return i18n.translateResource(
-			  uri          = defaultUri
-			, defaultValue = i18n.translateResource( uri = backupUri, defaultValue = fieldName )
-		);
+		attributes.help = field.help ?: i18n.translateResource( uri=rootUri & "help", defaultValue="" );
+		attributes.placeholder = field.placeholder ?: i18n.translateResource( uri=rootUri & "placeholder", defaultValue="" );
+
+		return attributes;
 	}
 
 	private string function _getPreProcessorForField( string preProcessor="", string control="" ) output=false {
