@@ -23929,6 +23929,12 @@ img.presidecms .editable-click:hover {
   vertical-align: baseline;
   top: 2px;
 }
+.presidecms .help-button {
+  line-height: 19px;
+}
+.presidecms .popover-content {
+  min-height: 60px;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }

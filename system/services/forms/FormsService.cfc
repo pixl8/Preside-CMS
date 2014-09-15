@@ -215,6 +215,7 @@ component output=false singleton=true {
 							  name      = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
 							, type      = field.control ?: "default"
 							, context   = arguments.context
+							, help      = field.help    ?: ""
 							, label     = _getFieldLabel( field=field, formName=arguments.formName )
 							, savedData = arguments.savedData
 						};
@@ -280,6 +281,7 @@ component output=false singleton=true {
 		,          string  label        = ""
 		,          string  savedValue   = ""
 		,          string  defaultValue = ""
+		,          string  help         = ""
 		,          struct  savedData    = {}
 		,          string  error        = ""
 		,          boolean required     = false
@@ -308,6 +310,7 @@ component output=false singleton=true {
 				, for      = arguments.id
 				, error    = arguments.error
 				, required = arguments.required
+				, help     = arguments.help
 			} );
 		}
 
