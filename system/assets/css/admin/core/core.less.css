@@ -45,7 +45,7 @@ html.presidecms.iframe {
  */
   /*! normalize.css v2.1.0 | MIT License | git.io/normalize */
   /*!
- *  Font Awesome 4.1.0 by @davegandy - http://fontawesome.io - @fontawesome
+ *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
  */
   /* FONT PATH
@@ -7379,9 +7379,11 @@ td.presidecms .visible-print {
 .presidecms .fa {
   display: inline-block;
   font-family: PresideFontAwesome;
+  font-size: inherit;
   font-style: normal;
   font-weight: normal;
   line-height: 1;
+  text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -7442,12 +7444,12 @@ td.presidecms .visible-print {
   margin-left: .3em;
 }
 .presidecms .fa-spin {
-  -webkit-animation: spin 2s infinite linear;
-  -moz-animation: spin 2s infinite linear;
-  -o-animation: spin 2s infinite linear;
-  animation: spin 2s infinite linear;
+  -webkit-animation: fa-spin 2s infinite linear;
+  -moz-animation: fa-spin 2s infinite linear;
+  -o-animation: fa-spin 2s infinite linear;
+  animation: fa-spin 2s infinite linear;
 }
-@-moz-keyframes spin {
+@-moz-keyframes fa-spin {
   0% {
     -moz-transform: rotate(0deg);
   }
@@ -7455,9 +7457,10 @@ td.presidecms .visible-print {
     -moz-transform: rotate(359deg);
   }
 }
-@-webkit-keyframes spin {
+@-webkit-keyframes fa-spin {
   0% {
     -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   100% {
     -webkit-transform: rotate(359deg);
@@ -7471,7 +7474,7 @@ td.presidecms .visible-print {
     -o-transform: rotate(359deg);
   }
 }
-@keyframes spin {
+@keyframes fa-spin {
   0% {
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
@@ -7520,6 +7523,13 @@ td.presidecms .visible-print {
   -ms-transform: scale(1, -1);
   -o-transform: scale(1, -1);
   transform: scale(1, -1);
+}
+.presidecms :root .fa-rotate-90,
+.presidecms :root .fa-rotate-180,
+.presidecms :root .fa-rotate-270,
+.presidecms :root .fa-flip-horizontal,
+.presidecms :root .fa-flip-vertical {
+  filter: none;
 }
 .presidecms .fa-stack {
   position: relative;
@@ -7584,6 +7594,8 @@ td.presidecms .visible-print {
 .presidecms .fa-check:before {
   content: "\f00c";
 }
+.presidecms .fa-remove:before,
+.presidecms .fa-close:before,
 .presidecms .fa-times:before {
   content: "\f00d";
 }
@@ -7913,7 +7925,8 @@ td.presidecms .visible-print {
 .presidecms .fa-arrows-h:before {
   content: "\f07e";
 }
-.presidecms .fa-bar-chart-o:before {
+.presidecms .fa-bar-chart-o:before,
+.presidecms .fa-bar-chart:before {
   content: "\f080";
 }
 .presidecms .fa-twitter-square:before {
@@ -8742,7 +8755,6 @@ td.presidecms .visible-print {
 .presidecms .fa-digg:before {
   content: "\f1a6";
 }
-.presidecms .fa-pied-piper-square:before,
 .presidecms .fa-pied-piper:before {
   content: "\f1a7";
 }
@@ -8859,6 +8871,7 @@ td.presidecms .visible-print {
   content: "\f1cc";
 }
 .presidecms .fa-life-bouy:before,
+.presidecms .fa-life-buoy:before,
 .presidecms .fa-life-saver:before,
 .presidecms .fa-support:before,
 .presidecms .fa-life-ring:before {
@@ -8925,6 +8938,129 @@ td.presidecms .visible-print {
 }
 .presidecms .fa-bomb:before {
   content: "\f1e2";
+}
+.presidecms .fa-soccer-ball-o:before,
+.presidecms .fa-futbol-o:before {
+  content: "\f1e3";
+}
+.presidecms .fa-tty:before {
+  content: "\f1e4";
+}
+.presidecms .fa-binoculars:before {
+  content: "\f1e5";
+}
+.presidecms .fa-plug:before {
+  content: "\f1e6";
+}
+.presidecms .fa-slideshare:before {
+  content: "\f1e7";
+}
+.presidecms .fa-twitch:before {
+  content: "\f1e8";
+}
+.presidecms .fa-yelp:before {
+  content: "\f1e9";
+}
+.presidecms .fa-newspaper-o:before {
+  content: "\f1ea";
+}
+.presidecms .fa-wifi:before {
+  content: "\f1eb";
+}
+.presidecms .fa-calculator:before {
+  content: "\f1ec";
+}
+.presidecms .fa-paypal:before {
+  content: "\f1ed";
+}
+.presidecms .fa-google-wallet:before {
+  content: "\f1ee";
+}
+.presidecms .fa-cc-visa:before {
+  content: "\f1f0";
+}
+.presidecms .fa-cc-mastercard:before {
+  content: "\f1f1";
+}
+.presidecms .fa-cc-discover:before {
+  content: "\f1f2";
+}
+.presidecms .fa-cc-amex:before {
+  content: "\f1f3";
+}
+.presidecms .fa-cc-paypal:before {
+  content: "\f1f4";
+}
+.presidecms .fa-cc-stripe:before {
+  content: "\f1f5";
+}
+.presidecms .fa-bell-slash:before {
+  content: "\f1f6";
+}
+.presidecms .fa-bell-slash-o:before {
+  content: "\f1f7";
+}
+.presidecms .fa-trash:before {
+  content: "\f1f8";
+}
+.presidecms .fa-copyright:before {
+  content: "\f1f9";
+}
+.presidecms .fa-at:before {
+  content: "\f1fa";
+}
+.presidecms .fa-eyedropper:before {
+  content: "\f1fb";
+}
+.presidecms .fa-paint-brush:before {
+  content: "\f1fc";
+}
+.presidecms .fa-birthday-cake:before {
+  content: "\f1fd";
+}
+.presidecms .fa-area-chart:before {
+  content: "\f1fe";
+}
+.presidecms .fa-pie-chart:before {
+  content: "\f200";
+}
+.presidecms .fa-line-chart:before {
+  content: "\f201";
+}
+.presidecms .fa-lastfm:before {
+  content: "\f202";
+}
+.presidecms .fa-lastfm-square:before {
+  content: "\f203";
+}
+.presidecms .fa-toggle-off:before {
+  content: "\f204";
+}
+.presidecms .fa-toggle-on:before {
+  content: "\f205";
+}
+.presidecms .fa-bicycle:before {
+  content: "\f206";
+}
+.presidecms .fa-bus:before {
+  content: "\f207";
+}
+.presidecms .fa-ioxhost:before {
+  content: "\f208";
+}
+.presidecms .fa-angellist:before {
+  content: "\f209";
+}
+.presidecms .fa-cc:before {
+  content: "\f20a";
+}
+.presidecms .fa-shekel:before,
+.presidecms .fa-sheqel:before,
+.presidecms .fa-ils:before {
+  content: "\f20b";
+}
+.presidecms .fa-meanpath:before {
+  content: "\f20c";
 }
 .presidecms .ui-helper-hidden {
   display: none;
