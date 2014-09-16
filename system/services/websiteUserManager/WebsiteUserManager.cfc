@@ -22,6 +22,15 @@ component output=false autodoc=true displayName="Preside Object Service" {
 		return _getSessionService().exists( name=_getSessionKey() );;
 	}
 
+	/**
+	 * Returns the structure of user details belonging to the currently logged in user.
+	 * If no user is logged in, an empty structure will be returned.
+	 */
+	public struct function getLoggedInUserDetails() output=false autodoc=true {
+		var userDetails = _getSessionService().getVar( name=_getSessionKey(), default={} );
+
+		return IsStruct( userDetails ) ? userDetails : {};
+	}
 
 // private accessors
 	private any function _getSessionService() output=false {
