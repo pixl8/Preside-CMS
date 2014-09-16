@@ -8,5 +8,5 @@ component extends="preside.system.base.SystemPresideObject" labelfield="login_id
 	property name="email_address" type="string"  dbtype="varchar" maxLength="255" required="false" uniqueindexes="email" control="textinput";
 	property name="active"        type="boolean" dbtype="boolean" required=false default=true;
 
-	property name="benefits" relationship="many-to-many" relatedTo="website_user_benefit";
+	property name="benefits" relationship="many-to-many" relatedTo="website_benefit";
 }
