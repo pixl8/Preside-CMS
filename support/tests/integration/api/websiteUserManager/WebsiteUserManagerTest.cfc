@@ -56,13 +56,53 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, log.len() );
 	}
 
+	function test07_login_shouldReturnFalse_whenUserIdNotFound() output=false {
+		var userManager = _getUserManager();
+
+		userManager.$( "isLoggedIn" ).$results( false );
+		mockUserDao.$( "selectData" ).$args(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = "dummy" }
+			, useCache     = false
+		).$results( QueryNew( '' ) );
+
+		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
+	}
+
+	function test08_login_shouldReturnFalse_whenAlreadyLoggedIn() output=false {
+		var userManager = _getUserManager();
+
+		userManager.$( "isLoggedIn" ).$results( true );
+
+		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
+	}
+
+	function test09_login_shouldReturnFalse_whenUserExistsButPasswordDoesNotMatch() output=false {
+		var userManager = _getUserManager();
+		var mockRecord  = QueryNew( 'password', 'varchar', ['blah'] );
+
+		userManager.$( "isLoggedIn" ).$results( false );
+		mockUserDao.$( "selectData" ).$args(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = "dummy" }
+			, useCache     = false
+		).$results( mockRecord );
+		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( false );
+
+		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
+	}
+
 // private helpers
 	private any function _getUserManager() output=false {
 		mockSessionService = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
+		mockUserDao        = getMockbox().createStub();
+		mockBCryptService  = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 
-		return new preside.system.services.websiteUserManager.WebsiteUserManager(
-			sessionService = mockSessionService
-		);
+		return getMockBox().createMock( object= new preside.system.services.websiteUserManager.WebsiteUserManager(
+			  sessionService = mockSessionService
+			, userDao        = mockUserDao
+			, bcryptService  = mockBCryptService
+		) );
 	}
 
 }
