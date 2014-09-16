@@ -41,6 +41,14 @@ component output=false autodoc=true displayName="Preside Object Service" {
 		return userDetails.id ?: "";
 	}
 
+	/**
+	 * Logs the currently logged in user out of their session
+	 *
+	 */
+	public void function logout() output=false {
+		_getSessionService().deleteVar( name=_getSessionKey() );
+	}
+
 // private accessors
 	private any function _getSessionService() output=false {
 		return _sessionService;

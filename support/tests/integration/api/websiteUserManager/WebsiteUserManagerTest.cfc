@@ -44,6 +44,18 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( "", userManager.getLoggedInUserId() );
 	}
 
+	function test06_logout_shouldDestroyTheUserSession() output=false {
+		var userManager = _getUserManager();
+
+		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+
+		userManager.logout();
+
+		var log = mockSessionService.$calllog().deleteVar;
+
+		super.assertEquals( 1, log.len() );
+	}
+
 // private helpers
 	private any function _getUserManager() output=false {
 		mockSessionService = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
