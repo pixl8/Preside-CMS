@@ -26,6 +26,24 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( testUserDetails, userManager.getLoggedInUserDetails() );
 	}
 
+	function test04_getLoggedInUserId_shouldReturnTheIdOFtheCurrentlyLoggedInUser() output=false {
+		var userManager = _getUserManager();
+		var testUserDetails = { id="anotherid", loginid="l33t", emailaddress="myemail address" };
+
+		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
+
+		super.assertEquals( testUserDetails.id, userManager.getLoggedInUserId() );
+	}
+
+	function test05_getLoggedInUserId_shouldReturnAnEmptyStringWhenNoUserIsLoggedIn() output=false {
+		var userManager = _getUserManager();
+		var testUserDetails = {};
+
+		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
+
+		super.assertEquals( "", userManager.getLoggedInUserId() );
+	}
+
 // private helpers
 	private any function _getUserManager() output=false {
 		mockSessionService = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );

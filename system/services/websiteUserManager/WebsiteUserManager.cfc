@@ -32,6 +32,15 @@ component output=false autodoc=true displayName="Preside Object Service" {
 		return IsStruct( userDetails ) ? userDetails : {};
 	}
 
+	/**
+	 * Returns the id of the currently logged in user, or an empty string if no user is logged in
+	 */
+	public string function getLoggedInUserId() output=false autodoc=true {
+		var userDetails = getLoggedInUserDetails();
+
+		return userDetails.id ?: "";
+	}
+
 // private accessors
 	private any function _getSessionService() output=false {
 		return _sessionService;
