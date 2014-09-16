@@ -55,6 +55,12 @@ component output=false autodoc=true displayName="Preside Object Service" {
 			return false;
 		}
 
+		_getSessionService().setVar( name=_getSessionKey(), value={
+			  id            = userRecord.id
+			, login_id      = userRecord.login_id
+			, email_address = userRecord.email_address
+		} );
+
 		return true;
 	}
 

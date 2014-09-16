@@ -92,6 +92,28 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
 	}
 
+	function test10_login_shouldSetUserDetailsInSession() output=false {
+		var userManager = _getUserManager();
+		var mockRecord  = QueryNew( 'password,email_address,login_id,id', 'varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid']] );
+
+		userManager.$( "isLoggedIn" ).$results( false );
+		mockUserDao.$( "selectData" ).$args(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = "dummy" }
+			, useCache     = false
+		).$results( mockRecord );
+		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
+		mockSessionService.$( "setVar" );
+
+		super.assert( userManager.login( loginId="dummy", password="whatever" ) );
+
+		var sessionServiceCallLog = mockSessionService.$callLog().setVar;
+
+		super.assertEquals( 1, sessionServiceCallLog.len() );
+
+		super.assertEquals( { name="website_user", value={ email_address = mockRecord.email_address, login_id = mockRecord.login_id, id=mockRecord.id } }, sessionServiceCallLog[1] );
+	}
+
 // private helpers
 	private any function _getUserManager() output=false {
 		mockSessionService = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
