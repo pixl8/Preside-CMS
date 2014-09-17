@@ -74,7 +74,7 @@ component output=false {
 
 		settings.activeExtensions = _loadExtensions();
 
-		settings.permissions = {
+		settings.adminPermissions = {
 			  cms                 = [ "login" ]
 			, sitetree            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, sites               = [ "navigate", "manage" ]
@@ -98,17 +98,22 @@ component output=false {
 			 }
 		};
 
-		settings.roles = StructNew( "linked" );
+		settings.adminRoles = StructNew( "linked" );
 
-		settings.roles.user           = [ "cms.login" ];
-		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*" ];
-		settings.roles.siteManager    = [ "sites.*", "presideobject.site.*" ];
-		settings.roles.siteUser       = [ "sites.navigate", "presideobject.site.read" ];
-		settings.roles.sitetreeAdmin  = [ "sitetree.*", "presideobject.page.*" ];
-		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add", "presideobject.page.*" ];
-		settings.roles.dataAdmin      = [ "datamanager.*" ];
-		settings.roles.assetAdmin     = [ "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
-		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.user           = [ "cms.login" ];
+		settings.adminRoles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*" ];
+		settings.adminRoles.siteManager    = [ "sites.*", "presideobject.site.*" ];
+		settings.adminRoles.siteUser       = [ "sites.navigate", "presideobject.site.read" ];
+		settings.adminRoles.sitetreeAdmin  = [ "sitetree.*", "presideobject.page.*" ];
+		settings.adminRoles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add", "presideobject.page.*" ];
+		settings.adminRoles.dataAdmin      = [ "datamanager.*" ];
+		settings.adminRoles.assetAdmin     = [ "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+
+		settings.websitePermissions = {
+			  pages  = [ "access" ]
+			, assets = [ "access" ]
+		};
 
 		// uploads directory - each site really should override this setting and provide an external location
 		settings.uploads_directory     = ExpandPath( "/uploads" );
