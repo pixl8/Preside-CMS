@@ -97,6 +97,148 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, actual );
 	}
 
+	function test06_hasPermission_shouldReturnFalse_whenLoggedInUserDoesNotHaveAGrantToPassedPermissionKey() output=false {
+		var permsService = _getPermService();
+		var testUserId   = "fred";
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+
+		super.assertFalse( permsService.hasPermission( "key.d" ) );
+	}
+
+	function test07_hasPermission_shouldReturnTrue_whenLoggedInUserHasAGrantToPassedPermissionKey() output=false {
+		var permsService = _getPermService();
+		var testUserId   = "fred";
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+
+		super.assert( permsService.hasPermission( "key.c" ) );
+	}
+
+	function test06_hasPermission_shouldReturnFalse_whenLoggedInUserDoesNotHaveAGrantToPassedPermissionKey_andDoesNotHaveAnyContextPerms() output=false {
+		var permsService      = _getPermService();
+		var testUserId        = "fred";
+		var testPermissionKey = "key.d";
+		var testContext       = "somecontext";
+		var testContextKeys   = [ "keya", "keyb", "keyc" ];
+
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, permd = true } );
+
+		super.assertFalse( permsService.hasPermission(
+			  permissionKey = testPermissionKey
+			, context       = testContext
+			, contextKeys   = testContextKeys
+		) );
+	}
+
+	function test07_hasPermission_shouldReturnTrue_whenLoggedInUserHasAGrantToPassedPermissionKey_andDoesNotHaveAnyContextPerms() output=false {
+		var permsService      = _getPermService();
+		var testUserId        = "fred";
+		var testPermissionKey = "key.c";
+		var testContext       = "somecontext";
+		var testContextKeys   = [ "keya", "keyb", "keyc" ];
+
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, permd = true } );
+
+		super.assert( permsService.hasPermission(
+			  permissionKey = testPermissionKey
+			, context       = testContext
+			, contextKeys   = testContextKeys
+		) );
+	}
+
+	function test08_hasPermission_shouldReturnFalse_whenLoggedInUserHasExplicitDenyPermissionForGivenKeys() output=false {
+		var permsService      = _getPermService();
+		var testUserId        = "fred";
+		var testPermissionKey = "key.c";
+		var testContext       = "somecontext";
+		var testContextKeys   = [ "keya", "keyb", "keyc" ];
+
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, "keyb_key.c_fred" = false, permc = true, permd = true } );
+
+		super.assertFalse( permsService.hasPermission(
+			  permissionKey = testPermissionKey
+			, context       = testContext
+			, contextKeys   = testContextKeys
+		) );
+	}
+
+	function test09_hasPermission_shouldReturnTrue_whenLoggedInUserHasExplicitAccessPermissionForGivenKeys() output=false {
+		var permsService      = _getPermService();
+		var testUserId        = "fred";
+		var testPermissionKey = "key.d";
+		var testContext       = "somecontext";
+		var testContextKeys   = [ "keya", "keyb", "keyc" ];
+
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, "keyb_key.d_fred" = true, permd = true } );
+
+		super.assert( permsService.hasPermission(
+			  permissionKey = testPermissionKey
+			, context       = testContext
+			, contextKeys   = testContextKeys
+		) );
+	}
+
+	function test10_hasPermission_shouldReturnFalse_whenLoggedInUserHasBenefitInheritedDenyPermissionForGivenKeys() output=false {
+		var permsService      = _getPermService();
+		var testUserId        = "fred";
+		var testPermissionKey = "key.c";
+		var testContext       = "somecontext";
+		var testContextKeys   = [ "keya", "keyb", "keyc" ];
+
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, "keyb_key.c_benefita" = false, "keyb_key.c_benefitb" = true, "keyb_key.c_benefitc" = true, permc = true, permd = true } );
+
+		super.assertFalse( permsService.hasPermission(
+			  permissionKey = testPermissionKey
+			, context       = testContext
+			, contextKeys   = testContextKeys
+		) );
+	}
+
+	function test11_hasPermission_shouldReturnTrue_whenLoggedInUserHasExplicitAccessPermissionForGivenKeys() output=false {
+		var permsService      = _getPermService();
+		var testUserId        = "fred";
+		var testPermissionKey = "key.d";
+		var testContext       = "somecontext";
+		var testContextKeys   = [ "keya", "keyb", "keyc" ];
+
+
+		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( [ "benefita", "benefitb", "benefitc" ] );
+		mockWebsiteUserService.$( "getLoggedInUserId", testUserId );
+		mockCacheProvider.$( "getOrSet", { perma = true, permb = false, permc = true, "keyb_key.d_benefita" = true, "keyb_key.d_benefitb" = false, "keyb_key.d_benefitc" = false, permd = true } );
+
+		super.assert( permsService.hasPermission(
+			  permissionKey = testPermissionKey
+			, context       = testContext
+			, contextKeys   = testContextKeys
+		) );
+	}
+
+
+
 // private helpers
 	private any function _getPermService( permissionsConfig=_getDefaultPermsConfig() ) output=false {
 		mockWebsiteUserService = getMockbox().createEmptyMock( "preside.system.services.websiteUsers.WebsiteUserService" );
