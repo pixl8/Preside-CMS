@@ -64,6 +64,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
+			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( QueryNew( '' ) );
 
 		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
@@ -86,21 +87,29 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
+			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( false );
 
 		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
 	}
 
-	function test10_login_shouldSetUserDetailsInSession() output=false {
-		var userManager = _getUserManager();
-		var mockRecord  = QueryNew( 'password,email_address,login_id,id', 'varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid']] );
+	function test10_login_shouldSetUserDetailsInSessionAndReturnTrue_whenLoginDetailsAreCorrect() output=false {
+		var userManager        = _getUserManager();
+		var mockRecord         = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
+		var expectedSetVarCall = { name="website_user", value={
+			  email_address = mockRecord.email_address
+			, display_name  = mockRecord.display_name
+			, login_id      = mockRecord.login_id
+			, id            = mockRecord.id
+		} };
 
 		userManager.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
+			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
 		mockSessionService.$( "setVar" );
@@ -111,7 +120,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		super.assertEquals( 1, sessionServiceCallLog.len() );
 
-		super.assertEquals( { name="website_user", value={ email_address = mockRecord.email_address, login_id = mockRecord.login_id, id=mockRecord.id } }, sessionServiceCallLog[1] );
+		super.assertEquals( expectedSetVarCall, sessionServiceCallLog[1] );
 	}
 
 // private helpers

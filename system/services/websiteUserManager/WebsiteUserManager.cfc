@@ -42,7 +42,8 @@ component output=false autodoc=true displayName="Preside Object Service" {
 		}
 
 		var userRecord = _getUserDao().selectData(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
+			, filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
 		);
@@ -59,6 +60,7 @@ component output=false autodoc=true displayName="Preside Object Service" {
 			  id            = userRecord.id
 			, login_id      = userRecord.login_id
 			, email_address = userRecord.email_address
+			, display_name  = userRecord.display_name
 		} );
 
 		return true;
