@@ -17,7 +17,7 @@ component output=false singleton=true {
 		, required any    userDao
 		, required any    appliedPermDao
 	) output=false {
-		_setLoginService( arguments.websiteUserService );
+		_setWebsiteUserService( arguments.websiteUserService );
 		_setCacheProvider( arguments.cacheProvider )
 		_setBenefitsDao( arguments.benefitsDao );
 		_setUserDao( arguments.userDao );
@@ -47,7 +47,7 @@ component output=false singleton=true {
 		  required string permissionKey
 		,          string context       = ""
 		,          array  contextKeys   = []
-		,          string userId        = _getLoginService().getLoggedInUserId()
+		,          string userId        = _getWebsiteUserService().getLoggedInUserId()
 	) output=false {
 		if ( Trim( arguments.context ).len() && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
@@ -181,6 +181,7 @@ component output=false singleton=true {
 			var permsFromDb  = _getAppliedPermDao().selectData(
 				  selectFields = [ "granted", "context_key", "permission_key", "benefit", "user" ]
 				, filter       = "context = :context and ( benefit is not null or user is not null )"
+				, filterParams = { context = cntext }
 			);
 
 			for( var perm in permsFromDb ){
@@ -293,11 +294,11 @@ component output=false singleton=true {
 		_permissions = arguments.permissions;
 	}
 
-	private any function _getLoginService() output=false {
-		return _loginService;
+	private any function _getWebsiteUserService() output=false {
+		return _websiteUserService;
 	}
-	private void function _setLoginService( required any websiteUserService ) output=false {
-		_loginService = arguments.websiteUserService;
+	private void function _setWebsiteUserService( required any websiteUserService ) output=false {
+		_websiteUserService = arguments.websiteUserService;
 	}
 
 	private any function _getCacheProvider() output=false {
