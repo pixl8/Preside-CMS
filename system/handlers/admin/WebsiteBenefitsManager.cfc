@@ -1,8 +1,9 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
-	property name="websiteBenefitDao"    inject="presidecms:object:website_benefit";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
-	property name="bCryptService"        inject="bCryptService";
+	property name="websitePermissionService" inject="websitePermissionService";
+	property name="websiteBenefitDao"        inject="presidecms:object:website_benefit";
+	property name="messageBox"               inject="coldbox:plugin:messageBox";
+	property name="bCryptService"            inject="bCryptService";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -43,6 +44,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function addBenefitAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="websiteBenefitsManager.add" );
 
+		var object = "website_benefit";
 		var newId = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
@@ -50,27 +52,42 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, eventArguments = {
 				  object           = "website_benefit"
 				, errorAction      = "websiteBenefitsManager.addBenefit"
-				, successAction    = "websiteBenefitsManager"
-				, addAnotherAction = "websiteBenefitsManager.addBenefit"
-				, viewRecordAction = "websiteBenefitsManager.editBenefit"
+				, redirectOnSuccess = false
 			}
 		);
+		var newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+
+		websitePermissionService.syncBenefitPermissions( benefitId=newId, permissions=ListToArray( rc.permissions ?: "" ) );
+
+		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+			  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
+			, '<a href="#newRecordLink#">#event.getValue( name='label', defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+		] ) );
+
+		if ( Val( rc._addanother ?: 0 ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager.addBenefit" ), persist="_addAnother" );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager" ) );
+		}
 	}
 
 	function editBenefit( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="websiteBenefitsManager.edit" );
 
-		prc.record = websiteBenefitDao.selectData( filter={ id=rc.id ?: "" } );
+		var id = rc.id ?: "";
+
+		prc.record = websiteBenefitDao.selectData( filter={ id=id } );
 
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:websiteBenefitsManager.benefitNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
+		prc.record.permissions = websitePermissionService.listPermissionKeys( benefit = id ).toList();
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:websiteBenefitsManager.editBenefit.page.title", data=[ prc.record.label ] )
-			, link  = event.buildAdminLink( linkTo="websiteBenefitsManager.editBenefit", queryString="id=#(rc.id ?: '')#" )
+			, link  = event.buildAdminLink( linkTo="websiteBenefitsManager.editBenefit", queryString="id=#id#" )
 		);
 	}
 	function editBenefitAction( event, rc, prc ) output=false {
@@ -83,9 +100,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, eventArguments = {
 				  object        = "website_benefit"
 				, errorAction   = "websiteBenefitsManager.editBenefit"
-				, successAction = "websiteBenefitsManager"
+				, redirectOnSuccess = false
 			}
 		);
+
+		websitePermissionService.syncBenefitPermissions( benefitId=rc.id ?: "", permissions=ListToArray( rc.permissions ?: "" ) );
+
+		messageBox.info( translateResource( uri="cms:websiteBenefitsManager.benefit.saved.confirmation", data=[ rc.label ?: "" ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager" ) );
 	}
 
 	function deleteBenefitAction( event, rc, prc ) output=false {

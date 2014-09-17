@@ -15,7 +15,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockAppliedPermDao.$( "selectData" ).$args(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "benefit.id" = testBenefit }
+			, filter       = "benefit = :website_benefit.id and context is null and context_key is null"
+			, filterParams = { "website_benefit.id" = testBenefit }
 			, forceJoins   = "inner"
 		).$results( QueryNew( 'granted,permission_key' ) );
 
@@ -31,7 +32,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockAppliedPermDao.$( "selectData" ).$args(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "benefit.id" = testBenefit }
+			, filter       = "benefit = :website_benefit.id and context is null and context_key is null"
+			, filterParams = { "website_benefit.id" = testBenefit }
 			, forceJoins   = "inner"
 		).$results( testRecords );
 
@@ -81,14 +83,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( testBenefits );
 		mockAppliedPermDao.$( "selectData" ).$args(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "benefit.id" = testBenefits }
+			, filter       = "benefit in ( :website_benefit.id ) and context is null and context_key is null"
+			, filterParams = { "website_benefit.id" = testBenefits }
 			, forceJoins   = "inner"
 			, orderby      = "benefit.priority"
 		).$results( testBenefitRecords );
 
 		mockAppliedPermDao.$( "selectData" ).$args(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "user.id" = testUserId }
+			, filter       = "user in ( :website_user.id ) and context is null and context_key is null"
+			, filterParams = { "website_user.id" = testUserId }
 			, forceJoins   = "inner"
 		).$results( testUserRecords );
 

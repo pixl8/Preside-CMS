@@ -70,6 +70,21 @@ component output=false singleton=true {
 		return ListToArray( ValueList( benefits.website_benefit ) );
 	}
 
+	public void function syncBenefitPermissions( required string benefitId, required array permissions ) output=false {
+		var dao = _getAppliedPermDao();
+
+		transaction {
+			dao.deleteData( filter="benefit = :benefit and context is null and context_key is null", filterParams={ benefit=arguments.benefitId } );
+			for( var permissionKey in arguments.permissions ){
+				dao.insertData({
+					  permission_key = permissionKey
+					, granted        = true
+					, benefit        = arguments.benefitId
+				} );
+			}
+		}
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredPermissions( required struct permissionsConfig ) output=false {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
@@ -78,7 +93,8 @@ component output=false singleton=true {
 	private array function _getBenefitPermissions( required string benefit ) output=false {
 		var dbData = _getAppliedPermDao().selectData(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "benefit.id" = arguments.benefit }
+			, filter       = "benefit = :website_benefit.id and context is null and context_key is null"
+			, filterParams = { "website_benefit.id" = arguments.benefit }
 			, forceJoins   = "inner"
 		);
 		var perms = [];
@@ -99,7 +115,8 @@ component output=false singleton=true {
 		var benefits = listUserBenefits( arguments.user );
 		var benefitPerms = _getAppliedPermDao().selectData(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "benefit.id" = benefits }
+			, filter       = "benefit in ( :website_benefit.id ) and context is null and context_key is null"
+			, filterParams = { "website_benefit.id" = benefits }
 			, forceJoins   = "inner"
 			, orderby      = "benefit.priority"
 		);
@@ -116,7 +133,8 @@ component output=false singleton=true {
 
 		var userPerms = _getAppliedPermDao().selectData(
 			  selectFields = [ "granted", "permission_key" ]
-			, filter       = { "user.id" = arguments.user }
+			, filter       = "user in ( :website_user.id ) and context is null and context_key is null"
+			, filterParams = { "website_user.id" = arguments.user }
 			, forceJoins   = "inner"
 		);
 
