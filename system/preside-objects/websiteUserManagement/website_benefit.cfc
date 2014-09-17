@@ -9,5 +9,16 @@
  */
 component extends="preside.system.base.SystemPresideObject" output="false" displayName="Website user benefit" {
 	property name="label" uniqueindexes="benefit_name";
-	property name="description"  type="string"  dbtype="varchar" maxLength="200"  required="false";
+	property name="priority"    type="numeric" dbtype="int"                      required=false default="method:calculatePriority";
+	property name="description" type="string"  dbtype="varchar" maxLength="200"  required=false;
+
+	public numeric function calculatePriority( required struct data ) output=false {
+		if ( !IsNumeric( data.priority ?: "" ) ) {
+			var currentMaxPriority = selectData( selectFields=[ "Max( priority ) as maxPriority" ] );
+
+			return IsNull( currentMaxPriority.maxPriority ) ? 0 : ( currentMaxPriority.maxPriority + 1 );
+		}
+
+		return data.priority;
+	}
 }
