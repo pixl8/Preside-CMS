@@ -13,7 +13,7 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif hasPermission( "websitebenefit.prioritize" )>
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.prioritize" )#" data-global-key="a">
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.prioritize" )#" data-global-key="p">
 				<button class="btn btn-default btn-sm">
 					<i class="fa fa-sort-amount-asc"></i>
 					#prioritizeBtn#
