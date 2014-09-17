@@ -2,6 +2,7 @@
 	objectName          = "website_benefit"
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	prioritizeBtn       = translateResource( uri="cms:websitebenefitsmanager.prioritize.btn" );
 
 	prc.pageIcon     = "unlock";
 	prc.pageTitle    = translateResource( "cms:websitebenefitsmanager.benefitspage.title");
@@ -11,6 +12,14 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
+		<cfif hasPermission( "websitebenefit.prioritize" )>
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.prioritize" )#" data-global-key="a">
+				<button class="btn btn-default btn-sm">
+					<i class="fa fa-sort-amount-asc"></i>
+					#prioritizeBtn#
+				</button>
+			</a>
+		</cfif>
 		<cfif hasPermission( "websitebenefit.add" )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.addBenefit" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">

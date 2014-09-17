@@ -124,6 +124,31 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
+	function prioritize( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="websiteBenefitsManager.prioritize" );
+
+		prc.benefits = websiteBenefitDao.selectData( orderBy="priority desc" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:websiteBenefitsManager.prioritize.breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="websiteBenefitsManager.prioritize" )
+		);
+	}
+
+	function prioritizeAction( event, rc, prc ) output=false {
+		_checkPermissions( event=event, key="websiteBenefitsManager.prioritize" );
+
+		var benefits = rc.benefits ?: "";
+
+		benefits = ListToArray( benefits );
+		CreateObject( "java", "java.util.Collections" ).reverse( benefits );
+
+		websitePermissionService.prioritizeBenefits( benefits );
+
+		messageBox.info( translateResource( uri="cms:websiteBenefitsManager.priority.saved.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="websiteBenefitsManager" ) );
+	}
+
 // private utility
 	private void function _checkPermissions( required any event, required string key ) output=false {
 		if ( !hasPermission( arguments.key ) ) {

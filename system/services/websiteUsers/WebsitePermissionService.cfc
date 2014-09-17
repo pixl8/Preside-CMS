@@ -85,6 +85,14 @@ component output=false singleton=true {
 		}
 	}
 
+	public void function prioritizeBenefits( required array benefitsInOrder ) output=false {
+		var dao = _getBenefitsDao();
+
+		for ( var i=1; i <= arguments.benefitsInOrder.len(); i++ ) {
+			dao.updateData( id=arguments.benefitsInOrder[i], data={ priority=i } );
+		}
+	}
+
 // PRIVATE HELPERS
 	private void function _denormalizeAndSaveConfiguredPermissions( required struct permissionsConfig ) output=false {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
