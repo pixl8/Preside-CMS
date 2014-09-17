@@ -106,7 +106,9 @@ component output=false singleton=true {
 
 		for ( var perm in benefitPerms ) {
 			if ( perm.granted ) {
-				perms.append( perm.permission_key );
+				if ( !perms.find( perm.permission_key ) ) {
+					perms.append( perm.permission_key );
+				}
 			} else {
 				perms.delete( perm.permission_key );
 			}
@@ -118,9 +120,11 @@ component output=false singleton=true {
 			, forceJoins   = "inner"
 		);
 
-		for ( var perm in benefitPerms ) {
+		for ( var perm in userPerms ) {
 			if ( perm.granted ) {
-				perms.append( perm.permission_key );
+				if ( !perms.find( perm.permission_key ) ) {
+					perms.append( perm.permission_key );
+				}
 			} else {
 				perms.delete( perm.permission_key );
 			}

@@ -69,6 +69,34 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
+	function test05_listPermissionKeys_shouldReturnListOfPermissionKeysDerivedFormPassedInUsersBenefitPermsAndPersonalPerms() output=false {
+		var permsService       = _getPermService();
+		var testUserId         = "test-user-id";
+		var testBenefits       = [ "benefita", "benefitb", "benefitc", "benefitd" ];
+		var testBenefitRecords = QueryNew( 'granted,permission_key', 'bit,varchar', [[1,"some.key"],[0,"denied.key"],[0,"another.key"],[1,"another.key"],[1,"test.key"],[0, "test.key"]] );
+		var testUserRecords    = QueryNew( 'granted,permission_key', 'bit,varchar', [[0, "some.key"], [1, "test.key"]] );
+		var expected           = [ "another.key", "test.key" ];
+		var actual             = "";
+
+		permsService.$( "listUserBenefits" ).$args( testUserId ).$results( testBenefits );
+		mockAppliedPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "permission_key" ]
+			, filter       = { "benefit.id" = testBenefits }
+			, forceJoins   = "inner"
+			, orderby      = "benefit.priority"
+		).$results( testBenefitRecords );
+
+		mockAppliedPermDao.$( "selectData" ).$args(
+			  selectFields = [ "granted", "permission_key" ]
+			, filter       = { "user.id" = testUserId }
+			, forceJoins   = "inner"
+		).$results( testUserRecords );
+
+		actual = permsService.listPermissionKeys( user=testUserId );
+
+		super.assertEquals( expected, actual );
+	}
+
 // private helpers
 	private any function _getPermService( permissionsConfig=_getDefaultPermsConfig() ) output=false {
 		mockWebsiteUserService = getMockbox().createEmptyMock( "preside.system.services.websiteUsers.WebsiteUserService" );
