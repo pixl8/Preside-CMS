@@ -8,6 +8,6 @@
 		  objectName            = "website_user"
 		, addRecordAction       = event.buildAdminLink( linkTo='websiteusermanager.addUserAction' )
 		, allowAddAnotherSwitch = true
-		, cancelAction          = event.buildAdminLink( linkTo='websiteusermanager.users' )
+		, cancelAction          = event.buildAdminLink( linkTo='websiteusermanager' )
 	} )#
 </cfoutput>

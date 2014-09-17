@@ -9,6 +9,6 @@
 		, id                = rc.id      ?: ""
 		, record            = prc.record ?: {}
 		, editRecordAction  = event.buildAdminLink( linkTo='websiteUserManager.editUserAction' )
-		, cancelAction      = event.buildAdminLink( linkTo='websiteUserManager.users' )
+		, cancelAction      = event.buildAdminLink( linkTo='websiteUserManager' )
 	} )#
 </cfoutput>

@@ -70,7 +70,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.record = queryRowToStruct( prc.record );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:websiteusermanager.editUser.page.title", data=[ prc.record.known_as ] )
+			  title = translateResource( uri="cms:websiteusermanager.editUser.page.title", data=[ prc.record.display_name ] )
 			, link  = event.buildAdminLink( linkTo="websiteusermanager.editUser", queryString="id=#(rc.id ?: '')#" )
 		);
 	}
