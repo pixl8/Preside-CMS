@@ -10,8 +10,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test02_listPermissionKeys_shouldReturnEmptyArray_whenPassedBenefitHasNoAssociatedPermissions() output=false {
-		var userService = _getPermService();
-		var testBenefit = "somebenefit";
+		var permsService = _getPermService();
+		var testBenefit  = "somebenefit";
 
 		mockAppliedPermDao.$( "selectData" ).$args(
 			  selectFields = [ "granted", "permission_key" ]
@@ -19,15 +19,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, forceJoins   = "inner"
 		).$results( QueryNew( 'granted,permission_key' ) );
 
-		super.assertEquals( [], userService.listPermissionKeys( benefit=testBenefit ) );
+		super.assertEquals( [], permsService.listPermissionKeys( benefit=testBenefit ) );
 	}
 
 	function test03_listPermissionKeys_shouldReturnListOfGrantedPermissionsAssociatedWithPassedInBenefit() output=false {
-		var userService = _getPermService();
-		var testBenefit = "somebenefit";
-		var testRecords = QueryNew( 'granted,permission_key', 'bit,varchar', [[1,"some.key"],[0,"denied.key"],[0,"another.key"],[1,"another.key"],[1,"test.key"],[0, "test.key"]] );
-		var expected    = [ "some.key", "another.key" ];
-		var actual      = "";
+		var permsService = _getPermService();
+		var testBenefit  = "somebenefit";
+		var testRecords  = QueryNew( 'granted,permission_key', 'bit,varchar', [[1,"some.key"],[0,"denied.key"],[0,"another.key"],[1,"another.key"],[1,"test.key"],[0, "test.key"]] );
+		var expected     = [ "some.key", "another.key" ];
+		var actual       = "";
 
 		mockAppliedPermDao.$( "selectData" ).$args(
 			  selectFields = [ "granted", "permission_key" ]
@@ -35,9 +35,38 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, forceJoins   = "inner"
 		).$results( testRecords );
 
-		actual = userService.listPermissionKeys( benefit=testBenefit );
+		actual = permsService.listPermissionKeys( benefit=testBenefit );
 
 		super.assertEquals( expected, actual );
+	}
+
+	function test04_listPermissionKeys_shouldReturnAListOfPermissionsThatHaveBeenFilteredByThePassedFilter() output=false {
+		var permsService = _getPermService( permissionsConfig={
+			  cms          = [ "login" ]
+			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
+			, assetmanager = {
+				  folders = [ "navigate", "read", "add", "edit", "delete" ]
+				, assets  = [ "navigate", "read", "add", "edit", "delete" ]
+				, blah    = {
+					  test = [ "meh", "doh", "blah" ]
+					, test2 = [ "tehee" ]
+				}
+			 }
+			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
+		} );
+
+		var actual       = permsService.listPermissionKeys( filter=[ "assetmanager.folders.*", "!*.delete", "*.edit" ] );
+		var expected     = [
+			  "sitetree.edit"
+			, "assetmanager.folders.navigate"
+			, "assetmanager.folders.read"
+			, "assetmanager.folders.add"
+			, "assetmanager.folders.edit"
+			, "assetmanager.assets.edit"
+			, "groupmanager.edit"
+		];
+
+		super.assertEquals( expected.sort( "textnocase" ), actual.sort( "textnocase" ) );
 	}
 
 // private helpers
