@@ -1,7 +1,9 @@
 /**
- * The website user manager object provides methods for interacting with the front end users of your sites.
+ * The website user manager object provides methods for interacting with the front end users of your sites. In particular, it deals with login and user lookups.
+ * \n
+ * See also: :doc:`/reference/presideobjects/website_user`
  */
-component output=false autodoc=true displayName="Preside Object Service" {
+component output=false autodoc=true displayName="Website user service" {
 
 // constructor
 	/**
@@ -100,10 +102,10 @@ component output=false autodoc=true displayName="Preside Object Service" {
 	/**
 	 * Returns true if the plain text password matches the given hashed password
 	 *
-	 * @plainText.hint The password provided by the usr
-	 * @hashed.text The password stored against the user record
+	 * @plainText.hint The password provided by the user
+	 * @hashed.hint The password stored against the user record
 	 */
-	public boolean function validatePassword( required string plainText, required string hashed ) output=false {
+	public boolean function validatePassword( required string plainText, required string hashed ) output=false autodoc=true {
 		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
 	}
 

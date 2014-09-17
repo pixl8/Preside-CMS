@@ -13,6 +13,9 @@ System Preside Objects
     security_context_permission
     audit_log
     system_config
+    website_benefit
+    website_user
+    website_applied_permission
     standard_page
     homepage
     page
