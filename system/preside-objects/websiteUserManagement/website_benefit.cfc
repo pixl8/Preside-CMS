@@ -14,9 +14,11 @@ component extends="preside.system.base.SystemPresideObject" output="false" displ
 
 	public numeric function calculatePriority( required struct data ) output=false {
 		if ( !IsNumeric( data.priority ?: "" ) ) {
-			var currentMaxPriority = selectData( selectFields=[ "Max( priority ) as maxPriority" ] );
+			var currentMaxPriority = this.selectData( selectFields=[ "Max( priority ) as maxPriority" ] );
 
-			return IsNull( currentMaxPriority.maxPriority ) ? 0 : ( currentMaxPriority.maxPriority + 1 );
+			currentMaxPriority = Val( currentMaxPriority.maxPriority ?: "" );
+
+			return ++currentMaxPriority;
 		}
 
 		return data.priority;

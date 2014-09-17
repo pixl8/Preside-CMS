@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Website benefit: add form
+
+This form is used for the "add website benefit" form in the website user manager
+-->
+<form>
+	<tab id="basic">
+		<fieldset id="basic">
+			<field binding="website_benefit.label"       sortorder="10"  />
+			<field binding="website_benefit.description" sortorder="20"  />
+		</fieldset>
+	</tab>
+</form>
