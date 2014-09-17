@@ -2,54 +2,54 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // tests
 	function test01_isLoggedIn_shouldReturnFalse_ifNoUserSessionExists() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 
 		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
 
-		super.assertFalse( userManager.isLoggedIn() );
+		super.assertFalse( userService.isLoggedIn() );
 	}
 
 	function test02_isLoggedIn_shouldReturnTrue_whenUserHasActiveSession() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 
 		mockSessionService.$( "exists" ).$args( "website_user" ).$results( true );
 
-		super.assert( userManager.isLoggedIn() );
+		super.assert( userService.isLoggedIn() );
 	}
 
 	function test03_getLoggedInUserDetails_shouldReturnTheDetailsFromSessionStorage() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 		var testUserDetails = { id="some-id", loginid="l33t", emailaddress="myemail address" };
 
 		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
 
-		super.assertEquals( testUserDetails, userManager.getLoggedInUserDetails() );
+		super.assertEquals( testUserDetails, userService.getLoggedInUserDetails() );
 	}
 
 	function test04_getLoggedInUserId_shouldReturnTheIdOFtheCurrentlyLoggedInUser() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 		var testUserDetails = { id="anotherid", loginid="l33t", emailaddress="myemail address" };
 
 		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
 
-		super.assertEquals( testUserDetails.id, userManager.getLoggedInUserId() );
+		super.assertEquals( testUserDetails.id, userService.getLoggedInUserId() );
 	}
 
 	function test05_getLoggedInUserId_shouldReturnAnEmptyStringWhenNoUserIsLoggedIn() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 		var testUserDetails = {};
 
 		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
 
-		super.assertEquals( "", userManager.getLoggedInUserId() );
+		super.assertEquals( "", userService.getLoggedInUserId() );
 	}
 
 	function test06_logout_shouldDestroyTheUserSession() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 
 		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
 
-		userManager.logout();
+		userService.logout();
 
 		var log = mockSessionService.$calllog().deleteVar;
 
@@ -57,9 +57,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test07_login_shouldReturnFalse_whenUserIdNotFound() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 
-		userManager.$( "isLoggedIn" ).$results( false );
+		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
@@ -67,22 +67,22 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( QueryNew( '' ) );
 
-		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
+		super.assertFalse( userService.login( loginId="dummy", password="whatever" ) );
 	}
 
 	function test08_login_shouldReturnFalse_whenAlreadyLoggedIn() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 
-		userManager.$( "isLoggedIn" ).$results( true );
+		userService.$( "isLoggedIn" ).$results( true );
 
-		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
+		super.assertFalse( userService.login( loginId="dummy", password="whatever" ) );
 	}
 
 	function test09_login_shouldReturnFalse_whenUserExistsButPasswordDoesNotMatch() output=false {
-		var userManager = _getUserManager();
+		var userService = _getUserService();
 		var mockRecord  = QueryNew( 'password', 'varchar', ['blah'] );
 
-		userManager.$( "isLoggedIn" ).$results( false );
+		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
@@ -91,11 +91,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( false );
 
-		super.assertFalse( userManager.login( loginId="dummy", password="whatever" ) );
+		super.assertFalse( userService.login( loginId="dummy", password="whatever" ) );
 	}
 
 	function test10_login_shouldSetUserDetailsInSessionAndReturnTrue_whenLoginDetailsAreCorrect() output=false {
-		var userManager        = _getUserManager();
+		var userService        = _getUserService();
 		var mockRecord         = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
 		var expectedSetVarCall = { name="website_user", value={
 			  email_address = mockRecord.email_address
@@ -104,7 +104,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, id            = mockRecord.id
 		} };
 
-		userManager.$( "isLoggedIn" ).$results( false );
+		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
@@ -114,7 +114,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
 		mockSessionService.$( "setVar" );
 
-		super.assert( userManager.login( loginId="dummy", password="whatever" ) );
+		super.assert( userService.login( loginId="dummy", password="whatever" ) );
 
 		var sessionServiceCallLog = mockSessionService.$callLog().setVar;
 
@@ -124,12 +124,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 // private helpers
-	private any function _getUserManager() output=false {
+	private any function _getUserService() output=false {
 		mockSessionService = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
 		mockUserDao        = getMockbox().createStub();
 		mockBCryptService  = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 
-		return getMockBox().createMock( object= new preside.system.services.websiteUserManager.WebsiteUserManager(
+		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteUserService(
 			  sessionService = mockSessionService
 			, userDao        = mockUserDao
 			, bcryptService  = mockBCryptService
