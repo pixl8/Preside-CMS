@@ -26,7 +26,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, eventArguments = {
 				  object      = "website_benefit"
-				, gridFields  = "label,description"
+				, gridFields  = "label,priority,description"
 				, actionsView = "/admin/websiteBenefitsManager/_benefitsGridActions"
 			}
 		);
