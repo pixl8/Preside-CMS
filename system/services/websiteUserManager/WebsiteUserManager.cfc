@@ -37,33 +37,22 @@ component output=false autodoc=true displayName="Preside Object Service" {
 	 *
 	 */
 	public boolean function login( required string loginId, required string password ) output=false {
-		if ( isLoggedIn() ) {
-			return false;
+		if ( !isLoggedIn() ) {
+			var userRecord = getUserByLoginId( arguments.loginId );
+
+			if ( userRecord.recordCount && validatePassword( arguments.password, userRecord.password ) ) {
+				setUserSession( {
+					  id            = userRecord.id
+					, login_id      = userRecord.login_id
+					, email_address = userRecord.email_address
+					, display_name  = userRecord.display_name
+				} );
+
+				return true;
+			}
 		}
 
-		var userRecord = _getUserDao().selectData(
-			  selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
-			, filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
-			, filterParams = { login_id = arguments.loginId }
-			, useCache     = false
-		);
-
-		if ( !userRecord.recordCount ) {
-			return false;
-		}
-
-		if ( !_getBCryptService().checkPw( plainText=arguments.password, hashed=userRecord.password ) ) {
-			return false;
-		}
-
-		_getSessionService().setVar( name=_getSessionKey(), value={
-			  id            = userRecord.id
-			, login_id      = userRecord.login_id
-			, email_address = userRecord.email_address
-			, display_name  = userRecord.display_name
-		} );
-
-		return true;
+		return false;
 	}
 
 	/**
@@ -91,6 +80,40 @@ component output=false autodoc=true displayName="Preside Object Service" {
 		var userDetails = getLoggedInUserDetails();
 
 		return userDetails.id ?: "";
+	}
+
+	/**
+	 * Returns a user record that matches the given login id against either the
+	 * login_id field or the email_address field.
+	 *
+	 * @loginId.hint The login id / email address with which to query the user database
+	 */
+	public query function getUserByLoginId( required string loginId ) output=false autodoc=true {
+		return _getUserDao().selectData(
+			  selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
+			, filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = arguments.loginId }
+			, useCache     = false
+		);
+	}
+
+	/**
+	 * Returns true if the plain text password matches the given hashed password
+	 *
+	 * @plainText.hint The password provided by the usr
+	 * @hashed.text The password stored against the user record
+	 */
+	public boolean function validatePassword( required string plainText, required string hashed ) output=false {
+		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
+	}
+
+	/**
+	 * Sets the user's session data
+	 *
+	 * @data.hint The data to store in the user's session
+	 */
+	public void function setUserSession( required struct data ) output=false {
+		_getSessionService().setVar( name=_getSessionKey(), value=arguments.data );
 	}
 
 // private accessors
