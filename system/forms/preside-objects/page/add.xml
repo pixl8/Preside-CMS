@@ -51,13 +51,9 @@ This form is used as the base "add page" form for Sitetree pages. See also :doc:
 
 	<tab id="access" title="preside-objects.page:editform.accesstab.title" description="preside-objects.page:editform.accesstab.description">
 		<fieldset id="access">
-			<field sortorder="10" binding="page.access_restricted" />
-		</fieldset>
-		<fieldset id="access-benefits" title="preside-objects.page:editform.benefit.access.fieldset.title">
+			<field sortorder="10" binding="page.access_restriction" />
 			<field name="grant_access_to_benefits" control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.grant_access_to_benefits.title" help="preside-objects.page:field.grant_access_to_benefits.help" />
 			<field name="deny_access_to_benefits"  control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.deny_access_to_benefits.title"  help="preside-objects.page:field.deny_access_to_benefits.help" />
-		</fieldset>
-		<fieldset id="access-users" title="preside-objects.page:editform.user.access.fieldset.title">
 			<field name="grant_access_to_users" control="objectPicker" object="website_user" multiple="true" required="false" label="preside-objects.page:field.grant_access_to_users.title" help="preside-objects.page:field.grant_access_to_users.help" />
 			<field name="deny_access_to_users"  control="objectPicker" object="website_user" multiple="true" required="false" label="preside-objects.page:field.deny_access_to_users.title"  help="preside-objects.page:field.deny_access_to_users.help" />
 		</fieldset>

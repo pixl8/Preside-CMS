@@ -16,7 +16,6 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="sort_order"                type="numeric" dbtype="int"                      required=true                                             control="none";
 	property name="active"                    type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="trashed"                   type="boolean" dbtype="boolean"                  required=false default=false control="none";
-	property name="access_restricted"         type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="old_slug"                  type="string"  dbtype="varchar" maxLength="50"   required=false;
 
 	property name="main_image"  relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image";
@@ -28,8 +27,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="browser_title"             type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="keywords"                  type="string"  dbtype="varchar" maxLength="255"  required=false;
 	property name="description"               type="string"  dbtype="varchar" maxLength="255"  required=false;
-	property name="embargo_date"              type="date"    dbtype="datetime"                 required=false                                            control="datetimepicker";
-	property name="expiry_date"               type="date"    dbtype="datetime"                 required=false                                            control="datetimepicker";
+	property name="embargo_date"              type="date"    dbtype="datetime"                 required=false                                                    control="datetimepicker";
+	property name="expiry_date"               type="date"    dbtype="datetime"                 required=false                                                    control="datetimepicker";
+	property name="access_restriction"        type="string"  dbtype="varchar" maxLength="7"    required=false default="none" format="regex:(none|full|partial)"  control="select"          values="none,full,partial" labels="preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
 
 	property name="exclude_from_navigation"   type="boolean" dbtype="boolean"                  required=false default="false";
 	property name="navigation_title"          type="string"  dbtype="varchar" maxLength="200"  required=false;
