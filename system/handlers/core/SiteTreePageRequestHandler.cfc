@@ -19,8 +19,17 @@ component output=false {
 			event.notFound();
 		}
 
-		if ( event.getPageProperty( "access_restriction", "none" ) == "full" && !websitePermissionService.hasPermission( permissionKey="pages.access", context="page", contextKeys=[ pageId ] ) ) {
-			event.accessDenied();
+		if ( event.getPageProperty( "access_restriction", "none" ) == "full" ){
+			var accessProvidingPage = event.getPageProperty( "access_providing_page", pageId );
+			var hasPermission       = websitePermissionService.hasPermission(
+				  permissionKey = "pages.access"
+				, context       = "page"
+				, contextKeys   = [ accessProvidingPage ]
+			);
+
+			if ( !hasPermission ) {
+				event.accessDenied();
+			}
 		}
 
 		pageType = pageTypesService.getPageType( pageType );

@@ -344,9 +344,11 @@
 				}
 			}
 
+			page.access_providing_page = page.id;
 			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
 				for( var ancestor in page.ancestors ) {
 					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
+						page.access_providing_page = ancestor.id;
 						page.access_restriction = ancestor.access_restriction;
 						break;
 					}
