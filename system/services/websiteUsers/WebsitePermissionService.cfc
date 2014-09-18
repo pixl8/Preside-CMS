@@ -159,6 +159,8 @@ component output=false singleton=true {
 				} );
 			}
 		}
+
+		_getCacheProvider().clear( "Context perms for context: " & arguments.context );
 	}
 
 	public struct function getContextualPermissions( required string context, required string contextKey, required string permissionKey ) output=false {
