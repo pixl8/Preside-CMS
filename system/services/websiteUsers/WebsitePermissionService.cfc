@@ -49,6 +49,10 @@ component output=false singleton=true {
 		,          array  contextKeys   = []
 		,          string userId        = _getWebsiteUserService().getLoggedInUserId()
 	) output=false {
+		if ( !Len( Trim( arguments.userId ) ) ) {
+			return false;
+		}
+
 		if ( Trim( arguments.context ).len() && arguments.contextKeys.len() ) {
 			var contextPerm = _getContextPermission( argumentCollection=arguments );
 			if ( !IsNull( contextPerm ) && IsBoolean( contextPerm ) ) {

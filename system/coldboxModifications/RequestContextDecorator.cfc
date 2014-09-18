@@ -181,6 +181,13 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="accessDenied" access="public" returntype="void" output="false">
+		<cfscript>
+			getController().runEvent( "general.accessDenied" );
+			WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="audit" access="public" returntype="void" output="false">
 		<cfscript>
 			arguments.userId = getAdminUserDetails().userId;
@@ -335,6 +342,18 @@
 						break;
 					}
 				}
+			}
+
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				for( var ancestor in page.ancestors ) {
+					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
+						page.access_restriction = ancestor.access_restriction;
+						break;
+					}
+				}
+			}
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				page.access_restriction = "none";
 			}
 
 			p[ "slug" ] = p._hierarchy_slug;

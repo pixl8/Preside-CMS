@@ -49,6 +49,23 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="accessDenied" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var accessDeniedViewlet = getSetting( name="accessDeniedViewlet", defaultValue="errors.accessDenied" );
+			var accessDeniedLayout  = getSetting( name="accessDeniedLayout" , defaultValue="Main" );
+
+			event.setLayout( accessDeniedLayout );
+			event.setView( view="/core/simpleBodyRenderer" );
+
+			rc.body = renderViewlet( event=accessDeniedViewlet );
+
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_registerPresideListeners" access="private" returntype="void" output="false">
 		<cfscript>

@@ -1,7 +1,8 @@
 component output=false {
 
-	property name="pageTypesService"     inject="pageTypesService";
-	property name="presideObjectService" inject="presideObjectService";
+	property name="pageTypesService"         inject="pageTypesService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="websitePermissionService" inject="websitePermissionService";
 
 	public function index( event, rc, prc ) output=false {
 		event.initializePresideSiteteePage(
@@ -16,6 +17,10 @@ component output=false {
 
 		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
 			event.notFound();
+		}
+
+		if ( event.getPageProperty( "access_restriction", "none" ) == "full" && !websitePermissionService.hasPermission( permissionKey="pages.access", context="page", contextKeys=[ pageId ] ) ) {
+			event.accessDenied();
 		}
 
 		pageType = pageTypesService.getPageType( pageType );
