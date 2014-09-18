@@ -1,8 +1,9 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
-	property name="presideObjectService" inject="presideObjectService";
-	property name="messageBox"           inject="coldbox:plugin:messageBox";
-	property name="bCryptService"        inject="bCryptService";
+	property name="websitePermissionService" inject="websitePermissionService";
+	property name="presideObjectService"     inject="presideObjectService";
+	property name="messageBox"               inject="coldbox:plugin:messageBox";
+	property name="bCryptService"            inject="bCryptService";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -44,18 +45,32 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function addUserAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="websiteusermanager.add" );
 
-		runEvent(
+		var object = "website_user";
+		var newId  = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object           = "website_user"
-				, errorAction      = "websiteUserManager.addUser"
-				, successAction    = "websiteUserManager"
-				, addAnotherAction = "websiteUserManager.addUser"
-				, viewRecordAction = "websiteUserManager.editUser"
+				  object            = object
+				, errorAction       = "websiteUserManager.addUser"
+				, redirectOnSuccess = false
 			}
 		);
+
+		var newRecordLink = event.buildAdminLink( linkTo="websiteUserManager.editUser", queryString="id=#newId#" );
+
+		websitePermissionService.syncUserPermissions( userId=newId, permissions=ListToArray( rc.permissions ?: "" ) );
+
+		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+			  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
+			, '<a href="#newRecordLink#">#( rc.display_name ?: '')#</a>'
+		] ) );
+
+		if ( Val( rc._addanother ?: 0 ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager.addUser" ), persist="_addAnother" );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
 	}
 
 	function editUser( event, rc, prc ) output=false {
@@ -68,6 +83,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteusermanager" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
+		prc.record.permissions = websitePermissionService.listUserPermissions( userId = id ).toList();
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:websiteusermanager.editUser.page.title", data=[ prc.record.display_name ] )
@@ -85,9 +101,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, eventArguments = {
 				  object            = "website_user"
 				, errorAction       = "websiteUserManager.editUser"
-				, successAction     = "websiteUserManager"
+				, redirectOnSuccess = false
 			}
 		);
+
+		websitePermissionService.syncUserPermissions( userId=rc.id ?: "", permissions=ListToArray( rc.permissions ?: "" ) );
+
+		messageBox.info( translateResource( uri="cms:websiteUserManager.user.saved.confirmation", data=[ rc.display_name ?: "" ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 	}
 
 	function deleteUserAction( event, rc, prc ) output=false {

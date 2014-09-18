@@ -55,7 +55,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, redirectOnSuccess = false
 			}
 		);
-		var newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+		var newRecordLink = event.buildAdminLink( linkTo="websiteBenefitsManager.editBenefit", queryString="id=#newId#" );
 
 		websitePermissionService.syncBenefitPermissions( benefitId=newId, permissions=ListToArray( rc.permissions ?: "" ) );
 

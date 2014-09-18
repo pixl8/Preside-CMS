@@ -63,11 +63,15 @@ component output=false singleton=true {
 		var benefits = _getUserDao().selectManyToManyData(
 			  propertyName = "benefits"
 			, id           = arguments.userId
-			, selectFields = [ "website_benefit" ]
-			, orderby      = "website_benefit.priority desc"
+			, selectFields = [ "benefits.id" ]
+			, orderby      = "benefits.priority desc"
 		);
 
-		return ListToArray( ValueList( benefits.website_benefit ) );
+		return ListToArray( ValueList( benefits.id ) );
+	}
+
+	public array function listUserPermissions( required string userId ) output=false {
+		return _getUserPermissions( arguments.userId, false );
 	}
 
 	public void function syncBenefitPermissions( required string benefitId, required array permissions ) output=false {
@@ -80,6 +84,21 @@ component output=false singleton=true {
 					  permission_key = permissionKey
 					, granted        = true
 					, benefit        = arguments.benefitId
+				} );
+			}
+		}
+	}
+
+	public void function syncUserPermissions( required string userId, required array permissions ) output=false {
+		var dao = _getAppliedPermDao();
+
+		transaction {
+			dao.deleteData( filter="user = :user and context is null and context_key is null", filterParams={ user=arguments.userId } );
+			for( var permissionKey in arguments.permissions ){
+				dao.insertData({
+					  permission_key = permissionKey
+					, granted        = true
+					, user           = arguments.userId
 				} );
 			}
 		}
@@ -118,24 +137,27 @@ component output=false singleton=true {
 		return perms;
 	}
 
-	private array function _getUserPermissions( required string user ) output=false {
+	private array function _getUserPermissions( required string user, boolean includeBenefitPerms=true ) output=false {
 		var perms = [];
-		var benefits = listUserBenefits( arguments.user );
-		var benefitPerms = _getAppliedPermDao().selectData(
-			  selectFields = [ "granted", "permission_key" ]
-			, filter       = "benefit in ( :website_benefit.id ) and context is null and context_key is null"
-			, filterParams = { "website_benefit.id" = benefits }
-			, forceJoins   = "inner"
-			, orderby      = "benefit.priority"
-		);
 
-		for ( var perm in benefitPerms ) {
-			if ( perm.granted ) {
-				if ( !perms.find( perm.permission_key ) ) {
-					perms.append( perm.permission_key );
+		if ( arguments.includeBenefitPerms ) {
+			var benefits = listUserBenefits( arguments.user );
+			var benefitPerms = _getAppliedPermDao().selectData(
+				  selectFields = [ "granted", "permission_key" ]
+				, filter       = "benefit in ( :website_benefit.id ) and context is null and context_key is null"
+				, filterParams = { "website_benefit.id" = benefits }
+				, forceJoins   = "inner"
+				, orderby      = "benefit.priority"
+			);
+
+			for ( var perm in benefitPerms ) {
+				if ( perm.granted ) {
+					if ( !perms.find( perm.permission_key ) ) {
+						perms.append( perm.permission_key );
+					}
+				} else {
+					perms.delete( perm.permission_key );
 				}
-			} else {
-				perms.delete( perm.permission_key );
 			}
 		}
 
