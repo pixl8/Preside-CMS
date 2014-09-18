@@ -104,6 +104,59 @@ component output=false singleton=true {
 		}
 	}
 
+	public void function syncContextPermissions(
+		  required string context
+		, required string contextKey
+		, required string permissionKey
+		, required array  grantBenefits
+		, required array  denyBenefits
+		, required array  grantUsers
+		, required array  denyUsers
+	) output=false {
+		var dao = _getAppliedPermDao();
+
+		transaction {
+			dao.deleteData( filter={ context = arguments.context, context_key=arguments.contextKey, permission_key=arguments.permissionKey } );
+
+			for( var benefit in arguments.grantBenefits ){
+				dao.insertData({
+					  permission_key = arguments.permissionKey
+					, context        = arguments.context
+					, context_key    = arguments.contextKey
+					, benefit        = benefit
+					, granted        = true
+				} );
+			}
+			for( var benefit in arguments.denyBenefits ){
+				dao.insertData({
+					  permission_key = arguments.permissionKey
+					, context        = arguments.context
+					, context_key    = arguments.contextKey
+					, benefit        = benefit
+					, granted        = false
+				} );
+			}
+			for( var user in arguments.grantUsers ){
+				dao.insertData({
+					  permission_key = arguments.permissionKey
+					, context        = arguments.context
+					, context_key    = arguments.contextKey
+					, user           = user
+					, granted        = true
+				} );
+			}
+			for( var user in arguments.denyUsers ){
+				dao.insertData({
+					  permission_key = arguments.permissionKey
+					, context        = arguments.context
+					, context_key    = arguments.contextKey
+					, user           = user
+					, granted        = false
+				} );
+			}
+		}
+	}
+
 	public void function prioritizeBenefits( required array benefitsInOrder ) output=false {
 		var dao = _getBenefitsDao();
 

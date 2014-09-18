@@ -1,9 +1,10 @@
 <cfcomponent output="false" extends="preside.system.base.AdminHandler">
 
-	<cfproperty name="siteTreeService"  inject="siteTreeService"  />
-	<cfproperty name="formsService"     inject="formsService"     />
-	<cfproperty name="pageTypesService" inject="pageTypesService" />
-	<cfproperty name="validationEngine" inject="validationEngine" />
+	<cfproperty name="siteTreeService"          inject="siteTreeService"  />
+	<cfproperty name="formsService"             inject="formsService"     />
+	<cfproperty name="pageTypesService"         inject="pageTypesService" />
+	<cfproperty name="validationEngine"         inject="validationEngine" />
+	<cfproperty name="websitePermissionService" inject="websitePermissionService" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -110,6 +111,17 @@
 			}
 
 			newId = siteTreeService.addPage( argumentCollection = formData );
+
+			websitePermissionService.syncContextPermissions(
+				  context       = "page"
+				, contextKey    = newId
+				, permissionKey = "pages.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+
 
 			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
@@ -240,6 +252,16 @@
 				persist.validationResult = validationResult;
 				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
 			}
+
+			websitePermissionService.syncContextPermissions(
+				  context       = "page"
+				, contextKey    = pageId
+				, permissionKey = "pages.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
 
 			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
