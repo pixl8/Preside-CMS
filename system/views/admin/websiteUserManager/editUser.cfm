@@ -1,6 +1,6 @@
 <cfscript>
 	prc.pageIcon  = "user";
-	prc.pageTitle = translateResource( uri="cms:websiteUserManager.editUser.page.title", data=[ prc.record.known_as ?: "" ] );
+	prc.pageTitle = translateResource( uri="cms:websiteUserManager.editUser.page.title", data=[ prc.record.display_name ?: "" ] );
 </cfscript>
 
 <cfoutput>

@@ -9,7 +9,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:websiteusermanager.userspage.title" )
-			, link  = event.buildAdminLink( linkTo="websiteusermanager.users" )
+			, link  = event.buildAdminLink( linkTo="websiteusermanager" )
 		);
 	}
 
@@ -65,7 +65,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:websiteusermanager.userNotFound.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="websiteusermanager.users" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteusermanager" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
 
