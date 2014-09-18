@@ -67,6 +67,38 @@
 				</li>
 			</cfif>
 
+			<cfif hasPermission( "websiteusermanager.navigate" ) || hasPermission( "groupmanager.navigate" )>
+				<li<cfif listLast( handler, ".") eq "websiteusermanager"> class="active"</cfif>>
+					<a class="dropdown-toggle" href="##">
+						<span class="fa-stack">
+						  <i class="fa fa-globe fa-stack-lg"></i>
+						  <i class="fa fa-user fa-stack-1x"></i>
+						</span>
+						<span class="menu-text">#translateResource( "cms:websiteusermanager" )#</span>
+						<b class="arrow fa fa-angle-down"></b>
+					</a>
+
+					<ul class="submenu">
+						<cfif hasPermission( "websiteusermanager.navigate" )>
+							<li>
+								<a href="#event.buildAdminLink( linkTo='websiteusermanager' )#">
+									<i class="fa fa-angle-double-right"></i>
+									#translateResource( "cms:websiteUserManager.users" )#
+								</a>
+							</li>
+						</cfif>
+						<cfif hasPermission( "groupmanager.navigate" )>
+							<li>
+								<a href="#event.buildAdminLink( linkTo='websitebenefitsmanager' )#">
+									<i class="fa fa-angle-double-right"></i>
+									#translateResource( "cms:websiteUserManager.benefits" )#
+								</a>
+							</li>
+						</cfif>
+					</ul>
+				</li>
+			</cfif>
+
 			<cfif hasPermission( "systemConfiguration.manage" )>
 				<li<cfif listLast( handler, ".") eq "sysconfig"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">

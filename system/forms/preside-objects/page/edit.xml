@@ -49,4 +49,14 @@ This form is used as the base "edit page" form for Sitetree pages. See also :doc
 			<field sortorder="20" binding="page.exclude_from_navigation" />
 		</fieldset>
 	</tab>
+
+	<tab id="access" title="preside-objects.page:editform.accesstab.title" description="preside-objects.page:editform.accesstab.description">
+		<fieldset id="access">
+			<field sortorder="10" binding="page.access_restriction" />
+			<field name="grant_access_to_benefits" control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.grant_access_to_benefits.title" help="preside-objects.page:field.grant_access_to_benefits.help" />
+			<field name="deny_access_to_benefits"  control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.deny_access_to_benefits.title"  help="preside-objects.page:field.deny_access_to_benefits.help" />
+			<field name="grant_access_to_users" control="objectPicker" object="website_user" multiple="true" required="false" label="preside-objects.page:field.grant_access_to_users.title" help="preside-objects.page:field.grant_access_to_users.help" />
+			<field name="deny_access_to_users"  control="objectPicker" object="website_user" multiple="true" required="false" label="preside-objects.page:field.deny_access_to_users.title"  help="preside-objects.page:field.deny_access_to_users.help" />
+		</fieldset>
+	</tab>
 </form>
