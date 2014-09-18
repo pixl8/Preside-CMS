@@ -312,9 +312,9 @@ component output=false singleton=true {
 
 			for( var perm in permsFromDb ){
 				if ( IsNull( perm.benefit ) || !Len( Trim( perm.benefit ) ) ) {
-					permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.benefit ] = perm.granted;
-				} else {
 					permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.user ] = perm.granted;
+				} else {
+					permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.benefit ] = perm.granted;
 				}
 			}
 
