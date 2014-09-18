@@ -168,6 +168,16 @@
 			var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version  );
 			StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
+			var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+				  context       = "page"
+				, contextKey    = pageId
+				, permissionKey = "pages.access"
+			);
+			prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+			prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+			prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+			prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
 				, link  = ""

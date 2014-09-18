@@ -157,6 +157,27 @@ component output=false singleton=true {
 		}
 	}
 
+	public struct function getContextualPermissions( required string context, required string contextKey, required string permissionKey ) output=false {
+		var perms = {
+			  benefit = { grant=[], deny=[] }
+			, user    = { grant=[], deny=[] }
+		};
+
+		var dbRecords = _getAppliedPermDao().selectData(
+			  selectFields = [ "user", "benefit", "granted" ]
+			, filter       = { context=arguments.context, context_key=arguments.contextKey, permission_key=arguments.permissionKey }
+		);
+
+		for( var perm in dbRecords ){
+			var benefitOrUser = Len( Trim( perm.benefit ?: "" ) ) ? "benefit" : "user";
+			var grantOrDeny   = perm.granted ? "grant" : "deny";
+
+			perms[ benefitOrUser ][ grantOrDeny ].append( perm[ benefitOrUser ] );
+		}
+
+		return perms;
+	}
+
 	public void function prioritizeBenefits( required array benefitsInOrder ) output=false {
 		var dao = _getBenefitsDao();
 
