@@ -66,6 +66,7 @@ component output=false {
 		settings.accessDeniedViewlet       = "errors.accessDenied";
 		settings.serverErrorLayout         = "Main";
 		settings.serverErrorViewlet        = "errors.serverError";
+		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
@@ -293,5 +294,19 @@ component output=false {
 			bolditaliconly = 'Bold,Italic'
 		};
 
+	}
+
+	private string function _getCookieEncryptionKey() output=false {
+		var cookieKeyFile = "/app/config/.cookieEncryptionKey";
+		if ( FileExists( cookieKeyFile ) ) {
+			try {
+				return FileRead( cookieKeyFile );
+			} catch( any e ) {}
+		}
+
+		var key = GenerateSecretKey( "AES" );
+		FileWrite( cookieKeyFile, key );
+
+		return key;
 	}
 }
