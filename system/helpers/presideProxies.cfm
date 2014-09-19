@@ -111,3 +111,7 @@
 	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false">
 		<cfreturn getController().getWireBox().getInstance( "permissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
+
+	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
+	</cffunction>
