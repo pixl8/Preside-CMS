@@ -116,7 +116,7 @@ component output=false singleton=true {
 			}
 
 			_registerPageType(
-				  id                   = LCase( id )
+				  id                   = id
 				, hasHandler           = handlerExists
 				, layouts              = layouts.keyList()
 			);
