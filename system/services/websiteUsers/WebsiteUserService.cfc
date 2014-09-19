@@ -178,55 +178,65 @@ component output=false autodoc=true displayName="Website user service" {
 			return request._presideWebsiteAutoLoginResult;
 		}
 
-		var cookieService = _getCookieService();
-		var cookieName    = _getRememberMeCookieKey();
-		var setAndReturn  = function( result ){
-			request._presideWebsiteAutoLoginResult = arguments.result;
-			return result;
-		};
-		if ( !cookieService.exists( cookieName ) ) {
-			return setAndReturn( false );
-		}
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+			var tokenRecord = _getUserRecordFromCookie( cookieValue );
 
-		var cookieValue = _readRememberMeCookie();
-		if ( StructIsEmpty( cookieValue ) ) {
+			if ( tokenRecord.recordCount ) {
+				setUserSession( {
+					  id            = tokenRecord.user
+					, login_id      = tokenRecord.login_id
+					, email_address = tokenRecord.email_address
+					, display_name  = tokenRecord.display_name
+				} );
+
+				_recycleLoginToken( tokenRecord.id, cookieValue );
+
+				request._presideWebsiteAutoLoginResult = true;
+				return true;
+			}
+
 			_deleteRememberMeCookie();
-			return setAndReturn( false );
 		}
 
-		var tokenRecord = _getUserLoginTokenDao().selectData(
-			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
-			, filter       = { series = cookieValue.series }
-		);
+		request._presideWebsiteAutoLoginResult = false;
+		return false;
 
-		if ( !tokenRecord.recordCount || tokenRecord.login_id != cookieValue.loginId ) {
-			_deleteRememberMeCookie();
-			return setAndReturn( false );
+	}
+
+	private query function _getUserRecordFromCookie( required struct cookieValue ) output=false {
+		if ( StructCount( arguments.cookieValue ) ) {
+			var tokenRecord = _getUserLoginTokenDao().selectData(
+				  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+				, filter       = { series = arguments.cookieValue.series }
+			);
+
+			if ( tokenRecord.recordCount && tokenRecord.login_id == arguments.cookieValue.loginId ) {
+				if ( _getBCryptService().checkPw( arguments.cookieValue.token, tokenRecord.token ) ) {
+					return tokenRecord;
+				}
+
+				// todo, raise possible login theft alarm + delete token record
+			}
 		}
 
-		if ( !_getBCryptService().checkPw( cookieValue.token, tokenRecord.token ) ) {
-			// todo - delete token in DB + raise attack warning
-			_deleteRememberMeCookie();
-			return setAndReturn( false );
-		}
+		return QueryNew('');
+	}
 
-		setUserSession( {
-			  id            = tokenRecord.user
-			, login_id      = tokenRecord.login_id
-			, email_address = tokenRecord.email_address
-			, display_name  = tokenRecord.display_name
+	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) output=false {
+		arguments.cookieValue.token = _createNewLoginToken();
+
+		_getUserLoginTokenDao().updateData(
+			  id   = arguments.tokenId
+			, data = { token = _getBCryptService().hashPw( arguments.cookieValue.token )
 		} );
 
-		cookieValue.token = _createNewLoginToken();
-		_getUserLoginTokenDao().updateData( id=tokenRecord.id, data={ token=_getBCryptService().hashPw( cookieValue.token ) } );
 		_getCookieService().setVar(
 			  name     = _getRememberMeCookieKey()
-			, value    = cookieValue
-			, expires  = cookieValue.expiry
+			, value    = arguments.cookieValue
+			, expires  = arguments.cookieValue.expiry
 			, httpOnly = true
 		);
-
-		return setAndReturn( true );
 	}
 
 	private string function _createNewLoginTokenSeries() output=false {
