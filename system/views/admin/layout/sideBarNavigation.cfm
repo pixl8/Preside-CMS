@@ -11,7 +11,7 @@
 
 		<ul class="nav nav-list">
 
-			<cfif hasPermission( "sitetree.navigate" )>
+			<cfif hasCmsPermission( "sitetree.navigate" )>
 				<li<cfif listLast( handler, ".") eq "sitetree"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo="sitetree" )#" data-goto-key="s">
 						<i class="fa fa-sitemap"></i>
@@ -20,7 +20,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "assetmanager.general.navigate" )>
+			<cfif hasCmsPermission( "assetmanager.general.navigate" )>
 				<li<cfif listLast( handler, ".") eq "assetmanager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo="assetmanager" )#" data-goto-key="a">
 						<i class="fa fa-picture-o"></i>
@@ -29,7 +29,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "datamanager.navigate" )>
+			<cfif hasCmsPermission( "datamanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "datamanager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo='datamanager' )#" data-goto-key="d">
 						<i class="fa fa-puzzle-piece"></i>
@@ -38,7 +38,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "usermanager.navigate" ) || hasPermission( "groupmanager.navigate" )>
+			<cfif hasCmsPermission( "usermanager.navigate" ) || hasCmsPermission( "groupmanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "usermanager"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<i class="fa fa-group"></i>
@@ -47,7 +47,7 @@
 					</a>
 
 					<ul class="submenu">
-						<cfif hasPermission( "usermanager.navigate" )>
+						<cfif hasCmsPermission( "usermanager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='usermanager.users' )#">
 									<i class="fa fa-angle-double-right"></i>
@@ -55,7 +55,7 @@
 								</a>
 							</li>
 						</cfif>
-						<cfif hasPermission( "groupmanager.navigate" )>
+						<cfif hasCmsPermission( "groupmanager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='usermanager.groups' )#">
 									<i class="fa fa-angle-double-right"></i>
@@ -67,7 +67,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "websiteusermanager.navigate" ) || hasPermission( "groupmanager.navigate" )>
+			<cfif hasCmsPermission( "websiteusermanager.navigate" ) || hasCmsPermission( "groupmanager.navigate" )>
 				<li<cfif listLast( handler, ".") eq "websiteusermanager"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<span class="fa-stack">
@@ -79,7 +79,7 @@
 					</a>
 
 					<ul class="submenu">
-						<cfif hasPermission( "websiteusermanager.navigate" )>
+						<cfif hasCmsPermission( "websiteusermanager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='websiteusermanager' )#">
 									<i class="fa fa-angle-double-right"></i>
@@ -87,7 +87,7 @@
 								</a>
 							</li>
 						</cfif>
-						<cfif hasPermission( "groupmanager.navigate" )>
+						<cfif hasCmsPermission( "groupmanager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='websitebenefitsmanager' )#">
 									<i class="fa fa-angle-double-right"></i>
@@ -99,7 +99,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "systemConfiguration.manage" )>
+			<cfif hasCmsPermission( "systemConfiguration.manage" )>
 				<li<cfif listLast( handler, ".") eq "sysconfig"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<i class="fa fa-cogs"></i>
@@ -113,7 +113,7 @@
 				</li>
 			</cfif>
 
-			<cfif hasPermission( "updateManager.manage" )>
+			<cfif hasCmsPermission( "updateManager.manage" )>
 				<li<cfif listLast( handler, ".") eq "updateManager"> class="active"</cfif>>
 					<a href="#event.buildAdminLink( linkTo='updateManager' )#">
 						<i class="fa fa-cloud-download"></i>

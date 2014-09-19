@@ -69,7 +69,7 @@
 				, private        = true
 				, eventArguments = {
 					  object          = objectName
-					, useMultiActions = hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+					, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
 				}
 			);
@@ -892,7 +892,7 @@
 		<cfargument name="prc"    type="struct" required="true" />
 
 		<cfscript>
-			if ( !hasPermission( "datamanager.navigate" ) ) {
+			if ( !hasCmsPermission( "datamanager.navigate" ) ) {
 				event.adminAccessDenied();
 			}
 		</cfscript>
@@ -906,7 +906,7 @@
 		<cfargument name="object" type="string" required="true" />
 
 		<cfscript>
-			if ( !hasPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
+			if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
 				event.adminAccessDenied();
 			}
 			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );

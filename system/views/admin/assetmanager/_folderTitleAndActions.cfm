@@ -5,10 +5,10 @@
 	permissionContext = prc.permissionContext ?: [];
 	args.folderTitle  = args.folderTitle == "$root" ? translateResource( "cms:assetmanager.root.folder" ) : args.folderTitle;
 
-	hasUploadPermission            = hasPermission( permissionKey="assetmanager.assets.upload"             , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasAddFolderPermission         = hasPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasEditFolderPermission        = hasPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasManageFolderPermsPermission = hasPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=permissionContext );
+	hasUploadPermission            = hasCmsPermission( permissionKey="assetmanager.assets.upload"             , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasAddFolderPermission         = hasCmsPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasEditFolderPermission        = hasCmsPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasManageFolderPermsPermission = hasCmsPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=permissionContext );
 	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission;
 </cfscript>
 

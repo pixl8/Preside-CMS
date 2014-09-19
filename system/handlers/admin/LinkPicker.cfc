@@ -8,7 +8,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function quickAddForm( event, rc, prc ) output=false {
-		if ( !hasPermission( permissionKey="presideobject.link.add" ) ) {
+		if ( !hasCmsPermission( permissionKey="presideobject.link.add" ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -21,7 +21,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function quickEditForm( event, rc, prc ) output=false {
 		var id     = rc.id     ?: "";
 
-		if ( !hasPermission( permissionKey="presideobject.link.edit" ) ) {
+		if ( !hasCmsPermission( permissionKey="presideobject.link.edit" ) ) {
 			event.adminAccessDenied();
 		}
 

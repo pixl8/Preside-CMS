@@ -10,7 +10,7 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif hasPermission( "websiteUserManager.add" )>
+		<cfif hasCmsPermission( "websiteUserManager.add" )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websiteUserManager.addUser" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>

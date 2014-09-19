@@ -151,7 +151,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 // private utility
 	private void function _checkPermissions( required any event, required string key ) output=false {
-		if ( !hasPermission( arguments.key ) ) {
+		if ( !hasCmsPermission( arguments.key ) ) {
 			event.adminAccessDenied();
 		}
 	}

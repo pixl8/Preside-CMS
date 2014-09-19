@@ -108,6 +108,6 @@
 	</cffunction>
 
 <!--- permissioning --->
-	<cffunction name="hasPermission" access="public" returntype="boolean" output="false">
+	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false">
 		<cfreturn getController().getWireBox().getInstance( "permissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>

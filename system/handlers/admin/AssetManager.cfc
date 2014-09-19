@@ -583,10 +583,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 		var permKey   = "assetmanager." & arguments.key;
 
 		if ( Len( Trim( rc.folder ?: "" ) ) ) {
-			permitted = hasPermission( permissionKey=permKey, context="assetmanagerfolder", contextKeys=prc.permissionContext?:[] );
+			permitted = hasCmsPermission( permissionKey=permKey, context="assetmanagerfolder", contextKeys=prc.permissionContext?:[] );
 
 		} else {
-			permitted = hasPermission( permissionKey=permKey );
+			permitted = hasCmsPermission( permissionKey=permKey );
 		}
 
 		if ( !permitted ) {

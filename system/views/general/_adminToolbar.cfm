@@ -15,7 +15,7 @@
 			, querystring = 'pageId=#event.getCurrentPageId()#&template=#event.getCurrentTemplate()#'
 		);
 
-		if ( hasPermission( "devtools.console" ) ) {
+		if ( hasCmsPermission( "devtools.console" ) ) {
 			event.include( "/js/admin/devtools/" );
 			event.include( "/css/admin/devtools/" );
 		}

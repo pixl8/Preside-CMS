@@ -11,7 +11,7 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif hasPermission( "groupmanager.add" )>
+		<cfif hasCmsPermission( "groupmanager.add" )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="usermanager.addGroup" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>

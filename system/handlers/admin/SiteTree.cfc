@@ -14,7 +14,7 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
-			if ( !hasPermission( "sitetree.navigate" ) ) {
+			if ( !hasCmsPermission( "sitetree.navigate" ) ) {
 				event.adminAccessDenied();
 			}
 

@@ -11,7 +11,7 @@
 	}
 </cfscript>
 
-<cfif hasPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ args.id ] )>
+<cfif hasCmsPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ args.id ] )>
 	<cfoutput>
 		<cfif hasChildren>
 			<div class="tree-folder">

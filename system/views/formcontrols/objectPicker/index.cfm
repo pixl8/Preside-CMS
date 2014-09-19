@@ -29,13 +29,13 @@
 	}
 
 	if ( quickAdd ) {
-		quickAdd = args.hasQuickAddPermission ?: ( hasPermission( "presideobject.#object#.add" ) || hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
+		quickAdd = args.hasQuickAddPermission ?: ( hasCmsPermission( "presideobject.#object#.add" ) || hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
 		if ( quickAdd ) {
 			extraClasses = ListAppend( extraClasses, "quick-add", ' ' );
 		}
 	}
 	if ( quickEdit ) {
-		quickEdit = args.hasQuickEditPermission ?: ( hasPermission( "presideobject.#object#.edit" ) || hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) );
+		quickEdit = args.hasQuickEditPermission ?: ( hasCmsPermission( "presideobject.#object#.edit" ) || hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) );
 		if ( quickEdit ) {
 			extraClasses = ListAppend( extraClasses, "quick-edit", ' ' );
 

@@ -142,7 +142,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 	public void function setActiveSite( event, rc, prc ) output=false {
 		var activeSiteId = rc.id ?: "";
 
-		if ( !Len( Trim( activeSiteId ) ) || !hasPermission( "sites.navigate", "site", [ activeSiteId ] ) ) {
+		if ( !Len( Trim( activeSiteId ) ) || !hasCmsPermission( "sites.navigate", "site", [ activeSiteId ] ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -177,7 +177,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 		args.currentSite = { id="" };
 
 		for( var site in sites ){
-			if ( hasPermission( "sites.navigate", "site", [ site.id ] ) ) {
+			if ( hasCmsPermission( "sites.navigate", "site", [ site.id ] ) ) {
 				if ( site.id == currentSiteId || ( IsEmpty( currentSiteId ) && sites.currentRow == 1 ) ) {
 					args.currentSite = site;
 				} else {
@@ -192,7 +192,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 
 // PRIVATE HELPERS
 	private void function _checkPermissions( event ) output=false {
-		if ( !hasPermission( "sites.manage" ) ) {
+		if ( !hasCmsPermission( "sites.manage" ) ) {
 			event.adminAccessDenied();
 		}
 	}

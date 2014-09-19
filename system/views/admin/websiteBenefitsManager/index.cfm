@@ -12,7 +12,7 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif hasPermission( "websitebenefit.prioritize" )>
+		<cfif hasCmsPermission( "websitebenefit.prioritize" )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.prioritize" )#" data-global-key="p">
 				<button class="btn btn-default btn-sm">
 					<i class="fa fa-sort-amount-asc"></i>
@@ -20,7 +20,7 @@
 				</button>
 			</a>
 		</cfif>
-		<cfif hasPermission( "websitebenefit.add" )>
+		<cfif hasCmsPermission( "websitebenefit.add" )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.addBenefit" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>
