@@ -123,16 +123,68 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expectedSetVarCall, sessionServiceCallLog[1] );
 	}
 
+	function test11_login_shouldSetRememberMeCookieAndTokenRecord_whenRememberLoginIsPassedAsTrue() output=false {
+		var userService        = _getUserService();
+		var mockRecord         = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
+		var expectedSetVarCall = { name="website_user", value={
+			  email_address = mockRecord.email_address
+			, display_name  = mockRecord.display_name
+			, login_id      = mockRecord.login_id
+			, id            = mockRecord.id
+		} };
+		var uuidRegex          = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}";
+
+		// mocking
+		userService.$( "isLoggedIn" ).$results( false );
+		mockUserDao.$( "selectData" ).$args(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = "dummy" }
+			, useCache     = false
+			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
+		).$results( mockRecord );
+		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
+		mockSessionService.$( "setVar" );
+		mockUserLoginTokenDao.$( "insertData", CreateUUId() );
+		mockCookieService.$( "setVar" );
+		mockBCryptService.$( "hashPw", "hashedToken" );
+
+
+		// run the login method
+		userService.login( loginId="dummy", password="whatever", rememberLogin=true );
+
+
+		// assertions
+		var loginTokenCallLog = mockUserLoginTokenDao.$callLog().insertData;
+
+		super.assertEquals( 1, loginTokenCallLog.len() );
+		super.assertEquals( mockRecord.id, loginTokenCallLog[1].data.user );
+		super.assertEquals( "hashedToken", loginTokenCallLog[1].data.token );
+		super.assert( ReFindNoCase( uuidRegex, loginTokenCallLog[1].data.series ) );
+
+		var cookieServiceCallLog = mockCookieService.$callLog().setVar;
+
+		super.assertEquals( 1                         , cookieServiceCallLog.len() );
+		super.assertEquals( "_presidecms-site-persist", cookieServiceCallLog[1].name ?: "" );
+		super.assertEquals( true                      , cookieServiceCallLog[1].httpOnly ?: "" );
+		super.assertEquals( "90"                      , cookieServiceCallLog[1].expires  ?: "" );
+		super.assert( ReFindNoCase( "^dummy\s#loginTokenCallLog[1].data.series#\s#uuidRegex#", cookieServiceCallLog[1].value ) );
+
+	}
+
 // private helpers
 	private any function _getUserService() output=false {
-		mockSessionService = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
-		mockUserDao        = getMockbox().createStub();
-		mockBCryptService  = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
+		mockSessionService    = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
+		mockCookieService     = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
+		mockUserDao           = getMockbox().createStub();
+		mockUserLoginTokenDao = getMockbox().createStub();
+		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 
 		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteUserService(
-			  sessionService = mockSessionService
-			, userDao        = mockUserDao
-			, bcryptService  = mockBCryptService
+			  sessionService    = mockSessionService
+			, cookieService     = mockCookieService
+			, userDao           = mockUserDao
+			, userLoginTokenDao = mockUserLoginTokenDao
+			, bcryptService     = mockBCryptService
 		) );
 	}
 
