@@ -21,7 +21,7 @@ component output=false {
 
 		if ( event.getPageProperty( "access_restriction", "none" ) == "full" ){
 			var accessProvidingPage = event.getPageProperty( "access_providing_page", pageId );
-			var hasPermission       = websitePermissionService.hasPermission(
+			var hasPermission       = hasWebsitePermission(
 				  permissionKey = "pages.access"
 				, context       = "page"
 				, contextKeys   = [ accessProvidingPage ]
