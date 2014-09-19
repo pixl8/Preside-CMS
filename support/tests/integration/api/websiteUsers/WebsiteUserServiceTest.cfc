@@ -1,10 +1,11 @@
 component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
 
 // tests
-	function test01_isLoggedIn_shouldReturnFalse_ifNoUserSessionExists() output=false {
+	function test01_isLoggedIn_shouldReturnFalse_ifNoUserSessionExistsAndNoRememberMeCookieExists() output=false {
 		var userService = _getUserService();
 
 		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
+		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( false );
 
 		super.assertFalse( userService.isLoggedIn() );
 	}
@@ -168,8 +169,56 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( true                      , cookieServiceCallLog[1].httpOnly ?: "" );
 		super.assertEquals( "90"                      , cookieServiceCallLog[1].expires  ?: "" );
 		super.assert( ReFindNoCase( "^dummy\s#loginTokenCallLog[1].data.series#\s#uuidRegex#", cookieServiceCallLog[1].value ) );
-
 	}
+
+	function test12_isLoggedIn_shouldReturnTrueAndRefreshLoginToken_whenNoLoginSessionExistsButValidRememberMeCookieDoesExist() output=false {
+		var userService         = _getUserService();
+		var testUserTokenRecord = QueryNew( 'id,token,user,login_id,email_address,display_name', 'varchar,varchar,varchar,varchar,varchar,varchar', [ [ 'someid', 'hashedToken', 'userid', 'fred', 'test@test.com', 'fred perry' ] ] );
+		var testCookie          = [ "fred", "someseries", "sometoken", 20 ];
+
+		StructDelete( request, "_presideWebsiteAutoLoginResult" );
+
+		// mocking
+		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
+		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
+		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist" ).$results( testCookie );
+		mockUserLoginTokenDao.$( "selectData" ).$args(
+			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+			, filter       = { series = testCookie[2] }
+		).$results( testUserTokenRecord );
+		mockUserLoginTokenDao.$( "updateData", true );
+		mockBCryptService.$( "checkPw" ).$args( testCookie[3], testUserTokenRecord.token ).$results( true );
+		mockCookieService.$( "setVar" );
+		mockSessionService.$( "setVar" );
+		mockBCryptService.$( "hashPw", "reHashedToken" );
+
+		// assertions
+		super.assert( userService.isLoggedIn() );
+		var updateDataCallLog = mockUserLoginTokenDao.$callLog().updateData;
+		var setCookieCallLog = mockCookieService.$callLog().setVar;
+		var hashTokenCallLog = mockBCryptService.$callLog().hashPw;
+		var setSessionCallLog = mockSessionService.$callLog().setVar;
+
+		super.assertEquals( 1, updateDataCallLog.len() );
+		super.assertEquals( { id=testUserTokenRecord.id, data={ token="reHashedToken" } }, updateDataCallLog[1] );
+
+		super.assertEquals( 1, setCookieCallLog.len() );
+		super.assertEquals( "_presidecms-site-persist", setCookieCallLog[1].name ?: "" );
+		super.assertEquals( true                      , setCookieCallLog[1].httpOnly ?: "" );
+		super.assertEquals( testCookie[4]             , setCookieCallLog[1].expires  ?: "" );
+
+		super.assertEquals( 1, setSessionCallLog.len() );
+		super.assertEquals({ name="website_user", value={
+			  email_address = testUserTokenRecord.email_address
+			, display_name  = testUserTokenRecord.display_name
+			, login_id      = testUserTokenRecord.login_id
+			, id            = testUserTokenRecord.user
+		} }, setSessionCallLog[1] );
+
+		super.assertEquals( 1, hashTokenCallLog.len() );
+	}
+
+
 
 // private helpers
 	private any function _getUserService() output=false {

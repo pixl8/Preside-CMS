@@ -73,7 +73,9 @@ component output=false autodoc=true displayName="Website user service" {
 	 * to the system.
 	 */
 	public boolean function isLoggedIn() output=false autodoc=true {
-		return _getSessionService().exists( name=_getSessionKey() );
+		var userSessionExists = _getSessionService().exists( name=_getSessionKey() );
+
+		return userSessionExists || _autoLogin();
 	}
 
 	/**
@@ -147,6 +149,67 @@ component output=false autodoc=true displayName="Website user service" {
 			, expires  = arguments.expiry
 			, httpOnly = true
 		);
+	}
+
+	private void function _deleteRememberMeCookie() output=false {
+		_getCookieService().deleteVar( _getRememberMeCookieKey() );
+	}
+
+	private boolean function _autoLogin() output=false {
+		if ( StructKeyExists( request, "_presideWebsiteAutoLoginResult" ) ) {
+			return request._presideWebsiteAutoLoginResult;
+		}
+
+		var cookieService = _getCookieService();
+		var cookieName    = _getRememberMeCookieKey();
+		var setAndReturn  = function( result ){
+			request._presideWebsiteAutoLoginResult = arguments.result;
+			return result;
+		};
+		if ( !cookieService.exists( cookieName ) ) {
+			return setAndReturn( false );
+		}
+
+		var cookieValue = cookieService.getVar( cookieName );
+		if ( !IsArray( cookieValue ) || cookieValue.len() != 4 ) {
+			_deleteRememberMeCookie();
+			return setAndReturn( false );
+		}
+
+		var tokenRecord = _getUserLoginTokenDao().selectData(
+			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+			, filter       = { series = cookieValue[2] }
+		);
+
+		if ( !tokenRecord.recordCount || tokenRecord.login_id != cookieValue[1] ) {
+			_deleteRememberMeCookie();
+			return setAndReturn( false );
+		}
+
+		if ( !_getBCryptService().checkPw( cookieValue[3], tokenRecord.token ) ) {
+			// todo - delete token in DB + raise attack warning
+			_deleteRememberMeCookie();
+			return setAndReturn( false );
+		}
+
+		setUserSession( {
+			  id            = tokenRecord.user
+			, login_id      = tokenRecord.login_id
+			, email_address = tokenRecord.email_address
+			, display_name  = tokenRecord.display_name
+		} );
+
+		cookieValue[3] = CreateUUId();
+		_getUserLoginTokenDao().updateData( id=tokenRecord.id, data={ token=_getBCryptService().hashPw( cookieValue[3] ) } );
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = cookieValue
+			, expires  = cookieValue[4]
+			, httpOnly = true
+		);
+
+		return setAndReturn( true );
+
 	}
 
 
