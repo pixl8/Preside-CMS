@@ -72,10 +72,10 @@ component output=false autodoc=true displayName="Website user service" {
 	 * Returns whether or not the user making the current request is logged in
 	 * to the system.
 	 */
-	public boolean function isLoggedIn() output=false autodoc=true {
+	public boolean function isLoggedIn( function securityAlertCallback=function(){} ) output=false autodoc=true {
 		var userSessionExists = _getSessionService().exists( name=_getSessionKey() );
 
-		return userSessionExists || _autoLogin();
+		return userSessionExists || _autoLogin( argumentCollection = arguments );
 	}
 
 	/**
@@ -173,14 +173,14 @@ component output=false autodoc=true displayName="Website user service" {
 		return {};
 	}
 
-	private boolean function _autoLogin() output=false {
+	private boolean function _autoLogin( required function securityAlertCallback ) output=false {
 		if ( StructKeyExists( request, "_presideWebsiteAutoLoginResult" ) ) {
 			return request._presideWebsiteAutoLoginResult;
 		}
 
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
-			var tokenRecord = _getUserRecordFromCookie( cookieValue );
+			var tokenRecord = _getUserRecordFromCookie( cookieValue, securityAlertCallback );
 
 			if ( tokenRecord.recordCount ) {
 				setUserSession( {
@@ -204,7 +204,7 @@ component output=false autodoc=true displayName="Website user service" {
 
 	}
 
-	private query function _getUserRecordFromCookie( required struct cookieValue ) output=false {
+	private query function _getUserRecordFromCookie( required struct cookieValue, required function securityAlertCallback ) output=false {
 		if ( StructCount( arguments.cookieValue ) ) {
 			var tokenRecord = _getUserLoginTokenDao().selectData(
 				  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
@@ -216,7 +216,8 @@ component output=false autodoc=true displayName="Website user service" {
 					return tokenRecord;
 				}
 
-				// todo, raise possible login theft alarm + delete token record
+				_getUserLoginTokenDao().deleteData( id=tokenRecord.id );
+				securityAlertCallback();
 			}
 		}
 

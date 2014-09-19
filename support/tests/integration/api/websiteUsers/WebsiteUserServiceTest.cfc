@@ -227,6 +227,40 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, hashTokenCallLog.len() );
 	}
 
+	function test13_isLoggedIn_shouldTakeAlertAndSecurityMeasures_whenLoginCookieHasCorrectDetailsExceptForItsToken() output=false {
+		var userService         = _getUserService();
+		var testUserTokenRecord = QueryNew( 'id,token,user,login_id,email_address,display_name', 'varchar,varchar,varchar,varchar,varchar,varchar', [ [ 'someid', 'hashedToken', 'userid', 'fred', 'test@test.com', 'fred perry' ] ] );
+		var testCookie          = { loginId="fred", expiry=20, series="someseries", token="sometoken" };
+		var alertThrown         = false;
+		var testAlertClosure    = function(){ alertThrown = true };
+
+		StructDelete( request, "_presideWebsiteAutoLoginResult" );
+
+		// mocking
+		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
+		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
+		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookie );
+		mockUserLoginTokenDao.$( "selectData" ).$args(
+			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+			, filter       = { series = testCookie.series }
+		).$results( testUserTokenRecord );
+		mockBCryptService.$( "checkPw" ).$args( testCookie.token, testUserTokenRecord.token ).$results( false );
+		mockCookieService.$( "deleteVar" ).$args( "_presidecms-site-persist" ).$results( true );
+		mockUserLoginTokenDao.$( "deleteData" );
+
+		// assertions
+		super.assertFalse( userService.isLoggedIn( securityAlertCallback=testAlertClosure ) );
+
+		var cookieDeleteLog = mockCookieService.$callLog().deleteVar;
+		super.assertEquals( 1, cookieDeleteLog.len() );
+
+		var tokenDeleteLog = mockUserLoginTokenDao.$callLog().deleteData;
+		super.assertEquals( 1, tokenDeleteLog.len() );
+		super.assertEquals( { id=testUserTokenRecord.id }, tokenDeleteLog[1] );
+
+		super.assert( alertThrown );
+	}
+
 
 
 // private helpers
