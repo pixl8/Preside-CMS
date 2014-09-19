@@ -133,14 +133,17 @@ component output=false autodoc=true displayName="Website user service" {
 
 // private helpers
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) output=false {
-		var series      = CreateUUId();
-		var token       = CreateUUId();
-		var cookieValue = "#arguments.loginId# #series# #token# #expiry#";
+		var cookieValue = {
+			  loginId = arguments.loginId
+			, expiry  = arguments.expiry
+			, series  = _createNewLoginTokenSeries()
+			, token   = _createNewLoginToken()
+		};
 
 		_getUserLoginTokenDao().insertData( data={
 			  user   = arguments.userId
-			, series = series
-			, token  = _getBCryptService().hashPw( token )
+			, series = cookieValue.series
+			, token  = _getBCryptService().hashPw( cookieValue.token )
 		} );
 
 		_getCookieService().setVar(
@@ -153,6 +156,21 @@ component output=false autodoc=true displayName="Website user service" {
 
 	private void function _deleteRememberMeCookie() output=false {
 		_getCookieService().deleteVar( _getRememberMeCookieKey() );
+	}
+
+	private struct function _readRememberMeCookie() output=false {
+		var cookieValue = _getCookieService().getVar( _getRememberMeCookieKey(), {} );
+
+		if ( IsStruct( cookieValue ) ) {
+			var keys = cookieValue.keyArray()
+			keys.sort( "textNoCase" );
+
+			if ( keys.toList() == "expiry,loginId,series,token" ) {
+				return cookieValue;
+			}
+		}
+
+		return {};
 	}
 
 	private boolean function _autoLogin() output=false {
@@ -170,23 +188,23 @@ component output=false autodoc=true displayName="Website user service" {
 			return setAndReturn( false );
 		}
 
-		var cookieValue = cookieService.getVar( cookieName );
-		if ( !IsArray( cookieValue ) || cookieValue.len() != 4 ) {
+		var cookieValue = _readRememberMeCookie();
+		if ( StructIsEmpty( cookieValue ) ) {
 			_deleteRememberMeCookie();
 			return setAndReturn( false );
 		}
 
 		var tokenRecord = _getUserLoginTokenDao().selectData(
 			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
-			, filter       = { series = cookieValue[2] }
+			, filter       = { series = cookieValue.series }
 		);
 
-		if ( !tokenRecord.recordCount || tokenRecord.login_id != cookieValue[1] ) {
+		if ( !tokenRecord.recordCount || tokenRecord.login_id != cookieValue.loginId ) {
 			_deleteRememberMeCookie();
 			return setAndReturn( false );
 		}
 
-		if ( !_getBCryptService().checkPw( cookieValue[3], tokenRecord.token ) ) {
+		if ( !_getBCryptService().checkPw( cookieValue.token, tokenRecord.token ) ) {
 			// todo - delete token in DB + raise attack warning
 			_deleteRememberMeCookie();
 			return setAndReturn( false );
@@ -199,17 +217,24 @@ component output=false autodoc=true displayName="Website user service" {
 			, display_name  = tokenRecord.display_name
 		} );
 
-		cookieValue[3] = CreateUUId();
-		_getUserLoginTokenDao().updateData( id=tokenRecord.id, data={ token=_getBCryptService().hashPw( cookieValue[3] ) } );
+		cookieValue.token = _createNewLoginToken();
+		_getUserLoginTokenDao().updateData( id=tokenRecord.id, data={ token=_getBCryptService().hashPw( cookieValue.token ) } );
 		_getCookieService().setVar(
 			  name     = _getRememberMeCookieKey()
 			, value    = cookieValue
-			, expires  = cookieValue[4]
+			, expires  = cookieValue.expiry
 			, httpOnly = true
 		);
 
 		return setAndReturn( true );
+	}
 
+	private string function _createNewLoginTokenSeries() output=false {
+		return CreateUUId();
+	}
+
+	private string function _createNewLoginToken() output=false {
+		return CreateUUId();
 	}
 
 

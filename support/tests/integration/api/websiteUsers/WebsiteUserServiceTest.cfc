@@ -127,13 +127,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test11_login_shouldSetRememberMeCookieAndTokenRecord_whenRememberLoginIsPassedAsTrue() output=false {
 		var userService        = _getUserService();
 		var mockRecord         = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
+		var uuidRegex         = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}";
+		var testSeries        = CreateUUId();
+		var testToken         = CreateUUId();
+		var testTokenHashed   = "blah";
 		var expectedSetVarCall = { name="website_user", value={
 			  email_address = mockRecord.email_address
 			, display_name  = mockRecord.display_name
 			, login_id      = mockRecord.login_id
 			, id            = mockRecord.id
 		} };
-		var uuidRegex          = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{16}";
 
 		// mocking
 		userService.$( "isLoggedIn" ).$results( false );
@@ -144,11 +147,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
+		userService.$( "_createNewLoginTokenSeries", testSeries );
+		userService.$( "_createNewLoginToken", testToken );
 		mockSessionService.$( "setVar" );
 		mockUserLoginTokenDao.$( "insertData", CreateUUId() );
 		mockCookieService.$( "setVar" );
-		mockBCryptService.$( "hashPw", "hashedToken" );
-
+		mockBCryptService.$( "hashPw" ).$args( testToken ).$results( testTokenHashed );
 
 		// run the login method
 		userService.login( loginId="dummy", password="whatever", rememberLogin=true );
@@ -159,38 +163,42 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		super.assertEquals( 1, loginTokenCallLog.len() );
 		super.assertEquals( mockRecord.id, loginTokenCallLog[1].data.user );
-		super.assertEquals( "hashedToken", loginTokenCallLog[1].data.token );
-		super.assert( ReFindNoCase( uuidRegex, loginTokenCallLog[1].data.series ) );
+		super.assertEquals( testTokenHashed, loginTokenCallLog[1].data.token );
+		super.assertEquals( testSeries, loginTokenCallLog[1].data.series );
 
 		var cookieServiceCallLog = mockCookieService.$callLog().setVar;
 
-		super.assertEquals( 1                         , cookieServiceCallLog.len() );
-		super.assertEquals( "_presidecms-site-persist", cookieServiceCallLog[1].name ?: "" );
-		super.assertEquals( true                      , cookieServiceCallLog[1].httpOnly ?: "" );
-		super.assertEquals( "90"                      , cookieServiceCallLog[1].expires  ?: "" );
-		super.assert( ReFindNoCase( "^dummy\s#loginTokenCallLog[1].data.series#\s#uuidRegex#", cookieServiceCallLog[1].value ) );
+		super.assertEquals( 1, cookieServiceCallLog.len() );
+		super.assertEquals( {
+			  name     = "_presidecms-site-persist"
+			, expires  = 90
+			, httpOnly = true
+			, value    = { loginId=mockRecord.login_id, expiry=90, series=testSeries, token=testToken }
+		}, cookieServiceCallLog[1] );
 	}
 
 	function test12_isLoggedIn_shouldReturnTrueAndRefreshLoginToken_whenNoLoginSessionExistsButValidRememberMeCookieDoesExist() output=false {
 		var userService         = _getUserService();
 		var testUserTokenRecord = QueryNew( 'id,token,user,login_id,email_address,display_name', 'varchar,varchar,varchar,varchar,varchar,varchar', [ [ 'someid', 'hashedToken', 'userid', 'fred', 'test@test.com', 'fred perry' ] ] );
-		var testCookie          = [ "fred", "someseries", "sometoken", 20 ];
+		var testCookie          = { loginId="fred", expiry=20, series="someseries", token="sometoken" };
+		var newToken            = CreateUUId();
 
 		StructDelete( request, "_presideWebsiteAutoLoginResult" );
 
 		// mocking
 		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
 		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
-		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist" ).$results( testCookie );
+		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookie );
 		mockUserLoginTokenDao.$( "selectData" ).$args(
 			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
-			, filter       = { series = testCookie[2] }
+			, filter       = { series = testCookie.series }
 		).$results( testUserTokenRecord );
 		mockUserLoginTokenDao.$( "updateData", true );
-		mockBCryptService.$( "checkPw" ).$args( testCookie[3], testUserTokenRecord.token ).$results( true );
+		mockBCryptService.$( "checkPw" ).$args( testCookie.token, testUserTokenRecord.token ).$results( true );
 		mockCookieService.$( "setVar" );
 		mockSessionService.$( "setVar" );
-		mockBCryptService.$( "hashPw", "reHashedToken" );
+		mockBCryptService.$( "hashPw" ).$args( newToken ).$results( "reHashedToken" );
+		userService.$( "_createNewLoginToken", newToken );
 
 		// assertions
 		super.assert( userService.isLoggedIn() );
@@ -205,7 +213,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, setCookieCallLog.len() );
 		super.assertEquals( "_presidecms-site-persist", setCookieCallLog[1].name ?: "" );
 		super.assertEquals( true                      , setCookieCallLog[1].httpOnly ?: "" );
-		super.assertEquals( testCookie[4]             , setCookieCallLog[1].expires  ?: "" );
+		super.assertEquals( testCookie.expiry         , setCookieCallLog[1].expires  ?: "" );
+		super.assertEquals( { loginId=testCookie.loginId, expiry=testCookie.expiry, series=testCookie.series, token=newToken }, setCookieCallLog[1].value  ?: {} );
 
 		super.assertEquals( 1, setSessionCallLog.len() );
 		super.assertEquals({ name="website_user", value={
