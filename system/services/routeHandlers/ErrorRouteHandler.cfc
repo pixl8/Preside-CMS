@@ -12,18 +12,18 @@ component implements="iRouteHandler" output=false singleton=true {
 
 // route handler methods
 	public boolean function match( required string path, required any event ) output=false {
-		return ReFindNoCase( "^/[45]0[0-9]\.html$", arguments.path );
+		return ReFindNoCase( "^/40(1|4)\.html$", arguments.path );
 	}
 
 	public void function translate( required string path, required any event ) output=false {
 		var prc        = event.getCollection( private=true );
 
-		prc.statusCode = ReReplaceNoCase( arguments.path, "^/([45]0[0-9])\.html$", "\1" );
+		prc.statusCode = ReReplaceNoCase( arguments.path, "^/(40(1|4))\.html$", "\1" );
 
-		if ( prc.statusCode.startsWith( "4" ) ) {
+		if ( prc.statusCode == "404" ) {
 			event.setValue( _getEventName(), "general.notFound" );
 		} else {
-			event.setValue( _getEventName(), "general.serverError" );
+			event.setValue( _getEventName(), "general.accessDenied" );
 		}
 	}
 
