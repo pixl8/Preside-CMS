@@ -26,5 +26,5 @@ Properties
     property name="context"        type="string"  dbtype="varchar" maxlength="100" required=false uniqueindexes="context_permission|2";
     property name="context_key"    type="string"  dbtype="varchar" maxlength="100" required=false uniqueindexes="context_permission|3";
 
-    property name="benefit" relationship="many-to-one" relatedto="website_benefit" required=false uniqueindexes="context_permission|4";
-    property name="user"    relationship="many-to-one" relatedto="website_user"    required=false uniqueindexes="context_permission|5";
+    property name="benefit" relationship="many-to-one" relatedto="website_benefit" required=false uniqueindexes="context_permission|4" ondelete="cascade";
+    property name="user"    relationship="many-to-one" relatedto="website_user"    required=false uniqueindexes="context_permission|5" ondelete="cascade";

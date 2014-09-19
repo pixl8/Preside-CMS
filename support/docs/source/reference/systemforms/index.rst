@@ -28,3 +28,7 @@ System form layouts
     usereditselfform
     usergroupaddform
     usergroupaddform
+    websitebenefitaddform
+    websitebenefiteditform
+    websiteuseraddform
+    websiteusereditform
