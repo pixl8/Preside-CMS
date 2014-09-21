@@ -2,22 +2,22 @@ component output=false singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @websiteUserService.inject WebsiteUserService
-	 * @cacheProvider.inject      cachebox:WebsitePermissionsCache
-	 * @permissionsConfig.inject  coldbox:setting:websitePermissions
-	 * @benefitsDao.inject        presidecms:object:website_benefit
-	 * @userDao.inject            presidecms:object:website_user
-	 * @appliedPermDao.inject     presidecms:object:website_applied_permission
+	 * @websiteLoginService.inject websiteLoginService
+	 * @cacheProvider.inject       cachebox:WebsitePermissionsCache
+	 * @permissionsConfig.inject   coldbox:setting:websitePermissions
+	 * @benefitsDao.inject         presidecms:object:website_benefit
+	 * @userDao.inject             presidecms:object:website_user
+	 * @appliedPermDao.inject      presidecms:object:website_applied_permission
 	 */
 	public any function init(
-		  required any    websiteUserService
+		  required any    websiteLoginService
 		, required any    cacheProvider
 		, required struct permissionsConfig
 		, required any    benefitsDao
 		, required any    userDao
 		, required any    appliedPermDao
 	) output=false {
-		_setWebsiteUserService( arguments.websiteUserService );
+		_setWebsiteLoginService( arguments.websiteLoginService );
 		_setCacheProvider( arguments.cacheProvider )
 		_setBenefitsDao( arguments.benefitsDao );
 		_setUserDao( arguments.userDao );
@@ -47,7 +47,7 @@ component output=false singleton=true {
 		  required string permissionKey
 		,          string context       = ""
 		,          array  contextKeys   = []
-		,          string userId        = _getWebsiteUserService().getLoggedInUserId()
+		,          string userId        = _getWebsiteLoginService().getLoggedInUserId()
 	) output=false {
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			return false;
@@ -422,11 +422,11 @@ component output=false singleton=true {
 		_permissions = arguments.permissions;
 	}
 
-	private any function _getWebsiteUserService() output=false {
-		return _websiteUserService;
+	private any function _getWebsiteLoginService() output=false {
+		return _websiteLoginService;
 	}
-	private void function _setWebsiteUserService( required any websiteUserService ) output=false {
-		_websiteUserService = arguments.websiteUserService;
+	private void function _setWebsiteLoginService( required any websiteLoginService ) output=false {
+		_websiteLoginService = arguments.websiteLoginService;
 	}
 
 	private any function _getCacheProvider() output=false {

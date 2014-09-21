@@ -290,7 +290,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserLoginTokenDao = getMockbox().createStub();
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 
-		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteUserService(
+		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
 			  sessionService    = mockSessionService
 			, cookieService     = mockCookieService
 			, userDao           = mockUserDao
