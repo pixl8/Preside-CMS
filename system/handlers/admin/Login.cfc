@@ -44,11 +44,6 @@
 			);
 
 			if ( loggedIn ) {
-				if ( !hasCmsPermission( "cms.login" ) ) {
-					loginService.logout();
-					messageBox.error( translateResource( uri="cms:login.no.login.rights.error" ) );
-					setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );
-				}
 				user = event.getAdminUserDetails();
 				event.audit(
 					  detail   = "[#user.knownAs#] has logged in"

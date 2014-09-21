@@ -78,8 +78,7 @@ component output=false {
 		settings.activeExtensions = _loadExtensions();
 
 		settings.adminPermissions = {
-			  cms                    = [ "login" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
+			  sitetree               = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, sites                  = [ "navigate", "manage" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -104,7 +103,6 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.user           = [ "cms.login" ];
 		settings.adminRoles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*" ];
 		settings.adminRoles.siteManager    = [ "sites.*", "presideobject.site.*" ];
 		settings.adminRoles.siteUser       = [ "sites.navigate", "presideobject.site.read" ];
