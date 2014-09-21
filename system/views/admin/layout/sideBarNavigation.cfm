@@ -67,27 +67,27 @@
 				</li>
 			</cfif>
 
-			<cfif hasCmsPermission( "websiteusermanager.navigate" ) || hasCmsPermission( "groupmanager.navigate" )>
-				<li<cfif listLast( handler, ".") eq "websiteusermanager"> class="active"</cfif>>
+			<cfif hasCmsPermission( "websiteUserManager.navigate" ) || hasCmsPermission( "websiteBenefitsManager.navigate" )>
+				<li<cfif listLast( handler, ".") eq "websiteUserManager"> class="active"</cfif>>
 					<a class="dropdown-toggle" href="##">
 						<span class="fa-stack">
 						  <i class="fa fa-globe fa-stack-lg"></i>
 						  <i class="fa fa-user fa-stack-1x"></i>
 						</span>
-						<span class="menu-text">#translateResource( "cms:websiteusermanager" )#</span>
+						<span class="menu-text">#translateResource( "cms:websiteUserManager" )#</span>
 						<b class="arrow fa fa-angle-down"></b>
 					</a>
 
 					<ul class="submenu">
-						<cfif hasCmsPermission( "websiteusermanager.navigate" )>
+						<cfif hasCmsPermission( "websiteUserManager.navigate" )>
 							<li>
-								<a href="#event.buildAdminLink( linkTo='websiteusermanager' )#">
+								<a href="#event.buildAdminLink( linkTo='websiteUserManager' )#">
 									<i class="fa fa-angle-double-right"></i>
 									#translateResource( "cms:websiteUserManager.users" )#
 								</a>
 							</li>
 						</cfif>
-						<cfif hasCmsPermission( "groupmanager.navigate" )>
+						<cfif hasCmsPermission( "websiteBenefitsManager.navigate" )>
 							<li>
 								<a href="#event.buildAdminLink( linkTo='websitebenefitsmanager' )#">
 									<i class="fa fa-angle-double-right"></i>

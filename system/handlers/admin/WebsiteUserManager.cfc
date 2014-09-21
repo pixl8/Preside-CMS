@@ -9,17 +9,17 @@ component extends="preside.system.base.AdminHandler" output=false {
 		super.preHandler( argumentCollection = arguments );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:websiteusermanager.userspage.title" )
-			, link  = event.buildAdminLink( linkTo="websiteusermanager" )
+			  title = translateResource( "cms:websiteUserManager.userspage.title" )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager" )
 		);
 	}
 
 	function index( event, rc, prc ) output=false {
-		_checkPermissions( event=event, key="websiteusermanager.navigate" );
+		_checkPermissions( event=event, key="websiteUserManager.navigate" );
 	}
 
 	function getUsersForAjaxDataTables( event, rc, prc ) output=false {
-		_checkPermissions( event=event, key="websiteusermanager.read" );
+		_checkPermissions( event=event, key="websiteUserManager.read" );
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -28,22 +28,22 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, eventArguments = {
 				  object          = "website_user"
 				, gridFields      = "active,login_id,display_name,email_address"
-				, actionsView     = "/admin/websiteusermanager/_usersGridActions"
+				, actionsView     = "/admin/websiteUserManager/_usersGridActions"
 				, useMultiActions = false
 			}
 		);
 	}
 
 	function addUser( event, rc, prc ) output=false {
-		_checkPermissions( event=event, key="websiteusermanager.add" );
+		_checkPermissions( event=event, key="websiteUserManager.add" );
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:websiteusermanager.addUser.page.title" )
-			, link  = event.buildAdminLink( linkTo="websiteusermanager.addUser" )
+			  title = translateResource( "cms:websiteUserManager.addUser.page.title" )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager.addUser" )
 		);
 	}
 	function addUserAction( event, rc, prc ) output=false {
-		_checkPermissions( event=event, key="websiteusermanager.add" );
+		_checkPermissions( event=event, key="websiteUserManager.add" );
 
 		var object = "website_user";
 		var newId  = runEvent(
@@ -74,20 +74,20 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	function editUser( event, rc, prc ) output=false {
-		_checkPermissions( event=event, key="websiteusermanager.edit" );
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
 
 		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
 
 		if ( not prc.record.recordCount ) {
-			messageBox.error( translateResource( uri="cms:websiteusermanager.userNotFound.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="websiteusermanager" ) );
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
 		prc.record.permissions = websitePermissionService.listUserPermissions( userId = id ).toList();
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:websiteusermanager.editUser.page.title", data=[ prc.record.display_name ] )
-			, link  = event.buildAdminLink( linkTo="websiteusermanager.editUser", queryString="id=#(rc.id ?: '')#" )
+			  title = translateResource( uri="cms:websiteUserManager.editUser.page.title", data=[ prc.record.display_name ] )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager.editUser", queryString="id=#(rc.id ?: '')#" )
 		);
 	}
 

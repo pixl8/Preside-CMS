@@ -84,6 +84,7 @@ component output=false {
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, websiteBenefitsManager = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
+			, websiteUserManager     = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
 			, devtools               = [ "console" ]
 			, systemConfiguration    = [ "manage" ]
 			, presideobject          = {
@@ -93,6 +94,7 @@ component output=false {
 				, site           = [ "read", "add", "edit", "delete", "viewversions" ]
 				, asset          = [ "read", "add", "edit", "delete", "viewversions" ]
 				, asset_folder   = [ "read", "add", "edit", "delete", "viewversions" ]
+				, link           = [ "read", "add", "edit", "delete", "viewversions" ]
 			}
 			, assetmanager           = {
 				  general = [ "navigate" ]
@@ -103,14 +105,9 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*" ];
-		settings.adminRoles.siteManager    = [ "sites.*", "presideobject.site.*" ];
-		settings.adminRoles.siteUser       = [ "sites.navigate", "presideobject.site.read" ];
-		settings.adminRoles.sitetreeAdmin  = [ "sitetree.*", "presideobject.page.*" ];
-		settings.adminRoles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add", "presideobject.page.*" ];
-		settings.adminRoles.dataAdmin      = [ "datamanager.*" ];
-		settings.adminRoles.assetAdmin     = [ "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
-		settings.adminRoles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*" ];
+		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
