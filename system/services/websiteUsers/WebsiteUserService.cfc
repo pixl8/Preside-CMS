@@ -66,6 +66,14 @@ component output=false autodoc=true displayName="Website user service" {
 	 */
 	public void function logout() output=false {
 		_getSessionService().deleteVar( name=_getSessionKey() );
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+			_deleteRememberMeCookie();
+
+			if ( Len( cookieValue.series ?: "" ) ) {
+				_getUserLoginTokenDao().deleteData( filter={ series = cookieValue.series } );
+			}
+		}
 	}
 
 	/**

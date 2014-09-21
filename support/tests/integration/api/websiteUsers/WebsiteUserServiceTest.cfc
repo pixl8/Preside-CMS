@@ -49,6 +49,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 
 		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+		mockCookieService.$( "exists", false );
 
 		userService.logout();
 
@@ -259,6 +260,24 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( { id=testUserTokenRecord.id }, tokenDeleteLog[1] );
 
 		super.assert( alertThrown );
+	}
+
+	function test14_logout_shouldDestroyRememberMeCookieAndTokenDbRecord_whenCookieExists() output=false {
+		var userService = _getUserService();
+		var testCookieValue = { loginId="joyce", expiry=60, series=CreateUUId(), token=CreateUUId() };
+
+		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+		mockCookieService.$( "exists", true );
+		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookieValue );
+		mockCookieService.$( "deleteVar" ).$args( "_presidecms-site-persist" ).$results( true );
+		mockUserLoginTokenDao.$( "deleteData" ).$args( filter={ series=testCookieValue.series } ).$results( true );
+
+		userService.logout();
+
+		super.assertEquals( 1, mockSessionService.$calllog().deleteVar.len() );
+		super.assertEquals( 1, mockCookieService.$calllog().exists.len() );
+		super.assertEquals( 1, mockCookieService.$calllog().deleteVar.len() );
+		super.assertEquals( 1, mockUserLoginTokenDao.$calllog().deleteData.len() );
 	}
 
 
