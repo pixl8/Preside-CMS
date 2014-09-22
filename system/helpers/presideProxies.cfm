@@ -107,11 +107,23 @@
 		</cfscript>
 	</cffunction>
 
-<!--- permissioning --->
+<!--- permissioning and users --->
 	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false">
 		<cfreturn getController().getWireBox().getInstance( "permissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false">
 		<cfreturn getController().getWireBox().getInstance( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="isLoggedIn" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="getLoggedInUserId" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="getLoggedInUserDetails" access="public" returntype="struct" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
 	</cffunction>
