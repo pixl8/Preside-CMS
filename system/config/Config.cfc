@@ -123,7 +123,7 @@ component output=false {
 				  stylesheets = [ "/css/admin/specific/richeditor/" ]
 				, width       = "auto"
 				, minHeight   = 0
-				, maxHeight   = 600
+				, maxHeight   = 300
 				, configFile  = "/ckeditorExtensions/config.js"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
