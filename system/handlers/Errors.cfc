@@ -13,7 +13,12 @@ component output=false {
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
 		event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
 
-		return renderView( view="/errors/accessDenied", args=args );
+		switch( args.reason ?: "" ){
+			case "INSUFFICIENT_PRIVILEGES":
+				return renderView( view="/errors/insufficientPrivileges", args=args );
+			default:
+				return renderView( view="/errors/loginRequired", args=args );
+		}
 	}
 }
 

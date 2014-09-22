@@ -182,8 +182,10 @@
 	</cffunction>
 
 	<cffunction name="accessDenied" access="public" returntype="void" output="false">
+		<cfargument name="reason" type="string" required="true" />
+
 		<cfscript>
-			getController().runEvent( "general.accessDenied" );
+			getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments } );
 			WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 		</cfscript>
 	</cffunction>

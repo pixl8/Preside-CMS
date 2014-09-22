@@ -28,7 +28,13 @@ component output=false {
 			setNextEvent( url=postLoginUrl );
 		}
 
-		setNextEvent( url=event.buildLink( linkTo="login" ), persist="loginId,password,postLoginUrl,rememberMe" );
+		setNextEvent( url=event.buildLink( linkTo="login" ), persistStruct={
+			  loginId      = loginId
+			, password     = password
+			, postLoginUrl = postLoginUrl
+			, rememberMe   = rememberMe
+			, message      = "LOGIN_FAILED"
+		} );
 	}
 
 	public void function logout( event, rc, prc ) output=false {
@@ -42,7 +48,8 @@ component output=false {
 		args.allowRememberMe = _getRememberMeAllowed();
 		args.postLoginUrl    = args.postLoginUrl ?: ( rc.postLoginUrl ?: _getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		args.loginId         = args.loginId      ?: ( rc.loginId      ?: "" );
-		args.rememberMe      = args.rememberMe ?: ( rc.rememberMe   ?: "" );
+		args.rememberMe      = args.rememberMe   ?: ( rc.rememberMe   ?: "" );
+		args.message         = args.message      ?: ( rc.message      ?: "" );
 
 		return renderView( view="/login/loginPage", args=args );
 	}

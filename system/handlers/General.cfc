@@ -53,6 +53,7 @@
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
 		<cfargument name="prc"   type="struct" required="true" />
+		<cfargument name="args"  type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
 			var accessDeniedViewlet = getSetting( name="accessDeniedViewlet", defaultValue="errors.accessDenied" );
@@ -61,8 +62,7 @@
 			event.setLayout( accessDeniedLayout );
 			event.setView( view="/core/simpleBodyRenderer" );
 
-			rc.body = renderViewlet( event=accessDeniedViewlet );
-
+			rc.body = renderViewlet( event=accessDeniedViewlet, args=args );
 		</cfscript>
 	</cffunction>
 

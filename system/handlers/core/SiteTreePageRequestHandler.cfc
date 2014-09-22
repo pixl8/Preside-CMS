@@ -21,17 +21,22 @@ component output=false {
 		}
 
 		if ( event.getPageProperty( "access_restriction", "none" ) == "full" ){
+			var fullLoginRequired = event.getPageProperty( "full_login_required", false );
+			var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
+
+			if ( !loggedIn ) {
+				event.accessDenied( reason="LOGIN_REQUIRED" );
+			}
+
 			var accessProvidingPage = event.getPageProperty( "access_providing_page", pageId );
-			var fullLoginRequired   = event.getPageProperty( "full_login_required"  , false );
-			var loggedIn            = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn());
-			var hasPermission       = loggedIn && hasWebsitePermission(
+			var hasPermission       = hasWebsitePermission(
 				  permissionKey = "pages.access"
 				, context       = "page"
 				, contextKeys   = [ accessProvidingPage ]
 			);
 
 			if ( !hasPermission ) {
-				event.accessDenied();
+				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
 		}
 
