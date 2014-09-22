@@ -33,6 +33,25 @@ securityAlertCallback  function  No
 =====================  ========  ========  ===========
 
 
+.. _websiteloginservice-isautologgedin:
+
+IsAutoLoggedIn()
+~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function isAutoLoggedIn( )
+
+Returns whether or not the user making the current request is only automatically logged in.
+This would happen when the user has been logged in via a "remember me" cookie. System's can
+make use of this method when protecting pages that require a full authenticated session, forcing
+a login prompt when this method returns true.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
 .. _websiteloginservice-getloggedinuserdetails:
 
 GetLoggedInUserDetails()
