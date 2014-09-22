@@ -157,7 +157,11 @@ Another example is producing 404 responses for secured areas of the application.
 401 Access denied pages
 #######################
 
-Access denied pages can be created and used in exactly the same way as 404 pages. The page can be invoked with :code:`event.accessDenied()` and will be automatically invoked by the core access control system when a user attempts to access pages and assets to which they do not have permission.
+Access denied pages can be created and used in exactly the same way as 404 pages, with a few minor differences. The page can be invoked with :code:`event.accessDenied( reason=deniedReason )` and will be automatically invoked by the core access control system when a user attempts to access pages and assets to which they do not have permission.
+
+.. hint::
+
+    For a more in depth look at front end user permissioning and login, see :doc:`websiteusers`.
 
 Creating a 401 template
 -----------------------
@@ -177,16 +181,41 @@ The 401 template is implemented as a Preside Viewlet (see :doc:`viewlets`) and a
         }
     }
 
-For simple cases, you will only need to override the :code:`/errors/accessDenied` view by creating one in your application's view folder, e.g.
+The viewlet will be passed an :code:`args.reason` argument that will be either :code:`LOGIN_REQUIRED`, :code:`INSUFFICIENT_PRIVILEGES` or any other codes that you might make use of.
+
+The core implementation sets the 401 header and then renders a different view, depending on the access denied reason:
+
+.. code-block:: java
+
+    // /preside/system/handlers/Errors.cfc
+    component output=false {
+
+        private string function accessDenied( event, rc, prc, args={} ) output=false {
+            event.setHTTPHeader( statusCode="401" );
+            event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
+            event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
+
+            switch( args.reason ?: "" ){
+                case "INSUFFICIENT_PRIVILEGES":
+                    return renderView( view="/errors/insufficientPrivileges", args=args );
+                default:
+                    return renderView( view="/errors/loginRequired", args=args );
+            }
+        }
+    }
+
+For simple cases, you will only need to override the :code:`/errors/insufficientPrivileges` and/or :code:`/errors/loginRequired` view by creating them in your application's view folder, e.g.
 
 .. code-block:: cfm
 
-    <!--- /application/views/errors/accessDenied.cfm --->
+    <!--- /application/views/errors/insufficientPrivileges.cfm --->
     <h1>Name's not on the door, you ain't coming in</h1>
     <p> Some pithy remark.</p>
-    <form...>
-        <!--- login form here... --->
-    </form>
+
+.. code-block:: cfm
+
+    <!--- /application/views/errors/loginRequired.cfm --->
+    #renderViewlet( event="login.loginPage", message="LOGIN_REQUIRED" )#
 
 Implementing handler logic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -200,9 +229,16 @@ If you wish to perform some handler logic for your 401 template, you can simply 
         private string function accessDenied( event, rc, prc, args={} ) output=false {
             event.setHTTPHeader( statusCode="401" );
             event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
-            event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' ); // this header is required by the HTTP protocol when returning a 401 reponse
+            event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
 
-            return renderView( view="/errors/accessDenied", args=args );
+            switch( args.reason ?: "" ){
+                case "INSUFFICIENT_PRIVILEGES":
+                    return renderView( view="/errors/my401View", args=args );
+                case "MY_OWN_REASON":
+                    return renderView( view="/errors/custom401", args=args );
+                default:
+                    return renderView( view="/errors/myLoginFormView", args=args );
+            }
         }
     }
 
@@ -239,50 +275,31 @@ You can also programatically set the layout for your 401 template in your handle
 
             event.setLayout( "myCustom401Layout" );
 
-            return renderView( view="/errors/accessDenied", args=args );
+            // ... etc.
         }
     }
 
 Programatically responding with a 401
 -------------------------------------
 
-If you ever need to programatically respond with a 401 access denied status, you can use the :code:`event.accessDenied()` method to do so. This method will ensure that the 401 statuscode header is set and will render your configured 401 template for you. For example:
+If you ever need to programatically respond with a 401 access denied status, you can use the :code:`event.accessDenied( reason="MY_REASON" )` method to do so. This method will ensure that the 401 statuscode header is set and will render your configured 401 template for you. For example:
 
 .. code-block:: java
 
     // someHandler.cfc
     component output=false {
 
-        public void function index( event, rc, prc ) output=false {
-            if ( !hasAccess() ) {
-                event.accessDenied();
+        public void function reservePlace( event, rc, prc ) output=false {
+            if ( !isLoggedIn() ) {
+                event.accessDenied( reason="LOGIN_REQUIRED" );
+            }
+            if ( !hasWebsitePermission( "events.reserveplace" ) ) {
+                event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
             }
 
             // .. carry on processing the page
         }
     }
-
-Direct access to the 401 template
----------------------------------
-
-The 401 template can be directly accessed by visiting /401.html. This is achieved through a custom route dedicated to error pages (see :doc:`routing`).
-
-This is particular useful for rendering the 401 template in cases where PresideCMS is not producing the 401. For example, in Tomcat, you would edit your :code:`${catalina_home}/config/web.xml` file to define a rewrite URL for 401s:
-
-.. code-block:: xml
-    
-    <!-- ... -->
-
-            <welcome-file-list>
-            <welcome-file>index.cfm</welcome-file>
-        </welcome-file-list>
-
-        <error-page>
-            <error-code>401</error-code>
-            <location>/401.html</location>
-        </error-page>
-
-    </web-app>
 
 500 Error Pages
 ###############

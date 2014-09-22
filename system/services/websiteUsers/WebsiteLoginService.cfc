@@ -1,9 +1,9 @@
 /**
- * The website user manager object provides methods for interacting with the front end users of your sites. In particular, it deals with login and user lookups.
+ * The website login manager object provides methods for interacting with the front end users of your sites. In particular, it deals with login and user lookups.
  * \n
  * See also: :doc:`/reference/presideobjects/website_user`
  */
-component output=false autodoc=true displayName="Website user service" {
+component output=false autodoc=true displayName="Website login service" {
 
 // constructor
 	/**

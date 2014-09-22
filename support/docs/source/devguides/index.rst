@@ -22,6 +22,7 @@ Developer guides & recipes
    reloading
    cssandjs
    permissioning
+   websiteusers
    systemsettings
    developerconsole
    customerrorpages
