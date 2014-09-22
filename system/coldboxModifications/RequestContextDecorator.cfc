@@ -350,6 +350,7 @@
 					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
 						page.access_providing_page = ancestor.id;
 						page.access_restriction = ancestor.access_restriction;
+						page.full_login_required = ancestor.full_login_required;
 						break;
 					}
 				}

@@ -3,6 +3,7 @@ component output=false {
 	property name="pageTypesService"         inject="pageTypesService";
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="websitePermissionService" inject="websitePermissionService";
+	property name="websiteLoginService"      inject="websiteLoginService";
 
 	public function index( event, rc, prc ) output=false {
 		event.initializePresideSiteteePage(
@@ -21,7 +22,9 @@ component output=false {
 
 		if ( event.getPageProperty( "access_restriction", "none" ) == "full" ){
 			var accessProvidingPage = event.getPageProperty( "access_providing_page", pageId );
-			var hasPermission       = hasWebsitePermission(
+			var fullLoginRequired   = event.getPageProperty( "full_login_required"  , false );
+			var loggedIn            = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn());
+			var hasPermission       = loggedIn && hasWebsitePermission(
 				  permissionKey = "pages.access"
 				, context       = "page"
 				, contextKeys   = [ accessProvidingPage ]

@@ -30,6 +30,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="embargo_date"              type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
 	property name="expiry_date"               type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
 	property name="access_restriction"        type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|none|full|partial)"  control="select"          values="inherit,none,full,partial" labels="preside-objects.page:access_restriction.option.inherit,preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
+	property name="full_login_required"       type="boolean" dbtype="boolean"                  required=false default=false;
 
 	property name="exclude_from_navigation"   type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="navigation_title"          type="string"  dbtype="varchar" maxLength="200"  required=false;
