@@ -39,10 +39,10 @@ component output=false autodoc=true displayName="Website user service" {
 	 */
 	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, rememberExpiryInDays=90 ) output=false {
 		if ( !isLoggedIn() ) {
-			var userRecord = getUserByLoginId( arguments.loginId );
+			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.recordCount && validatePassword( arguments.password, userRecord.password ) ) {
-				setUserSession( {
+			if ( userRecord.recordCount && _validatePassword( arguments.password, userRecord.password ) ) {
+				_setUserSession( {
 					  id            = userRecord.id
 					, login_id      = userRecord.login_id
 					, email_address = userRecord.email_address
@@ -79,6 +79,8 @@ component output=false autodoc=true displayName="Website user service" {
 	/**
 	 * Returns whether or not the user making the current request is logged in
 	 * to the system.
+	 *
+	 * @securityAlertCallback.hint A function that will be invoked should their be a security alert during auto login checking. Use this to alert the user that their login may have been compromised.
 	 */
 	public boolean function isLoggedIn( function securityAlertCallback=function(){} ) output=false autodoc=true {
 		var userSessionExists = _getSessionService().exists( name=_getSessionKey() );
@@ -105,13 +107,8 @@ component output=false autodoc=true displayName="Website user service" {
 		return userDetails.id ?: "";
 	}
 
-	/**
-	 * Returns a user record that matches the given login id against either the
-	 * login_id field or the email_address field.
-	 *
-	 * @loginId.hint The login id / email address with which to query the user database
-	 */
-	public query function getUserByLoginId( required string loginId ) output=false autodoc=true {
+// private helpers
+	private query function _getUserByLoginId( required string loginId ) output=false autodoc=true {
 		return _getUserDao().selectData(
 			  selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 			, filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
@@ -120,26 +117,14 @@ component output=false autodoc=true displayName="Website user service" {
 		);
 	}
 
-	/**
-	 * Returns true if the plain text password matches the given hashed password
-	 *
-	 * @plainText.hint The password provided by the user
-	 * @hashed.hint The password stored against the user record
-	 */
-	public boolean function validatePassword( required string plainText, required string hashed ) output=false autodoc=true {
+	private boolean function _validatePassword( required string plainText, required string hashed ) output=false autodoc=true {
 		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
 	}
 
-	/**
-	 * Sets the user's session data
-	 *
-	 * @data.hint The data to store in the user's session
-	 */
-	public void function setUserSession( required struct data ) output=false {
+	private void function _setUserSession( required struct data ) output=false {
 		_getSessionService().setVar( name=_getSessionKey(), value=arguments.data );
 	}
 
-// private helpers
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) output=false {
 		var cookieValue = {
 			  loginId = arguments.loginId
@@ -191,7 +176,7 @@ component output=false autodoc=true displayName="Website user service" {
 			var tokenRecord = _getUserRecordFromCookie( cookieValue, securityAlertCallback );
 
 			if ( tokenRecord.recordCount ) {
-				setUserSession( {
+				_setUserSession( {
 					  id            = tokenRecord.user
 					, login_id      = tokenRecord.login_id
 					, email_address = tokenRecord.email_address
