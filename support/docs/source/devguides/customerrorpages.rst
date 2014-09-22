@@ -154,6 +154,8 @@ Another example is producing 404 responses for secured areas of the application.
         <to last="true">/404.html</to>
     </rule>
 
+.. _custom-error-pages-401:
+
 401 Access denied pages
 #######################
 
