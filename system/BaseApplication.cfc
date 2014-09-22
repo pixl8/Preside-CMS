@@ -48,8 +48,13 @@ component output=false {
 		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
 		} else {
 
-			thread name=CreateUUId() exception=arguments.exception {
-	 			log log="Exception" type="Error" text=SerializeJson( attributes.exception );
+			thread name=CreateUUId() e=arguments.exception {
+	 			log log="Exception" type="Error" text=SerializeJson( {
+	 				  message    = ( attributes.e.message    ?: "" )
+	 				, detail     = ( attributes.e.detail     ?: "" )
+	 				, sql        = ( attributes.e.sql        ?: "" )
+	 				, tagContext = ( attributes.e.tagContext ?: [] )
+	 			} );
 			}
 
 			content reset=true;
