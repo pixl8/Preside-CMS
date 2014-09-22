@@ -43,10 +43,11 @@ component output=false autodoc=true displayName="Website user service" {
 
 			if ( userRecord.recordCount && _validatePassword( arguments.password, userRecord.password ) ) {
 				_setUserSession( {
-					  id            = userRecord.id
-					, login_id      = userRecord.login_id
-					, email_address = userRecord.email_address
-					, display_name  = userRecord.display_name
+					  id                    = userRecord.id
+					, login_id              = userRecord.login_id
+					, email_address         = userRecord.email_address
+					, display_name          = userRecord.display_name
+					, session_authenticated = true
 				} );
 
 				if ( arguments.rememberLogin ) {
@@ -86,6 +87,17 @@ component output=false autodoc=true displayName="Website user service" {
 		var userSessionExists = _getSessionService().exists( name=_getSessionKey() );
 
 		return userSessionExists || _autoLogin( argumentCollection = arguments );
+	}
+
+	/**
+	 * Returns whether or not the user making the current request is only automatically logged in.
+	 * This would happen when the user has been logged in via a "remember me" cookie. System's can
+	 * make use of this method when protecting pages that require a full authenticated session, forcing
+	 * a login prompt when this method returns true.
+	 *
+	 */
+	public boolean function isAutoLoggedIn() output=false autodoc=true {
+		return _getSessionService().exists( name=_getSessionKey() ) && !getLoggedInUserDetails().session_authenticated;
 	}
 
 	/**
@@ -177,10 +189,11 @@ component output=false autodoc=true displayName="Website user service" {
 
 			if ( tokenRecord.recordCount ) {
 				_setUserSession( {
-					  id            = tokenRecord.user
-					, login_id      = tokenRecord.login_id
-					, email_address = tokenRecord.email_address
-					, display_name  = tokenRecord.display_name
+					  id                    = tokenRecord.user
+					, login_id              = tokenRecord.login_id
+					, email_address         = tokenRecord.email_address
+					, display_name          = tokenRecord.display_name
+					, session_authenticated = false
 				} );
 
 				_recycleLoginToken( tokenRecord.id, cookieValue );

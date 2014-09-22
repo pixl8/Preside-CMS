@@ -100,10 +100,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService        = _getUserService();
 		var mockRecord         = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
 		var expectedSetVarCall = { name="website_user", value={
-			  email_address = mockRecord.email_address
-			, display_name  = mockRecord.display_name
-			, login_id      = mockRecord.login_id
-			, id            = mockRecord.id
+			  email_address         = mockRecord.email_address
+			, display_name          = mockRecord.display_name
+			, login_id              = mockRecord.login_id
+			, id                    = mockRecord.id
+			, session_authenticated = true
 		} };
 
 		userService.$( "isLoggedIn" ).$results( false );
@@ -132,12 +133,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testSeries        = CreateUUId();
 		var testToken         = CreateUUId();
 		var testTokenHashed   = "blah";
-		var expectedSetVarCall = { name="website_user", value={
-			  email_address = mockRecord.email_address
-			, display_name  = mockRecord.display_name
-			, login_id      = mockRecord.login_id
-			, id            = mockRecord.id
-		} };
 
 		// mocking
 		userService.$( "isLoggedIn" ).$results( false );
@@ -219,10 +214,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		super.assertEquals( 1, setSessionCallLog.len() );
 		super.assertEquals({ name="website_user", value={
-			  email_address = testUserTokenRecord.email_address
-			, display_name  = testUserTokenRecord.display_name
-			, login_id      = testUserTokenRecord.login_id
-			, id            = testUserTokenRecord.user
+			  email_address         = testUserTokenRecord.email_address
+			, display_name          = testUserTokenRecord.display_name
+			, login_id              = testUserTokenRecord.login_id
+			, id                    = testUserTokenRecord.user
+			, session_authenticated = false
 		} }, setSessionCallLog[1] );
 
 		super.assertEquals( 1, hashTokenCallLog.len() );
@@ -278,6 +274,21 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( 1, mockCookieService.$calllog().exists.len() );
 		super.assertEquals( 1, mockCookieService.$calllog().deleteVar.len() );
 		super.assertEquals( 1, mockUserLoginTokenDao.$calllog().deleteData.len() );
+	}
+
+	function test15_isAutoLoggedIn_shouldReturnTrue_whenUserHasBeenAutoLoggedInWithCookie() output=false {
+		var userService = _getUserService();
+
+		mockSessionService.$( "exists", true );
+		userService.$( "getLoggedInUserDetails", {
+			  id                    = CreateUUId()
+			, login_id              = "hamster"
+			, email_address         = "test@test.com"
+			, display_name          = "Test Hamster"
+			, session_authenticated = false
+		} );
+
+		super.assert( userService.isAutoLoggedIn() );
 	}
 
 
