@@ -16,6 +16,7 @@ System Preside Objects
     website_benefit
     website_user
     website_applied_permission
+    website_user_login_token
     standard_page
     homepage
     page

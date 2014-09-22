@@ -9,4 +9,4 @@ System Service API
     sitetemplatesservice
     siteservice
     updatemanagerservice
-    websiteuserservice
+    websiteloginservice
