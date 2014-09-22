@@ -274,7 +274,7 @@ component output=false {
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
-					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
@@ -282,7 +282,7 @@ component output=false {
 					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
-					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
