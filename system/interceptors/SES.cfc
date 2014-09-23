@@ -22,8 +22,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	public void function onBuildLink( event, interceptData ) output=false {
 		for( var route in instance.presideRoutes ){
-			if ( route.reverseMatch( buildArgs=interceptData ) ) {
-				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData ), private=true );
+			if ( route.reverseMatch( buildArgs=interceptData, event=event ) ) {
+				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData, event=event ), private=true );
 				return;
 			}
 		}
