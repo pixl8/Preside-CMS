@@ -1,8 +1,8 @@
 /**
- * A website context permission records a grants or deny permission for a given user benefit, permission key and context.
+ * A website applied permission records a grants or deny permission for a given user or benefit, permission key and optional context.
  *
  */
-component extends="preside.system.base.SystemPresideObject" displayname="Website context permission" noLabel=true output="false" {
+component extends="preside.system.base.SystemPresideObject" displayname="Website applied permission" noLabel=true output="false" {
 
 	property name="permission_key" type="string"  dbtype="varchar" maxlength="100" required=true  uniqueindexes="context_permission|1";
 	property name="granted"        type="boolean" dbtype="boolean"                 required=true;

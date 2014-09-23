@@ -121,7 +121,7 @@ For permissions, add your keys to the :code:`/i18n/permissions.properties` file,
     For permissions, you may only want to create resource bundle entries when the permissions will be used in contextual permission GUIs. Otherwise, the translations will never be used.
 
 Applying permissions in code with hasCmsPermission()
-#################################################
+####################################################
 
 When you wish to permission control a given system feature, you should use the :code:`hasCmsPermission()` method. For example:
 

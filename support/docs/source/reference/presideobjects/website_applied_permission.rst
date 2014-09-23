@@ -1,10 +1,10 @@
-Website context permission
+Website applied permission
 ==========================
 
 Overview
 --------
 
-A website context permission records a grants or deny permission for a given user benefit, permission key and context.
+A website applied permission records a grants or deny permission for a given user or benefit, permission key and optional context.
 
 **Object name:**
     website_applied_permission

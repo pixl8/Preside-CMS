@@ -656,6 +656,8 @@ You can specify *not* to cache results with the :code:`useCache` argument.
 See :doc:`caching` for a full guide to configuring and creating caches, including how to configure the default query cache used here.
 
 
+.. _presideobjectsextending:
+
 Extending Objects
 #################
 
