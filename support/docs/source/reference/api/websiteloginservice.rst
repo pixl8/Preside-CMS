@@ -6,13 +6,54 @@ Overview
 
 **Full path:** *preside.system.services.websiteUsers.WebsiteLoginService*
 
-The website login manager object provides methods for interacting with the front end users of your sites. In particular, it deals with login and user lookups.
+The website login manager object provides methods for member login, logout and session retrieval
 
 
-See also: :doc:`/reference/presideobjects/website_user`
+See also: :doc:`/devguides/websiteusers`
 
 Public API Methods
 ------------------
+
+.. _websiteloginservice-login:
+
+Login()
+~~~~~~~
+
+.. code-block:: java
+
+    public boolean function login( required string loginId, required string password, boolean rememberLogin=false, any rememberExpiryInDays=90 )
+
+Logs the user in by matching the passed login id against either the login id or email address
+fields and running a bcrypt password check to verify the security credentials. Returns true on success, false otherwise.
+
+Arguments
+.........
+
+====================  =======  ==================  =====================================================================================
+Name                  Type     Required            Description                                                                          
+====================  =======  ==================  =====================================================================================
+loginId               string   Yes                 Either the login id or email address of the user to login                            
+password              string   Yes                 The password that the user has entered during login                                  
+rememberLogin         boolean  No (default=false)  Whether or not to set a "remember me" cookie                                         
+rememberExpiryInDays  any      No (default=90)     When setting a remember me cookie, how long (in days) before the cookie should expire
+====================  =======  ==================  =====================================================================================
+
+
+.. _websiteloginservice-logout:
+
+Logout()
+~~~~~~~~
+
+.. code-block:: java
+
+    public void function logout( )
+
+Logs the currently logged in user out of their session
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
 
 .. _websiteloginservice-isloggedin:
 

@@ -1,7 +1,7 @@
 /**
- * The website login manager object provides methods for interacting with the front end users of your sites. In particular, it deals with login and user lookups.
+ * The website login manager object provides methods for member login, logout and session retrieval
  * \n
- * See also: :doc:`/reference/presideobjects/website_user`
+ * See also: :doc:`/devguides/websiteusers`
  */
 component output=false autodoc=true displayName="Website login service" {
 
@@ -37,7 +37,7 @@ component output=false autodoc=true displayName="Website login service" {
 	 * @rememberExpiryInDays.hint When setting a remember me cookie, how long (in days) before the cookie should expire
 	 *
 	 */
-	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, rememberExpiryInDays=90 ) output=false {
+	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, rememberExpiryInDays=90 ) output=false autodoc=true {
 		if ( !isLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
@@ -65,7 +65,7 @@ component output=false autodoc=true displayName="Website login service" {
 	 * Logs the currently logged in user out of their session
 	 *
 	 */
-	public void function logout() output=false {
+	public void function logout() output=false autodoc=true {
 		_getSessionService().deleteVar( name=_getSessionKey() );
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
@@ -120,7 +120,7 @@ component output=false autodoc=true displayName="Website login service" {
 	}
 
 // private helpers
-	private query function _getUserByLoginId( required string loginId ) output=false autodoc=true {
+	private query function _getUserByLoginId( required string loginId ) output=false {
 		return _getUserDao().selectData(
 			  selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 			, filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
@@ -129,7 +129,7 @@ component output=false autodoc=true displayName="Website login service" {
 		);
 	}
 
-	private boolean function _validatePassword( required string plainText, required string hashed ) output=false autodoc=true {
+	private boolean function _validatePassword( required string plainText, required string hashed ) output=false {
 		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
 	}
 
