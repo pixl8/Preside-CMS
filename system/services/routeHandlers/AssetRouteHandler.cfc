@@ -31,11 +31,11 @@ component implements="iRouteHandler" output=false singleton=true {
 		}
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return Len( Trim( buildArgs.assetId ?: "" ) );
 	}
 
-	public string function build( required struct buildArgs ) output=false {
+	public string function build( required struct buildArgs, required any event ) output=false {
 		var link = "/asset/#UrlEncodedFormat( buildArgs.assetId ?: '' )#/";
 
 		if ( Len( Trim( buildArgs.derivative ?: "" ) ) ) {

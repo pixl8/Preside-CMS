@@ -23,11 +23,11 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( _getEventName(), "general.notFound" );
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return false; // cannot build an error link, incoming only
 	}
 
-	public string function build( required struct buildArgs ) output=false {
+	public string function build( required struct buildArgs, required any event ) output=false {
 		return "/"; // cannot build an error link, incoming only
 	}
 

@@ -29,12 +29,14 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( _getEventName(), translated );
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return StructKeyExists( arguments.buildArgs, "linkTo" );
 	}
 
-	public string function build( required struct buildArgs ) output=false {
-		var link = "/" & ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
+	public string function build( required struct buildArgs, required any event ) output=false {
+		var site = event.getSite();
+		var root = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name ) & ( site.path ?: "/" );
+		var link = root & ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
 
 		link = ReReplaceNoCase( link, "index/$", "" );
 

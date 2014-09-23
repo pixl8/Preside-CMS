@@ -20,11 +20,11 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( _getEventName(), "admin.StaticAssetDownload.download" );
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return Len( Trim( buildArgs.systemStaticAsset ?: "" ) );
 	}
 
-	public string function build( required struct buildArgs ) output=false {
+	public string function build( required struct buildArgs, required any event ) output=false {
 		var path = buildArgs.systemStaticAsset ?: "";
 
 		if ( !ReFind( "^/", path ) ) {
