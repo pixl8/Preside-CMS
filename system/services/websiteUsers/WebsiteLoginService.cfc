@@ -142,7 +142,7 @@ component output=false autodoc=true displayName="Website login service" {
 
 			_getEmailService().send(
 				  template = "resetWebsitePassword"
-				, to       = userRecord.email_address
+				, to       = [ userRecord.email_address ]
 				, args     = { resetToken = resetToken, expires=resetTokenExpiry }
 			);
 

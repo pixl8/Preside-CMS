@@ -312,7 +312,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		userService.$( "_createTemporaryResetTokenExpiry", testExpiryDate );
 		mockEmailService.$( "send" ).$args(
 			  template = "resetWebsitePassword"
-			, to       = testUserRecord.email_address
+			, to       = [ testUserRecord.email_address ]
 			, args     = { resetToken = testTempToken, expires=testExpiryDate }
 		).$results( true );
 		mockUserDao.$( "updateData" ).$args(
@@ -334,7 +334,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserLoginTokenDao = getMockbox().createStub();
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
-		mockEmailService      = getMockBox().createStub();
+		mockEmailService      = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
 
 		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
 			  sessionService             = mockSessionService
