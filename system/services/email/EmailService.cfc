@@ -7,11 +7,13 @@ component output=false autodoc=true {
 // CONSTRUCTOR
 	/**
 	 * @emailTemplateDirectories.inject presidecms:directories:handlers/emailTemplates
+	 * @systemConfigurationService.inject systemConfigurationService
 	 * @coldbox.inject                  coldbox
 	 */
-	public any function init( required array emailTemplateDirectories, required any coldbox ) output=false {
+	public any function init( required array emailTemplateDirectories, required any coldbox, required any systemConfigurationService ) output=false {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
 		_setColdbox( arguments.coldbox );
+		_setSystemConfigurationService( arguments.systemConfigurationService );
 
 		_loadTemplates();
 
@@ -28,8 +30,8 @@ component output=false autodoc=true {
 	 * @args.hint     Structure of arbitrary arguments to forward on to the template handler
 	 */
 	public boolean function send( required string template, required array to, struct args={} ) output=false autodoc=true {
-		var sendArgs = _getColdbox().runEvent( event="emailTemplates.#arguments.template#", eventArguments={ args=arguments.args } );
-		sendArgs.to = arguments.to;
+		var sendArgs = _getColdbox().runEvent( event="emailTemplates.#arguments.template#.index", private=true, eventArguments={ args=arguments.args } );
+		    sendArgs.to = arguments.to;
 
 		_send( argumentCollection = sendArgs );
 
@@ -77,10 +79,41 @@ component output=false autodoc=true {
 		,          array  bcc           = []
 		,          string htmlBody      = ""
 		,          string plainTextBody = ""
-		,          struct headers       = {}
+		,          struct params        = {}
 	) output=false {
+		var m          = new Mail();
+		var mailServer = _getSystemConfigurationService().getSetting( "email", "server", "" );
+		var port       = _getSystemConfigurationService().getSetting( "email", "port"  , "" );
+
+		m.setTo( arguments.to.toList( ";" ) );
+		m.setFrom( arguments.from );
+		m.setSubject( arguments.subject );
+
+		if ( arguments.cc.len()  ) {
+			m.setCc( arguments.cc.toList( ";" ) );
+		}
+		if ( arguments.bcc.len() ) {
+			m.setBCc( arguments.bcc.toList( ";" ) );
+		}
+		if ( Len( Trim( arguments.plainTextBody ) ) ) {
+			m.addPart( type='text', body=arguments.plainTextBody );
+		}
+		if ( Len( Trim( arguments.htmlBody ) ) ) {
+			m.addPart( type='html', body=arguments.htmlBody );
+		}
+		if ( Len( Trim( mailServer ) ) ) {
+			m.setServer( mailServer );
+		}
+		if ( Len( Trim( port ) ) ) {
+			m.setPort( port );
+		}
+
+		for( var param in arguments.params ){
+			m.addParam( argumentCollection=arguments.params[ param ] );
+		}
+
 		try {
-			// todo, cfmail call
+			m.send();
 		} catch( any e ) {
 			// TODO: logging here
 			return false;
@@ -109,5 +142,12 @@ component output=false autodoc=true {
 	}
 	private void function _setColdbox( required any coldbox ) output=false {
 		_coldbox = arguments.coldbox;
+	}
+
+	private any function _getSystemConfigurationService() output=false {
+		return _systemConfigurationService;
+	}
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 }

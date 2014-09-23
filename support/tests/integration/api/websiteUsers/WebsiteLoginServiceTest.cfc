@@ -303,7 +303,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test17_sendPasswordResetInstructions_shouldGenerateTemporaryResetTokenAndSendEmailToUser() output=false {
 		var userService    = _getUserService();
 		var testLoginId    = "M131654131";
-		var testUserRecord = QueryNew( 'id,email_address', 'varchar,varchar', [[ CreateUUId(), 'dom@test.com' ] ] );
+		var testUserRecord = QueryNew( 'id,email_address,display_name', 'varchar,varchar,varchar', [[ CreateUUId(), 'dom@test.com', "My dominic sir" ] ] );
 		var testTempToken  = CreateUUId();
 		var testExpiryDate = Now();
 
@@ -313,7 +313,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockEmailService.$( "send" ).$args(
 			  template = "resetWebsitePassword"
 			, to       = [ testUserRecord.email_address ]
-			, args     = { resetToken = testTempToken, expires=testExpiryDate }
+			, args     = { resetToken = testTempToken, expires=testExpiryDate, username=testUserRecord.display_name }
 		).$results( true );
 		mockUserDao.$( "updateData" ).$args(
 			  id   = testUserRecord.id
