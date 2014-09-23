@@ -43,6 +43,16 @@ component output=false {
 		setNextEvent( url=( Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : _getDefaultPostLogoutUrl( argumentCollection=arguments ) ) );
 	}
 
+	public void function resetPassword( event, rc, prc ) output=false {
+		if ( websiteLoginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
+			setNextEvent( url=event.buildLink( linkTo="login" ), persistStruct={
+				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
+			} );
+		}
+
+		WriteDump( "fail" ); abort;
+	}
+
 // viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
 		args.allowRememberMe = _getRememberMeAllowed();
