@@ -7,18 +7,22 @@ component output=false autodoc=true displayName="Website login service" {
 
 // constructor
 	/**
-	 * @sessionService.inject    sessionService
-	 * @cookieService.inject     cookieService
-	 * @userDao.inject           presidecms:object:website_user
-	 * @userLoginTokenDao.inject presidecms:object:website_user_login_token
-	 * @bcryptService.inject     bcryptService
+	 * @sessionService.inject             sessionService
+	 * @cookieService.inject              cookieService
+	 * @userDao.inject                    presidecms:object:website_user
+	 * @userLoginTokenDao.inject          presidecms:object:website_user_login_token
+	 * @bcryptService.inject              bcryptService
+	 * @systemConfigurationService.inject systemConfigurationService
+	 * @emailService.inject               emailService
 	 */
-	public any function init( required any sessionService, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService ) output=false {
+	public any function init( required any sessionService, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) output=false {
 		_setSessionService( arguments.sessionService );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
 		_setUserLoginTokenDao( arguments.userLoginTokenDao );
 		_setBCryptService( arguments.bcryptService );
+		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setEmailService( arguments.emailService );
 		_setSessionKey( "website_user" );
 		_setRememberMeCookieKey( "_presidecms-site-persist" );
 
@@ -117,6 +121,35 @@ component output=false autodoc=true displayName="Website login service" {
 		var userDetails = getLoggedInUserDetails();
 
 		return userDetails.id ?: "";
+	}
+
+	/**
+	 * Sends password reset instructions to the supplied user. Returns true if successful, false otherwise.
+	 *
+	 * @loginId.hint Either the email address or login id of the user
+	 */
+	public boolean function sendPasswordResetInstructions( required string loginId ) output=false autodoc=true {
+		var userRecord = _getUserByLoginId( arguments.loginId );
+
+		if ( userRecord.recordCount ) {
+			var resetToken       = _createTemporaryResetToken();
+			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+			_getUserDao().updateData( id=userRecord.id, data={
+				  reset_password_token        = resetToken
+				, reset_password_token_expiry = resetTokenExpiry
+			} );
+
+			_getEmailService().send(
+				  template = "resetWebsitePassword"
+				, to       = userRecord.email_address
+				, args     = { resetToken = resetToken, expires=resetTokenExpiry }
+			);
+
+			return true;
+		}
+
+		return false;
 	}
 
 // private helpers
@@ -247,11 +280,44 @@ component output=false autodoc=true displayName="Website login service" {
 	}
 
 	private string function _createNewLoginTokenSeries() output=false {
-		return CreateUUId();
+		return _createRandomToken();
 	}
 
 	private string function _createNewLoginToken() output=false {
-		return CreateUUId();
+		return _createRandomToken();
+	}
+
+	private string function _createTemporaryResetToken() output=false {
+		return _createRandomToken();
+	}
+
+	private string function _createRandomToken() output=false {
+		var chars    = ListToArray( Replace( CreateUUId(), "-", "", "all" ), "" );
+		var token = "";
+
+		while( chars.len() ){
+			var position = RandRange( 1, chars.len(), "SHA1PRNG" );
+
+			if ( RandRange( 1, 2, "SHA1PRNG" ) == 1 ) {
+				token &= LCase( chars[ position ] );
+			} else {
+				token &= chars[ position ];
+			}
+
+			chars.deleteAt( position );
+		}
+
+		return token;
+	}
+
+	private date function _createTemporaryResetTokenExpiry() output=false {
+		var expiry = Val( _getSystemConfigurationService().getSetting( "website_users", "reset_password_token_expiry", 60 ) );
+
+		if ( !expiry ) {
+			return DateAdd( "d", 10000, Now() );
+		} else {
+			return DateAdd( "n", expiry, Now() );
+		}
 	}
 
 
@@ -303,5 +369,19 @@ component output=false autodoc=true displayName="Website login service" {
 	}
 	private void function _setUserLoginTokenDao( required any userLoginTokenDao ) output=false {
 		_userLoginTokenDao = arguments.userLoginTokenDao;
+	}
+
+	private any function _getSystemConfigurationService() output=false {
+		return _systemConfigurationService;
+	}
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+		_systemConfigurationService = arguments.systemConfigurationService;
+	}
+
+	private any function _getEmailService() output=false {
+		return _emailService;
+	}
+	private void function _setEmailService( required any emailService ) output=false {
+		_emailService = arguments.emailService;
 	}
 }

@@ -291,6 +291,39 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( userService.isAutoLoggedIn() );
 	}
 
+	function test16_sendPasswordResetInstructions_shouldReturnFalseWhenPassedLoginIdDoesNotExist() output=false {
+		var userService = _getUserService();
+		var testLoginId = "watson.dominic@gmail.com";
+
+		userService.$( "_getUserByLoginId" ).$args( testLoginId ).$results( QueryNew('') );
+
+		super.assertFalse( userService.sendPasswordResetInstructions( testLoginId ) );
+	}
+
+	function test17_sendPasswordResetInstructions_shouldGenerateTemporaryResetTokenAndSendEmailToUser() output=false {
+		var userService    = _getUserService();
+		var testLoginId    = "M131654131";
+		var testUserRecord = QueryNew( 'id,email_address', 'varchar,varchar', [[ CreateUUId(), 'dom@test.com' ] ] );
+		var testTempToken  = CreateUUId();
+		var testExpiryDate = Now();
+
+		userService.$( "_getUserByLoginId" ).$args( testLoginId ).$results( testUserRecord );
+		userService.$( "_createTemporaryResetToken", testTempToken );
+		userService.$( "_createTemporaryResetTokenExpiry", testExpiryDate );
+		mockEmailService.$( "send" ).$args(
+			  template = "resetWebsitePassword"
+			, to       = testUserRecord.email_address
+			, args     = { resetToken = testTempToken, expires=testExpiryDate }
+		).$results( true );
+		mockUserDao.$( "updateData" ).$args(
+			  id   = testUserRecord.id
+			, data = { reset_password_token=testTempToken, reset_password_token_expiry=testExpiryDate }
+		).$results( true );
+
+		super.assert( userService.sendPasswordResetInstructions( testLoginId ) );
+		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() );
+		super.assertEquals( 1, mockEmailService.$callLog().send.len() );
+	}
 
 
 // private helpers
@@ -300,13 +333,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserDao           = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
+		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
+		mockEmailService      = getMockBox().createStub();
 
 		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
-			  sessionService    = mockSessionService
-			, cookieService     = mockCookieService
-			, userDao           = mockUserDao
-			, userLoginTokenDao = mockUserLoginTokenDao
-			, bcryptService     = mockBCryptService
+			  sessionService             = mockSessionService
+			, cookieService              = mockCookieService
+			, userDao                    = mockUserDao
+			, userLoginTokenDao          = mockUserLoginTokenDao
+			, bcryptService              = mockBCryptService
+			, systemConfigurationService = mockSysConfigService
+			, emailService               = mockEmailService
 		) );
 	}
 
