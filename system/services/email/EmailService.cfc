@@ -25,16 +25,23 @@ component output=false autodoc=true {
 	 * Sends an email after first rendering the email + extracting any other variables from
 	 * the specified email template handler.
 	 *
-	 * @template.hint Name of the template who's handler will do the rendering, etc.
-	 * @to.hint       Array of email addresses to send the email to
-	 * @args.hint     Structure of arbitrary arguments to forward on to the template handler
+	 * @template.hint      Name of the template who's handler will do the rendering, etc.
+	 * @args.hint          Structure of arbitrary arguments to forward on to the template handler
+	 * @to.hint            Array of email addresses to send the email to
+	 * @from.hint          Optional from email address
+	 * @subject.hint       Optional email subject. If not supplied, the template handler should supply it
+	 * @cc.hint            Optional array of CC addresses
+	 * @bcc.hint           Optional array of BCC addresses
+	 * @htmlBody.hint      Optional HTML body
+	 * @plainTextBody.hint Optional plain text body
+	 * @params.hint        Optional struct of cfmail params (headers, attachments, etc.)
 	 */
 	public boolean function send(
 		  required string template
 		,          struct args          = {}
+		,          array  to            = []
 		,          string from          = ""
 		,          string subject       = ""
-		,          array  to            = []
 		,          array  cc            = []
 		,          array  bcc           = []
 		,          string htmlBody      = ""
