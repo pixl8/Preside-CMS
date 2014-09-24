@@ -117,10 +117,10 @@ component output=false autodoc=true displayName="Email service" {
 			m.setBCc( arguments.bcc.toList( ";" ) );
 		}
 		if ( Len( Trim( arguments.textBody ) ) ) {
-			m.addPart( type='text', body=arguments.textBody );
+			m.addPart( type='text', body=Trim( arguments.textBody ) );
 		}
 		if ( Len( Trim( arguments.htmlBody ) ) ) {
-			m.addPart( type='html', body=arguments.htmlBody );
+			m.addPart( type='html', body=Trim( arguments.htmlBody ) );
 		}
 		if ( Len( Trim( mailServer ) ) ) {
 			m.setServer( mailServer );
