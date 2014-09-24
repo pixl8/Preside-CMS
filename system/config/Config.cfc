@@ -67,6 +67,7 @@ component output=false {
 		settings.serverErrorLayout         = "Main";
 		settings.serverErrorViewlet        = "errors.serverError";
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
+		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
