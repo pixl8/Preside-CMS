@@ -133,6 +133,8 @@ component output=false autodoc=true displayName="Email service" {
 			m.addParam( argumentCollection=arguments.params[ param ] );
 		}
 
+		m.addParam( name="X-Mailer", value="PresideCMS" );
+
 		try {
 			m.send();
 		} catch( any e ) {
