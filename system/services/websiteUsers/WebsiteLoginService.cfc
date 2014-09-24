@@ -162,14 +162,9 @@ component output=false autodoc=true displayName="Website login service" {
 	 * @token.hint The token to validate
 	 */
 	public boolean function validateResetPasswordToken( required string token ) output=false {
-		var t = ListFirst( arguments.token, "-" );
-		var k = ListLast( arguments.token, "-" );
-		var record = _getUserDao().selectData(
-			  selectFields = [ "reset_password_key", "reset_password_token_expiry" ]
-			, filter       = { reset_password_token = t }
-		);
+		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
-		return record.recordCount && Now() < record.reset_password_token_expiry && _getBCryptService().checkPw( k, record.reset_password_key );
+		return record.recordCount == 1;
 	}
 
 // private helpers
@@ -344,6 +339,30 @@ component output=false autodoc=true displayName="Website login service" {
 		}
 	}
 
+	private query function _getUserRecordByPasswordResetToken( required string token ) output=false {
+		var t = ListFirst( arguments.token, "-" );
+		var k = ListLast( arguments.token, "-" );
+
+		var record = _getUserDao().selectData(
+			  selectFields = [ "reset_password_key", "reset_password_token_expiry" ]
+			, filter       = { reset_password_token = t }
+		);
+
+		if ( !record.recordCount ) {
+			return record;
+		}
+
+		if ( Now() > record.reset_password_token_expiry || !_getBCryptService().checkPw( k, record.reset_password_key ) ) {
+			_getUserDao().updateData(
+				  filter = { reset_password_token = t }
+				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+			);
+
+			return QueryNew('');
+		}
+
+		return record;
+	}
 
 // private accessors
 	private any function _getSessionService() output=false {

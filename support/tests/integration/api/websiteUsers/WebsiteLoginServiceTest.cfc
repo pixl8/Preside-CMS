@@ -341,7 +341,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
 	}
 
-	function test19_validateResetPasswordToken_shouldReturnFalse_whenRecordFoundButTokenHasExpired() output=false {
+	function test19_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundButTokenHasExpired() output=false {
 		var userService = _getUserService();
 		var testToken   = "xxxxxx-yyyyyy";
 
@@ -350,10 +350,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "reset_password_key", "reset_password_token_expiry" ]
 		).$results( QueryNew('reset_password_key,reset_password_token_expiry', 'varchar,date', [[ "hashedkey", DateAdd( "d", -1, Now() ) ]]) );
 
+		mockUserDao.$( "updateData" ).$args(
+			  filter = { reset_password_token = ListFirst( testToken, "-" ) }
+			, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+		).$results( true );
+
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
+		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() )
 	}
 
-	function test20_validateResetPasswordToken_shouldReturnFalse_whenRecordFoundAndNotExipiredByHashedKeyDoesNotMatch() output=false {
+	function test20_validateResetPasswordToken_shouldReturnFalseAndClearToken_whenRecordFoundAndNotExipiredByHashedKeyDoesNotMatch() output=false {
 		var userService = _getUserService();
 		var testToken   = "xxxxxx-yyyyyy";
 		var testRecord  = QueryNew('reset_password_key,reset_password_token_expiry', 'varchar,date', [[ "hashedkey", DateAdd( "d", +1, Now() ) ]]);
@@ -363,9 +369,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, selectFields = [ "reset_password_key", "reset_password_token_expiry" ]
 		).$results( testRecord );
 
+		mockUserDao.$( "updateData" ).$args(
+			  filter = { reset_password_token = ListFirst( testToken, "-" ) }
+			, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+		).$results( true );
+
 		mockBCryptService.$( "checkPw" ).$args( ListLast( testToken, "-" ), testRecord.reset_password_key ).$results( false );
 
 		super.assertFalse( userService.validateResetPasswordToken( testToken ) );
+		super.assertEquals( 1, mockUserDao.$callLog().updateData.len() )
 	}
 
 	function test21_validateResetPasswordToken_shouldReturnTrue_whenRecordFoundAndNotExipiredAndHashedKeyMatches() output=false {
@@ -381,6 +393,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService.$( "checkPw" ).$args( ListLast( testToken, "-" ), testRecord.reset_password_key ).$results( true );
 
 		super.assert( userService.validateResetPasswordToken( testToken ) );
+	}
+
+	function test22_resetPassword_shouldReturnFalseAndDoNothing_whenTokenRecordNotFound() output=false {
+
 	}
 
 
