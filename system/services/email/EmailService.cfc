@@ -141,7 +141,15 @@ component output=false autodoc=true {
 		return true;
 	}
 
-	private struct function _mergeArgumentsWithTemplateHandlerResult() output=false {
+	private struct function _mergeArgumentsWithTemplateHandlerResult( required string template, required struct args ) output=false {
+		if ( !_getTemplates().findNoCase( arguments.template ) ) {
+			throw(
+				  type    = "EmailService.missingTemplate"
+				, message = "Missing email template [#arguments.template#]"
+				, detail  = "Expected to find a handler at [/handlers/emailTemplates/#arguments.template#.cfc]"
+			);
+		}
+
 		var handlerArgs = Duplicate( arguments.args  );
 		    handlerArgs.append( arguments, false );
 		    handlerArgs.delete( "template" );

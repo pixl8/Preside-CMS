@@ -74,6 +74,23 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expectedSendArgs, emailService.$callLog()._send[1] );
 	}
 
+	function test04_send_shouldThrowAnInformativeError_whenThePassedTemplateDoesNotExist() output=false {
+		var emailService = _getEmailService();
+		var errorThrown  = false;
+
+		try {
+			emailService.send( "someTemplateThatDoesNotExist" );
+		} catch( "EmailService.missingTemplate" e ) {
+			super.assertEquals( "Missing email template [someTemplateThatDoesNotExist]", e.message ?: "" );
+			super.assertEquals( "Expected to find a handler at [/handlers/emailTemplates/someTemplateThatDoesNotExist.cfc]", e.detail  ?: "" );
+			errorThrown = true;
+		} catch( any e ){
+			super.fail( "Incorrect error thrown. Expected type [EmailService.missingTemplate] but error of type [#e.type#] was thrown instead with message [#e.message#]." );
+		}
+
+		super.assert( errorThrown, "An informative error was not thrown" );
+	}
+
 // private helpers
 	private any function _getEmailService() output=false {
 		templateDirs                   = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
