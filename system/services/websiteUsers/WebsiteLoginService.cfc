@@ -167,6 +167,26 @@ component output=false autodoc=true displayName="Website login service" {
 		return record.recordCount == 1;
 	}
 
+	/**
+	 * Resets a password by looking up the supplied password reset token and encrypting the supplied password
+	 *
+	 * @token.hint    The temporary reset password token to look the user up with
+	 * @password.hint The new password
+	 */
+	public boolean function resetPassword( required string token, required string password ) output=false {
+		var record = _getUserRecordByPasswordResetToken( arguments.token );
+
+		if ( record.recordCount ) {
+			var hashedPw = _getBCryptService().hashPw( password );
+
+			return _getUserDao().updateData(
+				  id   = record.id
+				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+			);
+		}
+		return false;
+	}
+
 // private helpers
 	private query function _getUserByLoginId( required string loginId ) output=false {
 		return _getUserDao().selectData(
@@ -344,7 +364,7 @@ component output=false autodoc=true displayName="Website login service" {
 		var k = ListLast( arguments.token, "-" );
 
 		var record = _getUserDao().selectData(
-			  selectFields = [ "reset_password_key", "reset_password_token_expiry" ]
+			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
 			, filter       = { reset_password_token = t }
 		);
 
@@ -354,7 +374,7 @@ component output=false autodoc=true displayName="Website login service" {
 
 		if ( Now() > record.reset_password_token_expiry || !_getBCryptService().checkPw( k, record.reset_password_key ) ) {
 			_getUserDao().updateData(
-				  filter = { reset_password_token = t }
+				  id     = record.id
 				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
 
