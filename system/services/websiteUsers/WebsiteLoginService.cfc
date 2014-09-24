@@ -155,6 +155,23 @@ component output=false autodoc=true displayName="Website login service" {
 		return false;
 	}
 
+	/**
+	 * Validates a password reset token that has been passed through the URL after
+	 * a user has followed 'reset password' link in instructional email.
+	 *
+	 * @token.hint The token to validate
+	 */
+	public boolean function validateResetPasswordToken( required string token ) output=false {
+		var t = ListFirst( arguments.token, "-" );
+		var k = ListLast( arguments.token, "-" );
+		var record = _getUserDao().selectData(
+			  selectFields = [ "reset_password_key", "reset_password_token_expiry" ]
+			, filter       = { reset_password_token = t }
+		);
+
+		return record.recordCount && Now() < record.reset_password_token_expiry && _getBCryptService().checkPw( k, record.reset_password_key );
+	}
+
 // private helpers
 	private query function _getUserByLoginId( required string loginId ) output=false {
 		return _getUserDao().selectData(
