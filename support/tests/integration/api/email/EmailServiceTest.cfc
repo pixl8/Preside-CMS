@@ -14,14 +14,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testArgs          = { some="test", data=true };
 		var testHandlerResult = { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 		var expectedSendArgs  = {
-			  from          = ""
-			, subject       = ""
-			, to            = testToAddresses
-			, cc            = []
-			, bcc           = []
-			, htmlBody      = ""
-			, plainTextBody = ""
-			, params        = {}
+			  from     = ""
+			, subject  = ""
+			, to       = testToAddresses
+			, cc       = []
+			, bcc      = []
+			, htmlBody = ""
+			, textBody = ""
+			, params   = {}
 		};
 
 		expectedSendArgs.append( testHandlerResult );
@@ -48,14 +48,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testHandlerResult = { cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 		var testDefaultFrom   = "default@test.com";
 		var expectedSendArgs  = {
-			  from          = testDefaultFrom
-			, subject       = ""
-			, to            = testToAddresses
-			, cc            = []
-			, bcc           = []
-			, htmlBody      = ""
-			, plainTextBody = ""
-			, params        = {}
+			  from     = testDefaultFrom
+			, subject  = ""
+			, to       = testToAddresses
+			, cc       = []
+			, bcc      = []
+			, htmlBody = ""
+			, textBody = ""
+			, params   = {}
 		};
 
 		expectedSendArgs.append( testHandlerResult );

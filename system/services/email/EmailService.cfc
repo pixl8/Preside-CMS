@@ -25,28 +25,28 @@ component output=false autodoc=true {
 	 * Sends an email. If a template is supplied, first runs the template handler which can return a struct that will override any arguments
 	 * passed directly to the function
 	 *
-	 * @template.hint      Name of the template who's handler will do the rendering, etc.
-	 * @args.hint          Structure of arbitrary arguments to forward on to the template handler
-	 * @to.hint            Array of email addresses to send the email to
-	 * @from.hint          Optional from email address
-	 * @subject.hint       Optional email subject. If not supplied, the template handler should supply it
-	 * @cc.hint            Optional array of CC addresses
-	 * @bcc.hint           Optional array of BCC addresses
-	 * @htmlBody.hint      Optional HTML body
-	 * @plainTextBody.hint Optional plain text body
-	 * @params.hint        Optional struct of cfmail params (headers, attachments, etc.)
+	 * @template.hint Name of the template who's handler will do the rendering, etc.
+	 * @args.hint     Structure of arbitrary arguments to forward on to the template handler
+	 * @to.hint       Array of email addresses to send the email to
+	 * @from.hint     Optional from email address
+	 * @subject.hint  Optional email subject. If not supplied, the template handler should supply it
+	 * @cc.hint       Optional array of CC addresses
+	 * @bcc.hint      Optional array of BCC addresses
+	 * @htmlBody.hint Optional HTML body
+	 * @textBody.hint Optional plain text body
+	 * @params.hint   Optional struct of cfmail params (headers, attachments, etc.)
 	 */
 	public boolean function send(
-		  string template      = ""
-		, struct args          = {}
-		, array  to            = []
-		, string from          = ""
-		, string subject       = ""
-		, array  cc            = []
-		, array  bcc           = []
-		, string htmlBody      = ""
-		, string plainTextBody = ""
-		, struct params        = {}
+		  string template = ""
+		, struct args     = {}
+		, array  to       = []
+		, string from     = ""
+		, string subject  = ""
+		, array  cc       = []
+		, array  bcc      = []
+		, string htmlBody = ""
+		, string textBody = ""
+		, struct params   = {}
 	) output=false autodoc=true {
 		var hasTemplate = Len( Trim( arguments.template ) );
 		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
@@ -96,11 +96,11 @@ component output=false autodoc=true {
 		  required string from
 		, required array  to
 		, required string subject
-		,          array  cc            = []
-		,          array  bcc           = []
-		,          string htmlBody      = ""
-		,          string plainTextBody = ""
-		,          struct params        = {}
+		,          array  cc       = []
+		,          array  bcc      = []
+		,          string htmlBody = ""
+		,          string textBody = ""
+		,          struct params   = {}
 	) output=false {
 		var m          = new Mail();
 		var mailServer = _getSystemConfigurationService().getSetting( "email", "server", "" );
@@ -116,8 +116,8 @@ component output=false autodoc=true {
 		if ( arguments.bcc.len() ) {
 			m.setBCc( arguments.bcc.toList( ";" ) );
 		}
-		if ( Len( Trim( arguments.plainTextBody ) ) ) {
-			m.addPart( type='text', body=arguments.plainTextBody );
+		if ( Len( Trim( arguments.textBody ) ) ) {
+			m.addPart( type='text', body=arguments.textBody );
 		}
 		if ( Len( Trim( arguments.htmlBody ) ) ) {
 			m.addPart( type='html', body=arguments.htmlBody );
@@ -201,7 +201,7 @@ component output=false autodoc=true {
 			);
 		}
 
-		if ( !Len( Trim( ( sendArgs.htmlBody ?: "" ) & ( sendArgs.plainTextBody ?: "" ) ) ) ) {
+		if ( !Len( Trim( ( sendArgs.htmlBody ?: "" ) & ( sendArgs.textBody ?: "" ) ) ) ) {
 			throw(
 				  type   = "EmailService.missingBody"
 				, message= "Missing body when sending message with subject [#sendArgs.subject ?: ''#]"
