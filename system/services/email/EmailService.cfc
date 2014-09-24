@@ -33,6 +33,10 @@ component output=false autodoc=true {
 		var sendArgs = _getColdbox().runEvent( event="emailTemplates.#arguments.template#.index", private=true, eventArguments={ args=arguments.args } );
 		    sendArgs.to = arguments.to;
 
+		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
+			sendArgs.from = _getSystemConfigurationService().getSetting( "email", "default_from_address" );
+		}
+
 		_send( argumentCollection = sendArgs );
 
 		return true;
