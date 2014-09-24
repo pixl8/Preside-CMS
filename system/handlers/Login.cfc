@@ -63,6 +63,58 @@ component output=false {
 		} );
 	}
 
+	public void function resetPassword( event, rc, prc ) output=false {
+		if ( websiteLoginService.isLoggedIn() ) {
+			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
+		}
+
+		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
+			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
+				message = "INVALID_RESET_TOKEN"
+			} );
+		}
+
+		event.setView( "/login/resetPassword" );
+	}
+
+	public void function resetPasswordAction( event, rc, prc ) output=false {
+		var pw           = rc.password             ?: "";
+		var confirmation = rc.passwordConfirmation ?: "";
+		var token        = rc.token                ?: "";
+
+		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
+			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
+				message = "INVALID_RESET_TOKEN"
+			} );
+		}
+
+		if ( !Len( Trim( pw ) ) ) {
+			setNextEvent( url=event.buildLink( linkTo="login.resetPassword" ), persistStruct={
+				  message = "EMPTY_PASSWORD"
+				, token   = token
+			} );
+		}
+
+		if ( pw != confirmation ) {
+			setNextEvent( url=event.buildLink( linkTo="login.resetPassword" ), persistStruct={
+				  message = "PASSWORDS_DO_NOT_MATCH"
+				, token   = token
+			} );
+		}
+
+		if ( websiteLoginService.resetPassword( token=token, password=pw ) ) {
+			setNextEvent( url=event.buildLink( linkTo="login" ), persistStruct={
+				message = "PASSWORD_RESET"
+			} );
+		}
+
+		setNextEvent( url=event.buildLink( linkTo="login.resetPassword" ), persistStruct={
+			  message = "UNKNOWN_ERROR"
+			, token   = token
+		} );
+
+	}
+
 // viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
 		args.allowRememberMe = _getRememberMeAllowed();
