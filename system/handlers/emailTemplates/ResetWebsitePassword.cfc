@@ -13,6 +13,7 @@ component output=false {
 		return {
 			  subject  = "Password reset instructions"
 			, textBody = renderView( view="/emailTemplates/resetWebsitePassword/text", args=args )
+			, htmlBody = renderView( view="/emailTemplates/resetWebsitePassword/html", args=args )
 		};
 	}
 
