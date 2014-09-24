@@ -133,17 +133,20 @@ component output=false autodoc=true displayName="Website login service" {
 
 		if ( userRecord.recordCount ) {
 			var resetToken       = _createTemporaryResetToken();
+			var resetKey         = _createTemporaryResetKey();
+			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
 			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
 
 			_getUserDao().updateData( id=userRecord.id, data={
 				  reset_password_token        = resetToken
+				, reset_password_key          = hashedResetKey
 				, reset_password_token_expiry = resetTokenExpiry
 			} );
 
 			_getEmailService().send(
 				  template = "resetWebsitePassword"
 				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = resetToken, expires=resetTokenExpiry, username=userRecord.display_name }
+				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name }
 			);
 
 			return true;
@@ -288,6 +291,10 @@ component output=false autodoc=true displayName="Website login service" {
 	}
 
 	private string function _createTemporaryResetToken() output=false {
+		return _createRandomToken();
+	}
+
+	private string function _createTemporaryResetKey() output=false {
 		return _createRandomToken();
 	}
 

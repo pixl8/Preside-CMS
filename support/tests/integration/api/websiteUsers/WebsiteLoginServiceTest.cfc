@@ -301,23 +301,27 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	}
 
 	function test17_sendPasswordResetInstructions_shouldGenerateTemporaryResetTokenAndSendEmailToUser() output=false {
-		var userService    = _getUserService();
-		var testLoginId    = "M131654131";
-		var testUserRecord = QueryNew( 'id,email_address,display_name', 'varchar,varchar,varchar', [[ CreateUUId(), 'dom@test.com', "My dominic sir" ] ] );
-		var testTempToken  = CreateUUId();
-		var testExpiryDate = Now();
+		var userService       = _getUserService();
+		var testLoginId       = "M131654131";
+		var testUserRecord    = QueryNew( 'id,email_address,display_name', 'varchar,varchar,varchar', [[ CreateUUId(), 'dom@test.com', "My dominic sir" ] ] );
+		var testTempToken     = CreateUUId();
+		var testTempKey       = CreateUUId();
+		var testTempKeyHashed = CreateUUId();
+		var testExpiryDate    = Now();
 
 		userService.$( "_getUserByLoginId" ).$args( testLoginId ).$results( testUserRecord );
 		userService.$( "_createTemporaryResetToken", testTempToken );
+		userService.$( "_createTemporaryResetKey", testTempKey );
 		userService.$( "_createTemporaryResetTokenExpiry", testExpiryDate );
+		mockBCryptService.$( "hashpw" ).$args( testTempKey ).$results( testTempKeyHashed );
 		mockEmailService.$( "send" ).$args(
 			  template = "resetWebsitePassword"
 			, to       = [ testUserRecord.email_address ]
-			, args     = { resetToken = testTempToken, expires=testExpiryDate, username=testUserRecord.display_name }
+			, args     = { resetToken = testTempToken & "-" & testTempKey, expires=testExpiryDate, username=testUserRecord.display_name }
 		).$results( true );
 		mockUserDao.$( "updateData" ).$args(
 			  id   = testUserRecord.id
-			, data = { reset_password_token=testTempToken, reset_password_token_expiry=testExpiryDate }
+			, data = { reset_password_token=testTempToken, reset_password_key=testTempKeyHashed, reset_password_token_expiry=testExpiryDate }
 		).$results( true );
 
 		super.assert( userService.sendPasswordResetInstructions( testLoginId ) );
