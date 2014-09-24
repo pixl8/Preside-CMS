@@ -24,6 +24,7 @@ Developer guides & recipes
    permissioning
    websiteusers
    systemsettings
+   emailtemplates
    developerconsole
    customerrorpages
    coldboxenvironments

@@ -1,6 +1,6 @@
 component output=false {
 
-	private struct function index( event, rc, prc, args={} ) output=false {
+	private struct function prepareMessage( event, rc, prc, args={} ) output=false {
 
 		var resetLink = event.buildLink(
 			  linkto      = "login.resetpassword"
@@ -8,9 +8,8 @@ component output=false {
 		);
 
 		return {
-			  subject       = "PresideCMS: Password reset instructions"
-			, plainTextBody = resetLink
-			, from          = "test@test.com"
+			  subject  = "Password reset instructions"
+			, textBody = resetLink
 		};
 	}
 

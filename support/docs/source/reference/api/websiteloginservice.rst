@@ -125,3 +125,23 @@ Arguments
 .........
 
 *This method does not accept any arguments.*
+
+.. _websiteloginservice-sendpasswordresetinstructions:
+
+SendPasswordResetInstructions()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function sendPasswordResetInstructions( required string loginId )
+
+Sends password reset instructions to the supplied user. Returns true if successful, false otherwise.
+
+Arguments
+.........
+
+=======  ======  ========  ================================================
+Name     Type    Required  Description                                     
+=======  ======  ========  ================================================
+loginId  string  Yes       Either the email address or login id of the user
+=======  ======  ========  ================================================

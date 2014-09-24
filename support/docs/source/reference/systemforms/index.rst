@@ -21,6 +21,7 @@ System form layouts
     sitetreepageeditform
     sitetreepagerestoreform
     sitetreepagetypehomepageeditform
+    systemconfigformemail
     systemconfigformgeneralconfiguration
     systemconfigformwebsiteusers
     updatemanagersettingsform

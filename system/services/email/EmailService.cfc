@@ -2,7 +2,7 @@
  * The email service takes care of sending emails through the PresideCMS's email templating system (see :doc:`/devguides/emailtemplates`).
  *
  */
-component output=false autodoc=true {
+component output=false autodoc=true displayName="Email service" {
 
 // CONSTRUCTOR
 	/**
@@ -158,7 +158,7 @@ component output=false autodoc=true {
 		    handlerArgs.delete( "args" );
 
 		var sendArgs = _getColdbox().runEvent(
-			  event          = "emailTemplates.#arguments.template#.index"
+			  event          = "emailTemplates.#arguments.template#.prepareMessage"
 			, private        = true
 			, eventArguments = { args=handlerArgs }
 		);
