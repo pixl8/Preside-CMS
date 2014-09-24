@@ -43,14 +43,24 @@ component output=false {
 		setNextEvent( url=( Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : _getDefaultPostLogoutUrl( argumentCollection=arguments ) ) );
 	}
 
-	public void function resetPassword( event, rc, prc ) output=false {
+	public void function forgottenPassword( event, rc, prc ) output=false {
+		if ( websiteLoginService.isLoggedIn() ) {
+			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
+		}
+
+		event.setView( "/login/forgottenPassword" );
+	}
+
+	public void function sendResetInstructions( event, rc, prc ) output=false {
 		if ( websiteLoginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
-			setNextEvent( url=event.buildLink( linkTo="login" ), persistStruct={
+			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
 				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
 			} );
 		}
 
-		WriteDump( "fail" ); abort;
+		setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
+			message = "LOGINID_NOT_FOUND"
+		} );
 	}
 
 // viewlets
