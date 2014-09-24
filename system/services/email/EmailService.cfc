@@ -41,25 +41,8 @@ component output=false autodoc=true {
 		,          string plainTextBody = ""
 		,          struct params        = {}
 	) output=false autodoc=true {
-
-		var handlerArgs = Duplicate( arguments.args );
-		    handlerArgs.append( arguments, false );
-		    handlerArgs.delete( "template" );
-		    handlerArgs.delete( "args" );
-
-		var sendArgs = _getColdbox().runEvent(
-			  event          = "emailTemplates.#arguments.template#.index"
-			, private        = true
-			, eventArguments = { args=handlerArgs }
-		);
-
-		sendArgs.append( arguments, false );
-		sendArgs.delete( "template" );
-		sendArgs.delete( "args" );
-
-		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
-			sendArgs.from = _getSystemConfigurationService().getSetting( "email", "default_from_address" );
-		}
+		var sendArgs = _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments );
+			sendArgs = _addDefaultsForMissingArguments( sendArgs );
 
 		_send( argumentCollection = sendArgs );
 
@@ -149,6 +132,34 @@ component output=false autodoc=true {
 
 		return true;
 	}
+
+	private struct function _mergeArgumentsWithTemplateHandlerResult() output=false {
+		var handlerArgs = Duplicate( arguments.args  );
+		    handlerArgs.append( arguments, false );
+		    handlerArgs.delete( "template" );
+		    handlerArgs.delete( "args" );
+
+		var sendArgs = _getColdbox().runEvent(
+			  event          = "emailTemplates.#arguments.template#.index"
+			, private        = true
+			, eventArguments = { args=handlerArgs }
+		);
+
+		sendArgs.append( arguments, false );
+		sendArgs.delete( "template" );
+		sendArgs.delete( "args" );
+
+		return sendArgs;
+	}
+
+	private struct function _addDefaultsForMissingArguments( required struct sendArgs ) output=false {
+		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
+			sendArgs.from = _getSystemConfigurationService().getSetting( "email", "default_from_address" );
+		}
+
+		return sendArgs;
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getEmailTemplateDirectories() output=false {
