@@ -22,8 +22,8 @@ component output=false autodoc=true {
 
 // PUBLIC API METHODS
 	/**
-	 * Sends an email after first rendering the email + extracting any other variables from
-	 * the specified email template handler.
+	 * Sends an email. If a template is supplied, first runs the template handler which can return a struct that will override any arguments
+	 * passed directly to the function
 	 *
 	 * @template.hint      Name of the template who's handler will do the rendering, etc.
 	 * @args.hint          Structure of arbitrary arguments to forward on to the template handler
@@ -37,19 +37,20 @@ component output=false autodoc=true {
 	 * @params.hint        Optional struct of cfmail params (headers, attachments, etc.)
 	 */
 	public boolean function send(
-		  required string template
-		,          struct args          = {}
-		,          array  to            = []
-		,          string from          = ""
-		,          string subject       = ""
-		,          array  cc            = []
-		,          array  bcc           = []
-		,          string htmlBody      = ""
-		,          string plainTextBody = ""
-		,          struct params        = {}
+		  string template      = ""
+		, struct args          = {}
+		, array  to            = []
+		, string from          = ""
+		, string subject       = ""
+		, array  cc            = []
+		, array  bcc           = []
+		, string htmlBody      = ""
+		, string plainTextBody = ""
+		, struct params        = {}
 	) output=false autodoc=true {
-		var sendArgs = _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments );
-			sendArgs = _addDefaultsForMissingArguments( sendArgs );
+		var hasTemplate = Len( Trim( arguments.template ) );
+		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
+		    sendArgs    = _addDefaultsForMissingArguments( sendArgs );
 
 		_send( argumentCollection = sendArgs );
 
