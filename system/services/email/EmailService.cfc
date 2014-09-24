@@ -29,9 +29,34 @@ component output=false autodoc=true {
 	 * @to.hint       Array of email addresses to send the email to
 	 * @args.hint     Structure of arbitrary arguments to forward on to the template handler
 	 */
-	public boolean function send( required string template, required array to, struct args={} ) output=false autodoc=true {
-		var sendArgs = _getColdbox().runEvent( event="emailTemplates.#arguments.template#.index", private=true, eventArguments={ args=arguments.args } );
-		    sendArgs.to = arguments.to;
+	public boolean function send(
+		  required string template
+		,          struct args          = {}
+		,          string from          = ""
+		,          string subject       = ""
+		,          array  to            = []
+		,          array  cc            = []
+		,          array  bcc           = []
+		,          string htmlBody      = ""
+		,          string plainTextBody = ""
+		,          struct params        = {}
+	) output=false autodoc=true {
+
+		var handlerArgs = Duplicate( arguments.args );
+		    handlerArgs.append( arguments, false );
+		    handlerArgs.delete( "template" );
+		    handlerArgs.delete( "args" );
+
+		var sendArgs = _getColdbox().runEvent(
+			  event          = "emailTemplates.#arguments.template#.index"
+			, private        = true
+			, eventArguments = { args=handlerArgs }
+		);
+
+
+		sendArgs.append( arguments, false );
+		sendArgs.delete( "template" );
+		sendArgs.delete( "args" );
 
 		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
 			sendArgs.from = _getSystemConfigurationService().getSetting( "email", "default_from_address" );

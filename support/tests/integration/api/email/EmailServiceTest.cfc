@@ -13,10 +13,23 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var testToAddresses   = [ "dominic.watson@test.com", "another.test.com" ];
 		var testArgs          = { some="test", data=true };
 		var testHandlerResult = { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
-		var expectedSendArgs  = { from="someone@test.com", to=testToAddresses, cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
+		var expectedSendArgs  = {
+			  from          = ""
+			, subject       = ""
+			, to            = testToAddresses
+			, cc            = []
+			, bcc           = []
+			, htmlBody      = ""
+			, plainTextBody = ""
+			, params        = {}
+		};
+
+		expectedSendArgs.append( testHandlerResult );
+
 
 		emailService.$( "_send", true );
-		mockColdBox.$( "runEvent" ).$args( event="emailTemplates.notification.index", private=true, eventArguments={ args=testArgs } ).$results( testHandlerResult );
+
+		mockColdBox.$( "runEvent" ).$results( testHandlerResult );
 
 		emailService.send(
 			  template = "notification"
@@ -30,14 +43,25 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test03_send_shouldUseDefaultFromEmailSetting_whenNoFromAddressIsReturnedFromTheTemplateHandler() output=false {
 		var emailService      = _getEmailService();
-		var testToAddresses   = [ "dominic.watson@test.com", "another.test.com" ];
+		var testToAddresses   = [ "dominic.watson@test.com", "another@test.com" ];
 		var testArgs          = { some="test", data=true };
 		var testHandlerResult = { cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 		var testDefaultFrom   = "default@test.com";
-		var expectedSendArgs  = { from=testDefaultFrom, to=testToAddresses, cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
+		var expectedSendArgs  = {
+			  from          = testDefaultFrom
+			, subject       = ""
+			, to            = testToAddresses
+			, cc            = []
+			, bcc           = []
+			, htmlBody      = ""
+			, plainTextBody = ""
+			, params        = {}
+		};
+
+		expectedSendArgs.append( testHandlerResult );
 
 		emailService.$( "_send", true );
-		mockColdBox.$( "runEvent" ).$args( event="emailTemplates.notification.index", private=true, eventArguments={ args=testArgs } ).$results( testHandlerResult );
+		mockColdBox.$( "runEvent" ).$results( testHandlerResult );
 		mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( testDefaultFrom );
 
 		emailService.send(
