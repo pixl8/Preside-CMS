@@ -53,7 +53,6 @@ component output=false autodoc=true {
 			, eventArguments = { args=handlerArgs }
 		);
 
-
 		sendArgs.append( arguments, false );
 		sendArgs.delete( "template" );
 		sendArgs.delete( "args" );
