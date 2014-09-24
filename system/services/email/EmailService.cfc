@@ -52,6 +52,8 @@ component output=false autodoc=true {
 		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
 		    sendArgs    = _addDefaultsForMissingArguments( sendArgs );
 
+		_validateArguments( sendArgs );
+
 		_send( argumentCollection = sendArgs );
 
 		return true;
@@ -174,6 +176,37 @@ component output=false autodoc=true {
 		}
 
 		return sendArgs;
+	}
+
+	private void function _validateArguments( required struct sendArgs ) output=false {
+		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
+			throw(
+				  type   = "EmailService.missingSender"
+				, message= "Missing from email address when sending message with subject [#sendArgs.subject ?: ''#]"
+				, detail = "Ensure that a default from email address is configured through your PresideCMS administrator"
+			);
+		}
+
+		if ( !( sendArgs.to ?: [] ).len() ) {
+			throw(
+				  type   = "EmailService.missingToAddress"
+				, message= "Missing to email address(es) when sending message with subject [#sendArgs.subject ?: ''#]"
+			);
+		}
+
+		if ( !Len( Trim( sendArgs.subject ?: "" ) ) ) {
+			throw(
+				  type   = "EmailService.missingSubject"
+				, message= "Missing subject when sending message to [#(sendArgs.to ?: []).toList(';')#], from [#(sendArgs.from ?: '')#]"
+			);
+		}
+
+		if ( !Len( Trim( ( sendArgs.htmlBody ?: "" ) & ( sendArgs.plainTextBody ?: "" ) ) ) ) {
+			throw(
+				  type   = "EmailService.missingBody"
+				, message= "Missing body when sending message with subject [#sendArgs.subject ?: ''#]"
+			);
+		}
 	}
 
 
