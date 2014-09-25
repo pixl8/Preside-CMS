@@ -43,7 +43,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
 			}
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );
+			setNextEvent( url=event.buildAdminLink( linkto="login" ), persistStruct={
+				  postLoginUrl = postLoginUrl
+				, message      = "LOGIN_FAILED"
+			} );
 		}
 	}
 

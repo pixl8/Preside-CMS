@@ -1,4 +1,5 @@
-<cfset token = rc.token ?: "" />
+<cfset token   = rc.token ?: "" />
+<cfset message = rc.message ?: "" />
 
 <cfoutput>
 	<div class="position-relative">
@@ -9,6 +10,24 @@
 						<i class="fa fa-key"></i>
 						#translateResource( 'cms:resetLogin.title' )#<!--Retrieve Password-->
 					</h4>
+
+					<cfswitch expression="#message#">
+						<cfcase value="EMPTY_PASSWORD">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:resetLogin.empty.password.error' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="PASSWORDS_DO_NOT_MATCH">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:resetLogin.passwords.do.not.match.error' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="UNKNOWN_ERROR">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:resetLogin.unknown.error' )#</p>
+							</div>
+						</cfcase>
+					</cfswitch>
 
 					<div class="space-6"></div>
 					<p>

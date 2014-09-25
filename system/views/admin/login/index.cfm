@@ -1,5 +1,6 @@
 <cfscript>
 	postLoginUrl = event.getValue( name="postLoginUrl", defaultValue=event.buildAdminLink( linkto=getSetting( "adminDefaultEvent" ) ) );
+	message      = rc.message ?: "";
 </cfscript>
 
 <cfoutput>
@@ -10,6 +11,19 @@
  					<h4 class="cms-brand">
 						#translateResource( uri="cms:cms.title" )#
 					</h4>
+
+					<cfswitch expression="#message#">
+						<cfcase value="LOGIN_FAILED">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:login.failed.error' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="PASSWORD_RESET">
+							<div class="alert alert-block alert-success">
+								<p>#translateResource( 'cms:login.password.reset.confirmation' )#</p>
+							</div>
+						</cfcase>
+					</cfswitch>
 
 					<div class="space-6"></div>
 

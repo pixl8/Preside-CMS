@@ -1,3 +1,4 @@
+<cfset message = rc.message ?: "" />
 <cfoutput>
 	<div class="position-relative">
 		<div id="forgot-box" class="forgot-box visible widget-box no-border">
@@ -7,6 +8,24 @@
 						<i class="fa fa-key"></i>
 						#translateResource( 'cms:forgotpassword.title' )#<!--Retrieve Password-->
 					</h4>
+
+					<cfswitch expression="#message#">
+						<cfcase value="LOGINID_NOT_FOUND">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:forgottenpassword.loginid.notfound.error' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="INVALID_RESET_TOKEN">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:forgottenpassword.invalid.reset.token.error' )#</p>
+							</div>
+						</cfcase>
+						<cfcase value="PASSWORD_RESET_INSTRUCTIONS_SENT">
+							<div class="alert alert-block alert-success">
+								<p>#translateResource( 'cms:forgottenpassword.instructions.sent.confirmation' )#</p>
+							</div>
+						</cfcase>
+					</cfswitch>
 
 					<div class="space-6"></div>
 					<p>
