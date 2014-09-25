@@ -105,6 +105,8 @@ component output=false autodoc=true displayName="Email service" {
 		var m          = new Mail();
 		var mailServer = _getSystemConfigurationService().getSetting( "email", "server", "" );
 		var port       = _getSystemConfigurationService().getSetting( "email", "port"  , "" );
+		var username   = _getSystemConfigurationService().getSetting( "email", "username", "" );
+		var password   = _getSystemConfigurationService().getSetting( "email", "password", "" );
 
 		m.setTo( arguments.to.toList( ";" ) );
 		m.setFrom( arguments.from );
@@ -127,6 +129,12 @@ component output=false autodoc=true displayName="Email service" {
 		}
 		if ( Len( Trim( port ) ) ) {
 			m.setPort( port );
+		}
+		if ( Len( Trim( username ) ) ) {
+			m.setUsername( username );
+		}
+		if ( Len( Trim( password ) ) ) {
+			m.setPassword( password );
 		}
 
 		for( var param in arguments.params ){
