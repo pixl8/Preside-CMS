@@ -8,7 +8,6 @@ This form is used for configuring the mail server and other mail related setting
 	<tab id="default">
 		<fieldset id="default">
 			<field name="server"               control="textinput" required="false"              label="system-config.email:server.label"               help="system-config.general:server.help" placeholder="system-config.email:server.placeholder" />
-			<field name="server"               control="textinput" required="false"              label="system-config.email:server.label"               help="system-config.general:server.help" placeholder="system-config.email:server.placeholder" />
 			<field name="port"                 control="spinner"   required="false" default="25" label="system-config.email:port.label"                 help="system-config.general:port.help" maxValue="99999" />
 			<field name="username"             control="textinput" required="false"              label="system-config.email:username.label"             help="system-config.general:username.help" />
 			<field name="password"             control="password"  required="false"              label="system-config.email:password.label"             help="system-config.general:password.help" />
