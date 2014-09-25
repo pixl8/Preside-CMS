@@ -509,6 +509,7 @@
 		<cfargument name="object"          type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
+		<cfargument name="filter"          type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
 
 		<cfscript>
@@ -521,6 +522,7 @@
 			var results             = dataManagerService.getRecordsForGridListing(
 				  objectName  = object
 				, gridFields  = gridFields
+				, filter      = arguments.filter
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
 				, orderBy     = dtHelper.getSortOrder()

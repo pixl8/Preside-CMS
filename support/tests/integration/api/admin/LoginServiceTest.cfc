@@ -7,12 +7,14 @@
 			_setupTestData();
 
 			sessionService  = new preside.system.services.cfmlScopes.SessionService();
+			mockEmailService = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
 			loginService = new preside.system.services.admin.loginService(
 				  logger          = _getTestLogger()
 				, userDao         = _getPresideObjectService( forceNewInstance=true ).getObject( "security_user" )
 				, sessionService  = sessionService
 				, bCryptService   = _getBCrypt()
 				, systemUserList  = "sysadmin"
+				, emailService    = mockEmailService
 			);
 		</cfscript>
 	</cffunction>
