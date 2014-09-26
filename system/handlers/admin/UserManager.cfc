@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
+	property name="loginService"         inject="loginService";
 	property name="messageBox"           inject="coldbox:plugin:messageBox";
 	property name="bCryptService"        inject="bCryptService";
 
@@ -139,29 +140,32 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function addUserAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="usermanager.add" );
 
-		if ( Len( rc.password ?: "" ) ) {
-			rc.password = bCryptService.hashPw( rc.password ?: "" );
-			if ( bCryptService.checkPw( rc.confirm_password, rc.password ) ) {
-				rc.confirm_password = rc.password;
-			}
-		} else {
-			// TEMPORARY CODE!!!
-			rc.password = bCryptService.hashPw( "password" );
-			rc.confirm_password = rc.password;
-		}
-
-		runEvent(
+		var newUserId = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object           = "security_user"
 				, errorAction      = "userManager.addUser"
-				, successAction    = "userManager.users"
-				, addAnotherAction = "userManager.addUser"
-				, viewRecordAction = "userManager.editUser"
+				, redirectOnSuccess = false
 			}
 		);
+
+		if ( IsBoolean( rc.send_welcome ?: "" ) && rc.send_welcome ) {
+			loginService.sendWelcomeEmail( newUserId, event.getAdminUserDetails().knownAs, rc.welcome_message ?: "" );
+		}
+
+		var newRecordLink = event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#newUserId#" );
+		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+			  translateResource( uri="preside-objects.security_user:title.singular", defaultValue="security_user" )
+			, '<a href="#newRecordLink#">#( rc.known_as ?: "" )#</a>'
+		] ) );
+
+		if ( Val( rc._addanother ?: 0 ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="userManager.addUser" ), persist="_addAnother" );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="userManager.users" ) );
+		}
 	}
 
 	function editUser( event, rc, prc ) output=false {

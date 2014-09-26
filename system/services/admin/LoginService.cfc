@@ -88,27 +88,74 @@ component output="false" singleton=true {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.recordCount ) {
-			var resetToken       = _createTemporaryResetToken();
-			var resetKey         = _createTemporaryResetKey();
-			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
-			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
-
-			_getUserDao().updateData( id=userRecord.id, data={
-				  reset_password_token        = resetToken
-				, reset_password_key          = hashedResetKey
-				, reset_password_token_expiry = resetTokenExpiry
-			} );
+			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
 				  template = "resetCMSPassword"
 				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.known_as }
+				, args     = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#", expires=tokenInfo.resetExpiry, username=userRecord.known_as }
 			);
 
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sends a welcome email to the given user with password reset instructions
+	 *
+	 * @userId.hint ID of the user to send the welcome email to
+	 * @welcomeMessage.hint User supplied welcome message
+	 */
+	public boolean function sendWelcomeEmail( required string userId, required string createdBy, string welcomeMessage="" ) output=false {
+		var userRecord = _getUserDao().selectData( id=arguments.userId );
+
+		if ( userRecord.recordCount ) {
+			var tokenInfo = createLoginResetToken( userRecord.id );
+
+			_getEmailService().send(
+				  template = "cmsWelcome"
+				, to       = [ "#(userRecord.known_as ?: '')# <#(userRecord.email_address ?: '')#>" ]
+				, args     = {
+					  resetToken     = "#tokenInfo.resetToken#-#tokenInfo.resetKey#"
+					, expires        = tokenInfo.resetExpiry
+					, username       = userRecord.known_as
+					, welcomeMessage = arguments.welcomeMessage
+					, createdBy      = arguments.createdBy
+					, loginId        = userRecord.login_id
+				}
+			);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Creates a login reset token for a user and return a struct with token details.
+	 * Struct keys are: resetToken, resetKey and resetExpiry
+	 *
+	 * @userId.hint ID of the user to create a reset token for
+	 */
+	public struct function createLoginResetToken( required string userId ) output=false {
+		var resetToken       = _createTemporaryResetToken();
+		var resetKey         = _createTemporaryResetKey();
+		var hashedResetKey   = _getBCryptService().hashPw( resetKey );
+		var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		_getUserDao().updateData( id=arguments.userId, data={
+			  reset_password_token        = resetToken
+			, reset_password_key          = hashedResetKey
+			, reset_password_token_expiry = resetTokenExpiry
+		} );
+
+		return {
+			  resetToken  = resetToken
+			, resetKey    = resetKey
+			, resetExpiry = resetTokenExpiry
+		};
 	}
 
 	/**
