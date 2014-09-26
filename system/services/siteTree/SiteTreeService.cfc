@@ -362,7 +362,7 @@ component output=false singleton=true {
 		if ( !arguments.includeInactive ) {
 			filter.active = true;
 		}
-		return getNavChildren( rootPage, page._hierarchy_depth );
+		return getNavChildren( rootPage, page._hierarchy_depth+1 );
 	}
 
 	public string function addPage(
