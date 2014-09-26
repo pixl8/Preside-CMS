@@ -2,13 +2,18 @@ component output=false {
 	property name="siteTreeSvc" inject="siteTreeService";
 
 <!--- VIEWLETS --->
-	private string function singleLevelMainNav( event, rc, prc, args={} ) output=false {
-		args.homePage  = siteTreeSvc.getSiteHomepage();
-		args.menuItems = siteTreeSvc.getDescendants(
-			  id       = args.homepage.id
-			, depth    = 1
+
+	private string function mainNavigation( event, rc, prc, args={} ) output=false {
+		var activeTree = Duplicate( event.getPageProperty( "ancestors" ) );
+		activeTree.prepend( event.getCurrentPageId() );
+
+		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
+			  rootPage        = args.rootPage ?: siteTreeSvc.getSiteHomepage().id
+			, depth           = args.depth    ?: 1
+			, includeInactive = event.isAdminUser()
+			, activeTree      = activeTree
 		);
 
-		return renderView( view="core/navigation/singleLevelMainNav", args=args );
+		return renderView( view="core/navigation/mainNavigation", args=args );
 	}
 }
