@@ -310,6 +310,61 @@ component output=false singleton=true {
 		return getPage( id=homepage, selectFields=arguments.selectFields );
 	}
 
+	public array function getPagesForNavigationMenu(
+		  string  rootPage          = getSiteHomepage().id
+		, numeric depth             = 1
+		, boolean includeInactive   = false
+		, array   activeTree        = []
+		, boolean expandAllSiblings = true
+	) output=false {
+		var getNavChildren = function( parent, currentDepth ){
+			filter.parent_page = parent;
+			var result   = [];
+			var children = _getPObj().selectData(
+				  selectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+				, filter       = filter
+				, orderBy      = "sort_order"
+			);
+
+			for( var child in children ){
+				var fetchChildren = arguments.currentDepth < maxDepth;
+				    fetchChildren = fetchChildren && !Val( child.exclude_children_from_navigation );
+				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.page ) );
+
+				if (  fetchChildren  ) {
+					child.children = getNavChildren( child.id, currentDepth+1 );
+				}
+
+				result.append( {
+					  id       = child.id
+					, title    = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
+					, children = child.children ?: []
+					, active   = ( activeTree.find( child.id ) > 0 )
+				} );
+			}
+
+			return result;
+		};
+
+		var page = getPage(
+			  id           = arguments.rootPage
+			, selectFields = [ "id", "exclude_from_navigation", "exclude_children_from_navigation", "_hierarchy_depth" ]
+		);
+		if ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) ) {
+			return pages;
+		}
+
+		var maxDepth = page._hierarchy_depth + ( arguments.depth < 1 ? 1 : arguments.depth );
+		var filter   = {
+			  exclude_from_navigation = false
+			, trashed                 = false
+		}
+		if ( !arguments.includeInactive ) {
+			filter.active = true;
+		}
+		return getNavChildren( rootPage, page._hierarchy_depth );
+	}
+
 	public string function addPage(
 		  required string title
 		, required string slug
