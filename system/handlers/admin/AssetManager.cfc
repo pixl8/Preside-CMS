@@ -23,6 +23,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				messageBox.error( translateResource( uri="cms:assetmanager.asset.not.found.error" ) );
 				setNextEvent( url = event.buildAdminLink( linkTo="assetManager" ) );
 			}
+			prc.asset = QueryRowToStruct( prc.asset );
 			rc.folder = prc.asset.asset_folder;
 		}
 
@@ -264,14 +265,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		websitePermissionService.syncContextPermissions(
-				  context       = "asset"
-				, contextKey    = folderId
-				, permissionKey = "assets.access"
-				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-			);
+			  context       = "asset"
+			, contextKey    = folderId
+			, permissionKey = "assets.access"
+			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+		);
 
 		messageBox.info( translateResource( uri="cms:assetmanager.folder.edited.confirmation", data=[ formData.label ?: '' ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
@@ -367,6 +368,16 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	function editAsset( event, rc, prc ) output=false {
 		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+			  context       = "asset"
+			, contextKey    = rc.asset
+			, permissionKey = "assets.access"
+		);
+		prc.asset.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+		prc.asset.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+		prc.asset.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+		prc.asset.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
 	}
 
 	function editAssetAction( event, rc, prc ) output=false {
@@ -400,6 +411,16 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		if ( success ) {
+			websitePermissionService.syncContextPermissions(
+				  context       = "asset"
+				, contextKey    = assetId
+				, permissionKey = "assets.access"
+				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+			);
+
 			messagebox.info( translateResource( uri="cms:assetmanager.asset.edit.success", data=[ formData.label ?: "" ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 		} else {

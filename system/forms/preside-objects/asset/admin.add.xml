@@ -6,8 +6,8 @@ This form is used when adding assets in the asset manager section of the adminis
 For multi file uploads, this form will be rendered once for each file.
 -->
 <form>
-	<tab>
-		<fieldset>
+	<tab id="standard">
+		<fieldset id="standard">
 			<field binding="asset.title" />
 			<field binding="asset.author" control="textinput" />
 			<field binding="asset.description" control="textarea" />
