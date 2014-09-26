@@ -612,6 +612,12 @@ component singleton=true output=false {
 		return settings;
 	}
 
+	public boolean function isDerivativePubliclyAccessible( required string derivative ) output=false {
+		var derivatives = _getConfiguredDerivatives();
+
+		return ( derivatives[ arguments.derivative ].permissions ?: "inherit" ) == "public";
+	}
+
 // PRIVATE HELPERS
 	private void function _discoverSystemFolderIds() output=false {
 		var dao         = _getFolderDao();

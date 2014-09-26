@@ -74,11 +74,17 @@ component output=false {
 	}
 
 	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
-		var assetId            = rc.assetId      ?: "";
+		var assetId        = rc.assetId      ?: "";
+		var derivativeName = rc.derivativeId ?: "";
+
+		if ( Len( Trim( derivativeName ) ) && assetManagerService.isDerivativePubliclyAccessible( derivativeName ) ) {
+			return;
+		}
+
 		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
 
 		if ( permissionSettings.restricted ) {
-			var hasPerm = hasCmsPermission(
+			var hasPerm = event.isAdminUser() && hasCmsPermission(
 				  permissionKey = "assetmanager.assets.download"
 				, context       = "assetmanagerfolder"
 				, contextKeys   = permissionSettings.contextTree
