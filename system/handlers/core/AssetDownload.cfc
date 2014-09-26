@@ -3,6 +3,8 @@ component output=false {
 	property name="assetManagerService" inject="assetManagerService";
 
 	public function asset( event, rc, prc ) output=false {
+		_checkDownloadPermissions( argumentCollection=arguments );
+
 		var assetId         = rc.assetId      ?: "";
 		var derivativeName  = rc.derivativeId ?: "";
 		var asset           = "";
@@ -12,8 +14,6 @@ component output=false {
 		} else {
 			asset = assetManagerService.getAsset( id=assetId );
 		}
-
-		// still todo, permissioning
 
 		if ( asset.recordCount ) {
 			var assetBinary = "";
@@ -70,6 +70,33 @@ component output=false {
 	private string function _doBrowserEtagLookup( required string etag ) output=false {
 		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
+		}
+	}
+
+	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
+		var assetId            = rc.assetId      ?: "";
+		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
+
+		if ( permissionSettings.restricted ) {
+			var hasPerm = hasCmsPermission(
+				  permissionKey = "assetmanager.assets.download"
+				, context       = "assetmanagerfolder"
+				, contextKeys   = permissionSettings.contextTree
+			);
+			if ( hasPerm ) { return; }
+
+			if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+				event.accessDenied( reason="LOGIN_REQUIRED" );
+			}
+
+			hasPerm = hasWebsitePermission(
+				  permissionKey = "assets.access"
+				, context       = "asset"
+				, contextKeys   = permissionSettings.contextTree
+			)
+			if ( !hasPerm ) {
+				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+			}
 		}
 	}
 }
