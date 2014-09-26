@@ -1,5 +1,5 @@
 <cfscript>
-	menuItems   = args.menuItems ?: [];
+	menuItems = args.menuItems ?: [];
 </cfscript>
 
 <cfoutput>

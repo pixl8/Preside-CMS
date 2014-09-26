@@ -329,7 +329,7 @@ component output=false singleton=true {
 			for( var child in children ){
 				var fetchChildren = arguments.currentDepth < maxDepth;
 				    fetchChildren = fetchChildren && !Val( child.exclude_children_from_navigation );
-				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.page ) );
+				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.id ) );
 
 				if (  fetchChildren  ) {
 					child.children = getNavChildren( child.id, currentDepth+1 );
@@ -351,7 +351,7 @@ component output=false singleton=true {
 			, selectFields = [ "id", "exclude_from_navigation", "exclude_children_from_navigation", "_hierarchy_depth" ]
 		);
 		if ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) ) {
-			return pages;
+			return [];
 		}
 
 		var maxDepth = page._hierarchy_depth + ( arguments.depth < 1 ? 1 : arguments.depth );

@@ -4,8 +4,8 @@ component output=false {
 <!--- VIEWLETS --->
 
 	private string function mainNavigation( event, rc, prc, args={} ) output=false {
-		var activeTree = Duplicate( event.getPageProperty( "ancestors" ) );
-		activeTree.prepend( event.getCurrentPageId() );
+		var activeTree = ListToArray( event.getPageProperty( "ancestorList" ) );
+		    activeTree.append( event.getCurrentPageId() );
 
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
 			  rootPage        = args.rootPage ?: siteTreeSvc.getSiteHomepage().id
@@ -15,5 +15,29 @@ component output=false {
 		);
 
 		return renderView( view="core/navigation/mainNavigation", args=args );
+	}
+
+	private string function subNavigation( event, rc, prc, args={} ) output=false {
+		var startLevel = args.startLevel ?: 2;
+		var activeTree = ListToArray( event.getPageProperty( "ancestorList" ) );
+		    activeTree.append( event.getCurrentPageId() );
+
+		var rootPageId = activeTree[ startLevel ] ?: activeTree[ 1 ];
+		var ancestors  = event.getPageProperty( "ancestors" );
+		if ( ancestors.len() gte startLevel ){
+			args.rootTitle = Len( Trim( ancestors[ startLevel ].navigation_title ?: "" ) ) ? ancestors[ startLevel ].navigation_title : ancestors[ startLevel ].title;
+		} else {
+			args.rootTitle = "";
+		}
+
+		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
+			  rootPage          = rootPageId
+			, depth             = args.depth ?: 3
+			, includeInactive   = event.isAdminUser()
+			, activeTree        = activeTree
+			, expandAllSiblings = false
+		);
+
+		return renderView( view="/core/navigation/subNavigation", args=args );
 	}
 }
