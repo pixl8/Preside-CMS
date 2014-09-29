@@ -67,6 +67,22 @@
 				toggleRow( $parentRow );
 			} );
 
+			$table.on( "keydown", "tbody > tr", "left", function( e ){
+				e.stopPropagation();
+				var $row = $( this );
+
+				if ( !$row.data( "closed" ) ) {
+					toggleRow( $row );
+				}
+			} );
+
+			$table.on( "keydown", "tbody > tr", "right", function( e ){
+				e.stopPropagation();
+				var $row = $( this );
+				if ( $row.data( "closed" ) ) {
+					toggleRow( $row );
+				}
+			} );
 
 			if ( $selected.length ) {
 				var $parent = $table.find( "tr[data-id='" + ( $selected.data( "parent" ) || '' ) + "']"  );
@@ -75,6 +91,11 @@
 
 					$parent = $table.find( "tr[data-id='" + ( $parent.data( "parent" ) || '' ) + "']"  );
 				}
+
+				$selected.focus();
+				$selected.blur( function(){
+					$( this ).removeClass( "selected" );
+				} );
 
 			} else {
 				toggleRow( $parentRows.first() );

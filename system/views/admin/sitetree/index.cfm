@@ -21,7 +21,7 @@
 				<th>URL</th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody data-nav-list-child-selector="tr" data-nav-list="1">
 			<cfloop array="#activeTree#" index="node">
 				#renderView( view="/admin/sitetree/_node", args=node )#
 			</cfloop>

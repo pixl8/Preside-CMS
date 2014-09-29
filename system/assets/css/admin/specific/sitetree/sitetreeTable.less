@@ -27,8 +27,12 @@
 
 		tbody > tr {
 
-			&.selected > td {
-				background-color : @default-selected-row-colour;
+			&.selected, &:active, &:focus {
+				outline : 0;
+
+				> td {
+					background-color : @default-selected-row-colour;
+				}
 			}
 
 			> td:first-child {

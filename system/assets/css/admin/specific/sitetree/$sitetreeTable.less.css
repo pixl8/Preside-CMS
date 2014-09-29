@@ -15,7 +15,14 @@
   color: #222222;
   text-decoration: none;
 }
-.presidecms .tree-table tbody > tr.selected > td {
+.presidecms .tree-table tbody > tr.selected,
+.presidecms .tree-table tbody > tr:active,
+.presidecms .tree-table tbody > tr:focus {
+  outline: 0;
+}
+.presidecms .tree-table tbody > tr.selected > td,
+.presidecms .tree-table tbody > tr:active > td,
+.presidecms .tree-table tbody > tr:focus > td {
   background-color: #dff0d8;
 }
 .presidecms .tree-table tbody > tr > td:first-child {
