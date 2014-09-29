@@ -24613,16 +24613,6 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-tree-nav .tree-folder-header.focused .node-options a {
   padding-left: 5px;
 }
-.presidecms .site-tree .tree-item.selected,
-.presidecms .preside-tree-nav .tree-item.selected,
-.presidecms .site-tree .tree-folder-header.selected,
-.presidecms .preside-tree-nav .tree-folder-header.selected,
-.presidecms .site-tree .tree-item.selected .node-options,
-.presidecms .preside-tree-nav .tree-item.selected .node-options,
-.presidecms .site-tree .tree-folder-header.selected .node-options,
-.presidecms .preside-tree-nav .tree-folder-header.selected .node-options {
-  background-color: #dff0d8 !important;
-}
 .presidecms .site-tree .tree-item .node-data,
 .presidecms .preside-tree-nav .tree-item .node-data,
 .presidecms .site-tree .tree-folder-header .node-data,

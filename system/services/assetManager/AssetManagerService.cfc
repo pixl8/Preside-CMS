@@ -142,7 +142,7 @@ component singleton=true output=false {
 		return finalQuery;
 	}
 
-	public array function getFolderTree( string parentFolder="", string parentRestriction="none" ) {
+	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label", "access_restriction" ]
@@ -154,7 +154,10 @@ component singleton=true output=false {
 			if ( folder.access_restriction == "inherit" ) {
 				folder.access_restriction = arguments.parentRestriction;
 			}
-			folder.append( { children=getFolderTree( folder.id, folder.access_restriction ) } );
+			folder.permissionContext = arguments.permissionContext;
+			folder.permissionContext.prepend( folder.id );
+
+			folder.append( { children=getFolderTree( folder.id, folder.access_restriction, folder.permissionContext ) } );
 
 			tree.append( folder );
 		}

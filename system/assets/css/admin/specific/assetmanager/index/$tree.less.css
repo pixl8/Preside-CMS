@@ -1,14 +1,24 @@
 .presidecms .preside-tree-nav {
   overflow: visible;
 }
+.presidecms .preside-tree-nav .tree-item,
 .presidecms .preside-tree-nav .tree-folder {
   border: none;
 }
-.presidecms .preside-tree-nav .tree-folder .tree-folder-header .tree-node-toggler {
-  margin-left: -4px !important;
+.presidecms .preside-tree-nav .tree-item .tree-node-icon,
+.presidecms .preside-tree-nav .tree-folder .tree-node-icon {
+  margin-left: 0 !important;
   margin-right: 0 !important;
   position: relative;
   z-index: 2;
+}
+.presidecms .preside-tree-nav .tree-item::before,
+.presidecms .preside-tree-nav .tree-folder::before {
+  width: 6px;
+  left: -2px;
+}
+.presidecms .preside-tree-nav .tree-folder .tree-folder-content::before {
+  left: -3px;
 }
 .presidecms .preside-tree-nav .tree-node {
   margin-right: -2px !important;
@@ -48,4 +58,7 @@
 .presidecms .preside-tree-nav .tree-node.tree-folder-header.selected .node-name:after {
   right: 1;
   top: 3px;
+}
+.presidecms .preside-tree-nav .tree-node .node-options {
+  right: 8px !important;
 }

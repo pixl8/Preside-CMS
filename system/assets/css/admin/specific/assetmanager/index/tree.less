@@ -4,14 +4,28 @@
 	.preside-tree-nav {
 		overflow : visible;
 
-		.tree-folder {
+		.tree-item, .tree-folder {
 			border : none;
 
-			.tree-folder-header .tree-node-toggler {
-				margin-left  : -4px !important;
+			.tree-node-icon {
+				margin-left  : 0 !important;
 				margin-right : 0 !important;
 				position     : relative;
 				z-index      : 2;
+			}
+
+
+			&::before {
+				width : 6px;
+				left  : -2px;
+			}
+		}
+
+		.tree-folder {
+			.tree-folder-content {
+				&::before {
+					left : -3px;
+				}
 			}
 		}
 
@@ -59,6 +73,10 @@
 						right:1; top:3px;
 					}
 				}
+			}
+
+			.node-options {
+				right : 8px !important;
 			}
 		}
 	}
