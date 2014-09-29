@@ -142,16 +142,20 @@ component singleton=true output=false {
 		return finalQuery;
 	}
 
-	public array function getFolderTree( string parentFolder="" ) {
+	public array function getFolderTree( string parentFolder="", string parentRestriction="none" ) {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "id", "label" ]
+			  selectFields = [ "id", "label", "access_restriction" ]
 			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
 			, orderBy      = "label"
 		);
 
 		for ( var folder in folders ) {
-			folder.append( { children=getFolderTree( folder.id ) } );
+			if ( folder.access_restriction == "inherit" ) {
+				folder.access_restriction = arguments.parentRestriction;
+			}
+			folder.append( { children=getFolderTree( folder.id, folder.access_restriction ) } );
+
 			tree.append( folder );
 		}
 
