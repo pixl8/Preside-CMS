@@ -1,0 +1,39 @@
+@import url( 'globals.less' );
+
+@fontAwesomeFixedWidthSize : 1.28571429em;
+
+.presidecms {
+	.tree-table {
+
+		td.actions > .fa,
+		td.actions > a > .fa {
+			margin-right : 0.4em;
+
+			&.disabled {
+				color : @default-disabled-font-colour;
+			}
+		}
+
+		.tree-toggler {
+			color  : @default-font-colour;
+			cursor : pointer;
+			margin-left : -@fontAwesomeFixedWidthSize;
+
+			&:hover {
+				color           : @default-font-colour;
+				text-decoration : none;
+			}
+		}
+
+		tbody > tr {
+
+			&.selected > td {
+				background-color : @default-selected-row-colour;
+			}
+
+			> td:first-child {
+				padding-left: ( @fontAwesomeFixedWidthSize + 0.5em );
+			}
+		}
+	}
+}
