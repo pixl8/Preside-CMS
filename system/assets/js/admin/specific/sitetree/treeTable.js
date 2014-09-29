@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	$.fn.treeTable = function(){
-		var openChildren, closeChildren, toggleRow;
+		var openChildren, closeChildren, toggleRow, linkWasClicked;
 
 		openChildren = function( $parent ){
 			var $childRows = $parent.data( "children" );
@@ -38,6 +38,12 @@
 			$row.data( "closed", !closed );
 		}
 
+		linkWasClicked = function( eventTarget ){
+			return $.inArray( eventTarget.nodeName, ['A','INPUT','BUTTON','TEXTAREA','SELECT'] ) >= 0
+			    || $( eventTarget ).parents( 'a:first,input:first,button:first,textarea:first,select:first' ).length
+			    || $( eventTarget ).data( 'toggle' );
+		};
+
 		return this.each( function(){
 			var $table      = $( this )
 			  , $parentRows = $table.find( "tr[data-has-children='true']" )
@@ -73,6 +79,19 @@
 
 				if ( !$row.data( "closed" ) ) {
 					toggleRow( $row );
+				}
+			} );
+
+			$table.on( "keydown", "tbody > tr", "return", function( e ){
+				if ( !linkWasClicked( e ) ) {
+					var $firstLink = $( this ).find( 'a:first' );
+
+					if ( $firstLink.length ) {
+						e.stopPropagation();
+						e.preventDefault();
+
+						$firstLink.get(0).click();
+					}
 				}
 			} );
 
