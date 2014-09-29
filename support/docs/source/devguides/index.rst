@@ -28,3 +28,4 @@ Developer guides & recipes
    developerconsole
    customerrorpages
    coldboxenvironments
+   sitetreenavigationmenus
