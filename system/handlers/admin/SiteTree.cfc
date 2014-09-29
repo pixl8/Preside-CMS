@@ -33,8 +33,8 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed" ] );
-			prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "old_slug" ] );
+			prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+			prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction", "old_slug" ] );
 		</cfscript>
 	</cffunction>
 

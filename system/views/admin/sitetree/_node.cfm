@@ -1,17 +1,19 @@
 <cfscript>
-	param name="args.id"               type="string";
-	param name="args.parent_page"      type="string";
-	param name="args._hierarchy_depth" type="string";
-	param name="args.title"            type="string";
-	param name="args.page_type"        type="string";
-	param name="args.slug"             type="string";
-	param name="args.full_slug"        type="string";
-	param name="args.datecreated"      type="date";
-	param name="args.datemodified"     type="date";
-	param name="args.active"           type="boolean";
-	param name="args.hasChildren"      type="boolean";
-	param name="args.trashed"          type="boolean";
-	param name="args.children"         type="array";
+	param name="args.id"                 type="string";
+	param name="args.parent_page"        type="string";
+	param name="args._hierarchy_depth"   type="string";
+	param name="args.title"              type="string";
+	param name="args.page_type"          type="string";
+	param name="args.slug"               type="string";
+	param name="args.full_slug"          type="string";
+	param name="args.datecreated"        type="date";
+	param name="args.datemodified"       type="date";
+	param name="args.active"             type="boolean";
+	param name="args.hasChildren"        type="boolean";
+	param name="args.trashed"            type="boolean";
+	param name="args.children"           type="array";
+	param name="args.access_restriction" type="string";
+	param name="args.parent_restriction" type="string" default="none";
 
 	pageUrl     = event.buildLink( page=args.id );
 	homepageId  = prc.homepage.id ?: "";
@@ -20,6 +22,10 @@
 	safeTitle   = HtmlEditFormat( args.title );
 	hasChildren = args.children.len();
 	selected    = rc.selected ?: "";
+
+	if ( args.access_restriction == "inherit" ) {
+		args.access_restriction = args.parent_restriction;
+	}
 
 	allowableChildPageTypes = getAllowableChildPageTypes( args.page_type );
 </cfscript>
@@ -63,11 +69,24 @@
 			</cfif>
 		</td>
 		<td>#renderField( object="page", property="active", data=args.active, context="adminDataTable" )#</td>
-		<td><i class="fa fa-unlock green"></i></td>
+		<td>
+			<cfswitch expression="#args.access_restriction#">
+				<cfcase value="full">
+					<i class="fa fa-lock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
+				</cfcase>
+				<cfcase value="partial">
+					<i class="fa fa-unlock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
+				</cfcase>
+				<cfdefaultcase>
+					<i class="fa fa-unlock green"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
+				</cfdefaultcase>
+			</cfswitch>
+		</td>
 		<td><a href="#pageUrl#"><cfif Len( Trim( args.slug ) )>#args.slug#.html<cfelse>/</cfif></a></td>
 	</tr>
 
 	<cfloop array="#args.children#" index="child">
+		<cfset child.parent_restriction = args.access_restriction />
 		#renderView( view="/admin/sitetree/_node", args=child )#
 	</cfloop>
 </cfoutput>
