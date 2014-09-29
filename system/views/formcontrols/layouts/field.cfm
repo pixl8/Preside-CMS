@@ -21,9 +21,7 @@
 					<span>#translateResource( "cms:form.control.required.label" )#</span>
 				</em>
 			</cfif>
-			<cfif Len( Trim( help ) )>
-				<span class="help-button fa fa-question" data-rel="popover" data-trigger="click" data-placement="right" data-content="#help#" title="#translateResource( 'cms:help.popover.title' )#"></span>
-			</cfif>
+
 		</label>
 
 		<div class="col-sm-9">
@@ -34,5 +32,10 @@
 				<div for="#args.for#" class="help-block">#args.error#</div>
 			</cfif>
 		</div>
+		<cfif Len( Trim( help ) )>
+			<div class="col-sm-1">
+				<span class="help-button fa fa-question" data-rel="popover" data-trigger="click" data-placement="left" data-content="#help#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+			</div>
+		</cfif>
 	</div>
 </cfoutput>
