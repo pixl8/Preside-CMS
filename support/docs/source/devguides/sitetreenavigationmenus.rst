@@ -128,3 +128,54 @@ This is what the core view implementation looks like:
             </li>
         </cfloop>
     </cfoutput>
+
+Sub navigation
+##############
+
+The sub navigation viewlet renders a navigation menu that is often placed in a sidebar and that shows siblings, parents and siblings of parents of the current page. For example:
+
+.. code-block:: text
+
+    News
+    *Events and training*
+        Annual Conference
+        *Online*
+            Free webinars
+            *Bespoke online training* <-- current page
+    About us
+    Contact us
+
+This viewlet works in exactly the same way to the main navigation viewlet, however, the HTML output and the input arguments are very slightly different:
+
+Viewlet options
+---------------
+
+================== ===============================================================================================================================================================
+Name               Description
+================== ===============================================================================================================================================================
+:code:`startLevel` At what depth in the tree to start at. Default is 2. This will produce a different root page for the menu depending on where in the tree the current page lives
+:code:`depth`      Number of nested menu levels to drill into. Default is 3.
+================== ===============================================================================================================================================================
+
+Overriding the view
+-------------------
+
+Override the markup for the sub navigation viewlet by providing a view file at :code:`/views/core/navigaton/subNavigation.cfm`. The view will be passed two arguments, :code:`args.menuItems` and :code:`args.rootTitle`. The :code:`args.menuItems` argument is the nested array of menu items. The :code:`args.rootTitle` argument is the title of the root page of the menu (who's children makeup the top level of the menu).
+
+The core view looks like this:
+
+.. code-block:: cfm
+
+    <cfoutput>
+        <cfloop array="#( args.menuItems ?: [] )#" item="item">
+            <li class="<cfif item.active>active </cfif><cfif item.children.len()>has-submenu</cfif>">
+                <a href="#event.buildLink( page=item.id )#">#item.title#</a>
+                <cfif item.children.len()>
+                    <ul class="submenu">
+                        #renderView( view="/core/navigation/subNavigation", args={ menuItems=item.children } )#
+                    </ul>
+                </cfif>
+            </li>
+        </cfloop>
+    </cfoutput>
+
