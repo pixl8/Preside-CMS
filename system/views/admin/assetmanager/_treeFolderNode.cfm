@@ -16,7 +16,7 @@
 		<cfif hasChildren>
 			<div class="tree-folder">
 				<div class="tree-node tree-folder-header<cfif selected eq args.id> selected</cfif>" data-folder-id="#args.id#">
-					<i class="fa fa-plus fa-fw tree-node-toggler"></i>
+					<i class="fa fa-folder fa-fw tree-node-toggler"></i>
 
 					<div class="tree-folder-name node-name">
 						<span class="folder-name">#args.label#</span>
@@ -31,6 +31,7 @@
 		<cfelse>
 			<div class="tree-node tree-item<cfif selected eq args.id> selected</cfif>" data-folder-id="#args.id#">
 				<div class="tree-item-name node-name">
+					<i class="fa fa-folder fa-fw"></i>
 					<span class="folder-name">#args.label#</span>
 				</div>
 			</div>

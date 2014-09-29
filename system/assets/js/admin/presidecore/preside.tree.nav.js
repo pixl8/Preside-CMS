@@ -15,7 +15,10 @@
 		};
 
 		PresideTreeNav.prototype.setupOptions = function( userProvidedOptions ){
-			var defaultOptions = {};
+			var defaultOptions = {
+				  collapseIcon : "fa-minus"
+				, expandIcon   : "fa-plus"
+			};
 
 			this.options = $.extend( {}, defaultOptions, userProvidedOptions );
 		};
@@ -61,12 +64,13 @@
 
 			if ( typeof show === "undefined" ) {
 				$nodeChildren.toggleClass( "open" );
-				$plusMinusIcon.toggleClass( "fa-plus" );
-				$plusMinusIcon.toggleClass( "fa-minus" );
+
+				$plusMinusIcon.toggleClass( this.options.expandIcon );
+				$plusMinusIcon.toggleClass( this.options.collapseIcon );
 			} else {
 				$nodeChildren.toggleClass( "open", show );
-				$plusMinusIcon.toggleClass( "fa-plus", !show );
-				$plusMinusIcon.toggleClass( "fa-minus", show );
+				$plusMinusIcon.toggleClass( this.options.expandIcon, !show );
+				$plusMinusIcon.toggleClass( this.options.collapseIcon, show );
 			}
 		};
 
