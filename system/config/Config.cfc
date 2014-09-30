@@ -79,7 +79,7 @@ component output=false {
 		settings.activeExtensions = _loadExtensions();
 
 		settings.adminPermissions = {
-			  sitetree               = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
+			  sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort" ]
 			, sites                  = [ "navigate", "manage" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]

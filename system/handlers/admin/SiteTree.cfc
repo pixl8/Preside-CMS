@@ -30,6 +30,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var parentPageId = rc.parent_page ?: "";
 		var pageType     = rc.page_type ?: "";
 
+		_checkPermissions( argumentCollection=arguments, key="add", pageId=parentPageId );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )
 			, link  = ""
@@ -63,6 +65,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var validationResult  = "";
 		var newId             = "";
 		var persist           = "";
+
+		_checkPermissions( argumentCollection=arguments, key="add", pageId=parent );
 
 		if ( !pageTypesService.pageTypeExists( pageType ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
@@ -119,6 +123,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var version          = Val ( rc.version    ?: "" );
 		var pageType         = "";
 
+		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 
 		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
@@ -159,6 +164,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var formName          = "preside-objects.page.edit";
 		var formData          = "";
 		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 
 		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
@@ -209,6 +216,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function trashPageAction( event, rc, prc ) output=false {
 		var pageId  = event.getValue( "id", "" );
 
+		_checkPermissions( argumentCollection=arguments, key="trash", pageId=pageId );
+
 		if ( pageId eq prc.homepage.id ) {
 			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
@@ -225,6 +234,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function deletePageAction( event, rc, prc ) output=false {
 		var pageId = event.getValue( "id", "" );
 
+		_checkPermissions( argumentCollection=arguments, key="delete", pageId=pageId );
+
 		if ( pageId eq prc.homepage.id ) {
 			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
@@ -239,6 +250,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function emptyTrashAction( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="emptytrash" );
+
 		siteTreeService.emptyTrash();
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.trashEmptied.confirmation" ) );
@@ -247,6 +260,9 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function restorePage( event, rc, prc ) output=false {
 		var pageId = event.getValue( "id", "" );
+
+		_checkPermissions( argumentCollection=arguments, key="restore", pageId=pageId );
+
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, includeTrash=true );
 
 		prc.page = QueryRowToStruct( prc.page );
@@ -258,9 +274,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function restorePageAction( event, rc, prc ) output=false {
+		var pageId            = event.getValue( "id", "" );
+
+		_checkPermissions( argumentCollection=arguments, key="restore", pageId=pageId );
 		_getPageAndThrowOnMissing( argumentCollection=arguments, includeTrash=true );
 
-		var pageId            = event.getValue( "id", "" );
 		var formName          = "preside-objects.page.restore";
 		var formData          = event.getCollectionForForm( formName );
 		var validationResult  = "";
@@ -290,6 +308,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function reorderChildren( event, rc, prc ) output=false {
 		var pageId = event.getValue( "id", "" );
 
+		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
+
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		prc.childPages = siteTreeService.getDescendants(
@@ -306,6 +326,9 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function reorderChildrenAction( event, rc, prc ) output=false {
 		var pageId  = event.getValue( "id", "" );
+
+		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
+
 		var sortedPages = ListToArray( event.getValue( "ordered", "" ) );
 		var i = 0;
 
@@ -323,6 +346,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function editPagePermissions( event, rc, prc ) output=false {
 		var pageId   = event.getValue( "id", "" );
 
+		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
+
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		prc.inheritedPermissionContext = _getPagePermissionContext( argumentCollection=arguments, includePageId=false );
@@ -337,6 +362,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var pageId = event.getValue( "id", "" );
 		var page   = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
+		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
+
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 			messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
@@ -350,7 +377,9 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var pageId   = event.getValue( "id", "" );
 		var pageType = "";
 
+		_checkPermissions( argumentCollection=arguments, key="viewversions", pageId=pageId );
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
@@ -395,6 +424,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function getPageHistoryForAjaxDataTables( event, rc, prc ) output=false {
 		var pageId = rc.id     ?: "";
 
+		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
+
 		runEvent(
 			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
 			, prePostExempt  = true
@@ -410,6 +441,22 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 
 <!--- private helpers --->
+	private void function _checkPermissions( event, rc, prc, required string key, string pageId="" ) output=false {
+		var permitted = "";
+		var permKey   = "sitetree." & arguments.key;
+
+		if ( Len( Trim( arguments.pageId ) ) ) {
+			permitted = hasCmsPermission( permissionKey=permKey, context="page", contextKeys=_getPagePermissionContext( argumentCollection=arguments ) );
+
+		} else {
+			permitted = hasCmsPermission( permissionKey=permKey );
+		}
+
+		if ( !permitted ) {
+			event.adminAccessDenied();
+		}
+	}
+
 	private string function _getPageTypeFormName( required any pageType, required string addOrEdit ) output=false {
 		var specificForm = addOrEdit == "add" ? pageType.getAddForm() : pageType.getEditForm();
 		var defaultForm  = pageType.getDefaultForm();
@@ -443,9 +490,15 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	private array function _getPagePermissionContext( event, rc, prc, pageId, includePageId=true ) output=false {
-		var pageId    = arguments.pageId ?: ( rc.id ?: "" );
+		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
+		var cacheKey = "pagePermissionContext";
+
+		if ( prc.keyExists( cacheKey ) ) {
+			return prc[ cacheKey ];
+		}
+
 		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
-		var context   = ListToArray( ValueList( ancestors.id ) );
+		var context   = ancestors.recordCount ? ListToArray( ValueList( ancestors.id ) ) : [];
 		var reversed  = [];
 
 		if ( arguments.includePageId ) {
@@ -455,6 +508,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		for( var i=context.len(); i>0; i-- ){
 			reversed.append( context[i] );
 		}
+
+		prc[ cacheKey ] = reversed;
 
 		return reversed;
 	}
