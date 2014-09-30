@@ -126,10 +126,10 @@
 
 			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				persist = formData;
-				StructDelete( persist, "id" );
-				StructDelete( persist, "title" );
-				StructDelete( persist, "slug" );
+				persist = {
+					  _addanother = 1
+					, active      = formData.active ?: 0
+				}
 
 				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
 			} else {
