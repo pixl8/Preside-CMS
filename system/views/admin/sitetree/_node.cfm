@@ -55,15 +55,21 @@
 						<cfif args.id neq homepageId>
 							<li>
 								<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
-									<i class="fa fa-trash-o"></i>
+									<i class="fa fa-fw fa-trash-o"></i>
 									#translateResource( "cms:sitetree.trash.page.dropdown" )#
 								</a>
 							</li>
 						</cfif>
 						<li>
 							<a data-context-key="h" href="#event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.page.history.link" )#">
-								<i class="fa fa-history"></i>
+								<i class="fa fa-fw fa-history"></i>
 								#translateResource( "cms:sitetree.page.history.dropdown" )#
+							</a>
+						</li>
+						<li>
+							<a data-context-key="m" href="#event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#args.id#" )#">
+								<i class="fa fa-fw fa-lock"></i>
+								#translateResource( "cms:sitetree.page.permissioning.dropdown" )#
 							</a>
 						</li>
 

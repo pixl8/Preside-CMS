@@ -5,6 +5,7 @@
 	<cfproperty name="pageTypesService"         inject="pageTypesService" />
 	<cfproperty name="validationEngine"         inject="validationEngine" />
 	<cfproperty name="websitePermissionService" inject="websitePermissionService" />
+	<cfproperty name="messageBox"               inject="coldbox:plugin:messageBox" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -180,29 +181,6 @@
 
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-				, link  = ""
-			);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="pageHistory" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId   = event.getValue( "id", "" );
-			var pageType = "";
-
-			prc.page = siteTreeService.getPage( id = pageId );
-
-			if ( not prc.page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
 				, link  = ""
 			);
 		</cfscript>
@@ -448,6 +426,80 @@
 
 			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="editPagePermissions" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any" required="true" />
+		<cfargument name="rc"    type="any" required="true" />
+		<cfargument name="prc"   type="any" required="true" />
+
+		<cfscript>
+			var pageId   = event.getValue( "id", "" );
+
+			prc.page = siteTreeService.getPage( id = pageId );
+
+			if ( not prc.page.recordCount ) {
+				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+			}
+
+			var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
+
+			prc.inheritedPermissionContext = ListToArray( ValueList( ancestors.id ) );
+
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:sitetree.editPagePermissions.crumb", data=[ prc.page.title ] )
+				, link  = ""
+			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="editPagePermissionsAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any" required="true" />
+		<cfargument name="rc"    type="any" required="true" />
+		<cfargument name="prc"   type="any" required="true" />
+
+		<cfscript>
+			var pageId = event.getValue( "id", "" );
+			var page   = siteTreeService.getPage( id = pageId );
+
+			if ( not page.recordCount ) {
+				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+			}
+
+
+			if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+				messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
+			}
+
+			messageBox.error( translateResource( uri="cms:sitetree.cmsPermsSaved.error", data=[ page.title ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="pageHistory" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var pageId   = event.getValue( "id", "" );
+			var pageType = "";
+
+			prc.page = siteTreeService.getPage( id = pageId );
+
+			if ( not prc.page.recordCount ) {
+				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+			}
+
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
+				, link  = ""
+			);
 		</cfscript>
 	</cffunction>
 
