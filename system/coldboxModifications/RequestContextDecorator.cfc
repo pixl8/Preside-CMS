@@ -332,6 +332,11 @@
 			page.ancestors = [];
 
 			page.ancestorList = ancestors.recordCount ? ValueList( ancestors.id ) : "";
+			page.permissionContext = [ page.id ];
+			for( var i=ListLen( page.ancestorList ); i > 0; i-- ){
+				page.permissionContext.append( ListGetAt( page.ancestorList, i ) );
+			}
+
 			for( var ancestor in ancestors ) {
 				page.ancestors.append( ancestor );
 			}
@@ -392,28 +397,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="setPageAttribute" access="public" returntype="void" output="false">
-		<cfargument name="attributeName"  type="string" required="true" />
-		<cfargument name="attributeValue" type="any"    required="true" />
-
-		<cfscript>
-			var prc  = getRequestContext().getCollection( private = true );
-
-			prc.presidePage = prc.presidePage ?: {};
-			prc.presidePage[ arguments.attributeName ] = arguments.attributeValue;
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="setPageAttributes" access="public" returntype="void" output="false">
-		<cfscript>
-			var arg = "";
-
-			for ( arg in arguments ) {
-				setPageattribute( attributeName = arg, attributeValue = arguments[ arg ] );
-			}
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="getCurrentPageType" access="public" returntype="string" output="false">
 		<cfreturn getPageProperty( 'page_type' ) />
 	</cffunction>
@@ -428,6 +411,10 @@
 
 	<cffunction name="isCurrentPageActive" access="public" returntype="boolean" output="false">
 		<cfreturn getPageProperty( 'isInDateAndActive', false ) />
+	</cffunction>
+
+	<cffunction name="getPagePermissionContext" access="public" returntype="array" output="false">
+		<cfreturn getPageProperty( "permissionContext", [] ) />
 	</cffunction>
 
 <!--- private helpers --->

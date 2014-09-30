@@ -1,14 +1,19 @@
 <cfif event.isAdminUser()>
 	<cfscript>
-		event.include( "/js/admin/presidecore/" );
-		event.include( "/js/admin/frontend/" );
+		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
+
+		if ( prc.hasCmsPageEditPermissions ) {
+			event.include( "/js/admin/presidecore/" );
+			event.include( "/js/admin/frontend/" );
+			event.includeData({
+				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
+				, adminBaseUrl = event.getAdminPath()
+			});
+		}
+
 		event.include( "i18n-resource-bundle" );
 		event.include( "/css/admin/core/" );
 		event.include( "/css/admin/frontend/" );
-		event.includeData({
-			  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy.index" )
-			, adminBaseUrl = event.getAdminPath()
-		});
 
 		toolbarUrl = event.buildAdminLink(
 			  linkTo      = 'general.adminToolbar'
@@ -20,6 +25,7 @@
 			event.include( "/css/admin/devtools/" );
 		}
 
+
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 	</cfscript>
 
@@ -29,13 +35,15 @@
 
 			<ul class="preside-admin-toolbar-actions list-unstyled">
 				<li>
-					<div class="edit-mode-toggle-container">
-						<label>
-							#translateResource( "cms:admintoolbar.editmode" )#
-							<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
-							<span class="lbl"></span>
-						</span>
-					</div>
+					<cfif prc.hasCmsPageEditPermissions>
+						<div class="edit-mode-toggle-container">
+							<label>
+								#translateResource( "cms:admintoolbar.editmode" )#
+								<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
+								<span class="lbl"></span>
+							</span>
+						</div>
+					</cfif>
 					<a class="view-in-tree-link" href="#event.buildAdminLink( linkTo='sitetree', queryString='selected=#event.getCurrentPageId()#' )#" title="#translateResource( 'cms:admintoolbar.view.in.tree' )#">
 						<i class="fa fa-sitemap"></i>
 					</a>
