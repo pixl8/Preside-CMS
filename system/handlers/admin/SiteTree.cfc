@@ -325,9 +325,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
-		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
-
-		prc.inheritedPermissionContext = ListToArray( ValueList( ancestors.id ) );
+		prc.inheritedPermissionContext = _getPagePermissionContext( argumentCollection=arguments, includePageId=false );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPagePermissions.crumb", data=[ prc.page.title ] )
@@ -442,5 +440,22 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 
 		return page;
+	}
+
+	private array function _getPagePermissionContext( event, rc, prc, pageId, includePageId=true ) output=false {
+		var pageId    = arguments.pageId ?: ( rc.id ?: "" );
+		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
+		var context   = ListToArray( ValueList( ancestors.id ) );
+		var reversed  = [];
+
+		if ( arguments.includePageId ) {
+			context.append( pageId );
+		}
+
+		for( var i=context.len(); i>0; i-- ){
+			reversed.append( context[i] );
+		}
+
+		return reversed;
 	}
 }
