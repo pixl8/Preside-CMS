@@ -9,7 +9,7 @@
 
 <cfoutput>
 	#renderViewlet( event="admin.permissions.contextPermsForm", args={
-		  permissionKeys       = [ "sitetree.*" ]
+		  permissionKeys       = [ "sitetree.*", "!sitetree.viewtrash", "!sitetree.emptytrash", "!sitetree.restore", "!sitetree.delete" ]
 		, context              = "page"
 		, contextKey           = pageId
 		, inheritedContextKeys = prc.inheritedPermissionContext ?: []
