@@ -119,12 +119,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var version          = Val ( rc.version    ?: "" );
 		var pageType         = "";
 
-		prc.page = siteTreeService.getPage( id = pageId, version=version );
-
-		if ( not prc.page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 
 		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
@@ -163,15 +158,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var persist           = "";
 		var formName          = "preside-objects.page.edit";
 		var formData          = "";
-		var page              =  siteTreeService.getPage(
-			  id              = pageId
-			, includeInactive = true
-		);
-
-		if ( not page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
@@ -221,17 +208,13 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function trashPageAction( event, rc, prc ) output=false {
 		var pageId  = event.getValue( "id", "" );
-		var page    = siteTreeService.getPage( id=pageId, includeInactive=true );
 
 		if ( pageId eq prc.homepage.id ) {
 			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
-		if ( not page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		var page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		siteTreeService.trashPage( pageId );
 
@@ -246,6 +229,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
+
+		_getPageAndThrowOnMissing( argumentCollection=arguments, includeTrash=true );
 
 		siteTreeService.permanentlyDeletePage( event.getValue( "id", "" ) );
 
@@ -262,16 +247,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function restorePage( event, rc, prc ) output=false {
 		var pageId = event.getValue( "id", "" );
-		prc.page =  siteTreeService.getPage(
-			  id          = pageId
-			, includeInactive = true
-			, includeTrash    = true
-		);
-
-		if ( not prc.page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, includeTrash=true );
 
 		prc.page = QueryRowToStruct( prc.page );
 
@@ -282,6 +258,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function restorePageAction( event, rc, prc ) output=false {
+		_getPageAndThrowOnMissing( argumentCollection=arguments, includeTrash=true );
+
 		var pageId            = event.getValue( "id", "" );
 		var formName          = "preside-objects.page.restore";
 		var formData          = event.getCollectionForForm( formName );
@@ -299,7 +277,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 
 		siteTreeService.restorePage(
-			  id      = pageId
+			  id          = pageId
 			, parent_page = event.getValue( "parent_page", "" )
 			, slug        = event.getValue( "slug", "" )
 			, active      = event.getValue( "active", "" )
@@ -312,15 +290,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function reorderChildren( event, rc, prc ) output=false {
 		var pageId = event.getValue( "id", "" );
 
-		prc.page = siteTreeService.getPage(
-			  id          = pageId
-			, includeInactive = true
-		);
-
-		if ( not prc.page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		prc.childPages = siteTreeService.getDescendants(
 			  id       = pageId
@@ -353,12 +323,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function editPagePermissions( event, rc, prc ) output=false {
 		var pageId   = event.getValue( "id", "" );
 
-		prc.page = siteTreeService.getPage( id = pageId );
-
-		if ( not prc.page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
 
@@ -372,13 +337,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function editPagePermissionsAction( event, rc, prc ) output=false {
 		var pageId = event.getValue( "id", "" );
-		var page   = siteTreeService.getPage( id = pageId );
-
-		if ( not page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
-
+		var page   = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 			messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
@@ -393,12 +352,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var pageId   = event.getValue( "id", "" );
 		var pageType = "";
 
-		prc.page = siteTreeService.getPage( id = pageId );
-
-		if ( not prc.page.recordCount ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
@@ -470,5 +424,23 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 
 		return "";
+	}
+
+	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false ) output=false {
+		var pageId  = arguments.pageId        ?: ( rc.id ?: "" );
+		var version = arguments.allowVersions ? 0 : ( rc.version ?: 0 );
+		var page    = siteTreeService.getPage(
+			  id              = pageId
+			, version         = Val( version )
+			, includeInactive = true
+			, includeTrash    = arguments.includeTrash
+		);
+
+		if ( not page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		return page;
 	}
 }
