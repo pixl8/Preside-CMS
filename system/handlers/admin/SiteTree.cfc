@@ -1,595 +1,475 @@
-<cfcomponent output="false" extends="preside.system.base.AdminHandler">
+component output="false" extends="preside.system.base.AdminHandler" {
 
-	<cfproperty name="siteTreeService"          inject="siteTreeService"  />
-	<cfproperty name="formsService"             inject="formsService"     />
-	<cfproperty name="pageTypesService"         inject="pageTypesService" />
-	<cfproperty name="validationEngine"         inject="validationEngine" />
-	<cfproperty name="websitePermissionService" inject="websitePermissionService" />
-	<cfproperty name="messageBox"               inject="coldbox:plugin:messageBox" />
+	property name="siteTreeService"          inject="siteTreeService";
+	property name="formsService"             inject="formsService";
+	property name="pageTypesService"         inject="pageTypesService";
+	property name="validationEngine"         inject="validationEngine";
+	property name="websitePermissionService" inject="websitePermissionService";
+	property name="messageBox"               inject="coldbox:plugin:messageBox";
 
-	<cffunction name="preHandler" access="public" returntype="void" output="false">
-		<cfargument name="event"          type="any"    required="true" />
-		<cfargument name="action"         type="string" required="true" />
-		<cfargument name="eventArguments" type="struct" required="true" />
+	public void function preHandler( event, rc, prc ) output=false {
+		super.preHandler( argumentCollection = arguments );
 
-		<cfscript>
-			super.preHandler( argumentCollection = arguments );
+		if ( !hasCmsPermission( "sitetree.navigate" ) ) {
+			event.adminAccessDenied();
+		}
 
-			if ( !hasCmsPermission( "sitetree.navigate" ) ) {
-				event.adminAccessDenied();
-			}
+		prc.homepage = siteTreeService.getSiteHomepage();
 
-			prc.homepage = siteTreeService.getSiteHomepage();
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sitetree" )
+			, link  = event.buildAdminLink( linkTo="sitetree" )
+		);
+	}
 
-			event.addAdminBreadCrumb(
-				  title = translateResource( "cms:sitetree" )
-				, link  = event.buildAdminLink( linkTo="sitetree" )
-			);
-		</cfscript>
-	</cffunction>
+	public void function index( event, rc, prc ) output=false {
+		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+		prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction", "old_slug" ] );
+	}
 
-	<cffunction name="index" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+	public void function addPage( event, rc, prc ) output=false {
+		var parentPageId = rc.parent_page ?: "";
+		var pageType     = rc.page_type ?: "";
 
-		<cfscript>
-			prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
-			prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction", "old_slug" ] );
-		</cfscript>
-	</cffunction>
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.addPage.title" )
+			, link  = ""
+		);
 
-	<cffunction name="addPage" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+		prc.parentPage = siteTreeService.getPage(
+			  id              = parentPageId
+			, includeInactive = true
+			, selectFields    = [ "title" ]
+		);
+		if ( not prc.parentPage.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url = event.buildAdminLink( linkTo="sitetree" ) );
+		}
 
-		<cfscript>
-			var parentPageId = rc.parent_page ?: "";
-			var pageType     = rc.page_type ?: "";
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.addPage.title" )
-				, link  = ""
-			);
-
-			prc.parentPage = siteTreeService.getPage(
-				  id              = parentPageId
-				, includeInactive = true
-				, selectFields    = [ "title" ]
-			);
-			if ( not prc.parentPage.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url = event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			if ( !pageTypesService.pageTypeExists( pageType ) ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-			pageType = pageTypesService.getPageType( pageType );
-
-			prc.mainFormName  = "preside-objects.page.add";
-			prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="addPageAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var parent            = rc.parent_page ?: "";
-			var pageType          = rc.page_type   ?: "";
-			var formName          = "preside-objects.page.add";
-			var formData          = "";
-			var validationResult  = "";
-			var newId             = "";
-			var persist           = "";
-
-			if ( !pageTypesService.pageTypeExists( pageType ) ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-			pageType = pageTypesService.getPageType( pageType );
-			var mergeFormName = _getPageTypeFormName( pageType, "add" );
-			if ( Len( Trim( mergeFormName ) ) ) {
-				formName = formsService.getMergedFormName( formName, mergeFormName );
-			}
-
-			formData             = event.getCollectionForForm( formName );
-			formData.parent_page = parent;
-			formData.page_type   = rc.page_type;
-
-			validationResult = validateForm( formName=formName, formData=formData );
-
-			if ( not validationResult.validated() ) {
-				getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
-				persist = formData;
-				persist.validationResult = validationResult;
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage" ), persistStruct=persist );
-			}
-
-			newId = siteTreeService.addPage( argumentCollection = formData );
-
-			websitePermissionService.syncContextPermissions(
-				  context       = "page"
-				, contextKey    = newId
-				, permissionKey = "pages.access"
-				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-			);
-
-
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
-			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
-				persist = {
-					  _addanother = 1
-					, active      = formData.active ?: 0
-				}
-
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
-			} else {
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#newId#" ) );
-			}
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="editPage" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId           = rc.id               ?: "";
-			var validationResult = rc.validationResult ?: "";
-			var version          = Val ( rc.version    ?: "" );
-			var pageType         = "";
-
-			prc.page = siteTreeService.getPage( id = pageId, version=version );
-
-			if ( not prc.page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-			pageType = pageTypesService.getPageType( prc.page.page_type );
-
-			prc.mainFormName  = "preside-objects.page.edit";
-			prc.mergeFormName = _getPageTypeFormName( pageType, "edit" )
-
-			prc.page = QueryRowToStruct( prc.page );
-			var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version  );
-			StructAppend( prc.page, QueryRowToStruct( savedData ) );
-
-			var contextualAccessPerms = websitePermissionService.getContextualPermissions(
-				  context       = "page"
-				, contextKey    = pageId
-				, permissionKey = "pages.access"
-			);
-			prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
-			prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
-			prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
-			prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-				, link  = ""
-			);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="editPageAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId            = event.getValue( "id", "" );
-			var validationRuleset = "";
-			var validationResult  = "";
-			var newId             = "";
-			var persist           = "";
-			var formName          = "preside-objects.page.edit";
-			var formData          = "";
-			var page              =  siteTreeService.getPage(
-				  id              = pageId
-				, includeInactive = true
-			);
-
-			if ( not page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-			pageType = pageTypesService.getPageType( page.page_type );
-			var mergeFormName = _getPageTypeFormName( pageType, "edit" )
-			if ( Len( Trim( mergeFormName ) ) ) {
-				formName = formsService.getMergedFormName( formName, mergeFormName );
-			}
-
-			formData         = event.getCollectionForForm( formName );
-			formData.id      = pageId;
-			validationResult = validateForm( formName=formName, formData=formData );
-
-			if ( not validationResult.validated() ) {
-				getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
-				persist = formData;
-				persist.validationResult = validationResult;
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
-			}
-
-			try {
-				siteTreeService.editPage( argumentCollection = formData );
-			} catch( "SiteTreeService.BadParent" e ) {
-				validationResult.addError( fieldname="parent_page", message="cms:sitetree.validation.badparent.error" );
-
-				getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
-				persist = formData;
-				persist.validationResult = validationResult;
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
-			}
-
-			websitePermissionService.syncContextPermissions(
-				  context       = "page"
-				, contextKey    = pageId
-				, permissionKey = "pages.access"
-				, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-				, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-				, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-			);
-
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="trashPageAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId  = event.getValue( "id", "" );
-			var page    = siteTreeService.getPage( id=pageId, includeInactive=true );
-
-			if ( pageId eq prc.homepage.id ) {
-				getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			if ( not page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			siteTreeService.trashPage( pageId );
-
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTrashed.confirmation" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.parent_page#"  ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="deletePageAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId = event.getValue( "id", "" );
-
-			if ( pageId eq prc.homepage.id ) {
-				getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			siteTreeService.permanentlyDeletePage( event.getValue( "id", "" ) );
-
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageDeleted.confirmation" ) );
+		if ( !pageTypesService.pageTypeExists( pageType ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		</cfscript>
-	</cffunction>
+		}
+		pageType = pageTypesService.getPageType( pageType );
 
-	<cffunction name="emptyTrashAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+		prc.mainFormName  = "preside-objects.page.add";
+		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
+	}
 
-		<cfscript>
-			siteTreeService.emptyTrash();
+	public void function addPageAction( event, rc, prc ) output=false {
+		var parent            = rc.parent_page ?: "";
+		var pageType          = rc.page_type   ?: "";
+		var formName          = "preside-objects.page.add";
+		var formData          = "";
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
 
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.trashEmptied.confirmation" ) );
+		if ( !pageTypesService.pageTypeExists( pageType ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		</cfscript>
-	</cffunction>
+		}
+		pageType = pageTypesService.getPageType( pageType );
+		var mergeFormName = _getPageTypeFormName( pageType, "add" );
+		if ( Len( Trim( mergeFormName ) ) ) {
+			formName = formsService.getMergedFormName( formName, mergeFormName );
+		}
 
-	<cffunction name="restorePage" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+		formData             = event.getCollectionForForm( formName );
+		formData.parent_page = parent;
+		formData.page_type   = rc.page_type;
 
-		<cfscript>
-			var pageId = event.getValue( "id", "" );
-			prc.page =  siteTreeService.getPage(
-				  id          = pageId
-				, includeInactive = true
-				, includeTrash    = true
-			);
+		validationResult = validateForm( formName=formName, formData=formData );
 
-			if ( not prc.page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		if ( not validationResult.validated() ) {
+			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage" ), persistStruct=persist );
+		}
+
+		newId = siteTreeService.addPage( argumentCollection = formData );
+
+		websitePermissionService.syncContextPermissions(
+			  context       = "page"
+			, contextKey    = newId
+			, permissionKey = "pages.access"
+			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+		);
+
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageAdded.confirmation" ) );
+		if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
+			persist = {
+				  _addanother = 1
+				, active      = formData.active ?: 0
 			}
 
-			prc.page = QueryRowToStruct( prc.page );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#newId#" ) );
+		}
+	}
 
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.restorePage.crumb", data=[ prc.page.title ] )
-				, link  = ""
+	public void function editPage( event, rc, prc ) output=false {
+		var pageId           = rc.id               ?: "";
+		var validationResult = rc.validationResult ?: "";
+		var version          = Val ( rc.version    ?: "" );
+		var pageType         = "";
+
+		prc.page = siteTreeService.getPage( id = pageId, version=version );
+
+		if ( not prc.page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( prc.page.page_type );
+
+		prc.mainFormName  = "preside-objects.page.edit";
+		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" )
+
+		prc.page = QueryRowToStruct( prc.page );
+		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version  );
+		StructAppend( prc.page, QueryRowToStruct( savedData ) );
+
+		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
+			  context       = "page"
+			, contextKey    = pageId
+			, permissionKey = "pages.access"
+		);
+		prc.page.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
+		prc.page.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
+		prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
+		prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
+			, link  = ""
+		);
+	}
+
+	public void function editPageAction( event, rc, prc ) output=false {
+		var pageId            = event.getValue( "id", "" );
+		var validationRuleset = "";
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
+		var formName          = "preside-objects.page.edit";
+		var formData          = "";
+		var page              =  siteTreeService.getPage(
+			  id              = pageId
+			, includeInactive = true
+		);
+
+		if ( not page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( page.page_type );
+		var mergeFormName = _getPageTypeFormName( pageType, "edit" )
+		if ( Len( Trim( mergeFormName ) ) ) {
+			formName = formsService.getMergedFormName( formName, mergeFormName );
+		}
+
+		formData         = event.getCollectionForForm( formName );
+		formData.id      = pageId;
+		validationResult = validateForm( formName=formName, formData=formData );
+
+		if ( not validationResult.validated() ) {
+			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		try {
+			siteTreeService.editPage( argumentCollection = formData );
+		} catch( "SiteTreeService.BadParent" e ) {
+			validationResult.addError( fieldname="parent_page", message="cms:sitetree.validation.badparent.error" );
+
+			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		websitePermissionService.syncContextPermissions(
+			  context       = "page"
+			, contextKey    = pageId
+			, permissionKey = "pages.access"
+			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
+			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
+			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
+			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
+		);
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+	}
+
+	public void function trashPageAction( event, rc, prc ) output=false {
+		var pageId  = event.getValue( "id", "" );
+		var page    = siteTreeService.getPage( id=pageId, includeInactive=true );
+
+		if ( pageId eq prc.homepage.id ) {
+			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		if ( not page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		siteTreeService.trashPage( pageId );
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTrashed.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.parent_page#"  ) );
+	}
+
+	public void function deletePageAction( event, rc, prc ) output=false {
+		var pageId = event.getValue( "id", "" );
+
+		if ( pageId eq prc.homepage.id ) {
+			getPlugin( "MessageBox" ).error( translateResource( uri="cms:sitetree.pageDelete.error.root.page" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		siteTreeService.permanentlyDeletePage( event.getValue( "id", "" ) );
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageDeleted.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+	}
+
+	public void function emptyTrashAction( event, rc, prc ) output=false {
+		siteTreeService.emptyTrash();
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.trashEmptied.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+	}
+
+	public void function restorePage( event, rc, prc ) output=false {
+		var pageId = event.getValue( "id", "" );
+		prc.page =  siteTreeService.getPage(
+			  id          = pageId
+			, includeInactive = true
+			, includeTrash    = true
+		);
+
+		if ( not prc.page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		prc.page = QueryRowToStruct( prc.page );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.restorePage.crumb", data=[ prc.page.title ] )
+			, link  = ""
+		);
+	}
+
+	public void function restorePageAction( event, rc, prc ) output=false {
+		var pageId            = event.getValue( "id", "" );
+		var formName          = "preside-objects.page.restore";
+		var formData          = event.getCollectionForForm( formName );
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
+
+		validationResult = validateForm( formName = formName, formData = formData );
+
+		if ( not validationResult.validated() ) {
+			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.restorePage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		siteTreeService.restorePage(
+			  id      = pageId
+			, parent_page = event.getValue( "parent_page", "" )
+			, slug        = event.getValue( "slug", "" )
+			, active      = event.getValue( "active", "" )
+		);
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageRestored.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
+	}
+
+	public void function reorderChildren( event, rc, prc ) output=false {
+		var pageId = event.getValue( "id", "" );
+
+		prc.page = siteTreeService.getPage(
+			  id          = pageId
+			, includeInactive = true
+		);
+
+		if ( not prc.page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		prc.childPages = siteTreeService.getDescendants(
+			  id       = pageId
+			, depth        = 1
+			, selectFields = [ "id", "title" ]
+		);
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.reorderChildren.crumb", data=[ prc.page.title ] )
+			, link  = ""
+		);
+	}
+
+	public void function reorderChildrenAction( event, rc, prc ) output=false {
+		var pageId  = event.getValue( "id", "" );
+		var sortedPages = ListToArray( event.getValue( "ordered", "" ) );
+		var i = 0;
+
+		for( i=1; i lte ArrayLen( sortedPages ); i++ ){
+			siteTreeService.editPage(
+				  id     = sortedPages[i]
+				, sort_order = i
 			);
-		</cfscript>
-	</cffunction>
+		}
 
-	<cffunction name="restorePageAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
+	}
 
-		<cfscript>
-			var pageId            = event.getValue( "id", "" );
-			var formName          = "preside-objects.page.restore";
-			var formData          = event.getCollectionForForm( formName );
-			var validationResult  = "";
-			var newId             = "";
-			var persist           = "";
+	public void function editPagePermissions( event, rc, prc ) output=false {
+		var pageId   = event.getValue( "id", "" );
 
-			validationResult = validateForm( formName = formName, formData = formData );
+		prc.page = siteTreeService.getPage( id = pageId );
 
-			if ( not validationResult.validated() ) {
-				getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
-				persist = formData;
-				persist.validationResult = validationResult;
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.restorePage", querystring="id=#pageId#" ), persistStruct=persist );
+		if ( not prc.page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
+
+		prc.inheritedPermissionContext = ListToArray( ValueList( ancestors.id ) );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.editPagePermissions.crumb", data=[ prc.page.title ] )
+			, link  = ""
+		);
+	}
+
+	public void function editPagePermissionsAction( event, rc, prc ) output=false {
+		var pageId = event.getValue( "id", "" );
+		var page   = siteTreeService.getPage( id = pageId );
+
+		if ( not page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+
+		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
+		}
+
+		messageBox.error( translateResource( uri="cms:sitetree.cmsPermsSaved.error", data=[ page.title ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" ) );
+	}
+
+	public void function pageHistory( event, rc, prc ) output=false {
+		var pageId   = event.getValue( "id", "" );
+		var pageType = "";
+
+		prc.page = siteTreeService.getPage( id = pageId );
+
+		if ( not prc.page.recordCount ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
+			, link  = ""
+		);
+	}
+
+	public void function pageTypeDialog( event, rc, prc ) output=false {
+		var parentPage = sitetreeService.getPage( id=rc.parentPage, selectFields=[ "page_type" ] );
+
+		if ( parentPage.recordCount ) {
+			prc.pageTypes = pageTypesService.listPageTypes( allowedBeneathParent=parentPage.page_type );
+		} else {
+			prc.pageTypes = pageTypesService.listPageTypes();
+		}
+
+		event.setView( view="admin/sitetree/pageTypeDialog", nolayout=true );
+	}
+
+	public void function getPagesForAjaxPicker( event, rc, prc ) output=false {
+		var records = siteTreeService.getPagesForAjaxSelect(
+			  maxRows      = rc.maxRows      ?: 1000
+			, searchQuery  = rc.q            ?: ""
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+		var preparedPages = [];
+
+		for ( record in records ) {
+			if ( IsNull( record.parent ?: ""  ) || !Len( Trim( record.parent ?: "" ) ) ) {
+				record.parent = "";
+			}
+			if ( record.depth ) {
+				record.parent = RepeatString( "&rarr;", record.depth ) & record.parent;
 			}
 
-			siteTreeService.restorePage(
-				  id      = pageId
-				, parent_page = event.getValue( "parent_page", "" )
-				, slug        = event.getValue( "slug", "" )
-				, active      = event.getValue( "active", "" )
-			);
+			preparedPages.append( record );
+		}
 
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageRestored.confirmation" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
-		</cfscript>
-	</cffunction>
+		event.renderData( type="json", data=preparedPages );
+	}
 
-	<cffunction name="reorderChildren" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+	public void function getPageHistoryForAjaxDataTables( event, rc, prc ) output=false {
+		var pageId = rc.id     ?: "";
 
-		<cfscript>
-			var pageId = event.getValue( "id", "" );
-
-			prc.page = siteTreeService.getPage(
-				  id          = pageId
-				, includeInactive = true
-			);
-
-			if ( not prc.page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		runEvent(
+			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = "page"
+				, recordId   = pageId
+				, gridFields = ( rc.gridFields ?: 'datemodified,_version_author,title' )
+				, actionsView = "admin/sitetree/_historyActions"
 			}
-
-			prc.childPages = siteTreeService.getDescendants(
-				  id       = pageId
-				, depth        = 1
-				, selectFields = [ "id", "title" ]
-			);
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.reorderChildren.crumb", data=[ prc.page.title ] )
-				, link  = ""
-			);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="reorderChildrenAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId  = event.getValue( "id", "" );
-			var sortedPages = ListToArray( event.getValue( "ordered", "" ) );
-			var i = 0;
-
-			for( i=1; i lte ArrayLen( sortedPages ); i++ ){
-				siteTreeService.editPage(
-					  id     = sortedPages[i]
-					, sort_order = i
-				);
-			}
-
-			getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="editPagePermissions" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any" required="true" />
-		<cfargument name="rc"    type="any" required="true" />
-		<cfargument name="prc"   type="any" required="true" />
-
-		<cfscript>
-			var pageId   = event.getValue( "id", "" );
-
-			prc.page = siteTreeService.getPage( id = pageId );
-
-			if ( not prc.page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			var ancestors = sitetreeService.getAncestors( id = pageId, selectFields=[ "id" ] );
-
-			prc.inheritedPermissionContext = ListToArray( ValueList( ancestors.id ) );
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.editPagePermissions.crumb", data=[ prc.page.title ] )
-				, link  = ""
-			);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="editPagePermissionsAction" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any" required="true" />
-		<cfargument name="rc"    type="any" required="true" />
-		<cfargument name="prc"   type="any" required="true" />
-
-		<cfscript>
-			var pageId = event.getValue( "id", "" );
-			var page   = siteTreeService.getPage( id = pageId );
-
-			if ( not page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-
-			if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
-				messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
-			}
-
-			messageBox.error( translateResource( uri="cms:sitetree.cmsPermsSaved.error", data=[ page.title ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="pageHistory" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var pageId   = event.getValue( "id", "" );
-			var pageType = "";
-
-			prc.page = siteTreeService.getPage( id = pageId );
-
-			if ( not prc.page.recordCount ) {
-				getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-			}
-
-			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
-				, link  = ""
-			);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="pageTypeDialog" access="public" returntype="string" output="false">
-		<cfargument name="event"       type="any"    required="true" />
-		<cfargument name="rc"          type="struct" required="true" />
-		<cfargument name="prc"         type="struct" required="true" />
-
-		<cfscript>
-			var parentPage = sitetreeService.getPage( id=rc.parentPage, selectFields=[ "page_type" ] );
-
-			if ( parentPage.recordCount ) {
-				prc.pageTypes = pageTypesService.listPageTypes( allowedBeneathParent=parentPage.page_type );
-			} else {
-				prc.pageTypes = pageTypesService.listPageTypes();
-			}
-
-			event.setView( view="admin/sitetree/pageTypeDialog", nolayout=true );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="getPagesForAjaxPicker" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var records = siteTreeService.getPagesForAjaxSelect(
-				  maxRows      = rc.maxRows      ?: 1000
-				, searchQuery  = rc.q            ?: ""
-				, ids          = ListToArray( rc.values ?: "" )
-			);
-			var preparedPages = [];
-
-			for ( record in records ) {
-				if ( IsNull( record.parent ?: ""  ) || !Len( Trim( record.parent ?: "" ) ) ) {
-					record.parent = "";
-				}
-				if ( record.depth ) {
-					record.parent = RepeatString( "&rarr;", record.depth ) & record.parent;
-				}
-
-				preparedPages.append( record );
-			}
-
-			event.renderData( type="json", data=preparedPages );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="getPageHistoryForAjaxDataTables" access="public" returntype="void" output="false">
-		<cfargument name="event"           type="any"     required="true" />
-		<cfargument name="rc"              type="struct"  required="true" />
-		<cfargument name="prc"             type="struct"  required="true" />
-
-		<cfscript>
-			var pageId = rc.id     ?: "";
-
-			runEvent(
-				  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
-				, prePostExempt  = true
-				, private        = true
-				, eventArguments = {
-					  object     = "page"
-					, recordId   = pageId
-					, gridFields = ( rc.gridFields ?: 'datemodified,_version_author,title' )
-					, actionsView = "admin/sitetree/_historyActions"
-				}
-			);
-		</cfscript>
-	</cffunction>
+		);
+	}
 
 
 <!--- private helpers --->
-	<cffunction name="_getPageTypeFormName" access="private" returntype="string" output="false">
-		<cfargument name="pageType" type="any" required="true" />
-		<cfargument name="addorEdit" type="string" required="true" />
+	private string function _getPageTypeFormName( required any pageType, required string addOrEdit ) output=false {
+		var specificForm = addOrEdit == "add" ? pageType.getAddForm() : pageType.getEditForm();
+		var defaultForm  = pageType.getDefaultForm();
 
-		<cfscript>
-			var specificForm = addOrEdit == "add" ? pageType.getAddForm() : pageType.getEditForm();
-			var defaultForm  = pageType.getDefaultForm();
+		if ( formsService.formExists( specificForm ) ) {
+			return specificForm;
+		}
+		if ( formsService.formExists( defaultForm ) ) {
+			return defaultForm;
+		}
 
-
-			if ( formsService.formExists( specificForm ) ) {
-				return specificForm;
-			}
-			if ( formsService.formExists( defaultForm ) ) {
-				return defaultForm;
-			}
-
-			return "";
-		</cfscript>
-	</cffunction>
-</cfcomponent>
+		return "";
+	}
+}
