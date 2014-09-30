@@ -61,70 +61,65 @@
 				</cfif>
 
 				<div class="actions pull-right btn-group">
-					<cfif not args.trashed>
-						<cfif hasEditPagePermission>
-							<a data-context-key="e" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
-						<cfelse>
-							<i class="fa fa-pencil disabled"></i>
-						</cfif>
+					<cfif hasEditPagePermission>
+						<a data-context-key="e" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
+					<cfelse>
+						<i class="fa fa-pencil disabled"></i>
+					</cfif>
 
-						<cfif hasAddPagePermission>
-							<cfif allowableChildPageTypes eq "*" or ListLen( allowableChildPageTypes ) gt 1>
-								<a data-context-key="a" href="#event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage=#args.id#" )#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
-							<cfelseif allowableChildPageTypes neq "none">
-								<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#args.id#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
-							</cfif>
-						<cfelse>
-							<i class="fa fa-plus disabled"></i>
-						</cfif>
-
-						<cfif not hasDropdown>
-							<i class="fa fa-caret-down disabled"></i>
-						<cfelse>
-
-							<a class="dropdown-toggle" data-toggle="dropdown" href="##">
-								<i class="fa fa-caret-down"></i>
-							</a>
-							<ul class="dropdown-menu">
-								<cfif hasDeletePagePermission>
-									<li>
-										<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
-											<i class="fa fa-fw fa-trash-o"></i>
-											#translateResource( "cms:sitetree.trash.page.dropdown" )#
-										</a>
-									</li>
-								</cfif>
-								<cfif hasPageHistoryPermission>
-									<li>
-										<a data-context-key="h" href="#event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.page.history.link" )#">
-											<i class="fa fa-fw fa-history"></i>
-											#translateResource( "cms:sitetree.page.history.dropdown" )#
-										</a>
-									</li>
-								</cfif>
-
-								<cfif hasManagePermsPermission>
-									<li>
-										<a data-context-key="m" href="#event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#args.id#" )#">
-											<i class="fa fa-fw fa-lock"></i>
-											#translateResource( "cms:sitetree.page.permissioning.dropdown" )#
-										</a>
-									</li>
-								</cfif>
-
-								<cfif hasSortPagesPermission>
-									<li>
-										<a data-context-key="o" href="#event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#args.id#")#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
-											<i class="fa fa-fw fa-sort-amount-asc"></i>
-											#translateResource( "cms:sitetree.sort.children.dropdown" )#
-										</a>
-									</li>
-								</cfif>
-							</ul>
+					<cfif hasAddPagePermission>
+						<cfif allowableChildPageTypes eq "*" or ListLen( allowableChildPageTypes ) gt 1>
+							<a data-context-key="a" href="#event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage=#args.id#" )#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+						<cfelseif allowableChildPageTypes neq "none">
+							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#args.id#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
 						</cfif>
 					<cfelse>
-						<a data-context-key="r" href="#event.buildAdminLink( linkTo="sitetree.restorePage", queryString="id=#args.id#" )#" title="#translateResource( uri="cms:sitetree.restore.page.link", data=[ safeTitle ] )#"><i class="fa fa-magic"></i></a>
-						<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.deletePageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.delete.page.link", data=[ safeTitle ] )#"><i class="fa fa-trash-o"></i></a>
+						<i class="fa fa-plus disabled"></i>
+					</cfif>
+
+					<cfif not hasDropdown>
+						<i class="fa fa-caret-down disabled"></i>
+					<cfelse>
+
+						<a class="dropdown-toggle" data-toggle="dropdown" href="##">
+							<i class="fa fa-caret-down"></i>
+						</a>
+						<ul class="dropdown-menu">
+							<cfif hasDeletePagePermission>
+								<li>
+									<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+										<i class="fa fa-fw fa-trash-o"></i>
+										#translateResource( "cms:sitetree.trash.page.dropdown" )#
+									</a>
+								</li>
+							</cfif>
+							<cfif hasPageHistoryPermission>
+								<li>
+									<a data-context-key="h" href="#event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.page.history.link" )#">
+										<i class="fa fa-fw fa-history"></i>
+										#translateResource( "cms:sitetree.page.history.dropdown" )#
+									</a>
+								</li>
+							</cfif>
+
+							<cfif hasManagePermsPermission>
+								<li>
+									<a data-context-key="m" href="#event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#args.id#" )#">
+										<i class="fa fa-fw fa-lock"></i>
+										#translateResource( "cms:sitetree.page.permissioning.dropdown" )#
+									</a>
+								</li>
+							</cfif>
+
+							<cfif hasSortPagesPermission>
+								<li>
+									<a data-context-key="o" href="#event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#args.id#")#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
+										<i class="fa fa-fw fa-sort-amount-asc"></i>
+										#translateResource( "cms:sitetree.sort.children.dropdown" )#
+									</a>
+								</li>
+							</cfif>
+						</ul>
 					</cfif>
 				</div>
 			</td>

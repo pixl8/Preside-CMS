@@ -26,6 +26,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
 	}
 
+	public void function trash( event, rc, prc ) output=false {
+		_checkPermissions( argumentCollection=arguments, key="viewtrash" );
+		prc.treeTrash = siteTreeService.getTree( trash = true, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+	}
+
 	public void function addPage( event, rc, prc ) output=false {
 		var parentPageId = rc.parent_page ?: "";
 		var pageType     = rc.page_type ?: "";
