@@ -93,13 +93,13 @@
 		<td>
 			<cfswitch expression="#args.access_restriction#">
 				<cfcase value="full">
-					<i class="fa fa-lock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
+					<i class="fa fa-fw fa-lock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
 				</cfcase>
 				<cfcase value="partial">
-					<i class="fa fa-unlock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
+					<i class="fa fa-fw fa-unlock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
 				</cfcase>
 				<cfdefaultcase>
-					<i class="fa fa-unlock green"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
+					<i class="fa fa-fw fa-unlock green"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
 				</cfdefaultcase>
 			</cfswitch>
 		</td>
