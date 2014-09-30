@@ -24,7 +24,6 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function index( event, rc, prc ) output=false {
 		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
-		prc.treeTrash  = siteTreeService.getTree( trash = true , format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction", "old_slug" ] );
 	}
 
 	public void function addPage( event, rc, prc ) output=false {
