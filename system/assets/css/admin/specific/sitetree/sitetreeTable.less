@@ -5,8 +5,8 @@
 .presidecms {
 	.tree-table {
 
-		td.actions > .fa,
-		td.actions > a > .fa {
+		.actions > .fa,
+		.actions a .fa {
 			margin-right : 0.4em;
 
 			&.disabled {
@@ -18,11 +18,6 @@
 			color  : @default-font-colour;
 			cursor : pointer;
 			margin-left : -@fontAwesomeFixedWidthSize;
-
-			&:hover {
-				color           : @default-font-colour;
-				text-decoration : none;
-			}
 		}
 
 		tbody > tr {

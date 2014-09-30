@@ -1,19 +1,15 @@
-.presidecms .tree-table td.actions > .fa,
-.presidecms .tree-table td.actions > a > .fa {
+.presidecms .tree-table .actions > .fa,
+.presidecms .tree-table .actions a .fa {
   margin-right: 0.4em;
 }
-.presidecms .tree-table td.actions > .fa.disabled,
-.presidecms .tree-table td.actions > a > .fa.disabled {
+.presidecms .tree-table .actions > .fa.disabled,
+.presidecms .tree-table .actions a .fa.disabled {
   color: #bbbbbb;
 }
 .presidecms .tree-table .tree-toggler {
   color: #222222;
   cursor: pointer;
   margin-left: -1.28571429em;
-}
-.presidecms .tree-table .tree-toggler:hover {
-  color: #222222;
-  text-decoration: none;
 }
 .presidecms .tree-table tbody > tr.selected,
 .presidecms .tree-table tbody > tr:active,

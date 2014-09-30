@@ -52,7 +52,7 @@
 			$parentRows.each( function(){
 				var $parentRow = $( this )
 				  , $children  = $table.find( "tr[data-parent='" + $parentRow.data( "id" ) + "']" )
-				  , $toggler   = $( '<a class="fa fa-lg fa-fw fa-caret-right tree-toggler"></a>' );
+				  , $toggler   = $( '<i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i>' );
 
 				$toggler.insertBefore( $parentRow.find( '.page-type-icon' ) );
 				$toggler.data( "parentRow", $parentRow );
@@ -102,6 +102,11 @@
 					toggleRow( $row );
 				}
 			} );
+
+			$table.sortable({
+				  items  : "tbody > tr"
+				, handle : ".sortable-handle"
+			});
 
 			if ( $selected.length ) {
 				var $parent = $table.find( "tr[data-id='" + ( $selected.data( "parent" ) || '' ) + "']"  );

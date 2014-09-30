@@ -15,7 +15,6 @@
 			<tr>
 				<th>Page title</th>
 				<th>Page type</th>
-				<th>Actions</th>
 				<th>Active</th>
 				<th>Permissioning</th>
 				<th>URL</th>

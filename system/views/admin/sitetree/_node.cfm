@@ -38,36 +38,51 @@
 			<a href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
 				#args.title#
 			</a>
+
+			<div class="actions pull-right btn-group">
+				<cfif not args.trashed>
+					<a data-context-key="e" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
+					<cfif allowableChildPageTypes eq "*" or ListLen( allowableChildPageTypes ) gt 1>
+						<a data-context-key="a" href="#event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage=#args.id#" )#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+					<cfelseif allowableChildPageTypes neq "none">
+						<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#args.id#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+					</cfif>
+
+					<a class="dropdown-toggle" data-toggle="dropdown" href="##">
+						<i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu">
+						<cfif args.id neq homepageId>
+							<li>
+								<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+									<i class="fa fa-trash-o"></i>
+									#translateResource( "cms:sitetree.trash.page.dropdown" )#
+								</a>
+							</li>
+						</cfif>
+						<li>
+							<a data-context-key="h" href="#event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.page.history.link" )#">
+								<i class="fa fa-history"></i>
+								#translateResource( "cms:sitetree.page.history.dropdown" )#
+							</a>
+						</li>
+
+						<cfif args.hasChildren>
+							<li>
+								<a data-context-key="o" href="#event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#args.id#")#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
+									<i class="fa fa-sort-amount-asc"></i>
+									#translateResource( "cms:sitetree.sort.children.dropdown" )#
+								</a>
+							</li>
+						</cfif>
+					<cfelse>
+						<li><a data-context-key="r" href="#event.buildAdminLink( linkTo="sitetree.restorePage", queryString="id=#args.id#" )#" title="#translateResource( uri="cms:sitetree.restore.page.link", data=[ safeTitle ] )#"><i class="fa fa-magic"></i></a></li>
+						<li><a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.deletePageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.delete.page.link", data=[ safeTitle ] )#"><i class="fa fa-trash-o"></i></a></li>
+					</cfif>
+				</ul>
+			</div>
 		</td>
 		<td>#pageType#</td>
-		<td class="actions">
-			<cfif not args.trashed>
-				<cfif allowableChildPageTypes eq "*" or ListLen( allowableChildPageTypes ) gt 1>
-					<a data-context-key="a" href="#event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage=#args.id#" )#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
-				<cfelseif allowableChildPageTypes neq "none">
-					<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=#args.id#&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
-				</cfif>
-
-				<a data-context-key="e" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
-				<cfif args.id neq homepageId>
-					<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#"><i class="fa fa-trash-o"></i></a>
-				<cfelse>
-					<i class="fa fa-trash-o disabled"></i>
-				</cfif>
-
-				<a data-context-key="h" href="#event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.page.history.link" )#"><i class="fa fa-history"></i></a>
-
-				<cfif args.hasChildren>
-					<a data-context-key="o" href="#event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=#args.id#")#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#"><i class="fa fa-sort-amount-asc"></i></a>
-				<cfelse>
-					<i class="fa fa-sort-amount-asc disabled"></i>
-				</cfif>
-
-			<cfelse>
-				<a data-context-key="r" href="#event.buildAdminLink( linkTo="sitetree.restorePage", queryString="id=#args.id#" )#" title="#translateResource( uri="cms:sitetree.restore.page.link", data=[ safeTitle ] )#"><i class="fa fa-magic"></i></a>
-				<a data-context-key="d" href="#event.buildAdminLink( linkTo="sitetree.deletePageAction", queryString="id=#args.id#")#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.delete.page.link", data=[ safeTitle ] )#"><i class="fa fa-trash-o"></i></a>
-			</cfif>
-		</td>
 		<td>#renderField( object="page", property="active", data=args.active, context="adminDataTable" )#</td>
 		<td>
 			<cfswitch expression="#args.access_restriction#">
@@ -82,7 +97,7 @@
 				</cfdefaultcase>
 			</cfswitch>
 		</td>
-		<td><a href="#pageUrl#"><cfif Len( Trim( args.slug ) )>#args.slug#.html<cfelse>/</cfif></a></td>
+		<td><a href="#pageUrl#" data-context-key="p" title="#translateResource( 'cms:sitetree.preview.page.link' )#"><cfif Len( Trim( args.slug ) )>#args.slug#.html<cfelse>/</cfif></a></td>
 	</tr>
 
 	<cfloop array="#args.children#" index="child">
