@@ -29,3 +29,4 @@ Developer guides & recipes
    customerrorpages
    coldboxenvironments
    sitetreenavigationmenus
+   adminmenu
