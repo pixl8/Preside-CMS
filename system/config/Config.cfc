@@ -136,6 +136,8 @@ component output=false {
 			, siteAssetsUrl  = "/assets"
 		};
 
+		_loadConfigurationFromExtensions();
+
 		environments = {
             local = "^local\.,\.local$,^localhost$,^127.0.0.1$"
         }
@@ -304,5 +306,15 @@ component output=false {
 		FileWrite( cookieKeyFile, key );
 
 		return key;
+	}
+
+	private void function _loadConfigurationFromExtensions() output=false {
+		for( var ext in settings.activeExtensions ){
+			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
+				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
+
+				CreateObject( cfcPath ).configure( settings );
+			}
+		}
 	}
 }
