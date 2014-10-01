@@ -69,6 +69,16 @@ component output=false {
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
 
+		settings.adminSideBarItems = [
+			  "sitetree"
+			, "assetmanager"
+			, "datamanager"
+			, "usermanager"
+			, "websiteUserManager"
+			, "systemConfiguration"
+			, "updateManager"
+		];
+
 		settings.assetManager = {
 			  maxFileSize       = "5"
 			, types             = _getConfiguredFileTypes()
