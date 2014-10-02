@@ -1,10 +1,14 @@
-<cfif hasCmsPermission( "sitetree.navigate" )>
-	<cfoutput>
-		<li<cfif listLast( event.getCurrentHandler(), ".") eq "sitetree"> class="active"</cfif>>
-			<a href="#event.buildAdminLink( linkTo="sitetree" )#" data-goto-key="s">
-				<i class="fa fa-sitemap"></i>
-				<span class="menu-text">#translateResource( 'cms:sitetree' )#</span>
-			</a>
-		</li>
-	</cfoutput>
-</cfif>
+<cfscript>
+	if ( hasCmsPermission( "sitetree.navigate" ) ) {
+		WriteOutput( renderView(
+			  view = "/admin/layout/sidebar/_menuItem"
+			, args = {
+				  active  = ListLast( event.getCurrentHandler(), ".") eq "sitetree"
+				, link    = event.buildAdminLink( linkTo="sitetree" )
+				, gotoKey = "s"
+				, icon    = "fa-sitemap"
+				, title   = translateResource( 'cms:sitetree' )
+			  }
+		) );
+	}
+</cfscript>

@@ -1,10 +1,14 @@
-<cfif hasCmsPermission( "datamanager.navigate" )>
-	<cfoutput>
-		<li<cfif listLast( event.getCurrentHandler(), ".") eq "datamanager"> class="active"</cfif>>
-			<a href="#event.buildAdminLink( linkTo='datamanager' )#" data-goto-key="d">
-				<i class="fa fa-puzzle-piece"></i>
-				<span class="menu-text">#translateResource( "cms:datamanager" )#</span>
-			</a>
-		</li>
-	</cfoutput>
-</cfif>
+<cfscript>
+	if ( hasCmsPermission( "datamanager.navigate" ) ) {
+		WriteOutput( renderView(
+			  view = "/admin/layout/sidebar/_menuItem"
+			, args = {
+				  active  = ListLast( event.getCurrentHandler(), ".") eq "datamanager"
+				, link    = event.buildAdminLink( linkTo="datamanager" )
+				, gotoKey = "d"
+				, icon    = "fa-puzzle-piece"
+				, title   = translateResource( 'cms:datamanager' )
+			  }
+		) );
+	}
+</cfscript>

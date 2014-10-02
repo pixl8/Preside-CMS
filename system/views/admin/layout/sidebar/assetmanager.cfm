@@ -1,10 +1,14 @@
-<cfif hasCmsPermission( "assetmanager.general.navigate" )>
-	<cfoutput>
-		<li<cfif listLast( event.getCurrentHandler(), ".") eq "assetmanager"> class="active"</cfif>>
-			<a href="#event.buildAdminLink( linkTo="assetmanager" )#" data-goto-key="a">
-				<i class="fa fa-picture-o"></i>
-				<span class="menu-text">#translateResource( 'cms:assetManager' )#</span>
-			</a>
-		</li>
-	</cfoutput>
-</cfif>
+<cfscript>
+	if ( hasCmsPermission( "assetmanager.general.navigate" ) ) {
+		WriteOutput( renderView(
+			  view = "/admin/layout/sidebar/_menuItem"
+			, args = {
+				  active  = ListLast( event.getCurrentHandler(), ".") eq "assetmanager"
+				, link    = event.buildAdminLink( linkTo="assetmanager" )
+				, gotoKey = "a"
+				, icon    = "fa-picture-o"
+				, title   = translateResource( 'cms:assetManager' )
+			  }
+		) );
+	}
+</cfscript>

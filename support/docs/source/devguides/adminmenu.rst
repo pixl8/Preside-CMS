@@ -31,7 +31,9 @@ Each top level item of the menu is stored in an array that is set in :code:`sett
         }
     }
 
-Each side bar item is then implemented as a view that lives under a :code:`/views/admin/layout/sidebar/ folder. So for the 'sitetree' item, there exists a view at :code:`/views/admin/layout/sidebar/sitetree.cfm`. A single level item navigation view looks something like this:
+Each side bar item is then implemented as a view that lives under a :code:`/views/admin/layout/sidebar/` folder. 
+
+For example, for the 'sitetree' item, there exists a view at :code:`/views/admin/layout/sidebar/sitetree.cfm` that looks like this:
 
 .. code-block:: cfm
 
@@ -49,4 +51,30 @@ Each side bar item is then implemented as a view that lives under a :code:`/view
 Examples
 ########
 
-TODO
+Adding a new item
+-----------------
+
+Firstly, add the item to our array of sidebar items in your site or extension's Config.cfc:
+
+.. code-block:: java
+
+    // ...
+
+    settings.adminSideBarItems.append( "mynewfeature" );
+
+    // ...
+
+Next, create the view for the side bar item:
+
+.. code-block:: cfm
+
+    <cfif hasCmsPermission( "mynewfeature.access" )>
+        <cfoutput>
+            <li<cfif listLast( event.getCurrentHandler(), ".") eq "mynewfeature"> class="active"</cfif>>
+                <a href="#event.buildAdminLink( linkTo="mynewfeature" )#">
+                    <i class="fa fa-cool"></i>
+                    <span class="menu-text">#translateResource( 'cms:mynewfeature' )#</span>
+                </a>
+            </li>
+        </cfoutput>
+    </cfif>

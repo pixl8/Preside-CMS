@@ -1,15 +1,13 @@
-<cfif hasCmsPermission( "systemConfiguration.manage" )>
-	<cfoutput>
-		<li<cfif listLast( event.getCurrentHandler(), ".") eq "sysconfig"> class="active"</cfif>>
-			<a class="dropdown-toggle" href="##">
-				<i class="fa fa-cogs"></i>
-				<span class="menu-text">#translateResource( "cms:sysconfig" )#</span>
-				<b class="arrow fa fa-angle-down"></b>
-			</a>
-
-			<ul class="submenu">
-				#renderViewlet( event="admin.sysconfig.categoryMenu" )#
-			</ul>
-		</li>
-	</cfoutput>
-</cfif>
+<cfscript>
+	if ( hasCmsPermission( "systemConfiguration.manage" ) ) {
+		WriteOutput( renderView(
+			  view = "/admin/layout/sidebar/_menuItem"
+			, args = {
+				  active  = ListLast( event.getCurrentHandler(), ".") eq "sysconfig"
+				, icon    = "fa-cogs"
+				, title   = translateResource( 'cms:sysconfig' )
+				, submenu = renderViewlet( event="admin.sysconfig.categoryMenu" )
+			  }
+		) );
+	}
+</cfscript>
