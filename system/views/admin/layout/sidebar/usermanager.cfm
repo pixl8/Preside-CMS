@@ -1,14 +1,14 @@
 <cfscript>
 	if ( hasCmsPermission( "usermanager.navigate" ) || hasCmsPermission( "groupmanager.navigate" ) ) {
-		subMenu = "";
+		subMenuItems = [];
 		if ( hasCmsPermission( "usermanager.navigate" ) ) {
-			subMenu &= renderView( view="/admin/layout/sidebar/_subMenuItem", args={
+			subMenuItems.append( {
 				  link  = event.buildAdminLink( linkTo='usermanager.users' )
 				, title = translateResource( "cms:usermanager.users" )
 			} );
 		}
 		if ( hasCmsPermission( "groupmanager.navigate" ) ) {
-			subMenu &= renderView( view="/admin/layout/sidebar/_subMenuItem", args={
+			subMenuItems.append( {
 				  link  = event.buildAdminLink( linkTo='usermanager.groups' )
 				, title = translateResource( "cms:usermanager.groups" )
 			} );
@@ -17,10 +17,10 @@
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
 			, args = {
-				  active  = ListLast( event.getCurrentHandler(), ".") eq "usermanager"
-				, icon    = "fa-group"
-				, title   = translateResource( 'cms:usermanager' )
-				, submenu = subMenu
+				  active       = ListLast( event.getCurrentHandler(), ".") eq "usermanager"
+				, icon         = "fa-group"
+				, title        = translateResource( 'cms:usermanager' )
+				, subMenuItems = subMenuItems
 			  }
 		) );
 	}
