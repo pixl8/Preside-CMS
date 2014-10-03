@@ -31,12 +31,14 @@ component output=false {
 		};
 
 		interceptors = [
-			{ class="preside.system.interceptors.CsrfProtectionInterceptor", properties={} },
-			{ class="preside.system.interceptors.SES"                      , properties = { configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.CsrfProtectionInterceptor"          , properties={} },
+			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"  , properties={} },
+			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor", properties={} },
+			{ class="preside.system.interceptors.SES"                                , properties = { configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
-			, customInterceptionPoints = "onBuildLink"
+			, customInterceptionPoints = [ "onBuildLink", "preLoadPresideObjects", "postLoadPresideObjects", "preLoadPresideObject", "postLoadPresideObject", "preReadPresideObject", "postReadPresideObject" ]
 		};
 
 		cacheBox = {

@@ -1186,7 +1186,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var objName       = "";
 		var dsns          = {};
 
+		_announceInterception( state="preLoadPresideObjects", interceptData={ objectPaths=objectPaths } );
+
 		for( objPath in objectPaths ){
+			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
+
 			objName      = ListLast( objPath, "/" );
 			obj          = {};
 			obj.instance = CreateObject( "component", objPath );
@@ -1194,10 +1198,17 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 			objects[ objName ] = objects[ objName ] ?: [];
 			objects[ objName ].append( obj );
+
+			_announceInterception( state="postLoadPresideObject", interceptData={ objectName=objName, object=obj } );
+
 			dsns[ obj.meta.dsn ] = 1;
 		}
+
+		objects = _mergeObjects( objects );
+
+		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
+
 		if ( StructCount( objects ) ) {
-			objects = _mergeObjects( objects );
 			_getRelationshipGuidance().setupRelationships( objects );
 			_getVersioningService().setupVersioningForVersionedObjects( objects, StructKeyArray( dsns )[1] );
 		}
@@ -1931,7 +1942,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 
 	private void function _registerInterceptionPoints() output=false {
-		_getInterceptorService().appendInterceptionPoints( customPoints=[ "preLoadPresideObject", "postLoadPresideObject" ] );
+		_getInterceptorService().appendInterceptionPoints( customPoints=[  ] );
 	}
 
 // SIMPLE PRIVATE PROXIES
@@ -1941,6 +1952,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 	private any function _runSql() output=false {
 		return _getSqlRunner().runSql( argumentCollection = arguments );
+	}
+
+	private any function _announceInterception() output=false {
+		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
 
 // GETTERS AND SETTERS

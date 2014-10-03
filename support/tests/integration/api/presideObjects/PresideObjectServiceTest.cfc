@@ -2745,9 +2745,27 @@
 			_getService( objectDirectories=[] );
 
 			var callLog = mockInterceptorService.$callLog().appendInterceptionPoints;
+			var expectedCustomPoints = [ "preLoadPresideObjects", "preLoadPresideObject", "postLoadPresideObject", "postLoadPresideObjects" ];
+
+			expectedCustomPoints.sort( "textnocase" );
 
 			super.assertEquals( 1, callLog.len() );
-			super.assertEquals( { customPoints=[ "preLoadPresideObject", "postLoadPresideObject" ] }, callLog[1] );
+
+			super.assert( StructKeyExists( callLog[1], "customPoints" ) );
+
+			callLog[1].customPoints.sort( "textNoCase" );
+
+			super.assertEquals( expectedCustomPoints, callLog[1].customPoints );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test087_loadObjects_shouldAnnouncePreAndPostLoadEventsForEachDiscoveredPresideObject" returntype="void">
+		<cfscript>
+			_getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
+
+			var callLog = mockInterceptorService.$callLog().processState;
+
+			super.assertEquals( 12, callLog.len() );
 		</cfscript>
 	</cffunction>
 

@@ -2,12 +2,14 @@ component output=false singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @dsn.inject         coldbox:setting:dsn
-	 * @tablePrefix.inject coldbox:setting:presideObjectsTablePrefix
+	 * @dsn.inject                coldbox:setting:dsn
+	 * @tablePrefix.inject        coldbox:setting:presideObjectsTablePrefix
+	 * @interceptorService.inject coldbox:InterceptorService
 	 */
-	public any function init( required string dsn, required string tablePrefix ) output=false {
+	public any function init( required string dsn, required string tablePrefix, required any interceptorService ) output=false {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
+		_setInterceptorService( arguments.interceptorService );
 
 		return this;
 	}
@@ -15,9 +17,12 @@ component output=false singleton=true {
 
 // PUBLIC API METHODS
 	public struct function readObject( required any object ) output=false {
+		_announceInterception( "preReadPresideObject", { object=object } );
+
 		var meta          = _mergeExtendedObjectMeta( getMetaData( arguments.object ) );
 		var componentName = ListLast( meta.name, "." );
 		var key           = "";
+
 
 		meta.tablePrefix   = meta.tablePrefix   ?: _getTablePrefix();
 		meta.tableName     = meta.tableName     ?: componentName;
@@ -27,13 +32,8 @@ component output=false singleton=true {
 		meta.dbFieldList   = meta.dbFieldList   ?: "";
 		meta.propertyNames = meta.propertyNames ?: ArrayNew(1);
 		meta.siteTemplates = meta.siteTemplates ?: _getSiteTemplateForObject( meta.name );
-		meta.siteFiltered  = meta.siteFiltered  ?: false;
-		meta.isPageType    = _isPageTypeObject( meta );
 
-
-		if ( meta.siteFiltered ) {
-			_injectSiteTenancyFields( meta );
-		}
+		_announceInterception( "postReadPresideObject", { objectMeta=meta } );
 
 		_defineLabelField( meta );
 		_mergeSystemPropertyDefaults( meta );
@@ -229,9 +229,9 @@ component output=false singleton=true {
 			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "datemodified" );
 		}
 
-		if ( arguments.meta.isPageType ) {
-			_injectPageTypeFields( arguments.meta );
-		}
+		// if ( arguments.meta.isPageType ) {
+		// 	_injectPageTypeFields( arguments.meta );
+		// }
 	}
 
 	private struct function _discoverIndexes( required struct properties, required string objectName ) output=false {
@@ -334,98 +334,16 @@ component output=false singleton=true {
 		return final;
 	}
 
-	private boolean function _isPageTypeObject( required struct objectMeta ) output=false {
-		var objectPath = arguments.objectMeta.name ?: "";
-
-		return ReFindNoCase( "\.page-types\.", objectPath );
-	}
-
 	private void function _defineLabelField( required struct objectMeta ) output=false {
-		if ( arguments.objectMeta.isPageType ) {
-			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
-		}
+		// if ( arguments.objectMeta.isPageType ) {
+		// 	arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
+		// }
 		if ( IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel ) {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "";
 		} else {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "label";
 		}
 		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
-	}
-
-	private void function _injectPageTypeFields( required struct meta ) output=false {
-		var defaultConfiguration = { relationship="many-to-one", relatedto="page", required=true, uniqueindexes="page", ondelete="cascade", onupdate="cascade", generator="none" };
-
-		param name="arguments.meta.properties.page" default={};
-		StructAppend( arguments.meta.properties.page, defaultConfiguration, false );
-
-		if ( not arguments.meta.propertyNames.find( "page" ) ) {
-			ArrayAppend( arguments.meta.propertyNames, "page" );
-		}
-
-		if ( not ListFindNoCase( arguments.meta.dbFieldList, "page" ) ) {
-			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "page" );
-		}
-	}
-
-	private void function _injectSiteTenancyFields( required struct meta ) output=false {
-		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none" };
-		var indexNames           = [];
-
-		for( var prop in arguments.meta.properties ){
-			if ( prop == "site" ) { continue; }
-
-			prop = arguments.meta.properties[ prop ];
-
-			if ( Len( Trim( prop.indexes ?: "" ) ) ) {
-				var newIndexDefinition = "";
-
-				for( var ix in ListToArray( prop.indexes ) ) {
-					var siteIndexName = ListFirst( ix, "|" ) & "|1";
-					if ( !ListFindNoCase( defaultConfiguration.indexes, siteIndexName ) ) {
-						defaultConfiguration.indexes = ListAppend( defaultConfiguration.indexes, siteIndexName );
-					}
-
-					if ( ListLen( ix, "|" ) > 1 ) {
-						newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
-					} else {
-						newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
-					}
-				}
-
-				prop.indexes = newIndexDefinition;
-			}
-
-			if ( Len( Trim( prop.uniqueindexes ?: "" ) ) ) {
-				var newIndexDefinition = "";
-
-				for( var ix in ListToArray( prop.uniqueindexes ) ) {
-					var siteIndexName = ListFirst( ix, "|" ) & "|1";
-					if ( !ListFindNoCase( defaultConfiguration.uniqueIndexes, siteIndexName ) ) {
-						defaultConfiguration.uniqueIndexes = ListAppend( defaultConfiguration.uniqueIndexes, siteIndexName );
-					}
-
-					if ( ListLen( ix, "|" ) > 1 ) {
-						newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
-					} else {
-						newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
-					}
-				}
-
-				prop.uniqueindexes = newIndexDefinition;
-			}
-		}
-
-		arguments.meta.properties.site = arguments.meta.properties.site ?: {};
-
-		StructAppend( arguments.meta.properties.site, defaultConfiguration, false );
-
-		if ( not arguments.meta.propertyNames.find( "site" ) ) {
-			ArrayAppend( arguments.meta.propertyNames, "site" );
-		}
-
-		if ( not ListFindNoCase( arguments.meta.dbFieldList, "site" ) ) {
-			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "site" );
-		}
 	}
 
 	private string function _getSiteTemplateForObject( required string objectPath ) output=false {
@@ -436,6 +354,10 @@ component output=false singleton=true {
 		}
 
 		return ReReplaceNoCase( arguments.objectPath, regex, "\1" );
+	}
+
+	private any function _announceInterception() output=false {
+		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
 
 // GETTERS AND SETTERS
@@ -451,5 +373,12 @@ component output=false singleton=true {
 	}
 	private void function _setTablePrefix( required string tablePrefix ) output=false {
 		_tablePrefix = arguments.tablePrefix;
+	}
+
+	private any function _getInterceptorService() output=false {
+		return _interceptorService;
+	}
+	private void function _setInterceptorService( required any IiterceptorService ) output=false {
+		_interceptorService = arguments.IiterceptorService;
 	}
 }
