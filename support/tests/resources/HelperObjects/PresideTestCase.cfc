@@ -17,6 +17,20 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_getMockInterceptorService" access="public" returntype="any" output="false">
+		<cfscript>
+			var interceptor = getMockBox().createEmptyMock( "coldbox.system.web.services.InterceptorService" );
+
+			interceptor.$( "registerInterceptors", interceptor );
+			interceptor.$( "processState" );
+			interceptor.$( "registerInterceptor", interceptor );
+			interceptor.$( "appendInterceptionPoints", [] );
+			interceptor.$( "registerInterceptionPoint", interceptor );
+
+			return interceptor;
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_getTestLogger" access="private" returntype="any" output="false">
 		<cfargument name="logLevel" type="string" required="false" default="ERROR" />
 
@@ -28,11 +42,12 @@
 	</cffunction>
 
 	<cffunction name="_getPresideObjectService" access="private" returntype="any" output="false">
-		<cfargument name="objectDirectories" type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
-		<cfargument name="defaultPrefix"     type="string"  required="false" default="pobj_" />
-		<cfargument name="forceNewInstance"  type="boolean" required="false" default="false" />
-		<cfargument name="cachebox"          type="any"     required="false" />
-		<cfargument name="coldbox"           type="any"     required="false" />
+		<cfargument name="objectDirectories"  type="array"   required="false" default="#ListToArray( '/preside/system/preside-objects' )#" />
+		<cfargument name="defaultPrefix"      type="string"  required="false" default="pobj_" />
+		<cfargument name="forceNewInstance"   type="boolean" required="false" default="false" />
+		<cfargument name="interceptorService" type="any"    required="false" default="#_getMockInterceptorService()#" />
+		<cfargument name="cachebox"           type="any"     required="false" />
+		<cfargument name="coldbox"            type="any"     required="false" />
 
 		<cfscript>
 			var key = "_presideObjectService" & Hash( SerializeJson( arguments ) );
@@ -87,6 +102,7 @@
 					, objectCache            = cachebox.getCache( "SystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
 					, coldboxController      = coldbox
+					, interceptorService     = arguments.interceptorService
 					, reloadDb               = false
 				);
 			}

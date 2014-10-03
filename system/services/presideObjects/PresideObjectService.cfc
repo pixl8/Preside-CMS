@@ -18,6 +18,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @objectCache.inject            cachebox:SystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
+	 * @interceptorService.inject     coldbox:InterceptorService
 	 */
 	public any function init(
 		  required array   objectDirectories
@@ -30,6 +31,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any     objectCache
 		, required any     defaultQueryCache
 		, required any     coldboxController
+		, required any     interceptorService
 		,          boolean reloadDb = true
 	) output=false {
 		_setObjectDirectories( arguments.objectDirectories );
@@ -44,7 +46,9 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
 		_setCacheMaps( {} );
 		_setColdboxController( arguments.coldboxController );
+		_setInterceptorService( arguments.interceptorService );
 
+		_registerInterceptionPoints();
 		_loadObjects();
 
 		if ( arguments.reloadDb ) {
@@ -1926,6 +1930,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return newData;
 	}
 
+	private void function _registerInterceptionPoints() output=false {
+		_getInterceptorService().appendInterceptionPoints( customPoints=[ "preLoadPresideObject", "postLoadPresideObject" ] );
+	}
+
 // SIMPLE PRIVATE PROXIES
 	private any function _getAdapter() output=false {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
@@ -2018,6 +2026,13 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 	private void function _setColdboxController( required any coldboxController ) output=false {
 		_coldboxController = arguments.coldboxController;
+	}
+
+	private any function _getInterceptorService() output=false {
+		return _interceptorService;
+	}
+	private void function _setInterceptorService( required any IiterceptorService ) output=false {
+		_interceptorService = arguments.IiterceptorService;
 	}
 
 	private any function _getColdboxRequestContext() output=false {
