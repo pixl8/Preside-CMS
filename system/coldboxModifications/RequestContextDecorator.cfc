@@ -30,6 +30,20 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getSiteUrl" access="public" returntype="string" output="false">
+		<cfargument name="includePath" type="boolean" required="false" default="true" />
+		<cfscript>
+			var site    = getSite;
+			var siteUrl = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
+
+			if ( arguments.includePath ) {
+				siteUrl &= site.path ?: "/";
+			}
+
+			return siteUrl;
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getSiteId" access="public" returntype="string" output="false">
 		<cfscript>
 			var site = getSite();

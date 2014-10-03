@@ -39,7 +39,7 @@ component output=false {
 
 		args.target = args.target ?: link.target;
 
-		return renderView( view="/renderers/link/default", args=args );
+		return renderView( view=( args.view ?: "/renderers/link/default" ), args=args );
 	}
 
 // PRVATE HELPERS
