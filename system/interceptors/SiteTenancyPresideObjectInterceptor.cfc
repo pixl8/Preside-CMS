@@ -13,8 +13,28 @@ component extends="coldbox.system.Interceptor" output=false {
 		}
 	}
 
-// PRIVATE HELPERS
+	public void function prePrepareObjectFilter( event, interceptData ) output=false {
+		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
+			interceptData.extraFilters = interceptData.extraFilters ?: [];
+			interceptData.extraFilters.append( { filter = { site = event.getSiteId() } } );
+		}
+	}
 
+	public void function onCreateSelectDataCacheKey( event, interceptData ) output=false {
+		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
+			interceptData.cacheKey = interceptData.cacheKey ?: "";
+			interceptData.cacheKey &= "_" & event.getSiteId();
+		}
+	}
+
+	public void function preInsertObjectData( event, interceptData ) output=false {
+		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
+			interceptData.data      = interceptData.data      ?: {};
+			interceptData.data.site = interceptData.data.site ?: event.getSiteId();
+		}
+	}
+
+// PRIVATE HELPERS
 	private void function _injectSiteTenancyFields( required struct meta ) output=false {
 		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none" };
 		var indexNames           = [];
@@ -74,5 +94,17 @@ component extends="coldbox.system.Interceptor" output=false {
 		if ( not ListFindNoCase( arguments.meta.dbFieldList, "site" ) ) {
 			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "site" );
 		}
+	}
+
+	private boolean function _objectIsUsingSiteTenancy( required string objectName ) output=false {
+		var objService = getModel( "presideObjectService" );
+
+		if ( !objService.objectExists( arguments.objectName ) ) {
+			return false;
+		}
+
+		var usingSiteTenancy = objService.getObjectAttribute( arguments.objectName, "siteFiltered", false );
+
+		return IsBoolean( usingSiteTenancy ) && usingSiteTenancy;
 	}
 }

@@ -38,7 +38,7 @@ component output=false {
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
-			, customInterceptionPoints = [ "onBuildLink", "preLoadPresideObjects", "postLoadPresideObjects", "preLoadPresideObject", "postLoadPresideObject", "preReadPresideObject", "postReadPresideObject" ]
+			, customInterceptionPoints = [ "onBuildLink", "preLoadPresideObjects", "postLoadPresideObjects", "preLoadPresideObject", "postLoadPresideObject", "preReadPresideObject", "postReadPresideObject", "prePrepareObjectFilter", "onCreateSelectDataCacheKey", "preInsertObjectData" ]
 		};
 
 		cacheBox = {
