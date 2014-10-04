@@ -18,7 +18,16 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public void function translate( required string path, required any event ) output=false {
-		var translated = ReReplace( arguments.path, "^/", "" );
+		var site          = event.getSite();
+		var pathMinusSite = arguments.path;
+
+		if ( Len( site.path ?: "" ) > 1 ) {
+			pathMinusSite = Right( pathMinusSite, Len( pathMinusSite ) - Len( site.path ) );
+			if ( Left( pathMinusSite, 1 ) != "/" ) {
+				pathMinusSite = "/" & pathMinusSite;
+			}
+		}
+		var translated = ReReplace( pathMinusSite, "^/", "" );
 		    translated = Replace( translated, "/$", "" );
 		    translated = ListChangeDelims( translated, ".", "/" );
 
@@ -36,15 +45,16 @@ component implements="iRouteHandler" output=false singleton=true {
 	public string function build( required struct buildArgs, required any event ) output=false {
 		var site = event.getSite();
 		var root = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name ) & ( site.path ?: "/" );
-		var link = root & ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
+		var link = ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
 
+		root = ReReplace( root, "/$", "" );
 		link = ReReplaceNoCase( link, "index/$", "" );
 
 		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return link;
+		return root & "/" & link;
 	}
 
 // private getters and setters
