@@ -23,6 +23,7 @@
 			poService   = _getPresideObjectService( forceNewInstance=true, coldbox=mockColdbox );
 			var logger      = _getTestLogger();
 			var siteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
+			var emailService = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
 			var pageTypesService = new preside.system.services.pageTypes.PageTypesService( logger=logger, presideObjectService=poService, autoDiscoverDirectories=[ "/preside/system" ], siteService=SiteService );
 
 			loginService = new preside.system.services.admin.loginService(
@@ -31,6 +32,7 @@
 				, sessionService       = new preside.system.services.cfmlScopes.SessionService()
 				, bCryptService        = _getBCrypt()
 				, systemUserList       = "sysadmin"
+				, emailService         = emailService
 				, userDao              = poService.getObject( "security_user" )
 			);
 

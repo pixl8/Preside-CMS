@@ -166,6 +166,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var queryCache = "";
 		var cacheArgs  = { objectName=arguments.objectName };
 
+		_announceInterception( "preSelectObjectData", arguments );
+
 		if ( arguments.useCache ) {
 			queryCache = _getDefaultQueryCache();
 			cacheArgs.cachekey = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
@@ -254,6 +256,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, joinTargets  = joinTargets
 			);
 		}
+
+		var interceptionArgs        = arguments;
+		    interceptionArgs.result = result;
+
+		_announceInterception( "postSelectObjectData", interceptionArgs );
 
 		return result;
 	}
@@ -427,6 +434,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 	) output=false autodoc=true {
+		_announceInterception( "preUpdateObjectData", arguments );
+
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";
@@ -541,6 +550,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filterParams = preparedFilter.filterParams
 		);
 
+		var interceptionArgs        = arguments;
+		    interceptionArgs.result = result;
+		_announceInterception( "postUpdateObjectData", interceptionArgs );
+
 		return Val( result.recordCount ?: 0 );
 	}
 
@@ -590,6 +603,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          array   extraFilters   = []
 		,          boolean forceDeleteAll = false
 	) output=false autodoc=true {
+		_announceInterception( "preDeleteObjectData", arguments );
+
 		var obj            = _getObject( arguments.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
@@ -627,6 +642,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filter       = preparedFilter.filter
 			, filterParams = preparedFilter.filterParams
 		);
+
+		var interceptionArgs        = arguments;
+		    interceptionArgs.result = result;
+		_announceInterception( "postDeleteObjectData", interceptionArgs );
 
 		return Val( result.recordCount ?: 0 );
 	}
@@ -901,10 +920,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
 	 */
 	public void function dbSync() output=false autodoc=true {
+		_announceInterception( "preDbSyncObjects" );
+
 		_getSqlSchemaSynchronizer().synchronize(
 			  dsns    = _getAllDsns()
 			, objects = _getAllObjects()
 		);
+
+		_announceInterception( "postDbSyncObjects" );
 	}
 
 	/**
