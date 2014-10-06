@@ -24,7 +24,6 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 
 	property name="author"                           type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title"                    type="string"  dbtype="varchar" maxLength="100"  required=false;
-	property name="keywords"                         type="string"  dbtype="varchar" maxLength="255"  required=false;
 	property name="description"                      type="string"  dbtype="varchar" maxLength="255"  required=false;
 	property name="embargo_date"                     type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
 	property name="expiry_date"                      type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
