@@ -682,15 +682,15 @@
 	</cffunction>
 
 	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
-		<cfargument name="event"  type="any"    required="true" />
-		<cfargument name="rc"     type="struct" required="true" />
-		<cfargument name="prc"    type="struct" required="true" />
-		<cfargument name="object" type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="event"    type="any"    required="true" />
+		<cfargument name="rc"       type="struct" required="true" />
+		<cfargument name="prc"      type="struct" required="true" />
+		<cfargument name="object"   type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName" type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.quickadd";
-			var formData         = event.getCollectionForForm( formName );
- 			var validationResult = validateForm( formName=formName, formData=formData );
+			var formData         = event.getCollectionForForm( arguments.formName );
+			var validationResult = validateForm( formName=arguments.formName, formData=formData );
 
 			if ( validationResult.validated() ) {
 				var obj = presideObjectService.getObject( object );
