@@ -44,10 +44,33 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( svc.pageExists( "memberarea" ) );
 	}
 
+	function test06_getPageConfigFormName_shouldReturnDefaultFormOnly_whenNoSpecificFormExistsForThePageType() output=false {
+		var svc = _getService();
+		var testPage = "members.upgrade";
+
+		mockFormService.$( "formExists" ).$args( "application-pages.#testPage#" ).$results( false );
+
+		super.assertEquals( "application-pages.default", svc.getPageConfigFormName( id=testPage ) );
+	}
+
+	function test07_getPageConfigFormName_shouldReturnMergedFormName_whenCustomFormExistsForPage() output=false {
+		var svc                = _getService();
+		var testPage           = "members.upgrade";
+		var testMergedFormName = CreateUUId();
+
+		mockFormService.$( "formExists" ).$args( "application-pages.#testPage#" ).$results( true );
+		mockFormService.$( "getMergedFormName" ).$args( "application-pages.default", "application-pages.#testPage#" ).$results( testMergedFormName );
+
+		super.assertEquals( testMergedFormName, svc.getPageConfigFormName( id=testPage ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
+		mockFormService = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
+
 		return new preside.system.services.applicationPages.ApplicationPagesService(
-			configuredPages = arguments.config
+			  configuredPages = arguments.config
+			, formsService    = mockFormService
 		);
 	}
 

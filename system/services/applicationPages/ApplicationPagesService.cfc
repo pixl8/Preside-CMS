@@ -5,7 +5,13 @@
 component output=false autodoc=true {
 
 // CONSTRUCTOR
-	public any function init( required struct configuredPages ) output=false {
+	/**
+	 * @formsService.inject formsService
+	 * @configuredPages.inject coldbox:setting:applicationPages
+	 *
+	 */
+	public any function init( required any formsService, required struct configuredPages ) output=false {
+		_setFormsService( arguments.formsService );
 		_setConfiguredPages( arguments.configuredPages );
 		_processConfiguredPages();
 
@@ -44,6 +50,23 @@ component output=false autodoc=true {
 		return _getConfiguredPages().keyExists( arguments.id );
 	}
 
+	/**
+	 * Returns the name of the form to use for configuring a given application page
+	 *
+	 * @id.hint ID of the page who's configuration form name we wish to retrieve
+	 */
+	public string function getPageConfigFormName( required string id ) output=false autodoc=true {
+		var formsService = _getFormsService();
+		var defaultFormName = "application-pages.default";
+		var customFormName  = "application-pages.#arguments.id#";
+
+		if ( formsService.formExists( customFormName ) ) {
+			return formsService.getMergedFormName( defaultFormName, customFormName );
+		}
+
+		return defaultFormName;
+	}
+
 
 // PRIVATE HELPERS
 	private void function _processConfiguredPages() output=false {
@@ -73,6 +96,13 @@ component output=false autodoc=true {
 	}
 	private void function _setConfiguredPages( required struct configuredPages ) output=false {
 		_configuredPages = arguments.configuredPages;
+	}
+
+	private any function _getFormsService() output=false {
+		return _formsService;
+	}
+	private void function _setFormsService( required any formsService ) output=false {
+		_formsService = arguments.formsService;
 	}
 
 }
