@@ -179,3 +179,44 @@ The core view looks like this:
         </cfloop>
     </cfoutput>
 
+Crumbtrail
+##########
+
+The crumbtrail is the simplest of all the viewlets and is implemented as two methods in the request context and as a viewlet with just a view (feel free to add your own handler if you need one).
+
+The view looks like this:
+
+.. code-block:: cfm
+
+    <!--- /preside/system/views/core/navigation/breadCrumbs.cfm --->
+    <cfset crumbs = event.getBreadCrumbs() />
+    <cfoutput>
+        <cfloop array="#crumbs#" index="i" item="crumb">
+            <cfset last = i eq crumbs.len() />
+
+            <li class="<cfif last>active</cfif>">
+                <cfif last>
+                    #crumb.title#
+                <cfelse>
+                    <a href="#crumb.link#">#crumb.title#</a>
+                </cfif>
+            </li>
+        </cfloop>
+    </cfoutput>
+
+.. note::
+
+    Note that again we are only outputting the :code:`<li>` tags in the core view, leaving you free to implement your own list wrapper HTML.
+
+Request context helper methods
+------------------------------
+
+There are two helper methods available to you in the request context, :code:`event.getBreadCrumbs()` and `event.addBreadCrumb( title, link )`. 
+
+The :code:`getBreadCrumbs()` method returns an array of the breadcrumbs that have been registered for the request. Each breadcrumb is a structure containing :code:`title` and :code:`link` keys.
+
+The :code:`addBreadCrumb()` method allows you to append a breadcrumb item to the current stack. It requires you to pass both a title and a link for the breadcrumb item.
+
+.. note::
+
+    The core site tree page handler will automatically register the breadcrumbs for the current page.
