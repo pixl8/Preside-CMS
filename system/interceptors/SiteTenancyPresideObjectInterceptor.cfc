@@ -6,7 +6,8 @@ component extends="coldbox.system.Interceptor" output=false {
 	public void function postReadPresideObject( event, interceptData ) output=false {
 		var objectMeta = interceptData.objectMeta ?: {};
 
-		objectMeta.siteFiltered = objectMeta.siteFiltered ?: false;
+		objectMeta.siteTemplates = objectMeta.siteTemplates ?: _getSiteTemplateForObject( objectMeta.name );
+		objectMeta.siteFiltered  = objectMeta.siteFiltered ?: false;
 
 		if ( objectMeta.siteFiltered ) {
 			_injectSiteTenancyFields( objectMeta );
@@ -35,6 +36,28 @@ component extends="coldbox.system.Interceptor" output=false {
 	}
 
 // PRIVATE HELPERS
+	private string function _getSiteTemplateForObject( required string objectPath ) output=false {
+		var regex = "^.*?\.site-templates\.([^\.]+)\.preside-objects\..+$";
+
+		if ( !ReFindNoCase( regex, arguments.objectPath ) ) {
+			return "*";
+		}
+
+		return ReReplaceNoCase( arguments.objectPath, regex, "\1" );
+	}
+
+	private boolean function _objectIsUsingSiteTenancy( required string objectName ) output=false {
+		var objService = getModel( "presideObjectService" );
+
+		if ( !objService.objectExists( arguments.objectName ) ) {
+			return false;
+		}
+
+		var usingSiteTenancy = objService.getObjectAttribute( arguments.objectName, "siteFiltered", false );
+
+		return IsBoolean( usingSiteTenancy ) && usingSiteTenancy;
+	}
+
 	private void function _injectSiteTenancyFields( required struct meta ) output=false {
 		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none" };
 		var indexNames           = [];
@@ -94,17 +117,5 @@ component extends="coldbox.system.Interceptor" output=false {
 		if ( not ListFindNoCase( arguments.meta.dbFieldList, "site" ) ) {
 			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "site" );
 		}
-	}
-
-	private boolean function _objectIsUsingSiteTenancy( required string objectName ) output=false {
-		var objService = getModel( "presideObjectService" );
-
-		if ( !objService.objectExists( arguments.objectName ) ) {
-			return false;
-		}
-
-		var usingSiteTenancy = objService.getObjectAttribute( arguments.objectName, "siteFiltered", false );
-
-		return IsBoolean( usingSiteTenancy ) && usingSiteTenancy;
 	}
 }

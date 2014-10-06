@@ -31,7 +31,6 @@ component output=false singleton=true {
 		meta.properties    = meta.properties    ?: StructNew();
 		meta.dbFieldList   = meta.dbFieldList   ?: "";
 		meta.propertyNames = meta.propertyNames ?: ArrayNew(1);
-		meta.siteTemplates = meta.siteTemplates ?: _getSiteTemplateForObject( meta.name );
 
 		_announceInterception( "postReadPresideObject", { objectMeta=meta } );
 
@@ -344,16 +343,6 @@ component output=false singleton=true {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "label";
 		}
 		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
-	}
-
-	private string function _getSiteTemplateForObject( required string objectPath ) output=false {
-		var regex = "^.*?\.site-templates\.([^\.]+)\.preside-objects\..+$";
-
-		if ( !ReFindNoCase( regex, arguments.objectPath ) ) {
-			return "*";
-		}
-
-		return ReReplaceNoCase( arguments.objectPath, regex, "\1" );
 	}
 
 	private any function _announceInterception() output=false {
