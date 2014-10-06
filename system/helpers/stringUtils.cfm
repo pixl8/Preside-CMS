@@ -65,8 +65,8 @@
 
 	<cfscript>
 		if( Len( Trim( arguments.stringValue ) ) > 0 ){
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	</cfscript>
 </cffunction>
