@@ -24,8 +24,11 @@ component output=false {
 
 		var rootPageId = activeTree[ startLevel ] ?: activeTree[ 1 ];
 		var ancestors  = event.getPageProperty( "ancestors" );
-		if ( ancestors.len() gte startLevel ){
+
+		if ( ancestors.len() >= startLevel ){
 			args.rootTitle = Len( Trim( ancestors[ startLevel ].navigation_title ?: "" ) ) ? ancestors[ startLevel ].navigation_title : ancestors[ startLevel ].title;
+		} elseif( ( event.getPageProperty( "_hierarchy_depth", 0 ) + 1 ) == startLevel ) {
+			args.rootTitle = Len( Trim( event.getPageProperty( "navigation_title", "" ) ) ) ? event.getPageProperty( "navigation_title", "" ) : event.getPageProperty( "title", "" );
 		} else {
 			args.rootTitle = "";
 		}
