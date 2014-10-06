@@ -6,6 +6,8 @@ component output=false {
 	property name="websiteLoginService"      inject="websiteLoginService";
 
 	public function index( event, rc, prc ) output=false {
+		announceInterception( "preRenderSiteTreePage" );
+
 		event.initializePresideSiteteePage(
 			  slug      = ( prc.slug      ?: "/" )
 			, subAction = ( prc.subAction ?: "" )
@@ -58,5 +60,7 @@ component output=false {
 		}
 
 		event.setView( "/core/simpleBodyRenderer" );
+
+		announceInterception( "postRenderSiteTreePage" );
 	}
 }

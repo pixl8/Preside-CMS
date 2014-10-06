@@ -1226,7 +1226,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		objects = _mergeObjects( objects );
 
-		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 
 		if ( StructCount( objects ) ) {
 			_getRelationshipGuidance().setupRelationships( objects );
@@ -1235,6 +1234,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		cache.set( "PresideObjectService: objects", objects );
 		cache.set( "PresideObjectService: dsns"   , StructKeyArray( dsns ) );
+
+		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 	}
 
 	private struct function _mergeObjects( required struct unMergedObjects ) output=false {

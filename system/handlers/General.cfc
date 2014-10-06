@@ -12,10 +12,6 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			if ( _presideEventsSystemIsEnabled() ) {
-				_registerPresideListeners();
-			}
-
 			_autoRegisterPresideObjectValidators();
 
 			prc._presideReloaded = true;
@@ -67,73 +63,6 @@
 	</cffunction>
 
 <!--- private helpers --->
-	<cffunction name="_registerPresideListeners" access="private" returntype="void" output="false">
-		<cfscript>
-			var listeners = getSetting( name="event_listeners", defaultValue=ArrayNew(1) );
-			var i         = 0;
-
-// TODO, replace this bad boy listener system with coldbox events			application.obj.presideevents.setBeanFactory( application.beanFactory );
-/*
-			_registerPresideListener({
-				  events             = "on_after_flush"
-				, eventSources       = "sitetree"
-				, listenerBean       = "siteTreeService"
-				, listenerMethod     = "clearCache"
-				, propagateToCluster = true
-			});
-
-			for( i=1; i lte ArrayLen( listeners ); i++ ) {
-				_registerPresideListener( listeners[i] );
-
-			}
-*/
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="_registerPresideListener" access="private" returntype="void" output="false">
-		<cfargument name="listenerConfig" type="struct" required="true" />
-
-		<cfparam name="arguments.listenerConfig.events"             default="" />
-		<cfparam name="arguments.listenerConfig.eventSources"       default="" />
-		<cfparam name="arguments.listenerConfig.listenerBean"       default="" />
-		<cfparam name="arguments.listenerConfig.listenerMethod"     default="" />
-		<cfparam name="arguments.listenerConfig.propagateToCluster" default="true" />
-
-		<cfscript>
-			var sources = ListToArray( Trim( arguments.listenerConfig.eventSources ) );
-			var events  = ListToArray( Trim( arguments.listenerConfig.events ) );
-			var i       = 0;
-			var n       = 0;
-			var validListener = ( ArrayLen( sources ) and ArrayLen( events ) and Len( Trim( arguments.listenerConfig.listenerBean ) ) );
-
-			if ( not validListener ) {
-				throw( type="preside.invalidListenerConfig", message="Listener configurations require a non-empty 'events', 'eventSources' and 'listenerBean' attribute." );
-			}
-
-			if ( not beanExists( arguments.listenerConfig.listenerBean ) ) {
-				throw( type="preside.invalidListenerConfig", message="A listener was configured to use the coldspring bean, '#arguments.listenerConfig.listenerBean#'. However, no bean with that id exists." );
-			}
-
-			for( i=1; i lte ArrayLen( events ); i++ ){
-				for( n=1; n lte ArrayLen( sources ); n++ ){
-					application.obj.presideevents.addListener(
-						  event              = events[i]
-						, eventSource        = sources[n]
-						, listenerId         = Hash( events[i] & sources[n] & arguments.listenerConfig.listenerBean & arguments.listenerConfig.listenerMethod )
-						, listenerObject     = arguments.listenerConfig.listenerBean
-						, listenerMethod     = Len( Trim( arguments.listenerConfig.listenerMethod ) ) ? arguments.listenerConfig.listenerMethod : events[i]
-						, useBeanFactory     = true
-						, propagateToCluster = arguments.listenerConfig.propagateToCluster
-					);
-				}
-			}
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="_presideEventsSystemIsEnabled" access="private" returntype="boolean" output="false">
-		<cfreturn IsDefined( 'application.obj.presideevents' ) /><!--- refactor some day please! --->
-	</cffunction>
-
 	<cffunction name="_autoRegisterPresideObjectValidators" access="private" returntype="void" output="false">
 		<cfscript>
 			var objects = presideObjectService.listObjects();
@@ -236,9 +165,6 @@
 			}
 
 			if ( anythingReloaded ) {
-				if ( _presideEventsSystemIsEnabled() ) {
-					_registerPresideListeners();
-				}
 				_autoRegisterPresideObjectValidators();
 			}
 		</cfscript>
