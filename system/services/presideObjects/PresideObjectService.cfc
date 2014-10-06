@@ -1885,21 +1885,20 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		if ( IsStruct( result.filter ) && arguments.extraFilters.len() ) {
 			result.filterParams = result.filter;
-
-			for( var extraFilter in arguments.extraFilters ){
-				extraFilter.filter       = extraFilter.filter       ?: {};
-				extraFilter.filterParams = extraFilter.filterParams ?: {};
-
-				result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
-				result.filter = _mergeFilters(
-					  filter1    = result.filter
-					, filter2    = extraFilter.filter
-					, dbAdapter  = arguments.adapter
-					, tableAlias = arguments.objectName
-				);
-			}
 		}
 
+		for( var extraFilter in arguments.extraFilters ){
+			extraFilter.filter       = extraFilter.filter       ?: {};
+			extraFilter.filterParams = extraFilter.filterParams ?: {};
+
+			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
+			result.filter = _mergeFilters(
+				  filter1    = result.filter
+				, filter2    = extraFilter.filter
+				, dbAdapter  = arguments.adapter
+				, tableAlias = arguments.objectName
+			);
+		}
 
 		if ( IsStruct( result.filter ) ) {
 			result.params = _convertDataToQueryParams(
