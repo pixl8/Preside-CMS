@@ -6,12 +6,13 @@ component output=false autodoc=true {
 
 // CONSTRUCTOR
 	/**
-	 * @formsService.inject formsService
+	 * @formsService.inject    formsService
+	 * @pageConfigDao.inject   presidecms:object:application_page_config
 	 * @configuredPages.inject coldbox:setting:applicationPages
-	 *
 	 */
-	public any function init( required any formsService, required struct configuredPages ) output=false {
+	public any function init( required any formsService, required any pageConfigDao, required struct configuredPages ) output=false {
 		_setFormsService( arguments.formsService );
+		_setPageConfigDao( arguments.pageConfigDao );
 		_setConfiguredPages( arguments.configuredPages );
 		_processConfiguredPages();
 
@@ -67,6 +68,35 @@ component output=false autodoc=true {
 		return defaultFormName;
 	}
 
+	/**
+	 * Returns the stored page configuration for the given page merged
+	 * with any defaults saved in the form definition of the page
+	 *
+	 * @id.hint ID of the page who's config we wish to get
+	 */
+	public struct function getPageConfiguration( required string id ) output=false autodoc=true {
+		var formName     = getPageConfigFormName( arguments.id );
+		var formFields   = _getFormsService().listFields( formName );
+		var config       = {};
+		var storedConfig = _getPageConfigDao().selectData(
+			  selectFields = [ "setting_name", "value" ]
+			, filter       = { setting_name=formFields, page_id=arguments.id }
+		);
+
+		for( var setting in storedConfig ){
+			config[ setting.setting_name ] = setting.value;
+		}
+
+		for( var setting in formFields ) {
+			if ( !config.keyExists( setting ) || !Len( Trim( config[ setting ] ) ) ) {
+				var fieldDefinition = _getFormsService().getFormField( formName, setting );
+				config[ setting ] = fieldDefinition.default ?: "";
+			}
+		}
+
+		return config;
+	}
+
 
 // PRIVATE HELPERS
 	private void function _processConfiguredPages() output=false {
@@ -103,6 +133,13 @@ component output=false autodoc=true {
 	}
 	private void function _setFormsService( required any formsService ) output=false {
 		_formsService = arguments.formsService;
+	}
+
+	private any function _getPageConfigDao() output=false {
+		return _pageConfigDao;
+	}
+	private void function _setPageConfigDao( required any PpgeConfigDao ) output=false {
+		_pageConfigDao = arguments.PpgeConfigDao;
 	}
 
 }

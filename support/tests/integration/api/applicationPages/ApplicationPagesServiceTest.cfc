@@ -64,14 +64,42 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( testMergedFormName, svc.getPageConfigFormName( id=testPage ) );
 	}
 
+	function test08_getPageConfiguration_shouldReturnStructOfDataSpecifiedByConfigFormFromStoredConfigurationAndFormFieldDefaults() output=false {
+		var svc            = _getService();
+		var testPage       = CreateUUId();
+		var testFormName   = CreateUUId();
+		var testFormFields = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+		var testValues     = { "#testFormFields[1]#" = CreateUUId(), "#testFormFields[3]#" = CreateUUId() };
+		var testDefault    = CreateUUId();
+		var testDbResult   = QueryNew( "setting_name,value", "varchar,varchar", [[ testFormFields[1], testValues[ testFormFields[1] ] ],[ testFormFields[3], testValues[ testFormFields[3] ] ] ] );
+		var expected       = {
+			  "#testFormFields[1]#" = testValues[ testFormFields[1] ]
+			, "#testFormFields[2]#" = testDefault
+			, "#testFormFields[3]#" = testValues[ testFormFields[3] ]
+		};
+
+		svc.$( "getPageConfigFormName" ).$args( testPage ).$results( testFormName );
+		mockFormService.$( "listFields" ).$args( testFormName ).$results( testFormFields );
+		mockFormService.$( "getFormField" ).$args( testFormName, testFormFields[2] ).$results( { default=testDefault } );
+		mockConfigStoreDao.$( "selectData" ).$args(
+			  filter       = { page_id=testPage, setting_name=testFormFields }
+			, selectFields = [ "setting_name", "value" ]
+		).$results( testDbResult );
+
+
+		super.assertEquals( expected, svc.getPageConfiguration( testPage ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
-		mockFormService = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockFormService    = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockConfigStoreDao = getMockBox().createStub();
 
-		return new preside.system.services.applicationPages.ApplicationPagesService(
+		return getMockBox().createMock( object = new preside.system.services.applicationPages.ApplicationPagesService(
 			  configuredPages = arguments.config
 			, formsService    = mockFormService
-		);
+			, pageConfigDao   = mockConfigStoreDao
+		) );
 	}
 
 	private struct function _getDefaultTestApplicationPageConfiguration() output=false {
