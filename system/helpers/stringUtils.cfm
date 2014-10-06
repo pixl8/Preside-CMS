@@ -58,3 +58,15 @@
 	</cfscript>
 
 </cffunction>
+
+
+<cffunction name="isEmptyString" access="public" returntype="boolean" output="false">
+	<cfargument name="stringValue" type="string" required="true" />
+
+	<cfscript>
+		if( Len( Trim( arguments.stringValue ) ) > 0 ){
+			return true;
+		}
+		return false;
+	</cfscript>
+</cffunction>
