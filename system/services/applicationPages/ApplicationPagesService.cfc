@@ -20,6 +20,21 @@ component output=false autodoc=true {
 		return _getConfiguredPages().keyArray();
 	}
 
+	/**
+	 * Returns configured details of the page referred to in the passed 'id' argument
+	 *
+	 * @id.hint ID of the page who's details you wish to retrieve
+	 *
+	 */
+	public struct function getPage( required string id ) output=false autodoc=true {
+		var pages = _getConfiguredPages();
+
+		return pages[ arguments.id ] ?: throw(
+			  type    = "ApplicationPagesService.page.notFound"
+			, message = "The application page, [#arguments.id#], is not registered with the system."
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _processConfiguredPages() output=false {
 		var configuredPages = _getConfiguredPages();
