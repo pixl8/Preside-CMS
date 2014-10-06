@@ -35,6 +35,16 @@ component output=false autodoc=true {
 		);
 	}
 
+	/**
+	 * Returns whether or not the passed in page is registered with the system
+	 *
+	 * @id.hint ID of the page that we wish to check
+	 */
+	public boolean function pageExists( required string id ) output=false autodoc=true {
+		return _getConfiguredPages().keyExists( arguments.id );
+	}
+
+
 // PRIVATE HELPERS
 	private void function _processConfiguredPages() output=false {
 		var configuredPages = _getConfiguredPages();

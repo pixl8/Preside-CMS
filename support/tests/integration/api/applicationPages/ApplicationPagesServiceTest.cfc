@@ -34,6 +34,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( errorThrown, "An informative error was not thrown" );
 	}
 
+	function test04_pageExists_shouldReturnFalse_whenPageIsNotConfigured() output=false {
+		var svc = _getService();
+		super.assertFalse( svc.pageExists( id="some.page" ) );
+	}
+
+	function test05_pageExists_shouldReturnTrue_whenPageIsConfigured() output=false {
+		var svc = _getService();
+		super.assert( svc.pageExists( "memberarea" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
 		return new preside.system.services.applicationPages.ApplicationPagesService(
