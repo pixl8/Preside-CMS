@@ -188,24 +188,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="notFound" access="public" returntype="void" output="false">
-		<cfscript>
-			announceInterception( "onNotFound" );
-			getController().runEvent( "general.notFound" );
-			content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="accessDenied" access="public" returntype="void" output="false">
-		<cfargument name="reason" type="string" required="true" />
-
-		<cfscript>
-			announceInterception( "onAccessDenied" , arguments );
-			getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments } );
-			WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="audit" access="public" returntype="void" output="false">
 		<cfscript>
 			arguments.userId = getAdminUserDetails().userId;
@@ -358,8 +340,10 @@
 			}
 
 			for( var ancestor in ancestors ) {
+				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
 				page.ancestors.append( ancestor );
 			}
+			addBreadCrumb( title=page.title, link=buildLink( page=page.id ) );
 
 			page.isInDateAndActive = isActive( argumentCollection = page );
 			if ( page.isInDateAndActive ) {
@@ -435,6 +419,42 @@
 
 	<cffunction name="getPagePermissionContext" access="public" returntype="array" output="false">
 		<cfreturn getPageProperty( "permissionContext", [] ) />
+	</cffunction>
+
+	<cffunction name="addBreadCrumb" access="public" returntype="void" output="false">
+		<cfargument name="title" type="string" required="true" />
+		<cfargument name="link"  type="string" required="true" />
+
+		<cfscript>
+			var crumbs = getBreadCrumbs();
+
+			ArrayAppend( crumbs, { title=arguments.title, link=arguments.link } );
+
+			getRequestContext().setValue( name="_breadCrumbs", value=crumbs, private=true );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="getBreadCrumbs" access="public" returntype="array" output="false">
+		<cfreturn getRequestContext().getValue( name="_breadCrumbs", defaultValue=[], private=true ) />
+	</cffunction>
+
+<!--- status codes --->
+	<cffunction name="notFound" access="public" returntype="void" output="false">
+		<cfscript>
+			announceInterception( "onNotFound" );
+			getController().runEvent( "general.notFound" );
+			content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="accessDenied" access="public" returntype="void" output="false">
+		<cfargument name="reason" type="string" required="true" />
+
+		<cfscript>
+			announceInterception( "onAccessDenied" , arguments );
+			getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments } );
+			WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		</cfscript>
 	</cffunction>
 
 <!--- private helpers --->
