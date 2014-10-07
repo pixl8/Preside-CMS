@@ -25,7 +25,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function index( event, rc, prc ) output=false {
 		prc.activeTree          = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
-		prc.applicationPageTree = applicationPagesService.getTree();
+
+		if ( hasCmsPermission( "applicationPages.navigate" ) ) {
+			prc.applicationPageTree = applicationPagesService.getTree();
+		}
 	}
 
 	public void function trash( event, rc, prc ) output=false {
@@ -224,7 +227,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
 
-		// _checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="edit", prefix="applicationPages." );
 
 		if ( !applicationPagesService.pageExists( pageId ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.application.page.not.found.error" ) );
@@ -247,7 +250,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function editApplicationPageAction( event, rc, prc ) output=false {
-		// _checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="edit", prefix="applicationPages." );
 
 		var pageId = rc.id ?: "";
 		if ( !applicationPagesService.pageExists( pageId ) ) {
@@ -500,9 +503,9 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 
 <!--- private helpers --->
-	private void function _checkPermissions( event, rc, prc, required string key, string pageId="" ) output=false {
+	private void function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree." ) output=false {
 		var permitted = "";
-		var permKey   = "sitetree." & arguments.key;
+		var permKey   = arguments.prefix & arguments.key;
 
 		if ( Len( Trim( arguments.pageId ) ) ) {
 			permitted = hasCmsPermission( permissionKey=permKey, context="page", contextKeys=_getPagePermissionContext( argumentCollection=arguments ) );
