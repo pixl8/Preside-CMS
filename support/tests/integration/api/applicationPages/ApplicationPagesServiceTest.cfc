@@ -117,6 +117,48 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, result );
 	}
 
+	function test10_savePageConfiguration_shouldSaveAllPageConfigurationSettings() output=false {
+		var svc        = _getService();
+		var testPage   = "memberarea.upgrade";
+		var testConfig = {
+			  setting_a = "value_a"
+			, setting_b = "value_b"
+			, setting_c = "value_c"
+			, setting_d = "value_d"
+			, setting_e = "value_e"
+		};
+		var testExistingConfig = {
+			  setting_b = "old_value_b"
+			, setting_e = "old_value_e"
+		};
+
+		svc.$( "getPageConfiguration", testExistingConfig );
+
+		mockConfigStoreDao.$( "updateData" ).$args(
+			  filter = { page_id=testPage, setting_name="setting_b" }
+			, data   = { value=testConfig.setting_b }
+		);
+		mockConfigStoreDao.$( "updateData" ).$args(
+			  filter = { page_id=testPage, setting_name="setting_e" }
+			, data   = { value=testConfig.setting_e }
+		);
+		mockConfigStoreDao.$( "insertData" ).$args(
+			data = { page_id=testPage, setting_name="setting_a", value=testConfig.setting_a }
+		);
+		mockConfigStoreDao.$( "insertData" ).$args(
+			data = { page_id=testPage, setting_name="setting_c", value=testConfig.setting_c }
+		);
+		mockConfigStoreDao.$( "insertData" ).$args(
+			data = { page_id=testPage, setting_name="setting_d", value=testConfig.setting_d }
+		);
+
+		svc.savePageConfiguration( id=testPage, config=testConfig );
+
+		super.assertEquals( 2, mockConfigStoreDao.$callLog().updateData.len() );
+		super.assertEquals( 3, mockConfigStoreDao.$callLog().insertData.len() );
+
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
 		mockFormService    = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );

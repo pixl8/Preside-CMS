@@ -107,6 +107,41 @@ component output=false autodoc=true {
 		return config;
 	}
 
+	/**
+	 * Saves the passed page configuration to the database
+	 *
+	 * @id.hint     ID of the page who's config we are saving
+	 * @config.hint Structure of configuration data
+	 */
+	public void function savePageConfiguration( required string id, required struct config ) output=false autodoc=true {
+		transaction {
+			var existingConfig = getPageConfiguration( arguments.id );
+			var dao            = _getPageConfigDao();
+
+			for( var setting in arguments.config ){
+				if ( !Len( Trim( arguments.config[ setting ] ) ) ) {
+					dao.deleteData( filter = { page_id = arguments.id, setting_name = setting } );
+					continue;
+				}
+
+				if ( existingConfig.keyExists( setting ) && Len( Trim( existingConfig[ setting ] ) ) ) {
+					dao.updateData(
+						  filter = { page_id = arguments.id, setting_name = setting }
+						, data   = { value = arguments.config[ setting ] }
+					);
+				} else {
+					dao.insertData( data={
+						  page_id      = arguments.id
+						, setting_name = setting
+						, value        = arguments.config[ setting ]
+					} );
+				}
+			}
+		}
+
+		return;
+	}
+
 
 // PRIVATE HELPERS
 	private void function _processConfiguredPages() output=false {

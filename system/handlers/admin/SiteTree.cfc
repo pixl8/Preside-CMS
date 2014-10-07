@@ -246,6 +246,32 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function editApplicationPageAction( event, rc, prc ) output=false {
+		// _checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
+
+		var pageId = rc.id ?: "";
+		if ( !applicationPagesService.pageExists( pageId ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.application.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		var formName          = applicationPagesService.getPageConfigFormName( pageId );
+		var formData          = event.getCollectionForForm( formName );
+		var validationResult  = validateForm( formName=formName, formData=formData );
+
+		if ( not validationResult.validated() ) {
+			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			var persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editApplicationPage", querystring="id=#pageId#" ), persistStruct=persist );
+		}
+
+		applicationPagesService.savePageConfiguration( id=pageId, config=formData );
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+	}
+
 	public void function trashPageAction( event, rc, prc ) output=false {
 		var pageId  = event.getValue( "id", "" );
 
