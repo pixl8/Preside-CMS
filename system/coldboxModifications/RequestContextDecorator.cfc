@@ -373,7 +373,21 @@
 			p[ "slug" ] = p._hierarchy_slug;
 			StructDelete( p, "_hierarchy_slug" );
 
+			page.isApplicationPage = false;
+
 			prc.presidePage = page;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="initializeApplicationPage" access="public" returntype="void" output="false">
+		<cfargument name="pageConfiguration" type="struct" required="true" />
+
+		<cfscript>
+			var prc = getRequestContext().getCollection( private = true );
+
+			prc.presidePage = arguments.pageConfiguration;
+			prc.presidePage.ancestors = []; // todo, fix this + crumbtrail
+			prc.presidePage.isApplicationPage = true;
 		</cfscript>
 	</cffunction>
 
@@ -388,6 +402,10 @@
 
 			if ( StructIsEmpty( page ) ) {
 				return arguments.defaultValue;
+			}
+
+			if ( IsBoolean( page.isApplicationPage ?: "" ) && page.isApplicationPage ) {
+				return page[ arguments.propertyName ] ?: arguments.defaultValue;
 			}
 
 			return getModel( "sitetreeService" ).getPageProperty(
