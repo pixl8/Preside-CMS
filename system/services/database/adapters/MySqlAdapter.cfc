@@ -358,15 +358,7 @@ component output=false singleton=true {
 			sql &= delim & " " & escapeEntity( entity );
 
 			if ( IsArray( arguments.filter[ col ] ) ) {
-				sql &= " in (";
-				for( n=1; n lte ArrayLen( arguments.filter[ col ] ); n++ ){
-					if ( n gt 1 ){
-						sql &= ",";
-					}
-					sql &= " :" & paramName & "__#n#";
-				}
-
-				sql &= " )";
+				sql &= " in ( :" & paramName & " )";
 			} else {
 				sql &= " = :" & paramName;
 			}

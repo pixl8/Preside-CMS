@@ -1342,15 +1342,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 				ArrayAppend( params, param );
 			} else if ( IsArray( arguments.data[ key ] ) ) {
-				for( i=1; i lte ArrayLen(  arguments.data[ key ] ); i++ ){
-					param = {
-						  name  = paramName & "__" & i
-						, value = arguments.data[ key ][ i ]
-						, type  = dataType
-					};
+				param = {
+					  name  = paramName
+					, value = ArrayToList( arguments.data[ key ] )
+					, type  = dataType
+					, list  = true
+				};
 
-					ArrayAppend( params, param );
-				}
+				ArrayAppend( params, param );
 
 			} else {
 				param = {

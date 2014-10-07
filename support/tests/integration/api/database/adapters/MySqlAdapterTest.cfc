@@ -614,7 +614,7 @@
 	<cffunction name="test30_getClauseSql_shouldUse_IN_syntax_whenValueIsAnArray" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter();
-			var expected = " where `some_col` in ( :some_col__1, :some_col__2, :some_col__3, :some_col__4 )"
+			var expected = " where `some_col` in ( :some_col )"
 			var result = adapter.getClauseSql( filter={
 				  some_col = [ "blah", "yeah", "fubar", "test" ]
 			} );
