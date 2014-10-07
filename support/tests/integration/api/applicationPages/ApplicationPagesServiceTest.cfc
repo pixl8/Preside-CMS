@@ -171,6 +171,40 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( "memberarea.editprofile", svc.getPageIdByHandler( "test.editprofile" ) );
 	}
 
+	function test13_getAncestors_shouldReturnEmptyArray_whenPageDoesNotExist() output=false {
+		var svc = _getService();
+
+		super.assertEquals( [], svc.getAncestors( id="some.nonexistant.page" ) );
+	}
+
+	function test14_getAncestors_shouldReturnEmptyArray_whenPageHasNoAncestors() output=false {
+		var svc = _getService();
+
+		super.assertEquals( [], svc.getAncestors( id="memberarea" ) );
+	}
+
+	function test14_getAncestors_shouldReturnArrayOfPagesThatAreAncestorsOfThePassedInPage() output=false {
+		var svc                       = _getService();
+		var dummyLoginConfig          = { test="test login"  };
+		var dummyForgotPasswordConfig = { test="test forgot" };
+		var expected                  = [{
+			  id      = "login.forgotPassword"
+			, handler = "login.forgotPassword"
+			, config  = dummyForgotPasswordConfig
+		},{
+			  id      = "login"
+			, handler = "login"
+			, config  = dummyLoginConfig
+		}]
+
+		svc.$( "getPageConfiguration" ).$args( "login"                ).$results( dummyLoginConfig          );
+		svc.$( "getPageConfiguration" ).$args( "login.forgotPassword" ).$results( dummyForgotPasswordConfig );
+
+		var actual = svc.getAncestors( id="login.forgotPassword.resetPassword" );
+
+		super.assertEquals( expected, actual );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
 		mockFormService    = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );

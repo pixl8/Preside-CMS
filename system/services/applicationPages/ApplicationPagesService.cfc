@@ -159,6 +159,32 @@ component output=false autodoc=true {
 		return;
 	}
 
+	/**
+	 * Gets all the ancestors of the given page, including their configuration
+	 *
+	 */
+	public array function getAncestors( required string id ) output=false {
+		if ( !pageExists( arguments.id ) ) {
+			return [];
+		}
+
+		var ancestors = [];
+		var parentId = arguments.id;
+
+		while( ListLen( parentId, "." ) > 1 ){
+			parentId = ListDeleteAt( parentId, ListLen( parentId, "." ), "." );
+
+			var parent = Duplicate( getPage( parentId ) );
+
+			parent.id     = parentId;
+			parent.config = getPageConfiguration( parentId );
+
+			ancestors.append( parent );
+		}
+
+		return ancestors;
+	}
+
 
 // PRIVATE HELPERS
 	private void function _processConfiguredPages() output=false {
