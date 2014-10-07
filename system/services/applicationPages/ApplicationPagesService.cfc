@@ -75,6 +75,7 @@ component output=false autodoc=true {
 	 * @id.hint ID of the page who's config we wish to get
 	 */
 	public struct function getPageConfiguration( required string id ) output=false autodoc=true {
+		var page         = getPage( arguments.id );
 		var formName     = getPageConfigFormName( arguments.id );
 		var formFields   = _getFormsService().listFields( formName );
 		var config       = {};
@@ -93,6 +94,8 @@ component output=false autodoc=true {
 				config[ setting ] = fieldDefinition.default ?: "";
 			}
 		}
+
+		config.append( ( page.defaults ?: {} ), false );
 
 		return config;
 	}

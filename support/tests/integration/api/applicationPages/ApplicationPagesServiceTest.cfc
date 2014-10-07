@@ -64,9 +64,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( testMergedFormName, svc.getPageConfigFormName( id=testPage ) );
 	}
 
-	function test08_getPageConfiguration_shouldReturnStructOfDataSpecifiedByConfigFormFromStoredConfigurationAndFormFieldDefaults() output=false {
+	function test08_getPageConfiguration_shouldReturnStructOfDataSpecifiedByConfigFormFromStoredConfigurationAndPageDefaults() output=false {
 		var svc            = _getService();
-		var testPage       = CreateUUId();
+		var testPage       = "memberarea.upgrade";
 		var testFormName   = CreateUUId();
 		var testFormFields = [ CreateUUId(), CreateUUId(), CreateUUId() ];
 		var testValues     = { "#testFormFields[1]#" = CreateUUId(), "#testFormFields[3]#" = CreateUUId() };
@@ -76,6 +76,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  "#testFormFields[1]#" = testValues[ testFormFields[1] ]
 			, "#testFormFields[2]#" = testDefault
 			, "#testFormFields[3]#" = testValues[ testFormFields[3] ]
+			, browser_title         = "This is my browser title"
 		};
 
 		svc.$( "getPageConfigFormName" ).$args( testPage ).$results( testFormName );
@@ -116,7 +117,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 				handler = "members",
 				children = {
 					editprofile = { handler="test.editprofile" },
-					upgrade     = { handler="members.upgrade" }
+					upgrade     = { handler="members.upgrade", defaults={ browser_title="This is my browser title" } }
 				}
 			}
 		};
