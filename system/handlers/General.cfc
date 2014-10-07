@@ -156,8 +156,15 @@ component output=false {
 	private void function _autoDetectApplicationPageAndLoadItsConfiguration( event, rc, prc ) output=false {
 		var currentEvent = ReReplace( event.getCurrentEvent(), "\.index$", "" );
 		var pageId       = applicationPagesService.getPageIdByHandler( currentEvent );
+
 		if ( Len( Trim( pageId ) ) ) {
-			event.initializeApplicationPage( applicationPagesService.getPageConfiguration( pageId ) );
+			event.initializeApplicationPage(
+				  pageId            = pageId
+				, pageConfiguration = applicationPagesService.getPageConfiguration( pageId )
+				, parentPages       = applicationPagesService.getAncestors( pageId )
+			);
+
+			event.checkPageAccess();
 		}
 	}
 }

@@ -22,25 +22,7 @@ component output=false {
 			event.notFound();
 		}
 
-		if ( event.getPageProperty( "access_restriction", "none" ) == "full" ){
-			var fullLoginRequired = event.getPageProperty( "full_login_required", false );
-			var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
-
-			if ( !loggedIn ) {
-				event.accessDenied( reason="LOGIN_REQUIRED" );
-			}
-
-			var accessProvidingPage = event.getPageProperty( "access_providing_page", pageId );
-			var hasPermission       = hasWebsitePermission(
-				  permissionKey = "pages.access"
-				, context       = "page"
-				, contextKeys   = [ accessProvidingPage ]
-			);
-
-			if ( !hasPermission ) {
-				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
-			}
-		}
+		event.checkPageAccess();
 
 		pageType = pageTypesService.getPageType( pageType );
 		if ( !Len( Trim( layout ) )  ) {

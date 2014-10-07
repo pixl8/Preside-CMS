@@ -119,6 +119,11 @@ component output=false autodoc=true {
 			}
 		}
 
+		for( var setting in config ) {
+			if ( !Len( Trim( config[ setting ] ) ) ) {
+				config.delete( setting );
+			}
+		}
 		config.append( ( page.defaults ?: {} ), false );
 
 		return config;

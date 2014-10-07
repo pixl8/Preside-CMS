@@ -380,14 +380,60 @@
 	</cffunction>
 
 	<cffunction name="initializeApplicationPage" access="public" returntype="void" output="false">
+		<cfargument name="pageId"            type="string" required="true" />
 		<cfargument name="pageConfiguration" type="struct" required="true" />
+		<cfargument name="parentPages"       type="array"  required="true" />
 
 		<cfscript>
-			var prc = getRequestContext().getCollection( private = true );
+			var prc  = getRequestContext().getCollection( private = true );
+			var page = arguments.pageConfiguration;
 
-			prc.presidePage = arguments.pageConfiguration;
-			prc.presidePage.ancestors = []; // todo, fix this + crumbtrail
-			prc.presidePage.isApplicationPage = true;
+			page.id        = arguments.pageId;
+			page.ancestors = arguments.parentPages;
+			page.isApplicationPage = true;
+
+			page.access_providing_page = page.id;
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				for( var ancestor in page.ancestors ) {
+					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
+						page.access_providing_page = ancestor.id;
+						page.access_restriction = ancestor.access_restriction;
+						page.full_login_required = ( ancestor.full_login_required ?: false );
+						break;
+					}
+				}
+			}
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				page.access_restriction = "none";
+			}
+			page.full_login_required = page.full_login_required ?: false;
+
+			prc.presidePage = page;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="checkPageAccess" access="public" returntype="void" output="false">
+		<cfscript>
+			if ( getPageProperty( "access_restriction", "none" ) == "full" ){
+				var websiteLoginService = getModel( "websiteLoginService" );
+				var fullLoginRequired = getPageProperty( "full_login_required", false );
+				var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
+
+				if ( !loggedIn ) {
+					accessDenied( reason="LOGIN_REQUIRED" );
+				}
+
+				var accessProvidingPage = getPageProperty( "access_providing_page", getCurrentPageId() );
+				var hasPermission       = getModel( "websitePermissionService" ).hasPermission(
+					  permissionKey = "pages.access"
+					, context       = "page"
+					, contextKeys   = [ accessProvidingPage ]
+				);
+
+				if ( !hasPermission ) {
+					accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				}
+			}
 		</cfscript>
 	</cffunction>
 
