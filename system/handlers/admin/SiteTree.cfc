@@ -220,6 +220,32 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
 	}
 
+	public void function editApplicationPage( event, rc, prc ) output=false {
+		var pageId           = rc.id               ?: "";
+		var validationResult = rc.validationResult ?: "";
+
+		// _checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
+
+		if ( !applicationPagesService.pageExists( pageId ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.application.page.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		prc.configFormName = applicationPagesService.getPageConfigFormName( pageId );
+		prc.pageConfig     = applicationPagesService.getPageConfiguration( pageId );
+
+		prc.applicationPageTitle = translateResource( "application-pages:#pageId#.name" );
+		prc.applicationPageIcon  = translateResource( "application-pages:#pageId#.icon" );
+
+		prc.pageIcon   = ReReplace( prc.applicationPageIcon, "$fa\-", "" );
+		prc.pageTitle  = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.applicationPageTitle ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.applicationPageTitle ] )
+			, link  = ""
+		);
+	}
+
 	public void function trashPageAction( event, rc, prc ) output=false {
 		var pageId  = event.getValue( "id", "" );
 

@@ -7,8 +7,8 @@
 	hasChildren = args.children.len();
 	selected    = rc.selected ?: "";
 
-	pageName = translateResource( "applicationpages:#args.id#.name", args.id );
-	pageIcon = translateResource( "applicationpages:#args.id#.icon", "fa-page" );
+	pageName = translateResource( "application-pages:#args.id#.name", args.id );
+	pageIcon = translateResource( "application-pages:#args.id#.icon", "fa-page" );
 	pageType = translateResource( "cms:application.pages.pagetype" );
 
 	hasEditPagePermission = true; // TODO!
