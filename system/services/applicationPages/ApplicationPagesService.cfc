@@ -52,6 +52,23 @@ component output=false autodoc=true {
 	}
 
 	/**
+	 * Returns the id of the page who's coldbox handler is registered as the passed handler
+	 *
+	 * @handler.hint The ColdBox handler with which to match the page
+	 */
+	public string function getPageIdByHandler( required string handler ) output=false autodoc=true {
+		var pages = _getConfiguredPages();
+
+		for( var pageId in pages ) {
+			var pageHandler = pages[ pageId ].handler ?: "";
+			if ( pageHandler == arguments.handler ) {
+				return pageId;
+			}
+		}
+		return "";
+	}
+
+	/**
 	 * Returns all the application pages in a tree array. Returns just ids and ids of children.
 	 */
 	public array function getTree() output=false autodoc=true {

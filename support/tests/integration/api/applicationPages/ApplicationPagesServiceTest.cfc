@@ -159,6 +159,18 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	}
 
+	function test11_getPageIdByHandler_shouldReturnEmptyString_whenNoPageMatchesTheGivenHandler() output=false {
+		var svc = _getService();
+
+		super.assertEquals( "", svc.getPageIdByHandler( "some.handler.that.does.not.map" ) );
+	}
+
+	function test12_getPageIdByHandler_shouldReturnIdOfPageWhosHandlerMatches() output=false {
+		var svc = _getService();
+
+		super.assertEquals( "memberarea.editprofile", svc.getPageIdByHandler( "test.editprofile" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
 		mockFormService    = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
