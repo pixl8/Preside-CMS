@@ -438,10 +438,11 @@
 	</cffunction>
 
 	<cffunction name="getPageProperty" access="public" returntype="any" output="false">
-		<cfargument name="propertyName"  type="string"  required="true" />
-		<cfargument name="defaultValue"  type="any"     required="false" default="" />
-		<cfargument name="cascading"     type="boolean" required="false" default="false" />
-		<cfargument name="cascadeMethod" type="string"  required="false" default="closest" hint="closest|collect" />
+		<cfargument name="propertyName"     type="string"  required="true" />
+		<cfargument name="defaultValue"     type="any"     required="false" default="" />
+		<cfargument name="cascading"        type="boolean" required="false" default="false" />
+		<cfargument name="cascadeMethod"    type="string"  required="false" default="closest" hint="closest|collect" />
+		<cfargument name="cascadeSkipValue" type="string"  required="false" default="inherit" />
 
 		<cfscript>
 			var page = getRequestContext().getValue( name="presidePage", defaultValue=StructNew(), private=true );
@@ -451,6 +452,29 @@
 			}
 
 			if ( IsBoolean( page.isApplicationPage ?: "" ) && page.isApplicationPage ) {
+				if ( arguments.cascading ) {
+					var cascadeSearch = Duplicate( page.ancestors ?: [] );
+					cascadeSearch.prepend( page );
+
+					if ( arguments.cascadeMethod == "collect" ) {
+						var collected = [];
+					}
+					for( node in cascadeSearch ){
+						if ( Len( Trim( node[ arguments.propertyName ] ?: "" ) ) && node[ arguments.propertyName ] != arguments.cascadeSkipValue ) {
+							if ( arguments.cascadeMethod != "collect" ) {
+								return node[ arguments.propertyName ];
+							}
+							collected.append( node[ arguments.propertyName ] );
+						}
+					}
+
+					if ( arguments.cascadeMethod == "collect" ) {
+						return collected;
+					}
+
+					return arguments.defaultValue;
+				}
+
 				return page[ arguments.propertyName ] ?: arguments.defaultValue;
 			}
 

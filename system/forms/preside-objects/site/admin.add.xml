@@ -5,14 +5,26 @@ Site: add form
 This form is used for the "add site" form in the site manager
 -->
 <form>
-	<tab id="basic">
+	<tab id="basic" title="preside-objects.site:basic.tab.title">
 		<fieldset id="basic">
-			<field binding="site.name"     sortorder="10" control="textinput" placeholder="preside-objects.site:field.name.placeholder"   />
+			<field binding="site.name"     sortorder="10" control="textinput" />
 			<field binding="site.protocol" sortorder="20" control="select"    values="http,https" labels="http://,https://" required="true"   />
-			<field binding="site.domain"   sortorder="30" control="textinput" placeholder="preside-objects.site:field.domain.placeholder" />
-			<field binding="site.path"     sortorder="40" control="textinput" placeholder="preside-objects.site:field.path.placeholder"   />
-			<field name="redirect_domains" sortorder="45" control="textarea" label="preside-objects.site:field.redirect_domains.title" />
+			<field binding="site.domain"   sortorder="30" control="textinput" />
+			<field binding="site.path"     sortorder="40" control="textinput" />
 			<field binding="site.template" sortorder="50" control="sitetemplatepicker"  />
+		</fieldset>
+	</tab>
+	<tab id="seo" title="preside-objects.site:seo.tab.title">
+		<fieldset id="seo">
+			<field binding="site.hide_from_search"     sortorder="10" />
+			<field binding="site.author"               sortorder="20" />
+			<field binding="site.browser_title_prefix" sortorder="30" />
+			<field binding="site.browser_title_suffix" sortorder="40" />
+		</fieldset>
+	</tab>
+	<tab id="advanced" title="preside-objects.site:advanced.tab.title">
+		<fieldset id="advanced">
+			<field name="redirect_domains" sortorder="10" control="textarea" label="preside-objects.site:field.redirect_domains.title" />
 		</fieldset>
 	</tab>
 </form>

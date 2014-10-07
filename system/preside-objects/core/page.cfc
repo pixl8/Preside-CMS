@@ -22,6 +22,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
 	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
 
+	property name="search_engine_access"             type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block"       labels="preside-objects.page:search_engine_access.option.inherit,preside-objects.page:search_engine_access.option.allow,preside-objects.page:search_engine_access.option.deny";
 	property name="author"                           type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title"                    type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="description"                      type="string"  dbtype="varchar" maxLength="255"  required=false;

@@ -145,10 +145,11 @@ component output=false singleton=true {
 	public any function getPageProperty(
 		  required string  propertyName
 		, required struct  page
-		,          array   ancestors     = []
-		,          any     defaultValue  = ""
-		,          boolean cascading     = false
-		,          string  cascadeMethod = "closest"
+		,          array   ancestors        = []
+		,          any     defaultValue     = ""
+		,          boolean cascading        = false
+		,          string  cascadeMethod    = "closest"
+		,          string  cascadeSkipValue = "inherit"
 
 	) output=false {
 		var value          = "";
@@ -158,7 +159,7 @@ component output=false singleton=true {
 
 		if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 			value = arguments.page[ arguments.propertyName ];
-			if ( __valueExists( value ) ) {
+			if ( __valueExists( value ) && ( !IsSimpleValue( value ) || value != arguments.cascadeSkipValue ) ) {
 				if ( arguments.cascading && arguments.cascadeMethod == "collect" ) {
 					collectedValue.append( value );
 				} else {
