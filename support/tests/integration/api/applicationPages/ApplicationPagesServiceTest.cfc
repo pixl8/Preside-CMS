@@ -91,6 +91,32 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, svc.getPageConfiguration( testPage ) );
 	}
 
+	function test09_getTree_shouldReturnAllTheApplicationPagesInATreeArray() output=false {
+		var svc      = _getService();
+		var result   = svc.getTree();
+		var expected = [{
+			id       = "login",
+			children = [{
+				id       = "login.forgotPassword",
+				children = [{
+					id       = "login.forgotPassword.resetPassword",
+					children = []
+				}]
+			}]
+		},{
+			id       = "memberarea",
+			children = [{
+				id       = "memberarea.editprofile",
+				children = []
+			},{
+				id       = "memberarea.upgrade",
+				children = []
+			}]
+		} ];
+
+		super.assertEquals( expected, result );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
 		mockFormService    = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );

@@ -52,6 +52,13 @@ component output=false autodoc=true {
 	}
 
 	/**
+	 * Returns all the application pages in a tree array. Returns just ids and ids of children.
+	 */
+	public array function getTree() output=false autodoc=true {
+		return _getTree();
+	}
+
+	/**
 	 * Returns the name of the form to use for configuring a given application page
 	 *
 	 * @id.hint ID of the page who's configuration form name we wish to retrieve
@@ -105,22 +112,35 @@ component output=false autodoc=true {
 	private void function _processConfiguredPages() output=false {
 		var configuredPages = _getConfiguredPages();
 		var processed       = {};
-		var processPage     = function( pageName, page ){
+		var tree            = [];
+		var processPage     = function( pageName, page, treeNode ){
 			processed[ pageName ] = Duplicate( page );
 			processed[ pageName ].delete( "children" );
+			var node = { id=pageName, children=[] };
 
 			if ( page.keyExists( "children" ) ) {
 				for( var child in page.children ) {
-					processPage( pageName & "." & child, page.children[child] );
+					processPage( pageName & "." & child, page.children[child], node.children );
 				}
 			}
+
+			node.children.sort( function( a, b ){
+				return a.id > b.id ? 1 : -1;
+			} );
+
+			treeNode.append( node );
 		};
 
 		for( var page in configuredPages ){
-			processPage( page, configuredPages[ page ] );
+			processPage( page, configuredPages[ page ], tree );
 		}
 
 		_setConfiguredPages( processed );
+
+		tree.sort( function( a, b ){
+			return a.id > b.id ? 1 : -1;
+		} );
+		_setTree( tree );
 	}
 
 // GETTERS AND SETTERS
@@ -143,6 +163,13 @@ component output=false autodoc=true {
 	}
 	private void function _setPageConfigDao( required any PpgeConfigDao ) output=false {
 		_pageConfigDao = arguments.PpgeConfigDao;
+	}
+
+	private array function _getTree() output=false {
+		return _tree;
+	}
+	private void function _setTree( required array tree ) output=false {
+		_tree = arguments.tree;
 	}
 
 }
