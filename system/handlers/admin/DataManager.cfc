@@ -618,19 +618,19 @@
 	</cffunction>
 
 	<cffunction name="_addRecordAction" access="private" returntype="any" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="event"             type="any"     required="true"  />
+		<cfargument name="rc"                type="struct"  required="true"  />
+		<cfargument name="prc"               type="struct"  required="true"  />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="errorAction"       type="string"  required="false" default=""     />
+		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
+		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
+		<cfargument name="successAction"     type="string"  required="false" default=""     />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.add";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( arguments.formName );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
@@ -638,7 +638,7 @@
 			var newRecordLink    = "";
 			var persist          = "";
 
-			validationResult = validateForm( formName=formName, formData=formData );
+			validationResult = validateForm( formName=arguments.formName, formData=formData );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -682,15 +682,15 @@
 	</cffunction>
 
 	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
-		<cfargument name="event"  type="any"    required="true" />
-		<cfargument name="rc"     type="struct" required="true" />
-		<cfargument name="prc"    type="struct" required="true" />
-		<cfargument name="object" type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="event"    type="any"    required="true" />
+		<cfargument name="rc"       type="struct" required="true" />
+		<cfargument name="prc"      type="struct" required="true" />
+		<cfargument name="object"   type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName" type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.quickadd";
-			var formData         = event.getCollectionForForm( formName );
- 			var validationResult = validateForm( formName=formName, formData=formData );
+			var formData         = event.getCollectionForForm( arguments.formName );
+			var validationResult = validateForm( formName=arguments.formName, formData=formData );
 
 			if ( validationResult.validated() ) {
 				var obj = presideObjectService.getObject( object );
