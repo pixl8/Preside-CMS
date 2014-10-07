@@ -1,6 +1,7 @@
 component output="false" extends="preside.system.base.AdminHandler" {
 
 	property name="siteTreeService"          inject="siteTreeService";
+	property name="applicationPagesService"  inject="applicationPagesService";
 	property name="formsService"             inject="formsService";
 	property name="pageTypesService"         inject="pageTypesService";
 	property name="validationEngine"         inject="validationEngine";
@@ -23,7 +24,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) output=false {
-		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+		prc.activeTree          = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+		prc.applicationPageTree = applicationPagesService.getTree();
 	}
 
 	public void function trash( event, rc, prc ) output=false {

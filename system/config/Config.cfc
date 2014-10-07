@@ -148,6 +148,16 @@ component output=false {
 			, siteAssetsUrl  = "/assets"
 		};
 
+		settings.applicationPages = {
+			login = {
+				  handler  = "login"
+				, children = {
+					  forgottenPassword = { handler="login.forgottenPassword" }
+					, resetPassword     = { handler="login.resetPassword" }
+				  }
+			}
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

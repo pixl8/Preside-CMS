@@ -4,7 +4,8 @@
 	prc.pageIcon  = "sitemap";
 	prc.pageTitle = site.name ?: translateResource( "cms:sitetree" );
 
-	activeTree = event.getValue( name="activeTree", defaultValue=ArrayNew(1), private=true );
+	activeTree          = prc.activeTree ?: [];
+	applicationPageTree = prc.applicationPageTree ?: [];
 </cfscript>
 
 <cfoutput>
@@ -19,7 +20,10 @@
 			</tr>
 		</thead>
 		<tbody data-nav-list-child-selector="tr" data-nav-list="1">
-			<cfloop array="#activeTree#" index="node">
+			<cfloop array="#activeTree#" item="node" index="i">
+				<cfif i eq 1>
+					<cfset node.applicationPageTree = applicationPageTree />
+				</cfif>
 				#renderView( view="/admin/sitetree/_node", args=node )#
 			</cfloop>
 		</tbody>

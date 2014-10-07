@@ -1,20 +1,21 @@
 <cfscript>
-	param name="args.id"                 type="string";
-	param name="args.parent_page"        type="string";
-	param name="args._hierarchy_depth"   type="string";
-	param name="args.title"              type="string";
-	param name="args.page_type"          type="string";
-	param name="args.slug"               type="string";
-	param name="args.full_slug"          type="string";
-	param name="args.datecreated"        type="date";
-	param name="args.datemodified"       type="date";
-	param name="args.active"             type="boolean";
-	param name="args.hasChildren"        type="boolean";
-	param name="args.trashed"            type="boolean";
-	param name="args.children"           type="array";
-	param name="args.permission_context" type="array" default=[];
-	param name="args.access_restriction" type="string";
-	param name="args.parent_restriction" type="string" default="none";
+	param name="args.id"                  type="string";
+	param name="args.parent_page"         type="string";
+	param name="args._hierarchy_depth"    type="string";
+	param name="args.title"               type="string";
+	param name="args.page_type"           type="string";
+	param name="args.slug"                type="string";
+	param name="args.full_slug"           type="string";
+	param name="args.datecreated"         type="date";
+	param name="args.datemodified"        type="date";
+	param name="args.active"              type="boolean";
+	param name="args.hasChildren"         type="boolean";
+	param name="args.trashed"             type="boolean";
+	param name="args.children"            type="array";
+	param name="args.permission_context"  type="array" default=[];
+	param name="args.access_restriction"  type="string";
+	param name="args.parent_restriction"  type="string" default="none";
+	param name="args.applicationPageTree" type="array" default=[];
 
 	args.permission_context.prepend( args.id );
 	hasNavigatePermission = hasCmsPermission( permissionKey="sitetree.navigate", context="page", contextKeys=args.permission_context );
@@ -25,7 +26,7 @@
 		pageType    = translateResource( "page-types.#args.page_type#:name", args.page_type );
 		pageIcon    = translateResource( "page-types.#args.page_type#:iconclass", "fa-file-o" );
 		safeTitle   = HtmlEditFormat( args.title );
-		hasChildren = args.children.len();
+		hasChildren = args.children.len() || args.applicationPageTree.len();
 		selected    = rc.selected ?: "";
 
 		if ( args.access_restriction == "inherit" ) {
@@ -146,6 +147,11 @@
 			<cfset child.permission_context = duplicate( args.permission_context ) />
 
 			#renderView( view="/admin/sitetree/_node", args=child )#
+		</cfloop>
+
+		<cfloop array="#args.applicationPageTree#" index="node">
+			<cfset node.parent_id = args.id />
+			#renderView( view="/admin/sitetree/_applicationPageNode", args=node )#
 		</cfloop>
 	</cfoutput>
 </cfif>
