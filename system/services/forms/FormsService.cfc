@@ -777,7 +777,20 @@ component output=false singleton=true {
 					matchingTab[ attrib ] = tab[ attrib ];
 				}
 			}
+
+			matchingTab.fieldsets.sort( function( fieldset1, fieldset2 ){
+				var order1 = Val( fieldset1.sortOrder ?: 999999999 );
+				var order2 = Val( fieldset2.sortOrder ?: 999999999 );
+
+				return order1 == order2 ? 0 : ( order1 > order2 ? 1 : -1 );
+			} );
 		}
+		form1.tabs.sort( function( tab1, tab2 ){
+			var order1 = Val( tab1.sortOrder ?: 999999999 );
+			var order2 = Val( tab2.sortOrder ?: 999999999 );
+
+			return order1 == order2 ? 0 : ( order1 > order2 ? 1 : -1 );
+		} );
 
 		return form1;
 	}
