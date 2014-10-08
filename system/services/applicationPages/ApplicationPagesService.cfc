@@ -98,7 +98,7 @@ component output=false autodoc=true {
 	 *
 	 * @id.hint ID of the page who's config we wish to get
 	 */
-	public struct function getPageConfiguration( required string id ) output=false autodoc=true {
+	public struct function getPageConfiguration( required string id, boolean includeDefaults=true ) output=false autodoc=true {
 		var page         = getPage( arguments.id );
 		var formName     = getPageConfigFormName( arguments.id );
 		var formFields   = _getFormsService().listFields( formName );
@@ -124,7 +124,10 @@ component output=false autodoc=true {
 				config.delete( setting );
 			}
 		}
-		config.append( ( page.defaults ?: {} ), false );
+
+		if ( arguments.includeDefaults ) {
+			config.append( ( page.defaults ?: {} ), false );
+		}
 
 		return config;
 	}
@@ -137,7 +140,7 @@ component output=false autodoc=true {
 	 */
 	public void function savePageConfiguration( required string id, required struct config ) output=false autodoc=true {
 		transaction {
-			var existingConfig = getPageConfiguration( arguments.id );
+			var existingConfig = getPageConfiguration( id=arguments.id, includeDefaults=false );
 			var dao            = _getPageConfigDao();
 
 			for( var setting in arguments.config ){
