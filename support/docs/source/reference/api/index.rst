@@ -10,4 +10,5 @@ System Service API
     siteservice
     emailservice
     updatemanagerservice
+    applicationpagesservice
     websiteloginservice

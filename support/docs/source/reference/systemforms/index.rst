@@ -4,6 +4,10 @@ System form layouts
 .. toctree::
     :maxdepth: 1
 
+    applicationpagedefaultconfigform
+    applicationpagelogin
+    applicationpageloginforgottenpassword
+    applicationpageloginresetpassword
     assetaddform
     assetaddthroughpickerform
     asseteditform
@@ -22,7 +26,6 @@ System form layouts
     sitetreepagerestoreform
     sitetreepagetypehomepageeditform
     systemconfigformemail
-    systemconfigformgeneralconfiguration
     systemconfigformwebsiteusers
     updatemanagersettingsform
     useraddform

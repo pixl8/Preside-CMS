@@ -19,6 +19,7 @@ System Preside Objects
     website_user_login_token
     standard_page
     homepage
+    application_page_config
     page
     draft
     site_redirect_domain

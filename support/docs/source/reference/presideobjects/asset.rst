@@ -31,5 +31,8 @@ Properties
     property name="size"              type="numeric" dbtype="int"                       required=true;
     property name="asset_type"        type="string" dbtype="varchar" maxLength=10       required=true;
 
+    property name="access_restriction"  type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset:access_restriction.option.inherit,preside-objects.asset:access_restriction.option.none,preside-objects.asset:access_restriction.option.full";
+    property name="full_login_required" type="boolean" dbtype="boolean"               required=false default=false;
+
     property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId";
     property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId";

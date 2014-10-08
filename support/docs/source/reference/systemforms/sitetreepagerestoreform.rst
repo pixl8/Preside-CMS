@@ -12,8 +12,8 @@ recycle bin.
     <?xml version="1.0" encoding="UTF-8"?>
 
     <form>
-        <tab id="main">
-            <fieldset id="main">
+        <tab id="main" sortorder="10">
+            <fieldset id="main" sortorder="10">
                 <field sortorder="10" binding="page.parent_page" control="sitetreePagePicker" required="true" />
                 <field sortorder="20" binding="page.slug" />
                 <field sortorder="30" binding="page.active" label="cms:sitetree.restore.active.label" />

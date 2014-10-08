@@ -10,21 +10,17 @@ This form is used for the "add user" form in the user admin section of the admin
     <?xml version="1.0" encoding="UTF-8"?>
 
     <form>
-        <tab>
-            <fieldset title="preside-objects.security_user:fieldset.details" description="preside-objects.security_user:fieldset.details.description">
+        <tab id="basic" sortorder="10">
+            <fieldset id="basic" sortorder="10" title="preside-objects.security_user:fieldset.details" description="preside-objects.security_user:fieldset.details.description">
                 <field binding="security_user.email_address" required="true" />
                 <field binding="security_user.known_as" />
                 <field binding="security_user.login_id" control="autoslug" basedOn="label" />
                 <field binding="security_user.groups" />
             </fieldset>
 
-            <fieldset title="preside-objects.security_user:fieldset.security" description="preside-objects.security_user:fieldset.security.description">
-                <field binding="security_user.password" control="password" required="false" />
-                <field name="confirm_password" control="password" label="preside-objects.security_user:field.confirm_password.title" required="false">
-                    <rule validator="sameAs">
-                        <param name="field" value="password" />
-                    </rule>
-                </field>
+            <fieldset id="welcome" sortorder="20" title="preside-objects.security_user:fieldset.security" description="preside-objects.security_user:fieldset.security.description">
+                <field name="send_welcome"    control="yesNoSwitch" default="true" label="preside-objects.security_user:field.send_welcome.title" />
+                <field name="welcome_message" control="textarea"    label="preside-objects.security_user:field.welcome_message.title" />
             </fieldset>
         </tab>
     </form>

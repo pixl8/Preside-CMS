@@ -10,8 +10,8 @@ This form is used for the "edit user group" form in the user admin section of th
     <?xml version="1.0" encoding="UTF-8"?>
 
     <form>
-        <tab id="basic">
-            <fieldset id="basic">
+        <tab id="basic" sortorder="10">
+            <fieldset id="basic" sortorder="10">
                 <field binding="security_group.label" />
                 <field binding="security_group.description" />
                 <field binding="security_group.roles"  />
