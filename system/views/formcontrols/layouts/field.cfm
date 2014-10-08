@@ -34,7 +34,7 @@
 		</div>
 		<cfif Len( Trim( help ) )>
 			<div class="col-sm-1">
-				<span class="help-button fa fa-question" data-rel="popover" data-trigger="click" data-placement="left" data-content="#help#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#help#" title="#translateResource( 'cms:help.popover.title' )#"></span>
 			</div>
 		</cfif>
 	</div>
