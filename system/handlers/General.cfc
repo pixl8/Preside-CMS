@@ -159,9 +159,7 @@ component output=false {
 
 		if ( Len( Trim( pageId ) ) ) {
 			event.initializeApplicationPage(
-				  pageId            = pageId
-				, pageConfiguration = applicationPagesService.getPageConfiguration( pageId )
-				, parentPages       = applicationPagesService.getAncestors( pageId )
+				pageId = pageId
 			);
 
 			event.checkPageAccess();

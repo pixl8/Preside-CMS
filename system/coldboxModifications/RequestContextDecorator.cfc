@@ -381,15 +381,14 @@
 
 	<cffunction name="initializeApplicationPage" access="public" returntype="void" output="false">
 		<cfargument name="pageId"            type="string" required="true" />
-		<cfargument name="pageConfiguration" type="struct" required="true" />
-		<cfargument name="parentPages"       type="array"  required="true" />
 
 		<cfscript>
-			var prc  = getRequestContext().getCollection( private = true );
-			var page = arguments.pageConfiguration;
+			var prc        = getRequestContext().getCollection( private = true );
+			var appPageSvc = getModel( "applicationPagesService" );
+			var page       = appPageSvc.getPageConfiguration( arguments.pageId );
 
-			page.id        = arguments.pageId;
-			page.ancestors = arguments.parentPages;
+			page.id                = arguments.pageId;
+			page.ancestors         = appPageSvc.getAncestors( arguments.pageId );
 			page.isApplicationPage = true;
 
 			page.access_providing_page = page.id;
