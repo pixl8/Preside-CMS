@@ -41,7 +41,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 		siteService.ensureDefaultSiteExists();
 
-		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
+		if ( !event.valueExists( "_detectSiteFromDomain" ) && adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
 			site = siteService.getActiveAdminSite();
 		} else {
 			site = siteService.matchSite(
