@@ -336,7 +336,7 @@ component output=false {
 			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
 				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
 
-				CreateObject( cfcPath ).configure( settings );
+				CreateObject( cfcPath ).configure( config=variables );
 			}
 		}
 	}
