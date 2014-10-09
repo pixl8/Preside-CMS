@@ -643,8 +643,13 @@ component output=false singleton=true {
 	private string function _getValidationRulesetFromFormName( required string formName ) output=false {
 		var objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
 
-		if ( formExists( arguments.formName ) ) {
+		if ( formExists( arguments.formName, false ) ) {
 			return "PresideForm.#arguments.formName#";
+		}
+
+		var siteTemplateFormName = _getSiteTemplatePrefix() & arguments.formName;
+		if ( formExists( siteTemplateFormName, false ) ) {
+			return "PresideForm.#siteTemplateFormName#";
 		}
 
 		if ( _getPresideObjectService().objectExists( objectName ) ) {

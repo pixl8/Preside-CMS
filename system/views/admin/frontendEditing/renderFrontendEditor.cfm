@@ -41,7 +41,6 @@
 					data-save-draft-action    = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveDraftAction' )#"
 					data-discard-draft-action = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.discardDraftAction' )#">
 
-					<input type="hidden" name="_detectSiteFromDomain" value="true" />
 					<input type="hidden" name="pageId"   value="#pageId#"   />
 					<input type="hidden" name="object"   value="#object#"   />
 					<input type="hidden" name="property" value="#property#" />

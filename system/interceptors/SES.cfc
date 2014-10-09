@@ -41,13 +41,16 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 		siteService.ensureDefaultSiteExists();
 
-		if ( !event.valueExists( "_detectSiteFromDomain" ) && adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
+		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
 			site = siteService.getActiveAdminSite();
 		} else {
 			site = siteService.matchSite(
 				  domain = super.getCGIElement( "server_name", event )
 				, path   = pathInfo
 			);
+			if ( Len( Trim( site.id ?: "" ) ) ) {
+				siteService.setActiveAdminSite( site.id );
+			}
 		}
 
 		event.setSite( site );

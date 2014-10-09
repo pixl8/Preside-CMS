@@ -39,6 +39,10 @@
 		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).render( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderEditableContent" access="public" returntype="any" output="false">
+		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).makeContentEditable( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderField" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).renderField( argumentCollection = arguments ) />
 	</cffunction>
@@ -51,6 +55,8 @@
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
+
+
 
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false">
