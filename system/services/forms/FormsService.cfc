@@ -47,25 +47,32 @@ component output=false singleton=true {
 		return forms;
 	}
 
-	public boolean function formExists( required string formName ) output=false {
+	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) output=false {
 		var forms = _getForms();
 
-		return StructKeyExists( forms, arguments.formName );
+		return StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
 	}
 
 	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) output=false {
 		var forms        = _getForms();
 		var objectName   = "";
-		var siteTemplate = _getSiteService().getActiveSiteTemplate();
 		var form         = "";
 
+		if ( arguments.autoMergeSiteForm ) {
+			var siteTemplateFormName   = _getSiteTemplatePrefix() & arguments.formName;
+			var siteTemplateFormExists = formExists( siteTemplateFormName, false );
 
-		if ( arguments.autoMergeSiteForm && Len( Trim( siteTemplate ) ) && formExists( "site-template::#siteTemplate#.#arguments.formName#" ) ) {
-			return mergeForms( arguments.formName, "site-template::#siteTemplate#.#arguments.formName#", false );
+			if ( siteTemplateFormExists ) {
+				if ( formExists( arguments.formName, false )  ) {
+					return mergeForms( arguments.formName, siteTemplateFormName, false );
+				}
+
+				return forms[ siteTemplateFormName ];
+			}
 		}
 
 		if ( formExists( arguments.formName ) ) {
-			return StructFind( _getForms(), arguments.formName );
+			return forms[ arguments.formName ];
 		}
 
 		objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
@@ -812,6 +819,11 @@ component output=false singleton=true {
 		}
 
 		return true;
+	}
+
+	private string function _getSiteTemplatePrefix() output=false {
+		var siteTemplate = _getSiteService().getActiveSiteTemplate();
+		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
 // GETTERS AND SETTERS
