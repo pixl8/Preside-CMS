@@ -442,8 +442,8 @@ component singleton=true output=false {
 		return groups[ arguments.groupName ] ?: [];
 	}
 
-	public query function getAsset( required string id, boolean throwOnMissing=false ) output=false {
-		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id ) : QueryNew('');
+	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) output=false {
+		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id, selectFields=arguments.selectFields ) : QueryNew('');
 
 		if ( asset.recordCount or not throwOnMissing ) {
 			return asset;
