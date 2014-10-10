@@ -93,7 +93,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test09_getTree_shouldReturnAllTheApplicationPagesInATreeArray() output=false {
 		var svc      = _getService();
-		var result   = svc.getTree();
 		var expected = [{
 			id       = "login",
 			children = [{
@@ -114,7 +113,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			}]
 		} ];
 
-		super.assertEquals( expected, result );
+		svc.$( "getPageConfiguration", {} );
+
+		super.assertEquals( expected, svc.getTree() );
 	}
 
 	function test10_savePageConfiguration_shouldSaveAllPageConfigurationSettings() output=false {
@@ -192,9 +193,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, handler = "login.forgotPassword"
 			, config  = dummyForgotPasswordConfig
 		},{
-			  id      = "login"
-			, handler = "login"
-			, config  = dummyLoginConfig
+			  id            = "login"
+			, handler       = "login"
+			, siteTemplates = [ "default","test","another" ]
+			, config        = dummyLoginConfig
 		}]
 
 		svc.$( "getPageConfiguration" ).$args( "login"                ).$results( dummyLoginConfig          );
@@ -205,14 +207,117 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expected, actual );
 	}
 
+	function test15_isPageAvailableInActiveSiteTemplate_shouldReturnFalse_whenPagesSiteTemplateListDoesNotContainActiveTemplate() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "some-template" );
+
+		super.assertFalse( svc.isPageAvailableInActiveSiteTemplate( "login" ) );
+	}
+
+	function test16_isPageAvailableInActiveSiteTemplate_shouldReturnTrue_whenPagesSiteTemplateListContainsActiveTemplate() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "test" );
+
+		super.assert( svc.isPageAvailableInActiveSiteTemplate( "login" ) );
+	}
+
+	function test17_isPageAvailableInActiveSiteTemplate_shouldReturnFalse_whenNoTemplatesConfiguredButParentPageRestrictsAccess() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "some-template" );
+		svc.$( "getPageConfiguration", {} );
+
+		super.assertFalse( svc.isPageAvailableInActiveSiteTemplate( "login.forgotPassword.resetPassword" ) );
+	}
+
+	function test18_isPageAvailableInActiveSiteTemplate_shouldReturnTrue_whenNoTemplatesConfiguredButParentPageAllowsAccess() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "test" );
+		svc.$( "getPageConfiguration", {} );
+
+		super.assert( svc.isPageAvailableInActiveSiteTemplate( "login.forgotPassword.resetPassword" ) );
+	}
+
+	function test19_isPageAvailableInActiveSiteTemplate_shouldReturnTrue_whenNoTemplatesConfiguredButParentPageAllowsAccess() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "test" );
+		svc.$( "getPageConfiguration", {} );
+
+		super.assert( svc.isPageAvailableInActiveSiteTemplate( "login.forgotPassword.resetPassword" ) );
+	}
+
+	function test20_isPageAvailableInActiveSiteTemplate_shouldReturnTrue_whenNoTemplatesConfiguredButParentPageHasWildcardAccessDefined() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "test" );
+		svc.$( "getPageConfiguration", {} );
+
+		super.assert( svc.isPageAvailableInActiveSiteTemplate( "memberarea.upgrade" ) );
+	}
+
+	function test21_isPageAvailableInActiveSiteTemplate_shouldReturnTrue_whenNoTemplatesConfiguredAnywhereInTheTree() output=false {
+		var svc = _getService( config={
+			login = {
+				handler = "login",
+				children = {
+					forgotPassword = { handler="login.forgotpassword", children={
+						resetPassword = { handler="test.resetPassword" }
+					} }
+				}
+			}
+		} );
+
+		mockSiteService.$( "getActiveSiteTemplate", "test" );
+		svc.$( "getPageConfiguration", {} );
+
+		super.assert( svc.isPageAvailableInActiveSiteTemplate( "login.forgotPassword.resetPassword" ) );
+	}
+
+	function test22_isPageAvailableInActiveSiteTemplate_shouldReturnTrue_whenActiveSiteTemplateIsBlank() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "" );
+
+		super.assert( svc.isPageAvailableInActiveSiteTemplate( "memberarea.upgrade" ) );
+	}
+
+	function test23_getTree_shouldNotIncludePagesThatAreNotAvailableToTheCurrentSiteTemplate() output=false {
+		var svc = _getService();
+		var expected = [{
+			id       = "memberarea",
+			children = [{
+				id       = "memberarea.editprofile",
+				children = []
+			},{
+				id       = "memberarea.upgrade",
+				children = []
+			}]
+		} ];
+
+		svc.$( "getPageConfiguration", {} );
+		mockSiteService.$( "getActiveSiteTemplate", "a-new-template" );
+
+
+		super.assertEquals( expected, svc.getTree() );
+	}
+
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestApplicationPageConfiguration() ) output=false {
 		mockFormService    = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockSiteService    = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 		mockConfigStoreDao = getMockBox().createStub();
+
+		mockSiteService.$( "getActiveSiteTemplate", "default" );
 
 		return getMockBox().createMock( object = new preside.system.services.applicationPages.ApplicationPagesService(
 			  configuredPages = arguments.config
 			, formsService    = mockFormService
+			, siteService     = mockSiteService
 			, pageConfigDao   = mockConfigStoreDao
 		) );
 	}
@@ -221,6 +326,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		return {
 			login = {
 				handler = "login",
+				siteTemplates = [ "default","test","another" ],
 				children = {
 					forgotPassword = { handler="login.forgotpassword", children={
 						resetPassword = { handler="test.resetPassword" }
@@ -229,6 +335,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			},
 			memberarea = {
 				handler = "members",
+				sitetemplates=[ "*" ],
 				children = {
 					editprofile = { handler="test.editprofile" },
 					upgrade     = { handler="members.upgrade", defaults={ browser_title="This is my browser title" } }

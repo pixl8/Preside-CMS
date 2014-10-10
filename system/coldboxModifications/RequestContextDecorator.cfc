@@ -380,11 +380,16 @@
 	</cffunction>
 
 	<cffunction name="initializeApplicationPage" access="public" returntype="void" output="false">
-		<cfargument name="pageId"            type="string" required="true" />
+		<cfargument name="pageId" type="string" required="true" />
 
 		<cfscript>
 			var prc        = getRequestContext().getCollection( private = true );
 			var appPageSvc = getModel( "applicationPagesService" );
+
+			if ( !appPageSvc.isPageAvailableInActiveSiteTemplate( arguments.pageId ) ) {
+				notFound();
+			}
+
 			var page       = appPageSvc.getPageConfiguration( arguments.pageId );
 
 			page.id                = arguments.pageId;

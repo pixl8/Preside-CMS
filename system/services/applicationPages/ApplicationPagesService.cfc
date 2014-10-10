@@ -7,11 +7,13 @@ component output=false autodoc=true {
 // CONSTRUCTOR
 	/**
 	 * @formsService.inject    formsService
+	 * @siteService.inject     siteService
 	 * @pageConfigDao.inject   presidecms:object:application_page_config
 	 * @configuredPages.inject coldbox:setting:applicationPages
 	 */
-	public any function init( required any formsService, required any pageConfigDao, required struct configuredPages ) output=false {
+	public any function init( required any formsService, required any siteService, required any pageConfigDao, required struct configuredPages ) output=false {
 		_setFormsService( arguments.formsService );
+		_setSiteService( arguments.siteService );
 		_setPageConfigDao( arguments.pageConfigDao );
 		_setConfiguredPages( arguments.configuredPages );
 		_processConfiguredPages();
@@ -72,7 +74,20 @@ component output=false autodoc=true {
 	 * Returns all the application pages in a tree array. Returns just ids and ids of children.
 	 */
 	public array function getTree() output=false autodoc=true {
-		return _getTree();
+		var tree = Duplicate( _getTree() );
+		var removeInactiveNodes = function( array nodes ){
+			for( var i=nodes.len(); i > 0; i-- ){
+				if ( !isPageAvailableInActiveSiteTemplate( nodes[ i ].id ) ) {
+					nodes.deleteAt( i );
+					continue;
+				}
+				nodes[ i ].children = removeInactiveNodes( nodes[ i ].children ?: [] );
+			}
+
+			return nodes;
+		}
+
+		return removeInactiveNodes( tree );
 	}
 
 	/**
@@ -170,6 +185,7 @@ component output=false autodoc=true {
 	/**
 	 * Gets all the ancestors of the given page, including their configuration
 	 *
+	 * @id.hint ID of the page who's ancestors we are to get
 	 */
 	public array function getAncestors( required string id ) output=false {
 		if ( !pageExists( arguments.id ) ) {
@@ -192,6 +208,37 @@ component output=false autodoc=true {
 
 		return ancestors;
 	}
+
+	/**
+	 * Returns whether or not the page can be used within the current site template
+	 *
+	 * @id.hint ID of the page that we want to check site template availability
+	 */
+	public boolean function isPageAvailableInActiveSiteTemplate( required string id ) output=false {
+		var activeTemplate = _getSiteService().getActiveSiteTemplate();
+		var page           = getPage( arguments.id );
+
+		if ( !Len( Trim( activeTemplate ) ) ) {
+			return true;
+		}
+
+		if ( !page.keyExists( "siteTemplates" ) ) {
+			var ancestors = getAncestors( arguments.id );
+
+			for( var ancestor in ancestors ){
+				if( !ancestor.keyExists( "siteTemplates" ) ) {
+					continue;
+				}
+
+				return ancestor.siteTemplates.find( activeTemplate ) || ancestor.siteTemplates.find( "*" );
+			}
+
+			return true;
+		}
+
+		return page.siteTemplates.find( activeTemplate ) || page.siteTemplates.find( "*" );
+	}
+
 
 
 // PRIVATE HELPERS
@@ -256,6 +303,13 @@ component output=false autodoc=true {
 	}
 	private void function _setTree( required array tree ) output=false {
 		_tree = arguments.tree;
+	}
+
+	private any function _getSiteService() output=false {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) output=false {
+		_siteService = arguments.siteService;
 	}
 
 }
