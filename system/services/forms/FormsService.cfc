@@ -60,7 +60,7 @@ component output=false singleton=true {
 
 		if ( arguments.autoMergeSiteForm ) {
 			var siteTemplateFormName   = _getSiteTemplatePrefix() & arguments.formName;
-			var siteTemplateFormExists = formExists( siteTemplateFormName, false );
+			var siteTemplateFormExists = siteTemplateFormName != arguments.formName && formExists( siteTemplateFormName, false );
 
 			if ( siteTemplateFormExists ) {
 				if ( formExists( arguments.formName, false )  ) {
