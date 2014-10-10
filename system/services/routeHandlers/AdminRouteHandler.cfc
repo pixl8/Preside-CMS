@@ -5,11 +5,13 @@ component implements="iRouteHandler" output=false singleton=true {
 	 * @adminPath.inject         coldbox:setting:preside_admin_path
 	 * @sysConfigService.inject  SystemConfigurationService
 	 * @eventName.inject         coldbox:setting:eventName
+	 * @defaultEvent.inject      coldbox:setting:adminDefaultEvent
 	 * @controller.inject        coldbox
 	 */
-	public any function init( required string adminPath, required string eventName, required any sysConfigService, required any controller ) output=false {
+	public any function init( required string adminPath, required string eventName, required string defaultEvent, required any sysConfigService, required any controller ) output=false {
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
+		_setDefaultEvent( arguments.defaultEvent );
 		_setSysConfigService( arguments.sysConfigService );
 		_setController( arguments.controller );
 
@@ -25,6 +27,9 @@ component implements="iRouteHandler" output=false singleton=true {
 		var translated = ReReplace( arguments.path, "^/#_getAdminPath()#/", "admin/" );
 
 		translated = ListChangeDelims( translated, ".", "/" );
+		if ( translated == "admin" ) {
+			translated = ListAppend( translated, _getDefaultEvent(), "." );
+		}
 
 		if ( !_getController().handlerExists( translated ) ) {
 			translated = ListAppend( translated, "index", "." );
@@ -85,5 +90,12 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 	private void function _setController( required any controller ) output=false {
 		_controller = arguments.controller;
+	}
+
+	private string function _getDefaultEvent() output=false {
+		return _defaultEvent;
+	}
+	private void function _setDefaultEvent( required string defaultEvent ) output=false {
+		_defaultEvent = arguments.defaultEvent;
 	}
 }
