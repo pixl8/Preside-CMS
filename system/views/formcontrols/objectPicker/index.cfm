@@ -64,7 +64,7 @@
 	        tabindex="#getNextTabIndex()#"
 	        data-placeholder="#placeholder#"
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-	        data-value="#value#"
+	        data-value="#HtmlEditFormat( value )#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
 	        </cfif>
@@ -90,9 +90,9 @@
 			</cfif>
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
-			<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
+			<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 			<cfloop query="records">
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#records.label#</option>
+				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#HtmlEditFormat( records.label )#</option>
 			</cfloop>
 		</cfif>
 	</select>

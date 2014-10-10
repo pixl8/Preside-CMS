@@ -10,5 +10,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="hidden" id="#inputId#" name="#inputName#" value="#value#">
+	<input type="hidden" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( value )#">
 </cfoutput>

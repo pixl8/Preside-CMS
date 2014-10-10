@@ -16,7 +16,7 @@
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="form-control date-picker" id="#inputId#" type="text" data-date-format="yyyy-mm-dd" value="#value#" tabindex="#getNextTabIndex()#" />
+		<input name="#inputName#" placeholder="#placeholder#" class="form-control date-picker" id="#inputId#" type="text" data-date-format="yyyy-mm-dd" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
 		<i class="fa fa-calendar"></i>
 	</span>
 </cfoutput>

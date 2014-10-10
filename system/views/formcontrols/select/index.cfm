@@ -16,6 +16,8 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	value = HtmlEditFormat( value );
 </cfscript>
 
 <cfoutput>
@@ -31,8 +33,8 @@
 	        </cfif>
 	>
 		<cfloop array="#values#" index="i" item="selectValue">
-			<option value="#selectValue#"<cfif ListFindNoCase( value, selectValue )> selected="selected"</cfif>>
-				#translateResource( labels[i] ?: "", labels[i] ?: "" )#
+			<option value="#HtmlEditFormat( selectValue )#"<cfif ListFindNoCase( value, selectValue )> selected="selected"</cfif>>
+				#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 			</option>
 		</cfloop>
 	</select>
