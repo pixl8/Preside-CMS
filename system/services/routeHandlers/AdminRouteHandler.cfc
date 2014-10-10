@@ -5,13 +5,13 @@ component implements="iRouteHandler" output=false singleton=true {
 	 * @adminPath.inject         coldbox:setting:preside_admin_path
 	 * @sysConfigService.inject  SystemConfigurationService
 	 * @eventName.inject         coldbox:setting:eventName
-	 * @adminDefaultEvent.inject coldbox:setting:adminDefaultEvent
+	 * @controller.inject        coldbox
 	 */
-	public any function init( required string adminPath, required string eventName, required string adminDefaultEvent, required any sysConfigService ) output=false {
+	public any function init( required string adminPath, required string eventName, required any sysConfigService, required any controller ) output=false {
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
-		_setAdminDefaultEvent( arguments.adminDefaultEvent );
 		_setSysConfigService( arguments.sysConfigService );
+		_setController( arguments.controller );
 
 		return this;
 	}
@@ -26,8 +26,8 @@ component implements="iRouteHandler" output=false singleton=true {
 
 		translated = ListChangeDelims( translated, ".", "/" );
 
-		if ( ListLen( translated, "." ) lt 2 ) {
-			translated = translated & "." & _getAdminDefaultEvent();
+		if ( !_getController().handlerExists( translated ) ) {
+			translated = ListAppend( translated, "index", "." );
 		}
 
 		event.setValue( _getEventName(), translated );
@@ -73,17 +73,17 @@ component implements="iRouteHandler" output=false singleton=true {
 		_eventName = arguments.eventName;
 	}
 
-	private string function _getAdminDefaultEvent() output=false {
-		return _adminDefaultEvent;
-	}
-	private void function _setAdminDefaultEvent( required string adminDefaultEvent ) output=false {
-		_adminDefaultEvent = arguments.adminDefaultEvent;
-	}
-
 	private any function _getSysConfigService() output=false {
 		return _sysConfigService;
 	}
 	private void function _setSysConfigService( required any sysConfigService ) output=false {
 		_sysConfigService = arguments.sysConfigService;
+	}
+
+	private any function _getController() output=false {
+		return _controller;
+	}
+	private void function _setController( required any controller ) output=false {
+		_controller = arguments.controller;
 	}
 }
