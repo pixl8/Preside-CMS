@@ -152,11 +152,20 @@ component output=false {
 		settings.applicationPages = {
 			login = {
 				  handler  = "login"
+				, feature  = "websiteUsers"
 				, children = {
 					  forgottenPassword = { handler="login.forgottenPassword" }
 					, resetPassword     = { handler="login.resetPassword" }
 				  }
 			}
+		};
+
+		settings.features = {
+			  sitetree     = { enabled=true, siteTemplates=[ "*" ] }
+			, sites        = { enabled=true, siteTemplates=[ "*" ] }
+			, assetManager = { enabled=true, siteTemplates=[ "*" ] }
+			, websiteUsers = { enabled=true, siteTemplates=[ "*" ] }
+			, datamanager  = { enabled=true, siteTemplates=[ "*" ] }
 		};
 
 		_loadConfigurationFromExtensions();
