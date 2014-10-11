@@ -171,17 +171,11 @@
 			_wipeTestData();
 
 			usrId = loginService.getSystemUserId();
-			assert( Len( Trim( usrId ) ) );
-
-			loginSuccess = loginService.login( loginId="sysadmin", password="password" );
-			usrDetails   = loginService.getLoggedInUserDetails();
 
 			_wipeTestData();
 			_setupTestData();
 
-			super.assert( loginSuccess );
-			super.assertEquals( "System Administrator", usrDetails.knownAs );
-			super.assertEquals( "", usrDetails.emailAddress );
+			assert( Len( Trim( usrId ) ) );
 		</cfscript>
 	</cffunction>
 
