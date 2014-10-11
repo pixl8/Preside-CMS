@@ -15,6 +15,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
 		}
+
+		if ( loginService.isUserDatabaseNotConfigured() ) {
+			event.setView( "/admin/login/firstTimeUserSetup" );
+		}
 	}
 
 	public void function login( event, rc, prc ) output=false {
@@ -48,6 +52,31 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, message      = "LOGIN_FAILED"
 			} );
 		}
+	}
+
+	public void function firstTimeUserSetupAction( event, rc, prc ) output=false {
+		var emailAddress         = rc.email_address ?: "";
+		var password             = rc.password ?: "";
+		var passwordConfirmation = rc.passwordConfirmation ?: "";
+
+		if ( !Len( Trim( emailAddress ) ) || !Len( Trim( password ) ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+				  message = "EMPTY_PASSWORD"
+				, token   = token
+			} );
+		}
+
+		if ( password != passwordConfirmation ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+				  message = "PASSWORDS_DO_NOT_MATCH"
+				, token   = token
+			} );
+		}
+
+		loginService.firstTimeUserSetup( emailAddress=emailAddress, password=password );
+		setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+			message = "FIRST_TIME_USER_SETUP"
+		} );
 	}
 
 	public void function logout( event, rc, prc ) output=false {

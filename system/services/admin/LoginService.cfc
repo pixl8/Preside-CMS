@@ -74,8 +74,21 @@ component output="false" singleton=true {
 		return _getUserDao().insertData( {
 			  known_as      = "System administrator"
 			, login_id      = systemUser
-			, password      = _getBCryptService().hashPw( "password" )
+			, password      = ""
 			, email_address = ""
+		} );
+	}
+
+	public boolean function isUserDatabaseNotConfigured() output=false {
+		var user = _getUserDao().selectData( selectFields=[ "login_id", "password" ], maxRows=2 );
+
+		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.login_id == ListFirst( _getSystemUserList() );
+	}
+
+	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) output=false {
+		return _getUserDao().updateData( id=getSystemUserId(), data={
+			  email_address = arguments.emailAddress
+			, password      = _getBCryptService().hashPw( arguments.password )
 		} );
 	}
 

@@ -18,6 +18,11 @@
 								<p>#translateResource( 'cms:login.failed.error' )#</p>
 							</div>
 						</cfcase>
+						<cfcase value="FIRST_TIME_USER_SETUP">
+							<div class="alert alert-block alert-success">
+								<p>#translateResource( 'cms:login.user.setup.confirmation' )#</p>
+							</div>
+						</cfcase>
 						<cfcase value="PASSWORD_RESET">
 							<div class="alert alert-block alert-success">
 								<p>#translateResource( 'cms:login.password.reset.confirmation' )#</p>
