@@ -49,15 +49,34 @@ component output="false" singleton=true {
 	}
 
 	public struct function getLoggedInUserDetails() output=false {
-		return _getSessionService().getVar( name=_getSessionKey(), default={} );
+		if ( !StructKeyExists( request, "__presideCmsAminUserDetails" ) ) {
+			var userId = _getSessionService().getVar( name=_getSessionKey(), default="" );
+
+			if ( Len( Trim( userId ) ) ) {
+				var userRecord = _getUserDao().selectData( id=userId );
+				if ( userRecord.recordCount ) {
+					for( var u in userRecord ) {
+						request.__presideCmsAminUserDetails = u; break;  // query row to struct hack
+					}
+
+					request.__presideCmsAminUserDetails.delete( "password" );
+				} else {
+					request.__presideCmsAminUserDetails = {};
+				}
+			} else {
+				request.__presideCmsAminUserDetails = {};
+			}
+		}
+
+		return request.__presideCmsAminUserDetails;
 	}
 
 	public string function getLoggedInUserId() output=false {
-		return getLoggedInUserDetails().userId;
+		return _getSessionService().getVar( name=_getSessionKey(), default="" );
 	}
 
 	public boolean function isSystemUser() output=false {
-		return isLoggedIn() and ListFindNoCase( _getSystemUserList(), getLoggedInUserDetails().loginId );
+		return isLoggedIn() and ListFindNoCase( _getSystemUserList(), getLoggedInUserDetails().login_id );
 	}
 
 	public string function getSystemUserId() output=false {
@@ -205,14 +224,8 @@ component output="false" singleton=true {
 
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) output=false {
-		var persistData = {
-			  loginId      = arguments.usr.login_id
-			, knownAs      = arguments.usr.known_as
-			, emailAddress = arguments.usr.email_address
-			, userId       = arguments.usr.id
-		};
-
-		_getSessionService().setVar( name=_getSessionKey(), value=persistData );
+		request.delete( "__presideCmsAminUserDetails" );
+		_getSessionService().setVar( name=_getSessionKey(), value=arguments.usr.id );
 	}
 
 	private void function _destroyUserSession() output=false {

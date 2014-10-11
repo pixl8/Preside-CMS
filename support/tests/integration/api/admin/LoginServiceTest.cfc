@@ -28,12 +28,14 @@
 	<cffunction name="setup" access="public" returntype="any" output="false">
 		<cfscript>
 			sessionService.clearAll();
+			request.delete( "__presideCmsAminUserDetails" );
 		</cfscript>
 	</cffunction>
 
 	<cffunction name="teardown" access="public" returntype="any" output="false">
 		<cfscript>
 			sessionService.clearAll();
+			request.delete( "__presideCmsAminUserDetails" );
 		</cfscript>
 	</cffunction>
 
@@ -72,14 +74,16 @@
 
 	<cffunction name="test06_getLoggedInUserDetails_shouldReturnStoredDetailsOfLoggedInUser" returntype="void">
 		<cfscript>
-			var expected = { loginId=testUsers[2].loginId, emailAddress=testUsers[2].email, userId=testUsers[2].id, knownAs=testUsers[2].name };
+			var expected = { login_id=testUsers[2].loginId, email_address=testUsers[2].email, id=testUsers[2].id, known_as=testUsers[2].name };
 			var result = "";
 
 			loginService.login( loginId=testUsers[2].loginId, password=testUsers[2].pw );
 
 			result = loginService.getLoggedInUserDetails();
 
-			super.assertEquals( expected, result );
+			for( var key in expected ) {
+				super.assertEquals( expected[ key ], result[ key ] );
+			}
 		</cfscript>
 	</cffunction>
 
@@ -95,16 +99,16 @@
 
 	<cffunction name="test08_login_shouldOverrideCurrentlyLoggedInUser_whenUserIsAlreadyLoggedIn" returntype="void">
 		<cfscript>
-			var expected = { loginId=testUsers[5].loginId, emailAddress=testUsers[5].email, userId=testUsers[5].id, knownAs=testUsers[5].name };
+			var expected = testUsers[5].loginId;
 			var result = "";
 
 			loginService.login( loginId=testUsers[3].loginId, password=testUsers[3].pw );
-			super.assertEquals( testUsers[3].loginId, loginService.getLoggedInUserDetails().loginId, "Test failed, initial user login did not register." );
+			super.assertEquals( testUsers[3].loginId, loginService.getLoggedInUserDetails().login_id, "Test failed, initial user login did not register." );
 
 			loginService.login( loginId=testUsers[5].loginId, password=testUsers[5].pw );
 			result = loginService.getLoggedInUserDetails();
 
-			super.assertEquals( expected, result );
+			super.assertEquals( expected, result.login_id );
 		</cfscript>
 	</cffunction>
 

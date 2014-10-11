@@ -156,7 +156,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 
 		if ( IsBoolean( rc.send_welcome ?: "" ) && rc.send_welcome ) {
-			loginService.sendWelcomeEmail( newUserId, event.getAdminUserDetails().knownAs, rc.welcome_message ?: "" );
+			loginService.sendWelcomeEmail( newUserId, event.getAdminUserDetails().known_as, rc.welcome_message ?: "" );
 		}
 
 		var newRecordLink = event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#newUserId#" );
@@ -197,15 +197,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 			StructDelete( rc, "active" ); // ensure user cannot deactivate themselves!
 		}
 
-		if ( Len( rc.password ?: "" ) ) {
-			rc.password = bCryptService.hashPw( rc.password ?: "" );
-			if ( bCryptService.checkPw( rc.confirm_password, rc.password ) ) {
-				rc.confirm_password = rc.password;
-			}
-		}
-
 		if ( IsBoolean( rc.resend_welcome ?: "" ) && rc.resend_welcome ) {
-			loginService.sendWelcomeEmail( userId, event.getAdminUserDetails().knownAs, rc.welcome_message ?: "" );
+			loginService.sendWelcomeEmail( userId, event.getAdminUserDetails().known_as, rc.welcome_message ?: "" );
 		}
 
 		runEvent(

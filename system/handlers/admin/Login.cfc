@@ -33,11 +33,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( loggedIn ) {
 			user = event.getAdminUserDetails();
 			event.audit(
-				  detail   = "[#user.knownAs#] has logged in"
+				  detail   = "[#user.known_as#] has logged in"
 				, source   = "login"
 				, action   = "login_success"
 				, type     = "user"
-				, instance = user.userId
+				, instance = user.id
 			);
 
 			if ( Len( Trim( postLoginUrl ) ) ) {
@@ -86,11 +86,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 			user = event.getAdminUserDetails();
 
 			event.audit(
-				  detail   = "[#user.knownAs#] has logged out"
+				  detail   = "[#user.known_as#] has logged out"
 				, source   = "logout"
 				, action   = "logout_success"
 				, type     = "user"
-				, instance = user.userId
+				, instance = user.id
 			);
 
 			loginService.logout();

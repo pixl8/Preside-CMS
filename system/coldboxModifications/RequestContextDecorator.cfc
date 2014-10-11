@@ -168,17 +168,11 @@
 	</cffunction>
 
 	<cffunction name="getAdminUserDetails" access="public" returntype="struct" output="false">
-		<cfscript>
-			var loginSvc = getModel( "loginService" );
-
-			return loginSvc.getLoggedInUserDetails();
-		</cfscript>
+		<cfreturn getModel( "loginService" ).getLoggedInUserDetails() />
 	</cffunction>
 
 	<cffunction name="getAdminUserId" access="public" returntype="string" output="false">
-		<cfscript>
-			return getAdminUserDetails().userId;
-		</cfscript>
+		<cfreturn getModel( "loginService" ).getLoggedInUserId() />
 	</cffunction>
 
 	<cffunction name="adminAccessDenied" access="public" returntype="void" output="false">
@@ -190,7 +184,7 @@
 
 	<cffunction name="audit" access="public" returntype="void" output="false">
 		<cfscript>
-			arguments.userId = getAdminUserDetails().userId;
+			arguments.userId = getAdminUserId();
 
 			return getModel( "AuditService" ).log( argumentCollection = arguments );
 		</cfscript>
