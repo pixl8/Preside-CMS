@@ -12,6 +12,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !isFeatureEnabled( "assetManager" ) ) {
+			event.notFound();
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:assetManager" )
 			, link  = event.buildAdminLink( linkTo="assetmanager" )

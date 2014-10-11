@@ -137,3 +137,8 @@
 	<cffunction name="getLoggedInUserDetails" access="public" returntype="struct" output="false">
 		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
 	</cffunction>
+
+<!--- features --->
+	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
+	</cffunction>

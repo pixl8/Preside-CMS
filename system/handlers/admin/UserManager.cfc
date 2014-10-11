@@ -8,6 +8,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !isFeatureEnabled( "cmsUserManager" ) ) {
+			event.notFound();
+		}
+
 		if ( event.getCurrentAction() contains "group" ) {
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:usermanager.groupspage.title" )

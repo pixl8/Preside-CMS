@@ -26,7 +26,7 @@ component output=false autodoc=true {
 	 */
 	public boolean function isFeatureEnabled( required string feature ) output=false autodoc=true {
 		var features           = _getConfiguredFeatures();
-		var activeSiteTemplate = _getSiteService();
+		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
 		var isEnabled          = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
 
 		if ( !isEnabled ) {
@@ -34,6 +34,7 @@ component output=false autodoc=true {
 		}
 
 		var availableToTemplates = features[ arguments.feature ].siteTemplates ?: [ "*" ];
+		activeSiteTemplate = Len( Trim( activeSiteTemplate ) ) ? activeSiteTemplate : "default";
 
 		return !IsArray( availableToTemplates ) || availableToTemplates.find( "*" ) || availableToTemplates.find( activeSiteTemplate );
 	}

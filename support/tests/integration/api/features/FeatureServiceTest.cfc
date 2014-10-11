@@ -22,7 +22,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test04_isFeatureEnabled_shouldReturnFalse_whenFeatureIsEnabledButNotForTheCurrentSiteTemplate() output=false {
 		var svc = _getService();
 
+		mockSiteService.$( "getActiveSiteTemplate", "somesite" );
 		super.assertFalse( svc.isFeatureEnabled( feature="sites" ) );
+	}
+
+	function test05_isFeatureEnabled_shouldReturnTrue_whenFeatureHasDefaultTemplateSet_andCurrentTemplateIsBlank() output=false {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "" );
+		super.assert( svc.isFeatureEnabled( feature="sites" ) ) ;
 	}
 
 // PRIVATE HELPERS
@@ -39,7 +47,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	private struct function _getDefaultTestConfiguration() output=false {
 		return {
 			  sitetree     = { enabled=false, siteTemplates=[ "*" ] }
-			, sites        = { enabled=true , siteTemplates=[ "tempate-x", "template-y" ] }
+			, sites        = { enabled=true , siteTemplates=[ "tempate-x", "template-y", "default" ] }
 			, assetManager = { enabled=false, siteTemplates=[ "*" ] }
 			, websiteUsers = { enabled=true }
 			, datamanager  = { enabled=true,  siteTemplates=[ "*" ] }

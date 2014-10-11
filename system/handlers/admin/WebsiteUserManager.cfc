@@ -8,6 +8,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !isFeatureEnabled( "websiteUsers" ) ) {
+			event.notFound();
+		}
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:websiteUserManager.userspage.title" )
 			, link  = event.buildAdminLink( linkTo="websiteUserManager" )

@@ -5,6 +5,12 @@ component output=false extends="preside.system.base.AdminHandler" {
 	property name="redirectDao" inject="presidecms:object:site_redirect_domain";
 	property name="messagebox"  inject="coldbox:plugin:messagebox";
 
+	public void function preHandler( event, rc, prc ) output=false {
+		if ( !isFeatureEnabled( "sites" ) ) {
+			event.notFound();
+		}
+	}
+
 	public void function manage( event, rc, prc ) output=false {
 		_checkPermissions( event );
 		_addRootBreadcrumb( event );

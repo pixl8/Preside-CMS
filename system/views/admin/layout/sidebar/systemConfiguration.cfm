@@ -1,5 +1,5 @@
 <cfscript>
-	if ( hasCmsPermission( "systemConfiguration.manage" ) ) {
+	if ( isFeatureEnabled( "systemConfiguration" ) && hasCmsPermission( "systemConfiguration.manage" ) ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
 			, args = {

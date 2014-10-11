@@ -1,5 +1,5 @@
 <cfscript>
-	if ( hasCmsPermission( "datamanager.navigate" ) ) {
+	if ( isFeatureEnabled( "datamanager" ) && hasCmsPermission( "datamanager.navigate" ) ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
 			, args = {

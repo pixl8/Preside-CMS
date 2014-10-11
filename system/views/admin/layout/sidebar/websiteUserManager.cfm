@@ -1,5 +1,5 @@
 <cfscript>
-	if ( hasCmsPermission( "websiteUserManager.navigate" ) || hasCmsPermission( "websiteBenefitsManager.navigate" ) ) {
+	if ( isFeatureEnabled( "websiteUsers" ) && ( hasCmsPermission( "websiteUserManager.navigate" ) || hasCmsPermission( "websiteBenefitsManager.navigate" ) ) ) {
 		subMenuItems = [];
 		if ( hasCmsPermission( "websiteUserManager.navigate" ) ) {
 			subMenuItems.append( {

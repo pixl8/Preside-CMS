@@ -1,5 +1,5 @@
 <cfscript>
-	if ( hasCmsPermission( "assetmanager.general.navigate" ) ) {
+	if ( isFeatureEnabled( "assetManager" ) && hasCmsPermission( "assetmanager.general.navigate" ) ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
 			, args = {

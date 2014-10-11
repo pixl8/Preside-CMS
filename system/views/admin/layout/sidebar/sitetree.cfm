@@ -1,5 +1,5 @@
 <cfscript>
-	if ( hasCmsPermission( "sitetree.navigate" ) ) {
+	if ( isFeatureEnabled( "sitetree" ) && hasCmsPermission( "sitetree.navigate" ) ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
 			, args = {

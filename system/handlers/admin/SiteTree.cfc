@@ -11,6 +11,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	public void function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
+		if ( !isFeatureEnabled( "sitetree" ) ) {
+			event.notFound();
+		}
+
 		if ( !hasCmsPermission( "sitetree.navigate" ) ) {
 			event.adminAccessDenied();
 		}

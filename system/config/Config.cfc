@@ -161,11 +161,14 @@ component output=false {
 		};
 
 		settings.features = {
-			  sitetree     = { enabled=true, siteTemplates=[ "*" ] }
-			, sites        = { enabled=true, siteTemplates=[ "*" ] }
-			, assetManager = { enabled=true, siteTemplates=[ "*" ] }
-			, websiteUsers = { enabled=true, siteTemplates=[ "*" ] }
-			, datamanager  = { enabled=true, siteTemplates=[ "*" ] }
+			  sitetree            = { enabled=true, siteTemplates=[ "*" ] }
+			, sites               = { enabled=true, siteTemplates=[ "*" ] }
+			, assetManager        = { enabled=true, siteTemplates=[ "*" ] }
+			, websiteUsers        = { enabled=true, siteTemplates=[ "*" ] }
+			, datamanager         = { enabled=true, siteTemplates=[ "*" ] }
+			, systemConfiguration = { enabled=true, siteTemplates=[ "*" ] }
+			, updateManager       = { enabled=true, siteTemplates=[ "*" ] }
+			, cmsUserManager      = { enabled=true, siteTemplates=[ "*" ] }
 		};
 
 		_loadConfigurationFromExtensions();

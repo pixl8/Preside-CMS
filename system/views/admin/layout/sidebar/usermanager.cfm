@@ -1,5 +1,5 @@
 <cfscript>
-	if ( hasCmsPermission( "usermanager.navigate" ) || hasCmsPermission( "groupmanager.navigate" ) ) {
+	if ( isFeatureEnabled( "cmsUserManager" ) && hasCmsPermission( "usermanager.navigate" ) || hasCmsPermission( "groupmanager.navigate" ) ) {
 		subMenuItems = [];
 		if ( hasCmsPermission( "usermanager.navigate" ) ) {
 			subMenuItems.append( {

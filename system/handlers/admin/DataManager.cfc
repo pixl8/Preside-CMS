@@ -15,6 +15,10 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
+			if ( !isFeatureEnabled( "datamanager" ) ) {
+				event.notFound();
+			}
+
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:datamanager" )
 				, link  = event.buildAdminLink( linkTo="datamanager" )
