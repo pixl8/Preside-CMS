@@ -191,7 +191,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function editUserAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="usermanager.edit" );
 
-		if ( rc.id == event.getAdminUserId() ) {
+		var userId = rc.id ?: "";
+
+		if ( userId == event.getAdminUserId() ) {
 			StructDelete( rc, "active" ); // ensure user cannot deactivate themselves!
 		}
 
@@ -202,6 +204,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 			}
 		}
 
+		if ( IsBoolean( rc.resend_welcome ?: "" ) && rc.resend_welcome ) {
+			loginService.sendWelcomeEmail( userId, event.getAdminUserDetails().knownAs, rc.welcome_message ?: "" );
+		}
+
 		runEvent(
 			  event          = "admin.dataManager._editRecordAction"
 			, private        = true
@@ -210,7 +216,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object            = "security_user"
 				, errorAction       = "userManager.editUser"
 				, successAction     = "userManager.users"
-				, mergeWithFormName = ( rc.id == event.getAdminUserId() ) ? "preside-objects.security_user.admin.edit.self" : ""
+				, mergeWithFormName = ( userId == event.getAdminUserId() ) ? "preside-objects.security_user.admin.edit.self" : ""
 			}
 		);
 	}
