@@ -49,7 +49,6 @@ component singleton=true output="false" {
 	) output=false {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
 		var rendered = "";
-
 		if ( rendererExists( renderer ) ) {
 			rendered = this.render(
 				  renderer = renderer
@@ -300,11 +299,7 @@ component singleton=true output="false" {
 		var conventionsBasedName = "";
 		var contexts             = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
-		if ( !contexts.find( "default" ) ) {
-			contexts.append( "default" );
-		}
 		if ( renderers.keyExists( arguments.name ) ) {
-
 			for( var cx in contexts ) {
 				if ( renderers[ arguments.name ].keyExists( cx ) ) {
 					return renderers[ arguments.name ][ cx ];
@@ -318,6 +313,10 @@ component singleton=true output="false" {
 				registerRenderer( arguments.name, cx, conventionsBasedName );
 				return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
 			}
+		}
+
+		if ( !IsSimpleValue( arguments.context ) || arguments.context != "default" ) {
+			return _getRenderer( arguments.name, "default" );
 		}
 
 		if ( StructKeyExists( renderers, arguments.name ) ) {
