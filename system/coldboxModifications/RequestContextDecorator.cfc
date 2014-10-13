@@ -155,7 +155,7 @@
 			var qs          = request[ "preside.query_string" ] ?: "";
 			var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
 
-			return includeQs ? currentUrl & qs : currentUrl;
+			return includeQs ? currentUrl & "?" & qs : currentUrl;
 		</cfscript>
 	</cffunction>
 
