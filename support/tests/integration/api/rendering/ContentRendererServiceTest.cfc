@@ -63,6 +63,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( svc.rendererExists( name="plain", context="frontend" ) );
 	}
 
+	function test06_01_rendererExists_shouldReturnTrue_whenRendererExistsForOneOfThePassedContexts(){
+		var svc = _getRendererService();
+
+		svc.registerRenderer( name="plain", viewlet="plain.viewlet", context="someContext" );
+
+		super.assert( svc.rendererExists( name="plain", context=["frontend", "someContext", "anotherContext" ] ) );
+	}
+
 	function test07_render_shouldCallViewletOfRegisteredDefaultRenderer(){
 		var svc            = _getRendererService();
 		var rendered       = "";
@@ -104,6 +112,23 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		svc.registerRenderer( name="money", viewlet="test.viewlet.here", context="default" );
 
 		rendered = svc.render( renderer="money", data="8334", context="admin" );
+
+		super.assertEquals( expectedRender, rendered );
+	}
+
+	function test09_01_render_shouldCallViewletOfRegisteredRendererForTheFirstMatchedContext_whenMultipleContextsArePassed(){
+		var svc            = _getRendererService();
+		var rendered       = "";
+		var expectedRender = "another testing rendering";
+
+		// mocking the coldbox calls
+		mockColdBox.$( "renderViewlet" )
+			.$args( event="admin.viewlet.money", args={ data="8334" } ).$results( expectedRender );
+
+		svc.registerRenderer( name="money", viewlet="admin.viewlet.money", context="admin" );
+		svc.registerRenderer( name="money", viewlet="test.viewlet.here", context="default" );
+
+		rendered = svc.render( renderer="money", data="8334", context=[ "somecontext", "another", "admin", "blah" ] );
 
 		super.assertEquals( expectedRender, rendered );
 	}
@@ -170,9 +195,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		svc.registerRenderer( name="plain", viewlet="plain.viewlet" );
 		svc.registerRenderer( name="custom", chain=["plain","myRenderer"] );
 
-		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.default" ).$results( true );
+		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.mytest" ).$results( false );
+		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.contexts" ).$results( true );
+		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.here" ).$results( false );
 
-		super.assert( svc.rendererExists( name="viewletOnly" ) );
+		super.assert( svc.rendererExists( name="viewletOnly", context=[ "mytest", "contexts", "here" ] ) );
 	}
 
 	function test14_render_shouldCallConventionBasedColdboxViewlet_whenRendererNotRegisteredButConventionBasedViewletExists(){
@@ -183,11 +210,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		svc.registerRenderer( name="plain", viewlet="plain.viewlet" );
 		svc.registerRenderer( name="custom", chain=["plain","myRenderer"] );
 
+		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.meh" ).$results( false );
 		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.admin" ).$results( true );
 		mockColdBox.$( "viewletExists" ).$args( event="renderers.content.viewletOnly.default" ).$results( false );
 		mockColdBox.$( "renderViewlet" ).$args( event="renderers.content.viewletOnly.admin", args={ data="test" } ).$results( expectedRender );
 
-		rendered = svc.render( renderer="viewletOnly", context="admin", data="test" );
+		rendered = svc.render( renderer="viewletOnly", context=[ "meh", "admin" ], data="test" );
 		super.assertEquals( expectedRender, rendered );
 	}
 

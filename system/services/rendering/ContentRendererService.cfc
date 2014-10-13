@@ -22,7 +22,7 @@ component singleton=true output="false" {
 	}
 
 // PUBLIC API METHODS
-	public string function render( required string renderer, required string data, string context="default" ) output=false {
+	public string function render( required string renderer, required string data, any context="default" ) output=false {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
 		var rendered = arguments.data;
@@ -42,7 +42,7 @@ component singleton=true output="false" {
 		  required string  object
 		, required string  property
 		, required string  data
-		,          string  context  = "default"
+		,          any     context  = "default"
 		,          boolean editable = false
 		,          string  recordId = ""
 
@@ -103,10 +103,11 @@ component singleton=true output="false" {
 		return renderers;
 	}
 
-	public boolean function rendererExists( required string name, string context="default" ) output=false {
+	public boolean function rendererExists( required string name, any context="default" ) output=false {
 		var cache     = _getCache();
-		var cacheKey  = "rendererExists: " & arguments.name & " in context: " & arguments.context;
+		var cacheKey  = "rendererExists: " & arguments.name & " in context: " & SerializeJson( arguments.context );
 		var exists    = cache.get( cacheKey );
+		var contexts  = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
 		if ( not IsNull( exists ) ) {
 			return exists;
@@ -116,19 +117,26 @@ component singleton=true output="false" {
 		var cbProxy   = _getColdbox();
 
 		exists = false;
-		if ( StructKeyExists( renderers, arguments.name ) ) {
-			if ( not StructKeyExists( renderers[ arguments.name ], arguments.context ) ) {
-				if ( StructKeyExists( renderers[ arguments.name ], "default" ) ) {
+		if ( renderers.keyExists( arguments.name ) ) {
+			if ( !contexts.find( "default" ) ) {
+				contexts.append( "default" );
+			}
+
+			for( var cx in contexts ) {
+				if ( renderers[ arguments.name ].keyExists( cx ) ) {
 					exists = true;
+					break;
 				}
-			} else {
-				exists = true;
 			}
 		}
 
 		if ( not exists ) {
-			exists = cbProxy.viewletExists( event=_getConventionBasedViewletName( renderer=arguments.name, context=arguments.context ) )
-		    or cbProxy.viewletExists( event=_getConventionBasedViewletName( renderer=arguments.name, context="default" ) );
+			for( var cx in contexts ) {
+				exists = cbProxy.viewletExists( event=_getConventionBasedViewletName( renderer=arguments.name, context=cx ) );
+				if ( exists ) {
+					break;
+				}
+			}
 		}
 
 		cache.set( cacheKey, exists );
@@ -285,29 +293,30 @@ component singleton=true output="false" {
 	}
 
 // PRIVATE HELPERS
-	private ContentRenderer function _getRenderer( required string name, required string context ) output=false {
+	private ContentRenderer function _getRenderer( required string name, required any context ) output=false {
 		var renderers            = _getRenderers();
 		var cbProxy              = _getColdbox();
 		var conventionsBasedName = "";
+		var contexts             = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
-		if ( StructKeyExists( renderers, arguments.name ) ) {
-			if ( StructKeyExists( renderers[ arguments.name ], arguments.context ) ) {
-				return renderers[ arguments.name ][ arguments.context ];
+		if ( renderers.keyExists( arguments.name ) ) {
+			if ( !contexts.find( "default" ) ) {
+				contexts.append( "default" );
 			}
-			if ( StructKeyExists( renderers[ arguments.name ], "default" ) ) {
-				return renderers[ arguments.name ].default;
+
+			for( var cx in contexts ) {
+				if ( renderers[ arguments.name ].keyExists( cx ) ) {
+					return renderers[ arguments.name ][ cx ];
+				}
 			}
 		}
 
-		conventionsBasedName = _getConventionBasedViewletName( arguments.name, arguments.context );
-		if ( cbProxy.viewletExists( conventionsBasedName ) ) {
-			registerRenderer( arguments.name, arguments.context, conventionsBasedName );
-			return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
-		}
-		conventionsBasedName = _getConventionBasedViewletName( arguments.name, "default" );
-		if ( cbProxy.viewletExists( conventionsBasedName ) ) {
-			registerRenderer( arguments.name, arguments.context, conventionsBasedName );
-			return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
+		for( var cx in contexts ) {
+			conventionsBasedName = _getConventionBasedViewletName( arguments.name, cx );
+			if ( cbProxy.viewletExists( conventionsBasedName ) ) {
+				registerRenderer( arguments.name, cx, conventionsBasedName );
+				return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
+			}
 		}
 
 		if ( StructKeyExists( renderers, arguments.name ) ) {
