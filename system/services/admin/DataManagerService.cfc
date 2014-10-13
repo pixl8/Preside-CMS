@@ -114,7 +114,6 @@ component output="false" singleton=true {
 			result.totalRecords = _getPresideObjectService().selectData(
 				  objectName       = arguments.objectName
 				, selectFields     = [ "count( * ) as nRows" ]
-				, fromVersionTable = true
 			).nRows;
 		}
 
