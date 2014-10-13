@@ -51,7 +51,7 @@ component extends="coldbox.system.web.Controller" output=false {
 			return exists;
 		}
 
-		targetView = getPlugin( "renderer" ).locateView( ListChangeDelims( arguments.view, "/", "." ) );
+		targetView = getPlugin( "Renderer" ).locateView( ListChangeDelims( arguments.view, "/", "." ) );
 		exists     = Len( Trim( targetView ) ) and FileExists( ExpandPath( targetView & ".cfm" ) );
 
 		cache.set( cacheKey, exists );
@@ -86,7 +86,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		if ( not viewExists( view ) ) {
 			view = ListAppend( view, defaultAction, "/" );
 		}
-		return getPlugin( "renderer" ).renderView(
+		return getPlugin( "Renderer" ).renderView(
 			  view = view
 			, args = arguments.args
 		);

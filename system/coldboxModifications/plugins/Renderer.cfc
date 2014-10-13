@@ -575,17 +575,10 @@
 		<cfargument name="view" type="any" required="true" hint="The view name">
 
 		<cfscript>
-			var viewDirs = _getViewDirectories();
-			var viewPath = "";
+			var viewMappings = _getViewMappings();
+			var viewMapping  = ReReplace( arguments.view, "^/", "" );
 
-			for( var i=viewDirs.len(); i>0; i-- ){
-				viewPath = viewDirs[i] & "/" & arguments.view;
-				if ( FileExists( viewPath & ".cfm" ) ) {
-					return viewPath;
-				}
-			}
-
-			return "/#instance.appMapping#/#instance.viewsConvention#/#arguments.view#";
+			return viewMappings[ viewMapping ] ?: "/#instance.appMapping#/#instance.viewsConvention#/#arguments.view#";
 		</cfscript>
 	</cffunction>
 
@@ -758,5 +751,37 @@
 
 	<cffunction name="_getThreadSafeInstanceOfThisPlugin" access="private" returntype="any" output="false">
 		<cfreturn Duplicate( this, false ) />
+	</cffunction>
+
+	<cffunction name="_getViewMappings" access="private" returntype="struct" output="false">
+		<cfscript>
+			lock name="#instance.lockName#" type="readonly" timeout="15" throwontimeout="true" {
+				if ( controller.settingExists( "viewsFullMappings" ) ) {
+					return controller.getSetting( "viewsFullMappings" )
+				}
+			}
+
+			var viewDirs = _getViewDirectories();
+			var mappings = {};
+
+			for( var viewDir in viewDirs ){
+				var fullDirPath = ExpandPath( viewDir );
+				var viewFiles   = DirectoryList( fullDirPath, true, "path", "*.cfm" );
+
+				for ( var filePath in viewFiles ) {
+					var mapping = ReReplaceNoCase( filePath, "\.cfm$", "" );
+					    mapping = Replace( mapping, fullDirPath, "" );
+					    mapping = ReReplace( mapping, "^/", "" );
+
+					var mappings[ mapping ] = viewDir & "/" & mapping;
+				}
+			}
+
+			lock name="#instance.lockName#" type="readonly" timeout="15" throwontimeout="true" {
+				controller.setSetting( "viewsFullMappings", mappings )
+			}
+
+			return mappings;
+		</cfscript>
 	</cffunction>
 </cfcomponent>
