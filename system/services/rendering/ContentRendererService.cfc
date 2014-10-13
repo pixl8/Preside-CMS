@@ -109,6 +109,10 @@ component singleton=true output="false" {
 		var exists    = cache.get( cacheKey );
 		var contexts  = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
+		if ( !contexts.find( "default" ) ) {
+			contexts.append( "default" );
+		}
+
 		if ( not IsNull( exists ) ) {
 			return exists;
 		}
@@ -118,9 +122,6 @@ component singleton=true output="false" {
 
 		exists = false;
 		if ( renderers.keyExists( arguments.name ) ) {
-			if ( !contexts.find( "default" ) ) {
-				contexts.append( "default" );
-			}
 
 			for( var cx in contexts ) {
 				if ( renderers[ arguments.name ].keyExists( cx ) ) {
@@ -299,10 +300,10 @@ component singleton=true output="false" {
 		var conventionsBasedName = "";
 		var contexts             = IsArray( arguments.context ) ? arguments.context : [ arguments.context ];
 
+		if ( !contexts.find( "default" ) ) {
+			contexts.append( "default" );
+		}
 		if ( renderers.keyExists( arguments.name ) ) {
-			if ( !contexts.find( "default" ) ) {
-				contexts.append( "default" );
-			}
 
 			for( var cx in contexts ) {
 				if ( renderers[ arguments.name ].keyExists( cx ) ) {
