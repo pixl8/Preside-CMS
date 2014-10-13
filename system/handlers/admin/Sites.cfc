@@ -6,6 +6,8 @@ component output=false extends="preside.system.base.AdminHandler" {
 	property name="messagebox"  inject="coldbox:plugin:messagebox";
 
 	public void function preHandler( event, rc, prc ) output=false {
+		super.preHandler( argumentCollection = arguments );
+
 		if ( !isFeatureEnabled( "sites" ) ) {
 			event.notFound();
 		}
@@ -14,7 +16,6 @@ component output=false extends="preside.system.base.AdminHandler" {
 	public void function manage( event, rc, prc ) output=false {
 		_checkPermissions( event );
 		_addRootBreadcrumb( event );
-
 
 		prc.pageIcon     = "globe";
 		prc.pageTitle    = translateResource( "cms:sites.manage.title" );
