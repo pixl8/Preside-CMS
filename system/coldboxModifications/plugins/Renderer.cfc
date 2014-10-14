@@ -765,11 +765,12 @@
 			var mappings = {};
 
 			for( var viewDir in viewDirs ){
-				var fullDirPath = ExpandPath( viewDir );
+				var fullDirPath = Replace( ExpandPath( viewDir ), "\", "/", "all" )
 				var viewFiles   = DirectoryList( fullDirPath, true, "path", "*.cfm" );
 
 				for ( var filePath in viewFiles ) {
 					var mapping = ReReplaceNoCase( filePath, "\.cfm$", "" );
+					    mapping = Replace( mapping, "\", "/", "all" );
 					    mapping = Replace( mapping, fullDirPath, "" );
 					    mapping = ReReplace( mapping, "^/", "" );
 
