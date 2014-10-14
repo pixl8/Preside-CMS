@@ -322,7 +322,7 @@ component singleton=true output="false" {
 		if ( StructKeyExists( renderers, arguments.name ) ) {
 			throw(
 				  type    = "Renderer.MissingDefaultContext"
-				, message = "The renderer, [#arguments.name#], has neither a [default] context or a [#arguments.context#] context"
+				, message = "The renderer, [#arguments.name#], does not have a default context"
 			);
 		}
 

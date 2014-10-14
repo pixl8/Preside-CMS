@@ -90,8 +90,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var expectedRender = "this is a test";
 
 		// mocking the coldbox calls
-		mockColdBox.$( "renderViewlet" )
-			.$args( event="test.viewlet.here", args={ data="8334" } ).$results( expectedRender );
+		mockColdBox.$( "renderViewlet" ).$args( event="test.viewlet.here", args={ data="8334" } ).$results( expectedRender );
+		mockColdBox.$( "viewletExists" ).$results( false );
 
 		svc.registerRenderer( name="money", viewlet="test.viewlet.here", context="default" );
 
@@ -160,7 +160,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		try {
 			svc.render( renderer="money", context="anotherContext", data="blah" );
 		} catch ( "Renderer.missingDefaultContext" e ) {
-			super.assertEquals( "The renderer, [money], has neither a [default] context or a [anotherContext] context", e.message );
+			super.assertEquals( "The renderer, [money], does not have a default context", e.message );
 			errorThrown = true;
 		}
 
@@ -182,6 +182,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockColdBox.$( "renderViewlet" ).$args( event="plain.viewlet", args={ data="test data" } ).$results( "firstRenderResult" );
 		mockColdBox.$( "renderViewlet" ).$args( event="yetAnother.viewlet", args={ data="firstRenderResult" } ).$results( "second" );
 		mockColdBox.$( "renderViewlet" ).$args( event="another.viewlet", args={ data="second" } ).$results( expectedRender );
+		mockColdBox.$( "viewletExists" ).$results( false );
 
 		// run the test
 		rendered = svc.render( renderer="custom", context="admin", data="test data" );
