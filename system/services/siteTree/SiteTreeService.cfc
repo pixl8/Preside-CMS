@@ -645,6 +645,13 @@ component output=false singleton=true {
 		return _getPObj().deleteData( filter = { trashed = true } );
 	}
 
+	public struct function getActivePageFilter( string pageTableAlais="page" ) output=false {
+		return {
+			  filter       = "#pageTableAlais#.active = 1 and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
+			, filterParams = {}
+		};
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) output=false {
 		var result       = "";
