@@ -263,7 +263,7 @@ component output="false" singleton=true {
 				break;
 
 				case "many-to-one":
-					sqlFields[i] = prop.getAttribute( "relatedTo", "" ) & ".${labelfield} as " & field;
+					sqlFields[i] = prop.getAttribute( "name", "" ) & ".${labelfield} as " & field;
 				break;
 
 				default:
