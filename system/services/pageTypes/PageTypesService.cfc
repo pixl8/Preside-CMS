@@ -102,7 +102,7 @@ component output=false singleton=true {
 				dir = ReReplace( dir, "/$", "" );
 
 				if ( !handlerExists) {
-					handlerExists = FileExists( dir & "/handlers/page-types/#id#.cfc" );
+					handlerExists = _fileExistsNoCase( dir & "/handlers/page-types/#id#.cfc" );
 				}
 
 				var viewDir = dir & "/views/page-types/#id#/";
@@ -142,6 +142,16 @@ component output=false singleton=true {
 			, allowedParentTypes = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*" )
 			, siteTemplates      = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*" )
 		);
+	}
+
+	private boolean function _fileExistsNoCase( required string path ) output=false {
+		var directory = GetDirectoryFromPath( arguments.path );
+		var fileName  = ListLast( arguments.path, "\/" );
+		var ext       = ListLast( fileName, "." );
+		var filesInDir = DirectoryList( directory, false, "name", "*.#ext#" );
+
+		return filesInDir.findNoCase( fileName );
+
 	}
 
 	private string function _getConventionsBasePageTypeName( required string id ) output=false {

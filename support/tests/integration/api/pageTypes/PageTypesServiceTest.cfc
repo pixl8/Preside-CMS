@@ -51,7 +51,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertFalse( pageTypeBean.hasHandler() );
 	}
 
-	function test07_hasHandler_shouldReturnFalse_whenPageTypeHasAHandler() {
+	function test07_hasHandler_shouldReturnTrue_whenPageTypeHasAHandler() {
 		var pageTypeBean = _getPageTypesSvc( testDirs ).getPageType( "event" );
 
 		super.assert( pageTypeBean.hasHandler() );
