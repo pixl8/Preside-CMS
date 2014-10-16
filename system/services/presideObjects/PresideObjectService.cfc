@@ -603,7 +603,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          array   extraFilters   = []
 		,          boolean forceDeleteAll = false
 	) output=false autodoc=true {
-		var interceptorResult = _announceInterception( "preDeleteObjectData", interceptorArguments );
+		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
 
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return Val( interceptorResult.returnValue ?: 0 );
