@@ -603,7 +603,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          array   extraFilters   = []
 		,          boolean forceDeleteAll = false
 	) output=false autodoc=true {
-		_announceInterception( "preDeleteObjectData", arguments );
+		var interceptorResult = _announceInterception( "preDeleteObjectData", interceptorArguments );
+
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return Val( interceptorResult.returnValue ?: 0 );
+		}
 
 		var obj            = _getObject( arguments.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
@@ -1964,8 +1968,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return _getSqlRunner().runSql( argumentCollection = arguments );
 	}
 
-	private any function _announceInterception() output=false {
-		return _getInterceptorService().processState( argumentCollection=arguments );
+	private any function _announceInterception( required string state, struct interceptData={} ) output=false {
+		_getInterceptorService().processState( argumentCollection=arguments );
+
+		return interceptData.interceptorResult ?: {};
 	}
 
 // GETTERS AND SETTERS
