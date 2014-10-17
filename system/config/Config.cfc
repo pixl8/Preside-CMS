@@ -38,8 +38,29 @@ component output=false {
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
-			, customInterceptionPoints = [ "onBuildLink", "preLoadPresideObjects", "postLoadPresideObjects", "preLoadPresideObject", "postLoadPresideObject", "preReadPresideObject", "postReadPresideObject", "prePrepareObjectFilter", "onCreateSelectDataCacheKey", "preInsertObjectData" ]
+			, customInterceptionPoints = []
 		};
+
+		interceptorSettings.customInterceptionPoints.append( "onBuildLink"                );
+		interceptorSettings.customInterceptionPoints.append( "onCreateSelectDataCacheKey" );
+		interceptorSettings.customInterceptionPoints.append( "postDbSyncObjects"          );
+		interceptorSettings.customInterceptionPoints.append( "postDeleteObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "postInsertObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObject"      );
+		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObjects"     );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"    );
+		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"      );
+		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"           );
+		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObject"       );
+		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObjects"      );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"     );
+		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"       );
+		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"        );
 
 		cacheBox = {
 			configFile = "preside.system.config.Cachebox"
