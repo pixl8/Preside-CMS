@@ -162,11 +162,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          string  forceJoins        = ""
 
 	) output=false autodoc=true {
+		var interceptorResult = _announceInterception( "preSelectObjectData", arguments );
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
+		}
+
 		var result     = "";
 		var queryCache = "";
 		var cacheArgs  = { objectName=arguments.objectName };
-
-		_announceInterception( "preSelectObjectData", arguments );
 
 		if ( arguments.useCache ) {
 			queryCache = _getDefaultQueryCache();
@@ -294,7 +297,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          numeric versionNumber           = 0
 
 	) output=false autodoc=true {
-		_announceInterception( "preInsertObjectData", arguments );
+		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
+
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return interceptorResult.returnValue ?: "";
+		}
 
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
@@ -434,7 +441,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 	) output=false autodoc=true {
-		_announceInterception( "preUpdateObjectData", arguments );
+		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
+
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return Val( interceptorResult.returnValue ?: 0 );
+		}
 
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
