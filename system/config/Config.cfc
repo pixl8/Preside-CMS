@@ -71,6 +71,17 @@ component output=false {
 			, binder          = _discoverWireboxBinder()
 		};
 
+		logbox = {
+			appenders = {
+				defaultLogAppender = {
+					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
+					, properties = { filePath='/logs', filename="coldbox.log" }
+				}
+			},
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
+		};
+
+
 		settings = {};
 		settings.eventName                 = "event";
 		settings.formControls              = {};
