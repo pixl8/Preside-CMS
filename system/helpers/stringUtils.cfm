@@ -61,9 +61,5 @@
 
 <cffunction name="isEmptyString" access="public" returntype="boolean" output="false">
 	<cfargument name="stringValue" type="string" required="true" />
-<<<<<<< HEAD
 	<cfreturn Len( Trim( arguments.stringValue ) ) EQ 0 />
-=======
-	<cfreturn Len( Trim( arguments.stringValue ) ) GT 0 />
->>>>>>> de2fb07fa3ec7ecc39c33cbbf26ad76ccaa01e3a
 </cffunction>
