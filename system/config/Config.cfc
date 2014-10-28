@@ -227,11 +227,11 @@ component output=false {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "/helpers" ) ) {
-			siteUdfs = DirectoryList( "/helpers", true, false, "*.cfm" );
+		if ( DirectoryExists( "/app/helpers" ) ) {
+			siteUdfs = DirectoryList( "/app/helpers", true, false, "*.cfm" );
 
 			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/helpers" ) );
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/app/helpers" ) );
 			}
 		}
 
