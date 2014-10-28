@@ -1,115 +1,186 @@
-<cfcomponent extends="preside.system.base.AdminHandler" output="false">
+component extends="preside.system.base.AdminHandler" output=false {
 
-	<cfproperty name="loginService"    inject="loginService" />
-	<cfproperty name="sessionService"       inject="sessionService"       />
-	<cfproperty name="adminDefaultEvent"    inject="coldbox:setting:adminDefaultEvent" />
-	<cfproperty name="messageBox"           inject="coldbox:plugin:messageBox" />
+	property name="loginService"      inject="loginService";
+	property name="sessionService"    inject="sessionService";
+	property name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent";
+	property name="messageBox"        inject="coldbox:plugin:messageBox";
 
-	<cffunction name="preHandler" access="public" returntype="void" output="false">
-		<cfargument name="event"          type="any"    required="true" />
-		<cfargument name="action"         type="string" required="true" />
-		<cfargument name="eventArguments" type="struct" required="true" />
+	public void function preHandler( event, action, eventArguments ) output=false {
+		super.preHandler( argumentCollection = arguments );
 
-		<cfscript>
-			super.preHandler( argumentCollection = arguments );
+		event.setLayout( 'adminLogin' );
+	}
 
-			event.setLayout( 'adminLogin' );
-		</cfscript>
-	</cffunction>
+	public void function index( event, rc, prc ) output=false {
+		if ( event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+		}
 
-	<cffunction name="index" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+		if ( loginService.isUserDatabaseNotConfigured() ) {
+			event.setView( "/admin/login/firstTimeUserSetup" );
+		}
+	}
 
-		<cfscript>
-			if ( event.isAdminUser() ){
-				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
-			}
-		</cfscript>
-	</cffunction>
+	public void function login( event, rc, prc ) output=false {
+		var user         = "";
+		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData  = sessionService.getVar( "_unsavedFormData", {} );
+		var loggedIn     = loginService.logIn(
+			  loginId  = event.getValue( name="loginId" , defaultValue="" )
+			, password = event.getValue( name="password", defaultValue="" )
+		);
 
-	<cffunction name="login" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
-
-		<cfscript>
-			var user         = "";
-			var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
-			var unsavedData  = sessionService.getVar( "_unsavedFormData", {} );
-			var loggedIn     = loginService.logIn(
-				  loginId  = event.getValue( name="loginId" , defaultValue="" )
-				, password = event.getValue( name="password", defaultValue="" )
+		if ( loggedIn ) {
+			user = event.getAdminUserDetails();
+			event.audit(
+				  detail   = "[#user.known_as#] has logged in"
+				, source   = "login"
+				, action   = "login_success"
+				, type     = "user"
+				, instance = user.id
 			);
 
-			if ( loggedIn ) {
-				if ( !hasPermission( "cms.login" ) ) {
-					loginService.logout();
-					messageBox.error( translateResource( uri="cms:login.no.login.rights.error" ) );
-					setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );
-				}
-				user = event.getAdminUserDetails();
-				event.audit(
-					  detail   = "[#user.knownAs#] has logged in"
-					, source   = "login"
-					, action   = "login_success"
-					, type     = "user"
-					, instance = user.userId
-				);
-
-				if ( Len( Trim( postLoginUrl ) ) ) {
-					sessionService.deleteVar( "_unsavedFormData", {} );
-					setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
-				}
+			if ( Len( Trim( postLoginUrl ) ) ) {
+				sessionService.deleteVar( "_unsavedFormData", {} );
+				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
 			} else {
-				setNextEvent( url=event.buildAdminLink( linkto="login", persist="postLoginUrl" ) );
+				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
 			}
-		</cfscript>
-	</cffunction>
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkto="login" ), persistStruct={
+				  postLoginUrl = postLoginUrl
+				, message      = "LOGIN_FAILED"
+			} );
+		}
+	}
 
-	<cffunction name="logout" access="public" returntype="void" output="false">
-		<cfargument name="event" type="any"    required="true" />
-		<cfargument name="rc"    type="struct" required="true" />
-		<cfargument name="prc"   type="struct" required="true" />
+	public void function firstTimeUserSetupAction( event, rc, prc ) output=false {
+		var emailAddress         = rc.email_address ?: "";
+		var password             = rc.password ?: "";
+		var passwordConfirmation = rc.passwordConfirmation ?: "";
 
-		<cfscript>
-			var user        = "";
+		if ( !Len( Trim( emailAddress ) ) || !Len( Trim( password ) ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+				  message = "EMPTY_PASSWORD"
+				, token   = token
+			} );
+		}
 
-			if ( event.isAdminUser() ) {
-				user = event.getAdminUserDetails();
+		if ( password != passwordConfirmation ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+				  message = "PASSWORDS_DO_NOT_MATCH"
+				, token   = token
+			} );
+		}
 
-				event.audit(
-					  detail   = "[#user.knownAs#] has logged out"
-					, source   = "logout"
-					, action   = "logout_success"
-					, type     = "user"
-					, instance = user.userId
-				);
+		loginService.firstTimeUserSetup( emailAddress=emailAddress, password=password );
+		setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+			message = "FIRST_TIME_USER_SETUP"
+		} );
+	}
 
-				loginService.logout();
-			}
+	public void function logout( event, rc, prc ) output=false {
+		var user        = "";
 
-			if ( ( rc.redirect ?: "" ) == "referer" ) {
-				setNextEvent( url=cgi.http_referer );
-			}
+		if ( event.isAdminUser() ) {
+			user = event.getAdminUserDetails();
 
-			setNextEvent( url=event.buildAdminLink( linkto="login" ) );
-		</cfscript>
-	</cffunction>
+			event.audit(
+				  detail   = "[#user.known_as#] has logged out"
+				, source   = "logout"
+				, action   = "logout_success"
+				, type     = "user"
+				, instance = user.id
+			);
 
-<!--- private helpers --->
-	<cffunction name="_cleanPostLoginUrl" access="private" returntype="string" output="false">
-		<cfargument name="postLoginUrl" type="string" required="true" />
+			loginService.logout();
+		}
 
-		<cfscript>
-			var cleaned = Trim( arguments.postLoginUrl );
+		if ( ( rc.redirect ?: "" ) == "referer" ) {
+			setNextEvent( url=cgi.http_referer );
+		}
 
-			cleaned = ReReplace( cleaned, "^(https?://.*?)//", "\1/" );
+		setNextEvent( url=event.buildAdminLink( linkto="login" ) );
+	}
 
-			return cleaned;
-		</cfscript>
-	</cffunction>
-</cfcomponent>
+	public void function forgottenPassword( event, rc, prc ) output=false {
+		if ( event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+		}
+
+		event.setView( "/admin/login/forgottenPassword" );
+	}
+
+	public void function sendResetInstructions( event, rc, prc ) output=false {
+		if ( loginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
+				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
+			} );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
+			message = "LOGINID_NOT_FOUND"
+		} );
+	}
+
+	public void function resetPassword( event, rc, prc ) output=false {
+		if ( event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+		}
+
+		if ( !loginService.validateResetPasswordToken( rc.token ?: "" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
+				message = "INVALID_RESET_TOKEN"
+			} );
+		}
+
+		event.setView( "/admin/login/resetPassword" );
+	}
+
+	public void function resetPasswordAction( event, rc, prc ) output=false {
+		var pw           = rc.password             ?: "";
+		var confirmation = rc.passwordConfirmation ?: "";
+		var token        = rc.token                ?: "";
+
+		if ( !loginService.validateResetPasswordToken( rc.token ?: "" ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
+				message = "INVALID_RESET_TOKEN"
+			} );
+		}
+
+		if ( !Len( Trim( pw ) ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login.resetPassword" ), persistStruct={
+				  message = "EMPTY_PASSWORD"
+				, token   = token
+			} );
+		}
+
+		if ( pw != confirmation ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login.resetPassword" ), persistStruct={
+				  message = "PASSWORDS_DO_NOT_MATCH"
+				, token   = token
+			} );
+		}
+
+		if ( loginService.resetPassword( token=token, password=pw ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
+				message = "PASSWORD_RESET"
+			} );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="login.resetPassword" ), persistStruct={
+			  message = "UNKNOWN_ERROR"
+			, token   = token
+		} );
+
+	}
+
+// private helpers
+	private string function _cleanPostLoginUrl( required string postLoginUrl ) {
+		var cleaned = Trim( arguments.postLoginUrl );
+
+		cleaned = ReReplace( cleaned, "^(https?://.*?)//", "\1/" );
+
+		return cleaned;
+	}
+}

@@ -8,7 +8,7 @@
 	</cffunction>
 
 <!--- tests --->
-	<cffunction name="test01_dbSync_shouldCreateComponentTables" returntype="void">
+	<cffunction name="test001_dbSync_shouldCreateComponentTables" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var tables    = "";
@@ -44,7 +44,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test02_dbSync_shouldNotCreateTables_whenTheyAlreadyExist" returntype="void">
+	<cffunction name="test002_dbSync_shouldNotCreateTables_whenTheyAlreadyExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var tables    = "";
@@ -62,7 +62,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test03_dbSync_shouldCreateVariousKindsOfColumnsAndWorkWithInheritance" returntype="void">
+	<cffunction name="test003_dbSync_shouldCreateVariousKindsOfColumnsAndWorkWithInheritance" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 			var tables         = "";
@@ -112,7 +112,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test04_dbSync_shouldModifyTables_whenComponentFieldsChange" returntype="void">
+	<cffunction name="test004_dbSync_shouldModifyTables_whenComponentFieldsChange" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 			var tables         = "";
@@ -176,7 +176,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test05_objectExists_shouldReturnFalse_whenObjectDoesNotExist" returntype="void">
+	<cffunction name="test005_objectExists_shouldReturnFalse_whenObjectDoesNotExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 
@@ -184,7 +184,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test06_objectExists_shouldReturnTrue_whenObjectDoesExist" returntype="void">
+	<cffunction name="test006_objectExists_shouldReturnTrue_whenObjectDoesExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 
@@ -194,7 +194,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test07_getObject_shouldReturnInstanceOfSpecifiedObject" returntype="void">
+	<cffunction name="test007_getObject_shouldReturnInstanceOfSpecifiedObject" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 			var result    = poService.getObject( objectName="object_2" );
@@ -203,7 +203,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test07_1_getObject_shouldReturnInstanceOfSpecifiedObject_decoratedWithPresideObjectServiceMethods" returntype="void">
+	<cffunction name="test007_1_getObject_shouldReturnInstanceOfSpecifiedObject_decoratedWithPresideObjectServiceMethods" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 			var result    = poService.getObject( objectName="object_2" );
@@ -227,7 +227,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test08_getObject_shouldThrowAppropriateError_whenObjectDoesNotExist" returntype="void">
+	<cffunction name="test008_getObject_shouldThrowAppropriateError_whenObjectDoesNotExist" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithSomeInheritanceAndMoreFields/" ] );
 			var errorThrown = false;
@@ -244,7 +244,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test09_dbSync_shouldCreateIndexesAndUniqueIndexes" returntype="void">
+	<cffunction name="test009_dbSync_shouldCreateIndexesAndUniqueIndexes" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
@@ -266,7 +266,7 @@
 
 	</cffunction>
 
-	<cffunction name="test10_dbSync_shouldAlterIndexesWhenTheyHaveChanged" returntype="void">
+	<cffunction name="test010_dbSync_shouldAlterIndexesWhenTheyHaveChanged" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentWithIndexes/" ] );
 			var expectedIndexes = {
@@ -291,7 +291,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test11_dbSync_shouldCreateForeignKeyConstraints_forOneToManyPropertyRelationships" returntype="void">
+	<cffunction name="test011_dbSync_shouldCreateForeignKeyConstraints_forOneToManyPropertyRelationships" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
@@ -333,7 +333,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test12_dbSync_shouldMakeForeignKeyChanges_whenRelationshipsChangeInComponents" returntype="void">
+	<cffunction name="test012_dbSync_shouldMakeForeignKeyChanges_whenRelationshipsChangeInComponents" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
@@ -369,7 +369,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test13_dbSync_shouldAutomaticallyCreatePivotTables_forManyToManyRelationships" returntype="void">
+	<cffunction name="test013_dbSync_shouldAutomaticallyCreatePivotTables_forManyToManyRelationships" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
 			var tables    = "";
@@ -385,7 +385,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test14_loadObjects_shouldThrowInformativeError_whenRelatedObjectRefersToAnObjectThatDoesNotExist" returntype="void">
+	<cffunction name="test014_loadObjects_shouldThrowInformativeError_whenRelatedObjectRefersToAnObjectThatDoesNotExist" returntype="void">
 		<cfscript>
 			var poService       = "";
 			var errorThrown     = false;
@@ -404,7 +404,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test15_dataExists_shouldReturnFalse_whenNoArgumentsPassedAndNoRecordsExist_andTrue_whenRecordsDoExist" returntype="void">
+	<cffunction name="test015_dataExists_shouldReturnFalse_whenNoArgumentsPassedAndNoRecordsExist_andTrue_whenRecordsDoExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
@@ -423,7 +423,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test15_1_dataExists_shouldWorkWithPlainTextSqlFilter" returntype="void">
+	<cffunction name="test015_1_dataExists_shouldWorkWithPlainTextSqlFilter" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
@@ -458,7 +458,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test15_2_dataExists_shouldWorkWithPlainTextSqlFilterAndAutoMagicJoins" returntype="void">
+	<cffunction name="test015_2_dataExists_shouldWorkWithPlainTextSqlFilterAndAutoMagicJoins" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
@@ -493,7 +493,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test16_dataExists_shouldReturnFalse_whenNoDataMatchesTheSimpleFilter_andTrue_whenRecordsDoMatch" returntype="void">
+	<cffunction name="test016_dataExists_shouldReturnFalse_whenNoDataMatchesTheSimpleFilter_andTrue_whenRecordsDoMatch" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -526,7 +526,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test17_dataExists_shouldAllowMagicFilteringAcrossRelationships" returntype="void">
+	<cffunction name="test017_dataExists_shouldAllowMagicFilteringAcrossRelationships" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -587,7 +587,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test18_deleteData_shouldDeleteDataWithBasicFilter" returntype="void">
+	<cffunction name="test018_deleteData_shouldDeleteDataWithBasicFilter" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -613,7 +613,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test18_1_deleteData_shouldDeleteDataWithBasicINFilter" returntype="void">
+	<cffunction name="test018_1_deleteData_shouldDeleteDataWithBasicINFilter" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -639,7 +639,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test18_2_deleteData_shouldDeleteDataWithBasicPlainTextFilter" returntype="void">
+	<cffunction name="test018_2_deleteData_shouldDeleteDataWithBasicPlainTextFilter" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -666,7 +666,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test19_deleteData_shouldThrowInformativeError_whenNoFilterSuppliedAndForceDeleteAllNotSetToTrue" returntype="void">
+	<cffunction name="test019_deleteData_shouldThrowInformativeError_whenNoFilterSuppliedAndForceDeleteAllNotSetToTrue" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var errorThrown = false;
@@ -685,7 +685,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test20_deleteData_shouldDeleteAllRecords_whenNoFilterSupplied_andWhenForceDeleteAllIsSetToTrue" returntype="void">
+	<cffunction name="test020_deleteData_shouldDeleteAllRecords_whenNoFilterSupplied_andWhenForceDeleteAllIsSetToTrue" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -713,7 +713,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test21_insertData_shouldInsertDataAndReturnNewlyCreateId_whenObjIdIsAutoIncrementingNumeric" returntype="void">
+	<cffunction name="test021_insertData_shouldInsertDataAndReturnNewlyCreateId_whenObjIdIsAutoIncrementingNumeric" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -731,7 +731,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test22_insertData_shouldInsertDataAndReturnNewlyCreatedUUId_whenObjIdHasUUIdGeneratorAndNoObjIdIsSupplied" returntype="void">
+	<cffunction name="test022_insertData_shouldInsertDataAndReturnNewlyCreatedUUId_whenObjIdHasUUIdGeneratorAndNoObjIdIsSupplied" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var result    = "";
@@ -749,7 +749,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test22_1_insertData_shouldSetDateCreated_whenInsertingData" returntype="void">
+	<cffunction name="test022_1_insertData_shouldSetDateCreated_whenInsertingData" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -770,7 +770,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test22_2_insertData_shouldSetDateModified_whenInsertingData" returntype="void">
+	<cffunction name="test022_2_insertData_shouldSetDateModified_whenInsertingData" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -791,7 +791,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test23_updateData_shouldUpdateDataMatchedByBasicFilter_andReturnNumberOfRecordsUpdated" returntype="void">
+	<cffunction name="test023_updateData_shouldUpdateDataMatchedByBasicFilter_andReturnNumberOfRecordsUpdated" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
@@ -820,7 +820,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test24_updateData_shouldThrowInformativeError_whenNoFilterPassedAndForceUpdateAllIsNotSet" returntype="void">
+	<cffunction name="test024_updateData_shouldThrowInformativeError_whenNoFilterPassedAndForceUpdateAllIsNotSet" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var errorThrown = false;
@@ -839,7 +839,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test24_updateData_shouldUpdateAllRecords_whenNoFilterPassedAndForceUpdateAllIsSetToTrue" returntype="void">
+	<cffunction name="test024_updateData_shouldUpdateAllRecords_whenNoFilterPassedAndForceUpdateAllIsSetToTrue" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
@@ -867,7 +867,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test25_updateData_shouldUpdateRecords_whenUsingCrossTableFilters" returntype="void">
+	<cffunction name="test025_updateData_shouldUpdateRecords_whenUsingCrossTableFilters" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q         = new Query();
@@ -916,7 +916,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test26_1_updateData_shouldUpdateRecords_whenUsingCrossTablePlainSqlFilters" returntype="void">
+	<cffunction name="test026_1_updateData_shouldUpdateRecords_whenUsingCrossTablePlainSqlFilters" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q         = new Query();
@@ -966,7 +966,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test26_updateData_shouldSetDateModified_whenUpdatingRecords" returntype="void">
+	<cffunction name="test026_updateData_shouldSetDateModified_whenUpdatingRecords" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
@@ -999,7 +999,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test27_selectData_shouldSelectAllDataAndAllColumns_whenNoArgumentsSupplied" returntype="void">
+	<cffunction name="test027_selectData_shouldSelectAllDataAndAllColumns_whenNoArgumentsSupplied" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result         = "";
@@ -1027,7 +1027,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test28_selectData_shouldSelectAllDataAndSpecifiedColumns_whenColumnListIsSupplied" returntype="void">
+	<cffunction name="test028_selectData_shouldSelectAllDataAndSpecifiedColumns_whenColumnListIsSupplied" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result         = "";
@@ -1052,7 +1052,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test29_selectData_shouldAutomaticallyJoinRelevantTables_whenSelectListRefersToOtherObjects" returntype="void">
+	<cffunction name="test029_selectData_shouldAutomaticallyJoinRelevantTables_whenSelectListRefersToOtherObjects" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result         = "";
@@ -1086,7 +1086,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test30_selectData_shouldAutomaticallyJoinReleventTables_whenFieldListIncludesFunctionCalls" returntype="void">
+	<cffunction name="test030_selectData_shouldAutomaticallyJoinReleventTables_whenFieldListIncludesFunctionCalls" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result         = "";
@@ -1119,7 +1119,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test31_selectData_shouldSelectDataUsingFilters" returntype="void">
+	<cffunction name="test031_selectData_shouldSelectDataUsingFilters" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1150,7 +1150,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test31_1_selectData_shouldSelectDataUsingPlainTextSqlFilters" returntype="void">
+	<cffunction name="test031_1_selectData_shouldSelectDataUsingPlainTextSqlFilters" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1183,7 +1183,7 @@
 	</cffunction>
 
 
-	<cffunction name="test32_selectData_shouldAllowSortingOfData" returntype="void">
+	<cffunction name="test032_selectData_shouldAllowSortingOfData" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1221,7 +1221,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test33_selectData_shouldWorkWithAggregatesAndGroupBy" returntype="void">
+	<cffunction name="test033_selectData_shouldWorkWithAggregatesAndGroupBy" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1261,7 +1261,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test34_selectData_shouldAllowResultLimiting" returntype="void">
+	<cffunction name="test034_selectData_shouldAllowResultLimiting" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1286,7 +1286,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test34_selectData_shouldAllowPagination" returntype="void">
+	<cffunction name="test034_selectData_shouldAllowPagination" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1317,7 +1317,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test35_getObjectProperites_shouldReturnThePropertiesOfThePassedObject" returntype="void">
+	<cffunction name="test035_getObjectProperites_shouldReturnThePropertiesOfThePassedObject" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1340,7 +1340,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test35_01_getObjectProperty_shouldReturnTheAttributesOfThePassedObjectAndFieldCombination" returntype="void">
+	<cffunction name="test035_01_getObjectProperty_shouldReturnTheAttributesOfThePassedObjectAndFieldCombination" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result    = "";
@@ -1364,7 +1364,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test36_fieldExists_shouldReturnFalse_whenFieldDoesNotExist" returntype="void">
+	<cffunction name="test036_fieldExists_shouldReturnFalse_whenFieldDoesNotExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 
@@ -1372,7 +1372,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test37_fieldExists_shouldReturnTrue_whenFieldDoesExist" returntype="void">
+	<cffunction name="test037_fieldExists_shouldReturnTrue_whenFieldDoesExist" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 
@@ -1380,7 +1380,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test38_listObjects_shouldReturnEmptyArray_whenNoObjectsExistInTheFactory" returntype="void">
+	<cffunction name="test038_listObjects_shouldReturnEmptyArray_whenNoObjectsExistInTheFactory" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/nonExistantDir/" ] );
 			var expected  = [];
@@ -1390,7 +1390,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test39_listObjectsShouldReturnAllObjectsInObjectDirs_sortedAlphabetically" returntype="void">
+	<cffunction name="test039_listObjectsShouldReturnAllObjectsInObjectDirs_sortedAlphabetically" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship" ] );
 			var expected  = [ "object_a", "object_b", "object_c" ];
@@ -1400,7 +1400,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test40_listForeignObjectsBlockingDelete_shouldReturnEmptyArray_whenRecordCanBeDeletedWithoutOrphaningAnyForeignKeyRecords" returntype="void">
+	<cffunction name="test040_listForeignObjectsBlockingDelete_shouldReturnEmptyArray_whenRecordCanBeDeletedWithoutOrphaningAnyForeignKeyRecords" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
@@ -1421,7 +1421,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test41_listForeignObjectsBlockingDelete_shouldReturnObjectsAndRecordCountsForObjectsThatHaveForeignKeyDataThatIsBlockingAGivenRecordFromBeingDeletedWithoutError" returntype="void">
+	<cffunction name="test041_listForeignObjectsBlockingDelete_shouldReturnObjectsAndRecordCountsForObjectsThatHaveForeignKeyDataThatIsBlockingAGivenRecordFromBeingDeletedWithoutError" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
@@ -1447,7 +1447,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test42_deleteRelatedData_shouldDeleteRelatedRecords" returntype="void">
+	<cffunction name="test042_deleteRelatedData_shouldDeleteRelatedRecords" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
@@ -1479,7 +1479,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test43_deleteRelatedData_shouldThrowInformativeError_whenOperationWouldCascadeMoreThanOneLevelDeep" returntype="void">
+	<cffunction name="test043_deleteRelatedData_shouldThrowInformativeError_whenOperationWouldCascadeMoreThanOneLevelDeep" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var result      = "";
@@ -1518,7 +1518,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test44_selectData_shouldPopulateDefaultQueryCacheOnFirstHit" returntype="void">
+	<cffunction name="test044_selectData_shouldPopulateDefaultQueryCacheOnFirstHit" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_1", filter="label is not null" };
@@ -1540,7 +1540,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test45_selectData_shouldFetchDataFromCache_whenAlreadyFetchedFromDb" returntype="void">
+	<cffunction name="test045_selectData_shouldFetchDataFromCache_whenAlreadyFetchedFromDb" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_2", filter="label is not null" };
@@ -1568,7 +1568,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test46_selectData_shouldNotPutResultInCache_whenAskedNotTo" returntype="void">
+	<cffunction name="test046_selectData_shouldNotPutResultInCache_whenAskedNotTo" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_1", filter="label is not null", useCache=false };
@@ -1587,7 +1587,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test47_selectData_shouldNOTFetchDataFromCache_whenAlreadyFetchedFromDbButAskedNotToUseCache" returntype="void">
+	<cffunction name="test047_selectData_shouldNOTFetchDataFromCache_whenAlreadyFetchedFromDbButAskedNotToUseCache" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var selectDataArgs = { objectName="object_2", filter="label is not null" };
@@ -1616,7 +1616,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test48_updateData_shouldClearRelatedObjectCaches_whenUpdateClauseIsRelatedToSingleRecord" returntype="void">
+	<cffunction name="test048_updateData_shouldClearRelatedObjectCaches_whenUpdateClauseIsRelatedToSingleRecord" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var cache          = cachebox.getCache( "defaultQueryCache" );
@@ -1661,7 +1661,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test49_deleteData_shouldClearRelatedObjectCaches_whenDeleteClauseIsRelatedToSingleRecord" returntype="void">
+	<cffunction name="test049_deleteData_shouldClearRelatedObjectCaches_whenDeleteClauseIsRelatedToSingleRecord" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var cache          = cachebox.getCache( "defaultQueryCache" );
@@ -1706,7 +1706,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test50_updateData_shouldClearAllOfAnObjectsQueryCaches_whenFilterRelatesToMultipleRecords" returntype="void">
+	<cffunction name="test050_updateData_shouldClearAllOfAnObjectsQueryCaches_whenFilterRelatesToMultipleRecords" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var cache          = cachebox.getCache( "defaultQueryCache" );
@@ -1754,7 +1754,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test51_deleteData_shouldClearAllOfAnObjectsQueryCaches_whenFilterRelatesToMultipleRecords" returntype="void">
+	<cffunction name="test051_deleteData_shouldClearAllOfAnObjectsQueryCaches_whenFilterRelatesToMultipleRecords" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/basicEmptyComponents/" ] );
 			var cache          = cachebox.getCache( "defaultQueryCache" );
@@ -1802,7 +1802,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test52_updateData_shouldClearQueryCaches_forQueriesThatReferenceTheUpdatedObjectThroughJoins" returntype="void">
+	<cffunction name="test052_updateData_shouldClearQueryCaches_forQueriesThatReferenceTheUpdatedObjectThroughJoins" returntype="void">
 		<cfscript>
 			var poService  = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var cache      = cachebox.getCache( "defaultQueryCache" );
@@ -1851,7 +1851,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test53_objectsWithSameNameInDifferentSourceFoldersShouldHaveTheirPropertiesMerged" returntype="void">
+	<cffunction name="test053_objectsWithSameNameInDifferentSourceFoldersShouldHaveTheirPropertiesMerged" returntype="void">
 		<cfscript>
 			var poService                = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithMerging/folder1", "/tests/resources/PresideObjectService/objectsWithMerging/folder2" ] );
 			var obj                      = poService.getObject( "object_to_be_merged" );
@@ -1879,7 +1879,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test54_objectsWithSameNameInDifferentSourceFoldersShouldHaveTheirMethodsMerged" returntype="void">
+	<cffunction name="test054_objectsWithSameNameInDifferentSourceFoldersShouldHaveTheirMethodsMerged" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithMerging/folder1", "/tests/resources/PresideObjectService/objectsWithMerging/folder2" ] );
 			var obj       = poService.getObject( "object_to_be_merged" );
@@ -1890,7 +1890,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test55_objectIsVersioned_shouldReturnFalse_forObjectsThatDoNotUseVersioning" returntype="void">
+	<cffunction name="test055_objectIsVersioned_shouldReturnFalse_forObjectsThatDoNotUseVersioning" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithMerging/folder1", "/tests/resources/PresideObjectService/objectsWithMerging/folder2" ] );
 
@@ -1898,7 +1898,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test56_objectIsVersioned_shouldReturnTrue_forObjectsThatUseVersioning" returntype="void">
+	<cffunction name="test056_objectIsVersioned_shouldReturnTrue_forObjectsThatUseVersioning" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 
@@ -1906,7 +1906,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test57_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
+	<cffunction name="test057_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object__join__an_object_with_versionin", "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
@@ -1921,7 +1921,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test58_versionedObjectTables_shouldHaveUniqueIndexesRemoved" returntype="void">
+	<cffunction name="test058_versionedObjectTables_shouldHaveUniqueIndexesRemoved" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var indexes   = "";
@@ -1936,7 +1936,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test59_versionedObjectTables_shouldHaveNoForeignKeyConstraints" returntype="void">
+	<cffunction name="test059_versionedObjectTables_shouldHaveNoForeignKeyConstraints" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var fks       = "";
@@ -1949,7 +1949,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test60_versionedObjectsShouldHaveExtraColumnForVersionNumber" returntype="void">
+	<cffunction name="test060_versionedObjectsShouldHaveExtraColumnForVersionNumber" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var columns     = "";
@@ -1964,7 +1964,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test61_getNextVersionNumber_shouldReturnNewlyGeneratedVersionNumber" returntype="void">
+	<cffunction name="test061_getNextVersionNumber_shouldReturnNewlyGeneratedVersionNumber" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 
@@ -1977,7 +1977,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test_62_insertData_shouldAddVersionRecord_forVersionedObject" returntype="void">
+	<cffunction name="test0_62_insertData_shouldAddVersionRecord_forVersionedObject" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 
@@ -1996,7 +1996,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test_63_insertData_shouldCreateVersionedManyToManyRecords_whenObjectUsesVersioning" returntype="void">
+	<cffunction name="test0_63_insertData_shouldCreateVersionedManyToManyRecords_whenObjectUsesVersioning" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2033,7 +2033,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test64_updateData_shouldCreateVersionRecordsForEachUpdatedRecord" returntype="void">
+	<cffunction name="test064_updateData_shouldCreateVersionRecordsForEachUpdatedRecord" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2075,7 +2075,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test65_updateData_shouldNOTCreateVersionRecordsForEachUpdatedRecordWhenDataHasNotChanged" returntype="void">
+	<cffunction name="test065_updateData_shouldNOTCreateVersionRecordsForEachUpdatedRecordWhenDataHasNotChanged" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2105,7 +2105,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test66_updateData_shouldMergeUnchangedDataFromExistingData" returntype="void">
+	<cffunction name="test066_updateData_shouldMergeUnchangedDataFromExistingData" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2154,7 +2154,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test67_updateData_shouldCreateVersionRecordsForChangedManyToManyData" returntype="void">
+	<cffunction name="test067_updateData_shouldCreateVersionRecordsForChangedManyToManyData" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2201,7 +2201,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test70_updateData_shouldMergeNonProvidedFieldsWithLatestVersionRecord_whenNoPublishedRecordExists" returntype="void">
+	<cffunction name="test070_updateData_shouldMergeNonProvidedFieldsWithLatestVersionRecord_whenNoPublishedRecordExists" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2252,7 +2252,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test71_selectData_shouldSelectLatestVersionFromVersionTable_whenSelectFromVersionTableIsSetToTrue" returntype="void">
+	<cffunction name="test071_selectData_shouldSelectLatestVersionFromVersionTable_whenSelectFromVersionTableIsSetToTrue" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2292,7 +2292,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test72_selectData_shouldSelectLatestVersionBeneathSuppliedMaxVersionNumber" returntype="void">
+	<cffunction name="test072_selectData_shouldSelectLatestVersionBeneathSuppliedMaxVersionNumber" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2333,7 +2333,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test73_selectData_shouldSelectSpecificVersion_whenSpecificVersionNumberSupplied" returntype="void">
+	<cffunction name="test073_selectData_shouldSelectSpecificVersion_whenSpecificVersionNumberSupplied" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2390,7 +2390,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test74_selectData_shouldSelectVersionedManyToManyData" returntype="void">
+	<cffunction name="test074_selectData_shouldSelectVersionedManyToManyData" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2432,7 +2432,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test75_updateData_shouldInsertNewRecord_whenPublishingAnExistingVersionRecordThatHasNotYetBeenPublished" returntype="void">
+	<cffunction name="test075_updateData_shouldInsertNewRecord_whenPublishingAnExistingVersionRecordThatHasNotYetBeenPublished" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var catIds    = [];
@@ -2478,7 +2478,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test76_getRecordVersions_shouldReturnQueryOfAllVersionNumbersOfGivenRecordId" returntype="void">
+	<cffunction name="test076_getRecordVersions_shouldReturnQueryOfAllVersionNumbersOfGivenRecordId" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
 			var id        = "";
@@ -2507,7 +2507,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test77_selectData_shouldUseDefinedLabelFieldInPlaceOfSelectField_whenSelectFieldDefinedWithSpecialLabelFieldSyntax" returntype="void">
+	<cffunction name="test077_selectData_shouldUseDefinedLabelFieldInPlaceOfSelectField_whenSelectFieldDefinedWithSpecialLabelFieldSyntax" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDifferentLabels" ] );
 
@@ -2521,7 +2521,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test78_selectData_shouldUseDefinedLabelFieldForRelatedObjectInPlaceOfSelectField_whenSelectFieldDefinedWithSpecialLabelFieldSyntax" returntype="void">
+	<cffunction name="test078_selectData_shouldUseDefinedLabelFieldForRelatedObjectInPlaceOfSelectField_whenSelectFieldDefinedWithSpecialLabelFieldSyntax" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDifferentLabels" ] );
 
@@ -2536,7 +2536,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test79_selectData_shouldThrowError_whenAttemptingToSelectLabelFieldOnAnObjectWithNoLabel" returntype="void">
+	<cffunction name="test079_selectData_shouldThrowError_whenAttemptingToSelectLabelFieldOnAnObjectWithNoLabel" returntype="void">
 		<cfscript>
 			var poService   = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDifferentLabels" ] );
 			var errorThrown = false;
@@ -2554,193 +2554,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test80_insertData_shouldAddSiteIdOfCurrentRequest_forObjectsUsingSiteTenantSystem" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
-
-			poService.dbSync();
-
-			var siteId    = poService.getObject( "site" ).insertData( { label="test site" } );
-
-			mockColdboxEvent.$( "getSite", { id=siteId } );
-
-			var newRecordId = poService.getObject( "object_using_site_tenant" ).insertData( { label="test record" } );
-			var newRecord   = poService.getObject( "object_using_site_tenant" ).selectData( id=newRecordId );
-
-			super.assertEquals( siteId, newRecord.site );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test81_selectData_shouldAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystem" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
-			var obj       = poService.getObject( "object_using_site_tenant" );
-
-			poService.dbSync();
-
-			var siteIds = [];
-
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
-			var newRecordIds = [];
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			var newRecord = obj.selectData( filter={ label="test record" } );
-
-			super.assertEquals( 1, newRecord.recordCount );
-			super.assertEquals( newRecordIds[1], newRecord.id );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecord = obj.selectData( filter="label = :label", filterParams={ label="test record" } );
-
-			super.assertEquals( 1, newRecord.recordCount );
-			super.assertEquals( newRecordIds[2], newRecord.id );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test82_updateData_shouldAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystem" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
-			var obj       = poService.getObject( "object_using_site_tenant" );
-
-			poService.dbSync();
-
-			var siteIds = [];
-
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
-			var newRecordIds = [];
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			super.assertEquals( 0, obj.updateData( id=newRecordIds[1], data={ label="new label" } ) );
-			super.assertEquals( 2, obj.updateData( filter={ label="test record" }, data={ label="new label" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			super.assertEquals( 1, obj.updateData( data={ label="another new label" }, forceUpdateAll=true ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			super.assertEquals( 1, obj.updateData( filter="label != :label", filterParams={ label="whatever" }, data={ label="new label" } ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test83_deleteData_shouldAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystem" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
-			var obj       = poService.getObject( "object_using_site_tenant" );
-
-			poService.dbSync();
-
-			var siteIds = [];
-
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
-			var newRecordIds = [];
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			super.assertEquals( 0, obj.deleteData( id=newRecordIds[1] ) );
-			super.assertEquals( 2, obj.deleteData( filter={ label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			super.assertEquals( 1, obj.deleteData( forceDeleteAll=true ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			super.assertEquals( 1, obj.deleteData( filter="label != :label", filterParams={ label="whatever" } ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test84_selectData_shouldNotAutomaticallyFilterBySiteId_whenObjectUsingSiteTenantSystemButCurrentSiteIdIsEmpty" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
-			var obj       = poService.getObject( "object_using_site_tenant" );
-
-			poService.dbSync();
-
-			var siteIds = [];
-
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
-			var newRecordIds = [];
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
-			newRecordIds.append( obj.insertData( { label="test record" } ) );
-
-			mockColdboxEvent.$( "getSite", { id="" } );
-			var newRecord = obj.selectData( filter={ label="test record" } );
-
-			super.assertEquals( 3, newRecord.recordCount );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test85_dataExists_shouldAutomaticallyFilterByCurrentSite_whenObjectIsUsingSiteTenancy" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithSiteTenants" ] );
-			var obj       = poService.getObject( "object_using_site_tenant" );
-
-			poService.dbSync();
-
-			var siteIds = [];
-
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 1" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 2" } ) );
-			siteIds.append( poService.getObject( "site" ).insertData( { label="test site 3" } ) );
-			var newRecordIds = [];
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[1] } );
-			newRecordIds.append( obj.insertData( { label="test record 1" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			newRecordIds.append( obj.insertData( { label="test record 2" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[3] } );
-			newRecordIds.append( obj.insertData( { label="test record 3" } ) );
-
-
-			super.assert( obj.dataExists( id=newRecordIds[3] ) );
-			super.assertFalse( obj.dataExists( filter={ label="test record 1" } ) );
-
-			mockColdboxEvent.$( "getSite", { id=siteIds[2] } );
-			super.assert( obj.dataExists( filter="label = :label", filterParams={ label="test record 2" } ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test86_insertData_shouldPopulateUnprovidedFieldsWithTheirDefaultValues" returntype="void">
+	<cffunction name="test080_insertData_shouldPopulateUnprovidedFieldsWithTheirDefaultValues" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithDefaults" ] );
 
@@ -2785,20 +2599,22 @@
 		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
 
 		<cfscript>
-			cachebox         = _getCachebox( forceNewInstance = true );
-			mockColdbox      = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
-			mockColdboxEvent = getMockbox().createStub();
+			cachebox               = _getCachebox( forceNewInstance = true );
+			mockColdbox            = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+			mockColdboxEvent       = getMockbox().createStub();
+			mockInterceptorService = _getMockInterceptorService();
 
 			mockColdboxEvent.$( "isAdminUser", true );
 			mockColdboxEvent.$( "getAdminUserId", "" );
 			mockColdbox.$( "getRequestContext", mockColdboxEvent );
 
 			return _getPresideObjectService(
-				  objectDirectories = arguments.objectDirectories
-				, defaultPrefix     = arguments.defaultPrefix
-				, forceNewInstance  = true
-				, cacheBox          = cacheBox
-				, coldbox           = mockColdbox
+				  objectDirectories  = arguments.objectDirectories
+				, defaultPrefix      = arguments.defaultPrefix
+				, forceNewInstance   = true
+				, cacheBox           = cacheBox
+				, coldbox            = mockColdbox
+				, interceptorService = mockInterceptorService
 			)
 		</cfscript>
 	</cffunction>

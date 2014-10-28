@@ -8,3 +8,7 @@ System Service API
     presideobjectservice
     sitetemplatesservice
     siteservice
+    emailservice
+    updatemanagerservice
+    applicationpagesservice
+    websiteloginservice

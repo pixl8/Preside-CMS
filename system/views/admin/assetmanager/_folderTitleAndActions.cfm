@@ -5,11 +5,12 @@
 	permissionContext = prc.permissionContext ?: [];
 	args.folderTitle  = args.folderTitle == "$root" ? translateResource( "cms:assetmanager.root.folder" ) : args.folderTitle;
 
-	hasUploadPermission            = hasPermission( permissionKey="assetmanager.assets.upload"             , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasAddFolderPermission         = hasPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasEditFolderPermission        = hasPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasManageFolderPermsPermission = hasPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=permissionContext );
-	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission;
+	hasUploadPermission            = hasCmsPermission( permissionKey="assetmanager.assets.upload"             , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasAddFolderPermission         = hasCmsPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasEditFolderPermission        = hasCmsPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasManageFolderPermsPermission = hasCmsPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=permissionContext );
+	hasDeleteFolderPermission      = args.folderTitle != "$root" && hasCmsPermission( permissionKey="assetmanager.folders.delete", context="assetmanagerfolder", contextKeys=permissionContext );
+	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission || hasDeleteFolderPermission;
 </cfscript>
 
 <cfoutput>
@@ -41,6 +42,9 @@
 					</cfif>
 					<cfif hasManageFolderPermsPermission>
 						<li><a href="#event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#args.folderId#" )#"><i class="fa fa-fw fa-lock"></i>&nbsp; #translateResource( uri="cms:assetmanager.folder.options.manage.perms" )#</a></li>
+					</cfif>
+					<cfif hasDeleteFolderPermission>
+						<li><a href="#event.buildAdminLink( linkTo="assetmanager.trashFolderAction", queryString="folder=#args.folderId#" )#" class="confirmation-prompt" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.folder.link", data=[ args.folderTitle ] ) )#"><i class="fa fa-fw fa-trash"></i>&nbsp; #translateResource( uri="cms:assetmanager.trash.folder.menu.title" )#</a></li>
 					</cfif>
 				</ul>
 			</div>

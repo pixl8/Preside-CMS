@@ -1,4 +1,4 @@
-<cfcomponent output="false" extends="mxunit.framework.TestCase">
+<cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
 
 	<cffunction name="test01_calculateJoins_shouldAutomaticallyCalculateSimpleManyToOneRelationship" returntype="void">
 		<cfscript>
@@ -438,9 +438,10 @@
 <!--- private helpers --->
 	<cffunction name="_getGuidanceService" access="private" returntype="any" output="false">
 		<cfscript>
-			var reader        = new preside.system.services.presideObjects.PresideObjectReader(
-				  dsn         = "default_dsn"
-				, tablePrefix = "pobj_"
+			var reader               = new preside.system.services.presideObjects.PresideObjectReader(
+				  dsn                = "default_dsn"
+				, tablePrefix        = "pobj_"
+				, interceptorService = _getMockInterceptorService()
 			);
 
 			return new preside.system.services.presideObjects.RelationshipGuidance(

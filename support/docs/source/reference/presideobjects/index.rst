@@ -13,8 +13,15 @@ System Preside Objects
     security_context_permission
     audit_log
     system_config
+    website_benefit
+    website_user
+    website_applied_permission
+    website_user_login_token
     standard_page
     homepage
+    application_page_config
     page
     draft
+    site_redirect_domain
+    link
     site

@@ -15,6 +15,10 @@
 		<cfscript>
 			super.preHandler( argumentCollection = arguments );
 
+			if ( !isFeatureEnabled( "datamanager" ) ) {
+				event.notFound();
+			}
+
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:datamanager" )
 				, link  = event.buildAdminLink( linkTo="datamanager" )
@@ -69,7 +73,7 @@
 				, private        = true
 				, eventArguments = {
 					  object          = objectName
-					, useMultiActions = hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+					, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
 				}
 			);
@@ -509,6 +513,7 @@
 		<cfargument name="object"          type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
+		<cfargument name="filter"          type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
 
 		<cfscript>
@@ -521,6 +526,7 @@
 			var results             = dataManagerService.getRecordsForGridListing(
 				  objectName  = object
 				, gridFields  = gridFields
+				, filter      = arguments.filter
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
 				, orderBy     = dtHelper.getSortOrder()
@@ -616,19 +622,19 @@
 	</cffunction>
 
 	<cffunction name="_addRecordAction" access="private" returntype="any" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="event"             type="any"     required="true"  />
+		<cfargument name="rc"                type="struct"  required="true"  />
+		<cfargument name="prc"               type="struct"  required="true"  />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
-		<cfargument name="errorAction"       type="string"  required="false" default="" />
-		<cfargument name="viewRecordAction"  type="string"  required="false" default="" />
-		<cfargument name="addAnotherAction"  type="string"  required="false" default="" />
-		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="errorAction"       type="string"  required="false" default=""     />
+		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
+		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
+		<cfargument name="successAction"     type="string"  required="false" default=""     />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.add";
-			var formData         = event.getCollectionForForm( formName );
+			var formData         = event.getCollectionForForm( arguments.formName );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 			var obj              = "";
 			var validationResult = "";
@@ -636,7 +642,7 @@
 			var newRecordLink    = "";
 			var persist          = "";
 
-			validationResult = validateForm( formName=formName, formData=formData );
+			validationResult = validateForm( formName=arguments.formName, formData=formData );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
@@ -680,15 +686,15 @@
 	</cffunction>
 
 	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
-		<cfargument name="event"  type="any"    required="true" />
-		<cfargument name="rc"     type="struct" required="true" />
-		<cfargument name="prc"    type="struct" required="true" />
-		<cfargument name="object" type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="event"    type="any"    required="true" />
+		<cfargument name="rc"       type="struct" required="true" />
+		<cfargument name="prc"      type="struct" required="true" />
+		<cfargument name="object"   type="string" required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName" type="string" required="false" default="preside-objects.#arguments.object#.admin.quickadd" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.quickadd";
-			var formData         = event.getCollectionForForm( formName );
- 			var validationResult = validateForm( formName=formName, formData=formData );
+			var formData         = event.getCollectionForForm( arguments.formName );
+			var validationResult = validateForm( formName=arguments.formName, formData=formData );
 
 			if ( validationResult.validated() ) {
 				var obj = presideObjectService.getObject( object );
@@ -892,7 +898,7 @@
 		<cfargument name="prc"    type="struct" required="true" />
 
 		<cfscript>
-			if ( !hasPermission( "datamanager.navigate" ) ) {
+			if ( !hasCmsPermission( "datamanager.navigate" ) ) {
 				event.adminAccessDenied();
 			}
 		</cfscript>
@@ -906,7 +912,7 @@
 		<cfargument name="object" type="string" required="true" />
 
 		<cfscript>
-			if ( !hasPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
+			if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
 				event.adminAccessDenied();
 			}
 			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );

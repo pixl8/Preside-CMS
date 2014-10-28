@@ -14,7 +14,7 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif hasPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] )>
+		<cfif hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#objectName#" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>
@@ -22,7 +22,7 @@
 				</button>
 			</a>
 		</cfif>
-		<cfif hasPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextkeys=[ objectName ] )>
+		<cfif hasCmsPermission( permissionKey="datamanager.manageContextPerms", context="datamanager", contextkeys=[ objectName ] )>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.manageperms", queryString="object=#objectName#" )#" data-global-key="p">
 				<button class="btn btn-default btn-sm">
 					<i class="fa fa-lock"></i>
@@ -34,7 +34,7 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
-		, useMultiActions = hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+		, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
 		, gridFields      = gridFields
 	} )#

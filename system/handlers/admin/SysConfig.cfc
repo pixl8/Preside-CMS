@@ -8,7 +8,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
-		if ( !hasPermission( permissionKey="systemConfiguration.manage" ) ) {
+		if ( !isFeatureEnabled( "systemConfiguration" ) ) {
+			event.notFound();
+		}
+
+		if ( !hasCmsPermission( permissionKey="systemConfiguration.manage" ) ) {
 			event.adminAccessDenied();
 		}
 

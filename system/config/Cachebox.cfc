@@ -75,6 +75,20 @@ component output=false {
 					}
 				},
 
+				WebsitePermissionsCache = {
+					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					, properties = {
+						  objectDefaultTimeout           = 20
+						, objectDefaultLastAccessTimeout = 20
+						, useLastAccessTimeouts          = true
+						, reapFrequency                  = 5
+						, evictionPolicy                 = "LFU"
+						, evictCount                     = 50
+						, maxObjects                     = 500
+						, objectStore                    = "ConcurrentSoftReferenceStore"
+					}
+				},
+
 				PresideObjectViewCache = {
 					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
 					, properties = {

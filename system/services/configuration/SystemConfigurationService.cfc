@@ -4,10 +4,12 @@ component output=false singleton=true {
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
+	 * @injectedConfig.inject          coldbox:setting:injectedConfig
 	 */
-	public any function init( required array autoDiscoverDirectories, required any dao ) output=false {
+	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig ) output=false {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao )
+		_setInjectedConfig( arguments.injectedConfig );
 
 		reload();
 
@@ -16,7 +18,8 @@ component output=false singleton=true {
 
 // PUBLIC API METHODS
 	public string function getSetting( required string category, required string setting, string default="" ) output=false {
-		var result = _getDao().selectData(
+		var injected = _getInjectedConfig();
+		var result   = _getDao().selectData(
 			  selectFields = [ "value" ]
 			, filter       = { category = arguments.category, setting = arguments.setting }
 		);
@@ -25,7 +28,7 @@ component output=false singleton=true {
 			return result.value;
 		}
 
-		return default;
+		return injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
 	}
 
 	public struct function getCategorySettings( required string category ) output=false {
@@ -34,9 +37,19 @@ component output=false singleton=true {
 			, filter       = { category = arguments.category }
 		);
 		var result = {};
+		var injectedStartsWith = "#arguments.category#.";
 
 		for( var record in rawResult ){
 			result[ record.setting ] = record.value;
+		}
+
+		var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );
+		for( var key in injected ) {
+			var setting = ListRest( key, "." );
+
+			if ( !result.keyExists( setting ) ) {
+				result[ setting ] = injected[ key ];
+			}
 		}
 
 		return result;
@@ -164,6 +177,13 @@ component output=false singleton=true {
 	}
 	private void function _setConfigCategories( required struct configCategories ) output=false {
 		_configCategories = arguments.configCategories;
+	}
+
+	private struct function _getInjectedConfig() output=false {
+		return _injectedConfig;
+	}
+	private void function _setInjectedConfig( required struct injectedConfig ) output=false {
+		_injectedConfig = arguments.injectedConfig;
 	}
 
 }

@@ -1,11 +1,14 @@
 <cfscript>
 	param name="args.control"  type="string";
 	param name="args.label"    type="string";
+	param name="args.help"     type="string";
 	param name="args.for"      type="string";
 	param name="args.error"    type="string";
 	param name="args.required" type="boolean";
 
 	hasError = Len( Trim( args.error ) );
+
+	help = Len( Trim( args.help ) ) ? HtmlEditFormat( translateResource( uri=args.help, defaultValue=args.help ) ) : "";
 </cfscript>
 
 <cfoutput>
@@ -18,6 +21,7 @@
 					<span>#translateResource( "cms:form.control.required.label" )#</span>
 				</em>
 			</cfif>
+
 		</label>
 
 		<div class="col-sm-9">
@@ -28,5 +32,10 @@
 				<div for="#args.for#" class="help-block">#args.error#</div>
 			</cfif>
 		</div>
+		<cfif Len( Trim( help ) )>
+			<div class="col-sm-1">
+				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#help#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+			</div>
+		</cfif>
 	</div>
 </cfoutput>

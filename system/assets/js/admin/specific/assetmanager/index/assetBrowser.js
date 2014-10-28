@@ -33,7 +33,11 @@
 		}
 	};
 
-	$tree.presideTreeNav( { onClick : nodeClickHandler } );
+	$tree.presideTreeNav( {
+		  onClick      : nodeClickHandler
+		, collapseIcon : "fa-folder-open"
+		, expandIcon   : "fa-folder"
+	} );
 
 	for( i=0; i < $tableHeaders.length-1; i++ ){
 		colConfig.push( {

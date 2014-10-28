@@ -30,6 +30,20 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getSiteUrl" access="public" returntype="string" output="false">
+		<cfargument name="includePath" type="boolean" required="false" default="true" />
+		<cfscript>
+			var site    = getSite;
+			var siteUrl = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
+
+			if ( arguments.includePath ) {
+				siteUrl &= site.path ?: "/";
+			}
+
+			return siteUrl;
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getSiteId" access="public" returntype="string" output="false">
 		<cfscript>
 			var site = getSite();
@@ -42,7 +56,7 @@
 		<cfscript>
 			var prc = getRequestContext().getCollection( private=true );
 
-			_announceInterception(
+			announceInterception(
 				  state         = "onBuildLink"
 				, interceptData = arguments
 			);
@@ -141,7 +155,7 @@
 			var qs          = request[ "preside.query_string" ] ?: "";
 			var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
 
-			return includeQs ? currentUrl & qs : currentUrl;
+			return includeQs ? currentUrl & "?" & qs : currentUrl;
 		</cfscript>
 	</cffunction>
 
@@ -154,17 +168,11 @@
 	</cffunction>
 
 	<cffunction name="getAdminUserDetails" access="public" returntype="struct" output="false">
-		<cfscript>
-			var loginSvc = getModel( "loginService" );
-
-			return loginSvc.getLoggedInUserDetails();
-		</cfscript>
+		<cfreturn getModel( "loginService" ).getLoggedInUserDetails() />
 	</cffunction>
 
 	<cffunction name="getAdminUserId" access="public" returntype="string" output="false">
-		<cfscript>
-			return getAdminUserDetails().userId;
-		</cfscript>
+		<cfreturn getModel( "loginService" ).getLoggedInUserId() />
 	</cffunction>
 
 	<cffunction name="adminAccessDenied" access="public" returntype="void" output="false">
@@ -174,16 +182,9 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="notFound" access="public" returntype="void" output="false">
-		<cfscript>
-			getController().runEvent( "general.notFound" );
-			content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="audit" access="public" returntype="void" output="false">
 		<cfscript>
-			arguments.userId = getAdminUserDetails().userId;
+			arguments.userId = getAdminUserId();
 
 			return getModel( "AuditService" ).log( argumentCollection = arguments );
 		</cfscript>
@@ -261,6 +262,10 @@
 		<cfreturn getController().getWireBox().getInstance( arguments.beanName ) />
 	</cffunction>
 
+	<cffunction name="announceInterception" access="public" returntype="any" output="false">
+		<cfreturn getController().getInterceptorService().processState( argumentCollection=arguments ) />
+	</cffunction>
+
 <!--- security helpers --->
 	<cffunction name="getCsrfToken" access="public" returntype="string" output="false">
 		<cfreturn getModel( "csrfProtectionService" ).generateToken( argumentCollection = arguments ) />
@@ -323,9 +328,16 @@
 			page.ancestors = [];
 
 			page.ancestorList = ancestors.recordCount ? ValueList( ancestors.id ) : "";
+			page.permissionContext = [ page.id ];
+			for( var i=ListLen( page.ancestorList ); i > 0; i-- ){
+				page.permissionContext.append( ListGetAt( page.ancestorList, i ) );
+			}
+
 			for( var ancestor in ancestors ) {
+				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
 				page.ancestors.append( ancestor );
 			}
+			addBreadCrumb( title=page.title, link=buildLink( page=page.id ) );
 
 			page.isInDateAndActive = isActive( argumentCollection = page );
 			if ( page.isInDateAndActive ) {
@@ -337,24 +349,131 @@
 				}
 			}
 
+			page.access_providing_page = page.id;
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				for( var ancestor in page.ancestors ) {
+					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
+						page.access_providing_page = ancestor.id;
+						page.access_restriction = ancestor.access_restriction;
+						page.full_login_required = ancestor.full_login_required;
+						break;
+					}
+				}
+			}
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				page.access_restriction = "none";
+			}
+
 			p[ "slug" ] = p._hierarchy_slug;
 			StructDelete( p, "_hierarchy_slug" );
+
+			page.isApplicationPage = false;
 
 			prc.presidePage = page;
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="initializeApplicationPage" access="public" returntype="void" output="false">
+		<cfargument name="pageId" type="string" required="true" />
+
+		<cfscript>
+			var prc        = getRequestContext().getCollection( private = true );
+			var appPageSvc = getModel( "applicationPagesService" );
+
+			if ( !appPageSvc.isPageAvailableInActiveSiteTemplate( arguments.pageId ) ) {
+				notFound();
+			}
+
+			var page       = appPageSvc.getPageConfiguration( arguments.pageId );
+
+			page.id                = arguments.pageId;
+			page.ancestors         = appPageSvc.getAncestors( arguments.pageId );
+			page.isApplicationPage = true;
+
+			page.access_providing_page = page.id;
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				for( var ancestor in page.ancestors ) {
+					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
+						page.access_providing_page = ancestor.id;
+						page.access_restriction = ancestor.access_restriction;
+						page.full_login_required = ( ancestor.full_login_required ?: false );
+						break;
+					}
+				}
+			}
+			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+				page.access_restriction = "none";
+			}
+			page.full_login_required = page.full_login_required ?: false;
+
+			prc.presidePage = page;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="checkPageAccess" access="public" returntype="void" output="false">
+		<cfscript>
+			if ( getPageProperty( "access_restriction", "none" ) == "full" ){
+				var websiteLoginService = getModel( "websiteLoginService" );
+				var fullLoginRequired = getPageProperty( "full_login_required", false );
+				var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
+
+				if ( !loggedIn ) {
+					accessDenied( reason="LOGIN_REQUIRED" );
+				}
+
+				var accessProvidingPage = getPageProperty( "access_providing_page", getCurrentPageId() );
+				var hasPermission       = getModel( "websitePermissionService" ).hasPermission(
+					  permissionKey = "pages.access"
+					, context       = "page"
+					, contextKeys   = [ accessProvidingPage ]
+				);
+
+				if ( !hasPermission ) {
+					accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				}
+			}
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getPageProperty" access="public" returntype="any" output="false">
-		<cfargument name="propertyName"  type="string"  required="true" />
-		<cfargument name="defaultValue"  type="any"     required="false" default="" />
-		<cfargument name="cascading"     type="boolean" required="false" default="false" />
-		<cfargument name="cascadeMethod" type="string"  required="false" default="closest" hint="closest|collect" />
+		<cfargument name="propertyName"     type="string"  required="true" />
+		<cfargument name="defaultValue"     type="any"     required="false" default="" />
+		<cfargument name="cascading"        type="boolean" required="false" default="false" />
+		<cfargument name="cascadeMethod"    type="string"  required="false" default="closest" hint="closest|collect" />
+		<cfargument name="cascadeSkipValue" type="string"  required="false" default="inherit" />
 
 		<cfscript>
 			var page = getRequestContext().getValue( name="presidePage", defaultValue=StructNew(), private=true );
 
 			if ( StructIsEmpty( page ) ) {
 				return arguments.defaultValue;
+			}
+
+			if ( IsBoolean( page.isApplicationPage ?: "" ) && page.isApplicationPage ) {
+				if ( arguments.cascading ) {
+					var cascadeSearch = Duplicate( page.ancestors ?: [] );
+					cascadeSearch.prepend( page );
+
+					if ( arguments.cascadeMethod == "collect" ) {
+						var collected = [];
+					}
+					for( node in cascadeSearch ){
+						if ( Len( Trim( node[ arguments.propertyName ] ?: "" ) ) && node[ arguments.propertyName ] != arguments.cascadeSkipValue ) {
+							if ( arguments.cascadeMethod != "collect" ) {
+								return node[ arguments.propertyName ];
+							}
+							collected.append( node[ arguments.propertyName ] );
+						}
+					}
+
+					if ( arguments.cascadeMethod == "collect" ) {
+						return collected;
+					}
+
+					return arguments.defaultValue;
+				}
+
+				return page[ arguments.propertyName ] ?: arguments.defaultValue;
 			}
 
 			return getModel( "sitetreeService" ).getPageProperty(
@@ -365,28 +484,6 @@
 				, cascading     = arguments.cascading
 				, cascadeMethod = arguments.cascadeMethod
 			);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="setPageAttribute" access="public" returntype="void" output="false">
-		<cfargument name="attributeName"  type="string" required="true" />
-		<cfargument name="attributeValue" type="any"    required="true" />
-
-		<cfscript>
-			var prc  = getRequestContext().getCollection( private = true );
-
-			prc.presidePage = prc.presidePage ?: {};
-			prc.presidePage[ arguments.attributeName ] = arguments.attributeValue;
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="setPageAttributes" access="public" returntype="void" output="false">
-		<cfscript>
-			var arg = "";
-
-			for ( arg in arguments ) {
-				setPageattribute( attributeName = arg, attributeValue = arguments[ arg ] );
-			}
 		</cfscript>
 	</cffunction>
 
@@ -406,20 +503,47 @@
 		<cfreturn getPageProperty( 'isInDateAndActive', false ) />
 	</cffunction>
 
-<!--- private helpers --->
-	<cffunction name="_announceInterception" access="private" returntype="any" hint="Announce an interception to the system. If you use the asynchronous facilities, you will get a thread structure report as a result." output="true" >
-		<cfargument name="state" 			required="true"  type="any" hint="The interception state to execute">
-		<cfargument name="interceptData" 	required="false" type="any" hint="A data structure used to pass intercepted information.">
-		<cfargument name="async" 			required="false" type="boolean" default="false" hint="If true, the entire interception chain will be ran in a separate thread."/>
-		<cfargument name="asyncAll" 		required="false" type="boolean" default="false" hint="If true, each interceptor in the interception chain will be ran in a separate thread and then joined together at the end."/>
-		<cfargument name="asyncAllJoin"		required="false" type="boolean" default="true" hint="If true, each interceptor in the interception chain will be ran in a separate thread and joined together at the end by default.  If you set this flag to false then there will be no joining and waiting for the threads to finalize."/>
-		<cfargument name="asyncPriority" 	required="false" type="string"	default="NORMAL" hint="The thread priority to be used. Either LOW, NORMAL or HIGH. The default value is NORMAL"/>
-		<cfargument name="asyncJoinTimeout"	required="false" type="numeric"	default="0" hint="The timeout in milliseconds for the join thread to wait for interceptor threads to finish.  By default there is no timeout."/>
-
-		<cfreturn getController().getInterceptorService().processState(argumentCollection=arguments)>
+	<cffunction name="getPagePermissionContext" access="public" returntype="array" output="false">
+		<cfreturn getPageProperty( "permissionContext", [] ) />
 	</cffunction>
 
+	<cffunction name="addBreadCrumb" access="public" returntype="void" output="false">
+		<cfargument name="title" type="string" required="true" />
+		<cfargument name="link"  type="string" required="true" />
 
+		<cfscript>
+			var crumbs = getBreadCrumbs();
+
+			ArrayAppend( crumbs, { title=arguments.title, link=arguments.link } );
+
+			getRequestContext().setValue( name="_breadCrumbs", value=crumbs, private=true );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="getBreadCrumbs" access="public" returntype="array" output="false">
+		<cfreturn getRequestContext().getValue( name="_breadCrumbs", defaultValue=[], private=true ) />
+	</cffunction>
+
+<!--- status codes --->
+	<cffunction name="notFound" access="public" returntype="void" output="false">
+		<cfscript>
+			announceInterception( "onNotFound" );
+			getController().runEvent( "general.notFound" );
+			content reset=true type="text/html";header statusCode="404";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="accessDenied" access="public" returntype="void" output="false">
+		<cfargument name="reason" type="string" required="true" />
+
+		<cfscript>
+			announceInterception( "onAccessDenied" , arguments );
+			getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments } );
+			WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
+		</cfscript>
+	</cffunction>
+
+<!--- private helpers --->
 	<cffunction name="_structToQueryString" access="public" returntype="string" output="false">
 		<cfargument name="inputStruct" type="struct" required="true" />
 

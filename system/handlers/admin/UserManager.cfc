@@ -1,11 +1,16 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="presideObjectService" inject="presideObjectService";
+	property name="loginService"         inject="loginService";
 	property name="messageBox"           inject="coldbox:plugin:messageBox";
 	property name="bCryptService"        inject="bCryptService";
 
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
+
+		if ( !isFeatureEnabled( "cmsUserManager" ) ) {
+			event.notFound();
+		}
 
 		if ( event.getCurrentAction() contains "group" ) {
 			event.addAdminBreadCrumb(
@@ -139,29 +144,32 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function addUserAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="usermanager.add" );
 
-		if ( Len( rc.password ?: "" ) ) {
-			rc.password = bCryptService.hashPw( rc.password ?: "" );
-			if ( bCryptService.checkPw( rc.confirm_password, rc.password ) ) {
-				rc.confirm_password = rc.password;
-			}
-		} else {
-			// TEMPORARY CODE!!!
-			rc.password = bCryptService.hashPw( "password" );
-			rc.confirm_password = rc.password;
-		}
-
-		runEvent(
+		var newUserId = runEvent(
 			  event          = "admin.DataManager._addRecordAction"
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
 				  object           = "security_user"
 				, errorAction      = "userManager.addUser"
-				, successAction    = "userManager.users"
-				, addAnotherAction = "userManager.addUser"
-				, viewRecordAction = "userManager.editUser"
+				, redirectOnSuccess = false
 			}
 		);
+
+		if ( IsBoolean( rc.send_welcome ?: "" ) && rc.send_welcome ) {
+			loginService.sendWelcomeEmail( newUserId, event.getAdminUserDetails().known_as, rc.welcome_message ?: "" );
+		}
+
+		var newRecordLink = event.buildAdminLink( linkTo="usermanager.editUser", queryString="id=#newUserId#" );
+		messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+			  translateResource( uri="preside-objects.security_user:title.singular", defaultValue="security_user" )
+			, '<a href="#newRecordLink#">#( rc.known_as ?: "" )#</a>'
+		] ) );
+
+		if ( Val( rc._addanother ?: 0 ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="userManager.addUser" ), persist="_addAnother" );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="userManager.users" ) );
+		}
 	}
 
 	function editUser( event, rc, prc ) output=false {
@@ -183,15 +191,14 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function editUserAction( event, rc, prc ) output=false {
 		_checkPermissions( event=event, key="usermanager.edit" );
 
-		if ( rc.id == event.getAdminUserId() ) {
+		var userId = rc.id ?: "";
+
+		if ( userId == event.getAdminUserId() ) {
 			StructDelete( rc, "active" ); // ensure user cannot deactivate themselves!
 		}
 
-		if ( Len( rc.password ?: "" ) ) {
-			rc.password = bCryptService.hashPw( rc.password ?: "" );
-			if ( bCryptService.checkPw( rc.confirm_password, rc.password ) ) {
-				rc.confirm_password = rc.password;
-			}
+		if ( IsBoolean( rc.resend_welcome ?: "" ) && rc.resend_welcome ) {
+			loginService.sendWelcomeEmail( userId, event.getAdminUserDetails().known_as, rc.welcome_message ?: "" );
 		}
 
 		runEvent(
@@ -202,7 +209,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object            = "security_user"
 				, errorAction       = "userManager.editUser"
 				, successAction     = "userManager.users"
-				, mergeWithFormName = ( rc.id == event.getAdminUserId() ) ? "preside-objects.security_user.admin.edit.self" : ""
+				, mergeWithFormName = ( userId == event.getAdminUserId() ) ? "preside-objects.security_user.admin.edit.self" : ""
 			}
 		);
 	}
@@ -246,7 +253,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 // private utility
 	private void function _checkPermissions( required any event, required string key ) output=false {
-		if ( !hasPermission( arguments.key ) ) {
+		if ( !hasCmsPermission( arguments.key ) ) {
 			event.adminAccessDenied();
 		}
 	}

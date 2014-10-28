@@ -90,11 +90,11 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( _getEventName(), "core.SiteTreePageRequestHandler" );
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return Len( Trim( buildArgs.page ?: "" ) );
 	}
 
-	public string function build( required struct buildArgs ) output=false {
+	public string function build( required struct buildArgs, required any event ) output=false {
 		var treeSvc  = _getSiteTreeService();
 		var homepage = treeSvc.getSiteHomepage();
 		var page     = treeSvc.getPage( id = buildArgs.page, selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.protocol", "site.domain", "site.path" ] );

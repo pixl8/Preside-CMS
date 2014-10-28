@@ -15,6 +15,8 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
+
+	value = HtmlEditFormat( value );
 </cfscript>
 
 <cfoutput>

@@ -114,7 +114,6 @@ component output="false" singleton=true {
 			result.totalRecords = _getPresideObjectService().selectData(
 				  objectName       = arguments.objectName
 				, selectFields     = [ "count( * ) as nRows" ]
-				, fromVersionTable = true
 			).nRows;
 		}
 
@@ -264,7 +263,7 @@ component output="false" singleton=true {
 				break;
 
 				case "many-to-one":
-					sqlFields[i] = prop.getAttribute( "relatedTo", "" ) & ".${labelfield} as " & field;
+					sqlFields[i] = prop.getAttribute( "name", "" ) & ".${labelfield} as " & field;
 				break;
 
 				default:

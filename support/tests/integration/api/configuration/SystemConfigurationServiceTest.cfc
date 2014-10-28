@@ -121,11 +121,41 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		}, _getConfigSvc().getCategorySettings( category="mycategory" ) );
 	}
 
+	function test10_getSetting_shouldFallBackToInjectedSetting_whenSettingDoesNotExist() {
+		var configService = _getConfigSvc( injectedConfig = { "injectedCat.injectedSetting" = "test value for injected settings" } );
+
+		mockDao.$( "selectData" )
+			.$args( filter={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
+			.$results( QueryNew('value') );
+
+		super.assertEquals( "test value for injected settings", configService.getSetting( category="injectedCat", setting="injectedSetting" ) );
+	}
+
+	function test11_getCategorySettings_shouldReturnAStructureOfAllSavedSettingsMixedInWithInjectedSettings(){
+		var configService = _getConfigSvc( injectedConfig = {
+			  "injectedCat.injectedSetting" = "test value for injected settings"
+			, "mycategory.setting1"         = "valuex"
+			, "mycategory.setting4"         = "another value"
+		} );
+
+		mockDao.$( "selectData" )
+			.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
+			.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
+
+		super.assertEquals( {
+			  setting1 = "value1"
+			, setting2 = "value2"
+			, setting3 = "value3"
+			, setting4 = "another value"
+		}, configService.getCategorySettings( category="mycategory" ) );
+	}
+
 // PRIVATE HELPERS
-	private any function _getConfigSvc( array autoDiscoverDirectories=[] ) ouput=false {
+	private any function _getConfigSvc( array autoDiscoverDirectories=[], struct injectedConfig={} ) ouput=false {
 		return new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
+			, injectedConfig          = arguments.injectedConfig
 		);
 	}
 }

@@ -4,8 +4,8 @@ component output=false singleton=true {
 	/**
 	 * @loginService.inject       LoginService
 	 * @cacheProvider.inject      cachebox:PermissionsCache
-	 * @permissionsConfig.inject  coldbox:setting:permissions
-	 * @rolesConfig.inject        coldbox:setting:roles
+	 * @permissionsConfig.inject  coldbox:setting:adminPermissions
+	 * @rolesConfig.inject        coldbox:setting:adminRoles
 	 * @groupDao.inject           presidecms:object:security_group
 	 * @userDao.inject            presidecms:object:security_user
 	 * @contextPermDao.inject     presidecms:object:security_context_permission

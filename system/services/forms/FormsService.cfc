@@ -47,25 +47,32 @@ component output=false singleton=true {
 		return forms;
 	}
 
-	public boolean function formExists( required string formName ) output=false {
+	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) output=false {
 		var forms = _getForms();
 
-		return StructKeyExists( forms, arguments.formName );
+		return StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
 	}
 
 	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) output=false {
 		var forms        = _getForms();
 		var objectName   = "";
-		var siteTemplate = _getSiteService().getActiveSiteTemplate();
 		var form         = "";
 
+		if ( arguments.autoMergeSiteForm ) {
+			var siteTemplateFormName   = _getSiteTemplatePrefix() & arguments.formName;
+			var siteTemplateFormExists = siteTemplateFormName != arguments.formName && formExists( siteTemplateFormName, false );
 
-		if ( arguments.autoMergeSiteForm && Len( Trim( siteTemplate ) ) && formExists( "site-template::#siteTemplate#.#arguments.formName#" ) ) {
-			return mergeForms( arguments.formName, "site-template::#siteTemplate#.#arguments.formName#", false );
+			if ( siteTemplateFormExists ) {
+				if ( formExists( arguments.formName, false )  ) {
+					return mergeForms( arguments.formName, siteTemplateFormName, false );
+				}
+
+				return forms[ siteTemplateFormName ];
+			}
 		}
 
 		if ( formExists( arguments.formName ) ) {
-			return StructFind( _getForms(), arguments.formName );
+			return forms[ arguments.formName ];
 		}
 
 		objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
@@ -215,8 +222,6 @@ component output=false singleton=true {
 							  name      = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
 							, type      = field.control ?: "default"
 							, context   = arguments.context
-							, label     = _getFieldLabel( field=field, formName=arguments.formName )
-							, layout    = arguments.fieldLayout
 							, savedData = arguments.savedData
 						};
 
@@ -238,7 +243,10 @@ component output=false singleton=true {
 							renderArgs.defaultValue = field.default;
 						}
 
+						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
+
 						StructAppend( renderArgs, field, false );
+						StructAppend( renderArgs, _getI18nFieldAttributes( field=field, formName=arguments.formName ) );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -279,6 +287,7 @@ component output=false singleton=true {
 		,          string  label        = ""
 		,          string  savedValue   = ""
 		,          string  defaultValue = ""
+		,          string  help         = ""
 		,          struct  savedData    = {}
 		,          string  error        = ""
 		,          boolean required     = false
@@ -307,6 +316,7 @@ component output=false singleton=true {
 				, for      = arguments.id
 				, error    = arguments.error
 				, required = arguments.required
+				, help     = arguments.help
 			} );
 		}
 
@@ -633,8 +643,13 @@ component output=false singleton=true {
 	private string function _getValidationRulesetFromFormName( required string formName ) output=false {
 		var objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
 
-		if ( formExists( arguments.formName ) ) {
+		if ( formExists( arguments.formName, false ) ) {
 			return "PresideForm.#arguments.formName#";
+		}
+
+		var siteTemplateFormName = _getSiteTemplatePrefix() & arguments.formName;
+		if ( formExists( siteTemplateFormName, false ) ) {
+			return "PresideForm.#siteTemplateFormName#";
 		}
 
 		if ( _getPresideObjectService().objectExists( objectName ) ) {
@@ -644,22 +659,29 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private string function _getFieldLabel( required struct field, required string formName ) output=false {
-		var i18n       = _getI18n();
-		var fieldName  = arguments.field.name ?: "";
-		var objectName = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		var defaultUri = _getPresideObjectService().getResourceBundleUriRoot( objectName ) & "field.#fieldName#.title";
-		var backupUri  = "cms:preside-objects.default.field.#fieldName#.title";
-		var fieldLabel = arguments.field.label ?: "";
+	private struct function _getI18nFieldAttributes( required struct field, required string formName ) output=false {
+		var i18n            = _getI18n();
+		var fieldName       = arguments.field.name ?: "";
+		var objectName      = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+		var rootUri         = _getPresideObjectService().getResourceBundleUriRoot( objectName ) & "field.#fieldName#.";
+		var defaultLabelUri = rootUri & "title";
+		var backupLabelUri  = "cms:preside-objects.default.field.#fieldName#.title";
+		var fieldLabel      = arguments.field.label ?: "";
+		var attributes      = {};
 
 		if ( Len( Trim( fieldLabel ) ) ) {
-			return i18n.translateResource( uri=fieldLabel, defaultValue=fieldLabel );
+			attributes.label = i18n.translateResource( uri=fieldLabel, defaultValue=fieldLabel );
+		} else {
+			attributes.label = i18n.translateResource(
+				  uri          = defaultLabelUri
+				, defaultValue = i18n.translateResource( uri = backupLabelUri, defaultValue = fieldName )
+			);
 		}
 
-		return i18n.translateResource(
-			  uri          = defaultUri
-			, defaultValue = i18n.translateResource( uri = backupUri, defaultValue = fieldName )
-		);
+		attributes.help = field.help ?: i18n.translateResource( uri=rootUri & "help", defaultValue="" );
+		attributes.placeholder = field.placeholder ?: i18n.translateResource( uri=rootUri & "placeholder", defaultValue="" );
+
+		return attributes;
 	}
 
 	private string function _getPreProcessorForField( string preProcessor="", string control="" ) output=false {
@@ -767,7 +789,20 @@ component output=false singleton=true {
 					matchingTab[ attrib ] = tab[ attrib ];
 				}
 			}
+
+			matchingTab.fieldsets.sort( function( fieldset1, fieldset2 ){
+				var order1 = Val( fieldset1.sortOrder ?: 999999999 );
+				var order2 = Val( fieldset2.sortOrder ?: 999999999 );
+
+				return order1 == order2 ? 0 : ( order1 > order2 ? 1 : -1 );
+			} );
 		}
+		form1.tabs.sort( function( tab1, tab2 ){
+			var order1 = Val( tab1.sortOrder ?: 999999999 );
+			var order2 = Val( tab2.sortOrder ?: 999999999 );
+
+			return order1 == order2 ? 0 : ( order1 > order2 ? 1 : -1 );
+		} );
 
 		return form1;
 	}
@@ -780,6 +815,20 @@ component output=false singleton=true {
 		}
 
 		return "";
+	}
+
+	private boolean function _formControlHasLayout( required string control ) output=false {
+		switch( arguments.control ){
+			case "hidden":
+				return false;
+		}
+
+		return true;
+	}
+
+	private string function _getSiteTemplatePrefix() output=false {
+		var siteTemplate = _getSiteService().getActiveSiteTemplate();
+		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
 // GETTERS AND SETTERS

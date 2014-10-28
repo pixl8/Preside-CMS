@@ -1,9 +1,5 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
-	property name="siteService" inject="siteService";
-	property name="adminRouteHandler" inject="adminRouteHandler";
-	property name="presideObjectService" inject="presideObjectService";
-
 	public void function configure() output=false {
 		instance.presideRoutes = [];
 
@@ -22,8 +18,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	public void function onBuildLink( event, interceptData ) output=false {
 		for( var route in instance.presideRoutes ){
-			if ( route.reverseMatch( buildArgs=interceptData ) ) {
-				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData ), private=true );
+			if ( route.reverseMatch( buildArgs=interceptData, event=event ) ) {
+				event.setValue( name="_builtLink", value=route.build( buildArgs=interceptData, event=event ), private=true );
 				return;
 			}
 		}
@@ -39,15 +35,18 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		var pathInfo = super.getCGIElement( "path_info", event );
 		var site     = "";
 
-		siteService.ensureDefaultSiteExists();
+		_getSiteService().ensureDefaultSiteExists();
 
-		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
-			site = siteService.getActiveAdminSite();
+		if ( _getAdminRouteHandler().match( pathInfo, event ) && event.isAdminUser() ) {
+			site = _getSiteService().getActiveAdminSite();
 		} else {
-			site = siteService.matchSite(
+			site = _getSiteService().matchSite(
 				  domain = super.getCGIElement( "server_name", event )
 				, path   = pathInfo
 			);
+			if ( Len( Trim( site.id ?: "" ) ) ) {
+				_getSiteService().setActiveAdminSite( site.id );
+			}
 		}
 
 		event.setSite( site );
@@ -86,7 +85,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private void function _checkRedirectDomains( event, interceptData ) output=false {
 		var domain       = super.getCGIElement( "server_name", event );
-		var redirectSite = siteService.getRedirectSiteForDomain( domain );
+		var redirectSite = _getSiteService().getRedirectSiteForDomain( domain );
 
 		if ( redirectSite.recordCount && redirectSite.domain != domain ) {
 			var path        = super.getCGIElement( 'path_info', event );
@@ -98,5 +97,21 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			}
 			getController().setNextEvent( url=redirectUrl, statusCode=301 );
 		}
+	}
+
+	private any function _getSiteService() output=false {
+		if ( not StructKeyExists( variables, "_siteService" ) ) {
+			_siteService = getModel( "siteService" );
+		}
+
+		return _siteService;
+	}
+
+	private any function _getAdminRouteHandler() output=false {
+		if ( not StructKeyExists( variables, "_adminRouteHandler" ) ) {
+			_adminRouteHandler = getModel( "adminRouteHandler" );
+		}
+
+		return _adminRouteHandler;
 	}
 }

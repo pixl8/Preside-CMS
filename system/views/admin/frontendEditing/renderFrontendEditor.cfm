@@ -15,10 +15,14 @@
 	if ( not Len( Trim( label ) ) ) {
 		label = translateResource( uri="cms:frontendeditor.default.label", data=[ position ] );
 	}
+
+	if ( event.isAdminUser() ) {
+		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
+	}
 </cfscript>
 
 <cfoutput>
-	<cfif not event.isAdminUser()>
+	<cfif not event.isAdminUser() or not prc.hasCmsPageEditPermissions>
 		#renderedContent#
 	<cfelse>
 		<!-- container: #containerId# -->#Trim( renderedContent )#<!-- !container: #containerId# -->

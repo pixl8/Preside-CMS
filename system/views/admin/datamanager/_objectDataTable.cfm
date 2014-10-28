@@ -50,7 +50,7 @@
 
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					<cfif hasPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
+					<cfif hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
 						<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#deleteSelectedPrompt#">
 							<i class="fa fa-trash-o bigger-110"></i>
 							#deleteSelected#

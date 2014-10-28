@@ -5,13 +5,15 @@ component implements="iRouteHandler" output=false singleton=true {
 	 * @adminPath.inject         coldbox:setting:preside_admin_path
 	 * @sysConfigService.inject  SystemConfigurationService
 	 * @eventName.inject         coldbox:setting:eventName
-	 * @adminDefaultEvent.inject coldbox:setting:adminDefaultEvent
+	 * @defaultEvent.inject      coldbox:setting:adminDefaultEvent
+	 * @controller.inject        coldbox
 	 */
-	public any function init( required string adminPath, required string eventName, required string adminDefaultEvent, required any sysConfigService ) output=false {
+	public any function init( required string adminPath, required string eventName, required string defaultEvent, required any sysConfigService, required any controller ) output=false {
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
-		_setAdminDefaultEvent( arguments.adminDefaultEvent );
+		_setDefaultEvent( arguments.defaultEvent );
 		_setSysConfigService( arguments.sysConfigService );
+		_setController( arguments.controller );
 
 		return this;
 	}
@@ -25,26 +27,38 @@ component implements="iRouteHandler" output=false singleton=true {
 		var translated = ReReplace( arguments.path, "^/#_getAdminPath()#/", "admin/" );
 
 		translated = ListChangeDelims( translated, ".", "/" );
+		if ( translated == "admin" ) {
+			translated = ListAppend( translated, _getDefaultEvent(), "." );
+		}
 
-		if ( ListLen( translated, "." ) lt 2 ) {
-			translated = translated & "." & _getAdminDefaultEvent();
+		if ( !_getController().handlerExists( translated ) ) {
+			translated = ListAppend( translated, "index", "." );
 		}
 
 		event.setValue( _getEventName(), translated );
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return Len( Trim( buildArgs.linkTo ?: "" ) ) and ListFirst( buildArgs.linkTo, "." ) eq "admin";
 	}
 
-	public string function build( required struct buildArgs ) output=false {
+	public string function build( required struct buildArgs, required any event ) output=false {
 		var link = "/#_getAdminPath()#/#ListChangeDelims( ListRest( buildArgs.linkTo, "." ), "/", "." )#/";
 
 		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return link;
+		return _getRootPath() & link;
+	}
+
+// private helpers
+	private string function _getRootPath() output=false {
+		var protocol = ( cgi.server_protocol.startsWith( "HTTPS" ) ? "https" : "http" ) & "://";
+		var domain   = cgi.server_name;
+		var port     = cgi.server_port == 80 ? "" : ":#cgi.server_port#";
+
+		return protocol & domain & port;
 	}
 
 // private getters and setters
@@ -64,17 +78,24 @@ component implements="iRouteHandler" output=false singleton=true {
 		_eventName = arguments.eventName;
 	}
 
-	private string function _getAdminDefaultEvent() output=false {
-		return _adminDefaultEvent;
-	}
-	private void function _setAdminDefaultEvent( required string adminDefaultEvent ) output=false {
-		_adminDefaultEvent = arguments.adminDefaultEvent;
-	}
-
 	private any function _getSysConfigService() output=false {
 		return _sysConfigService;
 	}
 	private void function _setSysConfigService( required any sysConfigService ) output=false {
 		_sysConfigService = arguments.sysConfigService;
+	}
+
+	private any function _getController() output=false {
+		return _controller;
+	}
+	private void function _setController( required any controller ) output=false {
+		_controller = arguments.controller;
+	}
+
+	private string function _getDefaultEvent() output=false {
+		return _defaultEvent;
+	}
+	private void function _setDefaultEvent( required string defaultEvent ) output=false {
+		_defaultEvent = arguments.defaultEvent;
 	}
 }

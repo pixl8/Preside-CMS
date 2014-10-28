@@ -1,10 +1,10 @@
-Permissioning
-=============
+CMS Permissioning
+=================
 
 Overview
 ########
 
-Permissioning is split into three distinct concepts in PresideCMS:
+CMS Permissioning is split into three distinct concepts in PresideCMS:
 
 Permissions and roles
     These are defined in configuration and are not editable through the CMS GUI.
@@ -43,17 +43,17 @@ Permissions and roles are configured in your site or extension's :doc:`Config.cf
 
     // PERMISSIONS
         // here we define a feature, "analytics dashboard" with a number of permissions
-        settings.permissions.analyticsdashboard = [ "navigate", "share", "configure" ];
+        settings.adminPermissions.analyticsdashboard = [ "navigate", "share", "configure" ];
 
         // features can be organised into sub-features to any depth, here
         // we have a depth of two, i.e. "eventmanagement.events"
-        settings.permissions.eventmanagement = {
+        settings.adminPermissions.eventmanagement = {
               events = [ "navigate", "view", "add", "edit", "delete" ]
             , prices = [ "navigate", "view", "add", "edit", "delete" ]
         };
 
         /* The settings above will translate to the following permission keys being
-           available for use in your Railo code, i.e. if ( hasPermission( userId, permissionKey ) ) {...}:
+           available for use in your Railo code, i.e. if ( hasCmsPermission( userId, permissionKey ) ) {...}:
 
            analyticsdashboard.navigate
            analyticsdashboard.share
@@ -78,17 +78,17 @@ Permissions and roles are configured in your site or extension's :doc:`Config.cf
         // and can be excluded with the ! character:
 
         // define a new role, with all event management perms except for delete
-        settings.roles.eventsOrganiser = [ "eventmanagement.*", "!*.delete" ];
+        settings.adminRoles.eventsOrganiser = [ "eventmanagement.*", "!*.delete" ];
 
         // another new role specifically for analytics viewing
         settings.roles.analyticsViewer = [ "analyticsdashboard.navigate", "analyticsdashboard.share" ];
 
         // add some new permissions to some existing core roles
-        settings.roles.administrator = settings.roles.administrator ?: [];
-        settings.roles.administrator.append( "eventmanagement.*" );
-        settings.roles.administrator.append( "analyticsdashboard.*" );
+        settings.adminRoles.administrator = settings.roles.administrator ?: [];
+        settings.adminRoles.administrator.append( "eventmanagement.*" );
+        settings.adminRoles.administrator.append( "analyticsdashboard.*" );
 
-        settings.roles.someRole = settings.roles.someRole ?: [];
+        settings.adminRoles.someRole = settings.roles.someRole ?: [];
 
 Defining names and descriptions (i18n)
 --------------------------------------
@@ -120,26 +120,26 @@ For permissions, add your keys to the :code:`/i18n/permissions.properties` file,
 
     For permissions, you may only want to create resource bundle entries when the permissions will be used in contextual permission GUIs. Otherwise, the translations will never be used.
 
-Applying permissions in code with hasPermission()
-#################################################
+Applying permissions in code with hasCmsPermission()
+####################################################
 
-When you wish to permission control a given system feature, you should use the :code:`hasPermission()` method. For example:
+When you wish to permission control a given system feature, you should use the :code:`hasCmsPermission()` method. For example:
 
 .. code-block:: js
 
     // a general permission check
-    if ( !hasPermission( permissionKey="eventmanagement.events.navigate" ) ) {
+    if ( !hasCmsPermission( permissionKey="eventmanagement.events.navigate" ) ) {
         event.adminAccessDenied(); // this is a preside request context helper
     }
 
     // a contextual permission check. In this case:
     // "do we have permission to add folders to the asset folder with id [idOfCurrentFolder]"
-    if ( !hasPermission( permissionKey="assetManager.folders.add", context="assetmanagerfolders", contextKeys=[ idOfCurrentFolder ] ) ) {
+    if ( !hasCmsPermission( permissionKey="assetManager.folders.add", context="assetmanagerfolders", contextKeys=[ idOfCurrentFolder ] ) ) {
         event.adminAccessDenied(); // this is a preside request context helper
     }
 
 .. note::
-    The :code:`hasPermission()` method has been implemented as a ColdBox helper method and is available to all your handlers and views. If you wish to access the method from your services, you can access it via the :code:`permissionService` service object, the core implementation of which can be found at :code:`/preside/system/api/security/PermissionService.cfc`.
+    The :code:`hasCmsPermission()` method has been implemented as a ColdBox helper method and is available to all your handlers and views. If you wish to access the method from your services, you can access it via the :code:`permissionService` service object, the core implementation of which can be found at :code:`/preside/system/api/security/PermissionService.cfc`.
 
 .. _ContextPermGUIHelpers:
 
@@ -168,7 +168,7 @@ Our :code:`admin.events.saveEventPermissionsAction` handler action might then lo
       var eventId = rc.id ?: "";
 
       // check that we are allowed to manage the permissions of this event, or events in general ;)
-      if ( !hasPermission( permissionKey="eventmanager.events.manageContextPerms", context="eventmanager", contextKeys=[ eventId ] ) ) {
+      if ( !hasCmsPermission( permissionKey="eventmanager.events.manageContextPerms", context="eventmanager", contextKeys=[ eventId ] ) ) {
           event.adminAccessDenied();
       }
 

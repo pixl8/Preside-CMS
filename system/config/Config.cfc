@@ -31,13 +31,36 @@ component output=false {
 		};
 
 		interceptors = [
-			{ class="preside.system.interceptors.CsrfProtectionInterceptor", properties={} },
-			{ class="preside.system.interceptors.SES"                      , properties = { configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.CsrfProtectionInterceptor"          , properties={} },
+			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"  , properties={} },
+			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor", properties={} },
+			{ class="preside.system.interceptors.SES"                                , properties = { configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
-			, customInterceptionPoints = "onBuildLink"
+			, customInterceptionPoints = []
 		};
+
+		interceptorSettings.customInterceptionPoints.append( "onBuildLink"                );
+		interceptorSettings.customInterceptionPoints.append( "onCreateSelectDataCacheKey" );
+		interceptorSettings.customInterceptionPoints.append( "postDbSyncObjects"          );
+		interceptorSettings.customInterceptionPoints.append( "postDeleteObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "postInsertObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObject"      );
+		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObjects"     );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"    );
+		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"      );
+		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"       );
+		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"           );
+		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObject"       );
+		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObjects"      );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"     );
+		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"       );
+		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"        );
 
 		cacheBox = {
 			configFile = "preside.system.config.Cachebox"
@@ -47,6 +70,17 @@ component output=false {
 			  singletonReload = false
 			, binder          = _discoverWireboxBinder()
 		};
+
+		logbox = {
+			appenders = {
+				defaultLogAppender = {
+					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
+					, properties = { filePath='/logs', filename="coldbox.log" }
+				}
+			},
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
+		};
+
 
 		settings = {};
 		settings.eventName                 = "event";
@@ -62,8 +96,22 @@ component output=false {
 		settings.updateRepositoryUrl       = "http://downloads.presidecms.com.s3.amazonaws.com";
 		settings.notFoundLayout            = "Main";
 		settings.notFoundViewlet           = "errors.notFound";
+		settings.accessDeniedLayout        = "Main";
+		settings.accessDeniedViewlet       = "errors.accessDenied";
 		settings.serverErrorLayout         = "Main";
 		settings.serverErrorViewlet        = "errors.serverError";
+		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
+		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
+
+		settings.adminSideBarItems = [
+			  "sitetree"
+			, "assetmanager"
+			, "datamanager"
+			, "usermanager"
+			, "websiteUserManager"
+			, "systemConfiguration"
+			, "updateManager"
+		];
 
 		settings.assetManager = {
 			  maxFileSize       = "5"
@@ -74,41 +122,43 @@ component output=false {
 
 		settings.activeExtensions = _loadExtensions();
 
-		settings.permissions = {
-			  cms                 = [ "login" ]
-			, sitetree            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
-			, sites               = [ "navigate", "manage" ]
-			, datamanager         = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
-			, usermanager         = [ "navigate", "read", "add", "edit", "delete" ]
-			, groupmanager        = [ "navigate", "read", "add", "edit", "delete" ]
-			, devtools            = [ "console" ]
-			, systemConfiguration = [ "manage" ]
-			, presideobject       = {
+		settings.adminPermissions = {
+			  sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort" ]
+			, applicationPages       = [ "navigate", "edit" ]
+			, sites                  = [ "navigate", "manage" ]
+			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions" ]
+			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
+			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
+			, websiteBenefitsManager = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
+			, websiteUserManager     = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
+			, devtools               = [ "console" ]
+			, systemConfiguration    = [ "manage" ]
+			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
 				, page           = [ "read", "add", "edit", "delete", "viewversions" ]
 				, site           = [ "read", "add", "edit", "delete", "viewversions" ]
 				, asset          = [ "read", "add", "edit", "delete", "viewversions" ]
 				, asset_folder   = [ "read", "add", "edit", "delete", "viewversions" ]
+				, link           = [ "read", "add", "edit", "delete", "viewversions" ]
 			}
-			, assetmanager        = {
+			, assetmanager           = {
 				  general = [ "navigate" ]
 				, folders = [ "add", "edit", "delete", "manageContextPerms" ]
 				, assets  = [ "upload", "edit", "delete", "download", "pick" ]
 			 }
 		};
 
-		settings.roles = StructNew( "linked" );
+		settings.adminRoles = StructNew( "linked" );
 
-		settings.roles.user           = [ "cms.login" ];
-		settings.roles.sysadmin       = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*" ];
-		settings.roles.siteManager    = [ "sites.*", "presideobject.site.*" ];
-		settings.roles.siteUser       = [ "sites.navigate", "presideobject.site.read" ];
-		settings.roles.sitetreeAdmin  = [ "sitetree.*", "presideobject.page.*" ];
-		settings.roles.sitetreeEditor = [ "sitetree.navigate", "sitetree.read", "sitetree.edit", "sitetree.add", "presideobject.page.*" ];
-		settings.roles.dataAdmin      = [ "datamanager.*" ];
-		settings.roles.assetAdmin     = [ "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
-		settings.roles.assetEditor    = [ "assetmanager.*", "!assetmanager.*.manageContextPerms", "!assetmanager.*.delete", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*" ];
+		settings.adminRoles.contentadmin  = [ "sites.*", "applicationPages.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+
+		settings.websitePermissions = {
+			  pages  = [ "access" ]
+			, assets = [ "access" ]
+		};
 
 		// uploads directory - each site really should override this setting and provide an external location
 		settings.uploads_directory     = ExpandPath( "/uploads" );
@@ -119,7 +169,7 @@ component output=false {
 				  stylesheets = [ "/css/admin/specific/richeditor/" ]
 				, width       = "auto"
 				, minHeight   = 0
-				, maxHeight   = 600
+				, maxHeight   = 300
 				, configFile  = "/ckeditorExtensions/config.js"
 			  }
 			, toolbars    = _getCkEditorToolbarConfig()
@@ -130,6 +180,30 @@ component output=false {
 			, siteAssetsPath = "/assets"
 			, siteAssetsUrl  = "/assets"
 		};
+
+		settings.applicationPages = {
+			login = {
+				  handler  = "login"
+				, feature  = "websiteUsers"
+				, children = {
+					  forgottenPassword = { handler="login.forgottenPassword" }
+					, resetPassword     = { handler="login.resetPassword" }
+				  }
+			}
+		};
+
+		settings.features = {
+			  sitetree            = { enabled=true, siteTemplates=[ "*" ] }
+			, sites               = { enabled=true, siteTemplates=[ "*" ] }
+			, assetManager        = { enabled=true, siteTemplates=[ "*" ] }
+			, websiteUsers        = { enabled=true, siteTemplates=[ "*" ] }
+			, datamanager         = { enabled=true, siteTemplates=[ "*" ] }
+			, systemConfiguration = { enabled=true, siteTemplates=[ "*" ] }
+			, updateManager       = { enabled=true, siteTemplates=[ "*" ] }
+			, cmsUserManager      = { enabled=true, siteTemplates=[ "*" ] }
+		};
+
+		_loadConfigurationFromExtensions();
 
 		environments = {
             local = "^local\.,\.local$,^localhost$,^127.0.0.1$"
@@ -270,7 +344,7 @@ component output=false {
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|Widgets,ImagePicker,AttachmentPicker,Table,HorizontalRule,SpecialChar,Iframe'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
-					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
@@ -278,12 +352,36 @@ component output=false {
 					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
 					 & '|Find,Replace,-,SelectAll,-,Scayt'
 					 & '|PresideLink,PresideUnlink,PresideAnchor'
-					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
 			bolditaliconly = 'Bold,Italic'
 		};
 
+	}
+
+	private string function _getCookieEncryptionKey() output=false {
+		var cookieKeyFile = "/app/config/.cookieEncryptionKey";
+		if ( FileExists( cookieKeyFile ) ) {
+			try {
+				return FileRead( cookieKeyFile );
+			} catch( any e ) {}
+		}
+
+		var key = GenerateSecretKey( "AES" );
+		FileWrite( cookieKeyFile, key );
+
+		return key;
+	}
+
+	private void function _loadConfigurationFromExtensions() output=false {
+		for( var ext in settings.activeExtensions ){
+			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
+				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
+
+				CreateObject( cfcPath ).configure( config=variables );
+			}
+		}
 	}
 }

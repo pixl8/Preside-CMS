@@ -1,6 +1,6 @@
 <cfscript>
 	assetId = rc.asset  ?: "";
-	asset   = prc.asset ?: QueryNew('');
+	asset   = prc.asset ?: StructNew();
 
 	prc.pageIcon     = "picture";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -19,28 +19,30 @@
 	<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
 		<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
-		<div class="well">
-			<div class="row">
-				<div class="col-sm-2">
-					#renderAsset( assetId=assetId, context="adminPreview" )#
-				</div>
+		<div class="row">
+			<div class="col-sm-2">
+				#renderAsset( assetId=assetId, context="adminPreview" )#
+			</div>
 
-				<div class="col-sm-10">
+			<div class="col-sm-10">
 
- 					#renderForm(
-						  formName         = "preside-objects.asset.admin.edit"
-						, formId           = "edit-asset-form"
-						, context          = "admin"
-						, savedData        = queryRowToStruct( asset )
-						, validationResult = rc.validationResult ?: ""
-					)#
+				#renderForm(
+					  formName         = "preside-objects.asset.admin.edit"
+					, formId           = "edit-asset-form"
+					, context          = "admin"
+					, savedData        = asset
+					, validationResult = rc.validationResult ?: ""
+				)#
 
-					<div class="col-md-offset-2">
-						<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
-						<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
-					</div>
-				</div>
+			</div>
+
+		</div>
+		<div class="form-actions row clearfix">
+			<div class="col-md-offset-4">
+				<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
+				<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
 			</div>
 		</div>
+
 	</form>
 </cfoutput>

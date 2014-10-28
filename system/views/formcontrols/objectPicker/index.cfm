@@ -9,6 +9,7 @@
 	remoteUrl           = args.remoteUrl        ?: "";
 	prefetchUrl         = args.prefetchUrl      ?: "";
 	records             = args.records          ?: QueryNew('');
+	searchable          = args.searchable       ?: true;
 	multiple            = args.multiple         ?: false;
 	extraClasses        = args.extraClasses     ?: "";
 	resultTemplate      = args.resultTemplate   ?: "{{text}}";
@@ -28,13 +29,13 @@
 	}
 
 	if ( quickAdd ) {
-		quickAdd = args.hasQuickAddPermission ?: ( hasPermission( "presideobject.#object#.add" ) || hasPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
+		quickAdd = args.hasQuickAddPermission ?: ( hasCmsPermission( "presideobject.#object#.add" ) || hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextKeys=[ object ] ) );
 		if ( quickAdd ) {
 			extraClasses = ListAppend( extraClasses, "quick-add", ' ' );
 		}
 	}
 	if ( quickEdit ) {
-		quickEdit = args.hasQuickEditPermission ?: ( hasPermission( "presideobject.#object#.edit" ) || hasPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) );
+		quickEdit = args.hasQuickEditPermission ?: ( hasCmsPermission( "presideobject.#object#.edit" ) || hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] ) );
 		if ( quickEdit ) {
 			extraClasses = ListAppend( extraClasses, "quick-edit", ' ' );
 
@@ -45,6 +46,9 @@
 		}
 	}
 
+	if ( !searchable ) {
+		extraClasses = ListAppend( extraClasses, "non-searchable", " " );
+	}
 </cfscript>
 
 <cfoutput>
@@ -60,7 +64,7 @@
 	        tabindex="#getNextTabIndex()#"
 	        data-placeholder="#placeholder#"
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
-	        data-value="#value#"
+	        data-value="#HtmlEditFormat( value )#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
 	        </cfif>
@@ -86,9 +90,9 @@
 			</cfif>
 	>
 		<cfif !IsBoolean( ajax ) || !ajax>
-			<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
+			<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 			<cfloop query="records">
-				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#records.label#</option>
+				<option value="#records.id#"<cfif ListFindNoCase( value, records.id )> selected="selected"</cfif><cfif ListFindNoCase( disabledValues, records.id )> disabled="disabled"</cfif>>#HtmlEditFormat( records.label )#</option>
 			</cfloop>
 		</cfif>
 	</select>

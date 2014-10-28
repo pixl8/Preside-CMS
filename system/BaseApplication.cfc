@@ -42,14 +42,20 @@ component output=false {
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
 		// if server is configured to show errors, just rethrow
+		WriteDump(exception); abort;
 		if ( _showErrors() ) {
 			throw object=arguments.exception;
 
 		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
 		} else {
 
-			thread name=CreateUUId() exception=arguments.exception {
-	 			log log="Exception" type="Error" text=SerializeJson( attributes.exception );
+			thread name=CreateUUId() e=arguments.exception {
+	 			log log="Exception" type="Error" text=SerializeJson( {
+	 				  message    = ( attributes.e.message    ?: "" )
+	 				, detail     = ( attributes.e.detail     ?: "" )
+	 				, sql        = ( attributes.e.sql        ?: "" )
+	 				, tagContext = ( attributes.e.tagContext ?: [] )
+	 			} );
 			}
 
 			content reset=true;
@@ -69,6 +75,7 @@ component output=false {
 	private void function _setupMappings() output=false {
 		this.mappings[ "/app"     ] = ExpandPath( "/application/" );
 		this.mappings[ "/assets"  ] = ExpandPath( "/assets/" );
+		this.mappings[ "/logs"    ] = ExpandPath( "/logs/" );
 		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
 		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
 	}

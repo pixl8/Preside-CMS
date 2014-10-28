@@ -18,6 +18,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @objectCache.inject            cachebox:SystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
+	 * @interceptorService.inject     coldbox:InterceptorService
 	 */
 	public any function init(
 		  required array   objectDirectories
@@ -30,6 +31,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any     objectCache
 		, required any     defaultQueryCache
 		, required any     coldboxController
+		, required any     interceptorService
 		,          boolean reloadDb = true
 	) output=false {
 		_setObjectDirectories( arguments.objectDirectories );
@@ -43,8 +45,9 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
 		_setCacheMaps( {} );
-		_setColdboxController( arguments.coldboxController );
+		_setInterceptorService( arguments.interceptorService );
 
+		_registerInterceptionPoints();
 		_loadObjects();
 
 		if ( arguments.reloadDb ) {
@@ -126,6 +129,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
 	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint       An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @orderBy.hint            Plain SQL order by string
 	 * @groupBy.hint            Plain SQL group by string
 	 * @maxRows.hint            Maximum number of rows to select
@@ -138,37 +142,42 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @selectFields.docdefault []
 	 * @filter.docdefault       {}
 	 * @filterParams.docdefault {}
+	 * @extraFilters.docdefault []
 	 */
 	public query function selectData(
 		  required string  objectName
-		,          string  id               = ""
-		,          array   selectFields     = []
-		,          any     filter           = {}
-		,          struct  filterParams     = {}
-		,          string  orderBy          = ""
-		,          string  groupBy          = ""
-		,          numeric maxRows          = 0
-		,          numeric startRow         = 1
-		,          boolean useCache         = true
-		,          boolean fromVersionTable = false
-		,          string  maxVersion       = "HEAD"
-		,          numeric specificVersion  = 0
-		,          string  forceJoins       = ""
+		,          string  id                = ""
+		,          array   selectFields      = []
+		,          any     filter            = {}
+		,          struct  filterParams      = {}
+		,          array   extraFilters      = []
+		,          string  orderBy           = ""
+		,          string  groupBy           = ""
+		,          numeric maxRows           = 0
+		,          numeric startRow          = 1
+		,          boolean useCache          = true
+		,          boolean fromVersionTable  = false
+		,          string  maxVersion        = "HEAD"
+		,          numeric specificVersion   = 0
+		,          string  forceJoins        = ""
 
 	) output=false autodoc=true {
+		var interceptorResult = _announceInterception( "preSelectObjectData", arguments );
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
+		}
+
 		var result     = "";
 		var queryCache = "";
-		var cachekey   = "";
+		var cacheArgs  = { objectName=arguments.objectName };
 
 		if ( arguments.useCache ) {
 			queryCache = _getDefaultQueryCache();
-			cachekey   = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
+			cacheArgs.cachekey = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
 
-			if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-				cacheKey &= "_" & _getActiveSiteId();
-			}
+			_announceInterception( "onCreateSelectDataCacheKey", cacheArgs );
 
-			result     = queryCache.get( cacheKey );
+			result = queryCache.get( cacheArgs.cacheKey );
 
 			if ( not IsNull( result ) ) {
 				return result;
@@ -187,6 +196,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, id                = arguments.id
 			, filter            = arguments.filter
 			, filterParams      = arguments.filterParams
+			, extraFilters      = arguments.extraFilters
 			, adapter           = adapter
 			, columnDefinitions = obj.properties
 		);
@@ -240,15 +250,20 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 
 		if ( arguments.useCache ) {
-			queryCache.set( cacheKey, result );
+			queryCache.set( cacheArgs.cacheKey, result );
 			_recordCacheSoThatWeCanClearThemWhenDataChanges(
 				  objectName   = arguments.objectName
-				, cacheKey     = cacheKey
+				, cacheKey     = cacheArgs.cacheKey
 				, filter       = preparedFilter.filter
 				, filterParams = preparedFilter.filterParams
 				, joinTargets  = joinTargets
 			);
 		}
+
+		var interceptionArgs        = arguments;
+		    interceptionArgs.result = result;
+
+		_announceInterception( "postSelectObjectData", interceptionArgs );
 
 		return result;
 	}
@@ -282,6 +297,12 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          numeric versionNumber           = 0
 
 	) output=false autodoc=true {
+		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
+
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return interceptorResult.returnValue ?: "";
+		}
+
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";
@@ -315,10 +336,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			if ( Len( Trim( newId ) ) ) {
 				cleanedData.id = newId;
 			}
-		}
-
-		if ( objectIsUsingSiteTenancy( arguments.objectName ) && !Len( Trim( cleanedData.site ?: "" ) ) ) {
-			cleanedData.site = _getActiveSiteId();
 		}
 
 		transaction {
@@ -361,6 +378,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, clearSingleRecordCaches = false
 		);
 
+		var interceptionArgs       = arguments;
+		    interceptionArgs.newId = newId;
+		_announceInterception( "postInsertObjectData", interceptionArgs );
+
 		return newId;
 	}
 
@@ -401,6 +422,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @id.hint                      ID of a single record to update
 	 * @filter.hint                  Filter for which records are updated, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint            Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
 	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
 	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
@@ -413,11 +435,18 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          string  id                      = ""
 		,          any     filter                  = {}
 		,          struct  filterParams            = {}
+		,          array   extraFilters            = []
 		,          boolean forceUpdateAll          = false
 		,          boolean updateManyToManyRecords = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 	) output=false autodoc=true {
+		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
+
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return Val( interceptorResult.returnValue ?: 0 );
+		}
+
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
 		var sql                = "";
@@ -462,6 +491,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, id                = arguments.id
 			, filter            = arguments.filter
 			, filterParams      = arguments.filterParams
+			, extraFilters      = arguments.extraFilters
 			, adapter           = adapter
 			, columnDefinitions = obj.properties
 		);
@@ -531,6 +561,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filterParams = preparedFilter.filterParams
 		);
 
+		var interceptionArgs        = arguments;
+		    interceptionArgs.result = result;
+		_announceInterception( "postUpdateObjectData", interceptionArgs );
+
 		return Val( result.recordCount ?: 0 );
 	}
 
@@ -569,6 +603,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @id.hint             ID of a record to delete
 	 * @filter.hint         Filter for records to delete, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
 	 * @filterParams.hint   Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint   An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceDeleteAll.hint If no id or filter supplied, this must be set to **true** in order for the delete to process
 	 */
 	public numeric function deleteData(
@@ -576,8 +611,15 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          string  id             = ""
 		,          any     filter         = {}
 		,          struct  filterParams   = {}
+		,          array   extraFilters   = []
 		,          boolean forceDeleteAll = false
 	) output=false autodoc=true {
+		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
+
+		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
+			return Val( interceptorResult.returnValue ?: 0 );
+		}
+
 		var obj            = _getObject( arguments.objectName ).meta;
 		var adapter        = _getAdapter( obj.dsn );
 		var sql            = "";
@@ -597,6 +639,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, id                = arguments.id
 			, filter            = arguments.filter
 			, filterParams      = arguments.filterParams
+			, extraFilters      = arguments.extraFilters
 			, adapter           = adapter
 			, columnDefinitions = obj.properties
 		);
@@ -614,6 +657,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filter       = preparedFilter.filter
 			, filterParams = preparedFilter.filterParams
 		);
+
+		var interceptionArgs        = arguments;
+		    interceptionArgs.result = result;
+		_announceInterception( "postDeleteObjectData", interceptionArgs );
 
 		return Val( result.recordCount ?: 0 );
 	}
@@ -888,10 +935,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
 	 */
 	public void function dbSync() output=false autodoc=true {
+		_announceInterception( "preDbSyncObjects" );
+
 		_getSqlSchemaSynchronizer().synchronize(
 			  dsns    = _getAllDsns()
 			, objects = _getAllObjects()
 		);
+
+		_announceInterception( "postDbSyncObjects" );
 	}
 
 	/**
@@ -1038,18 +1089,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return _getVersioningService().getNextVersionNumber();
 	}
 
-	/**
-	 * Returns whether or not the given object is using the site tenancy system, see :ref:`presideobjectssites`
-	 *
-	 * @objectName.hint Name of the object you wish to check
-	 */
-	public boolean function objectIsUsingSiteTenancy( required string objectName ) output=false autodoc=true {
-		var obj = _getObject( objectName );
-
-		return IsBoolean( obj.meta.siteFiltered ?: "" ) && obj.meta.siteFiltered;
-	}
-
-
 	public any function getObjectProperties( required string objectName ) output=false {
 		return _getObject( arguments.objectName ).meta.properties;
 	}
@@ -1136,9 +1175,17 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	public string function getDefaultFormControlForPropertyAttributes( string type="string", string dbType="varchar", string relationship="none", string relatedTo="", numeric maxLength=0 ) output=false {
 		switch( arguments.relationship ){
 			case "many-to-one" :
-				return arguments.relatedTo == "asset" ? "assetPicker" : "manyToOneSelect";
+				switch( arguments.relatedTo ) {
+					case "asset": return "assetPicker";
+					case "link" : return "linkPicker";
+					default     : return "manyToOneSelect";
+				}
 			case "many-to-many":
-				return arguments.relatedTo == "asset" ? "assetPicker" : "manyToManySelect";
+				switch( arguments.relatedTo ) {
+					case "asset": return "assetPicker";
+					case "link" : return "linkPicker";
+					default     : return "manyToManySelect";
+				}
 		}
 
 		switch ( arguments.type ) {
@@ -1174,7 +1221,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var objName       = "";
 		var dsns          = {};
 
+		_announceInterception( state="preLoadPresideObjects", interceptData={ objectPaths=objectPaths } );
+
 		for( objPath in objectPaths ){
+			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
+
 			objName      = ListLast( objPath, "/" );
 			obj          = {};
 			obj.instance = CreateObject( "component", objPath );
@@ -1182,16 +1233,24 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 			objects[ objName ] = objects[ objName ] ?: [];
 			objects[ objName ].append( obj );
+
+			_announceInterception( state="postLoadPresideObject", interceptData={ objectName=objName, object=obj } );
+
 			dsns[ obj.meta.dsn ] = 1;
 		}
+
+		objects = _mergeObjects( objects );
+
+
 		if ( StructCount( objects ) ) {
-			objects = _mergeObjects( objects );
 			_getRelationshipGuidance().setupRelationships( objects );
 			_getVersioningService().setupVersioningForVersionedObjects( objects, StructKeyArray( dsns )[1] );
 		}
 
 		cache.set( "PresideObjectService: objects", objects );
 		cache.set( "PresideObjectService: dsns"   , StructKeyArray( dsns ) );
+
+		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 	}
 
 	private struct function _mergeObjects( required struct unMergedObjects ) output=false {
@@ -1298,15 +1357,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 				ArrayAppend( params, param );
 			} else if ( IsArray( arguments.data[ key ] ) ) {
-				for( i=1; i lte ArrayLen(  arguments.data[ key ] ); i++ ){
-					param = {
-						  name  = paramName & "__" & i
-						, value = arguments.data[ key ][ i ]
-						, type  = dataType
-					};
+				param = {
+					  name  = paramName
+					, value = ArrayToList( arguments.data[ key ] )
+					, type  = dataType
+					, list  = true
+				};
 
-					ArrayAppend( params, param );
-				}
+				ArrayAppend( params, param );
 
 			} else {
 				param = {
@@ -1344,6 +1402,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 					  name  = paramName
 					, value = param
 				};
+
+				if ( IsArray( param.value ) ) {
+					param.value = ArrayToList( param.value );
+					param.list  = true;
+				}
 			}
 
 			if ( not StructKeyExists( param, "type" ) ) {
@@ -1818,33 +1881,37 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return currentObject;
 	}
 
-	private string function _getActiveSiteId() output=false {
-		var site = _getColdboxRequestContext().getSite();
-
-		return ( site.id ?: "" );
-	}
-
 	private struct function _prepareFilter(
 		  required string objectName
 		, required string id
 		, required any    filter
 		, required struct filterParams
+		, required array  extraFilters
 		, required any    adapter
 		, required struct columnDefinitions
 	) output=false {
-		var result = "";
+		_announceInterception( "prePrepareObjectFilter", arguments );
 
-		if ( Len( Trim( arguments.id ) ) ) {
-			arguments.filter = { id = arguments.id };
+		var result = {
+			  filter       = Len( Trim( arguments.id ) ) ? { id = arguments.id } : arguments.filter
+			, filterParams = arguments.filterParams
+		};
+
+		if ( IsStruct( result.filter ) && arguments.extraFilters.len() ) {
+			result.filterParams = result.filter;
 		}
 
-		if ( objectIsUsingSiteTenancy( arguments.objectName ) ) {
-			result = _addSiteFilterForObjectsThatUseSiteTenancy( argumentCollection=arguments );
-		} else {
-			result = {
-				  filter       = arguments.filter
-				, filterParams = arguments.filterParams
-			};
+		for( var extraFilter in arguments.extraFilters ){
+			extraFilter.filter       = extraFilter.filter       ?: {};
+			extraFilter.filterParams = extraFilter.filterParams ?: {};
+
+			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
+			result.filter = _mergeFilters(
+				  filter1    = result.filter
+				, filter2    = extraFilter.filter
+				, dbAdapter  = arguments.adapter
+				, tableAlias = arguments.objectName
+			);
 		}
 
 		if ( IsStruct( result.filter ) ) {
@@ -1862,24 +1929,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			);
 		}
 
-		return result;
-	}
+		var interceptData = arguments;
+		    interceptData.result = result;
 
-	private struct function _addSiteFilterForObjectsThatUseSiteTenancy( required string objectName, required any filter, required struct filterParams, required any adapter ) output=false {
-		var site   = _getActiveSiteId();
-		var result = {
-			  filter       = arguments.filter
-			, filterParams = arguments.filterParams
-		};
-
-		if ( Len( Trim( site ) ) ) {
-			if ( IsStruct( arguments.filter ) ) {
-				result.filter.site = site;
-			} else {
-				result.filter = _mergeFilters( result.filter, "#arguments.objectName#.site = :site", arguments.adapter, arguments.objectName );
-				result.filterParams.site = site;
-			}
-		}
+		_announceInterception( "postPrepareObjectFilter", interceptData );
 
 		return result;
 	}
@@ -1913,6 +1966,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return newData;
 	}
 
+	private void function _registerInterceptionPoints() output=false {
+		_getInterceptorService().appendInterceptionPoints( customPoints=[  ] );
+	}
+
 // SIMPLE PRIVATE PROXIES
 	private any function _getAdapter() output=false {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
@@ -1920,6 +1977,12 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 	private any function _runSql() output=false {
 		return _getSqlRunner().runSql( argumentCollection = arguments );
+	}
+
+	private any function _announceInterception( required string state, struct interceptData={} ) output=false {
+		_getInterceptorService().processState( argumentCollection=arguments );
+
+		return interceptData.interceptorResult ?: {};
 	}
 
 // GETTERS AND SETTERS
@@ -2000,14 +2063,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_cacheMaps = arguments.cacheMaps;
 	}
 
-	private any function _getColdboxController() output=false {
-		return _coldboxController;
+	private any function _getInterceptorService() output=false {
+		return _interceptorService;
 	}
-	private void function _setColdboxController( required any coldboxController ) output=false {
-		_coldboxController = arguments.coldboxController;
-	}
-
-	private any function _getColdboxRequestContext() output=false {
-		return _getColdboxController().getRequestContext();
+	private void function _setInterceptorService( required any IiterceptorService ) output=false {
+		_interceptorService = arguments.IiterceptorService;
 	}
 }

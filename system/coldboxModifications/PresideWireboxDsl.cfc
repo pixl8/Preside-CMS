@@ -43,9 +43,7 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
 		var extensions  = _getInjector().getInstance( dsl="coldbox" ).getSetting( name="activeExtensions", defaultValue=[] );
 
 		for( var i=extensions.len(); i > 0; i-- ){
-			for( var dir in _findSiteTemplateDirectories( extensions[i].directory, subDir ) ){
-				directories.append( dir );
-			}
+			directories.append( extensions[i].directory & subDir );
 		}
 
 		directories.append( "/app#subDir#" );

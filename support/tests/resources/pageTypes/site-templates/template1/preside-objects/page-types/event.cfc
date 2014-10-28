@@ -1,1 +1,1 @@
-component output=false {}
+component siteTemplates="template1" output=false {}

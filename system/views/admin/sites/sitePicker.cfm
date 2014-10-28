@@ -2,8 +2,8 @@
 	param name="args.sites"       type="array";
 	param name="args.currentSite" type="struct";
 
-	hasManagementPerms = hasPermission( "sites.manage" );
-	showSiteNavigation = hasManagementPerms || args.sites.len();
+	hasManagementPerms = hasCmsPermission( "sites.manage" );
+	showSiteNavigation = isFeatureEnabled( "sites" ) && ( hasManagementPerms || args.sites.len() );
 </cfscript>
 
 <cfoutput>

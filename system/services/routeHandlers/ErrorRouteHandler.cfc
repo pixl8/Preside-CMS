@@ -12,26 +12,22 @@ component implements="iRouteHandler" output=false singleton=true {
 
 // route handler methods
 	public boolean function match( required string path, required any event ) output=false {
-		return ReFindNoCase( "^/[45]0[0-9]\.html$", arguments.path );
+		return ReFindNoCase( "^/404.html$", arguments.path );
 	}
 
 	public void function translate( required string path, required any event ) output=false {
 		var prc        = event.getCollection( private=true );
 
-		prc.statusCode = ReReplaceNoCase( arguments.path, "^/([45]0[0-9])\.html$", "\1" );
+		prc.statusCode = 404;
 
-		if ( prc.statusCode.startsWith( "4" ) ) {
-			event.setValue( _getEventName(), "general.notFound" );
-		} else {
-			event.setValue( _getEventName(), "general.serverError" );
-		}
+		event.setValue( _getEventName(), "general.notFound" );
 	}
 
-	public boolean function reverseMatch( required struct buildArgs ) output=false {
+	public boolean function reverseMatch( required struct buildArgs, required any event ) output=false {
 		return false; // cannot build an error link, incoming only
 	}
 
-	public string function build( required struct buildArgs ) output=false {
+	public string function build( required struct buildArgs, required any event ) output=false {
 		return "/"; // cannot build an error link, incoming only
 	}
 

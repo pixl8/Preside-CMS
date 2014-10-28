@@ -33,4 +33,6 @@
 		.next().on( "click", function(){
 			$(this).prev().focus();
 		});
+
+	$('[data-rel=popover]').popover({container:'body'});
 } )( presideJQuery );

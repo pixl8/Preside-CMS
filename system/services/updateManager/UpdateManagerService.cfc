@@ -311,7 +311,7 @@ component output=false autodoc=true displayName="Update manager service" {
 
 		thread name=downloadId downloadId=downloadId downloadUrl=arguments.downloadUrl unpackToDir=_getVersionContainerDirectory() downloadPath=tempPath updateManagerService=this version=arguments.version {
 			try {
-				http url=attributes.downloadUrl path=attributes.downloadPath throwOnError=true;
+				http url=attributes.downloadUrl path=attributes.downloadPath throwOnError=true timeout=Val( _getSetting( "download_timeout", 120 ) );
 			} catch ( any e ) {
 				attributes.updateManagerService.markDownloadAsErrored( attributes.version, attributes.downloadId, e );
 				abort;

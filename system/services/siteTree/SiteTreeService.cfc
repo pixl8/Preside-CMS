@@ -145,10 +145,11 @@ component output=false singleton=true {
 	public any function getPageProperty(
 		  required string  propertyName
 		, required struct  page
-		,          array   ancestors     = []
-		,          any     defaultValue  = ""
-		,          boolean cascading     = false
-		,          string  cascadeMethod = "closest"
+		,          array   ancestors        = []
+		,          any     defaultValue     = ""
+		,          boolean cascading        = false
+		,          string  cascadeMethod    = "closest"
+		,          string  cascadeSkipValue = "inherit"
 
 	) output=false {
 		var value          = "";
@@ -158,7 +159,7 @@ component output=false singleton=true {
 
 		if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 			value = arguments.page[ arguments.propertyName ];
-			if ( __valueExists( value ) ) {
+			if ( __valueExists( value ) && ( !IsSimpleValue( value ) || value != arguments.cascadeSkipValue ) ) {
 				if ( arguments.cascading && arguments.cascadeMethod == "collect" ) {
 					collectedValue.append( value );
 				} else {
@@ -308,6 +309,61 @@ component output=false singleton=true {
 		);
 
 		return getPage( id=homepage, selectFields=arguments.selectFields );
+	}
+
+	public array function getPagesForNavigationMenu(
+		  string  rootPage          = getSiteHomepage().id
+		, numeric depth             = 1
+		, boolean includeInactive   = false
+		, array   activeTree        = []
+		, boolean expandAllSiblings = true
+	) output=false {
+		var getNavChildren = function( parent, currentDepth ){
+			filter.parent_page = parent;
+			var result   = [];
+			var children = _getPObj().selectData(
+				  selectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+				, filter       = filter
+				, orderBy      = "sort_order"
+			);
+
+			for( var child in children ){
+				var fetchChildren = arguments.currentDepth < maxDepth;
+				    fetchChildren = fetchChildren && !Val( child.exclude_children_from_navigation );
+				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.id ) );
+
+				if (  fetchChildren  ) {
+					child.children = getNavChildren( child.id, currentDepth+1 );
+				}
+
+				result.append( {
+					  id       = child.id
+					, title    = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
+					, children = child.children ?: []
+					, active   = ( activeTree.find( child.id ) > 0 )
+				} );
+			}
+
+			return result;
+		};
+
+		var page = getPage(
+			  id           = arguments.rootPage
+			, selectFields = [ "id", "exclude_from_navigation", "exclude_children_from_navigation", "_hierarchy_depth" ]
+		);
+		if ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) ) {
+			return [];
+		}
+
+		var maxDepth = page._hierarchy_depth + ( arguments.depth < 1 ? 1 : arguments.depth );
+		var filter   = {
+			  exclude_from_navigation = false
+			, trashed                 = false
+		}
+		if ( !arguments.includeInactive ) {
+			filter.active = true;
+		}
+		return getNavChildren( rootPage, page._hierarchy_depth+1 );
 	}
 
 	public string function addPage(
@@ -587,6 +643,13 @@ component output=false singleton=true {
 
 	public boolean function emptyTrash() output=false {
 		return _getPObj().deleteData( filter = { trashed = true } );
+	}
+
+	public struct function getActivePageFilter( string pageTableAlais="page" ) output=false {
+		return {
+			  filter       = "#pageTableAlais#.active = 1 and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
+			, filterParams = {}
+		};
 	}
 
 // PRIVATE HELPERS

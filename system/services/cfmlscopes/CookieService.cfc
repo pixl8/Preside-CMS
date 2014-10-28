@@ -2,10 +2,10 @@
 
 <!--- CONSTRUCTOR --->
 	<cffunction name="init" access="public" returntype="any" output="false" hint="Constructor">
-		<cfargument name="encryptionKey" type="string"  required="false" default="" />
+		<cfargument name="encryptionKey" type="string"  required="false" default="" inject="coldbox:setting:cookieEncryptionKey" />
 
 		<cfscript>
-			_setEncryptionAlgorithm( "CFMX_COMPAT" );
+			_setEncryptionAlgorithm( "AES" );
 			_setEncryptionEncoding( "HEX" );
 			_setEncryptionKey( arguments.encryptionKey );
 			_setEncryption( Len( Trim( arguments.encryptionKey ) ) );

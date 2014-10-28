@@ -162,6 +162,19 @@ input[type="color"] {
 	&.chosen-container-multi .chosen-choices {
 		padding-top : 7px;
 	}
+
+	&.non-searchable {
+		ul.chosen-choices {
+			min-height : 41px;
+		}
+	}
+
+	&.quick-add {
+		.chosen-single {
+			height      : 41px;
+			line-height : 39px;
+		}
+	}
 }
 
 .user-photo {
@@ -181,4 +194,12 @@ input[type="color"] {
 	max-width      : none;
 	vertical-align : baseline;
 	top            : 2px;
+}
+
+.help-button {
+	line-height : 19px;
+}
+
+.popover-content {
+	min-height : 60px;
 }

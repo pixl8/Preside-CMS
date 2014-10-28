@@ -27,7 +27,7 @@
 				);
 			}
 
-			return getController().getPlugin( "renderer" ).renderView( argumentCollection=arguments );
+			return getController().getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
 		</cfscript>
 	</cffunction>
 
@@ -39,13 +39,24 @@
 		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).render( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderEditableContent" access="public" returntype="any" output="false">
+		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).makeContentEditable( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderField" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).renderField( argumentCollection = arguments ) />
+	</cffunction>
+
+	<cffunction name="renderLink" access="public" returntype="any" output="false">
+		<cfargument name="id" type="string" required="true" />
+		<cfreturn getController().renderViewlet( event="renderers.link.default", args=arguments ) />
 	</cffunction>
 
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">
 		<cfreturn getController().getWireBox().getInstance( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
+
+
 
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false">
@@ -102,7 +113,32 @@
 		</cfscript>
 	</cffunction>
 
-<!--- permissioning --->
-	<cffunction name="hasPermission" access="public" returntype="boolean" output="false">
+<!--- permissioning and users --->
+	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false">
 		<cfreturn getController().getWireBox().getInstance( "permissionService" ).hasPermission( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="isLoggedIn" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="isAutoLoggedIn" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="getLoggedInUserId" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="getLoggedInUserDetails" access="public" returntype="struct" output="false">
+		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
+	</cffunction>
+
+<!--- features --->
+	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
+		<cfreturn getController().getWireBox().getInstance( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cffunction>

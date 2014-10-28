@@ -18,11 +18,16 @@ Developer guides & recipes
    richeditor
    routing
    configcfc
+   i18n
    caching
    reloading
    cssandjs
    permissioning
+   websiteusers
    systemsettings
+   emailtemplates
    developerconsole
    customerrorpages
    coldboxenvironments
+   sitetreenavigationmenus
+   adminmenu

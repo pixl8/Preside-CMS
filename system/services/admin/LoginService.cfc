@@ -6,12 +6,14 @@ component output="false" singleton=true {
 	 * @bCryptService.inject  BCryptService
 	 * @systemUserList.inject coldbox:setting:system_users
 	 * @userDao.inject        presidecms:object:security_user
+	 * @emailService.inject   emailService
 	 */
 	public any function init(
 		  required any    sessionService
 		, required any    bCryptService
 		, required string systemUserList
 		, required any    userDao
+		, required any    emailService
 		,          string sessionKey = "admin_user"
 	) output=false {
 		_setSessionService( arguments.sessionService );
@@ -19,17 +21,14 @@ component output="false" singleton=true {
 		_setSystemUserList( arguments.systemUserList );
 		_setUserDao( arguments.userDao );
 		_setSessionKey( arguments.sessionKey );
+		_setEmailService( arguments.emailService );
 
 		return this;
 	}
 
 // PUBLIC METHODS
 	public boolean function login( required string loginId, required string password ) output=false {
-		var usr = _getUserDao().selectData(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
-			, filterParams = { login_id = arguments.loginId }
-			, useCache     = false
-		);
+		var usr = _getUserByLoginId( arguments.loginId );
 		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
 
 		if ( success ) {
@@ -50,15 +49,34 @@ component output="false" singleton=true {
 	}
 
 	public struct function getLoggedInUserDetails() output=false {
-		return _getSessionService().getVar( name=_getSessionKey(), default={} );
+		if ( !StructKeyExists( request, "__presideCmsAminUserDetails" ) ) {
+			var userId = _getSessionService().getVar( name=_getSessionKey(), default="" );
+
+			if ( Len( Trim( userId ) ) ) {
+				var userRecord = _getUserDao().selectData( id=userId );
+				if ( userRecord.recordCount ) {
+					for( var u in userRecord ) {
+						request.__presideCmsAminUserDetails = u; break;  // query row to struct hack
+					}
+
+					request.__presideCmsAminUserDetails.delete( "password" );
+				} else {
+					request.__presideCmsAminUserDetails = {};
+				}
+			} else {
+				request.__presideCmsAminUserDetails = {};
+			}
+		}
+
+		return request.__presideCmsAminUserDetails;
 	}
 
 	public string function getLoggedInUserId() output=false {
-		return getLoggedInUserDetails().userId;
+		return _getSessionService().getVar( name=_getSessionKey(), default="" );
 	}
 
 	public boolean function isSystemUser() output=false {
-		return isLoggedIn() and ListFindNoCase( _getSystemUserList(), getLoggedInUserDetails().loginId );
+		return isLoggedIn() and ListFindNoCase( _getSystemUserList(), getLoggedInUserDetails().login_id );
 	}
 
 	public string function getSystemUserId() output=false {
@@ -75,25 +93,215 @@ component output="false" singleton=true {
 		return _getUserDao().insertData( {
 			  known_as      = "System administrator"
 			, login_id      = systemUser
-			, password      = _getBCryptService().hashPw( "password" )
+			, password      = ""
 			, email_address = ""
 		} );
 	}
 
+	public boolean function isUserDatabaseNotConfigured() output=false {
+		var user = _getUserDao().selectData( selectFields=[ "login_id", "password" ], maxRows=2 );
+
+		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.login_id == ListFirst( _getSystemUserList() );
+	}
+
+	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) output=false {
+		return _getUserDao().updateData( id=getSystemUserId(), data={
+			  email_address = arguments.emailAddress
+			, password      = _getBCryptService().hashPw( arguments.password )
+		} );
+	}
+
+	/**
+	 * Sends password reset instructions to the supplied user. Returns true if successful, false otherwise.
+	 *
+	 * @loginId.hint Either the email address or login id of the user
+	 */
+	public boolean function sendPasswordResetInstructions( required string loginId ) output=false autodoc=true {
+		var userRecord = _getUserByLoginId( arguments.loginId );
+
+		if ( userRecord.recordCount ) {
+			var tokenInfo = createLoginResetToken( userRecord.id );
+
+			_getEmailService().send(
+				  template = "resetCMSPassword"
+				, to       = [ userRecord.email_address ]
+				, args     = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#", expires=tokenInfo.resetExpiry, username=userRecord.known_as }
+			);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Sends a welcome email to the given user with password reset instructions
+	 *
+	 * @userId.hint ID of the user to send the welcome email to
+	 * @welcomeMessage.hint User supplied welcome message
+	 */
+	public boolean function sendWelcomeEmail( required string userId, required string createdBy, string welcomeMessage="" ) output=false {
+		var userRecord = _getUserDao().selectData( id=arguments.userId );
+
+		if ( userRecord.recordCount ) {
+			var tokenInfo = createLoginResetToken( userRecord.id );
+
+			_getEmailService().send(
+				  template = "cmsWelcome"
+				, to       = [ "#(userRecord.known_as ?: '')# <#(userRecord.email_address ?: '')#>" ]
+				, args     = {
+					  resetToken     = "#tokenInfo.resetToken#-#tokenInfo.resetKey#"
+					, expires        = tokenInfo.resetExpiry
+					, username       = userRecord.known_as
+					, welcomeMessage = arguments.welcomeMessage
+					, createdBy      = arguments.createdBy
+					, loginId        = userRecord.login_id
+				}
+			);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Creates a login reset token for a user and return a struct with token details.
+	 * Struct keys are: resetToken, resetKey and resetExpiry
+	 *
+	 * @userId.hint ID of the user to create a reset token for
+	 */
+	public struct function createLoginResetToken( required string userId ) output=false {
+		var resetToken       = _createTemporaryResetToken();
+		var resetKey         = _createTemporaryResetKey();
+		var hashedResetKey   = _getBCryptService().hashPw( resetKey );
+		var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+		_getUserDao().updateData( id=arguments.userId, data={
+			  reset_password_token        = resetToken
+			, reset_password_key          = hashedResetKey
+			, reset_password_token_expiry = resetTokenExpiry
+		} );
+
+		return {
+			  resetToken  = resetToken
+			, resetKey    = resetKey
+			, resetExpiry = resetTokenExpiry
+		};
+	}
+
+	/**
+	 * Validates a password reset token that has been passed through the URL after
+	 * a user has followed 'reset password' link in instructional email.
+	 *
+	 * @token.hint The token to validate
+	 */
+	public boolean function validateResetPasswordToken( required string token ) output=false {
+		var record = _getUserRecordByPasswordResetToken( arguments.token );
+
+		return record.recordCount == 1;
+	}
+
+	/**
+	 * Resets a password by looking up the supplied password reset token and encrypting the supplied password
+	 *
+	 * @token.hint    The temporary reset password token to look the user up with
+	 * @password.hint The new password
+	 */
+	public boolean function resetPassword( required string token, required string password ) output=false {
+		var record = _getUserRecordByPasswordResetToken( arguments.token );
+
+		if ( record.recordCount ) {
+			var hashedPw = _getBCryptService().hashPw( password );
+
+			return _getUserDao().updateData(
+				  id   = record.id
+				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+			);
+		}
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) output=false {
-		var persistData = {
-			  loginId      = arguments.usr.login_id
-			, knownAs      = arguments.usr.known_as
-			, emailAddress = arguments.usr.email_address
-			, userId       = arguments.usr.id
-		};
-
-		_getSessionService().setVar( name=_getSessionKey(), value=persistData );
+		request.delete( "__presideCmsAminUserDetails" );
+		_getSessionService().setVar( name=_getSessionKey(), value=arguments.usr.id );
 	}
 
 	private void function _destroyUserSession() output=false {
 		_getSessionService().deleteVar( name=_getSessionKey() );
+	}
+
+	private query function _getUserByLoginId( required string loginId ) output=false {
+		return _getUserDao().selectData(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = arguments.loginId }
+			, useCache     = false
+		);
+	}
+
+	private string function _createNewLoginTokenSeries() output=false {
+		return _createRandomToken();
+	}
+
+	private string function _createNewLoginToken() output=false {
+		return _createRandomToken();
+	}
+
+	private string function _createTemporaryResetToken() output=false {
+		return _createRandomToken();
+	}
+
+	private string function _createTemporaryResetKey() output=false {
+		return _createRandomToken();
+	}
+
+	private string function _createRandomToken() output=false {
+		var chars    = ListToArray( Replace( CreateUUId(), "-", "", "all" ), "" );
+		var token = "";
+
+		while( chars.len() ){
+			var position = RandRange( 1, chars.len(), "SHA1PRNG" );
+
+			if ( RandRange( 1, 2, "SHA1PRNG" ) == 1 ) {
+				token &= LCase( chars[ position ] );
+			} else {
+				token &= chars[ position ];
+			}
+
+			chars.deleteAt( position );
+		}
+
+		return token;
+	}
+
+	private date function _createTemporaryResetTokenExpiry() output=false {
+		return DateAdd( "n", 60, Now() );
+	}
+
+	private query function _getUserRecordByPasswordResetToken( required string token ) output=false {
+		var t = ListFirst( arguments.token, "-" );
+		var k = ListLast( arguments.token, "-" );
+
+		var record = _getUserDao().selectData(
+			  selectFields = [ "id", "reset_password_key", "reset_password_token_expiry" ]
+			, filter       = { reset_password_token = t }
+		);
+
+		if ( !record.recordCount ) {
+			return record;
+		}
+
+		if ( Now() > record.reset_password_token_expiry || !_getBCryptService().checkPw( k, record.reset_password_key ) ) {
+			_getUserDao().updateData(
+				  id     = record.id
+				, data   = { reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
+			);
+
+			return QueryNew('');
+		}
+
+		return record;
 	}
 
 // GETTERS AND SETTERS
@@ -130,6 +338,13 @@ component output="false" singleton=true {
 	}
 	private void function _setSystemUserList( required string systemUserList ) output=false {
 		_systemUserList = arguments.systemUserList;
+	}
+
+	private any function _getEmailService() output=false {
+		return _emailService;
+	}
+	private void function _setEmailService( required any emailService ) output=false {
+		_emailService = arguments.emailService;
 	}
 
 }

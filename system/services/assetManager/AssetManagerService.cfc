@@ -66,10 +66,14 @@ component singleton=true output=false {
 		return _getFolderDao().selectData( filter="id = :id", filterParams={ id = id } );
 	}
 
-	public query function getFolderAncestors( required string id ) output=false {
+	public query function getFolderAncestors( required string id, boolean includeChildFolder=false ) output=false {
 		var folder        = getFolder( id=arguments.id );
 		var ancestors     = QueryNew( folder.columnList );
 		var ancestorArray = [];
+
+		if ( arguments.includeChildFolder ){
+			ancestorArray.append( folder );
+		}
 
 		while( folder.recordCount ){
 			if ( not Len( Trim( folder.parent_folder ) ) ) {
@@ -138,16 +142,23 @@ component singleton=true output=false {
 		return finalQuery;
 	}
 
-	public array function getFolderTree( string parentFolder="" ) {
+	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "id", "label" ]
+			  selectFields = [ "id", "label", "access_restriction" ]
 			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
 			, orderBy      = "label"
 		);
 
 		for ( var folder in folders ) {
-			folder.append( { children=getFolderTree( folder.id ) } );
+			if ( folder.access_restriction == "inherit" ) {
+				folder.access_restriction = arguments.parentRestriction;
+			}
+			folder.permissionContext = arguments.permissionContext;
+			folder.permissionContext.prepend( folder.id );
+
+			folder.append( { children=getFolderTree( folder.id, folder.access_restriction, folder.permissionContext ) } );
+
 			tree.append( folder );
 		}
 
@@ -431,8 +442,8 @@ component singleton=true output=false {
 		return groups[ arguments.groupName ] ?: [];
 	}
 
-	public query function getAsset( required string id, boolean throwOnMissing=false ) output=false {
-		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id ) : QueryNew('');
+	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) output=false {
+		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id, selectFields=arguments.selectFields ) : QueryNew('');
 
 		if ( asset.recordCount or not throwOnMissing ) {
 			return asset;
@@ -573,6 +584,45 @@ component singleton=true output=false {
 			, label        = arguments.derivativeName
 			, storage_path = storagePath
 		} );
+	}
+
+	public struct function getAssetPermissioningSettings( required string assetId ) output=false {
+		var asset    = getAsset( arguments.assetId );
+		var settings = {
+			  contextTree       = [ arguments.assetId ] //ListToArray( ValueList( folders.id ) ) };
+			, restricted        = false
+			, fullLoginRequired = false
+		}
+
+		if ( !asset.recordCount ){ return settings; }
+
+		var folders = getFolderAncestors( asset.asset_folder, true );
+
+		for( var folder in folders ){ settings.contextTree.append( folder.id ); }
+
+		if ( asset.access_restriction != "inherit" ) {
+			settings.restricted        = asset.access_restriction == "full";
+			settings.fullLoginRequired = IsBoolean( asset.full_login_required ) && asset.full_login_required;
+
+			return settings;
+		}
+
+		for( var folder in folders ) {
+			if ( folder.access_restriction != "inherit" ) {
+				settings.restricted        = folder.access_restriction == "full";
+				settings.fullLoginRequired = IsBoolean( folder.full_login_required ) && folder.full_login_required;
+
+				return settings;
+			}
+		}
+
+		return settings;
+	}
+
+	public boolean function isDerivativePubliclyAccessible( required string derivative ) output=false {
+		var derivatives = _getConfiguredDerivatives();
+
+		return ( derivatives[ arguments.derivative ].permissions ?: "inherit" ) == "public";
 	}
 
 // PRIVATE HELPERS

@@ -19,7 +19,7 @@
 
 	event.include( "i18n-resource-bundle" );
 
-	if ( hasPermission( "devtools.console" ) ) {
+	if ( hasCmsPermission( "devtools.console" ) ) {
 		event.include( "/js/admin/devtools/" );
 		event.include( "/css/admin/devtools/" );
 	}
@@ -41,6 +41,8 @@
 		<meta name="robots" content="NOINDEX,NOFOLLOW" />
 		<meta name="description" content="" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<link rel="shortcut icon" type="image/x-icon" href="#event.buildLink( systemStaticAsset='/images/logos/favicon.png' )#">
 
 		#css#
 		#topJs#

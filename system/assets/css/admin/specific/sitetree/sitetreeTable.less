@@ -1,0 +1,38 @@
+@import url( 'globals.less' );
+
+@fontAwesomeFixedWidthSize : 1.28571429em;
+
+.presidecms {
+	.tree-table {
+
+		.actions > .fa,
+		.actions a .fa {
+			margin-right : 0.4em;
+
+			&.disabled {
+				color : @default-disabled-font-colour;
+			}
+		}
+
+		.tree-toggler {
+			color  : @default-font-colour;
+			cursor : pointer;
+			margin-left : -@fontAwesomeFixedWidthSize;
+		}
+
+		tbody > tr {
+
+			&.selected, &:active, &:focus {
+				outline : 0;
+
+				> td {
+					background-color : @default-selected-row-colour;
+				}
+			}
+
+			> td:first-child {
+				padding-left: ( @fontAwesomeFixedWidthSize + 0.5em );
+			}
+		}
+	}
+}

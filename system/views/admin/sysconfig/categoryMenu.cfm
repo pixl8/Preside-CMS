@@ -2,12 +2,9 @@
 
 <cfoutput>
 	<cfloop array="#args.categories#" item="category" index="i">
-		<li>
-			<a href="#event.buildAdminLink( linkTo='sysconfig.category', queryString='id=#category.getId()#' )#">
-				<i class="fa fa-angle-double-right"></i>
-				#translateResource( uri=category.getName(), defaultValue=category.getId() )#
-
-			</a>
-		</li>
+		#renderView( view="/admin/layout/sidebar/_subMenuItem", args={
+			  link  = event.buildAdminLink( linkTo='sysconfig.category', queryString='id=' & category.getId() )
+			, title = translateResource( uri=category.getName(), defaultValue=category.getId() )
+		} )#
 	</cfloop>
 </cfoutput>

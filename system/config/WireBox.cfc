@@ -1,11 +1,13 @@
  component extends="coldbox.system.ioc.config.Binder" output=false {
 
 	public void function configure() output=false {
+		_registerAopListener();
 		_setupCustomDslProviders();
 		_mapCommonSystemServices();
 		_mapSpecificSystemServices();
 		_mapExtensionServices();
 		_mapSiteServices();
+		_loadExtensionConfigurations();
 	}
 
 // PRIVATE UTILITY
@@ -51,5 +53,21 @@
 			.initArg( name="rootDirectory" , value=settings.tmp_uploads_directory & "/.tmp" )
 			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
+	}
+
+	private void function _loadExtensionConfigurations() output=false {
+		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
+		for( var i=extensions.len(); i > 0; i-- ){
+			var wireboxConfigPath = ListAppend( extensions[i].directory, "config/Wirebox.cfc", "/" );
+			if ( FileExists( wireboxConfigPath ) ) {
+				CreateObject( "app.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
+			}
+		}
+	}
+
+	private void function _registerAopListener() output=false {
+		wirebox.listeners = [
+			{ class="coldbox.system.aop.Mixer",properties={} }
+		];
 	}
 }
