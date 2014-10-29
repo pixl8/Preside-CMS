@@ -61,6 +61,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"       );
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"        );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"        );
+		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"         );
 
 		cacheBox = {
 			configFile = "preside.system.config.Cachebox"

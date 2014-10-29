@@ -10,6 +10,7 @@ component output=false {
 	public void function applicationStart( event, rc, prc ) output=false {
 		_autoRegisterPresideObjectValidators();
 		prc._presideReloaded = true;
+		announceInterception( "onApplicationStart" );
 	}
 
 	public void function requestStart( event, rc, prc ) output=false {
