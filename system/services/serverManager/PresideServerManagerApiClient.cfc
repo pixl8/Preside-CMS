@@ -2,7 +2,7 @@
  * The Server Manager API Client is an API wrapper for calling the Centralized Server Managerment system for PresideCMS
  *
  */
-component output=false {
+component output=false singleton=true {
 
 // CONSTRUCTOR
 	public any function init( required string endpoint, required string publicKey, required string privatekey ) output=false {

@@ -2,7 +2,7 @@
  * The email service takes care of sending emails through the PresideCMS's email templating system (see :doc:`/devguides/emailtemplates`).
  *
  */
-component output=false autodoc=true displayName="Email service" {
+component output=false singleton=true autodoc=true displayName="Email service" {
 
 // CONSTRUCTOR
 	/**

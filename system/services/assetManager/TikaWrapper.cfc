@@ -3,7 +3,7 @@
  *
  * Its purpose in the context of PresideCMS is for metadata and content extraction from uploaded documents.
  */
-component output=false autodoc=true {
+component output=false singleton=true autodoc=true {
 
 // CONSTRUCTOR
 	public any function init() output=false {

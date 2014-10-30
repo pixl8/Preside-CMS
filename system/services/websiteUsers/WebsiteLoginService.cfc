@@ -3,7 +3,7 @@
  * \n
  * See also: :doc:`/devguides/websiteusers`
  */
-component output=false autodoc=true displayName="Website login service" {
+component output=false singleton=true autodoc=true displayName="Website login service" {
 
 // constructor
 	/**

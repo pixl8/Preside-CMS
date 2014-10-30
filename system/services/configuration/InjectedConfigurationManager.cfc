@@ -6,7 +6,7 @@
  *
  */
 
-component output=false {
+component output=false singleton=true {
 
 // Constructor
 	public any function init( required any app, required string configurationDirectory ) output=false {

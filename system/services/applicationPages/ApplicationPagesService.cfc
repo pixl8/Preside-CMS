@@ -2,7 +2,7 @@
  * Service for interacting with application pages. See :doc:`/devguides/applicationpages`.
  *
  */
-component output=false autodoc=true {
+component output=false singleton=true autodoc=true {
 
 // CONSTRUCTOR
 	/**

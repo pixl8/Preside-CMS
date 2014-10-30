@@ -4,7 +4,7 @@
  * for your application.
  *
  */
-component output=false autodoc=true displayName="Update manager service" {
+component output=false singleton=true autodoc=true displayName="Update manager service" {
 
 // constructor
 	/**
