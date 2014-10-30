@@ -33,7 +33,7 @@ component output=false singleton=true {
 					versions[ versionRecord.entity_type ] = {};
 				}
 
-				if ( not IsNull( versionRecord.parent_entity_name ) ) {
+				if ( Len( Trim( versionRecord.parent_entity_name ?: "" ) ) ) {
 					if ( not StructKeyExists( versions[ versionRecord.entity_type ], versionRecord.parent_entity_name ) ) {
 						versions[ versionRecord.entity_type ][ versionRecord.parent_entity_name ] = {};
 					}
