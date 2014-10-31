@@ -12,7 +12,7 @@ component implements="iRouteHandler" output=false singleton=true {
 
 // route handler methods
 	public boolean function match( required string path, required any event ) output=false {
-		return ReFindNoCase( "^/preside/system/assets/(.*?)/", arguments.path ) && !ReFind( "\.\.", arguments.path );
+		return ReFindNoCase( "^/preside/(system|extension)/assets/(.*?)/", arguments.path ) && !ReFind( "\.\.", arguments.path );
 	}
 
 	public void function translate( required string path, required any event ) output=false {

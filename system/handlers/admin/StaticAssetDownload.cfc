@@ -2,7 +2,8 @@ component output=false {
 	property name="i18n" inject="coldbox:plugin:i18n";
 
 	function download( event, rc, prc ) output=false {
-		var assetFile = ExpandPath( rc.staticAssetPath ?: "" );
+		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
+		var assetFile       = ExpandPath( staticAssetPath );
 
 		if ( rc.staticAssetPath.startsWith( "/preside/system/assets/_dynamic/i18nBundle.js" ) ) {
 			_serveI18nBundle( argumentCollection = arguments );
@@ -24,8 +25,9 @@ component output=false {
 // PRIVATE HELPERS
 	private boolean function _fileExists( required string fullPath ) output=false {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
+		var extensionsDirectory  = ExpandPath( "/app/extensions/" );
 
-		if ( !fullPath.startsWith( rootAllowedDirectory ) || fullPath contains ".." ) {
+		if ( ( !fullPath.startsWith( rootAllowedDirectory ) && !fullPath.startsWith( extensionsDirectory ) ) || fullPath contains ".." ) {
 			return false;
 		}
 
@@ -69,5 +71,9 @@ component output=false {
 		header name="cache-control" value="max-age=#( 2400 )#"; // cache for 20 min
 		header name="etag" value=etag;
 		content reset=true type="application/javascript";WriteOutput(js);abort;
+	}
+
+	private string function _translatePath( required string path ) output=false {
+		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "/app/extensions/" );
 	}
 }

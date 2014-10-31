@@ -24498,13 +24498,6 @@ img.presidecms .editable-click:hover {
 .presidecms .dataTables_wrapper .dataTable th.sorting-desc:after {
   content: "\f0dd";
 }
-.presidecms .dataTables_wrapper .dataTable tbody tr.focus {
-  outline: 0 !important;
-}
-.presidecms .dataTables_wrapper .dataTable tbody tr.focus td,
-.presidecms .dataTables_wrapper .dataTable tbody tr.focus th {
-  background-color: default-selected-row-colour;
-}
 .presidecms .dataTables_wrapper .dataTable tbody tr.clickable td,
 .presidecms .dataTables_wrapper .dataTable tbody tr.clickable th {
   cursor: pointer;
@@ -24527,6 +24520,19 @@ img.presidecms .editable-click:hover {
 .presidecms .table tbody > tr > td,
 .presidecms .table tfoot > tr > td {
   padding: 5px;
+}
+.presidecms .table tbody tr.focus,
+.presidecms .table tbody tr:focus,
+.presidecms .table tbody tr:active {
+  outline: 0 !important;
+}
+.presidecms .table tbody tr.focus td,
+.presidecms .table tbody tr:focus td,
+.presidecms .table tbody tr:active td,
+.presidecms .table tbody tr.focus th,
+.presidecms .table tbody tr:focus th,
+.presidecms .table tbody tr:active th {
+  background-color: #dff0d8;
 }
 .presidecms .navigation-tree-container {
   border-right: 1px solid #eeeeee;

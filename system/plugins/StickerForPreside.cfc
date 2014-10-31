@@ -24,19 +24,20 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 
 // PRIVATE HELPERS
 	private void function _initSticker() output=false {
-		var sticker        = new sticker.Sticker();
-		var settings       = super.getController().getSettingStructure();
-		var sysAssetsPath  = "/preside/system/assets"
-		var siteAssetsPath = settings.static.siteAssetsPath ?: "/assets";
-		var siteAssetsUrl  = settings.static.siteAssetsUrl  ?: "/assets";
-		var rootURl        = ( settings.static.rootUrl ?: "" );
+		var sticker           = new sticker.Sticker();
+		var settings          = super.getController().getSettingStructure();
+		var sysAssetsPath     = "/preside/system/assets/"
+		var extensionsRootUrl = "/preside/system/assets/extension/";
+		var siteAssetsPath    = settings.static.siteAssetsPath ?: "/assets";
+		var siteAssetsUrl     = settings.static.siteAssetsUrl  ?: "/assets";
+		var rootURl           = ( settings.static.rootUrl ?: "" );
 
 		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath )
 		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl );
 
 		for( var ext in settings.activeExtensions ) {
 			try {
-				sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=rootUrl );
+				sticker.addBundle( rootDirectory=( ext.directory ?: "" ) & "/assets", rootUrl=extensionsRootUrl & ListLast( ext.directory, "\/" ) & "/assets" );
 			} catch ( any e ) {}
 		}
 
