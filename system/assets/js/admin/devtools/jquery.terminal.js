@@ -675,7 +675,16 @@
         }
         storage_key += 'commands';
         var data = $.Storage.get(storage_key);
-        data = data ? $.parseJSON(data) : [];
+        if ( data ) {
+            try {
+                data = $.parseJSON( data );
+            } catch ( e ) {
+                $.Storage.remove(storage_key);
+                data = [];
+            }
+        } else {
+            data = [];
+        }
         var pos = data.length-1;
         $.extend(this, {
             append: function(item) {
