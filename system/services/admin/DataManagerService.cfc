@@ -81,6 +81,16 @@ component output="false" singleton=true {
 		return ListToArray( fields );
 	}
 
+	public boolean function isOperationAllowed( required string objectName, required string operation ) output=false {
+		var operations = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowedOperations"
+			, defaultValue  = "add,edit,delete,viewversions"
+		);
+
+		return operations != "none" && ListFindNoCase( operations, arguments.operation );
+	}
+
 	public struct function getRecordsForGridListing(
 
 		  required string  objectName

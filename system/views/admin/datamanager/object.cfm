@@ -10,11 +10,15 @@
 	prc.pageIcon     = "puzzle-piece";
 	prc.pageTitle    = objectTitle;
 	prc.pageSubTitle = objectDescription;
+
+
+	canAdd    = prc.canAdd    ?: false;
+	canDelete = prc.canDelete ?: false;
 </cfscript>
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] )>
+		<cfif canAdd>
 			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#objectName#" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>
@@ -34,7 +38,7 @@
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
-		, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+		, useMultiActions = canDelete
 		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
 		, gridFields      = gridFields
 	} )#
