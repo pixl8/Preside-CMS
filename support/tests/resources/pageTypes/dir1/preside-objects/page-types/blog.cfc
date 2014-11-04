@@ -1,1 +1,1 @@
-component output=false allowedParentPageTypes="*" allowedChildPageTypes="page,teammember" {}
+component output=false isPageType=true allowedParentPageTypes="*" allowedChildPageTypes="page,teammember" {}
