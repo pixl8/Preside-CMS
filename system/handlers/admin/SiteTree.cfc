@@ -1,7 +1,6 @@
 component output="false" extends="preside.system.base.AdminHandler" {
 
 	property name="siteTreeService"          inject="siteTreeService";
-	property name="applicationPagesService"  inject="applicationPagesService";
 	property name="formsService"             inject="formsService";
 	property name="pageTypesService"         inject="pageTypesService";
 	property name="validationEngine"         inject="validationEngine";
@@ -29,10 +28,6 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function index( event, rc, prc ) output=false {
 		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
-
-		if ( hasCmsPermission( "applicationPages.navigate" ) ) {
-			prc.applicationPageTree = applicationPagesService.getTree();
-		}
 	}
 
 	public void function trash( event, rc, prc ) output=false {
@@ -212,84 +207,6 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			persist.validationResult = validationResult;
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ), persistStruct=persist );
 		}
-
-		websitePermissionService.syncContextPermissions(
-			  context       = "page"
-			, contextKey    = pageId
-			, permissionKey = "pages.access"
-			, grantBenefits = ListToArray( rc.grant_access_to_benefits ?: "" )
-			, denyBenefits  = ListToArray( rc.deny_access_to_benefits  ?: "" )
-			, grantUsers    = ListToArray( rc.grant_access_to_users    ?: "" )
-			, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
-		);
-
-		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
-	}
-
-	public void function editApplicationPage( event, rc, prc ) output=false {
-		var pageId           = rc.id               ?: "";
-		var validationResult = rc.validationResult ?: "";
-
-		_checkPermissions( argumentCollection=arguments, key="edit", prefix="applicationPages." );
-
-		if ( !applicationPagesService.pageExists( pageId ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.application.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
-
-		prc.configFormName = applicationPagesService.getPageConfigFormName( pageId );
-		prc.pageConfig     = applicationPagesService.getPageConfiguration( pageId );
-
-		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
-			  context       = "page"
-			, contextKey    = pageId
-			, permissionKey = "pages.access"
-		);
-		prc.pageConfig.grant_access_to_benefits = ArrayToList( contextualAccessPerms.benefit.grant );
-		prc.pageConfig.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
-		prc.pageConfig.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
-		prc.pageConfig.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
-
-
-		prc.applicationPageTitle = translateResource( "application-pages:#pageId#.name" );
-		prc.applicationPageIcon  = translateResource( "application-pages:#pageId#.icon" );
-
-		prc.pageIcon   = ReReplace( prc.applicationPageIcon, "$fa\-", "" );
-		prc.pageTitle  = translateResource( uri="cms:sitetree.editPage.title", data=[ prc.applicationPageTitle ] );
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.applicationPageTitle ] )
-			, link  = ""
-		);
-	}
-
-	public void function editApplicationPageAction( event, rc, prc ) output=false {
-		_checkPermissions( argumentCollection=arguments, key="edit", prefix="applicationPages." );
-
-		var pageId = rc.id ?: "";
-		if ( !applicationPagesService.pageExists( pageId ) ) {
-			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.application.page.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
-		}
-
-		var formName          = applicationPagesService.getPageConfigFormName( pageId );
-		var formData          = event.getCollectionForForm( formName );
-		var validationResult  = validateForm( formName=formName, formData=formData );
-
-		if ( not validationResult.validated() ) {
-			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
-			var persist = formData;
-			persist.validationResult = validationResult;
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editApplicationPage", querystring="id=#pageId#" ), persistStruct=persist );
-		}
-
-		formData.delete( "grant_access_to_benefits" );
-		formData.delete( "deny_access_to_benefits"  );
-		formData.delete( "grant_access_to_users"    );
-		formData.delete( "deny_access_to_users"     );
-
-		applicationPagesService.savePageConfiguration( id=pageId, config=formData );
 
 		websitePermissionService.syncContextPermissions(
 			  context       = "page"

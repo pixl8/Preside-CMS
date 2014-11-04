@@ -373,43 +373,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="initializeApplicationPage" access="public" returntype="void" output="false">
-		<cfargument name="pageId" type="string" required="true" />
-
-		<cfscript>
-			var prc        = getRequestContext().getCollection( private = true );
-			var appPageSvc = getModel( "applicationPagesService" );
-
-			if ( !appPageSvc.isPageAvailableInActiveSiteTemplate( arguments.pageId ) ) {
-				notFound();
-			}
-
-			var page       = appPageSvc.getPageConfiguration( arguments.pageId );
-
-			page.id                = arguments.pageId;
-			page.ancestors         = appPageSvc.getAncestors( arguments.pageId );
-			page.isApplicationPage = true;
-
-			page.access_providing_page = page.id;
-			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
-				for( var ancestor in page.ancestors ) {
-					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
-						page.access_providing_page = ancestor.id;
-						page.access_restriction = ancestor.access_restriction;
-						page.full_login_required = ( ancestor.full_login_required ?: false );
-						break;
-					}
-				}
-			}
-			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
-				page.access_restriction = "none";
-			}
-			page.full_login_required = page.full_login_required ?: false;
-
-			prc.presidePage = page;
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="checkPageAccess" access="public" returntype="void" output="false">
 		<cfscript>
 			if ( getPageProperty( "access_restriction", "none" ) == "full" ){

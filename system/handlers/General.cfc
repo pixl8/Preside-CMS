@@ -5,7 +5,6 @@ component output=false {
 	property name="presideFieldRuleGenerator" inject="presideFieldRuleGenerator";
 	property name="formsService"              inject="formsService";
 	property name="applicationReloadService"  inject="applicationReloadService";
-	property name="applicationPagesService"   inject="applicationPagesService";
 
 	public void function applicationStart( event, rc, prc ) output=false {
 		_autoRegisterPresideObjectValidators();
@@ -15,7 +14,6 @@ component output=false {
 
 	public void function requestStart( event, rc, prc ) output=false {
 		_reloadChecks( argumentCollection = arguments );
-		_autoDetectApplicationPageAndLoadItsConfiguration( argumentCollection = arguments );
 	}
 
 	public void function notFound( event, rc, prc ) output=false {
@@ -152,18 +150,5 @@ component output=false {
 		}
 
 		return false;
-	}
-
-	private void function _autoDetectApplicationPageAndLoadItsConfiguration( event, rc, prc ) output=false {
-		var currentEvent = ReReplace( event.getCurrentEvent(), "\.index$", "" );
-		var pageId       = applicationPagesService.getPageIdByHandler( currentEvent );
-
-		if ( Len( Trim( pageId ) ) ) {
-			event.initializeApplicationPage(
-				pageId = pageId
-			);
-
-			event.checkPageAccess();
-		}
 	}
 }
