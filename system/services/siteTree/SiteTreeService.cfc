@@ -325,12 +325,14 @@ component output=false singleton=true {
 		, boolean includeInactive   = false
 		, array   activeTree        = []
 		, boolean expandAllSiblings = true
+		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
 	) output=false {
+		var args = arguments;
 		var getNavChildren = function( parent, currentDepth ){
 			filter.parent_page = parent;
 			var result   = [];
 			var children = _getPObj().selectData(
-				  selectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+				  selectFields = args.selectFields
 				, filter       = filter
 				, orderBy      = "sort_order"
 			);

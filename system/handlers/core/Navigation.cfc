@@ -8,8 +8,9 @@ component output=false {
 		    activeTree.append( event.getCurrentPageId() );
 
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
-			  rootPage        = args.rootPage ?: siteTreeSvc.getSiteHomepage().id
-			, depth           = args.depth    ?: 1
+			  rootPage        = args.rootPage     ?: siteTreeSvc.getSiteHomepage().id
+			, depth           = args.depth        ?: 1
+			, selectFields    = args.selectFields ?: [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
 			, includeInactive = event.isAdminUser()
 			, activeTree      = activeTree
 		);
