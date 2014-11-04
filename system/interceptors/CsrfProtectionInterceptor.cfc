@@ -8,7 +8,7 @@ component extends="coldbox.system.Interceptor" output=false {
 		var valid   = "";
 		var persist = "";
 
-		if ( _isProtectedAction( event ) and not _isValid( event ) ) {
+		if ( event.isAdminUser() && _isProtectedAction( event ) && !_isValid( event ) ) {
 			persist = event.getCollectionWithoutSystemVars();
 
 			getPlugin( "MessageBox" ).error(
