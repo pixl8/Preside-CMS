@@ -290,9 +290,10 @@
 
 <!--- FRONT END, dealing with current page --->
 	<cffunction name="initializePresideSiteteePage" access="public" returntype="void" output="false">
-		<cfargument name="slug"      type="string" required="false" />
-		<cfargument name="pageId"    type="string" required="false" />
-		<cfargument name="subaction" type="string" required="false" />
+		<cfargument name="slug"       type="string" required="false" />
+		<cfargument name="pageId"     type="string" required="false" />
+		<cfargument name="systemPage" type="string" required="false" />
+		<cfargument name="subaction"  type="string" required="false" />
 
 		<cfscript>
 			var sitetreeSvc = getModel( "sitetreeService" );
@@ -305,12 +306,14 @@
 				return arguments.active && ( !IsDate( arguments.embargo_date ) || Now() >= arguments.embargo_date ) && ( !IsDate( arguments.expiry_date ) || Now() <= arguments.expiry_date );
 			}
 
-			if ( ( arguments.slug ?: "/" ) == "/" && !Len( Trim( arguments.pageId ?: "" ) ) ) {
+			if ( ( arguments.slug ?: "/" ) == "/" && !Len( Trim( arguments.pageId ?: "" ) ) && !Len( Trim( arguments.systemPage ?: "" ) ) ) {
 				page = sitetreeSvc.getSiteHomepage();
 				parentPages = QueryNew( page.columnlist );
 			} else {
 				if ( Len( Trim( arguments.pageId ?: "" ) ) ) {
 					getPageArgs.id = arguments.pageId;
+				} elseif ( Len( Trim( arguments.systemPage ?: "" ) ) ) {
+					getPageArgs.systemPage = arguments.systemPage;
 				} else {
 					getPageArgs.slug = arguments.slug;
 				}
@@ -333,6 +336,7 @@
 				page.permissionContext.append( ListGetAt( page.ancestorList, i ) );
 			}
 
+			clearBreadCrumbs();
 			for( var ancestor in ancestors ) {
 				addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
 				page.ancestors.append( ancestor );
@@ -485,6 +489,10 @@
 
 	<cffunction name="getBreadCrumbs" access="public" returntype="array" output="false">
 		<cfreturn getRequestContext().getValue( name="_breadCrumbs", defaultValue=[], private=true ) />
+	</cffunction>
+
+	<cffunction name="clearBreadCrumbs" access="public" returntype="void" output="false">
+		<cfset getRequestContext().setValue( name="_breadCrumbs", value=[], private=true ) />
 	</cffunction>
 
 <!--- status codes --->

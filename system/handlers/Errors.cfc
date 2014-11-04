@@ -17,6 +17,7 @@ component output=false {
 			case "INSUFFICIENT_PRIVILEGES":
 				return renderView( view="/errors/insufficientPrivileges", args=args );
 			default:
+				event.initializePresideSiteteePage( systemPage="login" );
 				return renderView( view="/errors/loginRequired", args=args );
 		}
 	}
