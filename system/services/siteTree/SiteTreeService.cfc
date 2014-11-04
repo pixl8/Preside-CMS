@@ -844,7 +844,7 @@ component output=false singleton=true {
 		var addPageArgs = {
 			  title         = _getI18nService().translateResource( uri=pageType.getName(), defaultValue=pageType.getid() )
 			, page_type     = pageType.getId()
-			, slug          = pageType.getId() == "homepage" ? "" : pageType.getId()
+			, slug          = pageType.getId() == "homepage" ? "" : LCase( ReReplace( pageType.getId(), "\W", "-", "all" ) )
 			, active        = 1
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		};
