@@ -17,16 +17,16 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API
-	public array function listPageTypes( string allowedBeneathParent="" ) output=false {
+	public array function listPageTypes( string allowedBeneathParent="", boolean includeSystemPageTypes=true ) output=false {
 		var pageTypes          = _getRegisteredPageTypes();
 		var result             = [];
 		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
 
 		for( var id in pageTypes ){
 			var allowedBeneathParent = !Len( Trim( arguments.allowedBeneathParent ) ) || typeIsAllowedBeneathParentType( id, arguments.allowedBeneathParent );
-			var allowedInSiteTemplate = pageTypes[ id ].getSiteTemplates() == "*" || ListFindNoCase( pageTypes[ id ].getSiteTemplates(), activeSiteTemplate );
+			var allowedInSiteTemplate = isPageTypeAvailableToSiteTemplate( id, activeSiteTemplate );
 
-			if ( allowedBeneathParent && allowedInSiteTemplate  ) {
+			if ( allowedBeneathParent && allowedInSiteTemplate && ( arguments.includeSystemPageTypes || !isSystemPageType( id ) ) ) {
 				result.append( pageTypes[ id ] );
 			}
 		}
@@ -75,6 +75,16 @@ component output=false singleton=true {
 
 
 		return true;
+	}
+
+	public boolean function isSystemPageType( required string pageTypeId ) output=false {
+		return getPageType( arguments.pageTypeId ).isSystemPageType();
+	}
+
+	public boolean function isPageTypeAvailableToSiteTemplate( required string pageTypeId, string siteTemplate=_getSiteService().getActiveSiteTemplate() ) {
+		var pageType = getPageType( arguments.pageTypeId );
+
+		return pageType.getSiteTemplates() == "*" || ListFindNoCase( pageType.getSiteTemplates(), arguments.siteTemplate );
 	}
 
 // PRIVATE HELPERS
@@ -128,19 +138,21 @@ component output=false singleton=true {
 		var poService = _getPresideObjectService();
 
 		pageTypes[ arguments.id ] = new PageType(
-			  id                 = arguments.id
-			, name               = _getConventionsBasePageTypeName( arguments.id )
-			, description        = _getConventionsBasePageTypeDescription( arguments.id )
-			, viewlet            = _getConventionsBasePageTypeViewlet( arguments.id )
-			, addForm            = _getConventionsBasePageTypeAddForm( arguments.id )
-			, defaultForm        = _getConventionsBasePageTypeDefaultForm( arguments.id )
-			, editForm           = _getConventionsBasePageTypeEditForm( arguments.id )
-			, presideObject      = _getConventionsBasePageTypePresideObject( arguments.id )
-			, hasHandler         = arguments.hasHandler
-			, layouts            = arguments.layouts
-			, allowedChildTypes  = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*" )
-			, allowedParentTypes = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*" )
-			, siteTemplates      = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*" )
+			  id                   = arguments.id
+			, name                 = _getConventionsBasePageTypeName( arguments.id )
+			, description          = _getConventionsBasePageTypeDescription( arguments.id )
+			, viewlet              = _getConventionsBasePageTypeViewlet( arguments.id )
+			, addForm              = _getConventionsBasePageTypeAddForm( arguments.id )
+			, defaultForm          = _getConventionsBasePageTypeDefaultForm( arguments.id )
+			, editForm             = _getConventionsBasePageTypeEditForm( arguments.id )
+			, presideObject        = _getConventionsBasePageTypePresideObject( arguments.id )
+			, hasHandler           = arguments.hasHandler
+			, layouts              = arguments.layouts
+			, allowedChildTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
+			, allowedParentTypes   = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
+			, siteTemplates        = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
+			, isSystemPageType     = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
+			, parentSystemPageType = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )
 		);
 	}
 

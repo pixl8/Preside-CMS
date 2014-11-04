@@ -1,1 +1,1 @@
-component output=false {}
+component output=false isSystemPageType=true {}

@@ -137,6 +137,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( "event", pageTypes[1].getId() );
 	}
 
+	function test15_isSystemPageType_shouldReturnTrue_whenPageTypeCfcHasSystemPageTypeAttribute() {
+		var pageTypesService  = _getPageTypesSvc( [ "/tests/resources/pageTypes/dir1/" ] );
+
+		super.assert( pageTypesService.isSystemPageType( "some_page_type" ) );
+	}
+
 
 // private helpers
 	private any function _getPageTypesSvc( array autoDiscoverDirectories=[], string activeSiteTemplate="" ) output=false {

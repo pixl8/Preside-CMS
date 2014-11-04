@@ -2,14 +2,21 @@ component output=false singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @loginService.inject         LoginService
-	 * @pageTypesService.inject     PageTypesService
-	 * @presideObjectService.inject PresideObjectService
+	 * @loginService.inject         loginService
+	 * @pageTypesService.inject     pageTypesService
+	 * @siteService.inject          siteService
+	 * @i18nService.inject          coldbox:plugin:i18n
+	 * @coldboxController.inject    coldbox
+	 * @presideObjectService.inject presideObjectService
 	 */
-	public any function init( required any loginService, required any pageTypesService, required any presideObjectService ) output=false {
+	public any function init( required any loginService, required any pageTypesService, required any siteService, required any presideObjectService, required any coldboxController, required any i18nService ) output=false {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
+		_setSiteService( arguments.siteService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setColdboxController( arguments.coldboxController );
+		_setI18nService( arguments.i18nService );
+		_ensureSystemPagesExistInTree();
 
 		return this;
 	}
@@ -48,7 +55,7 @@ component output=false singleton=true {
 	public query function getPage(
 		  string  id
 		, string  slug
-		, string  system_key
+		, string  systemPage
 		, boolean includeTrash = false
 		, array   selectFields = []
 		, boolean useCache     = true
@@ -66,9 +73,9 @@ component output=false singleton=true {
 			args.filterParams.slug            = ListLast( arguments.slug, "/" );
 			args.filterParams._hierarchy_slug = arguments.slug;
 
-		} else if ( StructKeyExists( arguments, "system_key" ) ) {
-			args.filter                  = "page.system_key = :system_key";
-			args.filterParams.system_key = arguments.system_key;
+		} else if ( StructKeyExists( arguments, "systemPage" ) ) {
+			args.filter                 = "page.page_type = :page_type";
+			args.filterParams.page_type = arguments.systemPage;
 
 		} else {
 			throw(
@@ -392,6 +399,13 @@ component output=false singleton=true {
 			);
 		}
 
+		if ( pageType.isSystemPageType() && getPage( systemPage=arguments.page_type ).recordCount ) {
+			throw(
+				  type    = "SiteTreeService.SystemPageExists"
+				, message = "Error when adding site tree page. There can only be a single page of type [#arguments.page_type#] per site."
+			);
+		}
+
 		StructAppend( data, {
 			  created_by                = arguments.userId
 			, updated_by                = arguments.userId
@@ -574,6 +588,13 @@ component output=false singleton=true {
 			page = getPage( id = arguments.id );
 
 			if ( page.recordCount ) {
+				if ( _getPageTypesService().isSystemPageType( page.page_type ) ) {
+					throw(
+						  type    = "SiteTreeService.CannotTrashPage"
+						, message = "You can not delete pages with a [#page.page_type#] page type"
+					);
+				}
+
 				updated = editPage(
 					  id          = arguments.id
 					, parent_page = ""
@@ -630,6 +651,7 @@ component output=false singleton=true {
 
 		transaction {
 			rootPage = getPage( id = arguments.id, includeTrash = true );
+
 			if ( rootPage.recordCount ) {
 				nDeleted = pobj.deleteData(
 					  filter       = "id = :id or _hierarchy_lineage like :_hierarchy_lineage"
@@ -775,6 +797,56 @@ component output=false singleton=true {
 		return "";
 	}
 
+	private void function _ensureSystemPagesExistInTree() output=false {
+		var pageTypesService   = _getPageTypesService();
+		var siteService        = _getSiteService();
+		var pageTypes          = pageTypesService.listPageTypes();
+		var sites              = siteService.listSites();
+		var event              = _getColdboxController().getRequestService().getContext();
+		var originalActiveSite = event.getSite();
+
+		for( var site in sites ) {
+			event.setSite( site );
+
+			for( var pageType in pageTypes ) {
+				var pageTypeId = pageType.getId();
+				if ( pageTypesService.isSystemPageType( pageTypeId ) && pageTypesService.isPageTypeAvailableToSiteTemplate( pageTypeId, site.template ?: "" ) ) {
+					var page = getPage( systemPage=pageTypeId );
+
+					if ( !page.recordCount ) {
+						_createSystemPage( pageType );
+					}
+				}
+			}
+		}
+
+		event.setSite( originalActiveSite );
+	}
+
+	private string function _createSystemPage( required any pageType ) output=false {
+		var parentType = pageType.getParentSystemPageType();
+		var loginSvc   = _getLoginService();
+
+		if ( Len( Trim( parentType ) ) ) {
+			var parent = getPage( systemPage=parentType );
+			if ( !parent.recordCount ) {
+				_createSystemPage( _getPageTypesService.getPageType( parentType ) );
+			}
+			parent = getPage( systemPage=parentType );
+
+			parent = parent.id ?: "";
+		}
+
+		return addPage(
+			  title         = _getI18nService().translateResource( uri=pageType.getName(), defaultValue=pageType.getid() )
+			, slug          = ""
+			, page_type     = pageType.getId()
+			, parent_page   = parent
+			, active        = 1
+			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
+		);
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLoginService() output=false {
 		return _loginService;
@@ -788,6 +860,27 @@ component output=false singleton=true {
 	}
 	private void function _setPageTypesService( required any pageTypesService ) output=false {
 		_pageTypesService = arguments.pageTypesService;
+	}
+
+	private any function _getSiteService() output=false {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) output=false {
+		_siteService = arguments.siteService;
+	}
+
+	private any function _getColdboxController() output=false {
+		return _coldboxController;
+	}
+	private void function _setColdboxController( required any coldboxController ) output=false {
+		_coldboxController = arguments.coldboxController;
+	}
+
+	private any function _getI18nService() output=false {
+		return _i18nService;
+	}
+	private void function _setI18nService( required any i18nService ) output=false {
+		_i18nService = arguments.i18nService;
 	}
 
 	private any function _getPresideObject() output=false {

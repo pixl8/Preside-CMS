@@ -2,14 +2,16 @@ component implements="iRouteHandler" output=false singleton=true {
 
 // constructor
 	/**
-	 * @eventName.inject       coldbox:setting:eventName
-	 * @sitetreeService.inject SitetreeService
-	 * @siteService.inject     siteService
+	 * @eventName.inject        coldbox:setting:eventName
+	 * @sitetreeService.inject  SitetreeService
+	 * @siteService.inject      siteService
+	 * @pageTypesService.inject pageTypesService
 	 */
-	public any function init( required string eventName, required any sitetreeService, required any siteService ) output=false {
+	public any function init( required string eventName, required any sitetreeService, required any siteService, required any pageTypesService ) output=false {
 		_setEventName( arguments.eventName );
 		_setSiteTreeService( arguments.siteTreeService );
 		_setSiteService( arguments.siteService );
+		_setPageTypesService( arguments.pageTypesService );
 
 		return this;
 	}
@@ -97,7 +99,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	public string function build( required struct buildArgs, required any event ) output=false {
 		var treeSvc  = _getSiteTreeService();
 		var homepage = treeSvc.getSiteHomepage();
-		var page     = treeSvc.getPage( id = buildArgs.page, selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.protocol", "site.domain", "site.path" ] );
+		var page     = _getPageByIdOrPageType( arguments.buildArgs.page );
 		var link     = "";
 		var root     = "#page.protocol#://#page.domain#";
 
@@ -141,6 +143,21 @@ component implements="iRouteHandler" output=false singleton=true {
 		return root & link;
 	}
 
+	private query function _getPageByIdOrPageType( required string page ) output=false {
+		var ptService = _getPageTypesService();
+		var getPageArgs = {
+			selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.protocol", "site.domain", "site.path" ]
+		};
+
+		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {
+			getPageArgs.systemPage = arguments.page;
+		} else {
+			getPageArgs.id = arguments.page;
+		}
+
+		return _getSiteTreeService().getPage( argumentCollection=getPageArgs );
+	}
+
 // private getters and setters
 	private string function _getEventName() output=false {
 		return _eventName;
@@ -161,5 +178,12 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 	private void function _setSiteService( required any siteService ) output=false {
 		_siteService = arguments.siteService;
+	}
+
+	private any function _getPageTypesService() output=false {
+		return _pageTypesService;
+	}
+	private void function _setPageTypesService( required any pageTypesService ) output=false {
+		_pageTypesService = arguments.pageTypesService;
 	}
 }

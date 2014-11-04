@@ -25,30 +25,12 @@
 	} )#
 
 	<div class="top-right-button-group">
-
-		<cfif page.id neq ( prc.homepage.id ?: "" )>
-			<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=#page.id#")#" data-global-key="d" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
-				<button class="btn btn-danger btn-sm">
-					<i class="fa fa-trash-o"></i>
-					#translateResource( uri="cms:sitetree.trash.child.page.btn", data=[ safeTitle ] )#
-				</button>
-			</a>
-		</cfif>
-		<!---
-TODO wire this into the same dialog as that used on the site tree
-		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#page.id#" )#" data-global-key="a">
-			<button class="btn btn-success btn-sm">
-				<i class="fa fa-plus"></i>
-				#translateResource( "cms:sitetree.add.child.page.btn" )#
-			</button>
-		</a>--->
 		<a class="pull-right inline" href="#event.buildLink( page=page.id )#" data-global-key="p" target="_blank">
 			<button class="btn btn-info btn-sm">
 				<i class="fa fa-external-link"></i>
 				#translateResource( "cms:sitetree.preview.page.btn" )#
 			</button>
 		</a>
-
 	</div>
 
 	<cfif Len( Trim( editPagePrompt ) )>

@@ -483,9 +483,9 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var parentPage = sitetreeService.getPage( id=rc.parentPage, selectFields=[ "page_type" ] );
 
 		if ( parentPage.recordCount ) {
-			prc.pageTypes = pageTypesService.listPageTypes( allowedBeneathParent=parentPage.page_type );
+			prc.pageTypes = pageTypesService.listPageTypes( allowedBeneathParent=parentPage.page_type, includeSystemPageTypes=false );
 		} else {
-			prc.pageTypes = pageTypesService.listPageTypes();
+			prc.pageTypes = pageTypesService.listPageTypes( includeSystemPageTypes=false );
 		}
 
 		event.setView( view="admin/sitetree/pageTypeDialog", nolayout=true );

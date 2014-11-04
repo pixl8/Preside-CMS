@@ -17,7 +17,7 @@ component extends="coldbox.system.Interceptor" output=false {
 	public void function prePrepareObjectFilter( event, interceptData ) output=false {
 		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
 			interceptData.extraFilters = interceptData.extraFilters ?: [];
-			interceptData.extraFilters.append( { filter = { site = event.getSiteId() } } );
+			interceptData.extraFilters.append( { filter = { "#interceptData.objectName#.site" = event.getSiteId() } } );
 		}
 	}
 
