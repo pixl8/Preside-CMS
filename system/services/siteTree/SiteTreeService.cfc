@@ -674,6 +674,30 @@ component output=false singleton=true {
 		};
 	}
 
+	public void function ensureSystemPagesExistForSite( required string siteId ) output=false {
+		var siteService        = _getSiteService();
+		var pageTypesService   = _getPageTypesService();
+		var site               = siteService.getSite( arguments.siteId );
+		var pageTypes          = pageTypesService.listPageTypes();
+		var event              = _getColdboxController().getRequestService().getContext();
+		var originalActiveSite = event.getSite();
+
+		event.setSite( site );
+
+		for( var pageType in pageTypes ) {
+			var pageTypeId = pageType.getId();
+			if ( pageTypesService.isSystemPageType( pageTypeId ) && pageTypesService.isPageTypeAvailableToSiteTemplate( pageTypeId, site.template ?: "" ) ) {
+				var page = getPage( systemPage=pageTypeId );
+
+				if ( !page.recordCount ) {
+					_createSystemPage( pageType );
+				}
+			}
+		}
+
+		event.setSite( originalActiveSite );
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) output=false {
 		var result       = "";
@@ -798,29 +822,9 @@ component output=false singleton=true {
 	}
 
 	private void function _ensureSystemPagesExistInTree() output=false {
-		var pageTypesService   = _getPageTypesService();
-		var siteService        = _getSiteService();
-		var pageTypes          = pageTypesService.listPageTypes();
-		var sites              = siteService.listSites();
-		var event              = _getColdboxController().getRequestService().getContext();
-		var originalActiveSite = event.getSite();
-
-		for( var site in sites ) {
-			event.setSite( site );
-
-			for( var pageType in pageTypes ) {
-				var pageTypeId = pageType.getId();
-				if ( pageTypesService.isSystemPageType( pageTypeId ) && pageTypesService.isPageTypeAvailableToSiteTemplate( pageTypeId, site.template ?: "" ) ) {
-					var page = getPage( systemPage=pageTypeId );
-
-					if ( !page.recordCount ) {
-						_createSystemPage( pageType );
-					}
-				}
-			}
+		for( var site in _getSiteService().listSites() ) {
+			ensureSystemPagesExistForSite( site.id );
 		}
-
-		event.setSite( originalActiveSite );
 	}
 
 	private string function _createSystemPage( required any pageType ) output=false {
@@ -830,21 +834,25 @@ component output=false singleton=true {
 		if ( Len( Trim( parentType ) ) ) {
 			var parent = getPage( systemPage=parentType );
 			if ( !parent.recordCount ) {
-				_createSystemPage( _getPageTypesService.getPageType( parentType ) );
+				_createSystemPage( _getPageTypesService().getPageType( parentType ) );
 			}
 			parent = getPage( systemPage=parentType );
 
 			parent = parent.id ?: "";
 		}
 
-		return addPage(
+		var addPageArgs = {
 			  title         = _getI18nService().translateResource( uri=pageType.getName(), defaultValue=pageType.getid() )
-			, slug          = ""
 			, page_type     = pageType.getId()
-			, parent_page   = parent
+			, slug          = pageType.getId() == "homepage" ? "" : pageType.getId()
 			, active        = 1
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
-		);
+		};
+		if ( Len( Trim( parent ?: "" ) ) ) {
+			addPageArgs.parent_page = parent;
+		}
+
+		return addPage( argumentCollection=addPageArgs );
 	}
 
 // GETTERS AND SETTERS

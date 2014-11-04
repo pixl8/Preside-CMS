@@ -1,9 +1,10 @@
 component output=false extends="preside.system.base.AdminHandler" {
 
-	property name="siteService" inject="siteService";
-	property name="siteDao"     inject="presidecms:object:site";
-	property name="redirectDao" inject="presidecms:object:site_redirect_domain";
-	property name="messagebox"  inject="coldbox:plugin:messagebox";
+	property name="siteService"     inject="siteService";
+	property name="siteTreeService" inject="siteTreeService";
+	property name="siteDao"         inject="presidecms:object:site";
+	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
+	property name="messagebox"      inject="coldbox:plugin:messagebox";
 
 	public void function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -51,6 +52,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 			}
 		);
 
+		siteTreeService.ensureSystemPagesExistForSite( siteId );
 		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
 
 		messageBox.info( translateResource( "cms:sites.added.confirmation" ) );

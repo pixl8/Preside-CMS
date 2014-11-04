@@ -32,6 +32,21 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	}
 
 	/**
+	 * Returns a single site matched by id
+	 *
+	 * @id.hint ID of the site to get
+	 */
+	public struct function getSite( required string id ) output=false autodoc=true {
+		var site = _getSiteDao().selectData( id=arguments.id );
+
+		for( var s in site ){
+			return s;
+		}
+
+		return {};
+	}
+
+	/**
 	 * Returns the site record that matches the incoming domain and URL path.
 	 *
 	 * @domain.hint The domain name used in the incoming request, e.g. testsite.com
