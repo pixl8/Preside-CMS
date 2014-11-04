@@ -3,12 +3,6 @@ component output=false {
 	property name="websiteLoginService"  inject="websiteLoginService";
 
 // core events
-	public void function index( event, rc, prc ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
-			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
-		}
-	}
-
 	public void function attemptLogin( event, rc, prc ) output=false {
 		if ( websiteLoginService.isLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
@@ -43,14 +37,6 @@ component output=false {
 		setNextEvent( url=( Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : _getDefaultPostLogoutUrl( argumentCollection=arguments ) ) );
 	}
 
-	public void function forgottenPassword( event, rc, prc ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
-			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
-		}
-
-		event.setView( "/login/forgottenPassword" );
-	}
-
 	public void function sendResetInstructions( event, rc, prc ) output=false {
 		if ( websiteLoginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
 			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
@@ -61,20 +47,6 @@ component output=false {
 		setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
 			message = "LOGINID_NOT_FOUND"
 		} );
-	}
-
-	public void function resetPassword( event, rc, prc ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
-			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
-		}
-
-		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
-			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
-				message = "INVALID_RESET_TOKEN"
-			} );
-		}
-
-		event.setView( "/login/resetPassword" );
 	}
 
 	public void function resetPasswordAction( event, rc, prc ) output=false {
@@ -117,6 +89,10 @@ component output=false {
 
 // viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
+		if ( websiteLoginService.isLoggedIn() ) {
+			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
+		}
+
 		args.allowRememberMe = _getRememberMeAllowed();
 		args.postLoginUrl    = args.postLoginUrl ?: ( rc.postLoginUrl ?: _getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		args.loginId         = args.loginId      ?: ( rc.loginId      ?: "" );
@@ -124,6 +100,28 @@ component output=false {
 		args.message         = args.message      ?: ( rc.message      ?: "" );
 
 		return renderView( view="/login/loginPage", args=args );
+	}
+
+	private string function forgottenPassword( event, rc, prc, args={} ) output=false {
+		if ( websiteLoginService.isLoggedIn() ) {
+			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
+		}
+
+		return renderView( view="/login/forgottenPassword", args=args );
+	}
+
+	private string function resetPassword( event, rc, prc, args={} ) output=false {
+		if ( websiteLoginService.isLoggedIn() ) {
+			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
+		}
+
+		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
+			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
+				message = "INVALID_RESET_TOKEN"
+			} );
+		}
+
+		return renderView( view="/login/resetPassword", args=args );
 	}
 
 // private helpers
