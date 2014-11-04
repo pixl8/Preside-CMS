@@ -87,7 +87,7 @@ component output=false {
 
 	}
 
-// viewlets
+// page type viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
 		if ( websiteLoginService.isLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
@@ -107,7 +107,7 @@ component output=false {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 
-		return renderView( view="/login/forgottenPassword", args=args );
+		return renderView( view="/login/forgottenPassword", presideObject="forgotten_password", id=event.getCurrentPageId(), args=args );
 	}
 
 	private string function resetPassword( event, rc, prc, args={} ) output=false {
@@ -121,7 +121,7 @@ component output=false {
 			} );
 		}
 
-		return renderView( view="/login/resetPassword", args=args );
+		return renderView( view="/login/resetPassword", presideObject="reset_password", id=event.getCurrentPageId(), args=args );
 	}
 
 // private helpers
