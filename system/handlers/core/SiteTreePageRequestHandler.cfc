@@ -17,6 +17,8 @@ component output=false {
 		var pageType     = event.getPageProperty( "page_type" );
 		var layout       = event.getPageProperty( "layout", "index" );
 		var validLayouts = event.getPageProperty( "layout", "index" );
+		var viewlet      = "";
+		var view         = "";
 
 		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
 			event.notFound();
@@ -25,16 +27,24 @@ component output=false {
 		event.checkPageAccess();
 
 		pageType = pageTypesService.getPageType( pageType );
-		if ( !Len( Trim( layout ) )  ) {
+		if ( !Len( Trim( layout ) ) && !pageType.isSystemPageType() ) {
 			validLayouts = pageType.listLayouts();
 			layout       = validLayouts.len() == 1 ? validLayouts[1] : "index";
 		}
 
-		if ( pageType.hasHandler() && getController().handlerExists( pageType.getViewlet() & "." & layout ) ) {
-			rc.body = renderViewlet( pageType.getViewlet() & "." & layout );
+		if ( pageType.isSystemPageType() ) {
+			viewlet = pageType.getViewlet();
+			view    = Replace( pageType.getViewlet(), ".", "/", "all" );
+		} else {
+			viewlet = pageType.getViewlet() & "." & layout;
+			view    = "page-types/#pageType.getId()#/#layout#";
+		}
+
+		if ( pageType.hasHandler() && getController().handlerExists( viewlet ) ) {
+			rc.body = renderViewlet( viewlet );
 		} else {
 			rc.body = renderView(
-				  view          = "page-types/#pageType.getId()#/#layout#"
+				  view          = view
 				, presideObject = pageType.getPresideObject()
 				, filter        = { page = pageId }
 				, groupby       = pageType.getPresideObject() & ".id" // ensure we only get a single record should the view be joining on one-to-many relationships

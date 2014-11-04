@@ -93,14 +93,37 @@ component output=false singleton=true {
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
 
-		for( var dir in autoDiscoverDirectories ) {
-			dir   = ReReplace( dir, "/$", "" );
-			var objects = DirectoryList( dir & objectsPath, false, "query", "*.cfc" );
+		for( var objectName in _getPresideObjectService().listObjects() ) {
+			if ( _getPresideObjectService().getObjectAttribute( objectName, "isPageType", false ) ) {
+				var viewlet       = _getPresideObjectService().getObjectAttribute( objectName, "pageTypeViewlet", "" );
+				var isSystemType  = _getPresideObjectService().getObjectAttribute( objectName, "isSystemPageType", false );
+				var handlerExists = Len( Trim( viewlet ) );
+				var layouts       = {};
 
-			for ( var obj in objects ) {
-				if ( obj.type eq "File" ) {
-					ids[ ReReplace( obj.name, "\.cfc$", "" ) ] = true;
+				for( var dir in autoDiscoverDirectories ) {
+					dir = ReReplace( dir, "/$", "" );
+
+					if ( !handlerExists) {
+						handlerExists = _fileExistsNoCase( dir & "/handlers/page-types/#objectName#.cfc" );
+					}
+
+					if ( !isSystemType ) {
+						var viewDir = dir & "/views/page-types/#objectName#/";
+						var layoutFiles = DirectoryList( viewDir, false, "name", "*.cfm" );
+
+						for( var file in layoutFiles ) {
+							if ( !file.startsWith( "_" ) ) {
+								layouts[ ReReplaceNoCase( file, "\.cfm$", "" ) ] = true;
+							}
+						}
+					}
 				}
+
+				_registerPageType(
+					  id         = objectName
+					, hasHandler = handlerExists
+					, layouts    = layouts.keyList()
+				);
 			}
 		}
 
@@ -126,9 +149,9 @@ component output=false singleton=true {
 			}
 
 			_registerPageType(
-				  id                   = id
-				, hasHandler           = handlerExists
-				, layouts              = layouts.keyList()
+				  id         = id
+				, hasHandler = handlerExists
+				, layouts    = layouts.keyList()
 			);
 		}
 	}
@@ -141,13 +164,13 @@ component output=false singleton=true {
 			  id                   = arguments.id
 			, name                 = _getConventionsBasePageTypeName( arguments.id )
 			, description          = _getConventionsBasePageTypeDescription( arguments.id )
-			, viewlet              = _getConventionsBasePageTypeViewlet( arguments.id )
 			, addForm              = _getConventionsBasePageTypeAddForm( arguments.id )
 			, defaultForm          = _getConventionsBasePageTypeDefaultForm( arguments.id )
 			, editForm             = _getConventionsBasePageTypeEditForm( arguments.id )
 			, presideObject        = _getConventionsBasePageTypePresideObject( arguments.id )
 			, hasHandler           = arguments.hasHandler
 			, layouts              = arguments.layouts
+			, viewlet              = poService.getObjectAttribute( arguments.id, "pageTypeViewlet", _getConventionsBasePageTypeViewlet( arguments.id ) )
 			, allowedChildTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
 			, allowedParentTypes   = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
 			, siteTemplates        = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
