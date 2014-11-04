@@ -1,6 +1,7 @@
 component output=false {
 	this.name              = ExpandPath( "/" );
 	this.sessionManagement = true;
+	this.sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 );
 
 	_setupMappings();
 
