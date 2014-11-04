@@ -328,6 +328,13 @@ component output=false singleton=true {
 		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
 	) output=false {
 		var args = arguments;
+		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+		for( var field in requiredSelectFields) {
+			if ( !args.selectFields.find( field ) ) {
+				args.selectFields.append( field );
+			}
+		}
+
 		var getNavChildren = function( parent, currentDepth ){
 			filter.parent_page = parent;
 			var result   = [];
@@ -346,12 +353,20 @@ component output=false singleton=true {
 					child.children = getNavChildren( child.id, currentDepth+1 );
 				}
 
-				result.append( {
+				var page = {
 					  id       = child.id
 					, title    = Len( Trim( child.navigation_title ?: "" ) ) ? child.navigation_title : child.title
 					, children = child.children ?: []
 					, active   = ( activeTree.find( child.id ) > 0 )
-				} );
+				};
+
+				for( var field in child ) {
+					if ( !requiredSelectFields.find( field ) ) {
+						page[ field ] = child[ field ];
+					}
+				}
+
+				result.append( page );
 			}
 
 			return result;
