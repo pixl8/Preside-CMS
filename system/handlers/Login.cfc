@@ -99,7 +99,7 @@ component output=false {
 		args.rememberMe      = args.rememberMe   ?: ( rc.rememberMe   ?: "" );
 		args.message         = args.message      ?: ( rc.message      ?: "" );
 
-		return renderView( view="/login/loginPage", args=args );
+		return renderView( view="/login/loginPage", presideObject="login", id=event.getCurrentPageId(), args=args );
 	}
 
 	private string function forgottenPassword( event, rc, prc, args={} ) output=false {

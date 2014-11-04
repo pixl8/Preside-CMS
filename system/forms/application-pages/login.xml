@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--#!autodoc
-Application Page: Login
-\n
-This form is used as the default configuration for a login page. Right now, all it does is remove the 'Access control' tab so that users cannot accidentally restrict access to the login page!
--->
-<form>
-	<tab id="access" deleted="true" />
-</form>

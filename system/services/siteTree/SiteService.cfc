@@ -111,13 +111,15 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	 * before checking valid routes
 	 */
 	public void function ensureDefaultSiteExists() output=false autodoc=true {
-		if ( !_getSiteDao().dataExists() ) {
-			_getSiteDao().insertData( useVersioning = false, data = {
-				  protocol      = "http"
-				, domain        = cgi.server_name ?: "127.0.0.1"
-				, path          = "/"
-				, name          = "Default site"
-			} );
+		transaction {
+			if ( !_getSiteDao().dataExists( useCache=false ) ) {
+				_getSiteDao().insertData( useVersioning = false, data = {
+					  protocol      = "http"
+					, domain        = cgi.server_name ?: "127.0.0.1"
+					, path          = "/"
+					, name          = "Default site"
+				} );
+			}
 		}
 	}
 
