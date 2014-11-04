@@ -22,7 +22,7 @@ component output=false {
 			setNextEvent( url=postLoginUrl );
 		}
 
-		setNextEvent( url=event.buildLink( linkTo="login" ), persistStruct={
+		setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 			  loginId      = loginId
 			, password     = password
 			, postLoginUrl = postLoginUrl
@@ -39,12 +39,12 @@ component output=false {
 
 	public void function sendResetInstructions( event, rc, prc ) output=false {
 		if ( websiteLoginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
-			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
+			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
 				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
 			} );
 		}
 
-		setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
+		setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
 			message = "LOGINID_NOT_FOUND"
 		} );
 	}
@@ -55,32 +55,32 @@ component output=false {
 		var token        = rc.token                ?: "";
 
 		if ( !websiteLoginService.validateResetPasswordToken( rc.token ?: "" ) ) {
-			setNextEvent( url=event.buildLink( linkTo="login.forgottenPassword" ), persistStruct={
+			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
 				message = "INVALID_RESET_TOKEN"
 			} );
 		}
 
 		if ( !Len( Trim( pw ) ) ) {
-			setNextEvent( url=event.buildLink( linkTo="login.resetPassword" ), persistStruct={
+			setNextEvent( url=event.buildLink( page="reset_password" ), persistStruct={
 				  message = "EMPTY_PASSWORD"
 				, token   = token
 			} );
 		}
 
 		if ( pw != confirmation ) {
-			setNextEvent( url=event.buildLink( linkTo="login.resetPassword" ), persistStruct={
+			setNextEvent( url=event.buildLink( page="reset_password" ), persistStruct={
 				  message = "PASSWORDS_DO_NOT_MATCH"
 				, token   = token
 			} );
 		}
 
 		if ( websiteLoginService.resetPassword( token=token, password=pw ) ) {
-			setNextEvent( url=event.buildLink( linkTo="login" ), persistStruct={
+			setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 				message = "PASSWORD_RESET"
 			} );
 		}
 
-		setNextEvent( url=event.buildLink( linkTo="login.resetPassword" ), persistStruct={
+		setNextEvent( url=event.buildLink( page="reset_password" ), persistStruct={
 			  message = "UNKNOWN_ERROR"
 			, token   = token
 		} );

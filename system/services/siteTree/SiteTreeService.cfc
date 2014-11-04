@@ -16,6 +16,7 @@ component output=false singleton=true {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setColdboxController( arguments.coldboxController );
 		_setI18nService( arguments.i18nService );
+
 		_ensureSystemPagesExistInTree();
 
 		return this;
@@ -822,6 +823,7 @@ component output=false singleton=true {
 	}
 
 	private void function _ensureSystemPagesExistInTree() output=false {
+		_getSiteService().ensureDefaultSiteExists();
 		for( var site in _getSiteService().listSites() ) {
 			ensureSystemPagesExistForSite( site.id );
 		}
@@ -831,7 +833,7 @@ component output=false singleton=true {
 		var parentType = pageType.getParentSystemPageType();
 		var loginSvc   = _getLoginService();
 
-		if ( Len( Trim( parentType ) ) ) {
+		if ( Len( Trim( parentType ) ) && parentType != "none" ) {
 			var parent = getPage( systemPage=parentType );
 			if ( !parent.recordCount ) {
 				_createSystemPage( _getPageTypesService().getPageType( parentType ) );
@@ -844,7 +846,7 @@ component output=false singleton=true {
 		var addPageArgs = {
 			  title         = _getI18nService().translateResource( uri=pageType.getName(), defaultValue=pageType.getid() )
 			, page_type     = pageType.getId()
-			, slug          = pageType.getId() == "homepage" ? "" : LCase( ReReplace( pageType.getId(), "\W", "-", "all" ) )
+			, slug          = pageType.getId() == "homepage" ? "" : LCase( ReReplace( pageType.getId(), "[\W_]", "-", "all" ) )
 			, active        = 1
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		};

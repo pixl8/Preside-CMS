@@ -3,7 +3,7 @@
  *
  * @isSystemPageType       true
  * @pageTypeViewlet        page-types.homepage.index
- * @parentSystemPageType
+ * @parentSystemPageType   none
  * @allowedParentPageTypes none
  * @displayName            Page type: Homepage
  */
