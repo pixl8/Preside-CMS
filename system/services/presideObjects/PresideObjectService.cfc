@@ -1618,10 +1618,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			}
 		}
 
+
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
 				if ( manyToManyObjects.keyExists( join.joinFromObject ) ) {
-					join.joinFromObject = getVersionObjectName( join.joinFromObject );
+					join.joinFromObject = join.joinFromAlias = getVersionObjectName( join.joinFromObject );
 				}
 				if ( manyToManyObjects.keyExists( join.joinToObject ) ) {
 					join.joinToObject = getVersionObjectName( join.joinToObject );
