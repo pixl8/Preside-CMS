@@ -195,7 +195,7 @@ component output=false {
 		_loadConfigurationFromExtensions();
 
 		environments = {
-            local = "^local\.,\.local$,^localhost$,^127.0.0.1$"
+            local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
         }
 
 	}

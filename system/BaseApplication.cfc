@@ -43,7 +43,6 @@ component output=false {
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
 		// if server is configured to show errors, just rethrow
-		WriteDump(exception); abort;
 		if ( _showErrors() ) {
 			throw object=arguments.exception;
 
