@@ -5,7 +5,8 @@ component output=false {
 		event.setHTTPHeader( statusCode="404" );
 		event.setHTTPHeader( name="X-Robots-Tag", value="noindex" );
 
-		return renderView( view="/errors/notFound", args=args );
+		event.initializePresideSiteteePage( systemPage="notFound" );
+		return renderView( view="/errors/notFound", presideobject="notFound", id=event.getCurrentPageId(), args=args );
 	}
 
 	private string function accessDenied( event, rc, prc, args={} ) output=false {

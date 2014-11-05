@@ -1,2 +1,7 @@
-<h1>404 Not found</h1>
-<p>The page you were looking for appears to have been moved, deleted or does not exist.</p>
+<cfparam name="args.title"        field="page.title"        editable="true" />
+<cfparam name="args.main_content" field="page.main_content" editable="true" />
+
+<cfoutput>
+	<h1>#args.title#</h1>
+	<p>#args.main_content#</p>
+</cfoutput>
