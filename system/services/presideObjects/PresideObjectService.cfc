@@ -1505,7 +1505,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				  tableName         = objects[ objJoin.joinToObject ].meta.tableName
 				, tableAlias        = objJoin.tableAlias ?: objJoin.joinToObject
 				, tableColumn       = objJoin.joinToProperty
-				, joinToTable       = objJoin.joinFromObject
+				, joinToTable       = objJoin.joinFromAlias ?: objJoin.joinFromObject
 				, joinToColumn      = objJoin.joinFromProperty
 				, type              = objJoin.type
 			};

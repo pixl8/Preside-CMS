@@ -51,6 +51,7 @@ component output=false singleton=true {
 		while( i lt ArrayLen( lookupQueue ) and StructCount( discoveredJoins ) lt ArrayLen( joinTargets ) ){
 			i++;
 
+
 			for( n=1; n lte ArrayLen( lookupQueue[ i ] ); n++ ){
 				lookupObj = lookupQueue[ i ][ n ];
 
@@ -90,6 +91,7 @@ component output=false singleton=true {
 								  type           = ( Len( Trim ( arguments.forceJoins ?: "" ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
 								, joinToObject   = backtraceNode.name
 								, joinFromObject = backtraceNode.parent
+								, joinFromAlias  = backtraceNode.parent
 							};
 
 							switch( relationship.type ) {
@@ -136,6 +138,7 @@ component output=false singleton=true {
 				);
 			}
 		}
+
 
 		return joins;
 	}
@@ -294,6 +297,7 @@ component output=false singleton=true {
 		var targetPos     = 0;
 		var joins         = [];
 		var joinAlias     = "";
+		var currentAlias  = "";
 
 		while( targetPos lt ListLen( target, "$" ) ) {
 			var targetCol    = ListGetAt( target, ++targetPos, "$" );
@@ -308,6 +312,7 @@ component output=false singleton=true {
 					  type               = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
 					, joinToObject       = relationship.pivotObject
 					, joinFromObject     = currentSource
+					, joinFromAlias      = currentSource
 					, joinFromProperty   = "id"
 					, joinToProperty     = currentSource
 					, manyToManyProperty = relationship.propertyName
@@ -319,10 +324,12 @@ component output=false singleton=true {
 				  type             = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
 				, joinToObject     = relationship.type eq "many-to-many" ? relationship.object      : relationship.object
 				, joinFromObject   = relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource
+				, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : ( relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource )
 				, joinFromProperty = relationship.type eq "many-to-many" ? relationship.object      : relationship.fk
 				, joinToProperty   = relationship.type eq "many-to-many" ? "id"                     : relationship.pk
 			};
 			currentSource = relationship.object;
+			currentAlias  = joinAlias;
 
 			if ( joinAlias neq relationship.object ) {
 				join.tableAlias = joinAlias;
