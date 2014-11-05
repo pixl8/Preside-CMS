@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab id="main">
+		<fieldset id="main">
+			<field name="active" deleted="true" />
+			<field name="teaser" deleted="true" />
+		</fieldset>
+	</tab>
+
+	<tab id="access" deleted="true" />
+	<tab id="dates" deleted="true" />
+</form>

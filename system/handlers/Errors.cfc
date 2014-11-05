@@ -9,6 +9,11 @@ component output=false {
 		return renderView( view="/errors/notFound", presideobject="notFound", id=event.getCurrentPageId(), args=args );
 	}
 
+	private string function accessDeniedPageType( event, rc, prc, args={} ) output=false {
+		args.reason = "INSUFFICIENT_PRIVILEGES";
+		return renderViewlet( event="errors.accessDenied", args=args );
+	}
+
 	private string function accessDenied( event, rc, prc, args={} ) output=false {
 		event.setHTTPHeader( statusCode="401" );
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
@@ -16,7 +21,8 @@ component output=false {
 
 		switch( args.reason ?: "" ){
 			case "INSUFFICIENT_PRIVILEGES":
-				return renderView( view="/errors/insufficientPrivileges", args=args );
+				event.initializePresideSiteteePage( systemPage="accessDenied" );
+				return renderView( view="/errors/insufficientPrivileges", presideobject="accessDenied", id=event.getCurrentPageId(), args=args );
 			default:
 				event.initializePresideSiteteePage( systemPage="login" );
 				return renderView( view="/errors/loginRequired", args=args );

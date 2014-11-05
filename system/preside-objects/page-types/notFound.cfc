@@ -1,5 +1,5 @@
 /**
- * The login page type object is used to store any fields that are distinct to the system page type 'login'
+ * The notFound page type object is used to store any fields that are distinct to the system page type '404 not found'
  *
  * @displayName           Page type: Not found
  * @isSystemPageType      true
