@@ -192,7 +192,10 @@ component output=false singleton=true {
 						}
 					}
 				} else {
-					StructAppend( arguments.page, getExtendedPageProperties( arguments.page.id, arguments.page.page_type ) );
+					if ( Len( Trim( arguments.page.page_type ?: "" ) ) ) {
+						StructAppend( arguments.page, getExtendedPageProperties( arguments.page.id, arguments.page.page_type ) );
+					}
+
 					if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 						value = arguments.page[ arguments.propertyName ];
 						if ( __valueExists( value ) ) {

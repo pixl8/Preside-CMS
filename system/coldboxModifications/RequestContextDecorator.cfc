@@ -371,7 +371,46 @@
 			p[ "slug" ] = p._hierarchy_slug;
 			StructDelete( p, "_hierarchy_slug" );
 
-			page.isApplicationPage = false;
+			prc.presidePage = page;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="initializeDummyPresideSiteTreePage" access="public" returntype="void" output="false">
+		<cfscript>
+			var sitetreeSvc = getModel( "sitetreeService" );
+			var rc          = getRequestContext().getCollection();
+			var prc         = getRequestContext().getCollection( private = true );
+			var page        = Duplicate( arguments );
+			var parentPages = "";
+
+			page.ancestors = [];
+
+			clearBreadCrumbs();
+
+			if ( !IsNull( arguments.parentpage ?: NullValue() ) && arguments.parentPage.recordCount ) {
+				page.parent_page = arguments.parentPage.id;
+
+				var ancestors = sitetreeSvc.getAncestors( id = arguments.parentPage.id );
+
+				page.ancestorList = ancestors.recordCount ? ValueList( ancestors.id ) : "";
+				page.ancestorList = ListAppend( page.ancestorList, arguments.parentPage.id );
+
+				page.permissionContext = [];
+				for( var i=ListLen( page.ancestorList ); i > 0; i-- ){
+					page.permissionContext.append( ListGetAt( page.ancestorList, i ) );
+				}
+
+				for( var ancestor in ancestors ) {
+					addBreadCrumb( title=ancestor.title, link=buildLink( page=ancestor.id ) );
+					page.ancestors.append( ancestor );
+				}
+				for( var p in arguments.parentPage ){
+					addBreadCrumb( title=p.title, link=buildLink( page=p.id ) );
+					page.ancestors.append( p );
+				}
+			}
+
+			addBreadCrumb( title=page.title ?: "", link=getCurrentUrl() );
 
 			prc.presidePage = page;
 		</cfscript>
