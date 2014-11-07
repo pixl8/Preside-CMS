@@ -361,10 +361,9 @@ component output=false singleton=true {
 							oldKey = SerializeJson( dbKey );
 							newKey = SerializeJson( foreignObj.meta.relationships[ dbKeyName ] );
 
-							shouldBeDeleted = oldKey neq newKey;
-							if ( not shouldBeDeleted ) {
-								param name="existingKeysNotToTouch.#foreignObjName#" default="";
-								existingKeysNotToTouch[ foreignObjName ] = ListAppend( existingKeysNotToTouch[ foreignObjName ], dbKeyName );
+							shouldBeDeleted = oldKey != newKey;
+							if ( !shouldBeDeleted ) {
+								existingKeysNotToTouch[ foreignObjName ] = ListAppend( existingKeysNotToTouch[ foreignObjName ] ?: "", dbKeyName );
 							}
 						}
 						break;
@@ -383,8 +382,21 @@ component output=false singleton=true {
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			for( key in obj.sql.relationships ){
-				if ( not StructKeyExists( existingKeysNotToTouch, objName ) or not ListFindNoCase( existingKeysNotToTouch[ objName ], key ) ) {
-					_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
+				if ( !ListFindNoCase( existingKeysNotToTouch[ objName ] ?: "", key ) ) {
+					transaction {
+						// try and catch around a fk deletion, no native way to delete foreign key only if exists
+						// we need to do this because apparently there's some circumstances which lead to the FK already existing
+						// despite our checks above
+						try {
+							deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
+								  foreignKeyName = key
+								, tableName      = obj.meta.tableName
+							);
+							_runSql( sql = deleteSql, dsn = obj.meta.dsn );
+						} catch( any e ) {}
+
+						_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
+					}
 				}
 			}
 		}

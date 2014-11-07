@@ -219,7 +219,7 @@ component output=false singleton=true {
 						property.setAttribute( "onUpdate", "cascade" );
 					}
 
-					keyName = "fk_#Hash( property.relatedto & objectName & propertyName )#";
+					keyName = "fk_#Hash( SerializeJson( property.getMemento() ) & objectName )#";
 
 					if ( not StructKeyExists( object.meta, "relationships" ) ) {
 						object.meta.relationships = {};
