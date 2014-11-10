@@ -34,6 +34,8 @@ component output=false singleton=true {
 
 // PUBLIC API METHODS
 	public void function reloadAll() output=false {
+		setting requesttimeout=300;
+
 		var currentBootstrap = application.cbBootstrap;
 		var newBootstrap     = new preside.system.coldboxModifications.Bootstrap(
 			  COLDBOX_CONFIG_FILE   = currentBootstrap.getCOLDBOX_CONFIG_FILE()

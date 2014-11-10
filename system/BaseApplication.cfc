@@ -81,6 +81,8 @@ component output=false {
 	}
 
 	private void function _initEveryEverything() output=false {
+		setting requesttimeout=300;
+
 		_fetchInjectedSettings();
 		_setupInjectedDatasource();
 		_initColdBox();
