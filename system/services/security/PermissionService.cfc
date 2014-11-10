@@ -337,7 +337,7 @@ component output=false singleton=true {
 	}
 
 	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
-		var regex       = Replace( _reEscape( arguments.permissionKey ), "\*", "(.*?)", "all" );
+		var regex       = "^" & Replace( _reEscape( arguments.permissionKey ), "\*", "(.*?)", "all" ) & "$";
 		var permissions = _getPermissions();
 
 		return permissions.filter( function( permKey ){
