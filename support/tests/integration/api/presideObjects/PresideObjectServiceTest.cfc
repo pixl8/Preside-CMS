@@ -296,7 +296,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_#Hash( 'object_aobject_brelated_to_a' )#" = {
+				fk_7e296e1097e3bfb3d52f5392c1280dbf = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -304,7 +304,7 @@
 					, on_update = "cascade"
 					, on_delete = "error"
 				},
-				"fk_#Hash( 'object_aobject_brelated_to_a_again' )#" = {
+				fk_66922083f33c34ee74ab1b5f8a29e97e = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -312,7 +312,7 @@
 					, on_update = "cascade"
 					, on_delete = "set null"
 				},
-				"fk_#Hash( 'object_bobject_cobject_b' )#" = {
+				fk_c1bd776589a8c9e30eefde828ad37231 = {
 					  pk_table  = "ptest_object_b"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
@@ -338,7 +338,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_#Hash( 'object_aobject_brelated_to_a' )#" = {
+				"fk_91a4e84b983e57aaf40f04389842c661" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -346,7 +346,7 @@
 					, on_update = "cascade"
 					, on_delete = "set null"
 				},
-				"fk_#Hash( 'object_aobject_cobject_b' )#" = {
+				"fk_e28955cc595b1c7278addc539059d6a4" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"

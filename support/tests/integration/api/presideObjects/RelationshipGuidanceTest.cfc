@@ -298,8 +298,8 @@
 						, sort_order = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
 					  }
 					, relationships = {
-						  "fk_#Hash( 'obj_aobj_a__join__obj_bobj_a' )#" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
-						, "fk_#Hash( 'obj_bobj_a__join__obj_bobj_b' )#" = { pk_table="pobj_obj_b", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_b", on_update="cascade", on_delete="cascade" }
+						  "fk_483dd89c3b27b3d2668fa0082762753e" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
+						, "fk_de0fc6ca5e6b26789756b428c05426ee" = { pk_table="pobj_obj_b", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_b", on_update="cascade", on_delete="cascade" }
 					  }
 				  }
 			};
