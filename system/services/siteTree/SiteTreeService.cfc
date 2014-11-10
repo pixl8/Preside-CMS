@@ -869,7 +869,7 @@ component output=false singleton=true {
 			, slug                    = pageType.getId() == "homepage" ? "" : LCase( ReReplace( pageType.getId(), "[\W_]", "-", "all" ) )
 			, active                  = 1
 			, userId                  = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
-			, exclude_from_navigation = true
+			, exclude_from_navigation = pageType.getId() != "homepage"
 		};
 		if ( Len( Trim( parent ?: "" ) ) ) {
 			addPageArgs.parent_page = parent;
