@@ -197,9 +197,11 @@ component output="false" singleton=true {
 
 			return result;
 		};
+		var labelField = _getPresideOBjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
+		    labelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 
 		args.selectFields.delete( "label" );
-		args.selectFields.append( "#arguments.objectName#.${labelfield} as label" );
+		args.selectFields.append( labelField );
 		args.selectFields.delete( "id" );
 		args.selectFields.append( "#arguments.objectName#.id" );
 
