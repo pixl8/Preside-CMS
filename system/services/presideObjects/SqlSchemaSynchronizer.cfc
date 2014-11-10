@@ -245,7 +245,7 @@ component output=false singleton=true {
 						, newName       = "__deprecated__" & column.column_name
 						, dbType        = column.type_name
 						, nullable      = true // its deprecated, must be nullable!
-						, maxLength     = Val( IsNull( column.column_size ) ? 0 : column.column_size )
+						, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
 						, primaryKey    = column.is_primarykey
 						, autoIncrement = column.is_autoincrement
 					);

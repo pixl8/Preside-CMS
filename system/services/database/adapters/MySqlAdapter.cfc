@@ -456,4 +456,14 @@ component output=false singleton=true {
 				return "cf_sql_varchar";
 		}
 	}
+
+	public boolean function doesColumnTypeRequireLengthSpecification( required string sqlDataType ) output=false {
+		switch( arguments.sqlDataType ){
+			case "char":
+			case "varchar":
+				return true;
+		}
+
+		return false;
+	}
 }
