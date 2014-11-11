@@ -10,11 +10,15 @@ component output=false {
 		args.emailAddress = args.to[1]       ?: "";
 		args.userName     = args.userName    ?: "";
 
-		return {
+		var message = {
 			  subject  = "Password reset instructions"
 			, textBody = renderView( view="/emailTemplates/resetCmsPassword/text", args=args )
 			, htmlBody = renderView( view="/emailTemplates/resetCmsPassword/html", args=args )
 		};
+
+		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody } );
+
+		return message;
 	}
 
 }
