@@ -164,6 +164,53 @@ component output=false autodoc=true displayName="Notification Service" {
 		return _getNotificationDao().deleteData( filter = { id=arguments.notificationIds } );
 	}
 
+	/**
+	 * Get subscribed topics for a user. Returns an array of the topic ids
+	 *
+	 * @userId.hint ID of the user who's subscribed topics we want to fetch
+	 *
+	 */
+	public array function getUserSubscriptions( required string userId ) output=false autodoc=true {
+		var subscriptions = _getSubscriptionDao().selectData( selectFields=[ "topic" ], filter={ security_user=arguments.userId } );
+
+		return subscriptions.recordCount ? ValueArray( subscriptions.topic ) : [];
+	}
+
+
+	/**
+	 * Saves a users subscription preferences
+	 *
+	 * @userId.hint ID of the user who's subscribed topics we want to save
+	 * @topics.hint Array of topics to subscribe to
+	 *
+	 */
+	public void function saveUserSubscriptions( required string userId, required array topics ) output=false autodoc=true {
+		var subscriptionDao = _getSubscriptionDao();
+		var forDeletion     = [];
+
+		transaction {
+			var currentSubscriptions = getUserSubscriptions( arguments.userId );
+
+			for( var topic in currentSubscriptions ) {
+				if ( !arguments.topics.find( topic ) ) {
+					forDeletion.append( topic );
+				}
+			}
+			if ( forDeletion.len() ) {
+				subscriptionDao.deleteData( filter={ security_user = arguments.userId, topic=forDeletion } );
+			}
+
+			for( var topic in arguments.topics ) {
+				if ( !currentSubscriptions.find( topic ) ) {
+					subscriptionDao.insertData({
+						  security_user = arguments.userId
+						, topic         = topic
+					});
+				}
+			}
+		}
+	}
+
 	public void function createNotificationConsumers( required string notificationId, required string topic ) output=false {
 		var subscribers = _getSubscriptionDao().selectData( selectFields=[ "security_user" ], filter={ topic=arguments.topic } );
 

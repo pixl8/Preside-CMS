@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Notifications: preferences form
+
+This form is used for managing a user's notification preferences
+-->
+<form>
+	<tab id="basic" sortorder="10" >
+		<fieldset id="basic" sortorder="10">
+			<field sortorder="10" name="subscriptions" control="notificationTopicPicker" label="cms:notifications.preferences.form.topics.label" help="cms:notifications.preferences.form.topics.help" />
+		</fieldset>
+	</tab>
+</form>

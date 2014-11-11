@@ -1,6 +1,7 @@
 component output="false" extends="preside.system.base.AdminHandler" {
 
 	property name="notificationService" inject="notificationService";
+	property name="messageBox"          inject="coldbox:plugin:messageBox";
 
 	public void function preHandler( event ) output=false {
 		super.preHandler( argumentCollection=arguments );
@@ -64,6 +65,30 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			default:
 				readAction( argumentCollection=arguments );
 		}
+	}
+
+	public void function preferences( event, rc, prc ) output=false {
+		prc.pageTitle    = translateResource( uri="cms:notifications.preferences.title" );
+		prc.pageSubTitle = translateResource( uri="cms:notifications.preferences.subtitle" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:notifications.preferences.breadcrumbTitle" )
+			, link  = event.buildAdminLink( linkTo="notifications.preferences" )
+		);
+
+		prc.subscriptions = notificationService.getUserSubscriptions( userId=event.getAdminUserId() );
+		prc.topics        = notificationService.listTopics();
+	}
+
+	public void function savePreferencesAction( event, rc, prc ) output=false {
+		notificationService.saveUserSubscriptions(
+			  userId = event.getAdminUserId()
+			, topics = ListToArray( rc.subscriptions ?: "" )
+		);
+
+		messageBox.info( translateResource( uri="cms:notifications.preferences.saved.confirmation" ) );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
 	}
 
 // VIEWLETS
