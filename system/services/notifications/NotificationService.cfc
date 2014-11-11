@@ -9,15 +9,19 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @notificationDao.inject    presidecms:object:admin_notification
 	 * @subscriptionDao.inject    presidecms:object:admin_notification_subscription
 	 * @consumerDao.inject        presidecms:object:admin_notification_consumer
+	 * @userDao.inject            presidecms:object:security_user
 	 * @coldboxController.inject  coldbox
 	 * @configuredTopics.inject   coldbox:setting:notificationTopics
+	 * @interceptorService.inject coldbox:InterceptorService
 	 */
-	public any function init( required any notificationDao, required any consumerDao, required any subscriptionDao, required any coldboxController, required array configuredTopics ) output=false {
+	public any function init( required any notificationDao, required any consumerDao, required any subscriptionDao, required any userDao, required any coldboxController, required array configuredTopics, required any interceptorService ) output=false {
 		_setNotificationDao( arguments.notificationDao );
 		_setConsumerDao( arguments.consumerDao );
 		_setSubscriptionDao( arguments.subscriptionDao );
 		_setColdboxController( arguments.coldboxController );
 		_setConfiguredTopics( arguments.configuredTopics );
+		_setInterceptorService( arguments.interceptorService );
+		_setUserDao( arguments.userDao );
 
 		return this;
 	}
@@ -32,15 +36,21 @@ component output=false autodoc=true displayName="Notification Service" {
 	 *
 	 */
 	public string function createNotification( required string topic, required string type, required struct data ) output=false autodoc=true {
-		var notificationId = _getNotificationDao().insertData( data={
+		var args = Duplicate( arguments );
+
+		_announceInterception( "preCreateNotification", args );
+
+		args.notificationId = _getNotificationDao().insertData( data={
 			  topic = arguments.topic
 			, type  = arguments.type
 			, data  = SerializeJson( arguments.data )
 		} );
 
-		createNotificationConsumers( notificationId, topic );
+		_announceInterception( "postCreateNotification", args );
 
-		return notificationId;
+		createNotificationConsumers( args.notificationId, topic );
+
+		return args.notificationId;
 	}
 
 	/**
@@ -171,6 +181,12 @@ component output=false autodoc=true displayName="Notification Service" {
 	 *
 	 */
 	public array function getUserSubscriptions( required string userId ) output=false autodoc=true {
+		if ( _getUserDao().dataExists( filter={ id=arguments.userId, subscribed_to_all_notifications=true } ) ) {
+			var topics = Duplicate( listTopics() );
+			topics.append( "all" );
+			return topics;
+		}
+
 		var subscriptions = _getSubscriptionDao().selectData( selectFields=[ "topic" ], filter={ security_user=arguments.userId } );
 
 		return subscriptions.recordCount ? ValueArray( subscriptions.topic ) : [];
@@ -188,7 +204,16 @@ component output=false autodoc=true displayName="Notification Service" {
 		var subscriptionDao = _getSubscriptionDao();
 		var forDeletion     = [];
 
+		if ( arguments.topics.find( "all" ) ) {
+			arguments.topics = [];
+
+			_getUserDao().updateData( id=arguments.userId, data={ subscribed_to_all_notifications=true } );
+		} else {
+			_getUserDao().updateData( id=arguments.userId, data={ subscribed_to_all_notifications=false } );
+		}
+
 		transaction {
+
 			var currentSubscriptions = getUserSubscriptions( arguments.userId );
 
 			for( var topic in currentSubscriptions ) {
@@ -212,17 +237,29 @@ component output=false autodoc=true displayName="Notification Service" {
 	}
 
 	public void function createNotificationConsumers( required string notificationId, required string topic ) output=false {
-		var subscribers = _getSubscriptionDao().selectData( selectFields=[ "security_user" ], filter={ topic=arguments.topic } );
+		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true } );
+		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user" ], filter={ topic=arguments.topic } );
+		var subscibers = {};
 
-		for( var subscriber in subscribers ){
+		for( var subscriber in subscribedToAll ){ subscribers[ subscriber.id ] = true; }
+		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = true; }
+
+		for( var userId in subscribers ){
+			_announceInterception( "preCreateNotificationConsumer", arguments );
 			_getConsumerDao().insertData( data={
 				  admin_notification = arguments.notificationId
-				, security_user      = subscriber.security_user
+				, security_user      = userId
 			} );
 		}
 	}
 
 // PRIVATE HELPERS
+	private any function _announceInterception( required string state, struct interceptData={} ) output=false {
+		_getInterceptorService().processState( argumentCollection=arguments );
+
+		return interceptData.interceptorResult ?: {};
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getNotificationDao() output=false {
@@ -258,5 +295,19 @@ component output=false autodoc=true displayName="Notification Service" {
 	}
 	private void function _setConfiguredTopics( required any configuredTopics ) output=false {
 		_configuredTopics = arguments.configuredTopics;
+	}
+
+	private any function _getInterceptorService() output=false {
+		return _interceptorService;
+	}
+	private void function _setInterceptorService( required any interceptorService ) output=false {
+		_interceptorService = arguments.interceptorService;
+	}
+
+	private any function _getUserDao() output=false {
+		return _userDao;
+	}
+	private void function _setUserDao( required any userDao ) output=false {
+		_userDao = arguments.userDao;
 	}
 }
