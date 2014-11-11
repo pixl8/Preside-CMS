@@ -1,0 +1,7 @@
+.notifications-listing-table .unread > td {
+  background-color: #ffffff;
+  font-weight: bold;
+}
+.notifications-listing-table .unread > td strong {
+  font-style: italic;
+}

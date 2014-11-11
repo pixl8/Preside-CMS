@@ -23,7 +23,7 @@
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
 		, useMultiActions = false
-		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables" )
+		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=websiteUserManager.getUsersForAjaxDataTables&topic=#( rc.topic ?: '' )#" )
 		, gridFields      = [ "active", "login_id", "display_name", "email_address" ]
 	} )#
 

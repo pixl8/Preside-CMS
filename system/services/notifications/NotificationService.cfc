@@ -51,7 +51,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	public numeric function getUnreadNotificationCount( required string userId ) output=false autodoc=true {
 		var queryResult = _getConsumerDao().selectData(
 			  selectFields = [ "Count(*) as notification_count" ]
-			, filter       = { security_user = arguments.userId, dismissed = false, read = false }
+			, filter       = { security_user = arguments.userId, read = false }
 		);
 
 		return Val( queryResult.notification_count ?: "" );
@@ -67,7 +67,6 @@ component output=false autodoc=true displayName="Notification Service" {
 			  selectFields = [ "admin_notification.topic", "Count(*) as notification_count" ]
 			, filter       = {
 				  "admin_notification_consumer.security_user" = arguments.userId
-				, "admin_notification_consumer.dismissed"     = false
 				, "admin_notification_consumer.read"          = false
 			  }
 			, groupBy      = "admin_notification.topic"
@@ -80,25 +79,26 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
 	 * @maxRows.hint maximum number of notifications to retrieve
 	 */
-	public array function getUnreadNotifications( required string userId, numeric maxRows=10 ) output=false autodoc=true {
+	public array function getNotifications( required string userId, numeric maxRows=10, string topic="" ) output=false autodoc=true {
+		var filter  = {
+			  "admin_notification_consumer.security_user" = arguments.userId
+		};
+
+		if ( Len( Trim( arguments.topic ) ) ) {
+			filter[ "admin_notification.topic" ] = arguments.topic;
+		}
+
 		var records = _getConsumerDao().selectData(
-			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data" ]
+			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data", "admin_notification.type", "admin_notification.datecreated", "admin_notification_consumer.read" ]
 			, maxRows      = arguments.maxRows
-			, filter       = {
-				  "admin_notification_consumer.security_user" = arguments.userId
-				, "admin_notification_consumer.dismissed"     = false
-				, "admin_notification_consumer.read"          = false
-			  }
+			, filter       = filter
 			, orderby      = "admin_notification_consumer.datecreated desc"
 		);
 		var notifications = [];
 
 		for( var record in records ) {
-			notifications.append( {
-				  id    = record.id
-				, topic = record.topic
-				, data  = Len( Trim( record.data ?: "" ) ) ? DeserializeJson( record.data ) : {}
-			} );
+			record.data = Len( Trim( record.data ?: "" ) ) ? DeserializeJson( record.data ) : {};
+			notifications.append( record );
 		}
 
 		return notifications;
@@ -123,6 +123,28 @@ component output=false autodoc=true displayName="Notification Service" {
 	 */
 	public array function listTopics() output=false autodoc=true {
 		return _getConfiguredTopics();
+	}
+
+	/**
+	 * Marks notifications as read for a given user
+	 *
+	 * @notificationIds.hint Array of notification IDs to mark as read
+	 * @userId.hint          The id of the user to mark as read for
+	 */
+	public numeric function markAsRead( required array notificationIds, required string userId ) output=false autodoc=true {
+		return _getConsumerDao().updateData(
+			  filter = { admin_notification=arguments.notificationIds, security_user=arguments.userId }
+			, data   = { read = true }
+		);
+	}
+
+	/**
+	 * Completely discards the given notifications
+	 *
+	 * @notificationIds.hint Array of notification IDs to dismissed
+	 */
+	public numeric function dismiss( required array notificationIds ) output=false autodoc=true {
+		return _getNotificationDao().deleteData( filter = { id=arguments.notificationIds } );
 	}
 
 	public void function createNotificationConsumers( required string notificationId, required string topic ) output=false {

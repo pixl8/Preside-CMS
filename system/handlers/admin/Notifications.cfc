@@ -10,7 +10,44 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 
 	public void function index( event, rc, prc ) output=false {
-		prc.pageTitle = translateResource( "cms:notifications.page.title" )
+		prc.pageTitle    = translateResource( "cms:notifications.page.title" );
+		prc.pageSubTitle = translateResource( "cms:notifications.page.subtitle" );
+
+		prc.notifications = notificationService.getNotifications( userId=event.getAdminUserId(), maxRows=100, topic=rc.topic ?: "" );
+	}
+
+	public void function view( event, rc, prc ) output=false {
+
+	}
+
+	public void function readAction( event, rc, prc ) output=false {
+		var notifications = ListToArray( rc.id ?: "" );
+
+		if ( notifications.len() ) {
+			notificationService.markAsRead( notifications, event.getAdminUserId() );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
+	}
+
+	public void function dismissAction( event, rc, prc ) output=false {
+		var notifications = ListToArray( rc.id ?: "" );
+
+		if ( notifications.len() ) {
+			notificationService.dismiss( notifications );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
+	}
+
+	public void function multiAction( event, rc, prc ) output=false {
+		switch( rc.multiAction ?: "read" ) {
+			case "dismiss":
+				dismissAction( argumentCollection=arguments );
+				break;
+			default:
+				readAction( argumentCollection=arguments );
+		}
 	}
 
 // VIEWLETS

@@ -6,5 +6,4 @@ component output="false" extends="preside.system.base.SystemPresideObject" noLab
 	property name="security_user"      relationship="many-to-one" required=true uniqueindexes="notificationUser|2" ondelete="cascade";
 
 	property name="read"      type="boolean" dbtype="boolean" required=false default=false indexes="read";
-	property name="dismissed" type="boolean" dbtype="boolean" required=false default=false indexes="dismissed";
 }
