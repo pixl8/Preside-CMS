@@ -37,14 +37,27 @@ component output=false autodoc=true displayName="Notification Service" {
 	 */
 	public string function createNotification( required string topic, required string type, required struct data ) output=false autodoc=true {
 		var args = Duplicate( arguments );
-
-		_announceInterception( "preCreateNotification", args );
-
-		args.notificationId = _getNotificationDao().insertData( data={
+		var data = {
 			  topic = arguments.topic
 			, type  = arguments.type
 			, data  = SerializeJson( arguments.data )
+		};
+		data.data_hash = LCase( Hash( data.data ) );
+
+		var existingNotification = _getNotificationDao().selectData( filter={
+			  topic     = data.topic
+			, type      = data.type
+			, data_hash = data.data_hash
 		} );
+
+		if ( existingNotification.recordCount ) {
+			createNotificationConsumers( existingNotification.id, args.topic );
+			return existingNotification.id;
+		}
+
+		_announceInterception( "preCreateNotification", args );
+
+		args.notificationId = _getNotificationDao().insertData( data=data );
 
 		_announceInterception( "postCreateNotification", args );
 
@@ -245,11 +258,16 @@ component output=false autodoc=true displayName="Notification Service" {
 		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = true; }
 
 		for( var userId in subscribers ){
-			_announceInterception( "preCreateNotificationConsumer", arguments );
-			_getConsumerDao().insertData( data={
-				  admin_notification = arguments.notificationId
-				, security_user      = userId
-			} );
+			var filter = { admin_notification=arguments.notificationId, security_user=userId };
+			transaction {
+				if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
+					_announceInterception( "preCreateNotificationConsumer", arguments );
+					_getConsumerDao().insertData( data={
+						  admin_notification = arguments.notificationId
+						, security_user      = userId
+					} );
+				}
+			}
 		}
 	}
 
