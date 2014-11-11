@@ -58,27 +58,46 @@ component output=false autodoc=true displayName="Notification Service" {
 	}
 
 	/**
+	 * Returns counts of unread notifications by topics for the given user
+	 *
+	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
+	 */
+	public query function getUnreadTopics( required string userId ) output=false autodoc=true {
+		return _getConsumerDao().selectData(
+			  selectFields = [ "admin_notification.topic", "Count(*) as notification_count" ]
+			, filter       = {
+				  "admin_notification_consumer.security_user" = arguments.userId
+				, "admin_notification_consumer.dismissed"     = false
+				, "admin_notification_consumer.read"          = false
+			  }
+			, groupBy      = "admin_notification.topic"
+		);
+	}
+
+	/**
 	 * Returns the latest unread notifications for the given user id. Returns an array of structs, each struct contains id and data keys.
 	 *
 	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
 	 * @maxRows.hint maximum number of notifications to retrieve
 	 */
 	public array function getUnreadNotifications( required string userId, numeric maxRows=10 ) output=false autodoc=true {
-		var records = _getNotificationDao().selectData(
-			  selectFields = [ "id", "data" ]
+		var records = _getConsumerDao().selectData(
+			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data" ]
 			, maxRows      = arguments.maxRows
 			, filter       = {
 				  "admin_notification_consumer.security_user" = arguments.userId
 				, "admin_notification_consumer.dismissed"     = false
 				, "admin_notification_consumer.read"          = false
 			  }
+			, orderby      = "admin_notification_consumer.datecreated desc"
 		);
 		var notifications = [];
 
 		for( var record in records ) {
 			notifications.append( {
-				  id   = record.id
-				, data = Len( Trim( record.data ?: "" ) ) ? DeserializeJson( record.data ) : {}
+				  id    = record.id
+				, topic = record.topic
+				, data  = Len( Trim( record.data ?: "" ) ) ? DeserializeJson( record.data ) : {}
 			} );
 		}
 
@@ -91,9 +110,9 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @topic.hint Topic of the notification
 	 * @data.hint  Data associated with the notification
 	 */
-	public string function renderNotification( required string topic, required struct data ) output=false autodoc=true {
+	public string function renderNotification( required string topic, required struct data, required string context ) output=false autodoc=true {
 		return _getColdboxController().renderViewlet(
-			  event = "renderers.notification." & arguments.topic
+			  event = "renderers.notifications." & arguments.topic & "." & arguments.context
 			, args  = arguments.data
 		);
 	}

@@ -23941,7 +23941,7 @@ img.presidecms .editable-click:hover {
 .presidecms .modal-open .navbar-fixed-bottom {
   margin-right: 0;
 }
-.presidecms .navbar-container .dropdown-menu.dropdown-close.pull-right {
+.presidecms .navbar-container .user-menu.dropdown-close.pull-right {
   right: 0;
   width: 100%;
 }

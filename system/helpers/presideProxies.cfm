@@ -56,6 +56,10 @@
 		<cfreturn getController().getWireBox().getInstance( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderNotification" access="public" returntype="any" output="false">
+		<cfreturn getController().getWireBox().getInstance( "notificationService" ).renderNotification( argumentCollection = arguments ) />
+	</cffunction>
+
 
 
 <!--- WIDGETS --->
