@@ -105,6 +105,23 @@ component output=false autodoc=true displayName="Notification Service" {
 	}
 
 	/**
+	 * Returns a specific notification
+	 *
+	 * @id.hint ID of the notification
+	 */
+	public struct function getNotification( required string id ) output=false autodoc=true {
+		var record = _getNotificationDao().selectData( id=arguments.id );
+
+		for( var r in record ) {
+			r.data = DeserializeJSON( r.data );
+			return r;
+		}
+
+		return {};
+	}
+
+
+	/**
 	 * Renders the given notification topic
 	 *
 	 * @topic.hint Topic of the notification

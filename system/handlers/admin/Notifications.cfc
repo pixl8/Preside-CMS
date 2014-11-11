@@ -21,7 +21,19 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function view( event, rc, prc ) output=false {
+		prc.notification = notificationService.getNotification( id=rc.id ?: "" );
+		if ( !prc.notification.count() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
+		}
+		notificationService.markAsRead( [ rc.id ], event.getAdminUserId() );
 
+		prc.pageTitle    = translateResource( uri="cms:notifications.view.title" );
+		prc.pageSubTitle = translateResource( uri="cms:notifications.view.subtitle", data=[ renderContent( "datetime", prc.notification.datecreated ) ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:notifications.view.breadcrumbTitle" )
+			, link  = event.buildAdminLink( linkTo="notifications.view", queryString="id=" & rc.id )
+		);
 	}
 
 	public void function readAction( event, rc, prc ) output=false {
