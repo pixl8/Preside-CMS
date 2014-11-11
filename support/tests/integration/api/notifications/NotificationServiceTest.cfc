@@ -52,7 +52,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  selectFields = [ "Count(*) as notification_count" ]
 			, filter       = "admin_notification_consumer.security_user is null or ( admin_notification_consumer.security_user = :admin_notification_consumer.security_user and admin_notification_consumer.dismissed = 0 and admin_notification_consumer.read = 0 )"
 			, filterParams = { "admin_notification_consumer.security_user" = dummyUserId }
-			, forceJoins   = "left"
 		).$results( dummyRecords );
 
 		super.assertEquals( dummyCount, svc.getUnreadNotificationCount( dummyUserId ) );

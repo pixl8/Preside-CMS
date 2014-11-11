@@ -13,6 +13,9 @@
 
 			<div class="navbar-header pull-right" role="navigation">
 				<ul class="nav ace-nav">
+					<li class="green">
+						#renderViewlet( "admin.notifications.notificationNavPromo" )#
+					</li>
 					<li>
 						<a data-toggle="dropdown" href="##" class="dropdown-toggle">
 							<img class="nav-user-photo" src="http://www.gravatar.com/avatar/#LCase( Hash( LCase( event.getAdminUserDetails().email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( event.getAdminUserDetails().known_as )#" />

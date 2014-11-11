@@ -49,11 +49,9 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @userId.hint id of the admin user who's unread notification count we wish to retrieve
 	 */
 	public numeric function getUnreadNotificationCount( required string userId ) output=false autodoc=true {
-		var queryResult = _getNotificationDao().selectData(
+		var queryResult = _getConsumerDao().selectData(
 			  selectFields = [ "Count(*) as notification_count" ]
-			, forceJoins   = "left"
-			, filter       = "admin_notification_consumer.security_user is null or ( admin_notification_consumer.security_user = :admin_notification_consumer.security_user and admin_notification_consumer.dismissed = 0 and admin_notification_consumer.read = 0 )"
-			, filterParams = { "admin_notification_consumer.security_user" = arguments.userId }
+			, filter       = { security_user = arguments.userId, dismissed = false, read = false }
 		);
 
 		return Val( queryResult.notification_count ?: "" );
