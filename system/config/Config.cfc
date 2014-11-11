@@ -103,6 +103,7 @@ component output=false {
 		settings.serverErrorViewlet        = "errors.serverError";
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
+		settings.notificationTopics        = [];
 
 		settings.adminSideBarItems = [
 			  "sitetree"
