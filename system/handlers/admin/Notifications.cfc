@@ -6,6 +6,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		super.preHandler( argumentCollection=arguments );
 
 		prc.pageIcon = "fa-bell";
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:notifications.breadcrumbTitle" )
+			, link  = event.buildAdminLink( linkTo="notifications" )
+		);
 	}
 
 
