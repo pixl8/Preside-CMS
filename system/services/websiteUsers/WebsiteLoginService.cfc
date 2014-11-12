@@ -124,6 +124,38 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	}
 
 	/**
+	 * Sends welcome email to the supplied user. Returns true if successful, false otherwise.
+	 *
+	 * @loginId.hint The id of the user
+	 */
+	public boolean function sendWelcomeEmail( required string userId ) output=false autodoc=true {
+		var userRecord = _getUserDao().selectData( id=arguments.userId );
+
+		if ( userRecord.recordCount ) {
+			var resetToken       = _createTemporaryResetToken();
+			var resetKey         = _createTemporaryResetKey();
+			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
+			var resetTokenExpiry = _createTemporaryResetTokenExpiry();
+
+			_getUserDao().updateData( id=userRecord.id, data={
+				  reset_password_token        = resetToken
+				, reset_password_key          = hashedResetKey
+				, reset_password_token_expiry = DateAdd( "d", 10000, Now() )
+			} );
+
+			_getEmailService().send(
+				  template = "websiteWelcome"
+				, to       = [ userRecord.email_address ]
+				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name }
+			);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Sends password reset instructions to the supplied user. Returns true if successful, false otherwise.
 	 *
 	 * @loginId.hint Either the email address or login id of the user
