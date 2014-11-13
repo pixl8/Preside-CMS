@@ -41,7 +41,7 @@ component output=false {
 		}
 
 		if ( pageType.hasHandler() && getController().handlerExists( viewlet ) ) {
-			rc.body = renderViewlet( viewlet );
+			rc.body = renderViewlet( event=viewlet, prePostExempt=false );
 		} else {
 			rc.body = renderView(
 				  view          = view
