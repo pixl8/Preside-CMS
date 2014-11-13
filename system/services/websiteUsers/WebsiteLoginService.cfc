@@ -66,6 +66,19 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	}
 
 	/**
+	 * Validates the supplied password against the a user (defaults to currently logged in user)
+	 *
+	 * @password.hint The user supplied password
+	 * @userId.hint   The id of the user who's password we are to validate. Defaults to the currently logged in user.
+	 *
+	 */
+	public boolean function validatePassword( required string password, string userId=getLoggedInUserId() ) output=false autodoc=true {
+		var userRecord = _getUserDao().selectData( id=arguments.userId, selectFields=[ "password" ] );
+
+		return userRecord.recordCount && _validatePassword( plainText=arguments.password, hashed=userRecord.password );
+	}
+
+	/**
 	 * Logs the currently logged in user out of their session
 	 *
 	 */
@@ -193,7 +206,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 * @token.hint The token to validate
 	 */
-	public boolean function validateResetPasswordToken( required string token ) output=false {
+	public boolean function validateResetPasswordToken( required string token ) output=false autodoc=true {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
 		return record.recordCount == 1;
@@ -205,7 +218,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @token.hint    The temporary reset password token to look the user up with
 	 * @password.hint The new password
 	 */
-	public boolean function resetPassword( required string token, required string password ) output=false {
+	public boolean function resetPassword( required string token, required string password ) output=false autodoc=true {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
 		if ( record.recordCount ) {
@@ -217,6 +230,21 @@ component output=false singleton=true autodoc=true displayName="Website login se
 			);
 		}
 		return false;
+	}
+
+	/**
+	 * Changes a password
+	 *
+	 * @password.hint The new password
+	 * @userId.hint   ID of the user who's password we wish to change (defaults to currently logged in user id)
+	 */
+	public boolean function changePassword( required string password, string userId=getLoggedInUserId() ) output=false autodoc=true {
+		var hashedPw = _getBCryptService().hashPw( arguments.password );
+
+		return _getUserDao().updateData(
+			  id   = arguments.userId
+			, data = { password=hashedPw }
+		);
 	}
 
 // private helpers
