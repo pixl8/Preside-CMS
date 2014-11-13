@@ -317,6 +317,7 @@ component output=false singleton=true {
 					, joinToProperty     = currentSource
 					, manyToManyProperty = relationship.propertyName
 				} );
+				currentAlias = relationship.pivotObject;
 			}
 
 			joinAlias = ListAppend( joinAlias, targetCol, "$" );
