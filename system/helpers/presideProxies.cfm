@@ -134,7 +134,7 @@
 		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
 	</cffunction>
 
-	<cffunction name="getLoggedInUserId" access="public" returntype="boolean" output="false">
+	<cffunction name="getLoggedInUserId" access="public" returntype="string" output="false">
 		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
 	</cffunction>
 
