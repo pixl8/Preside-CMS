@@ -81,7 +81,7 @@ component output=false {
 	}
 
 	private void function _initEveryEverything() output=false {
-		setting requesttimeout=300;
+		setting requesttimeout=1200;
 
 		_fetchInjectedSettings();
 		_setupInjectedDatasource();
