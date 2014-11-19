@@ -30,6 +30,21 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		ArrayAppend( instance.presideRoutes, arguments.routeHandler );
 	}
 
+// overriding the import routes method and making it not catch and rethrow errors (more useful if it just lets the error throw itself with its original message and stack trace, etc.)
+	public any function includeRoutes( required string location ) output=false {
+		if( ListLast( arguments.location, "." ) != "cfm" ){
+			arguments.location &= ".cfm";
+		}
+
+		// Try to remove pathInfoProvider, just in case
+		StructDelete( variables, "pathInfoProvider" );
+		StructDelete( this     , "pathInfoProvider" );
+
+		$include( arguments.location );
+
+		return this;
+	}
+
 // private utility methods
 	private void function _detectIncomingSite( event, interceptData ) output=false {
 		var pathInfo = super.getCGIElement( "path_info", event );

@@ -4,6 +4,7 @@ component extends="coldbox.system.web.Controller" output=false {
 		super.init( argumentCollection = arguments );
 
 		services.handlerService = new preside.system.coldboxModifications.services.HandlerService( this );
+		instance.wireBox	    = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 	}
 
 	public boolean function handlerExists( required string event ) output=false {
