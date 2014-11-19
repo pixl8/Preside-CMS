@@ -50,12 +50,7 @@ component output=false {
 		} else {
 
 			thread name=CreateUUId() e=arguments.exception {
-	 			log log="Exception" type="Error" text=SerializeJson( {
-	 				  message    = ( attributes.e.message    ?: "" )
-	 				, detail     = ( attributes.e.detail     ?: "" )
-	 				, sql        = ( attributes.e.sql        ?: "" )
-	 				, tagContext = ( attributes.e.tagContext ?: [] )
-	 			} );
+	 			log log="Exception" type="Error" text="Message: [#( attributes.e.message ?: "" )#]. Sql: [#( attributes.e.sql ?: "" )#]. Detail: [#( attributes.e.detail ?: "" )#]";
 			}
 
 			content reset=true;
