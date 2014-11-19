@@ -48,19 +48,35 @@ component output=false singleton=true {
 				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
 
 				if ( not tableExists ) {
-					_createObjectInDb(
-						  generatedSql = obj.sql
-						, dsn          = obj.meta.dsn
-						, tableName    = obj.meta.tableName
-					);
+					try {
+						_createObjectInDb(
+							  generatedSql = obj.sql
+							, dsn          = obj.meta.dsn
+							, tableName    = obj.meta.tableName
+						);
+					} catch( any e ) {
+						throw(
+							  type    = "presideobjectservice.dbsync.error"
+							, message = "An error occurred while attempting to create a table for the [#objName#] object."
+							, detail  = "SQL: [#( e.sql ?: '' )#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
+						);
+					}
 				} elseif ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.version ) {
-					_updateDbTable(
-						  tableName      = obj.meta.tableName
-						, generatedSql   = obj.sql
-						, dsn            = obj.meta.dsn
-						, indexes        = obj.meta.indexes
-						, columnVersions = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
-					);
+					try {
+						_updateDbTable(
+							  tableName      = obj.meta.tableName
+							, generatedSql   = obj.sql
+							, dsn            = obj.meta.dsn
+							, indexes        = obj.meta.indexes
+							, columnVersions = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
+						);
+					} catch( any e ) {
+						throw(
+							  type    = "presideobjectservice.dbsync.error"
+							, message = "An error occurred while attempting to alter a table for the [#objName#] object. If the issue relates to foreign keys or indexes, manually deleting the foreign keys from the database will often resolve the issue."
+							, detail  = "SQL: [#( e.sql ?: '' )#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
+						);
+					}
 				}
 			}
 			_syncForeignKeys( objects );
@@ -375,7 +391,15 @@ component output=false singleton=true {
 						  foreignKeyName = dbKeyName
 						, tableName      = dbKey.fk_table
 					);
-					_runSql( sql = deleteSql, dsn = obj.meta.dsn );
+					try {
+						_runSql( sql = deleteSql, dsn = obj.meta.dsn );
+					} catch( any e ) {
+						throw(
+							  type    = "presideobjectservice.dbsync.error"
+							, message = "An error occurred while attempting to delete a foreign key [#dbKeyName#] for the [#objName#] object."
+							, detail  = "SQL: [#deleteSql#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
+						);
+					}
 				}
 			}
 		}
@@ -395,7 +419,15 @@ component output=false singleton=true {
 							_runSql( sql = deleteSql, dsn = obj.meta.dsn );
 						} catch( any e ) {}
 
-						_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
+						try {
+							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
+						} catch( any e ) {
+							throw(
+								  type    = "presideobjectservice.dbsync.error"
+								, message = "An error occurred while attempting to create a foreign key for the [#objName#] object."
+								, detail  = "SQL: [#obj.sql.relationships[ key ].createSql#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
+							);
+						}
 					}
 				}
 			}
