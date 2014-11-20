@@ -252,7 +252,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	public void function createNotificationConsumers( required string notificationId, required string topic ) output=false {
 		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true } );
 		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user" ], filter={ topic=arguments.topic } );
-		var subscibers = {};
+		var subscribers = {};
 
 		for( var subscriber in subscribedToAll ){ subscribers[ subscriber.id ] = true; }
 		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = true; }
