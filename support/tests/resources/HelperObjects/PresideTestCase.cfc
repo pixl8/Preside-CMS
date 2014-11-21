@@ -84,6 +84,10 @@
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
 				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+
+				mockFilterService = getMockBox().createStub();
+				mockFilterService.$( "getFilter", {} );
+
 				if ( !StructKeyExists( arguments, "coldbox" ) ) {
 					var event   = getMockbox().createStub();
 
@@ -100,6 +104,7 @@
 					, sqlRunner              = sqlRunner
 					, relationshipGuidance   = relationshipGuidance
 					, presideObjectDecorator = presideObjectDecorator
+					, filterService          = mockFilterService
 					, objectCache            = cachebox.getCache( "SystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
 					, coldboxController      = coldbox

@@ -15,6 +15,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @sqlRunner.inject              SqlRunner
 	 * @relationshipGuidance.inject   RelationshipGuidance
 	 * @presideObjectDecorator.inject PresideObjectDecorator
+	 * @filterService.inject          presideObjectSavedFilterService
 	 * @objectCache.inject            cachebox:SystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
@@ -28,6 +29,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any     sqlRunner
 		, required any     relationshipGuidance
 		, required any     presideObjectDecorator
+		, required any     filterService
 		, required any     objectCache
 		, required any     defaultQueryCache
 		, required any     coldboxController
@@ -41,6 +43,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setSqlRunner( arguments.sqlRunner );
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
+		_setFilterService( arguments.filterService );
 		_setObjectCache( arguments.objectCache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
@@ -151,6 +154,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          any     filter            = {}
 		,          struct  filterParams      = {}
 		,          array   extraFilters      = []
+		,          array   savedFilters      = []
 		,          string  orderBy           = ""
 		,          string  groupBy           = ""
 		,          numeric maxRows           = 0
@@ -197,6 +201,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filter            = arguments.filter
 			, filterParams      = arguments.filterParams
 			, extraFilters      = arguments.extraFilters
+			, savedFilters      = arguments.savedFilters
 			, adapter           = adapter
 			, columnDefinitions = obj.properties
 		);
@@ -436,6 +441,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          any     filter                  = {}
 		,          struct  filterParams            = {}
 		,          array   extraFilters            = []
+		,          array   savedFilters            = []
 		,          boolean forceUpdateAll          = false
 		,          boolean updateManyToManyRecords = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
@@ -492,6 +498,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filter            = arguments.filter
 			, filterParams      = arguments.filterParams
 			, extraFilters      = arguments.extraFilters
+			, savedFilters      = arguments.savedFilters
 			, adapter           = adapter
 			, columnDefinitions = obj.properties
 		);
@@ -612,6 +619,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          any     filter         = {}
 		,          struct  filterParams   = {}
 		,          array   extraFilters   = []
+		,          array   savedFilters   = []
 		,          boolean forceDeleteAll = false
 	) output=false autodoc=true {
 		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
@@ -640,6 +648,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filter            = arguments.filter
 			, filterParams      = arguments.filterParams
 			, extraFilters      = arguments.extraFilters
+			, savedFilters      = arguments.savedFilters
 			, adapter           = adapter
 			, columnDefinitions = obj.properties
 		);
@@ -685,18 +694,9 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * \t    , filter     = { category = rc.category }
 	 * \t);
 	 *
-	 * @objectName.hint         Name of the object in which the records may or may not exist
-	 * @filter.hint             Filter the records queried, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @fromVersionTable.hint   Whether or not to query against the version history table
-	 * @maxVersion.hint         If querying against the version history table, maximum version to select
-	 * @specificVersion.hint    If querying against the version history table, specific version to select
+	 * @objectName.hint Name of the object in which the records may or may not exist
 	 */
-	public boolean function dataExists(
-		  required string  objectName
-		,          any     filter       = {}
-		,          struct  filterParams = {}
-	) output=false autodoc=true {
+	public boolean function dataExists( required string  objectName ) output=false autodoc=true {
 		var args = arguments;
 		args.useCache     = false;
 		args.selectFields = [ "1" ];
@@ -1888,6 +1888,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any    filter
 		, required struct filterParams
 		, required array  extraFilters
+		, required array  savedFilters
 		, required any    adapter
 		, required struct columnDefinitions
 	) output=false {
@@ -1900,6 +1901,21 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		if ( IsStruct( result.filter ) && arguments.extraFilters.len() ) {
 			result.filterParams = result.filter;
+		}
+
+		for( var savedFilter in arguments.savedFilters ){
+			savedFilter = _getFilterService().getFilter( savedFilter );
+
+			savedFilter.filter       = savedFilter.filter       ?: {};
+			savedFilter.filterParams = savedFilter.filterParams ?: {};
+
+			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
+			result.filter = _mergeFilters(
+				  filter1    = result.filter
+				, filter2    = savedFilter.filter
+				, dbAdapter  = arguments.adapter
+				, tableAlias = arguments.objectName
+			);
 		}
 
 		for( var extraFilter in arguments.extraFilters ){
@@ -2041,6 +2057,13 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 	private void function _setPresideObjectDecorator( required any presideObjectDecorator ) output=false {
 		_presideObjectDecorator = arguments.presideObjectDecorator;
+	}
+
+	private any function _getFilterService() output=false {
+		return _filterService;
+	}
+	private void function _setFilterService( required any filterService ) output=false {
+		_filterService = arguments.filterService;
 	}
 
 	private any function _getObjectCache() output=false {
