@@ -54,7 +54,7 @@ component output=false singleton=true {
 	}
 
 	public void function finalizeMergedObject( required any object ) output=false {
-		var meta = arguments.object.meta;
+		var meta = arguments.object.meta = arguments.object.meta ?: {};
 		var componentName = ListLast( meta.name, "." );
 
 		_announceInterception( "postReadPresideObject", { objectMeta=meta } );

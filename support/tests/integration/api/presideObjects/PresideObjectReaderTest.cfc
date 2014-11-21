@@ -1,53 +1,43 @@
 <cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
 
-
-	<cffunction name="test01_readObject_shouldDeriveTableName_fromComponentName_whenAttributeNotSupplied" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object();
-			var object       = getReader().readObject( targetObject );
-
-			super.assertEquals( "pobj_simple_object", object.tableName );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test02_readObject_shouldGetTableName_fromComponent_whenAttributeSupplied" returntype="void">
+	<cffunction name="test01_readObject_shouldGetTableName_fromComponent_whenAttributeSupplied" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.simple_object_with_attributes();
 			var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "pobj_test_table", object.tableName   );
+			super.assertEquals( "test_table", object.tableName   );
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test03_readObject_shouldAllowInheritanceOfTableName" returntype="void">
+	<cffunction name="test02_readObject_shouldAllowInheritanceOfTableName" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance();
 			var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "pobj_test_table", object.tableName   );
+			super.assertEquals( "test_table", object.tableName   );
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test04_readObject_shouldAllowInheritanceOverridesOfTableName" returntype="void">
+	<cffunction name="test03_readObject_shouldAllowInheritanceOverridesOfTableName" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_overrides();
 			var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "pobj_override_test_table", object.tableName   );
+			super.assertEquals( "override_test_table", object.tableName   );
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test05_readObject_shouldReadInAllSimpleAttributesWithInheritance" returntype="void">
+	<cffunction name="test04_readObject_shouldReadInAllSimpleAttributesWithInheritance" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_and_custom_attributes();
 			var object       = getReader().readObject( targetObject );
 
-			super.assertEquals( "pobj_override_test_table", object.tableName   );
+			super.assertEquals( "override_test_table", object.tableName   );
 			super.assertEquals( "test", object.someattribute );
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test06_readObject_shouldNotReadStandardComponentAttributes_suchAsOutputAndPersist" returntype="void">
+	<cffunction name="test05_readObject_shouldNotReadStandardComponentAttributes_suchAsOutputAndPersist" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.simple_object_with_inheritance_and_custom_attributes();
 			var object       = getReader().readObject( targetObject );
@@ -65,93 +55,38 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test07_readObject_shouldReturnDefaultPresidePropeties_whenNotDefinedInTheComponent" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object();
-			var object       = getReader().readObject( targetObject );
-			var expectedResult = {
-				  id           = { name="id"          , type="string", dbtype="varchar" , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
-				, label        = { name="label"       , type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
-				, datecreated  = { name="datecreated" , type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
-				, datemodified = { name="datemodified", type="date"  , dbtype="datetime", control="none"     , maxLength="0" , relationship="none", relatedto="none", generator="none", required="true" }
-			};
-
-			super.assertEquals( expectedResult, _propertiesToStruct( object.properties ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test08_readObject_shouldReturnDefaultPresidePropertiesWithAttributesMergedWithThoseDefinedInComponent" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.object_with_redifined_standard_properties();
-			var object       = getReader().readObject( targetObject );
-			var expectedResult = {
-				  id           = { name="id"          , label="Test ID"           , type="numeric", dbtype="integer" , control="none"      , maxLength="9" , relationship="none", relatedto="none", generator="AUTOINCREMENT", required="true", pk="true"  }
-				, label        = { name="label"       , label="Test Label"        , type="string" , dbtype="varchar" , control="textinput" , maxLength="250", relationship="none", relatedto="none", generator="none"         , required="true"  }
-				, datecreated  = { name="datecreated" , label="Test Created"      , type="date"   , dbtype="datetime", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
-				, datemodified = { name="datemodified", label="Test Last modified", type="date"   , dbtype="datetime", control="datepicker", maxLength="0" , relationship="none", relatedto="none", generator="none"         , required="false" }
-			};
-
-			super.assertEquals( expectedResult, _propertiesToStruct( object.properties ) );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test09_readObject_shouldReturnPropertiesDefinedInComponentMixedInWithDefaultPropertyAttributes" returntype="void">
+	<cffunction name="test06_readObject_shouldReturnPropertiesDefinedInComponent" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  id                = { name="id"                                     , type="string" , dbtype="varchar" , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
-				, label             = { name="label"                                  , type="string" , dbtype="varchar" , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datecreated       = { name="datecreated"                            , type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datemodified      = { name="datemodified"                           , type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, test_property         = { name="test_property"                              , type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }
-				, related_prop          = { name="related_prop"                               , type="string" , dbtype="varchar"  , control="objectpicker", maxLength="35" , relationship="many-to-one", relatedto="someobject", generator="none", required="false" }
-				, another_property      = { name="another_property"     , label="My property" , type="date"   , dbtype="datetime" , control="datepicker"  , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, some_numeric_property = { name="some_numeric_property", label="Numeric prop", type="numeric", dbtype="tinyint"  , control="spinner"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false", minValue="1", maxValue="10" }
+				  test_property         = { type="any" }
+				, related_prop          = { type="any",                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
+				, another_property      = { type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
+				, some_numeric_property = { type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
 			};
 
-			super.assertEquals( expectedResult, _propertiesToStruct( object.properties ) );
+			super.assertEquals( expectedResult, object.properties );
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test10_readObject_shouldReturnPropertiesDefinedInComponentMixedInWithInheritedProperties" returntype="void">
+	<cffunction name="test07_readObject_shouldReturnPropertiesDefinedInComponentMixedInWithInheritedProperties" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties_and_inheritance();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  id                = { name="id"               ,                       type="string" , dbtype="varchar" , control="none"        , maxLength="35" , relationship="none"       , relatedto="none"      , generator="UUID", required="true", pk="true"  }
-				, label             = { name="label"            ,                       type="string" , dbtype="varchar" , control="textinput"   , maxLength="250" , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datecreated       = { name="datecreated"      ,                       type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, datemodified      = { name="datemodified"     ,                       type="date"   , dbtype="datetime", control="none"        , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, test_property         = { name="test_property"        , label="New label"   , type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }
-				, related_prop          = { name="related_prop"         ,                       type="string" , dbtype="varchar"  , control="objectpicker", maxLength="35" , relationship="many-to-one", relatedto="someobject", generator="none", required="false" }
-				, another_property      = { name="another_property"     , label="My property" , type="date"   , dbtype="datetime" , control="datepicker"  , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="true"  }
-				, some_numeric_property = { name="some_numeric_property", label="Numeric prop", type="numeric", dbtype="tinyint"  , control="spinner"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false", minValue="1", maxValue="10" }
-				, new_property          = { name="new_property"         , label="New property", type="string" , dbtype="varchar"  , control="default"     , maxLength="0"  , relationship="none"       , relatedto="none"      , generator="none", required="false" }
+				  test_property         = { type="any", label="New label" }
+				, new_property          = { type="any", label="New property" }
+				, related_prop          = { type="any",                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
+				, another_property      = { type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
+				, some_numeric_property = { type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
 			};
 
-			super.assertEquals( expectedResult, _propertiesToStruct( object.properties ) );
+			super.assertEquals( expectedResult, object.properties );
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test11_readObject_shouldReturnListOfIndexes_whenDefinedInProperties" returntype="void">
-		<cfscript>
-			var targetObject    = new tests.resources.presideObjectReader.object_with_indexes();
-			var object          = getReader().readObject( targetObject );
-			var expectedIndexes = {
-				  ix_object_with_indexes_1          = { unique="false", fields="field1,field2,field5" }
-				, ix_object_with_indexes_2          = { unique="false", fields="field6,field3"        }
-				, ix_object_with_indexes_3          = { unique="false", fields="field4,field1"        }
-				, ux_object_with_indexes_uniqueness = { unique="true" , fields="field2,field1"        }
-				, ux_object_with_indexes_uniq       = { unique="true" , fields="field3"               }
-			}
-
-			super.assert( StructKeyExists( object, 'indexes' ), "No index key was returned" );
-			super.assertEquals( expectedIndexes, object.indexes );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test12_readObject_shouldReturnAListOfPublicMethods_whenComponentHasPublicMethods" returntype="void">
+	<cffunction name="test08_readObject_shouldReturnAListOfPublicMethods_whenComponentHasPublicMethods" returntype="void">
 		<cfscript>
 			var targetObject    = new tests.resources.presideObjectReader.object_with_methods();
 			var object          = getReader().readObject( targetObject );
@@ -162,31 +97,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test13_readObject_shouldReturnAListOfDbTableFields" returntype="void">
-		<cfscript>
-			var targetObject   = new tests.resources.presideObjectReader.object_with_non_db_field_properties();
-			var object         = getReader().readObject( targetObject );
-			var expectedFields = [ "id","label","datemodified","datecreated","field1","field2" ];
-			var field          = "";
-
-			super.assert( StructKeyExists( object, 'dbFieldList' ), "No dbFieldList key was returned" );
-			for( field in expectedFields ){
-				super.assert( ListFindNoCase( object.dbFieldList, field ), "The field, #field#, was expected to be returned as a db field but was not." );
-			}
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test14_readObject_shouldReturnDefaultDsn_whenNoDsnSpecified" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object();
-			var object       = getReader().readObject( targetObject );
-
-			super.assert( StructKeyExists( object, 'dsn' ), "No dsn key was was returned" );
-			super.assertEquals( "default_dsn", object.dsn );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test15_readObject_shouldReturnSpecifiedDsn" returntype="void">
+	<cffunction name="test09_readObject_shouldReturnSpecifiedDsn" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.simple_object_with_dsn();
 			var object       = getReader().readObject( targetObject );
@@ -196,30 +107,14 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test17_readObject_shouldReturnSpecifiedTablePrefixPrependedToTableName" returntype="void">
+	<cffunction name="test10_getAutoPivotObjectDefinition_shouldCreateObjectDefinitionBasedOnTwoSourcePkObjects" returntype="void">
 		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.simple_object_with_prefix();
-			var object       = getReader().readObject( targetObject );
+			var reader = getReader();
+			var objA = { meta = reader.readObject( new tests.resources.presideObjectReader.simple_object() ) };
+			var objB = { meta = reader.readObject( new tests.resources.presideObjectReader.simple_object_with_prefix() ) };
 
-			super.assert( StructKeyExists( object, 'tableName' ), "No tableName key was was returned" );
-			super.assertEquals( "psys_simple_object_with_prefix", object.tableName );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test18_readObject_shouldDeriveRelatedToFromPropertyName_whenRelationshipSpecifiedAndNoRelatedToIsSpecified" returntype="void">
-		<cfscript>
-			var targetObject = new tests.resources.presideObjectReader.object_with_conventional_relationship();
-			var object       = getReader().readObject( targetObject );
-
-			super.assert( StructKeyExists( object.properties, "simple_object" ) );
-			super.assertEquals( "simple_object", object.properties.simple_object.relatedTo );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test19_getAutoPivotObjectDefinition_shouldCreateObjectDefinitionBasedOnTwoSourcePkObjects" returntype="void">
-		<cfscript>
-			var objA = getReader().readObject( new tests.resources.presideObjectReader.simple_object() );
-			var objB = getReader().readObject( new tests.resources.presideObjectReader.simple_object_with_prefix() );
+			reader.finalizeMergedObject( objA );
+			reader.finalizeMergedObject( objB );
 
 			var expectedResult = {
 				  dbFieldList = "simple_object,simple_object_with_prefix,sort_order"
@@ -236,8 +131,8 @@
 				  }
 			};
 			var autoObject = getReader().getAutoPivotObjectDefinition(
-				  objectA = objA
-				, objectB = objB
+				  objectA = objA.meta
+				, objectB = objB.meta
 			);
 
 			autoObject.properties = _propertiesToStruct( autoObject.properties );
@@ -246,35 +141,13 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test20_readObject_shouldProvideArrayOfPropertyNamesInOrderOfDefinitionInComponent" returntype="void">
+	<cffunction name="test11_readObject_shouldProvideArrayOfPropertyNamesInOrderOfDefinitionInComponent" returntype="void">
 		<cfscript>
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties();
 			var object       = getReader().readObject( targetObject );
-			var expected     = [ "id","label","test_property","related_prop","another_property","some_numeric_property","datecreated","datemodified" ];
+			var expected     = [ "test_property","related_prop","another_property","some_numeric_property"];
 
 			super.assertEquals( expected, object.propertyNames );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test21_readObject_shouldSetManyToManyFieldsDbTypeToNone" returntype="void">
-		<cfscript>
-			var targetObject = CreateObject( "tests.resources.presideObjectReader.object_with_many_to_many_field" );
-			var object       = getReader().readObject( targetObject );
-
-			super.assertEquals( "none", object.properties.dave.dbtype );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test22_readObject_shouldNotDefineLabelField_whenObjectSpecifiesItsOwnWithTheLabelFieldAttribute" returntype="void">
-		<cfscript>
-			var targetObject = CreateObject( "tests.resources.presideObjectReader.object_with_different_label_field" );
-			var object       = getReader().readObject( targetObject );
-
-			var expectedProps = [ "datecreated","datemodified","email","id" ];
-
-			object.propertyNames.sort( "textNoCase" );
-
-			super.assertEquals( expectedProps, object.propertyNames );
 		</cfscript>
 	</cffunction>
 
