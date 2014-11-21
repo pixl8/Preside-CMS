@@ -118,10 +118,11 @@
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
 			var records = dataManagerService.getRecordsForAjaxSelect(
-				  objectName  = rc.object  ?: ""
-				, maxRows     = rc.maxRows ?: 1000
-				, searchQuery = rc.q       ?: ""
-				, ids         = ListToArray( rc.values ?: "" )
+				  objectName   = rc.object  ?: ""
+				, maxRows      = rc.maxRows ?: 1000
+				, searchQuery  = rc.q       ?: ""
+				, savedFilters = ListToArray( rc.savedFilters ?: "" )
+				, ids          = ListToArray( rc.values ?: "" )
 			);
 
 			event.renderData( type="json", data=records );

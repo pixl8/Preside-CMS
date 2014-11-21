@@ -177,6 +177,7 @@ component output="false" singleton=true {
 		  required string  objectName
 		,          array   ids          = []
 		,          array   selectFields = [ "id", "label" ]
+		,          array   savedFilters = []
 		,          string  searchQuery  = ""
 		,          numeric maxRows      = 1000
 		,          string  orderBy      = "label asc"
@@ -184,10 +185,11 @@ component output="false" singleton=true {
 		var result = [];
 		var records = "";
 		var args   = {
-			  objectName       = arguments.objectName
-			, selectFields     = arguments.selectFields
-			, maxRows          = arguments.maxRows
-			, orderBy          = arguments.orderBy
+			  objectName   = arguments.objectName
+			, selectFields = arguments.selectFields
+			, savedFilters = arguments.savedFilters
+			, maxRows      = arguments.maxRows
+			, orderBy      = arguments.orderBy
 		};
 		var transormResult = function( required struct result ) output=false {
 			result.text = result.label;
