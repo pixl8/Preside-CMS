@@ -23,28 +23,36 @@ component output=false singleton=true {
 		var componentName = ListLast( meta.name, "." );
 		var key           = "";
 
+		meta.properties    = meta.properties ?: StructNew();
+		meta.propertyNames = meta.propertyNames ?: [];
+
+
+		return meta;
+	}
+
+	public void function finalizeMergedObject( required any object ) output=false {
+		var meta = arguments.object.meta;
+		var componentName = ListLast( meta.name, "." );
+
+		_announceInterception( "postReadPresideObject", { objectMeta=meta } );
 
 		meta.tablePrefix   = meta.tablePrefix   ?: _getTablePrefix();
 		meta.tableName     = meta.tableName     ?: componentName;
 		meta.versioned     = meta.versioned     ?: true;
 		meta.dsn           = meta.dsn           ?: _getDsn();
-		meta.properties    = meta.properties    ?: StructNew();
-		meta.dbFieldList   = meta.dbFieldList   ?: "";
-		meta.propertyNames = meta.propertyNames ?: ArrayNew(1);
+		meta.propertyNames = meta.propertyNames ?: [];
+		meta.properties    = meta.properties    ?: {};
 
-		_announceInterception( "postReadPresideObject", { objectMeta=meta } );
 
 		_defineLabelField( meta );
+		_addDefaultsToProperties( meta.properties );
 		_mergeSystemPropertyDefaults( meta );
 		_fixOrderOfProperties( meta );
-		meta.properties = _convertPropertiesToBeans( meta.properties );
 
-		meta.tableName = meta.tablePrefix & meta.tableName;
-
-
-		meta.indexes = _discoverIndexes( meta.properties, componentName );
-
-		return meta;
+		meta.dbFieldList = _calculateDbFieldList( meta.properties );
+		meta.properties  = _convertPropertiesToBeans( meta.properties );
+		meta.tableName   = meta.tablePrefix & meta.tableName;
+		meta.indexes     = _discoverIndexes( meta.properties, componentName );
 	}
 
 	public struct function getAutoPivotObjectDefinition( required struct objectA, required struct objectB ) output=false {
@@ -111,7 +119,6 @@ component output=false singleton=true {
 
 		param name="arguments.meta.properties"    default=StructNew( "linked" );
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
-		param name="arguments.meta.dbFieldList"   default="";
 
 		for( propName in orderedProps ){
 			for( prop in arguments.properties ) {
@@ -121,10 +128,6 @@ component output=false singleton=true {
 					}
 
 					arguments.meta.properties[ prop.name ] = _readProperty( prop, arguments.meta.properties[ prop.name ] );
-
-					if ( not ListFindNoCase( arguments.meta.dbFieldList, prop.name ) and ( arguments.meta.properties[ prop.name ].dbType ?: "" ) neq "none" ) {
-						arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, prop.name );
-					}
 
 					if ( not arguments.meta.propertyNames.find( prop.name ) ) {
 						ArrayAppend( arguments.meta.propertyNames, prop.name );
@@ -150,8 +153,16 @@ component output=false singleton=true {
 	}
 
 	private struct function _readProperty( required struct property, required struct inheritedProperty ) output=false {
-		var prop              = Duplicate( arguments.property );
-		var isCoreProperty    = ListFindNoCase( "id,label,datecreated,datemodified", prop.name );
+		var prop = Duplicate( arguments.property );
+
+		StructAppend( prop, inheritedProperty, false );
+
+		StructDelete( prop, "name" );
+
+		return prop;
+	}
+
+	private void function _addDefaultsToProperties( required struct properties ) output=false {
 		var defaultAttributes = {
 			  type         = "string"
 			, dbtype       = "varchar"
@@ -163,27 +174,36 @@ component output=false singleton=true {
 			, required     = "false"
 		};
 
+		for( var propName in properties ){
+			var prop           = properties[ propName ];
+			var isCoreProperty = ListFindNoCase( "id,label,datecreated,datemodified", propName );
 
-		if ( prop.type eq "any" ) {
-			StructDelete( prop, "type" );
+			if ( ( prop.type ?: "" ) == "any" ) {
+				StructDelete( prop, "type" );
+			}
+			if ( not isCoreProperty ) {
+				StructAppend( prop, defaultAttributes, false );
+			}
+
+			if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
+				prop.relatedTo = propName;
+
+				if ( prop.relationship == "many-to-many" ) {
+					prop.dbtype = "none";
+				}
+			}
 		}
+	}
 
-		if ( not isCoreProperty ) {
-			StructAppend( prop, inheritedProperty, false );
-			StructAppend( prop, defaultAttributes, false );
-		}
-
-		if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
-			prop.relatedTo = prop.name;
-
-			if ( prop.relationship == "many-to-many" ) {
-				prop.dbtype = "none";
+	private string function _calculateDbFieldList( required struct properties ) output=false {
+		var list = [];
+		for( var propName in arguments.properties ){
+			if ( ( arguments.properties[ propName ].dbtype ?: "" ) != "none" ) {
+				list.append( propName );
 			}
 		}
 
-		StructDelete( prop, "name" );
-
-		return prop;
+		return list.toList();
 	}
 
 	private void function _mergeSystemPropertyDefaults( required struct meta ) output=false {
@@ -201,7 +221,6 @@ component output=false singleton=true {
 		} elseif ( !arguments.meta.noLabel ) {
 			arguments.meta.properties[ "label" ] = defaults[ "label" ];
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
-			arguments.meta.dbFieldList = ListPrepend( arguments.meta.dbFieldList, "label" );
 		}
 
 		if ( arguments.meta.propertyNames.find( "id" ) ) {
@@ -209,7 +228,6 @@ component output=false singleton=true {
 		} else {
 			arguments.meta.properties[ "id" ] = defaults[ "id" ];
 			ArrayPrepend( arguments.meta.propertyNames, "id" );
-			arguments.meta.dbFieldList = ListPrepend( arguments.meta.dbFieldList, "id" );
 		}
 
 		if ( arguments.meta.propertyNames.find( "datecreated" ) ) {
@@ -217,7 +235,6 @@ component output=false singleton=true {
 		} else {
 			arguments.meta.properties[ "datecreated" ] = defaults[ "datecreated" ];
 			ArrayAppend( arguments.meta.propertyNames, "datecreated" );
-			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "datecreated" );
 		}
 
 		if ( arguments.meta.propertyNames.find( "datemodified" ) ) {
@@ -225,12 +242,7 @@ component output=false singleton=true {
 		} else {
 			arguments.meta.properties[ "datemodified" ] = defaults[ "datemodified" ];
 			ArrayAppend( arguments.meta.propertyNames, "datemodified" );
-			arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "datemodified" );
 		}
-
-		// if ( arguments.meta.isPageType ) {
-		// 	_injectPageTypeFields( arguments.meta );
-		// }
 	}
 
 	private struct function _discoverIndexes( required struct properties, required string objectName ) output=false {

@@ -1235,12 +1235,12 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			objects[ objName ].append( obj );
 
 			_announceInterception( state="postLoadPresideObject", interceptData={ objectName=objName, object=obj } );
-
-			dsns[ obj.meta.dsn ] = 1;
 		}
 
 		objects = _mergeObjects( objects );
-
+		for( objName in objects ){
+			dsns[ objects[ objName ].meta.dsn ] = 1
+		}
 
 		if ( StructCount( objects ) ) {
 			_getRelationshipGuidance().setupRelationships( objects );
@@ -1263,6 +1263,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			for( var i=2; i lte unMergedObjects[ objName ].len(); i++ ) {
 				merged[ objName ] = new Merger().mergeObjects( merged[ objName ], unMergedObjects[ objName ][ i ] );
 			}
+
+			_getObjectReader().finalizeMergedObject( merged[ objName ] );
 		}
 		return merged;
 	}

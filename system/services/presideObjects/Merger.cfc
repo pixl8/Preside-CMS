@@ -18,8 +18,8 @@ component output=false singleton=true hint="I do the logic for merging two objec
 	private struct function _mergeObjectProperties( required struct propsA, required struct propsB, required struct objectAMeta ) output=false {
 		for( var propName in propsA ) {
 			if ( StructKeyExists( propsB, propName ) ) {
-				var attribsA = propsA[ propName ].getMemento();
-				var attribsB = propsB[ propName ].getMemento();
+				var attribsA = propsA[ propName ];
+				var attribsB = propsB[ propName ];
 
 				if ( IsBoolean( attribsB.deleted ?: "" ) && attribsB.deleted ) {
 					StructDelete( propsA, propName );
@@ -27,19 +27,19 @@ component output=false singleton=true hint="I do the logic for merging two objec
 					continue;
 				}
 				StructAppend( attribsA, attribsB );
-				propsA[ propName ] = new Property( argumentCollection=attribsA );
+				// propsA[ propName ] = new Property( argumentCollection=attribsA );
 			}
 		}
 		for( var propName in propsB ) {
-			if ( !StructKeyExists( propsA, propName ) && !( IsBoolean( propsB[ propName ].getAttribute( "deleted", "" ) ) && propsB[ propName ].getAttribute( "deleted" ) ) ) {
+			if ( !StructKeyExists( propsA, propName ) && !( IsBoolean( propsB[ propName ].deleted ?: "" ) && propsB[ propName ].deleted ) ) {
 				var prop = propsA[ propName ] = propsB[ propName ];
 
-				if ( not ListFindNoCase( objectAMeta.dbFieldList, prop.name ) and objectAMeta.properties[ prop.name ].dbType neq "none" ) {
-					objectAMeta.dbFieldList = ListAppend( objectAMeta.dbFieldList, prop.name );
-				}
+				// if ( not ListFindNoCase( objectAMeta.dbFieldList, propName ) and objectAMeta.properties[ propName ].dbType neq "none" ) {
+				// 	objectAMeta.dbFieldList = ListAppend( objectAMeta.dbFieldList, propName );
+				// }
 
-				if ( not objectAMeta.propertyNames.find( prop.name ) ) {
-					ArrayAppend( objectAMeta.propertyNames, prop.name );
+				if ( not objectAMeta.propertyNames.find( propName ) ) {
+					ArrayAppend( objectAMeta.propertyNames, propName );
 				}
 			}
 		}
