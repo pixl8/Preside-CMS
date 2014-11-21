@@ -16,6 +16,29 @@ component output=false singleton=true {
 
 
 // PUBLIC API METHODS
+	public struct function readObjects( required array objectPaths ) output=false {
+		var objects = {};
+
+		for( var objPath in arguments.objectPaths ){
+			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
+
+			var objName = ListLast( objPath, "/" );
+			var obj     = {};
+
+			obj.instance = CreateObject( "component", objPath );
+			obj.meta     = readObject( obj.instance );
+
+			objects[ objName ] = objects[ objName ] ?: [];
+			objects[ objName ].append( obj );
+
+			_announceInterception( state="postLoadPresideObject", interceptData={ objectName=objName, object=obj } );
+		}
+
+		objects = _mergeObjects( objects );
+
+		return objects;
+	}
+
 	public struct function readObject( required any object ) output=false {
 		_announceInterception( "preReadPresideObject", { object=object } );
 
@@ -90,6 +113,22 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
+	private struct function _mergeObjects( required struct unMergedObjects ) output=false {
+		var merged = {};
+		var merger = new Merger();
+
+		for( var objName in unMergedObjects ) {
+			merged[ objName ] = unMergedObjects[ objName ][ 1 ];
+
+			for( var i=2; i lte unMergedObjects[ objName ].len(); i++ ) {
+				merged[ objName ] = new Merger().mergeObjects( merged[ objName ], unMergedObjects[ objName ][ i ] );
+			}
+
+			finalizeMergedObject( merged[ objName ] );
+		}
+		return merged;
+	}
+
 	private struct function _mergeExtendedObjectMeta( required struct meta ) output=false {
 		var merged = {};
 		var prop   = "";

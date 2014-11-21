@@ -31,9 +31,5 @@ component extends="coldbox.system.Interceptor" output=false {
 		if ( not arguments.meta.propertyNames.find( "page" ) ) {
 			ArrayAppend( arguments.meta.propertyNames, "page" );
 		}
-
-		// if ( not ListFindNoCase( arguments.meta.dbFieldList, "page" ) ) {
-		// 	arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "page" );
-		// }
 	}
 }

@@ -50,7 +50,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setCacheMaps( {} );
 		_setInterceptorService( arguments.interceptorService );
 
-		_registerInterceptionPoints();
 		_loadObjects();
 
 		if ( arguments.reloadDb ) {
@@ -1213,32 +1212,15 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 // PRIVATE HELPERS
 	private void function _loadObjects() output=false {
-		var objectPaths   = _getAllObjectPaths();
-		var cache         = _getObjectCache();
-		var objPath       = "";
-		var objects       = {};
-		var obj           = "";
-		var objName       = "";
-		var dsns          = {};
+		var objectPaths = _getAllObjectPaths();
 
 		_announceInterception( state="preLoadPresideObjects", interceptData={ objectPaths=objectPaths } );
 
-		for( objPath in objectPaths ){
-			_announceInterception( state="preLoadPresideObject", interceptData={ objectPath=objPath } );
+		var objects = _getObjectReader().readObjects( objectPaths );
+		var cache   = _getObjectCache();
+		var dsns    = {};
 
-			objName      = ListLast( objPath, "/" );
-			obj          = {};
-			obj.instance = CreateObject( "component", objPath );
-			obj.meta     = _getObjectReader().readObject( obj.instance );
-
-			objects[ objName ] = objects[ objName ] ?: [];
-			objects[ objName ].append( obj );
-
-			_announceInterception( state="postLoadPresideObject", interceptData={ objectName=objName, object=obj } );
-		}
-
-		objects = _mergeObjects( objects );
-		for( objName in objects ){
+		for( var objName in objects ){
 			dsns[ objects[ objName ].meta.dsn ] = 1
 		}
 
@@ -1251,22 +1233,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		cache.set( "PresideObjectService: dsns"   , StructKeyArray( dsns ) );
 
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
-	}
-
-	private struct function _mergeObjects( required struct unMergedObjects ) output=false {
-		var merged = {};
-		var merger = new Merger();
-
-		for( var objName in unMergedObjects ) {
-			merged[ objName ] = unMergedObjects[ objName ][ 1 ];
-
-			for( var i=2; i lte unMergedObjects[ objName ].len(); i++ ) {
-				merged[ objName ] = new Merger().mergeObjects( merged[ objName ], unMergedObjects[ objName ][ i ] );
-			}
-
-			_getObjectReader().finalizeMergedObject( merged[ objName ] );
-		}
-		return merged;
 	}
 
 	private struct function _getAllObjects() output=false {
@@ -1983,10 +1949,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		}
 
 		return newData;
-	}
-
-	private void function _registerInterceptionPoints() output=false {
-		_getInterceptorService().appendInterceptionPoints( customPoints=[  ] );
 	}
 
 // SIMPLE PRIVATE PROXIES

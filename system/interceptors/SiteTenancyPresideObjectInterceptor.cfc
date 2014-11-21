@@ -113,9 +113,5 @@ component extends="coldbox.system.Interceptor" output=false {
 		if ( not arguments.meta.propertyNames.find( "site" ) ) {
 			ArrayAppend( arguments.meta.propertyNames, "site" );
 		}
-
-		// if ( not ListFindNoCase( arguments.meta.dbFieldList, "site" ) ) {
-		// 	arguments.meta.dbFieldList = ListAppend( arguments.meta.dbFieldList, "site" );
-		// }
 	}
 }
