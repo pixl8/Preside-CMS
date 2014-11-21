@@ -23,20 +23,16 @@ component output=false singleton=true hint="I do the logic for merging two objec
 
 				if ( IsBoolean( attribsB.deleted ?: "" ) && attribsB.deleted ) {
 					StructDelete( propsA, propName );
+					objectAMeta.propertyNames.delete( propName );
 
 					continue;
 				}
 				StructAppend( attribsA, attribsB );
-				// propsA[ propName ] = new Property( argumentCollection=attribsA );
 			}
 		}
 		for( var propName in propsB ) {
 			if ( !StructKeyExists( propsA, propName ) && !( IsBoolean( propsB[ propName ].deleted ?: "" ) && propsB[ propName ].deleted ) ) {
 				var prop = propsA[ propName ] = propsB[ propName ];
-
-				// if ( not ListFindNoCase( objectAMeta.dbFieldList, propName ) and objectAMeta.properties[ propName ].dbType neq "none" ) {
-				// 	objectAMeta.dbFieldList = ListAppend( objectAMeta.dbFieldList, propName );
-				// }
 
 				if ( not objectAMeta.propertyNames.find( propName ) ) {
 					ArrayAppend( objectAMeta.propertyNames, propName );
