@@ -49,7 +49,7 @@ component singleton=true output="false" {
 	) output=false {
 		var renderer = _getRendererForPresideObjectProperty( arguments.object, arguments.property );
 		var rendered = "";
-		if ( rendererExists( renderer ) ) {
+		if ( rendererExists( renderer, arguments.context ) ) {
 			rendered = this.render(
 				  renderer = renderer
 				, data     = arguments.data
