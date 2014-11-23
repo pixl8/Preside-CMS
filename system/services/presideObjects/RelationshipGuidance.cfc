@@ -113,8 +113,6 @@ component output=false singleton=true {
 								}
 							}
 
-
-
 							if ( backtraceNode.parent eq arguments.objectName or ListFindNoCase( ArrayToList( joinTargets ), backtraceNode.parent ) ) {
 								backTraceFilled = true;
 							} else {
@@ -163,42 +161,66 @@ component output=false singleton=true {
 			for( var propertyName in object.meta.properties ) {
 				property = object.meta.properties[ propertyName ];
 
-				if ( property.relationship EQ "many-to-many" ) {
-					if ( StructKeyExists( property, "relatedVia" ) and Len( Trim( property.relatedVia ) ) ) {
-						continue;
-					}
-
-					if ( not StructKeyExists( objects, property.relatedTo ) ) {
+				if ( property.relationship eq "many-to-many" ) {
+					if ( !objects.keyExists( property.relatedTo ) ) {
 						throw(
 							  type    = "RelationshipGuidance.BadRelationship"
 							, message = "Object, [#property.relatedTo#], could not be found"
 							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#]; this object could not be found."
 						);
 					}
-					autoObject = _getObjectReader().getAutoPivotObjectDefinition(
-						  objectA = object.meta
-						, objectB = objects[ property.relatedTo ].meta
-					);
-					property.relatedVia = autoObject.name;
 
-					if ( not StructKeyExists( objects, autoObject.name ) ) {
-						objects[ autoObject.name ] = {
+					property.relatedViaSourceFk   = property.relatedViaSourceFk   ?: objectName;
+					property.relatedViaTargetFk   = property.relatedViaTargetFk   ?: property.relatedTo;
+					property.relationshipIsSource = property.relationshipIsSource ?: true;
+					property.relatedVia           = property.relatedVia           ?: "";
+
+					if ( !Len( Trim( property.relatedVia ) ) ) {
+						property.relatedVia = ( objectName < property.relatedTo ) ? "#objectName#__join__#property.relatedTo#" : "#property.relatedTo#__join__#objectName#";
+					}
+
+					if ( property.relatedViaSourceFk == property.relatedViaTargetFk ) {
+						property.relatedViaSourceFk = "source_" & property.relatedViaSourceFk;
+						property.relatedViaTargetFk = "target_" & property.relatedViaTargetFk;
+					}
+
+					if ( !objects.keyExists( property.relatedVia ) ) {
+						var pivotObjArgs = {
+							  sourceObject       = object.meta
+							, targetObject       = objects[ property.relatedTo ].meta
+							, pivotObjectName    = property.relatedVia
+							, sourcePropertyName = property.relatedViaSourceFk
+							, targetPropertyName = property.relatedViaTargetFk
+						};
+
+						if ( !property.relationshipIsSource ) {
+							var tmp = pivotObjArgs.sourceObject;
+							pivotObjArgs.sourceObject = pivotArgs.targetObject;
+							pivotObjArgs.targetObject = pivotArgs.tmp;
+						}
+
+						autoObject = _getObjectReader().getAutoPivotObjectDefinition( argumentCollection=pivotObjArgs );
+
+						objects[ property.relatedVia ] = {
 							  meta     = autoObject
 							, instance = "auto_generated"
 						};
-						ArrayAppend( objectNames, autoObject.name );
+						objectNames.append( autoObject.name );
 					}
 
-					if ( not StructKeyExists( m2mRelationships, objectName ) ) {
+					if ( !m2mRelationships.keyExists( objectName ) ) {
 						m2mRelationships[ objectName ] = {};
 					}
-					if ( not StructKeyExists( m2mRelationships[objectName], property.relatedTo ) ) {
+					if ( !m2mRelationships[objectName].keyExists( property.relatedTo ) ) {
 						m2mRelationships[ objectName ][ property.relatedTo ] = [];
 					}
-					ArrayAppend( m2mRelationships[ objectName ][ property.relatedTo ], {
+					m2mRelationships[ objectName ][ property.relatedTo ].append( {
 						  type         = "many-to-many"
 						, required     = property.required
-						, pivotObject  = autoObject.name
+						, pivotObject  = property.relatedVia
+						, sourceObject = property.relationshipIsSource ? objectName : property.relatedTo
+						, sourceFk     = property.relatedViaSourceFk
+						, targetFk     = property.relatedViaTargetFk
 						, propertyName = propertyName
 					} );
 
@@ -314,7 +336,7 @@ component output=false singleton=true {
 					, joinFromObject     = currentSource
 					, joinFromAlias      = currentSource
 					, joinFromProperty   = "id"
-					, joinToProperty     = currentSource
+					, joinToProperty     = ( relationship.sourceObject == currentSource ? relationship.sourceFk : relationship.targetFk )
 					, manyToManyProperty = relationship.propertyName
 				} );
 				currentAlias = relationship.pivotObject;
@@ -326,8 +348,8 @@ component output=false singleton=true {
 				, joinToObject     = relationship.type eq "many-to-many" ? relationship.object      : relationship.object
 				, joinFromObject   = relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource
 				, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : ( relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource )
-				, joinFromProperty = relationship.type eq "many-to-many" ? relationship.object      : relationship.fk
-				, joinToProperty   = relationship.type eq "many-to-many" ? "id"                     : relationship.pk
+				, joinFromProperty = relationship.type eq "many-to-many" ? ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk ) : relationship.fk
+				, joinToProperty   = relationship.type eq "many-to-many" ? "id" : relationship.pk
 			};
 			currentSource = relationship.object;
 			currentAlias  = joinAlias;

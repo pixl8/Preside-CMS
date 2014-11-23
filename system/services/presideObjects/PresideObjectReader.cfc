@@ -78,34 +78,24 @@ component output=false singleton=true {
 		meta.indexes     = _discoverIndexes( meta.properties, componentName );
 	}
 
-	public struct function getAutoPivotObjectDefinition( required struct objectA, required struct objectB ) output=false {
+	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) output=false {
 		var tmp = "";
 		var autoObject = "";
-		var objAName = LCase( ListLast( objectA.name, "." ) );
-		var objBName = LCase( ListLast( objectB.name, "." ) );
-
-		if ( LCase( objAName ) gt LCase( objBName ) ) {
-			tmp = Duplicate( objectA );
-			objectA = Duplicate( objectB );
-			objectB = Duplicate( tmp );
-
-			tmp = objAName;
-			objAName = objBName;
-			objBName = tmp;
-		}
+		var objAName = LCase( ListLast( sourceObject.name, "." ) );
+		var objBName = LCase( ListLast( targetObject.name, "." ) );
 
 		autoObject = {
-			  dbFieldList = "#objAName#,#objBName#,sort_order"
-			, dsn         = objectA.dsn
-			, indexes     = { "ux_#objAName#__join__#objBName#" = { unique=true, fields="#objAName#,#objBName#" } }
-			, name        = "#objAName#__join__#objBName#"
-			, tableName   = objectA.tablePrefix & "#objAName#__join__#objBName#"
-			, tablePrefix = objectA.tablePrefix
-			, versioned   = ( ( objectA.versioned ?: false ) || ( objectB.versioned ?: false ) )
+			  dbFieldList = "#sourcePropertyName#,#targetPropertyName#,sort_order"
+			, dsn         = sourceObject.dsn
+			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#sourcePropertyName#,#targetPropertyName#" } }
+			, name        = pivotObjectName
+			, tableName   = sourceObject.tablePrefix & pivotObjectName
+			, tablePrefix = sourceObject.tablePrefix
+			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, properties  = {
-				  "#objAName#" = new Property( name=objAName    , control="auto", type=objectA.properties.id.type, dbtype=objectA.properties.id.dbtype, maxLength=objectA.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" )
-				, "#objBName#" = new Property( name=objBName    , control="auto", type=objectB.properties.id.type, dbtype=objectB.properties.id.dbtype, maxLength=objectB.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" )
-				, "sort_order" = new Property( name="sort_order", control="auto", type="numeric"                 , dbtype="int"                       , maxLength=0                              , generator="none", relationship="none"       , required=false )
+				  "#sourcePropertyName#" = new Property( name=sourcePropertyName, control="auto", type=sourceObject.properties.id.type, dbtype=sourceObject.properties.id.dbtype, maxLength=sourceObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" )
+				, "#targetPropertyName#" = new Property( name=targetPropertyName, control="auto", type=targetObject.properties.id.type, dbtype=targetObject.properties.id.dbtype, maxLength=targetObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" )
+				, "sort_order"           = new Property( name="sort_order"      , control="auto", type="numeric"                      , dbtype="int"                            , maxLength=0                                   , generator="none", relationship="none"                           , required=false )
 			  }
 		};
 

@@ -117,22 +117,25 @@
 			reader.finalizeMergedObject( objB );
 
 			var expectedResult = {
-				  dbFieldList = "simple_object,simple_object_with_prefix,sort_order"
+				  dbFieldList = "source,target,sort_order"
 				, dsn         = "default_dsn"
-				, indexes     = { ux_simple_object__join__simple_object_with_prefix = { unique=true, fields="simple_object,simple_object_with_prefix" } }
-				, name        = "simple_object__join__simple_object_with_prefix"
+				, indexes     = { ux_mypivotobject = { unique=true, fields="source,target" } }
+				, name        = "mypivotobject"
 				, tablePrefix = "pobj_"
-				, tableName   = "pobj_simple_object__join__simple_object_with_prefix"
+				, tableName   = "pobj_mypivotobject"
 				, versioned   = true
 				, properties  = {
-					  simple_object             = { name="simple_object"            , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string"            , onDelete="cascade" }
-					, simple_object_with_prefix = { name="simple_object_with_prefix", control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
-					, sort_order                = { name="sort_order"               , control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
+					  source      = { name="source"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object"            , required=true, type="string", onDelete="cascade" }
+					, target      = { name="target"    , control="auto", dbtype="varchar", maxLength="35", generator="none", relationship="many-to-one", relatedTo="simple_object_with_prefix", required=true, type="string", onDelete="cascade" }
+					, sort_order  = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
 				  }
 			};
 			var autoObject = getReader().getAutoPivotObjectDefinition(
-				  objectA = objA.meta
-				, objectB = objB.meta
+				  sourceObject       = objA.meta
+				, targetObject       = objB.meta
+				, pivotObjectName    = "mypivotobject"
+				, sourcePropertyName = "source"
+				, targetPropertyName = "target"
 			);
 
 			autoObject.properties = _propertiesToStruct( autoObject.properties );
