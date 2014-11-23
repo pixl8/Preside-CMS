@@ -41,7 +41,11 @@ component output=false singleton=true {
 
 				for( join in columnJoins ) {
 					if ( !_joinExists( join, joins ) ) {
-						discoveredColumnJoins[ join.tableAlias ?: join.joinToObject ] = 1;
+						target = join.tableAlias ?: join.joinToObject;
+						discoveredColumnJoins[ target ] = 1;
+						if ( arguments.joinTargets.findNoCase( target ) ){
+							discoveredJoins[ target ] = 1;
+						}
 						ArrayAppend( joins, join );
 					}
 				}
