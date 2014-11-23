@@ -197,14 +197,14 @@ component output=false {
 		};
 
 		settings.filters = {
-			livePages = { filter = "page.active = 1 and ( page.embargo_date is null or now() > page.embargo_date ) and ( page.expiry_date is null or now() < page.expiry_date )" }
+			livePages = { filter = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or now() > page.embargo_date ) and ( page.expiry_date is null or now() < page.expiry_date )" }
 		};
 
 		_loadConfigurationFromExtensions();
 
 		environments = {
-            local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
-        }
+			local = "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$"
+		}
 
 	}
 
