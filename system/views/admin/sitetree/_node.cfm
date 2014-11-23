@@ -126,7 +126,7 @@
 				</div>
 			</td>
 			<td>#pageType#</td>
-			<td>#renderField( object="page", property="active", data=args.active, context="adminDataTable" )#</td>
+			<td>#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">

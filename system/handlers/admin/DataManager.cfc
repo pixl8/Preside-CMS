@@ -540,7 +540,7 @@
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], "adminDataTable" );
+					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], [ "adminDataTable", "admin" ] );
 				}
 
 				if ( useMultiActions ) {
@@ -607,7 +607,7 @@
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], "adminDataTable" );
+					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
 				}
 
 				if ( Len( Trim( actionsView ) ) ) {
