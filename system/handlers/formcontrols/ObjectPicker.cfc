@@ -28,6 +28,7 @@ component output=false {
 				, orderBy      = "label"
 				, savedFilters = ListToArray( savedFilters )
 			);
+			writedump(args.records);
 		}
 
 		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {
