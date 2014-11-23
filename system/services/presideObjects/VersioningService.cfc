@@ -276,6 +276,8 @@ component output=false singleton=true {
 		var prop           = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
 		var targetObject   = prop.relatedTo ?: "";
 		var pivotTable     = prop.relatedVia ?: "";
+		var sourceFk       = prop.relationshipIsSource ? prop.relatedViaSourceFk : prop.relatedViaTargetFk;
+		var targetFk       = prop.relationshipIsSource ? prop.relatedViaTargetFk : prop.relatedViaSourceFk;
 		var versionedPivot = poService.getVersionObjectName( pivotTable );
 
 		if ( Len( Trim( versionedPivot ) ) and Len( Trim( targetObject ) ) ) {
@@ -286,10 +288,10 @@ component output=false singleton=true {
 					poService.insertData(
 						  objectName = versionedPivot
 						, data       = {
-							  "#arguments.sourceObjectName#" = arguments.sourceObjectId
-							, "#targetObject#"               = targetId
-							, _version_number                = arguments.versionNumber
-							, _version_author                = arguments.versionAuthor
+							  "#sourceFk#"    = arguments.sourceObjectId
+							, "#targetFk#"    = targetId
+							, _version_number = arguments.versionNumber
+							, _version_author = arguments.versionAuthor
 						}
 					);
 				}

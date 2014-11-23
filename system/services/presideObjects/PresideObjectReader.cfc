@@ -83,11 +83,12 @@ component output=false singleton=true {
 		var autoObject = "";
 		var objAName = LCase( ListLast( sourceObject.name, "." ) );
 		var objBName = LCase( ListLast( targetObject.name, "." ) );
+		var fieldOrder = ( sourcePropertyName < targetPropertyName ) ? "#sourcePropertyName#,#targetPropertyName#" : "#targetPropertyName#,#sourcePropertyName#";
 
 		autoObject = {
-			  dbFieldList = "#sourcePropertyName#,#targetPropertyName#,sort_order"
+			  dbFieldList = "#fieldOrder#,sort_order"
 			, dsn         = sourceObject.dsn
-			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#sourcePropertyName#,#targetPropertyName#" } }
+			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#fieldOrder#" } }
 			, name        = pivotObjectName
 			, tableName   = sourceObject.tablePrefix & pivotObjectName
 			, tablePrefix = sourceObject.tablePrefix

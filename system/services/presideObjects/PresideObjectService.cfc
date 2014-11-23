@@ -797,6 +797,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
+		var sourceFk     = prop.relationshipIsSource ? prop.relatedViaSourceFk : prop.relatedViaTargetFk;
+		var targetFk     = prop.relationshipIsSource ? prop.relatedViaTargetFk : prop.relatedViaSourceFk;
 
 		if ( Len( Trim( pivotTable ) ) and Len( Trim( targetObject ) ) ) {
 			var newRecords      = ListToArray( arguments.targetIdList );
@@ -805,8 +807,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			transaction {
 				var currentRecords = selectData(
 					  objectName   = pivotTable
-					, selectFields = [ "#targetObject# as targetId", "sort_order" ]
-					, filter       = { "#arguments.sourceObject#" = arguments.sourceId }
+					, selectFields = [ "#targetFk# as targetId", "sort_order" ]
+					, filter       = { "#sourceFk#" = arguments.sourceId }
 				);
 
 				for( var record in currentRecords ) {
@@ -823,14 +825,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				if ( anythingChanged ) {
 					deleteData(
 						  objectName = pivotTable
-						, filter     = { "#arguments.sourceObject#" = arguments.sourceId }
+						, filter     = { "#sourceFk#" = arguments.sourceId }
 					);
 
 					newRecords = ListToArray( arguments.targetIdList );
 					for( var i=1; i <=newRecords.len(); i++ ) {
 						insertData(
 							  objectName    = pivotTable
-							, data          = { "#arguments.sourceObject#" = arguments.sourceId, "#targetObject#" = newRecords[i], sort_order=i }
+							, data          = { "#sourceFk#" = arguments.sourceId, "#targetFk#" = newRecords[i], sort_order=i }
 							, useVersioning = false
 						);
 					}

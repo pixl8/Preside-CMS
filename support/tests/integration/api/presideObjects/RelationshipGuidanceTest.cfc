@@ -285,9 +285,9 @@
 			var expectedObject = {
 				  instance = "auto_generated"
 				, meta = {
-					  dbFieldList = "obj_b,obj_a,sort_order"
+					  dbFieldList = "obj_a,obj_b,sort_order"
 					, dsn         = "test"
-					, indexes     = { ux_obj_a__join__obj_b = { unique="true", fields="obj_b,obj_a" } }
+					, indexes     = { ux_obj_a__join__obj_b = { unique="true", fields="obj_a,obj_b" } }
 					, name        = "obj_a__join__obj_b"
 					, tableName   = "pobj_obj_a__join__obj_b"
 					, tablePrefix = "pobj_"
