@@ -72,7 +72,6 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		var currentSite     = controller.getRequestContext().getSite();
 
 		if( !isModuleCall ){
-
 			if ( Len( Trim( currentSite.template ?: "" ) ) && instance.siteTemplateHandlerMappings.keyExists( currentSite.template ) ) {
 				for ( var handlerSource in instance.siteTemplateHandlerMappings[ currentSite.template ] ) {
 					handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
@@ -89,7 +88,9 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 			for ( var handlerSource in instance.handlerMappings ) {
 				handlerIndex = _getHandlerIndex( handlerSource.handlers, handlerReceived, methodReceived );
 
+
 				if ( handlerIndex ) {
+
 					return handlerBean
 						.setInvocationPath( handlerSource.invocationPath                )
 						.setHandler       ( handlerSource.handlers[ handlerIndex ].name )
@@ -191,7 +192,7 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 
 	private numeric function _getHandlerIndex( required array handlers, required string handlerName, required string actionName ) output=false {
 		for( var i=1; i <= arguments.handlers.len(); i++ ){
-			if ( arguments.handlers[i].name == arguments.handlerName && arguments.handlers[i].actions.find( arguments.actionName ) ) {
+			if ( arguments.handlers[i].name == arguments.handlerName && arguments.handlers[i].actions.findNoCase( arguments.actionName ) ) {
 				return i;
 			}
 		}
