@@ -19,7 +19,7 @@
 <html lang="en" class="presidecms">
 	<head>
 		<meta charset="utf-8" />
-		<title>PresideCMS</title>
+		<title>#translateResource( uri="cms:cms.title" )#</title>
 
 		<meta name="robots" content="NOINDEX,NOFOLLOW" />
 		<meta name="description" content="" />
