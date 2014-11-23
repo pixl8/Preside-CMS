@@ -94,33 +94,39 @@ Attributes of the properties describe details such as data type, data length and
         property name="max_delegates" type="numeric" dbtype="int"; // not required
     }
 
+.. _preside-objects-standard-attributes:
+
 Standard attributes
 -------------------
 
 While you can add any arbitrary attributes to properties (and use them for your own business logic needs), the system will interpret and use the following standard attributes:
 
-=================  =============  =========  ===============================================================================================================================================================================================================================================================
-Name               Required       Default    Description
-=================  =============  =========  ===============================================================================================================================================================================================================================================================
-**name**           Yes            *N/A*      Name of the field
-**type**           No             "string"   CFML type of the field. Valid values: *string*, *numeric*, *boolean*, *date*
-**dbtype**         No             "varchar"  Database type of the field to be define on the database table field        
-**maxLength**      No             0          For dbtypes that require a length specification. If zero, the max size will be used.
-**required**       No             **false**  Whether or not the field is required.    
-**default**        No             ""         A default value for the property. Can be dynamically created, see :ref:`presideobjectsdefaults`
-**indexes**        No             ""         List of indexes for the field, see :ref:`preside-objects-indexes`
-**uniqueindexes**  No             ""         List of unique indexes for the field, see :ref:`preside-objects-indexes`
-**control**        No             "default"  The default form control to use when rendering this field in a Preside Form. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. See :doc:`/devguides/formcontrols` and :doc:`/devguides/formlayouts`.
-**renderer**       No             "default"  The default content renderer to use when rendering this field in a view. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. (reference needed here).
-**minLength**      No             *none*     Minimum length of the data that can be saved to this field. Used in form validation, etc. 
-**minValue**       No             *none*     The minumum numeric value of data that can be saved to this field. *For numeric types only*.
-**maxValue**       No             *N/A*      The maximum numeric value of data that can be saved to this field. *For numeric types only*.
-**format**         No             *N/A*      Either a regular expression or named validation filter (reference needed) to validate the incoming data for this field
-**pk**             No             **false**  Whether or not this field is the primary key for the object, *one field per object*. By default, your object will have an *id* field that is defined as the primary key. See :ref:`preside-objects-default-properties` below.
-**generator**      No             "none"     Named generator for generating a value for this field when inserting a new record with the value of this field ommitted. Valid values are *increment* and *UUID*. Useful for primary key generation.
-**relationship**   No             "none"     Either *none*, *many-to-one* or *many-to-many*. See :ref:`preside-objects-relationships`, below.
-**relatedTo**      No             "none"     Name of the Preside Object that the property is defining a relationship with. See :ref:`preside-objects-relationships`, below.
-=================  =============  =========  ===============================================================================================================================================================================================================================================================
+========================  =============  =========  ===============================================================================================================================================================================================================================================================
+Name                      Required       Default    Description
+========================  =============  =========  ===============================================================================================================================================================================================================================================================
+**name**                  Yes            *N/A*      Name of the field
+**type**                  No             "string"   CFML type of the field. Valid values: *string*, *numeric*, *boolean*, *date*
+**dbtype**                No             "varchar"  Database type of the field to be define on the database table field        
+**maxLength**             No             0          For dbtypes that require a length specification. If zero, the max size will be used.
+**required**              No             **false**  Whether or not the field is required.    
+**default**               No             ""         A default value for the property. Can be dynamically created, see :ref:`presideobjectsdefaults`
+**indexes**               No             ""         List of indexes for the field, see :ref:`preside-objects-indexes`
+**uniqueindexes**         No             ""         List of unique indexes for the field, see :ref:`preside-objects-indexes`
+**control**               No             "default"  The default form control to use when rendering this field in a Preside Form. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. See :doc:`/devguides/formcontrols` and :doc:`/devguides/formlayouts`.
+**renderer**              No             "default"  The default content renderer to use when rendering this field in a view. If set to 'default', the value for this attribute will be calculated based on the value of other attributes. (reference needed here).
+**minLength**             No             *none*     Minimum length of the data that can be saved to this field. Used in form validation, etc. 
+**minValue**              No             *none*     The minumum numeric value of data that can be saved to this field. *For numeric types only*.
+**maxValue**              No             *N/A*      The maximum numeric value of data that can be saved to this field. *For numeric types only*.
+**format**                No             *N/A*      Either a regular expression or named validation filter (reference needed) to validate the incoming data for this field
+**pk**                    No             **false**  Whether or not this field is the primary key for the object, *one field per object*. By default, your object will have an *id* field that is defined as the primary key. See :ref:`preside-objects-default-properties` below.
+**generator**             No             "none"     Named generator for generating a value for this field when inserting a new record with the value of this field ommitted. Valid values are *increment* and *UUID*. Useful for primary key generation.
+**relationship**          No             "none"     Either *none*, *many-to-one* or *many-to-many*. See :ref:`preside-objects-relationships`, below.
+**relatedTo**             No             "none"     Name of the Preside Object that the property is defining a relationship with. See :ref:`preside-objects-relationships`, below.
+**relatedVia**            No             ""         Name of the object through which a many-to-many relationship will pass. If it does not exist, the system will created it for you.  See :ref:`preside-objects-relationships`, below.
+**relationshipIsSource**  No             **true**   In a many-to-many relationship, whether or not this object is regarded as the "source" of the relationship. If not, then it is regarded as the "target". See :ref:`preside-objects-relationships`, below.
+**relatedViaSourceFk**    No             ""         The name of the source object's foreign key field in a many-to-many relationship's pivot table. See :ref:`preside-objects-relationships`, below.
+**relatedViaTargetFk**    No             ""         The name of the target object's foreign key field in a many-to-many relationship's pivot table. See :ref:`preside-objects-relationships`, below.
+========================  =============  =========  ===============================================================================================================================================================================================================================================================
 
 
 .. _preside-objects-default-properties:
@@ -320,6 +326,31 @@ In this scenario, there will be no :code:`eventCategory` field created in the da
 
     Unlike **many to one** relationships, the **many to many** relationship can be defined on either or both objects in the relationship. That said, you will want to define it on the object(s) that make use of the relationship. In the event / eventCategory example, this will most likely be the event object. i.e. :code:`event.insertData( label=eventName, eventCategory=listOfCategoryIds )`.
 
+"Advanced" Many to Many relationships
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can excert a little more control over your many-to-many relationships by making use of some extra, non-required, attributes:
+
+.. code-block:: java
+
+    // event.cfc
+    component output=false {
+        property name                 = "eventCategory" 
+                 relationship         = "many-to-many" 
+                 relatedTo            = "eventCategory" 
+                 relationshipIsSource = false              // the event object is regarded as the 'target' side of the relationship rather than the 'source' (default is 'source' when relationship defined in the object)
+                 relatedVia           = "event_categories" // create a new auto pivot object called "event_categories" rather than the default "event__join__eventCategory"
+                 relatedViaSourceFk   = "cat"              // name the foreign key field to the source object (eventCategory) to be just 'cat'
+                 relatedViaTargetFk   = "ev";              // name the foreign key field to the target object (event) to be just 'ev'
+    }
+
+TODO: explain these in more detail. In short though, these attributes control the names of the pivot table and foreign keys that get automatically created for you (see :ref:`preside-objects-standard-attributes` for more details on each of the attributes). If you leave them out, PresideCMS will figure out sensible defaults for you.
+
+As well as controlling the automatically created pivot table name with "relatedVia", you can also use this attribute to define a relationship that exists through a pre-existing pivot object.
+
+.. tip::
+
+    If you have multiple many-to-many relationships between the same two objects, you will **need** to use the :code:`relatedVia` attribute to ensure that a different pivot table is created for each context. 
 
 .. _preside-objects-indexes:
 
