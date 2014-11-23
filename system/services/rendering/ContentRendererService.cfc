@@ -316,18 +316,18 @@ component singleton=true output="false" {
 				if ( renderers[ arguments.name ].keyExists( cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
 					return renderers[ arguments.name ][ cx ];
 				} else {
-					break;
+					var renderer =_registerRendererByConvention( arguments.name, cx );
+					if ( !IsNull( renderer ) ) {
+						return renderer;
+					}
 				}
 			}
 		}
 
 		for( var cx in contexts ) {
-			conventionsBasedName = _getConventionBasedViewletName( arguments.name, cx );
-			if ( cbProxy.viewletExists( conventionsBasedName ) ) {
-				registerRenderer( arguments.name, cx, conventionsBasedName );
-				return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
-			} else {
-				registerMissingRenderer( arguments.name, cx );
+			var renderer =_registerRendererByConvention( arguments.name, cx );
+			if ( !IsNull( renderer ) ) {
+				return renderer;
 			}
 		}
 
@@ -336,16 +336,30 @@ component singleton=true output="false" {
 		}
 
 		if ( StructKeyExists( renderers, arguments.name ) ) {
-			throw(
-				  type    = "Renderer.MissingDefaultContext"
-				, message = "The renderer, [#arguments.name#], does not have a default context"
-			);
+			for( var cx in renderers[ arguments.name ] ) {
+				if ( IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
+					throw(
+						  type    = "Renderer.MissingDefaultContext"
+						, message = "The renderer, [#arguments.name#], does not have a default context"
+					);
+				}
+			}
 		}
 
 		throw(
 			  type    = "Renderer.MissingRenderer"
 			, message = "The renderer, [#arguments.name#], is not registered with the Preside rendering service"
 		);
+	}
+
+	private any function _registerRendererByConvention( required string renderer, required string context ) output=false {
+		conventionsBasedName = _getConventionBasedViewletName( arguments.renderer, arguments.context );
+		if ( _getColdbox().viewletExists( conventionsBasedName ) ) {
+			registerRenderer( arguments.renderer, arguments.context, conventionsBasedName );
+			return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
+		} else {
+			registerMissingRenderer( arguments.renderer, arguments.context );
+		}
 	}
 
 	private string function _getConventionBasedViewletName( required string renderer, required string context ) output=false {
