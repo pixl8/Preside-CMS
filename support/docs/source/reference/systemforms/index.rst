@@ -4,10 +4,6 @@ System form layouts
 .. toctree::
     :maxdepth: 1
 
-    applicationpagedefaultconfigform
-    applicationpagelogin
-    applicationpageloginforgottenpassword
-    applicationpageloginresetpassword
     assetaddform
     assetaddthroughpickerform
     asseteditform
@@ -16,6 +12,7 @@ System form layouts
     assetfoldereditrootfolderform
     linkpickeraddlinkform
     linkpickereditlinkform
+    notificationspreferencesform
     richeditorattachmentform
     richeditorattachmentform
     richeditorimageform
@@ -30,6 +27,7 @@ System form layouts
     updatemanagersettingsform
     useraddform
     usereditform
+    usereditprofileform
     usereditselfform
     usergroupaddform
     usergroupaddform

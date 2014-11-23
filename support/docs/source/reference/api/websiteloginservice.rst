@@ -39,6 +39,28 @@ rememberExpiryInDays  any      No (default=90)     When setting a remember me co
 ====================  =======  ==================  =====================================================================================
 
 
+.. _websiteloginservice-validatepassword:
+
+ValidatePassword()
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function validatePassword( required string password, string userId )
+
+Validates the supplied password against the a user (defaults to currently logged in user)
+
+Arguments
+.........
+
+========  ======  ========  ===============================================================================================
+Name      Type    Required  Description                                                                                    
+========  ======  ========  ===============================================================================================
+password  string  Yes       The user supplied password                                                                     
+userId    string  No        The id of the user who's password we are to validate. Defaults to the currently logged in user.
+========  ======  ========  ===============================================================================================
+
+
 .. _websiteloginservice-logout:
 
 Logout()
@@ -126,6 +148,27 @@ Arguments
 
 *This method does not accept any arguments.*
 
+.. _websiteloginservice-sendwelcomeemail:
+
+SendWelcomeEmail()
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function sendWelcomeEmail( required string userId )
+
+Sends welcome email to the supplied user. Returns true if successful, false otherwise.
+
+Arguments
+.........
+
+======  ======  ========  ===========
+Name    Type    Required  Description
+======  ======  ========  ===========
+userId  string  Yes                  
+======  ======  ========  ===========
+
+
 .. _websiteloginservice-sendpasswordresetinstructions:
 
 SendPasswordResetInstructions()
@@ -145,3 +188,69 @@ Name     Type    Required  Description
 =======  ======  ========  ================================================
 loginId  string  Yes       Either the email address or login id of the user
 =======  ======  ========  ================================================
+
+
+.. _websiteloginservice-validateresetpasswordtoken:
+
+ValidateResetPasswordToken()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function validateResetPasswordToken( required string token )
+
+Validates a password reset token that has been passed through the URL after
+a user has followed 'reset password' link in instructional email.
+
+Arguments
+.........
+
+=====  ======  ========  =====================
+Name   Type    Required  Description          
+=====  ======  ========  =====================
+token  string  Yes       The token to validate
+=====  ======  ========  =====================
+
+
+.. _websiteloginservice-resetpassword:
+
+ResetPassword()
+~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function resetPassword( required string token, required string password )
+
+Resets a password by looking up the supplied password reset token and encrypting the supplied password
+
+Arguments
+.........
+
+========  ======  ========  ===========================================================
+Name      Type    Required  Description                                                
+========  ======  ========  ===========================================================
+token     string  Yes       The temporary reset password token to look the user up with
+password  string  Yes       The new password                                           
+========  ======  ========  ===========================================================
+
+
+.. _websiteloginservice-changepassword:
+
+ChangePassword()
+~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function changePassword( required string password, string userId )
+
+Changes a password
+
+Arguments
+.........
+
+========  ======  ========  =========================================================================================
+Name      Type    Required  Description                                                                              
+========  ======  ========  =========================================================================================
+password  string  Yes       The new password                                                                         
+userId    string  No        ID of the user who's password we wish to change (defaults to currently logged in user id)
+========  ======  ========  =========================================================================================

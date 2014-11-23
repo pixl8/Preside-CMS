@@ -27,6 +27,27 @@ Arguments
 
 *This method does not accept any arguments.*
 
+.. _siteservice-getsite:
+
+GetSite()
+~~~~~~~~~
+
+.. code-block:: java
+
+    public struct function getSite( required string id )
+
+Returns a single site matched by id
+
+Arguments
+.........
+
+====  ======  ========  =====================
+Name  Type    Required  Description          
+====  ======  ========  =====================
+id    string  Yes       ID of the site to get
+====  ======  ========  =====================
+
+
 .. _siteservice-matchsite:
 
 MatchSite()

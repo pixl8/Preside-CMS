@@ -18,7 +18,7 @@ This form is used for the "add user" form in the user admin section of the admin
                 <field binding="security_user.groups" />
             </fieldset>
 
-            <fieldset id="welcome" sortorder="20" title="preside-objects.security_user:fieldset.security" description="preside-objects.security_user:fieldset.security.description">
+            <fieldset id="welcome" sortorder="20" title="preside-objects.security_user:fieldset.welcome" description="preside-objects.security_user:fieldset.welcome.description">
                 <field name="send_welcome"    control="yesNoSwitch" default="true" label="preside-objects.security_user:field.send_welcome.title" />
                 <field name="welcome_message" control="textarea"    label="preside-objects.security_user:field.welcome_message.title" />
             </fieldset>

@@ -1,5 +1,5 @@
-Page type: Homepage
-===================
+homepage
+========
 
 Overview
 --------
