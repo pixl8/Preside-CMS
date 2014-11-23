@@ -156,6 +156,18 @@ component singleton=true output="false" {
 		return;
 	}
 
+	public void function registerMissingRenderer( required string name, string context="default" ) output=false {
+		var renderers = _getRenderers();
+
+		if ( not StructKeyExists( renderers, arguments.name ) ) {
+			renderers[ arguments.name ] = {};
+		}
+
+		renderers[ arguments.name ][ arguments.context ] = false;
+
+		return;
+	}
+
 	public string function getRendererForField( required struct fieldAttributes ){
 		// easy, the field has explicitly defined a renderer
 		if ( Len( Trim( fieldAttributes.renderer ?: "" ) ) ) {
@@ -301,8 +313,10 @@ component singleton=true output="false" {
 
 		if ( renderers.keyExists( arguments.name ) ) {
 			for( var cx in contexts ) {
-				if ( renderers[ arguments.name ].keyExists( cx ) ) {
+				if ( renderers[ arguments.name ].keyExists( cx ) && IsValid( "component", renderers[ arguments.name ][ cx ] ) ) {
 					return renderers[ arguments.name ][ cx ];
+				} else {
+					break;
 				}
 			}
 		}
@@ -312,6 +326,8 @@ component singleton=true output="false" {
 			if ( cbProxy.viewletExists( conventionsBasedName ) ) {
 				registerRenderer( arguments.name, cx, conventionsBasedName );
 				return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
+			} else {
+				registerMissingRenderer( arguments.name, cx );
 			}
 		}
 
