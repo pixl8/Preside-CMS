@@ -1182,7 +1182,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			case "many-to-many":
 				switch( arguments.relatedTo ) {
 					case "asset": return "assetPicker";
-					case "link" : return "linkPicker";
+					case "link" : return "MultiLinkPicker";
 					default     : return "manyToManySelect";
 				}
 		}
