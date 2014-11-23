@@ -317,7 +317,7 @@ component singleton=true output="false" {
 					return renderers[ arguments.name ][ cx ];
 				} else {
 					var renderer =_registerRendererByConvention( arguments.name, cx );
-					if ( !IsNull( renderer ) ) {
+					if ( IsValid( "component", renderer ?: "" ) ) {
 						return renderer;
 					}
 				}
@@ -326,7 +326,7 @@ component singleton=true output="false" {
 
 		for( var cx in contexts ) {
 			var renderer =_registerRendererByConvention( arguments.name, cx );
-			if ( !IsNull( renderer ) ) {
+			if ( IsValid( "component", renderer ?: "" ) ) {
 				return renderer;
 			}
 		}
