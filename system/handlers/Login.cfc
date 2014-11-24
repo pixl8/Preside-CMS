@@ -7,11 +7,11 @@ component output=false {
 		if ( websiteLoginService.isLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
-		var loginId         = rc.loginId  ?: "";
-		var password        = rc.password ?: "";
-		var postLoginUrl    = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : _getDefaultPostLoginUrl( argumentCollection=arguments );
-		var rememberMe      = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
-		var loggedIn        = websiteLoginService.login(
+		var loginId      = rc.loginId  ?: "";
+		var password     = rc.password ?: "";
+		var postLoginUrl = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: cgi.http_referer );
+		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
+		var loggedIn     = websiteLoginService.login(
 			  loginId              = loginId
 			, password             = password
 			, rememberLogin        = rememberMe
@@ -19,6 +19,7 @@ component output=false {
 		);
 
 		if ( loggedIn ) {
+			websiteLoginService.clearPostLoginUrl();
 			setNextEvent( url=postLoginUrl );
 		}
 
@@ -94,7 +95,7 @@ component output=false {
 		}
 
 		args.allowRememberMe = _getRememberMeAllowed();
-		args.postLoginUrl    = args.postLoginUrl ?: ( rc.postLoginUrl ?: _getDefaultPostLoginUrl( argumentCollection=arguments ) );
+		args.postLoginUrl    = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: event.getCurrentUrl() );
 		args.loginId         = args.loginId      ?: ( rc.loginId      ?: "" );
 		args.rememberMe      = args.rememberMe   ?: ( rc.rememberMe   ?: "" );
 		args.message         = args.message      ?: ( rc.message      ?: "" );
@@ -106,6 +107,8 @@ component output=false {
 		if ( websiteLoginService.isLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
+
+		args.postLoginUrl = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: cgi.http_referer );
 
 		return renderView( view="/login/forgottenPassword", presideObject="forgotten_password", id=event.getCurrentPageId(), args=args );
 	}

@@ -247,6 +247,42 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		);
 	}
 
+	/**
+	 * Gets the post login URL for redirecting a user to after successful login
+	 *
+	 * @defaultValue.hint Value to use should there be no stored post login URL
+	 *
+	 */
+	public string function getPostLoginUrl( required string defaultValue ) output=false {
+		var sessionSavedValue = _getSessionService().getVar( "websitePostLoginUrl", "" );
+
+		if ( Len( Trim( sessionSavedValue ) ) ) {
+			return sessionSavedValue;
+		}
+
+		setPostLoginUrl( arguments.defaultValue );
+
+		return arguments.defaultValue;
+	}
+
+	/**
+	 * Sets the post login URL for redirecting a user to after successful login
+	 *
+	 * @postLoginUrl.hint URL to save
+	 *
+	 */
+	public void function setPostLoginUrl( required string postLoginUrl ) output=false {
+		_getSessionService().setVar( "websitePostLoginUrl", arguments.postLoginUrl );
+	}
+
+	/**
+	 * Clears the post login URL from storage
+	 *
+	 */
+	public boolean function clearPostLoginUrl() output=false {
+		return _getSessionService().deleteVar( "websitePostLoginUrl" );
+	}
+
 // private helpers
 	private query function _getUserByLoginId( required string loginId ) output=false {
 		return _getUserDao().selectData(

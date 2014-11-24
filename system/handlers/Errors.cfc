@@ -1,4 +1,5 @@
 component output=false {
+	property name="websiteLoginService" inject="websiteLoginService";
 
 <!--- VIEWLETS --->
 	private string function notFound( event, rc, prc, args={} ) output=false {
@@ -24,6 +25,7 @@ component output=false {
 				event.initializePresideSiteteePage( systemPage="accessDenied" );
 				return renderView( view="/errors/insufficientPrivileges", presideobject="accessDenied", id=event.getCurrentPageId(), args=args );
 			default:
+				websiteLoginService.setPostLoginUrl( event.getCurrentUrl() );
 				event.initializePresideSiteteePage( systemPage="login" );
 				return renderView( view="/errors/loginRequired", args=args );
 		}
