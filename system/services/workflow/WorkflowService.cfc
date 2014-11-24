@@ -9,10 +9,13 @@ component output=false singleton=true {
 // CONSTRUCTOR
 	/**
 	 * @stateDao.inject presidecms:object:workflow_state
+	 * @sessionStorage.inject coldbox:plugin:SessionStorage
 	 *
 	 */
-	public any function init( required any stateDao ) output=false {
+	public any function init( required any stateDao, required any sessionStorage ) output=false {
 		_setStateDao( arguments.stateDao );
+		_setSessionStorage( arguments.sessionStorage );
+		_setSessionKey( "presideworkflowsession" );
 
 		return this;
 	}
@@ -23,7 +26,7 @@ component output=false singleton=true {
 		, required string status
 		,          string workflow   = ""
 		,          string reference  = ""
-		,          string owner      = ""
+		,          string owner      = _getSessionBasedOwner()
 		,          string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 
 	) output=false {
@@ -50,7 +53,7 @@ component output=false singleton=true {
 	public struct function getState(
 		  string workflow   = ""
 		, string reference  = ""
-		, string owner      = ""
+		, string owner      = _getSessionBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 	) output=false {
 		var record = _getStateDao().selectData( id=arguments.id );
@@ -66,7 +69,7 @@ component output=false singleton=true {
 	public boolean function complete(
 		  string workflow   = ""
 		, string reference  = ""
-		, string owner      = ""
+		, string owner      = _getSessionBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 	) output=false {
 		return _getStateDao().deleteData( id=arguments.id );
@@ -86,13 +89,38 @@ component output=false singleton=true {
 		return "";
 	}
 
+	private string function _getSessionBasedOwner() output=false {
+		var ss = _getSessionStorage();
+		var sessionKey = _getSessionKey();
+		var owner = ss.getVar( sessionKey, "" );
+
+		if ( !Len( Trim( owner ) ) ) {
+			var owner = CreateUUId();
+			ss.setVar( sessionKey, owner );
+		}
+
+		return owner;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getStateDao() output=false {
 		return _stateDao;
 	}
-
 	private void function _setStateDao( required any stateDao ) output=false {
 		_stateDao = arguments.stateDao;
 	}
 
+	private any function _getSessionStorage() output=false {
+		return _sessionStorage;
+	}
+	private void function _setSessionStorage( required any sessionStorage ) output=false {
+		_sessionStorage = arguments.sessionStorage;
+	}
+
+	private string function _getSessionKey() output=false {
+		return _sessionKey;
+	}
+	private void function _setSessionKey( required string sessionKey ) output=false {
+		_sessionKey = arguments.sessionKey;
+	}
 }
