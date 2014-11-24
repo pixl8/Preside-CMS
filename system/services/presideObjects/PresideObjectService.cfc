@@ -1869,7 +1869,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			, filterParams = arguments.filterParams
 		};
 
-		if ( IsStruct( result.filter ) && arguments.extraFilters.len() ) {
+		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
 			result.filterParams = result.filter;
 		}
 
