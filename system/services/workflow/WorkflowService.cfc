@@ -50,6 +50,23 @@ component output=false singleton=true {
 		});
 	}
 
+	public string function appendToState(
+		  required struct state
+		, required string status
+		,          string workflow   = ""
+		,          string reference  = ""
+		,          string owner      = _getSessionBasedOwner()
+		,          string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
+
+	) output=false {
+		var existingWf = getState( argumentCollection=arguments );
+		var newState   = existingWf.state ?: {};
+
+		newState.append( arguments.state );
+
+		return saveState( argumentCollection=arguments, state=newState );
+	}
+
 	public struct function getState(
 		  string workflow   = ""
 		, string reference  = ""
