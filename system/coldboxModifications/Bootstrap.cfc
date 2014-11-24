@@ -256,6 +256,40 @@ component extends="coldbox.system.Coldbox" output="false" {
 		}
 	}
 
+	/**
+	 * Overrideing onSessionEnd to fix a bug
+	 *
+	 */
+	public void function onSessionEnd( required struct sessionScope, required struct appScope ) output=false {
+		var cbController = "";
+		var event = "";
+		var iData = structnew();
+
+		lock type="readonly" name="#getAppHash()#" timeout="#instance.lockTimeout#" throwontimeout="true" {
+			cbController = arguments.appScope[ locateAppKey() ] ?: "";
+		}
+
+		if ( not isSimpleValue(cbController) ){
+			// Get Context
+			event = cbController.getRequestService().getContext();
+
+			//Execute Session End interceptors
+			iData.sessionReference = arguments.sessionScope;
+			iData.applicationReference = arguments.appScope;
+			cbController.getInterceptorService().processState("sessionEnd",iData);
+
+			//Execute Session End Handler
+			if ( len(cbController.getSetting("SessionEndHandler")) ){
+				//Place session reference on event object
+				event.setValue("sessionReference", arguments.sessionScope);
+				//Place app reference on event object
+				event.setValue("applicationReference", arguments.appScope);
+				//Execute the Handler
+				cbController.runEvent(event=cbController.getSetting("SessionEndHandler"),prepostExempt=true);
+			}
+		}
+	}
+
 
 	public string function getCOLDBOX_CONFIG_FILE() output=false {
 		return variables.COLDBOX_CONFIG_FILE;
