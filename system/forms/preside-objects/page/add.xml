@@ -28,6 +28,7 @@ This form is used as the base "add page" form for Sitetree pages. See also :doc:
 
 	<tab id="meta" sortorder="20" title="preside-objects.page:editform.metadatatab.title" description="preside-objects.page:editform.metadatatab.description">
 		<fieldset id="meta" sortorder="10">
+			<field sortorder="05" binding="page.internal_search_access" />
 			<field sortorder="10" binding="page.search_engine_access" />
 			<field sortorder="20" binding="page.browser_title" />
 			<field sortorder="30" binding="page.author" />
