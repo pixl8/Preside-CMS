@@ -323,7 +323,7 @@ component output=false singleton=true {
 		return renderedControl;
 	}
 
-	public any function validateForm( required string formName, required struct formData, boolean preProcessData=true ) output=false {
+	public any function validateForm( required string formName, required struct formData, boolean preProcessData=true, boolean ignoreMissing=false ) output=false {
 		var ruleset = _getValidationRulesetFromFormName( arguments.formName );
 		var data    = Duplicate( arguments.formData );
 
@@ -332,9 +332,10 @@ component output=false singleton=true {
 
 		if ( arguments.preProcessData ) {
 			return _getValidationEngine().validate(
-				  ruleset = ruleset
-				, data    = data
-				, result  = preProcessForm( argumentCollection = arguments )
+				  ruleset       = ruleset
+				, data          = data
+				, result        = preProcessForm( argumentCollection = arguments )
+				, ignoreMissing = arguments.ignoreMissing
 			);
 		}
 

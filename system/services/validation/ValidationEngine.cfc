@@ -10,7 +10,7 @@ component output="false" singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult() ) outut=false {
+	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) outut=false {
 		var rules       = _getRuleset( arguments.ruleset ).getRules();
 		var validators  = _getValidators();
 		var validator   = _getValidators();
@@ -20,6 +20,9 @@ component output="false" singleton=true {
 		var fieldResult = "";
 
 		for( rule in rules ){
+			if ( arguments.ignoreMissing && !arguments.data.keyExists( rule.getFieldName() ) ) {
+				continue;
+			}
 			if ( not result.fieldHasError( rule.getFieldName() ) and _evaluateConditionalRule( rule, data ) ) {
 				provider = validators[ rule.getValidator() ];
 
