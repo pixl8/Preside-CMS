@@ -13,13 +13,15 @@
 	event.include( assetId="/js/admin/coretop/ie/", group="top" );
 	event.include( assetId="/js/admin/coretop/", group="top" );
 	topJs = event.renderIncludes( "js", "top" );
+
+	htmlTitle = translateResource( uri="cms:cms.title" ) & " :: " & ( prc.pageTitle ?: translateResource( uri="cms:cms.tagline", defaultValue="" ) );
 </cfscript>
 
 <cfoutput><!DOCTYPE html>
 <html lang="en" class="presidecms">
 	<head>
 		<meta charset="utf-8" />
-		<title>#translateResource( uri="cms:cms.title" )#</title>
+		<title>#htmlTitle#</title>
 
 		<meta name="robots" content="NOINDEX,NOFOLLOW" />
 		<meta name="description" content="" />
