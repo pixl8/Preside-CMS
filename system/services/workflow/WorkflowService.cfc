@@ -73,11 +73,13 @@ component output=false singleton=true {
 		, string owner      = _getSessionBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 	) output=false {
-		var record = _getStateDao().selectData( id=arguments.id );
+		if ( Len( Trim( arguments.id  ) ) ) {
+			var record = _getStateDao().selectData( id=arguments.id );
 
-		for( var r in record ){
-			r.state = IsJson( r.state ) ? DeserializeJson( r.state ) : {};
-			return r;
+			for( var r in record ){
+				r.state = IsJson( r.state ) ? DeserializeJson( r.state ) : {};
+				return r;
+			}
 		}
 
 		return {};
@@ -89,7 +91,10 @@ component output=false singleton=true {
 		, string owner      = _getSessionBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 	) output=false {
-		return _getStateDao().deleteData( id=arguments.id );
+		if ( Len( Trim( arguments.id ) ) ) {
+			return _getStateDao().deleteData( id=arguments.id );
+		}
+		return false;
 	}
 
 // PRIVATE HELPERS
