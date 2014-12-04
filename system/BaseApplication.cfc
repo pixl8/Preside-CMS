@@ -155,10 +155,22 @@ component output=false {
 	}
 
 	private boolean function _showErrors() output=false {
-		var coldboxController  = _getColdboxController();
-		var defaultInjected    = IsBoolean( application.injectedConfig.showErrors ?: "" ) && application.injectedConfig.showErrors;
+		var coldboxController = _getColdboxController();
+		var injectedExists    = IsBoolean( application.injectedConfig.showErrors ?: "" );
+		var nonColdboxDefault = injectedExists && application.injectedConfig.showErrors;
 
-		return IsNull( coldboxController ) ? defaultInjected : coldboxController.getSetting( name="showErrors", defaultValue=defaultInjected );
+		if ( !injectedExists ) {
+			var localEnvRegexes = this.LOCAL_ENVIRONMENT_REGEX ?: "^local\.,\.local$,^localhost(:[0-9]+)?$,^127.0.0.1(:[0-9]+)?$";
+			var host            = cgi.http_host;
+			for( var regex in ListToArray( localEnvRegexes ) ) {
+				if ( ReFindNoCase( regex, host ) ) {
+					nonColdboxDefault = true;
+					break;
+				}
+			}
+		}
+
+		return IsNull( coldboxController ) ? nonColdboxDefault : coldboxController.getSetting( name="showErrors", defaultValue=nonColdboxDefault );
 	}
 
 	private any function _getColdboxController() output=false {
