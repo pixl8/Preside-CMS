@@ -755,9 +755,12 @@
 
 	<cffunction name="_getViewMappings" access="private" returntype="struct" output="false">
 		<cfscript>
+			var site     = getRequestContext().getSite();
+			var cacheKey = "viewsFullMappings" & ( site.template ?: "" );
+
 			lock name="#instance.lockName#" type="readonly" timeout="15" throwontimeout="true" {
-				if ( controller.settingExists( "viewsFullMappings" ) ) {
-					return controller.getSetting( "viewsFullMappings" )
+				if ( controller.settingExists( cacheKey ) ) {
+					return controller.getSetting( cacheKey )
 				}
 			}
 
@@ -779,7 +782,7 @@
 			}
 
 			lock name="#instance.lockName#" type="readonly" timeout="15" throwontimeout="true" {
-				controller.setSetting( "viewsFullMappings", mappings )
+				controller.setSetting( cacheKey, mappings )
 			}
 
 			return mappings;
