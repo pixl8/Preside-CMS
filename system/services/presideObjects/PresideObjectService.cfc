@@ -467,9 +467,9 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		for( key in cleanedData ){
 			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ) eq "many-to-many" ) {
 				manyToManyData[ key ] = cleanedData[ key ];
-			}
-			if ( not ListFindNoCase( obj.dbFieldList, key ) ) {
-				StructDelete( cleanedData, key );
+				cleanedData.delete( key );
+			} elseif ( !ListFindNoCase( obj.dbFieldList, key ) ) {
+				cleanedData.delete( key );
 			}
 		}
 
