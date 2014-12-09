@@ -140,7 +140,12 @@
 					</cfdefaultcase>
 				</cfswitch>
 			</td>
-			<td><a href="#pageUrl#" data-context-key="p" title="#translateResource( 'cms:sitetree.preview.page.link' )#"><cfif Len( Trim( args.slug ) )>#args.slug#.html<cfelse>/</cfif></a></td>
+			<td>
+				<a href="#pageUrl#" data-context-key="p" title="#translateResource( 'cms:sitetree.preview.page.link' )#" target="_blank">
+					<i class="fa fa-fw fa-external-link"></i>
+					<cfif Len( Trim( args.slug ) )>#args.slug#.html<cfelse>/</cfif>
+				</a>
+			</td>
 		</tr>
 
 		<cfloop array="#args.children#" index="child">
