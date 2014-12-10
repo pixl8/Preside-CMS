@@ -44,8 +44,8 @@
 							</span>
 						</div>
 					</cfif>
-					<a class="view-in-tree-link" href="#event.buildAdminLink( linkTo='sitetree', queryString='selected=#event.getCurrentPageId()#' )#" title="#translateResource( 'cms:admintoolbar.view.in.tree' )#">
-						<i class="fa fa-sitemap"></i>
+					<a class="view-in-tree-link" href="#event.getEditPageLink()#" title="#translateResource( 'cms:admintoolbar.edit.page' )#">
+						<i class="fa fa-pencil fa-lg"></i>
 					</a>
 				</li>
 				<li>

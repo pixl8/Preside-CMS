@@ -534,6 +534,23 @@
 		<cfset getRequestContext().setValue( name="_breadCrumbs", value=[], private=true ) />
 	</cffunction>
 
+	<cffunction name="getEditPageLink" access="public" returntype="string" output="false">
+		<cfscript>
+			var prc = getRequestContext().getCollection( private=true );
+
+			if ( !prc.keyExists( "_presideCmsEditPageLink" ) ) {
+				setEditPageLink( buildAdminLink( linkTo='sitetree.editPage', queryString='id=#getCurrentPageId()#' ) );
+			}
+
+			return prc._presideCmsEditPageLink;
+		</cfscript>
+	</cffunction>
+	<cffunction name="setEditPageLink" access="public" returntype="void" output="false">
+		<cfargument name="editPageLink" type="string" required="true" />
+
+		<cfset getRequestContext().setValue( name="_presideCmsEditPageLink", value=arguments.editPageLink, private=true ) />
+	</cffunction>
+
 <!--- status codes --->
 	<cffunction name="notFound" access="public" returntype="void" output="false">
 		<cfscript>
