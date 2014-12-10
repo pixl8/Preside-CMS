@@ -1,7 +1,7 @@
 ( function( $ ){
 	var $adminBar       = $( "#preside-admin-toolbar" )
 	  , $body           = $( 'body' )
-	  , $editors        = $( ".content-editor" )
+	  , $editors        = $( "script.content-editor" )
 	  , htmlComments    = $( "*" ).contents().filter( function(){ return this.nodeType === 8; } )
 	  , dummyDivs       = []
 	  , currentEditMode = false
@@ -12,7 +12,7 @@
 
 	setEditorSizesAndPosition = function(){
 		$editors.each( function(){
-			var $editor           = $( this )
+			var $editor           = $( this ).data( "presideeditor" )
 			  , $overlay          = $editor.find( ".content-editor-overlay .inner" )
 			  , $contentContainer = $editor.data( "parent" )
 			  , editorId          = $editor.attr( "id" )
@@ -112,47 +112,16 @@
 		if ( currentEditMode ) { setEditorSizesAndPosition(); }
 	}, 1000 );
 
-	if ( typeof $.cookie( "_presideEditMode" ) !== "undefined" ) {
-		var mode      = $.cookie( "_presideEditMode" )
-		  , $checkbox = $( "#edit-mode-options" )
-		  , editMode  = mode == "true";
-
-		$checkbox.prop( "checked", editMode );
-		setEditMode( editMode );
-	}
-
-	if ( $editors.length ) {
-		var nextTabIndex = ( function(){
-			var max = 0;
-			$( "[tabindex]" ).each( function(){
-				var ix = parseInt( $(this).attr( 'tabindex' ) );
-				if ( !isNaN( ix ) && ix > max ) {
-					max = ix;
-				}
-			} );
-
-			return max+1;
-		} )();
-
-		$body.attr( "data-nav-list", "1" );
-		$body.data( "navListChildSelector", ".content-editor" );
-		$editors.each( function( i ){
-			$( this ).attr( "tabindex", nextTabIndex+i );
-		} );
-
-		$body.append( '<div class="frontend-editor-modal-sheen"></div>' );
-	}
-
 	$.fn.presideFrontEndEditor = function( command ){
-
 		return this.each( function(){
-			var $editor            = $( this )
+			var $scriptContainer   = $( this )
+			  , $editor            = $( $scriptContainer.html() )
 			  , $editorContainer   = $editor.find( '.content-editor-editor-container' )
 			  , $overlay           = $editor.find( ".content-editor-overlay .inner" )
 			  , $form              = $editorContainer.find( "form" )
 			  , $contentInput      = $form.find( "[name=content]" )
 			  , $drafttextarea     = $editorContainer.find( "textarea[name=draftContent]" )
-			  , $editorParent      = $editor.parent()
+			  , $editorParent      = $scriptContainer.parent()
 			  , $notificationsArea = $editor.find( ".content-editor-editor-notifications" )
 			  , $versioningLink    = $editorContainer.find( ".version-history-link" )
 			  , isRichEditor       = $editor.hasClass( "richeditor" )
@@ -168,9 +137,11 @@
 			  , versionIcon        = '<i class="preside-icon fa fa-history"></i> '
 			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent;
 
-			$editor.appendTo( 'body' ); // shove the entire editor markup to the end of the body, avoiding issues with interfering with page layout
+			$scriptContainer.appendTo( "body" );
+			$editor.appendTo( "body" );
 			$editor.data( "parent", $editorParent );
 			$editorContainer.appendTo( 'body' ); // make its absolute position relative to the body
+			$scriptContainer.data( "presideeditor", $editor );
 
 			toggleEditMode = function( editMode ){
 				formEnabled = editMode;
@@ -593,7 +564,7 @@
 				toggleEditMode( true );
 			} );
 
-			$editorContainer.keydown( "return", function( e ){
+			$editor.keydown( "return", function( e ){
 				if ( currentEditMode ) {
 					e.preventDefault();
 					toggleEditMode( true );
@@ -624,5 +595,37 @@
 	};
 
 	$editors.presideFrontEndEditor();
+
+	if ( $editors.length ) {
+		var nextTabIndex = ( function(){
+			var max = 0;
+			$( "[tabindex]" ).each( function(){
+				var ix = parseInt( $(this).attr( 'tabindex' ) );
+				if ( !isNaN( ix ) && ix > max ) {
+					max = ix;
+				}
+			} );
+
+			return max+1;
+		} )();
+
+		$body.attr( "data-nav-list", "1" );
+		$body.data( "navListChildSelector", ".content-editor" );
+		$editors.each( function( i ){
+			$( this ).data( "presideeditor" ).attr( "tabindex", nextTabIndex+i );
+		} );
+
+		$body.append( '<div class="frontend-editor-modal-sheen"></div>' );
+	}
+
+	if ( typeof $.cookie( "_presideEditMode" ) !== "undefined" ) {
+		var mode      = $.cookie( "_presideEditMode" )
+		  , $checkbox = $( "#edit-mode-options" )
+		  , editMode  = mode == "true";
+
+		$checkbox.prop( "checked", editMode );
+		setEditMode( editMode );
+	}
+
 
 } )( presideJQuery );
