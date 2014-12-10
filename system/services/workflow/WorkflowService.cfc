@@ -105,6 +105,17 @@ component output=false singleton=true {
 				, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=arguments.owner }
 			);
 
+			if ( !record.recordCount && owner != _getSessionBasedOwner() ) {
+				record = _getStateDao().selectData(
+					  selectFields = [ "id" ]
+					, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=_getSessionBasedOwner() }
+				);
+
+				if ( record.recordCount ) {
+					_getStateDao().updateData( id=record.id, data={ owner = arguments.owner } );
+				}
+			}
+
 			return record.id ?: "";
 		}
 
