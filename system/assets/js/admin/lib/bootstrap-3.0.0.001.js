@@ -87,7 +87,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // ALERT CLASS DEFINITION
   // ======================
 
-  var dismiss = '[data-dismiss="alert"]'
+  var dismiss = '.presidecms [data-dismiss="alert"]'
   var Alert   = function (el) {
     $(el).on('click', dismiss, this.close)
   }
@@ -262,7 +262,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // BUTTON DATA-API
   // ===============
 
-  $(document).on('click.bs.button.data-api', '[data-toggle^=button]', function (e) {
+  $(document).on('click.bs.button.data-api', '.presidecms [data-toggle^=button]', function (e) {
     var $btn = $(e.target)
     if (!$btn.hasClass('btn')) $btn = $btn.closest('.btn')
     $btn.button('toggle')
@@ -464,7 +464,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // CAROUSEL DATA-API
   // =================
 
-  $(document).on('click.bs.carousel.data-api', '[data-slide], [data-slide-to]', function (e) {
+  $(document).on('click.bs.carousel.data-api', '.presidecms [data-slide], .presidecms [data-slide-to]', function (e) {
     var $this   = $(this), href
     var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) //strip for ie7
     var options = $.extend({}, $target.data(), $this.data())
@@ -481,7 +481,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   })
 
   $(window).on('load', function () {
-    $('[data-ride="carousel"]').each(function () {
+    $('.presidecms [data-ride="carousel"]').each(function () {
       var $carousel = $(this)
       $carousel.carousel($carousel.data())
     })
@@ -648,7 +648,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // COLLAPSE DATA-API
   // =================
 
-  $(document).on('click.bs.collapse.data-api', '[data-toggle=collapse]', function (e) {
+  $(document).on('click.bs.collapse.data-api', '.presidecms [data-toggle=collapse]', function (e) {
     var $this   = $(this), href
     var target  = $this.attr('data-target')
         || e.preventDefault()
@@ -660,7 +660,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
     var $parent = parent && $(parent)
 
     if (!data || !data.transitioning) {
-      if ($parent) $parent.find('[data-toggle=collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
+      if ($parent) $parent.find('.presidecms [data-toggle=collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
       $this[$target.hasClass('in') ? 'addClass' : 'removeClass']('collapsed')
     }
 
@@ -695,7 +695,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // =========================
 
   var backdrop = '.dropdown-backdrop'
-  var toggle   = '[data-toggle=dropdown]'
+  var toggle   = '.presidecms [data-toggle=dropdown]'
   var Dropdown = function (element) {
     var $el = $(element).on('click.bs.dropdown', this.toggle)
   }
@@ -880,7 +880,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
 
     this.escape()
 
-    this.$element.on('click.dismiss.modal', '[data-dismiss="modal"]', $.proxy(this.hide, this))
+    this.$element.on('click.dismiss.modal', '.presidecms [data-dismiss="modal"]', $.proxy(this.hide, this))
 
     this.backdrop(function () {
       var transition = $.support.transition && that.$element.hasClass('fade')
@@ -1050,7 +1050,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // MODAL DATA-API
   // ==============
 
-  $(document).on('click.bs.modal.data-api', '[data-toggle="modal"]', function (e) {
+  $(document).on('click.bs.modal.data-api', '.presidecms [data-toggle="modal"]', function (e) {
     var $this   = $(this)
     var href    = $this.attr('href')
     var $target = $($this.attr('data-target') || (href && href.replace(/.*(?=#[^\s]+$)/, ''))) //strip for ie7
@@ -1678,7 +1678,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
       .removeClass('active')
 
     var selector = this.selector
-      + '[data-target="' + target + '"],'
+      + '.presidecms [data-target="' + target + '"],'
       + this.selector + '[href="' + target + '"]'
 
     var active = $(selector)
@@ -1727,7 +1727,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // ==================
 
   $(window).on('load', function () {
-    $('[data-spy="scroll"]').each(function () {
+    $('.presidecms [data-spy="scroll"]').each(function () {
       var $spy = $(this)
       $spy.scrollspy($spy.data())
     })
@@ -1864,7 +1864,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // TAB DATA-API
   // ============
 
-  $(document).on('click.bs.tab.data-api', '[data-toggle="tab"], [data-toggle="pill"]', function (e) {
+  $(document).on('click.bs.tab.data-api', '.presidecms [data-toggle="tab"], .presidecms [data-toggle="pill"]', function (e) {
     e.preventDefault()
     $(this).tab('show')
   })
@@ -1983,7 +1983,7 @@ if (!presideJQuery) { throw new Error("Bootstrap requires jQuery") }
   // ==============
 
   $(window).on('load', function () {
-    $('[data-spy="affix"]').each(function () {
+    $('.presidecms [data-spy="affix"]').each(function () {
       var $spy = $(this)
       var data = $spy.data()
 
