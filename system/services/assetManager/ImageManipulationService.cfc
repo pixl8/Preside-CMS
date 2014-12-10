@@ -10,10 +10,11 @@ component output=false singleton=true {
 		  required binary  asset
 		,          numeric width               = 0
 		,          numeric height              = 0
+		,          string  quality             = "highestquality"
 		,          boolean maintainAspectRatio = false
 	) output=false {
 		var image              = "";
-		var interpolation      = "highestperformance";
+		var interpolation      = arguments.quality
 		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
 		var currentAspectRatio = 0;
@@ -53,10 +54,15 @@ component output=false singleton=true {
 		return ImageGetBlob( image );
 	}
 
-	public binary function shrinkToFit( required binary asset, required numeric width, required numeric height ) output=false {
+	public binary function shrinkToFit(
+		  required binary  asset
+		, required numeric width
+		, required numeric height
+		,          string  quality = "highestquality"
+	) output=false {
 		var image         = "";
 		var imageInfo     = "";
-		var interpolation = "highestperformance";
+		var interpolation = arguments.quality;
 
 		try {
 			image = ImageNew( arguments.asset );
