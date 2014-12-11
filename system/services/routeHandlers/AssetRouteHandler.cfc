@@ -46,7 +46,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			link = ReReplace( link, "^/asset/", "/asset/_" );
 		}
 
-		return link;
+		return event.getSiteUrl() & link;
 	}
 
 // private getters and setters

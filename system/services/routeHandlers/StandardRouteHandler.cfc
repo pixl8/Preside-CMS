@@ -43,18 +43,15 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var site = event.getSite();
-		var root = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name ) & ( site.path ?: "/" );
 		var link = ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
 
-		root = ReReplace( root, "/$", "" );
 		link = ReReplaceNoCase( link, "index/$", "" );
 
 		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return root & "/" & link;
+		return event.getSiteUrl() & link;
 	}
 
 // private getters and setters

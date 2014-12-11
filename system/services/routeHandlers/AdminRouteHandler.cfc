@@ -49,16 +49,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return _getRootPath() & link;
-	}
-
-// private helpers
-	private string function _getRootPath() output=false {
-		var protocol = ( cgi.server_protocol.startsWith( "HTTPS" ) ? "https" : "http" ) & "://";
-		var domain   = cgi.server_name;
-		var port     = cgi.server_port == 80 ? "" : ":#cgi.server_port#";
-
-		return protocol & domain & port;
+		return event.getSiteUrl() & link;
 	}
 
 // private getters and setters

@@ -101,12 +101,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		var homepage = treeSvc.getSiteHomepage();
 		var page     = _getPageByIdOrPageType( arguments.buildArgs.page );
 		var link     = "";
-		var root     = "#page.protocol#://#page.domain#";
-
-		if ( ( cgi.server_port ?: 80 ) != 80 ) {
-			root &= ":" & cgi.server_port;
-		}
-		root &= ReReplace( page.path, '/$', '' );
+		var root     = event.getSiteUrl( page.site );
 
 
 		if ( page.recordCount ) {
@@ -146,7 +141,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	private query function _getPageByIdOrPageType( required string page ) output=false {
 		var ptService = _getPageTypesService();
 		var getPageArgs = {
-			selectFields=[ "page.id", "page._hierarchy_slug as slug", "site.protocol", "site.domain", "site.path" ]
+			selectFields=[ "page.id", "page._hierarchy_slug as slug", "page.site" ]
 		};
 
 		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {
