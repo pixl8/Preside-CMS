@@ -10,7 +10,7 @@ component output=false singleton=true {
 		  required binary  asset
 		,          numeric width               = 0
 		,          numeric height              = 0
-		,          string  quality             = "highestquality"
+		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
 	) output=false {
 		var image              = "";
@@ -58,7 +58,7 @@ component output=false singleton=true {
 		  required binary  asset
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highestquality"
+		,          string  quality = "highPerformance"
 	) output=false {
 		var image         = "";
 		var imageInfo     = "";
