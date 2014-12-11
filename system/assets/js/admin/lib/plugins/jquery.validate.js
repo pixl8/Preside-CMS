@@ -528,6 +528,10 @@ $.extend($.validator, {
 				return $("input[name='" + $(element).attr("name") + "']:checked").val();
 			}
 
+			if ( $( element ).data( "ckeditorinstance" ) ) {
+				val = $( element ).data( "ckeditorinstance" ).getData();
+			}
+
 			if ( typeof val === "string" ) {
 				return val.replace(/\r/g, "");
 			}
