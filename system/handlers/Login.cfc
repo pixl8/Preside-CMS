@@ -41,7 +41,8 @@ component output=false {
 	public void function sendResetInstructions( event, rc, prc ) output=false {
 		if ( websiteLoginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
 			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
-				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
+				  message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
+				, loginId = ( rc.loginId ?: "" )
 			} );
 		}
 
