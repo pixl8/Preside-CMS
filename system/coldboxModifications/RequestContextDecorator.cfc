@@ -38,6 +38,10 @@
 			var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 			var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
 
+			if ( cgi.server_port != 80 ) {
+				siteUrl &= ":#cgi.server_port#";
+			}
+
 			if ( arguments.includePath ) {
 				siteUrl &= site.path ?: "/";
 			}
