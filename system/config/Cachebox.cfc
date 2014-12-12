@@ -19,7 +19,7 @@ component output=false {
 			caches = {
 				// named cache for all coldbox event and view template caching
 				template = {
-					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 120
 						, objectDefaultLastAccessTimeout = 30
@@ -34,7 +34,7 @@ component output=false {
 				},
 
 				SystemCache = {
-					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 0
 						, objectDefaultLastAccessTimeout = 0
@@ -48,7 +48,7 @@ component output=false {
 				},
 
 				DefaultQueryCache = {
-					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 20
 						, objectDefaultLastAccessTimeout = 0
@@ -62,7 +62,7 @@ component output=false {
 				},
 
 				PermissionsCache = {
-					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 120
 						, objectDefaultLastAccessTimeout = 0
@@ -76,7 +76,7 @@ component output=false {
 				},
 
 				WebsitePermissionsCache = {
-					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 20
 						, objectDefaultLastAccessTimeout = 20
@@ -90,7 +90,7 @@ component output=false {
 				},
 
 				PresideObjectViewCache = {
-					  provider   = "coldbox.system.cache.providers.CacheBoxColdBoxProvider"
+					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 0
 						, objectDefaultLastAccessTimeout = 0
