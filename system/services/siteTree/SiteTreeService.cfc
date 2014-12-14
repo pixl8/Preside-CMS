@@ -383,7 +383,7 @@ component output=false singleton=true {
 			return [];
 		}
 
-		var maxDepth = page._hierarchy_depth + ( arguments.depth < 1 ? 1 : arguments.depth );
+		var maxDepth = Val( page._hierarchy_depth ) + ( arguments.depth < 1 ? 1 : arguments.depth );
 		var filter   = {
 			  exclude_from_navigation = false
 			, trashed                 = false
@@ -391,7 +391,7 @@ component output=false singleton=true {
 		if ( !arguments.includeInactive ) {
 			filter.active = true;
 		}
-		return getNavChildren( rootPage, page._hierarchy_depth+1 );
+		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1 );
 	}
 
 	public string function addPage(
