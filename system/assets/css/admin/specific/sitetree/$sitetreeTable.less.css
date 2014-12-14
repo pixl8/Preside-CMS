@@ -24,3 +24,22 @@
 .presidecms .tree-table tbody > tr > td:first-child {
   padding-left: 1.78571429em;
 }
+.presidecms .tree-table .page-title-cell {
+  min-width: 450px;
+}
+.presidecms .tree-table .page-title-cell .page-title {
+  text-overflow: ellipsis;
+  width: 270px;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-block;
+  position: relative;
+  top: 4px;
+}
+.presidecms .tree-table .preview-link {
+  text-overflow: ellipsis;
+  width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-block;
+}

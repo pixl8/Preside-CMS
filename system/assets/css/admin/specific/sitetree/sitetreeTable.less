@@ -34,5 +34,27 @@
 				padding-left: ( @fontAwesomeFixedWidthSize + 0.5em );
 			}
 		}
+
+		.page-title-cell {
+			min-width : 450px;
+
+			.page-title {
+				text-overflow : ellipsis;
+				width         : 270px;
+				white-space   : nowrap;
+				overflow      : hidden;
+				display       : inline-block;
+				position      : relative;
+				top           : 4px;
+			}
+		}
+
+		.preview-link {
+			text-overflow : ellipsis;
+			width         : 150px;
+			white-space   : nowrap;
+			overflow      : hidden;
+			display       : inline-block;
+		}
 	}
 }
