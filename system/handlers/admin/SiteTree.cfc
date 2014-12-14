@@ -449,8 +449,27 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function managedChildren( event, rc, prc ) output=false {
-		writeOutput( "TODO" );
-		abort;
+		var parentId = rc.parent   ?: "";
+		var pageType = rc.pageType ?: "";
+
+		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
+
+		if ( !Len( Trim( pageType ) ) || !pageTypesService.pageTypeExists( pageType ) || !ListFindNoCase( pageTypesService.getPageType( prc.parentPage.page_type ).getManagedChildTypes(), pageType ) ) {
+			event.notFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
+		prc.pageSubTitle = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
+		prc.pageIcon     = translateResource( "page-types.#pageType#:iconClass" );
+
+		event.addAdminBreadCrumb(
+			  title = prc.parentPage.title
+			, link  = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=" & parentId )
+		);
+		event.addAdminBreadCrumb(
+			  title = prc.pageTitle
+			, link  = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=#parentId#&pageType=#pageType#" )
+		);
 	}
 
 
