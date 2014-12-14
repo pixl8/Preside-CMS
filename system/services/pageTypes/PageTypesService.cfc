@@ -167,6 +167,8 @@ component output=false singleton=true {
 				, layouts    = layouts.keyList()
 			);
 		}
+
+		_calculateManagedPageTypes();
 	}
 
 	private void function _registerPageType( required string id, required boolean hasHandler, required string layouts ) output=false {
@@ -191,6 +193,35 @@ component output=false singleton=true {
 			, isSystemPageType     = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
 			, parentSystemPageType = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )
 		);
+	}
+
+	private void function _calculateManagedPageTypes() output=false {
+		var pageTypes         = _getRegisteredPageTypes();
+		var siteTreePageTypes = listSiteTreePageTypes();
+
+		for( var pageTypeId in pageTypes ){
+			var pageType = pageTypes[ pageTypeId ];
+
+			if ( !pageType.showInSiteTree() ) {
+				if ( Len( Trim( pageType.getAllowedParentTypes() ) ) && pageType.getAllowedParentTypes() != "*" ) {
+					for( var parentTypeId in ListToArray( pageType.getAllowedParentTypes() ) ) {
+						var parentType = getPageType( parentTypeId );
+						var parentManaged = parentType.getManagedChildTypes();
+						var parentAllowed = parentType.getAllowedChildTypes();
+
+						parentType.setManagedChildTypes( ListAppend( parentManaged, pageType.getId() ) );
+						if ( parentAllowed != "*" ) {
+							parentAllowed = ListToArray( parentAllowed );
+							parentAllowed.delete( pageType.getId() );
+							parentType.setAllowedChildTypes( parentAllowed.len() ? parentAllowed.toList() : "none" );
+						}
+					}
+				}
+			}
+			if ( pageType.getAllowedChildTypes() == "*" ) {
+				pageType.setAllowedChildTypes( siteTreePageTypes.toList() );
+			}
+		}
 	}
 
 	private boolean function _fileExistsNoCase( required string path ) output=false {

@@ -448,6 +448,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function managedChildren( event, rc, prc ) output=false {
+		writeOutput( "TODO" );
+		abort;
+	}
+
 
 <!--- private helpers --->
 	private void function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree." ) output=false {

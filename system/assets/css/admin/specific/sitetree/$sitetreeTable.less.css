@@ -43,3 +43,6 @@
   overflow: hidden;
   display: inline-block;
 }
+.presidecms .tree-table .managed-page-type-link-cell {
+  font-style: italic;
+}

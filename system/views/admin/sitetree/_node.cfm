@@ -26,7 +26,6 @@
 		pageType    = translateResource( "page-types.#args.page_type#:name", args.page_type );
 		pageIcon    = translateResource( "page-types.#args.page_type#:iconclass", "fa-file-o" );
 		safeTitle   = HtmlEditFormat( args.title );
-		hasChildren = args.children.len() || args.applicationPageTree.len();
 		selected    = rc.selected ?: "";
 
 		if ( args.access_restriction == "inherit" ) {
@@ -34,7 +33,9 @@
 		}
 
 		allowableChildPageTypes = getAllowableChildPageTypes( args.page_type );
+		managedChildPageTypes   = getManagedChildPageTypes( args.page_type );
 		isSystemPage            = isSystemPageType( args.page_type );
+		hasChildren             = managedChildPageTypes.len() || args.children.len() || args.applicationPageTree.len();
 
 		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=args.permission_context );
 		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=args.permission_context );
@@ -147,6 +148,16 @@
 				</a>
 			</td>
 		</tr>
+
+		<cfloop list="#managedChildPageTypes#" index="pageType">
+			<tr data-id="#args.id#_#pageType#" data-parent="#args.id#" data-depth="#args._hierarchy_depth+1#" data-context-container="#args.id#_#pageType#">
+				<td colspan="5" class="managed-page-type-link-cell">
+					#RepeatString( '&nbsp; &nbsp; &nbsp; &nbsp;', args._hierarchy_depth+1 )#
+					<i class="fa fa-fw fa-ellipsis-h page-type-icon"></i>
+					<a href="#event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=#args.id#&pageType=#pageType#" )#">#translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] )#</a>
+				</td>
+			</tr>
+		</cfloop>
 
 		<cfloop array="#args.children#" index="child">
 			<cfset child.parent_restriction = duplicate( args.access_restriction ) />

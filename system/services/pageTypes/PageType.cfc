@@ -11,6 +11,7 @@ component output=false accessors=true {
 	property name="layouts"              type="string"  default="";
 	property name="allowedChildTypes"    type="string"  default="*";
 	property name="allowedParentTypes"   type="string"  default="*";
+	property name="managedChildTypes"    type="string"  default="";
 	property name="showInSiteTree"       type="boolean" default=true;
 	property name="siteTemplates"        type="string"  default="*";
 	property name="isSystemPageType"     type="boolean" default=false;
@@ -43,6 +44,7 @@ component output=false accessors=true {
 			, layouts              = listLayouts()
 			, allowedChildTypes    = getAllowedChildTypes()
 			, allowedParentTypes   = getAllowedParentTypes()
+			, managedChildTypes    = getManagedChildTypes()
 			, showInSiteTree       = getShowInSiteTree()
 			, siteTemplates        = getSiteTemplates()
 			, isSystemPageType     = isSystemPageType()
