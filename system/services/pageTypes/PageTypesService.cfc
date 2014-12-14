@@ -34,6 +34,19 @@ component output=false singleton=true {
 		return result;
 	}
 
+	public array function listSiteTreePageTypes() output=false {
+		var pageTypes = _getRegisteredPageTypes();
+		var result    = [];
+
+		for( var id in pageTypes ) {
+			if ( pageTypes[id].showInSiteTree() ) {
+				result.append( id );
+			}
+		}
+
+		return result;
+	}
+
 	public boolean function pageTypeExists( required string id ) output=false {
 		return StructKeyExists( _getRegisteredPageTypes(), arguments.id );
 	}
@@ -173,6 +186,7 @@ component output=false singleton=true {
 			, viewlet              = poService.getObjectAttribute( arguments.id, "pageTypeViewlet", _getConventionsBasePageTypeViewlet( arguments.id ) )
 			, allowedChildTypes    = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedChildPageTypes" , defaultValue="*"   )
 			, allowedParentTypes   = poService.getObjectAttribute( objectName=arguments.id, attributeName="allowedParentPageTypes", defaultValue="*"   )
+			, showInSiteTree       = poService.getObjectAttribute( objectName=arguments.id, attributeName="showInSiteTree"        , defaultValue=true  )
 			, siteTemplates        = poService.getObjectAttribute( objectName=arguments.id, attributeName="siteTemplates"         , defaultValue="*"   )
 			, isSystemPageType     = poService.getObjectAttribute( objectName=arguments.id, attributeName="isSystemPageType"      , defaultValue=false )
 			, parentSystemPageType = poService.getObjectAttribute( objectName=arguments.id, attributeName="parentSystemPageType"  , defaultValue="homepage" )

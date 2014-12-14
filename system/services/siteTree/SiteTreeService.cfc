@@ -31,9 +31,10 @@ component output=false singleton=true {
 
 	) output=false {
 		var tree = "";
+		var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes();
 		var args = {
 			  orderBy  = "_hierarchy_sort_order"
-			, filter   = { trashed = arguments.trash }
+			, filter   = { trashed = arguments.trash, page_type = allowedPageTypes }
 			, useCache = arguments.useCache
 		};
 

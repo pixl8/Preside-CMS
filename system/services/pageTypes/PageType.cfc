@@ -11,6 +11,7 @@ component output=false accessors=true {
 	property name="layouts"              type="string"  default="";
 	property name="allowedChildTypes"    type="string"  default="*";
 	property name="allowedParentTypes"   type="string"  default="*";
+	property name="showInSiteTree"       type="boolean" default=true;
 	property name="siteTemplates"        type="string"  default="*";
 	property name="isSystemPageType"     type="boolean" default=false;
 	property name="parentSystemPageType" type="string"  default="";
@@ -20,6 +21,9 @@ component output=false accessors=true {
 	}
 	public boolean function isSystemPageType() output=false {
 		return getIsSystemPageType();
+	}
+	public boolean function showInSiteTree() output=false {
+		return getShowInSiteTree();
 	}
 	public array function listLayouts() output=false {
 		return ListToArray( getLayouts() );
@@ -39,6 +43,7 @@ component output=false accessors=true {
 			, layouts              = listLayouts()
 			, allowedChildTypes    = getAllowedChildTypes()
 			, allowedParentTypes   = getAllowedParentTypes()
+			, showInSiteTree       = getShowInSiteTree()
 			, siteTemplates        = getSiteTemplates()
 			, isSystemPageType     = isSystemPageType()
 			, parentSystemPageType = getParentSystemPageType()
