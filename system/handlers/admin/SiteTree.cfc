@@ -121,6 +121,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			}
 
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
+		} elseif ( _isManagedPage( parent, rc.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#parent#&pagetype=#rc.page_type#" ) );
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#newId#" ) );
 		}
@@ -585,5 +587,17 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		prc[ cacheKey ] = reversed;
 
 		return reversed;
+	}
+
+	private boolean function _isManagedPage( required string parentId, required string pageType ) output=false {
+		var parent = siteTreeService.getPage( id=parentId, selectFields=[ "page_type" ] );
+
+		if ( !parent.recordCount ) {
+			return false;
+		}
+
+		var managedTypesForParent = pageTypesService.getPageType( parent.page_type ).getManagedChildTypes();
+
+		return managedTypesForParent.len() && ListFindNoCase( managedTypesForParent, arguments.pageType );
 	}
 }
