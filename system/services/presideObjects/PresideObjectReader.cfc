@@ -74,7 +74,7 @@ component output=false singleton=true {
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
 		meta.properties  = _convertPropertiesToBeans( meta.properties );
-		meta.tableName   = meta.tablePrefix & meta.tableName;
+		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
 		meta.indexes     = _discoverIndexes( meta.properties, componentName );
 	}
 
@@ -90,7 +90,7 @@ component output=false singleton=true {
 			, dsn         = sourceObject.dsn
 			, indexes     = { "ux_#pivotObjectName#" = { unique=true, fields="#fieldOrder#" } }
 			, name        = pivotObjectName
-			, tableName   = sourceObject.tablePrefix & pivotObjectName
+			, tableName   = LCase( sourceObject.tablePrefix & pivotObjectName )
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, properties  = {
