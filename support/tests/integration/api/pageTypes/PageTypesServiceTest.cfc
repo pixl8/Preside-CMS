@@ -35,14 +35,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test05_getPageType_shouldReturnPageTypeBeanWithConventionBasedIdNameDescriptionViewletAndFormNames() {
 		var pageTypeBean = _getPageTypesSvc( testDirs ).getPageType( "casestudy" );
 
-		super.assertEquals( "casestudy"                       , pageTypeBean.getId()                 );
-		super.assertEquals( "page-types.casestudy:name"       , pageTypeBean.getName()               );
-		super.assertEquals( "page-types.casestudy:description", pageTypeBean.getDescription()        );
-		super.assertEquals( "page-types.casestudy"            , pageTypeBean.getViewlet()            );
-		super.assertEquals( "page-types.casestudy.add"        , pageTypeBean.getAddForm()            );
-		super.assertEquals( "page-types.casestudy.edit"       , pageTypeBean.getEditForm()           );
-		super.assertEquals( "*"                               , pageTypeBean.getAllowedChildTypes()  );
-		super.assertEquals( "*"                               , pageTypeBean.getAllowedParentTypes() );
+		super.assertEquals( "casestudy"                                          , pageTypeBean.getId()                 );
+		super.assertEquals( "page-types.casestudy:name"                          , pageTypeBean.getName()               );
+		super.assertEquals( "page-types.casestudy:description"                   , pageTypeBean.getDescription()        );
+		super.assertEquals( "page-types.casestudy"                               , pageTypeBean.getViewlet()            );
+		super.assertEquals( "page-types.casestudy.add"                           , pageTypeBean.getAddForm()            );
+		super.assertEquals( "page-types.casestudy.edit"                          , pageTypeBean.getEditForm()           );
+		super.assertEquals( "casestudy,blog,event,some_page_type,page,teammember", pageTypeBean.getAllowedChildTypes()  );
+		super.assertEquals( "*"                                                  , pageTypeBean.getAllowedParentTypes() );
 	}
 
 	function test06_hasHandler_shouldReturnFalse_whenPageTypeDoesNotHaveAHandler() {
