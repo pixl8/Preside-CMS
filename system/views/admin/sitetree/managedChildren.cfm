@@ -9,6 +9,7 @@
 	event.include( "/css/admin/specific/datamanager/object/");
 	event.includeData( {
 		  objectName      = pageType
+		, objectTitle     = LCase( objectTitle )
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sitetree.getManagedPagesForAjaxDataTables&parent=#parentId#&pageType=#pageType#" )
 		, useMultiActions = false
 		, allowSearch     = true

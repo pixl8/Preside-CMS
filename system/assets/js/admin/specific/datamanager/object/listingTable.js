@@ -14,7 +14,7 @@
 	  , datasourceUrl   = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 	  , useMultiActions = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
 	  , object          = cfrequest.objectName || ""
-	  , objectTitle     = i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
+	  , objectTitle     = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 	  , enabledContextHotkeys;
 
 	setupDatatable = function(){
