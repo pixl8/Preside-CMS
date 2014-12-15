@@ -469,9 +469,12 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
+		_checkPermissions( argumentCollection=arguments, key="navigate", pageId=parentId );
+
 		prc.pageTitle    = translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] );
 		prc.pageSubTitle = translateResource( uri="cms:sitetree.manage.type.subtitle", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ), prc.parentPage.title ] );;
 		prc.pageIcon     = translateResource( "page-types.#pageType#:iconClass" );
+		prc.canAddChildren = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
 
 		event.addAdminBreadCrumb(
 			  title = prc.parentPage.title
@@ -513,6 +516,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "page", field, record[ field ], [ "adminDataTable", "admin" ] );
 			}
+			var args = record;
+			args.canEdit        = _checkPermissions( argumentCollection=arguments, key="edit"        , pageId=args.id, throwOnError=false );
+			args.canDelete      = _checkPermissions( argumentCollection=arguments, key="delete"      , pageId=args.id, throwOnError=false );
+			args.canViewHistory = _checkPermissions( argumentCollection=arguments, key="viewversions", pageId=args.id, throwOnError=false );
 
 			ArrayAppend( optionsCol, renderView( view="/admin/sitetree/_managedPageGridActions", args=record ) );
 		}
@@ -525,7 +532,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 
 <!--- private helpers --->
-	private void function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree." ) output=false {
+	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) output=false {
 		var permitted = "";
 		var permKey   = arguments.prefix & arguments.key;
 
@@ -536,9 +543,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			permitted = hasCmsPermission( permissionKey=permKey );
 		}
 
-		if ( !permitted ) {
+		if ( arguments.throwOnError && !permitted ) {
 			event.adminAccessDenied();
 		}
+
+		return permitted;
 	}
 
 	private string function _getPageTypeFormName( required any pageType, required string addOrEdit ) output=false {
