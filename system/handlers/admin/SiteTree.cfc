@@ -221,7 +221,12 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+
+		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#page.parent_page#&pagetype=#page.page_type#" ) );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+		}
 	}
 
 	public void function trashPageAction( event, rc, prc ) output=false {
@@ -239,7 +244,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		siteTreeService.trashPage( pageId );
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTrashed.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.parent_page#"  ) );
+		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#page.parent_page#&pagetype=#page.page_type#" ) );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.parent_page#"  ) );
+		}
 	}
 
 	public void function deletePageAction( event, rc, prc ) output=false {
