@@ -475,7 +475,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		event.addAdminBreadCrumb(
 			  title = prc.parentPage.title
-			, link  = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=" & parentId )
+			, link  = event.buildAdminLink( linkTo="sitetree", queryString="selected=" & parentId )
 		);
 		event.addAdminBreadCrumb(
 			  title = prc.pageTitle
