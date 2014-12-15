@@ -51,16 +51,16 @@
 <cfif hasNavigatePermission>
 	<cfoutput>
 		<tr data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> <cfif selected eq args.id> class="selected"</cfif> data-context-container="#args.id#">
-			<td>
+			<td class="page-title-cell">
 				#RepeatString( '&nbsp; &nbsp; &nbsp; &nbsp;', args._hierarchy_depth )#
 				<i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
-					<a href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
+					<a class="page-title" href="#event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#args.id#")#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
 						#args.title#
 					</a>
 				<cfelse>
-					#args.title#
+					<span class="page-title">#args.title#</span>
 				</cfif>
 
 				<div class="actions pull-right btn-group">
@@ -142,7 +142,7 @@
 				</cfswitch>
 			</td>
 			<td>
-				<a href="#pageUrl#" data-context-key="p" title="#translateResource( 'cms:sitetree.preview.page.link' )#" target="_blank">
+				<a class="preview-link" href="#pageUrl#" data-context-key="p" title="#translateResource( 'cms:sitetree.preview.page.link' )#" target="_blank">
 					<i class="fa fa-fw fa-external-link"></i>
 					<cfif Len( Trim( args.slug ) )>#args.slug#.html<cfelse>/</cfif>
 				</a>
