@@ -20,6 +20,7 @@
 	setupDatatable = function(){
 		var $tableHeaders = $listingTable.find( 'thead > tr > th')
 		  , colConfig     = []
+		  , defaultSort   = []
 		  , i;
 
 		if ( useMultiActions ) {
@@ -33,6 +34,9 @@
 
 		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-1; i++ ){
 			colConfig.push( { "mData":$( $tableHeaders.get(i) ).data( 'field' ) } );
+			if ( typeof $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) !== 'undefined' ) {
+				defaultSort.push( [ i, $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) ]);
+			}
 		}
 		colConfig.push( {
 			sClass    : "center",
@@ -43,6 +47,7 @@
 
 		$listingTable.dataTable( {
 			aoColumns     : colConfig,
+			aaSorting     : defaultSort,
 			bServerSide   : true,
 			bProcessing   : true,
 			bStateSave    : true,

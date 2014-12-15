@@ -32,7 +32,7 @@
 				<tr>
 					<th data-field="title">#translateResource( uri="preside-objects.page:field.title.title" )#</th>
 					<th data-field="active">#translateResource( uri="preside-objects.page:field.active.title" )#</th>
-					<th data-field="datecreated">#translateResource( uri="preside-objects.page:field.datecreated.title", defaultValue=translateResource( "cms:preside-objects.default.field.datecreated.title" ) )#</th>
+					<th data-field="datecreated" data-default-sort-order="desc">#translateResource( uri="preside-objects.page:field.datecreated.title", defaultValue=translateResource( "cms:preside-objects.default.field.datecreated.title" ) )#</th>
 					<th>&nbsp;</th>
 				</tr>
 			</thead>
