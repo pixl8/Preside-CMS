@@ -261,6 +261,47 @@ component output=false singleton=true {
 		return QueryNew('');
 	}
 
+	public struct function getManagedChildrenForDataTable(
+		  required string  parentId
+		  required string  pageType
+		,          array   selectFields = []
+		,          numeric startRow     = 1
+		,          numeric maxRows      = 10
+		,          string  orderBy      = "title"
+		,          string  searchQuery  = ""
+	) output=false {
+		var result = {};
+		var args = {
+			  objectName   = "page"
+			, filter       = "parent_page = :parent_page and page_type = :page_type and trashed = :trashed"
+			, filterParams = { parent_page=arguments.parentId, page_type=arguments.pageType, trashed=false }
+			, selectFields = arguments.selectFields
+			, maxRows      = arguments.maxRows
+			, startRow     = arguments.startRow
+			, orderBy      = arguments.orderBy
+		};
+
+		args.selectFields.prepend( "id" );
+
+		if ( Len( Trim( arguments.searchQuery ) ) ) {
+			args.filter &= " and title like :title";
+			args.filterParams.title = "%" & arguments.searchQuery & "%";
+		}
+
+		result.records = _getPresideObjectService().selectData( argumentCollection = args );
+
+		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+			result.totalRecords = result.records.recordCount;
+		} else {
+			args.maxRows = 0;
+			args.startRow = 1;
+			args.selectFields = [ "count( * ) as nRows" ]
+			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args ).nRows;
+		}
+
+		return result;
+	}
+
 	public query function getAncestors( required string id, numeric depth=0, array selectFields=[], boolean includeSiblings=false ) output=false {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ] );
 		var args = "";

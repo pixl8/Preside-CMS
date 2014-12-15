@@ -472,6 +472,46 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function getManagedPagesForAjaxDataTables( event, rc, prc ) output=false {
+		var parentId = rc.parent   ?: "";
+		var pageType = rc.pageType ?: "";
+
+		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
+
+		if ( !Len( Trim( pageType ) ) || !pageTypesService.pageTypeExists( pageType ) || !ListFindNoCase( pageTypesService.getPageType( prc.parentPage.page_type ).getManagedChildTypes(), pageType ) ) {
+			event.notFound();
+		}
+
+
+		var optionsCol = [];
+		var dtHelper   = getMyPlugin( "JQueryDatatablesHelpers" );
+		var gridFields = [ "title", "active", "datecreated" ];
+		var results    = siteTreeService.getManagedChildrenForDataTable(
+			  parentId     = parentId
+			, pageType     = pageType
+			, selectFields = gridFields
+			, startRow     = dtHelper.getStartRow()
+			, maxRows      = dtHelper.getMaxRows()
+			, orderBy      = dtHelper.getSortOrder()
+			, searchQuery  = dtHelper.getSearchQuery()
+		);
+
+		var records = Duplicate( results.records );
+
+		for( var record in records ){
+			for( var field in gridFields ){
+				records[ field ][ records.currentRow ] = renderField( "page", field, record[ field ], [ "adminDataTable", "admin" ] );
+			}
+
+			ArrayAppend( optionsCol, renderView( view="/admin/sitetree/_managedPageGridActions", args=record ) );
+		}
+
+		QueryAddColumn( records, "_options" , optionsCol );
+		ArrayAppend( gridFields, "_options" );
+
+		event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+	}
+
 
 <!--- private helpers --->
 	private void function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree." ) output=false {
