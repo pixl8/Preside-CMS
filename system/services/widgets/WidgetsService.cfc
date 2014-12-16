@@ -6,17 +6,20 @@ component singleton=true output=false {
 	 * @formsService.inject            FormsService
 	 * @coldbox.inject                 coldbox
 	 * @autoDiscoverDirectories.inject presidecms:directories
+	 * @i18nPlugin.inject              coldbox:plugin:i18n
 	 */
 	public any function init(
 		  required struct configuredWidgets
 		, required any    formsService
 		, required any    coldbox
 		, required array  autoDiscoverDirectories
+		, required any    i18nPlugin
 	) output=false {
 		_setFormsService( arguments.formsService );
 		_setColdbox( arguments.coldbox );
 		_setAutoDicoverDirectories( arguments.autoDiscoverDirectories );
 		_setConfiguredWidgets( arguments.configuredWidgets );
+		_setI18nPlugin( arguments.i18nPlugin );
 
 		_autoDiscoverWidgets();
 		_loadWidgetsFromConfig();
@@ -77,6 +80,25 @@ component singleton=true output=false {
 			);
 		}
 
+	}
+
+	public string function renderWidgetPlaceholder( required string widgetId, string configJson="" ) output=false {
+		var rendered = "";
+
+		if ( !widgetExists( arguments.widgetId ) ) {
+			return "";
+		}
+
+		var viewlet = _getPlaceholderViewletEventForWidget( arguments.widgetId );
+		if ( _getColdbox().viewletExists( viewlet ) ) {
+			return _getColdbox().renderViewlet(
+				  event = viewlet
+				, args  = deserializeConfig( arguments.configJson )
+			);
+		}
+		var widgetTitle = _getWidgetProperty( arguments.widgetId, "title" );
+
+		return _getI18nPlugin().translateResource( uri=widgetTitle, defaultValue=widgetTitle );
 	}
 
 	public boolean function widgetHasConfigForm( required string widgetId ) output=false {
@@ -175,13 +197,14 @@ component singleton=true output=false {
 		}
 
 		for( var id in ids ) {
-			widgets[ id ].id            = id;
-			widgets[ id ].configForm    = _getFormNameByConvention( id );
-			widgets[ id ].viewlet       = _getViewletEventByConvention( id );
-			widgets[ id ].icon          = _getIconByConvention( id );
-			widgets[ id ].title         = _getTitleByConvention( id );
-			widgets[ id ].description   = _getDescriptionByConvention( id );
-			widgets[ id ].siteTemplates = _mergeSiteTemplates( siteTemplateMap[id] );
+			widgets[ id ].id                 = id;
+			widgets[ id ].configForm         = _getFormNameByConvention( id );
+			widgets[ id ].viewlet            = _getViewletEventByConvention( id );
+			widgets[ id ].placeholderViewlet = _getPlaceholderViewletEventByConvention( id );
+			widgets[ id ].icon               = _getIconByConvention( id );
+			widgets[ id ].title              = _getTitleByConvention( id );
+			widgets[ id ].description        = _getDescriptionByConvention( id );
+			widgets[ id ].siteTemplates      = _mergeSiteTemplates( siteTemplateMap[id] );
 		}
 
 		_setWidgets( widgets );
@@ -207,6 +230,10 @@ component singleton=true output=false {
 		return _getWidgetProperty( widgetId, "viewlet" );
 	}
 
+	private string function _getPlaceholderViewletEventForWidget( required string widgetId ) output=false {
+		return _getWidgetProperty( widgetId, "placeholderViewlet" );
+	}
+
 	private string function _getConfigFormForWidget( required string widgetId ) output=false {
 		return _getWidgetProperty( widgetId, "configForm" );
 	}
@@ -217,6 +244,10 @@ component singleton=true output=false {
 
 	private string function _getViewletEventByConvention( required string widgetId ) output=false {
 		return "widgets." & widgetId;
+	}
+
+	private string function _getPlaceholderViewletEventByConvention( required string widgetId ) output=false {
+		return "widgets." & widgetId & ".placeholder";
 	}
 
 	private string function _getIconByConvention( required string widgetId ) output=false {
@@ -289,5 +320,12 @@ component singleton=true output=false {
 	}
 	private void function _setConfiguredWidgets( required struct configuredWidgets ) output=false {
 		_configuredWidgets = arguments.configuredWidgets;
+	}
+
+	private any function _getI18nPlugin() output=false {
+		return _i18nPlugin;
+	}
+	private void function _setI18nPlugin( required any i18nPlugin ) output=false {
+		_i18nPlugin = arguments.i18nPlugin;
 	}
 }

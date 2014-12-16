@@ -59,6 +59,15 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="widgets.dialog", querystring="widget=#widget#" ), persistStruct={ widgetConfigSaved = true, savedConfig=config } );
 	}
 
+	public void function renderWidgetPlaceholder( event, rc, prc ) output=false {
+		var rendered = widgetsService.renderWidgetPlaceholder(
+			  widgetId   = rc.widgetId ?: ""
+			, configJson = rc.data     ?: ""
+		);
+
+		event.renderData( data=Trim( rendered ), type="HTML" );
+	}
+
 // private helpers
 	private query function _getSortedAndTranslatedWidgets() output=false {
 		// todo, cache this operation (per locale)
