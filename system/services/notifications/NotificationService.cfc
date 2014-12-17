@@ -13,8 +13,9 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @coldboxController.inject  coldbox
 	 * @configuredTopics.inject   coldbox:setting:notificationTopics
 	 * @interceptorService.inject coldbox:InterceptorService
+	 * @emailService.inject       emailService
 	 */
-	public any function init( required any notificationDao, required any consumerDao, required any subscriptionDao, required any userDao, required any coldboxController, required array configuredTopics, required any interceptorService ) output=false {
+	public any function init( required any notificationDao, required any consumerDao, required any subscriptionDao, required any userDao, required any coldboxController, required array configuredTopics, required any interceptorService, required any emailService ) output=false {
 		_setNotificationDao( arguments.notificationDao );
 		_setConsumerDao( arguments.consumerDao );
 		_setSubscriptionDao( arguments.subscriptionDao );
@@ -22,6 +23,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		_setConfiguredTopics( arguments.configuredTopics );
 		_setInterceptorService( arguments.interceptorService );
 		_setUserDao( arguments.userDao );
+		_setEmailService( arguments.emailService );
 
 		return this;
 	}
@@ -51,7 +53,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		} );
 
 		if ( existingNotification.recordCount ) {
-			createNotificationConsumers( existingNotification.id, args.topic );
+			createNotificationConsumers( existingNotification.id, args.topic, data );
 			return existingNotification.id;
 		}
 
@@ -61,7 +63,7 @@ component output=false autodoc=true displayName="Notification Service" {
 
 		_announceInterception( "postCreateNotification", args );
 
-		createNotificationConsumers( args.notificationId, topic );
+		createNotificationConsumers( args.notificationId, topic, data );
 
 		return args.notificationId;
 	}
@@ -147,14 +149,20 @@ component output=false autodoc=true displayName="Notification Service" {
 	/**
 	 * Renders the given notification topic
 	 *
-	 * @topic.hint Topic of the notification
-	 * @data.hint  Data associated with the notification
+	 * @topic.hint   Topic of the notification
+	 * @data.hint    Data associated with the notification
+	 * @context.hint Context of the notification
 	 */
 	public string function renderNotification( required string topic, required struct data, required string context ) output=false autodoc=true {
-		return _getColdboxController().renderViewlet(
-			  event = "renderers.notifications." & arguments.topic & "." & arguments.context
-			, args  = arguments.data
-		);
+		var viewletEvent = "renderers.notifications." & arguments.topic & "." & arguments.context;
+		if ( _getColdboxController().viewletExists( viewletEvent ) ) {
+			return _getColdboxController().renderViewlet(
+				  event = viewletEvent
+				, args  = arguments.data
+			);
+		}
+
+		return "";
 	}
 
 	/**
@@ -249,23 +257,32 @@ component output=false autodoc=true displayName="Notification Service" {
 		}
 	}
 
-	public void function createNotificationConsumers( required string notificationId, required string topic ) output=false {
+	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) output=false {
 		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true } );
-		var subscribedToTopic = _getSubscriptionDao().selectData( selectFields=[ "security_user" ], filter={ topic=arguments.topic } );
+		var subscribedToTopic = _getSubscriptionDao().selectData( filter={ topic=arguments.topic } );
 		var subscribers = {};
+		var interceptorArgs = Duplicate( arguments );
 
-		for( var subscriber in subscribedToAll ){ subscribers[ subscriber.id ] = true; }
-		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = true; }
+		for( var subscriber in subscribedToAll ){ subscribers[ subscriber.id ] = {}; }
+		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = subscriber; }
 
 		for( var userId in subscribers ){
 			var filter = { admin_notification=arguments.notificationId, security_user=userId };
 			transaction {
 				if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
-					_announceInterception( "preCreateNotificationConsumer", arguments );
+					interceptorArgs.subscription = subscribers[ userId ];
+					_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
+
 					_getConsumerDao().insertData( data={
 						  admin_notification = arguments.notificationId
 						, security_user      = userId
 					} );
+
+					if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
+						sendNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
+					}
+
+					_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
 				}
 			}
 		}
@@ -301,6 +318,22 @@ component output=false autodoc=true displayName="Notification Service" {
 		data.topic         = arguments.topic;
 
 		_getSubscriptionDao().insertData( data=data );
+	}
+
+	public void function sendNotificationEmail( required string recipient, required string topic, required string notificationid, required struct data ) output=false {
+		var user = _getUserDao().selectData( id=arguments.recipient, selectFields=[ "email_address", "known_as" ] );
+
+
+		if ( Len( Trim( user.email_address ?: "" ) ) ) {
+			var emailArgs = Duplicate( arguments );
+			emailArgs.userName = user.known_as;
+
+			_getEmailService().send(
+				  template = "notification"
+				, args     = emailArgs
+				, to       = [ user.email_address ]
+			);
+		}
 	}
 
 // PRIVATE HELPERS
@@ -359,5 +392,12 @@ component output=false autodoc=true displayName="Notification Service" {
 	}
 	private void function _setUserDao( required any userDao ) output=false {
 		_userDao = arguments.userDao;
+	}
+
+	private any function _getEmailService() output=false {
+		return _emailService;
+	}
+	private void function _setEmailService( required any emailService ) output=false {
+		_emailService = arguments.emailService;
 	}
 }
