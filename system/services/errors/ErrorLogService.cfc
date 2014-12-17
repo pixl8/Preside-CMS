@@ -17,6 +17,8 @@ component output=false {
 			include template="errorTemplate.cfm";
 		}
 		FileWrite( filePath, Trim( rendered ) );
+
+		_callErrorListeners();
 	}
 
 	public array function listErrors() output=false {
@@ -56,6 +58,16 @@ component output=false {
 	}
 
 // PRIVATE HELPERS
+	private void function _callErrorListeners( required struct error ) output=false {
+		try {
+			new app.services.errors.ErrorHandler().raiseError( arguments.error );
+
+			var extensions = new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true )
+			for( var extension in extensions ) {
+				CreateObject( "app.extensions.#extension.name#.services.errors.ErrorHandler" ).raiseError( arguments.error );
+			}
+		} catch ( any e ) {}
+	}
 
 // GETTERS AND SETTERS
 	private any function _getLogDirectory() output=false {
