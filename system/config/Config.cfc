@@ -117,6 +117,7 @@ component output=false {
 			, "websiteUserManager"
 			, "systemConfiguration"
 			, "updateManager"
+			, "errorLogs"
 		];
 
 		settings.assetManager = {
@@ -195,6 +196,7 @@ component output=false {
 			, systemConfiguration = { enabled=true, siteTemplates=[ "*" ] }
 			, updateManager       = { enabled=true, siteTemplates=[ "*" ] }
 			, cmsUserManager      = { enabled=true, siteTemplates=[ "*" ] }
+			, errorLogs           = { enabled=true, siteTemplates=[ "*" ] }
 		};
 
 		settings.filters = {

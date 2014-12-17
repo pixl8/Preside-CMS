@@ -49,12 +49,7 @@ component output=false {
 		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
 		} else {
 			thread name=CreateUUId() e=arguments.exception {
-				var rendered = "";
-				var catch    = attributes.e;
-				savecontent variable="rendered" {
-					include template="errorTemplate.cfm";
-				}
-				FileWrite( ExpandPath( "/logs/rte-#GetTickCount()#.html" ), Trim( rendered ) );
+				new preside.system.services.errors.ErrorLogService().raiseError( attributes.e );
 			}
 
 			content reset=true;
