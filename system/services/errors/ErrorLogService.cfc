@@ -18,7 +18,7 @@ component output=false {
 		}
 		FileWrite( filePath, Trim( rendered ) );
 
-		_callErrorListeners();
+		_callErrorListeners( arguments.error );
 	}
 
 	public array function listErrors() output=false {
@@ -59,14 +59,21 @@ component output=false {
 
 // PRIVATE HELPERS
 	private void function _callErrorListeners( required struct error ) output=false {
-		try {
-			new app.services.errors.ErrorHandler().raiseError( arguments.error );
+		_callListener( "app.services.errors.ErrorHandler", arguments.error );
 
-			var extensions = new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true )
-			for( var extension in extensions ) {
-				CreateObject( "app.extensions.#extension.name#.services.errors.ErrorHandler" ).raiseError( arguments.error );
-			}
-		} catch ( any e ) {}
+		var extensions = new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true );
+		for( var extension in extensions ) {
+			_callListener( "app.extensions.#extension.name#.services.errors.ErrorHandler", arguments.error );
+		}
+	}
+
+	private void function _callListener( required string listenerPath, required struct error ) output=false {
+		var filePath = ExpandPath( "/" & Replace( arguments.listenerPath, ".", "/", "all" ) & ".cfc" );
+		if ( FileExists( filePath ) ) {
+			try {
+				CreateObject( arguments.listenerPath ).raiseError( arguments.error );
+			} catch ( any e ){}
+		}
 	}
 
 // GETTERS AND SETTERS
