@@ -100,6 +100,28 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences" ) );
 	}
 
+	public void function saveTopicPreferencesAction( event, rc, prc ) output=false {
+		var formName = "notifications.topic-preferences";
+		var formData = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName=formName, formData=formData );
+		var topic = rc.topic ?: "";
+
+		if ( validationResult.validated() ) {
+			notificationService.saveUserTopicSubscriptionSettings(
+				  userId   = event.getAdminUserId()
+				, topic    = rc.topic
+				, settings = formData
+			);
+
+			messageBox.info( translateResource( uri="cms:notifications.preferences.saved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences", queryString="topic=#topic#" ) );
+		} else {
+			messageBox.error( translateResource( uri="cms:notifications.preferences.saving.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences", queryString="topic=#topic#" ), persistStruct={ validationResult=validationResult } );
+		}
+
+	}
+
 // VIEWLETS
 	private string function notificationNavPromo( event, rc, prc, args={} ) output=false {
 		args.notificationCount   = notificationService.getUnreadNotificationCount( userId = event.getAdminUserId() );

@@ -218,7 +218,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		var forDeletion     = [];
 
 		if ( arguments.topics.find( "all" ) ) {
-			arguments.topics = [];
+			arguments.topics = listTopics();
 
 			_getUserDao().updateData( id=arguments.userId, data={ subscribed_to_all_notifications=true } );
 		} else {
@@ -282,6 +282,25 @@ component output=false autodoc=true displayName="Notification Service" {
 		}
 
 		return {};
+	}
+
+	public void function saveUserTopicSubscriptionSettings( required string userId, required string topic, required struct settings ) output=false {
+		var existingSubscription = getUserTopicSubscriptionSettings( arguments.userId, arguments.topic );
+
+		if ( Len( Trim( existingSubscription.id ?: "" ) ) ) {
+			_getSubscriptionDao().updateData(
+				  id   = existingSubscription.id
+				, data = arguments.settings
+			);
+
+			return;
+		}
+
+		var data = Duplicate( arguments.settings );
+		data.security_user = arguments.userId
+		data.topic         = arguments.topic;
+
+		_getSubscriptionDao().insertData( data=data );
 	}
 
 // PRIVATE HELPERS

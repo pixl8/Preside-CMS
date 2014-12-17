@@ -7,6 +7,9 @@
 	isTopicForm = Len( Trim( rc.topic ?: "" ) );
 	if ( isTopicForm ) {
 		savedSubscription = prc.subscription ?: {};
+		formAction = event.buildAdminLink( linkTo='notifications.saveTopicPreferencesAction' )
+	} else {
+		formAction = event.buildAdminLink( linkTo='notifications.savePreferencesAction' );
 	}
 </cfscript>
 
@@ -35,7 +38,7 @@
 		</ul>
 
 		<div class="tab-content">
-			<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#event.buildAdminLink( linkTo='notifications.savePreferencesAction' )#">
+			<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
 				<cfif isTopicForm>
 					<input type="hidden" name="topic" value="#rc.topic#">
 				</cfif>
