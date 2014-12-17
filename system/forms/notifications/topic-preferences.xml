@@ -7,7 +7,7 @@ This form is used for managing a user's notification preferences for specific to
 <form>
 	<tab id="basic" sortorder="10" >
 		<fieldset id="basic" sortorder="10">
-			<field sortorder="10" name="receive_email_notifications" control="yesNoSwitch" label="cms:notifications.preferences.form.topics.label" help="cms:notifications.preferences.form.topics.help" />
+			<field sortorder="10" binding="admin_notification_subscription.get_email_notifications" />
 		</fieldset>
 	</tab>
 </form>

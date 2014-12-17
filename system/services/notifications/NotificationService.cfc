@@ -271,6 +271,19 @@ component output=false autodoc=true displayName="Notification Service" {
 		}
 	}
 
+	public struct function getUserTopicSubscriptionSettings( required string userId, required string topic ) output=false {
+		var subscription = _getSubscriptionDao().selectData( filter={
+			  security_user = arguments.userId
+			, topic         = arguments.topic
+		} );
+
+		for( var sub in subscription ) {
+			return sub; // little query to struct hack
+		}
+
+		return {};
+	}
+
 // PRIVATE HELPERS
 	private any function _announceInterception( required string state, struct interceptData={} ) output=false {
 		_getInterceptorService().processState( argumentCollection=arguments );

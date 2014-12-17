@@ -68,6 +68,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function preferences( event, rc, prc ) output=false {
+
 		prc.pageTitle    = translateResource( uri="cms:notifications.preferences.title" );
 		prc.pageSubTitle = translateResource( uri="cms:notifications.preferences.subtitle" );
 
@@ -78,6 +79,14 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		prc.subscriptions = notificationService.getUserSubscriptions( userId=event.getAdminUserId() );
 		prc.topics        = notificationService.listTopics();
+
+		var isTopicForm = Len( Trim( rc.topic ?: "" ) );
+		if ( isTopicForm ) {
+			prc.subscription = notificationService.getUserTopicSubscriptionSettings( userId=event.getAdminUserId(), topic=rc.topic );
+			if ( prc.subscription.isEmpty() && !prc.subscriptions.find( "all" ) ) {
+				setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences" ) );
+			}
+		}
 	}
 
 	public void function savePreferencesAction( event, rc, prc ) output=false {
@@ -88,7 +97,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:notifications.preferences.saved.confirmation" ) );
 
-		setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences" ) );
 	}
 
 // VIEWLETS
