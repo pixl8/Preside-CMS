@@ -48,9 +48,13 @@ component output=false {
 
 		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
 		} else {
-
 			thread name=CreateUUId() e=arguments.exception {
-	 			log log="Exception" type="Error" text="Message: [#( attributes.e.message ?: "" )#]. Sql: [#( attributes.e.sql ?: "" )#]. Detail: [#( attributes.e.detail ?: "" )#]";
+				var rendered = "";
+				var catch    = attributes.e;
+				savecontent variable="rendered" {
+					include template="errorTemplate.cfm";
+				}
+				FileWrite( ExpandPath( "/logs/rte-#GetTickCount()#.html" ), Trim( rendered ) );
 			}
 
 			content reset=true;
