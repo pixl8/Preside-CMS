@@ -397,9 +397,10 @@ component singleton=true output=false {
 			, path   = newFileName
 		);
 
-		asset.asset_folder    = arguments.folder;
-		asset.asset_type      = fileTypeInfo.typeName;
-		asset.storage_path    = newFileName;
+		asset.asset_folder     = arguments.folder;
+		asset.asset_type       = fileTypeInfo.typeName;
+		asset.storage_path     = newFileName;
+		asset.raw_text_content = _getTikaWrapper().getText( fileBinary );
 
 		StructAppend( asset, fileDetails, false );
 		if ( not Len( Trim( asset.asset_folder ) ) ) {

@@ -24,6 +24,17 @@ component output=false singleton=true autodoc=true {
 		return result.metadata ?: {};
 	}
 
+	/**
+	 * This method returns raw text read from the document, useful for populating search engines, etc.
+	 *
+	 * @fileContent.hint Binary content of the file for which you want to extract meta data
+	 */
+	public string function getText( required any fileContent ) output=false {
+		var result = _parse( fileContent = arguments.fileContent, includeMeta=false );
+
+		return result.text ?: "";
+	}
+
 // PRIVATE HELPERS
 	private struct function _parse( required any fileContent, boolean includeMeta=true, boolean includeText=true ) output=false {
 		var result  = {};
