@@ -3,7 +3,7 @@
 	inputId      = args.id           ?: "";
 	defaultValue = args.defaultValue ?: "";
 	placeholder  = args.placeholder  ?: "";
-	placeholder = translateResource( uri=placeholder, defaultValue=placeholder );
+	placeholder = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
