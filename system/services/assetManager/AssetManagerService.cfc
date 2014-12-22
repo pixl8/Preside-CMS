@@ -416,6 +416,28 @@ component singleton=true output=false {
 		return newId;
 	}
 
+	public string function getRawTextContent( required string assetId ) output=false {
+		var asset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "raw_text_content" ] );
+
+		if ( asset.recordCount && asset.asset_type != "image" ) {
+			if ( Len( Trim( asset.raw_text_content ) ) ) {
+				return asset.raw_text_content;
+			}
+		}
+
+		var fileBinary = getAssetBinary( arguments.assetId );
+		if ( !IsNull( fileBinary ) ) {
+			var rawText = _getTikaWrapper().getText( fileBinary );
+			if ( Len( Trim( rawText ) ) ) {
+				_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );
+			}
+
+			return rawText;
+		}
+
+		return "";
+	}
+
 	public boolean function editAsset( required string id, required struct data ) output=false {
 		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
 	}
