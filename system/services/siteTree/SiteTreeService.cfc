@@ -761,6 +761,34 @@ component output=false singleton=true {
 		event.setSite( originalActiveSite );
 	}
 
+	public struct function getAccessRestrictionRulesForPage( required string pageId ) output=false {
+		var page = getPage( id=arguments.pageId, selectFields=[ "parent_page", "access_restriction", "full_login_required" ] );
+
+		if ( !page.recordCount ) {
+			return {
+				  access_restriction  = "none"
+				, full_login_required = false
+			};
+		}
+		if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+			if ( Len( Trim( page.parent_page ) ) ) {
+				if ( Len( Trim( page.parent_page ) ) ) {
+					return getAccessRestrictionRulesForPage( page.parent_page );
+				}
+			} else {
+				return {
+					  access_restriction  = "none"
+					, full_login_required = false
+				};
+			}
+		}
+
+		return {
+			  access_restriction  = page.access_restriction
+			, full_login_required = page.full_login_required
+		};
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) output=false {
 		var result       = "";
