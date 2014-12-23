@@ -770,7 +770,7 @@ component output=false singleton=true {
 				, full_login_required = false
 			};
 		}
-		if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
+		if ( !Len( Trim( page.access_restriction ?: "" ) ) || page.access_restriction == "inherit" ) {
 			if ( Len( Trim( page.parent_page ) ) ) {
 				if ( Len( Trim( page.parent_page ) ) ) {
 					return getAccessRestrictionRulesForPage( page.parent_page );
