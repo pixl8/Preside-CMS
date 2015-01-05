@@ -1065,7 +1065,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	public string function getVersionObjectName( required string sourceObjectName ) output=false autodoc=true {
 		var obj = _getObject( arguments.sourceObjectName );
 
-		return obj.meta.versionObjectName;
+		return obj.meta.versionObjectName ?: "";
 	}
 
 	/**
