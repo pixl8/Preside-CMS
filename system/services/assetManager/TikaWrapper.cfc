@@ -61,13 +61,13 @@ component output=false singleton=true autodoc=true {
 				for( var key in md.names() ) {
 					var mdval = md.get( key );
 					if ( !isNull( mdval ) ) {
-						result.metadata[ key ] = mdval;
+						result.metadata[ key ] = _removeNonUnicodeChars( mdval );
 					}
 				}
 			}
 
 			if ( arguments.includeText ) {
-				result.text = ch.toString();
+				result.text = _removeNonUnicodeChars( ch.toString() );
 			}
 
 		} catch( any e ) {
@@ -75,6 +75,10 @@ component output=false singleton=true autodoc=true {
 		}
 
 		return result;
+	}
+
+	private string function _removeNonUnicodeChars( required string potentiallyDirtyString ) output=false {
+		return ReReplace( arguments.potentiallyDirtyString, "[^\x20-\x7E]", "", "all" );
 	}
 
 // GETTERS AND SETTERS
