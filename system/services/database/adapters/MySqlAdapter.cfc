@@ -457,6 +457,14 @@ component output=false singleton=true {
 		}
 	}
 
+	public boolean function canToggleForeignKeyChecks() output=false {
+		return true;
+	}
+
+	public string function getToggleForeignKeyChecks( required boolean checksEnabled ) output=false {
+		return "set foreign_key_checks=" & ( arguments.checksEnabled ? '1' : '0' );
+	}
+
 	public boolean function doesColumnTypeRequireLengthSpecification( required string sqlDataType ) output=false {
 		switch( arguments.sqlDataType ){
 			case "char":

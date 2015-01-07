@@ -63,6 +63,7 @@ component output=false singleton=true {
 					}
 				} elseif ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.version ) {
 					try {
+						_enableFkChecks( false, obj.meta.dsn );
 						_updateDbTable(
 							  tableName      = obj.meta.tableName
 							, generatedSql   = obj.sql
@@ -70,6 +71,7 @@ component output=false singleton=true {
 							, indexes        = obj.meta.indexes
 							, columnVersions = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
 						);
+						_enableFkChecks( true, obj.meta.dsn );
 					} catch( any e ) {
 						throw(
 							  type    = "presideobjectservice.dbsync.error"
@@ -431,6 +433,17 @@ component output=false singleton=true {
 					}
 				}
 			}
+		}
+	}
+
+	private void function _enableFkChecks( required boolean enabled, required string dsn ) output=false {
+		var adapter = _getAdapter( dsn=arguments.dsn );
+
+		if ( adapter.canToggleForeignKeyChecks() ) {
+			_runSql(
+				  dsn = arguments.dsn
+				, sql = adapter.getToggleForeignKeyChecks( checksEnabled=arguments.enabled )
+			);
 		}
 	}
 
