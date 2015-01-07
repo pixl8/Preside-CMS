@@ -553,7 +553,7 @@
 				, cf_sql_double        = [ "double", "double precision", "real"                                                  ]
 				, cf_sql_integer       = [ "mediumint signed", "mediumint unsigned", "int signed", "mediumint", "int", "integer" ]
 				, cf_sql_longvarbinary = [ "mediumblob","longblob","tinyblob"                                                    ]
-				, cf_sql_longvarchar   = [ "text","mediumtext","longtext"                                                        ]
+				, cf_sql_clob          = [ "text","mediumtext","longtext"                                                        ]
 				, cf_sql_numeric       = [ "numeric", "bigint unsigned"                                                          ]
 				, cf_sql_real          = [ "float"                                                                               ]
 				, cf_sql_smallint      = [ "smallint signed", "smallint unsigned", "tinyint signed", "tinyint", "smallint"       ]
