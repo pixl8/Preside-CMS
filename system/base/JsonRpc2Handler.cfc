@@ -27,7 +27,11 @@ component output=false hint="I am a base handler for any handlers implementing J
 				jsonRpc2Plugin.success( result );
 			}
 		} catch ( any e ) {
-			jsonRpc2Plugin.error( 500, "A processing error occurred", { message=e.message, detail=e.detail } );
+			var message = "A processing error occurred" & Chr( 10 ) & Chr( 10 ) &
+			              "Message: [" & e.message & "]" & Chr( 10 ) &
+			              "Detail: [" & e.detail & "]";
+
+			jsonRpc2Plugin.error( 500, message );
 			return;
 		}
 	}
