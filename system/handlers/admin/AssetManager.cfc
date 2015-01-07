@@ -107,12 +107,15 @@ component extends="preside.system.base.AdminHandler" output=false {
 					, folder    = folder
 					, assetData = formData
 				);
+
 				event.renderData( type="json", data={
 					  success = true
 					, title   = ( rc.label ?: "" )
 					, id      = assetId
 				} );
 			} catch ( any e ) {
+				logError( e );
+
 				event.renderData( data={
 					  success = false
 					, title   = translateResource( "cms:assetmanager.add.asset.unexpected.error.title" )

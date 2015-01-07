@@ -146,3 +146,8 @@
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
 		<cfreturn getController().getWireBox().getInstance( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cffunction>
+
+<!--- errors --->
+	<cffunction name="logError" access="public" returntype="void" output="false">
+		<cfreturn getController().getWireBox().getInstance( "errorLogService" ).raiseError( argumentCollection=arguments ) />
+	</cffunction>
