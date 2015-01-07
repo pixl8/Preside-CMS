@@ -420,7 +420,7 @@ component output=false singleton=true {
 			case "text":
 			case "mediumtext":
 			case "longtext":
-				return "cf_sql_longvarchar";
+				return "cf_sql_clob";
 
 			case "numeric":
 			case "bigint unsigned":
