@@ -380,38 +380,44 @@ component singleton=true output=false {
 	}
 
 	public string function saveTemporaryFileAsAsset( required string tmpId, string folder, struct assetData = {} ) {
-		var fileDetails  = getTemporaryFileDetails( arguments.tmpId );
-		var fileTypeInfo = getAssetType( filename=fileDetails.name, throwOnMissing=true );
-		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
-		var newId        = "";
+		var fileDetails  = getTemporaryFileDetails( arguments.tmpId );
 
 		if ( StructIsEmpty( fileDetails ) ) {
 			return "";
 		}
 
+		asset.append( fileDetails, false );
+
 		var fileBinary  = _getTemporaryStorageProvider().getObject( fileDetails.path );
+		var newId       = addAsset( fileBinary, fileDetails.name, arguments.folder, asset );
+
+		deleteTemporaryFile( arguments.tmpId );
+
+		return newId;
+	}
+
+	public string function addAsset( required binary fileBinary, required string fileName, required string folder, struct assetData={} ) output=false {
+		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
+		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
+		var asset        = Duplicate( arguments.assetData );
 
 		_getStorageProvider().putObject(
-			  object = fileBinary
+			  object = arguments.fileBinary
 			, path   = newFileName
 		);
 
 		asset.asset_folder     = arguments.folder;
 		asset.asset_type       = fileTypeInfo.typeName;
 		asset.storage_path     = newFileName;
-		asset.raw_text_content = _getTikaWrapper().getText( fileBinary );
+		asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
 
-		StructAppend( asset, fileDetails, false );
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
 			asset.asset_folder = getRootFolderId();
 		}
 
-		newId = _getAssetDao().insertData( data=asset );
-
-		deleteTemporaryFile( arguments.tmpId );
-
-		_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( fileBinary ) );
+		var newId = _getAssetDao().insertData( data=asset );
+		_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( arguments.fileBinary ) );
 
 		return newId;
 	}

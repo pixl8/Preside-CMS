@@ -16,7 +16,7 @@
 					<div class="row">
 						<div class="col-sm-2">
 							<image src="#event.buildLink( assetId=tmpId, isTemporaryAsset=true )#" width="100" height="100" />
-							<p>#fileSizeFormat( tempFileDetails[ tmpId ].size )#</p>
+							<p>#tempFileDetails[ tmpId ].name#, #fileSizeFormat( tempFileDetails[ tmpId ].size )#</p>
 						</div>
 
 						<div class="col-sm-10">
