@@ -1,17 +1,26 @@
 component extends="coldbox.system.Coldbox" output="false" {
 
 	public void function loadColdbox() output=false {
-		var appKey     = super.locateAppKey();
-		var controller = new Controller( COLDBOX_APP_ROOT_PATH, appKey );
+		try {
+			lock name="PresideApplicationLoader" type="exclusive" timeout="1" throwontimeout=true {
+				var appKey     = super.locateAppKey();
+				var controller = new Controller( COLDBOX_APP_ROOT_PATH, appKey );
 
-		controller.getLoaderService().loadApplication( COLDBOX_CONFIG_FILE, COLDBOX_APP_MAPPING );
+				controller.getLoaderService().loadApplication( COLDBOX_CONFIG_FILE, COLDBOX_APP_MAPPING );
 
-		if ( Len( controller.getSetting( "ApplicationStartHandler" ) ) ) {
-			controller.runEvent( controller.getSetting( "ApplicationStartHandler" ), true );
-		}
+				if ( Len( controller.getSetting( "ApplicationStartHandler" ) ) ) {
+					controller.runEvent( controller.getSetting( "ApplicationStartHandler" ), true );
+				}
 
-		StructDelete( application, appKey );
-		application[ appKey ] = controller;
+				StructDelete( application, appKey );
+				application[ appKey ] = controller;
+			}
+		} catch ( lock e ) {
+			if ( ( e.lockOperation ?: "" ) eq "timeout" ) {
+				throw( type="presidecms.applicationStartInProgress", message="We apologise, we cannot serve your request right now. The website is currently being reloaded or is starting up for the first time. Please try again momentarily." );
+			}
+			rethrow;
+        };
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
