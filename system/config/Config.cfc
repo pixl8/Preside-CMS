@@ -41,6 +41,8 @@ component output=false {
 			, customInterceptionPoints = []
 		};
 
+		interceptorSettings.customInterceptionPoints.append( "prePresideReload"               );
+		interceptorSettings.customInterceptionPoints.append( "postPresideReload"              );
 		interceptorSettings.customInterceptionPoints.append( "onBuildLink"                    );
 		interceptorSettings.customInterceptionPoints.append( "onCreateSelectDataCacheKey"     );
 		interceptorSettings.customInterceptionPoints.append( "postDbSyncObjects"              );
@@ -108,6 +110,7 @@ component output=false {
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics        = [];
+		settings.autoSyncDb                = false;
 
 		settings.adminSideBarItems = [
 			  "sitetree"
@@ -214,6 +217,7 @@ component output=false {
 // ENVIRONMENT SPECIFIC
 	public void function local() output=false {
 		settings.showErrors = true;
+		settings.autoSyncDb = true;
 	}
 
 // PRIVATE UTILITY

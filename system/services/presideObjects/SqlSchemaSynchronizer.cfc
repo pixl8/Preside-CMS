@@ -6,12 +6,14 @@ component output=false singleton=true {
 	 * @sqlRunner.inject               SqlRunner
 	 * @dbInfoService.inject           DbInfoService
 	 * @schemaVersioningService.inject SqlSchemaVersioning
+	 * @autoRunScripts.inject          coldbox:setting:autoSyncDb
 	 */
 	public any function init(
-		  required any adapterFactory
-		, required any sqlRunner
-		, required any dbInfoService
-		, required any schemaVersioningService
+		  required any     adapterFactory
+		, required any     sqlRunner
+		, required any     dbInfoService
+		, required any     schemaVersioningService
+		, required boolean autoRunScripts
 
 	) output=false {
 
@@ -19,6 +21,7 @@ component output=false singleton=true {
 		_setSqlRunner( arguments.sqlRunner );
 		_setDbInfoService( arguments.dbInfoService );
 		_setSchemaVersioningService( arguments.schemaVersioningService );
+		_setAutoRunScripts( arguments.autoRunScripts );
 
 		return this;
 	}
@@ -44,7 +47,7 @@ component output=false singleton=true {
 		if ( ( versions.db.db ?: "" ) neq dbVersion ) {
 			for( objName in objects ) {
 				obj                = objects[ objName ];
-				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.dsn );
+				tableVersionExists = StructKeyExists( versions, "table" ) and StructKeyExists( versions.table, obj.meta.tableName );
 				tableExists        = tableVersionExists or _getTableInfo( tableName=obj.meta.tableName, dsn=obj.meta.dsn ).recordCount;
 
 				if ( not tableExists ) {
@@ -61,7 +64,7 @@ component output=false singleton=true {
 							, detail  = "SQL: [#( e.sql ?: '' )#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
 						);
 					}
-				} elseif ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.version ) {
+				} elseif ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.table.version ) {
 					try {
 						_enableFkChecks( false, obj.meta.dsn );
 						_updateDbTable(
@@ -89,6 +92,35 @@ component output=false singleton=true {
 					, entityName = "db"
 					, version    = dbVersion
 					, dsn        = dsn
+				);
+			}
+		}
+
+		if ( !_getAutoRunScripts() ) {
+			var scriptsToRun = _getBuiltSqlScriptArray();
+			var versionScriptsToRun = _getVersionTableScriptArray();
+			if ( scriptsToRun.len() || versionScriptsToRun.len() ) {
+				var newLine = Chr( 10 );
+				var sql = "/**
+ * The following commands are to make alterations to the database schema
+ * in order to synchronize it with the PresideCMS codebase.
+ *
+ * Generated on: #Now()#
+ *
+ * Please review the scripts before running.
+ */" & newline & newline;
+				for( var script in scriptsToRun ) {
+					sql &= script.sql & ";" & newline;
+				}
+				sql &= newline & "/* The commands below ensure that PresideCMS's internal DB versioning tracking is up to date */" & newline & newline;
+				for( var script in versionScriptsToRun ) {
+					sql &= script.sql & ";" & newline;
+				}
+
+				throw(
+					  type    = "presidecms.auto.schema.sync.disabled"
+					, message = "Code changes have been detected that require a database changes. However, auto db sync is disabled for this website. Please see the error detail for full SQL script that should be run directly on your database."
+					, detail  = sql
 				);
 			}
 		}
@@ -447,13 +479,32 @@ component output=false singleton=true {
 		}
 	}
 
+	private array function _getBuiltSqlScriptArray() output=false {
+		request._sqlSchemaSynchronizerSqlArray = request._sqlSchemaSynchronizerSqlArray ?: [];
+
+		return request._sqlSchemaSynchronizerSqlArray;
+	}
+
+	private array function _getVersionTableScriptArray() output=false {
+		request._sqlSchemaSynchronizerVersionSqlArray = request._sqlSchemaSynchronizerVersionSqlArray ?: [];
+
+		return request._sqlSchemaSynchronizerVersionSqlArray;
+	}
+
+
+
 // SIMPLE PRIVATE PROXIES
 	private any function _getAdapter() output=false {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
 	}
 
 	private any function _runSql() output=false {
-		return _getSqlRunner().runSql( argumentCollection = arguments );
+		if ( _getAutoRunScripts() ) {
+			return _getSqlRunner().runSql( argumentCollection = arguments );
+		}
+
+		var sqlScripts = _getBuiltSqlScriptArray();
+		sqlScripts.append( Duplicate( arguments ) );
 	}
 
 	private query function _getTableInfo() output=false {
@@ -477,7 +528,15 @@ component output=false singleton=true {
 	}
 
 	private void function _setDatabaseObjectVersion() output=false {
-		return _getSchemaVersioningService().setVersion( argumentCollection = arguments );
+		if ( _getAutoRunScripts() ) {
+			return _getSchemaVersioningService().setVersion( argumentCollection = arguments );
+		}
+
+		var syncScripts    = _getVersionTableScriptArray();
+		var versionScripts = _getSchemaVersioningService().getSetVersionPlainSql( argumentCollection=arguments );
+		for( var script in versionScripts ){
+			syncScripts.append( script );
+		}
 	}
 
 	private void function _ensureValidDbEntityNames( required struct objects ) output=false {
@@ -519,5 +578,12 @@ component output=false singleton=true {
 	}
 	private void function _setSchemaVersioningService( required any schemaVersioningService ) output=false {
 		_schemaVersioningService = arguments.schemaVersioningService;
+	}
+
+	private boolean function _getAutoRunScripts() output=false {
+		return _autoRunScripts;
+	}
+	private void function _setAutoRunScripts( required boolean autoRunScripts ) output=false {
+		_autoRunScripts = arguments.autoRunScripts;
 	}
 }

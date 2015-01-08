@@ -84,6 +84,33 @@ component output=false singleton=true {
 		_runSql( sql=insertSql, dsn=arguments.dsn, params=insertParams );
 	}
 
+	public array function getSetVersionPlainSql(
+		  required string dsn
+		, required string entityType
+		, required string entityName
+		, required string version
+		,          string parentEntity
+	) output=false {
+		var deleteSql    = "delete from _preside_generated_entity_versions where entity_type = '#arguments.entityType#' and entity_name = '#arguments.entityName#' and parent_entity_name ";
+		var insertSql    = "insert into _preside_generated_entity_versions( entity_type, entity_name, version_hash, date_modified";
+		var insertValues = "'#arguments.entityType#', '#arguments.entityName#', '#arguments.version#', Now()";
+
+		if ( StructKeyExists( arguments, "parentEntity" ) ) {
+			deleteSql &= "= '#arguments.parentEntity#'";
+			insertSql &= ", parent_entity_name";
+			insertValues &= ", '#arguments.parentEntity#'";
+		} else {
+			deleteSql &= "is null";
+		}
+
+		insertSql &= " ) values (" & insertValues & ")";
+
+		return [
+			  { sql=deleteSql, dsn=arguments.dsn }
+			, { sql=insertSql, dsn=arguments.dsn }
+		]
+	}
+
 // PRIVATE HELPERS
 	private void function _checkVersionsTableExistance( required string dsn ) output=false {
 		var versionTable  = "_preside_generated_entity_versions";
