@@ -365,10 +365,10 @@ component singleton=true output=false {
 
 			StructAppend( details, file );
 
+			details.title = details.title ?: ( details.name ?: "" );
+
 			break;
 		}
-
-		details.title = details.title ?: ( details.name ?: "" );
 
 		return details;
 	}
