@@ -1,6 +1,8 @@
  component extends="coldbox.system.ioc.config.Binder" output=false {
 
 	public void function configure() output=false {
+		scopeRegistration( false );
+
 		_registerAopListener();
 		_setupCustomDslProviders();
 		_mapCommonSystemServices();
