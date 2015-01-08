@@ -217,10 +217,10 @@ component output=false singleton=true {
 
 			if ( StructKeyExists( prop, "relationship" ) and prop.relationship neq "none" and prop.relatedTo eq "none" ) {
 				prop.relatedTo = propName;
+			}
 
-				if ( prop.relationship == "many-to-many" ) {
-					prop.dbtype = "none";
-				}
+			if ( ( prop.relationship ?: "" ) == "many-to-many" ) {
+				prop.dbtype = "none";
 			}
 		}
 	}
