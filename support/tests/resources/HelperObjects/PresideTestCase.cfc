@@ -77,6 +77,7 @@
 					, sqlRunner               = sqlRunner
 					, dbInfoService           = dbInfoService
 					, schemaVersioningService = schemaVersioning
+					, autoRunScripts          = true
 				);
 				var relationshipGuidance = new preside.system.services.presideObjects.relationshipGuidance(
 					  objectReader = objReader
