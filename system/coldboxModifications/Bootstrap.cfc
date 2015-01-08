@@ -3,6 +3,7 @@ component extends="coldbox.system.Coldbox" output="false" {
 	public void function loadColdbox() output=false {
 		try {
 			lock name="PresideApplicationLoader" type="exclusive" timeout="1" throwontimeout=true {
+				_announceInterception( "prePresideReload" );
 				var appKey     = super.locateAppKey();
 				var controller = new Controller( COLDBOX_APP_ROOT_PATH, appKey );
 
@@ -14,6 +15,7 @@ component extends="coldbox.system.Coldbox" output="false" {
 
 				StructDelete( application, appKey );
 				application[ appKey ] = controller;
+				_announceInterception( "postPresideReload" );
 			}
 		} catch ( lock e ) {
 			if ( ( e.lockOperation ?: "" ) eq "timeout" ) {
@@ -313,4 +315,12 @@ component extends="coldbox.system.Coldbox" output="false" {
 		return variables.COLDBOX_APP_MAPPING;
 	}
 
+
+	private void function _announceInterception() output=false {
+		var controller = getController();
+
+		if ( !IsNull( controller ) ) {
+			controller.getInterceptorService().processState( argumentCollection=arguments );
+		}
+	}
 }
