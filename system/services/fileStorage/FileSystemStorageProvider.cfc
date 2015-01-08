@@ -1,25 +1,17 @@
 component output=false singleton=true {
 
 // CONSTRUCTOR
-	public any function init( required string rootDirectory, required string trashDirectory, required string rootUrl, numeric lockTimeout=5 ) output=false {
+	public any function init( required string rootDirectory, required string trashDirectory, required string rootUrl ) output=false {
 		_setRootDirectory( arguments.rootDirectory );
 		_setTrashDirectory( arguments.trashDirectory );
 		_setRootUrl( arguments.rootUrl );
-		_setLockTimeout( arguments.lockTimeout );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public boolean function objectExists( required string path ) output=false {
-		var fullPath = _expandPath( arguments.path );
-		var exists   = false;
-
-		lock type="readonly" name=fullPath timeout=_getLockTimeout() {
-			exists = FileExists( fullPath );
-		}
-
-		return exists;
+		return FileExists( _expandPath( arguments.path ) );
 	}
 
 	public query function listObjects( required string path ) output=false {
@@ -48,49 +40,34 @@ component output=false singleton=true {
 	}
 
 	public binary function getObject( required string path ) output=false {
-		var fullPath  = _expandPath( arguments.path );
-		var objBinary = "";
-		var exists    = false;
-
-		lock type="readonly" name=fullPath timeout=_getLockTimeout() {
-			exists = FileExists( fullPath )
-			if ( exists ) {
-				objBinary = FileReadBinary( fullPath );
-			}
+		try {
+			return FileReadBinary( _expandPath( arguments.path ) );
+		} catch ( java.io.FileNotFoundException e ) {
+			throw(
+				  type    = "storageProvider.objectNotFound"
+				, message = "The object, [#arguments.path#], could not be found or is not accessible"
+			);
 		}
-
-		if ( exists ) {
-			return objBinary;
-		}
-
-		throw(
-			  type    = "storageProvider.objectNotFound"
-			, message = "The object, [#arguments.path#], could not be found or is not accessible"
-		);
 	}
 
 	public struct function getObjectInfo( required string path ) output=false {
-		var fullPath = _expandPath( arguments.path );
-		var info     = {};
+		try {
+			var info = GetFileInfo( _expandPath( arguments.path ) );
 
-		lock type="readonly" name=fullPath timeout=_getLockTimeout() {
-			exists = FileExists( fullPath )
-			if ( exists ) {
-				info = GetFileInfo( fullPath );
-			}
-		}
-
-		if ( exists ) {
 			return {
 				  size         = info.size
 				, lastmodified = info.lastmodified
-			};;
-		}
+			};
+		} catch ( any e ) {
+			if ( e.message contains "not exist" ) {
+				throw(
+					  type    = "storageProvider.objectNotFound"
+					, message = "The object, [#arguments.path#], could not be found or is not accessible"
+				);
+			}
 
-		throw(
-			  type    = "storageProvider.objectNotFound"
-			, message = "The object, [#arguments.path#], could not be found or is not accessible"
-		);
+			rethrow;
+		}
 	}
 
 	public void function putObject( required any object, required string path ) output=false {
@@ -103,41 +80,41 @@ component output=false singleton=true {
 			);
 		}
 
-		lock type="exclusive" name=fullPath timeout=_getLockTimeout() {
-			_ensureDirectoryExist( GetDirectoryFromPath( fullPath ) );
+		_ensureDirectoryExist( GetDirectoryFromPath( fullPath ) );
 
-			if ( IsBinary( arguments.object ) ) {
-				FileWrite( fullPath, arguments.object );
-			} else {
-				FileCopy( arguments.object, fullPath );
-			}
+		if ( IsBinary( arguments.object ) ) {
+			FileWrite( fullPath, arguments.object );
+		} else {
+			FileCopy( arguments.object, fullPath );
 		}
 	}
 
 	public void function deleteObject( required string path ) output=false {
-		var fullPath = _expandPath( arguments.path );
-
-		lock type="exclusive" name=fullPath timeout=_getLockTimeout() {
-			if ( FileExists( fullPath ) ) {
-				FileDelete( fullPath );
+		try {
+			FileDelete( _expandPath( arguments.path ) );
+		} catch ( any e ) {
+			if ( e.message contains "does not exist" ) {
+				return;
 			}
+			rethrow;
 		}
 	}
 
 	public string function softDeleteObject( required string path ) output=false {
 		var fullPath      = _expandPath( arguments.path );
-		var newPath       = "";
-		var fullTrashPath = "";
+		var newPath       = CreateUUId() & ".trash";
+		var fullTrashPath = _getTrashDirectory() & newPath;
 
-		lock type="exclusive" name=fullPath timeout=_getLockTimeout() {
-			if ( FileExists( fullPath ) ) {
-				newPath       = CreateUUId() & ".trash";
-				fullTrashPath = _getTrashDirectory() & newPath;
-				FileMove( fullPath, fullTrashPath );
+		try {
+			FileMove( fullPath, fullTrashPath );
+			return newPath;
+		} catch ( any e ) {
+			if ( e.message contains "does not exist" ) {
+				return "";
 			}
-		}
 
-		return newPath;
+			rethrow;
+		}
 	}
 
 	public boolean function restoreObject( required string trashedPath, required string newPath ) output=false {
@@ -145,14 +122,16 @@ component output=false singleton=true {
 		var fullNewPath       = _expandPath( arguments.newPath );
 		var trashedFileExists = false;
 
-		lock type="exclusive" name=fullNewPath timeout=_getLockTimeout() {
-			trashedFileExists = FileExists( fullTrashedPath );
-			if ( trashedFileExists ) {
-				FileMove( fullTrashedPath, fullNewPath );
+		try {
+			FileMove( fullTrashedPath, fullNewPath );
+			return objectExists( arguments.newPath );
+		} catch ( any e ) {
+			if ( e.message contains "does not exist" ) {
+				return false;
 			}
-		}
 
-		return trashedFileExists && objectExists( arguments.newPath );
+			rethrow;
+		}
 	}
 
 	public string function getObjectUrl( required string path ) output=false {
@@ -217,12 +196,5 @@ component output=false singleton=true {
 		if ( Right( _rootUrl, 1 ) NEQ "/" ) {
 			_rootUrl &= "/";
 		}
-	}
-
-	private numeric function _getLockTimeout() output=false {
-		return _lockTimeout;
-	}
-	private void function _setLockTimeout( required numeric lockTimeout ) output=false {
-		_lockTimeout = arguments.lockTimeout;
 	}
 }
