@@ -2,22 +2,24 @@ component singleton=true output=false {
 
 // CONSTRUCTOR
 	/**
-	 * @storageProvider.inject          assetStorageProvider
-	 * @temporaryStorageProvider.inject tempStorageProvider
-	 * @assetTransformer.inject         AssetTransformer
-	 * @tikaWrapper.inject              TikaWrapper
-	 * @configuredDerivatives.inject    coldbox:setting:assetManager.derivatives
-	 * @configuredTypesByGroup.inject   coldbox:setting:assetManager.types
-	 * @assetDao.inject                 presidecms:object:asset
-	 * @folderDao.inject                presidecms:object:asset_folder
-	 * @derivativeDao.inject            presidecms:object:asset_derivative
-	 * @assetMetaDao.inject             presidecms:object:asset_meta
+	 * @storageProvider.inject            assetStorageProvider
+	 * @temporaryStorageProvider.inject   tempStorageProvider
+	 * @assetTransformer.inject           AssetTransformer
+	 * @tikaWrapper.inject                TikaWrapper
+	 * @systemConfigurationService.inject systemConfigurationService
+	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
+	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
+	 * @assetDao.inject                   presidecms:object:asset
+	 * @folderDao.inject                  presidecms:object:asset_folder
+	 * @derivativeDao.inject              presidecms:object:asset_derivative
+	 * @assetMetaDao.inject               presidecms:object:asset_meta
 	 */
 	public any function init(
 		  required any    storageProvider
 		, required any    temporaryStorageProvider
 		, required any    assetTransformer
 		, required any    tikaWrapper
+		, required any    systemConfigurationService
 		, required any    assetDao
 		, required any    folderDao
 		, required any    derivativeDao
@@ -34,6 +36,7 @@ component singleton=true output=false {
 		_setAssetTransformer( arguments.assetTransformer );
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
 		_setTikaWrapper( arguments.tikaWrapper );
+		_setSystemConfigurationService( arguments.systemConfigurationService );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
@@ -410,14 +413,20 @@ component singleton=true output=false {
 		asset.asset_folder     = arguments.folder;
 		asset.asset_type       = fileTypeInfo.typeName;
 		asset.storage_path     = newFileName;
-		asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+
+		if ( _autoExtractDocumentMeta() ) {
+			asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+		}
 
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
 			asset.asset_folder = getRootFolderId();
 		}
 
 		var newId = _getAssetDao().insertData( data=asset );
-		_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( arguments.fileBinary ) );
+
+		if ( _autoExtractDocumentMeta() ) {
+			_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( arguments.fileBinary ) );
+		}
 
 		return newId;
 	}
@@ -431,14 +440,16 @@ component singleton=true output=false {
 			}
 		}
 
-		var fileBinary = getAssetBinary( arguments.assetId );
-		if ( !IsNull( fileBinary ) ) {
-			var rawText = _getTikaWrapper().getText( fileBinary );
-			if ( Len( Trim( rawText ) ) ) {
-				_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );
-			}
+		if ( _autoExtractDocumentMeta() ) {
+			var fileBinary = getAssetBinary( arguments.assetId );
+			if ( !IsNull( fileBinary ) ) {
+				var rawText = _getTikaWrapper().getText( fileBinary );
+				if ( Len( Trim( rawText ) ) ) {
+					_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );
+				}
 
-			return rawText;
+				return rawText;
+			}
 		}
 
 		return "";
@@ -733,6 +744,12 @@ component singleton=true output=false {
 		}
 	}
 
+	private boolean function _autoExtractDocumentMeta() output=false {
+		var setting = _getSystemConfigurationService().getSetting( "asset-manager", "retrieve_metadata" );
+
+		return IsBoolean( setting ) && setting;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getStorageProvider() output=false {
 		return _storageProvider;
@@ -788,6 +805,13 @@ component singleton=true output=false {
 	}
 	private void function _setTypes( required struct types ) output=false {
 		_types = arguments.types;
+	}
+
+	private any function _getSystemConfigurationService() output=false {
+		return _systemConfigurationService;
+	}
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 
 	private any function _getAssetDao() output=false {

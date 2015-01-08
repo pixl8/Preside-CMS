@@ -80,10 +80,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileIds = ListToArray( rc.fileId ?: "" );
+		var getMeta = IsTrue( getSystemSetting( "asset-manager", "retrieve_metadata" ) );
 
 		prc.tempFileDetails = {};
 		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, true );
+			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, getMeta );
 		}
 	}
 
@@ -134,10 +135,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileIds = ListToArray( rc.fileId ?: "" );
+		var getMeta = IsTrue( getSystemSetting( "asset-manager", "retrieve_metadata" ) );
 
 		prc.tempFileDetails = {};
 		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, true );
+			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, getMeta );
 		}
 
 		event.setLayout( "adminModalDialog" );
