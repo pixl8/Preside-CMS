@@ -2,6 +2,7 @@
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
 	placeholder  = args.placeholder  ?: "";
+	placeholder = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue = args.defaultValue ?: "";
 	maxLength    = Val( args.maxLength ?: 0 );
 
