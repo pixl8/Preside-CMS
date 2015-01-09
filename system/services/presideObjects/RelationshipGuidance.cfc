@@ -338,7 +338,7 @@ component output=false singleton=true {
 					  type               = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
 					, joinToObject       = relationship.pivotObject
 					, joinFromObject     = currentSource
-					, joinFromAlias      = currentSource
+					, joinFromAlias      = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
 					, joinFromProperty   = "id"
 					, joinToProperty     = ( relationship.sourceObject == currentSource ? relationship.sourceFk : relationship.targetFk )
 					, manyToManyProperty = relationship.propertyName
