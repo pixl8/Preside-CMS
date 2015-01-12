@@ -48,19 +48,19 @@
 							</li>
 						</ul>
 					</li>
-					<li>
-						<a data-toggle="dropdown" href="##" class="dropdown-toggle">
-							<i class="fa fa-cogs"></i>
-							#translateResource( "cms:configuration.menu.title" )#
-							<i class="fa fa-caret-down"></i>
-						</a>
-
-						<ul class="pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
-							#settingsMenu#
-						</ul>
 					<cfif Len( Trim( settingsMenu ) )>
+						<li>
+							<a data-toggle="dropdown" href="##" class="dropdown-toggle">
+								<i class="fa fa-cogs"></i>
+								#translateResource( "cms:configuration.menu.title" )#
+								<i class="fa fa-caret-down"></i>
+							</a>
+
+							<ul class="pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+								#settingsMenu#
+							</ul>
+						</li>
 					</cfif>
-					</li>
 
 					<li>
 						<a href="#getSetting( 'presideHelpAndSupportLink' )#">
