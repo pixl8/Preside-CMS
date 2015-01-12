@@ -514,15 +514,39 @@ component output=false singleton=true {
 	}
 
 	private query function _getTableColumns() output=false {
-		return _getDbInfoService().getTableColumns( argumentCollection = arguments );
+		try {
+			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return {};
+			}
+
+			rethrow;
+		}
 	}
 
 	private struct function _getTableIndexes() output=false {
-		return _getDbInfoService().getTableIndexes( argumentCollection = arguments );
+		try {
+			return _getDbInfoService().getTableIndexes( argumentCollection = arguments );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return {};
+			}
+
+			rethrow;
+		}
 	}
 
 	private struct function _getTableForeignKeys() output=false {
-		return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
+		try {
+			return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return {};
+			}
+
+			rethrow;
+		}
 	}
 
 	private struct function _getVersionsOfDatabaseObjects() output=false {
