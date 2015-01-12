@@ -442,16 +442,18 @@ component output=false singleton=true {
 			for( key in obj.sql.relationships ){
 				if ( !ListFindNoCase( existingKeysNotToTouch[ objName ] ?: "", key ) ) {
 					transaction {
-						// try and catch around a fk deletion, no native way to delete foreign key only if exists
-						// we need to do this because apparently there's some circumstances which lead to the FK already existing
-						// despite our checks above
-						try {
-							deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
-								  foreignKeyName = key
-								, tableName      = obj.meta.tableName
-							);
-							_runSql( sql = deleteSql, dsn = obj.meta.dsn );
-						} catch( any e ) {}
+						if ( _getAutoRunScripts() ) {
+							// try and catch around a fk deletion, no native way to delete foreign key only if exists
+							// we need to do this because apparently there's some circumstances which lead to the FK already existing
+							// despite our checks above
+							try {
+								deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
+									  foreignKeyName = key
+									, tableName      = obj.meta.tableName
+								);
+								_runSql( sql = deleteSql, dsn = obj.meta.dsn );
+							} catch( any e ) {}
+						}
 
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
