@@ -13,6 +13,7 @@ component output=false {
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
+		_maintenanceModeCheck();
 		_setupInjectedDatasource();
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 		_reloadCheck();
@@ -178,5 +179,10 @@ component output=false {
 		}
 
 		return;
+	}
+
+	private void function _maintenanceModeCheck() output=false {
+		// new preside.system.services.maintenanceMode.MaintenanceModeService().setMaintenanceMode( "maintenance mode active", [], "poo" );
+		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
 	}
 }
