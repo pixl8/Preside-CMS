@@ -116,8 +116,11 @@ component output=false {
 			  "sitetree"
 			, "assetmanager"
 			, "datamanager"
-			, "usermanager"
 			, "websiteUserManager"
+		];
+
+		settings.adminConfigurationMenuItems = [
+			  "usermanager"
 			, "systemConfiguration"
 			, "updateManager"
 			, "errorLogs"
