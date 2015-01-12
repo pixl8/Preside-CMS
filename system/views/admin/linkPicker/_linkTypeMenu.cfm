@@ -1,6 +1,6 @@
 <cfscript>
 	param name="args.selectedType" type="string";
-	param name="args.allowedTypes" type="string" default="sitetreelink,url,email,anchor";
+	param name="args.allowedTypes" type="string" default="sitetreelink,url,email,anchor,asset";
 </cfscript>
 
 <cfoutput>
@@ -18,6 +18,11 @@
 		<cfif ListFindNoCase( args.allowedTypes, "email" )>
 			<li class="link-type<cfif args.selectedType eq 'email'> selected</cfif>">
 				<a href="##fieldset-email" class="link-type-link" data-link-type="email">#translateResource( "cms:ckeditor.linkpicker.type.email")#</a>
+			</li>
+		</cfif>
+		<cfif ListFindNoCase( args.allowedTypes, "asset" )>
+			<li class="link-type<cfif args.selectedType eq 'asset'> selected</cfif>">
+				<a href="##fieldset-asset" class="link-type-link" data-link-type="asset">#translateResource( "cms:ckeditor.linkpicker.type.asset")#</a>
 			</li>
 		</cfif>
 		<cfif ListFindNoCase( args.allowedTypes, "anchor" )>

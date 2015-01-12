@@ -16,6 +16,7 @@ component output=false {
 			case "email"        : args.href = _buildEmailHref       ( link, event ); break;
 			case "url"          : args.href = _buildUrlHref         ( link, event ); break;
 			case "sitetreelink" : args.href = _buildSitetreelinkHref( link, event ); break;
+			case "asset"        : args.href = _buildAssetlinkHref   ( link, event ); break;
 		}
 
 		args.title = args.title ?: Trim( link.title );
@@ -67,6 +68,10 @@ component output=false {
 
 	private string function _buildSitetreelinkHref( required query link, required any event ) output=false {
 		return event.buildLink( page=link.page );
+	}
+
+	private string function _buildAssetlinkHref( required query link, required any event ) output=false {
+		return event.buildLink( assetId=link.asset );
 	}
 
 	private string function _emailAntiSpam( required string emailAddress ) {
