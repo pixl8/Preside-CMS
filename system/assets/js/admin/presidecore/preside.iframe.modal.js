@@ -19,11 +19,12 @@
 		PresideIframeModal.prototype.setupIframe = function(){
 			var iframeId       = this.iframeId = idGenerator()
 			  , onLoadCallback = "cb" + iframeId
-			  , callbacks      = this.callbacks;
+			  , callbacks      = this.callbacks
+			  , iframeModal    = this;
 
 			this.$iframeContainer = $( '<div style="display:none;"><iframe id="' + iframeId + '" src="' + this.iframeUrl + '" width="' + this.width + '" height="' + this.height + '" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.registerOnLoadCallback( onLoadCallback, function( iframe ){
-				iframe.presideBootbox = presideBootbox;
+				iframe.parentPresideBootbox = iframeModal.getBootbox();
 
 				if ( typeof callbacks.onLoad !== "undefined" ) {
 					callbacks.onLoad( iframe );
@@ -75,7 +76,8 @@
 			this.setupIframe();
 			this.setupModalOptions();
 
-			var modal     = this.modal = presideBootbox.dialog( this.modalOptions )
+			var bootbox   = this.getBootbox()
+			  , modal     = this.modal = bootbox.dialog( this.modalOptions )
 			  , callbacks = this.callbacks
 			  , getIframe = this.getIframe;
 
@@ -108,6 +110,10 @@
 
 		PresideIframeModal.prototype.getModal = function(){
 			return this.modal;
+		};
+
+		PresideIframeModal.prototype.getBootbox = function(){
+			return typeof parentPresideBootbox == "undefined" ? presideBootbox : parentPresideBootbox;
 		};
 
 		return PresideIframeModal;
