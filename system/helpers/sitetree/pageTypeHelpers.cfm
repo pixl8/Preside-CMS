@@ -1,31 +1,46 @@
 <cffunction name="getAllowableChildPageTypes" access="public" returntype="any" output="false">
 	<cfscript>
-		var pageTypesService = getController().getWireBox().getInstance( "pageTypesService" );
+		var args     = arguments;
+		var cacheKey = "getAllowableChildPageTypes" & SerializeJson( args );
 
-		if ( pageTypesService.pageTypeExists( argumentCollection=arguments ) ) {
-			return pageTypesService.getPageType( argumentCollection = arguments ).getAllowedChildTypes();
-		}
+		return simpleRequestCache( cacheKey, function(){
+			var pageTypesService = getSingleton( "pageTypesService" );
 
-		return "";
+			if ( pageTypesService.pageTypeExists( argumentCollection=args ) ) {
+				return pageTypesService.getPageType( argumentCollection=args ).getAllowedChildTypes();
+			}
+
+			return "";
+		} );
 	</cfscript>
 </cffunction>
 
 <cffunction name="getManagedChildPageTypes" access="public" returntype="any" output="false">
 	<cfscript>
-		var pageTypesService = getController().getWireBox().getInstance( "pageTypesService" );
+		var args     = arguments;
+		var cacheKey = "getManagedChildPageTypes" & SerializeJson( args );
 
-		if ( pageTypesService.pageTypeExists( argumentCollection=arguments ) ) {
-			return pageTypesService.getPageType( argumentCollection = arguments ).getManagedChildTypes();
-		}
+		return simpleRequestCache( cacheKey, function(){
+			var pageTypesService = getSingleton( "pageTypesService" );
 
-		return "";
+			if ( pageTypesService.pageTypeExists( argumentCollection=args ) ) {
+				return pageTypesService.getPageType( argumentCollection=args ).getManagedChildTypes();
+			}
+
+			return "";
+		} );
 	</cfscript>
 </cffunction>
 
 <cffunction name="isSystemPageType" access="public" returntype="any" output="false">
 	<cfscript>
-		var pageTypesService = getController().getWireBox().getInstance( "pageTypesService" );
+		var args     = arguments;
+		var cacheKey = "isSystemPageType" & SerializeJson( args );
 
-		return pageTypesService.pageTypeExists( argumentCollection=arguments ) && pageTypesService.isSystemPageType( argumentCollection=arguments );
+		return simpleRequestCache( cacheKey, function(){
+			var pageTypesService = getSingleton( "pageTypesService" );
+
+			return pageTypesService.pageTypeExists( argumentCollection=args ) && pageTypesService.isSystemPageType( argumentCollection=args );
+		} );
 	</cfscript>
 </cffunction>
