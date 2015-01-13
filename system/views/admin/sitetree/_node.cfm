@@ -27,31 +27,39 @@
 	param name="args.previewPageBaseLink"         type="string" default="";
 
 	if ( !Len( Trim( args.editPageBaseLink ) ) ) {
-		args.editPageBaseLink = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=" );
+		args.editPageBaseLink = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id={id}" );
 	}
 	if ( !Len( Trim( args.pageTypeDialogBaseLink ) ) ) {
-		args.pageTypeDialogBaseLink = event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage=" );
+		args.pageTypeDialogBaseLink = event.buildAdminLink( linkTo="sitetree.pageTypeDialog", queryString="parentPage={id}" );
 	}
 	if ( !Len( Trim( args.addPageBaseLink ) ) ) {
-		args.addPageBaseLink = event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=' );
+		args.addPageBaseLink = event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page={id}&page_type={type}' );
 	}
 	if ( !Len( Trim( args.trashPageBaseLink ) ) ) {
-		args.trashPageBaseLink = event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id=" );
+		args.trashPageBaseLink = event.buildAdminLink( linkTo="sitetree.trashPageAction", queryString="id={id}" );
 	}
 	if ( !Len( Trim( args.pageHistoryBaseLink ) ) ) {
-		args.pageHistoryBaseLink = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=" );
+		args.pageHistoryBaseLink = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id={id}" );
 	}
 	if ( !Len( Trim( args.editPagePermissionsBaseLink ) ) ) {
-		args.editPagePermissionsBaseLink = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=" );
+		args.editPagePermissionsBaseLink = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}" );
 	}
 	if ( !Len( Trim( args.reorderChildrenBaseLink ) ) ) {
-		args.reorderChildrenBaseLink = event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id=" );
+		args.reorderChildrenBaseLink = event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id={id}" );
 	}
 	if ( !Len( Trim( args.managedChildrenBaseLink ) ) ) {
-		args.managedChildrenBaseLink = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=" );
+		args.managedChildrenBaseLink = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent={id}&pageType={type}" );
 	}
 	if ( !Len( Trim( args.previewPageBaseLink ) ) ) {
-		args.previewPageBaseLink = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id=" );
+		args.previewPageBaseLink = event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id={id}" );
+	}
+
+	quickBuildLink = function( link, args ) {
+		var built = Trim( link );
+		for( var key in args ) {
+			built = ReplaceNoCase( built, "{#key#}", args[key], "all" );
+		}
+		return built;
 	}
 
 	args.permission_context.prepend( args.id );
@@ -93,7 +101,7 @@
 				<i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
-					<a class="page-title" href="#args.editPageBaseLink##args.id#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
+					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
 						#args.title#
 					</a>
 				<cfelse>
@@ -102,16 +110,16 @@
 
 				<div class="actions pull-right btn-group">
 					<cfif hasEditPagePermission>
-						<a data-context-key="e" href="#args.editPageBaseLink##args.id#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
+						<a data-context-key="e" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#"><i class="fa fa-pencil"></i></a>
 					<cfelse>
 						<i class="fa fa-pencil disabled"></i>
 					</cfif>
 
 					<cfif hasAddPagePermission>
 						<cfif allowableChildPageTypes eq "*" or ListLen( allowableChildPageTypes ) gt 1>
-							<a data-context-key="a" href="#args.pageTypeDialogBaseLink##args.id#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+							<a data-context-key="a" href="#quickBuildLink( args.pageTypeDialogBaseLink, {id=args.id} )#" data-toggle="bootbox-modal" data-buttons="cancel" data-modal-class="page-type-picker" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
 						<cfelseif allowableChildPageTypes neq "none">
-							<a data-context-key="a" href="#args.addPageBaseLink##args.id#&page_type=#allowableChildPageTypes#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
+							<a data-context-key="a" href="#quickBuildLink( args.addPageBaseLink, { id=args.id, type=allowableChildPageTypes} )#" title="#HtmlEditFormat( translateResource( uri="cms:sitetree.add.child.page.link", data=[ args.title ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-plus"></i></a>
 						</cfif>
 					<cfelse>
 						<i class="fa fa-plus disabled"></i>
@@ -127,7 +135,7 @@
 						<ul class="dropdown-menu">
 							<cfif hasDeletePagePermission>
 								<li>
-									<a data-context-key="d" href="#args.trashPageBaseLink##args.id#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+									<a data-context-key="d" href="#quickBuildLink( args.trashPageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
 										<i class="fa fa-fw fa-trash-o"></i>
 										#translateResource( "cms:sitetree.trash.page.dropdown" )#
 									</a>
@@ -135,7 +143,7 @@
 							</cfif>
 							<cfif hasPageHistoryPermission>
 								<li>
-									<a data-context-key="h" href="#args.pageHistoryBaseLink##args.id#" title="#translateResource( "cms:sitetree.page.history.link" )#">
+									<a data-context-key="h" href="#quickBuildLink( args.pageHistoryBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.page.history.link" )#">
 										<i class="fa fa-fw fa-history"></i>
 										#translateResource( "cms:sitetree.page.history.dropdown" )#
 									</a>
@@ -144,7 +152,7 @@
 
 							<cfif hasManagePermsPermission>
 								<li>
-									<a data-context-key="m" href="#args.editPagePermissionsBaseLink##args.id#">
+									<a data-context-key="m" href="#quickBuildLink( args.editPagePermissionsBaseLink, {id=args.id} )#">
 										<i class="fa fa-fw fa-lock"></i>
 										#translateResource( "cms:sitetree.page.permissioning.dropdown" )#
 									</a>
@@ -153,7 +161,7 @@
 
 							<cfif hasSortPagesPermission>
 								<li>
-									<a data-context-key="o" href="#args.reorderChildrenBaseLink##args.id#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
+									<a data-context-key="o" href="#quickBuildLink( args.reorderChildrenBaseLink, {id=args.id} )#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
 										<i class="fa fa-fw fa-sort-amount-asc"></i>
 										#translateResource( "cms:sitetree.sort.children.dropdown" )#
 									</a>
@@ -191,7 +199,7 @@
 				<td colspan="5" class="managed-page-type-link-cell">
 					#RepeatString( '&nbsp; &nbsp; &nbsp; &nbsp;', args._hierarchy_depth+1 )#
 					<i class="fa fa-fw fa-ellipsis-h page-type-icon"></i>
-					<a href="#args.managedChildrenBaseLink##args.id#&pageType=#pageType#">#translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] )#</a>
+					<a href="#quickBuildLink( args.managedChildrenBaseLink, { id=args.id, type=pageType } )#">#translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] )#</a>
 				</td>
 			</tr>
 		</cfloop>
