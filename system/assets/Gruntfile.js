@@ -27,6 +27,7 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/i18n.js'
 					, 'js/admin/presidecore/preside.richeditor.js'
 					, 'js/admin/presidecore/preside.bootbox.modal.js'
+					, 'js/admin/presidecore/preside.iframe.modal.js'
 					, 'js/admin/presidecore/preside.asset.picker.js'
 					, 'js/admin/presidecore/preside.object.picker.js'
 					, 'js/admin/presidecore/preside.imageDimension.picker.js'
