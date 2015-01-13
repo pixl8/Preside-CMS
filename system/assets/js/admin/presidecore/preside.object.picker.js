@@ -28,9 +28,9 @@
 			  , modalTitle          = this.$originalInput.data( "quickAddModalTitle" )
 			  , presideObjectPicker = this
 			  , modalOptions        = {
-		  	    	title     : modalTitle,
-		  	    	className : "quick-add-modal",
-			  		buttons   : {
+					title     : modalTitle,
+					className : "quick-add-modal",
+					buttons   : {
 						cancel : {
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
 							, className : "btn-default"
@@ -43,11 +43,11 @@
 					}
 				}
 			  , callbacks = {
-			  		onLoad : function( iframe ) {
-			  			iframe.presideObjectPicker = presideObjectPicker;
-			  			presideObjectPicker.quickAddIframe = iframe;
-			  		},
-			  		onShow : function( modal, iframe ){
+					onLoad : function( iframe ) {
+						iframe.presideObjectPicker = presideObjectPicker;
+						presideObjectPicker.quickAddIframe = iframe;
+					},
+					onShow : function( modal, iframe ){
 						if ( typeof iframe !== "undefined" && typeof iframe.quickAdd !== "undefined" ) {
 							iframe.quickAdd.focusForm();
 
@@ -55,10 +55,10 @@
 						}
 
 						modal.on('hidden.bs.modal', function (e) {
-			  				modal.remove();
+							modal.remove();
 						} );
 					}
-			    };
+				};
 
 			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
 
@@ -81,9 +81,9 @@
 			  , modalTitle          = this.$originalInput.data( "quickEditModalTitle" )
 			  , presideObjectPicker = this
 			  , modalOptions        = {
-		  	    	title     : modalTitle,
-		  	    	className : "quick-add-modal",
-			  		buttons   : {
+					title     : modalTitle,
+					className : "quick-add-modal",
+					buttons   : {
 						cancel : {
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
 							, className : "btn-default"
@@ -96,11 +96,11 @@
 					}
 				}
 			  , callbacks = {
-			  		onLoad : function( iframe ) {
-			  			iframe.presideObjectPicker = presideObjectPicker;
-			  			presideObjectPicker.quickEditIframe = iframe;
-			  		},
-			  		onShow : function( modal, iframe ){
+					onLoad : function( iframe ) {
+						iframe.presideObjectPicker = presideObjectPicker;
+						presideObjectPicker.quickEditIframe = iframe;
+					},
+					onShow : function( modal, iframe ){
 						if ( typeof iframe !== "undefined" && typeof iframe.quickEdit !== "undefined" ) {
 							iframe.quickEdit.focusForm();
 
@@ -108,10 +108,10 @@
 						}
 
 						modal.on('hidden.bs.modal', function (e) {
-			  				modal.remove();
+							modal.remove();
 						} );
 					}
-			    };
+				};
 
 			this.uberSelect.container.on( "click", ".quick-edit-link", function(e){
 				e.preventDefault();

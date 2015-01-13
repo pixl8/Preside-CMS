@@ -44,6 +44,7 @@
 
 			this.modalOptions.show    = false;
 			this.modalOptions.message = this.$iframeContainer.html();
+			this.modalOptions.buttons = this.modalOptions.buttons || {};
 
 			if ( $.isEmptyObject( this.modalOptions.buttons ) ) {
 				for( i=0; i < buttonList.length; i++ ){

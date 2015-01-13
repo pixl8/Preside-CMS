@@ -21,18 +21,28 @@
 		UberAssetSelect.prototype.setupBrowser = function(){
 			var iframeSrc       = this.$originalInput.data( "browserUrl" )
 			  , modalTitle      = this.$originalInput.data( "modalTitle" )
-			  , iframeId        = this.$originalInput.attr('id') + "_browser_frame"
-			  , uberAssetSelect = this;
+			  , uberAssetSelect = this
+			  , modalOptions    = {
+					title      : modalTitle,
+					className  : "uber-browser-dialog",
+					buttonList : [ "ok", "cancel" ]
+				}
+			  , callbacks = {
+			  		onLoad : function( iframe ) {
+						uberAssetSelect.pickerIframe = iframe;
+					},
+			  		onok : function(){ return uberAssetSelect.processBrowserOk(); }
+			    };
 
-			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="browse-iframe" src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
-			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-ellipsis-h"></i></a>' );
+			this.browserIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+
+			this.$browserButton = $( '<a class="btn btn-default" href="#"><i class="fa fa-ellipsis-h"></i></a>' );
 			this.$uberSelect.after( this.$browserIframeContainer );
 			this.$uberSelect.after( this.$browserButton );
 
-			this.$browserButton.presideBootboxModal( {} );
-			this.$browserButton.data( 'modalClass', 'uber-browser-dialog' );
-			this.$browserButton.on( 'bootboxModalok', function(){
-				return uberAssetSelect.processBrowserOk();
+			this.$browserButton.on( 'click', function( e ){
+				e.preventDefault();
+				uberAssetSelect.browserIframeModal.open();
 			} );
 		};
 
@@ -128,10 +138,7 @@
 		};
 
 		UberAssetSelect.prototype.getPickerIframe = function(){
-			var $iframe = $( '.modal-dialog iframe.browse-iframe' );
-			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow.assetBrowser;
-			}
+			return this.pickerIframe.assetBrowser;
 		};
 
 		UberAssetSelect.prototype.getUploadIframe = function(){
