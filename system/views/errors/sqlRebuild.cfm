@@ -1,6 +1,4 @@
-<cfparam name="exception.detail" type="string" default="" />
-
-<cfheader statuscode="500" statustext="An error has occurred" /><cfcontent reset="true" /><!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>PresideCMS: SQL Schema Synchronisation Required</title>
@@ -67,11 +65,10 @@
 			<h1><span>500</span> The application encountered an error on load</h1>
 			<h2>Initialisation did not complete</h2>
 
-			<h3>Why this has happened</h3>
 			<p>The latest application changes require a change to the database structure and the site is configured to not automatically synchronize the database.</p>
 			<p>The script required to run can be seen below. Please <strong>check that the script is as expected</strong> before directly executing on your database. Once complete, reload the application.</p>
 
-			<pre><code><cfoutput>#Trim( exception.detail )#</cfoutput></code></pre>
+			<pre><code><cfoutput>#Trim( exception.detail ?: "" )#</cfoutput></code></pre>
 		</div>
 	</body>
 </html>

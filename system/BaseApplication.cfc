@@ -42,7 +42,9 @@ component output=false {
 	}
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
-		_dealWithSqlReloadProtectionErrors( arguments.exception );
+		if ( _dealWithSqlReloadProtectionErrors( arguments.exception ) ) {
+			return;
+		}
 
 		if ( _showErrors() ) {
 			throw object=arguments.exception;
@@ -181,11 +183,19 @@ component output=false {
 		return;
 	}
 
-	private void function _dealWithSqlReloadProtectionErrors( required struct exception ) output=true {
+	private boolean function _dealWithSqlReloadProtectionErrors( required struct exception ) output=true {
 		var exceptionType = ( arguments.exception.type ?: "" );
 
 		if ( exceptionType == "presidecms.auto.schema.sync.disabled" ) {
-			include template="/preside/system/views/errors/sqlRebuild.cfm";abort;
+			thread name=CreateUUId() e=arguments.exception {
+				new preside.system.services.errors.ErrorLogService().raiseError( attributes.e );
+			}
+
+			header statuscode=500;content reset=true;
+			include template="/preside/system/views/errors/sqlRebuild.cfm";
+			return true;
 		}
+
+		return false;
 	}
 }
