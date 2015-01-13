@@ -155,8 +155,15 @@ component output=false extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 
-		siteService.setActiveAdminSite( activeSiteId );
+		var currentActiveSite = siteService.getActiveAdminSite();
+		var newSite           = siteService.getSite( activeSiteId );
 
+		if ( newSite.domain != currentActiveSite.domain ) {
+			event.setSite( newSite );
+			setNextEvent( url=event.buildAdminLink( linkto="sitetree.index" ) );
+		}
+
+		siteService.setActiveAdminSite( activeSiteId );
 		setNextEvent( url=event.buildAdminLink( linkto="sitetree.index" ) );
 	}
 

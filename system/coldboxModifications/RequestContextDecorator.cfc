@@ -34,7 +34,7 @@
 		<cfargument name="siteId"      type="string"  required="false" default="" />
 		<cfargument name="includePath" type="boolean" required="false" default="true" />
 		<cfscript>
-			var fetchSite = !Len( Trim( arguments.siteId ) ) || arguments.siteId == getSiteId();
+			var fetchSite = Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId();
 			var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 			var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
 

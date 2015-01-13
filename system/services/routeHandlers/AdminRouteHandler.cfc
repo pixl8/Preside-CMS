@@ -49,7 +49,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return event.getSiteUrl() & link;
+		return event.getSiteUrl( includePath=false ) & link;
 	}
 
 // private getters and setters
