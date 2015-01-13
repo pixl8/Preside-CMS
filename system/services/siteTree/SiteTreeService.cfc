@@ -789,6 +789,15 @@ component output=false singleton=true {
 		};
 	}
 
+	public numeric function getTrashCount() output=false {
+		var trashed = _getPobj().selectData(
+			  selectFields = [ "Count(*) as page_count" ]
+			, filter       = { trashed = true }
+		);
+
+		return Val( trashed.page_count ?: "" );
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) output=false {
 		var result       = "";

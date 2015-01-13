@@ -28,11 +28,17 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 	public void function index( event, rc, prc ) output=false {
 		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+		prc.trashCount = siteTreeService.getTrashCount();
 	}
 
 	public void function trash( event, rc, prc ) output=false {
 		_checkPermissions( argumentCollection=arguments, key="viewtrash" );
 		prc.treeTrash = siteTreeService.getTree( trash = true, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sitetree.trash.breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="sitetree.trash" )
+		);
 	}
 
 	public void function addPage( event, rc, prc ) output=false {
@@ -266,7 +272,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		siteTreeService.permanentlyDeletePage( event.getValue( "id", "" ) );
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageDeleted.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.trash" ) );
 	}
 
 	public void function emptyTrashAction( event, rc, prc ) output=false {

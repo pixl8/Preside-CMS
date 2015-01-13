@@ -6,6 +6,7 @@
 
 	activeTree          = prc.activeTree ?: [];
 	applicationPageTree = prc.applicationPageTree ?: [];
+	trashCount          = prc.trashCount ?: 0;
 </cfscript>
 
 <cfoutput>
@@ -28,4 +29,15 @@
 			</cfloop>
 		</tbody>
 	</table>
+
+	<cfif hasCmsPermission( permissionKey="sitetree.viewTrash" ) >
+		<div class="form-actions row">
+			<div class="col-md-offset-2">
+				<a href="#event.buildAdminLink( linkTo='sitetree.trash' )#" class="pull-right red">
+					<i class="fa fa-fw fa-trash fa-lg"></i>
+					#translateResource( uri="cms:sitetree.trash.link.title", data=[ trashCount ] )#
+				</a>
+			</div>
+		</div>
+	</cfif>
 </cfoutput>
