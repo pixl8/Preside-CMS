@@ -27,7 +27,7 @@
 				);
 			}
 
-			return getController().getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
+			return getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
 		</cfscript>
 	</cffunction>
 
