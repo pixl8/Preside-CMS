@@ -1,6 +1,6 @@
 <cfscript>
 	param name="args.selectedType" type="string";
-	param name="args.allowedTypes" type="string" default="sitetreelink,url,email,anchor,asset";
+	param name="args.allowedTypes" type="string" default="sitetreelink,url,email,anchor";
 </cfscript>
 
 <cfoutput>
