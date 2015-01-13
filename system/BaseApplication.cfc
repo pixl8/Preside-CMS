@@ -42,11 +42,12 @@ component output=false {
 	}
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
-		// if server is configured to show errors, just rethrow
+		_dealWithSqlReloadProtectionErrors( arguments.exception );
+
 		if ( _showErrors() ) {
 			throw object=arguments.exception;
 
-		// otherwise, log the error and serve a flat html file (if we've made it this far we shouldn't be trying to serve a dynamic 500 template)
+
 		} else {
 			thread name=CreateUUId() e=arguments.exception {
 				new preside.system.services.errors.ErrorLogService().raiseError( attributes.e );
@@ -178,5 +179,13 @@ component output=false {
 		}
 
 		return;
+	}
+
+	private void function _dealWithSqlReloadProtectionErrors( required struct exception ) output=true {
+		var exceptionType = ( arguments.exception.type ?: "" );
+
+		if ( exceptionType == "presidecms.auto.schema.sync.disabled" ) {
+			include template="/preside/system/views/errors/sqlRebuild.cfm";abort;
+		}
 	}
 }
