@@ -530,6 +530,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
 	}
 
+	public void function previewPage( event, rc, prc ) output=false {
+		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ) ) );
+	}
+
 
 <!--- private helpers --->
 	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) output=false {
