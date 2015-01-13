@@ -106,6 +106,10 @@
 			}
 		};
 
+		PresideIframeModal.prototype.getModal = function(){
+			return this.modal;
+		};
+
 		return PresideIframeModal;
 	} )();
 
