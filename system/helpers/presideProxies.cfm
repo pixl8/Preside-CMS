@@ -95,7 +95,14 @@
 
 <!--- i18n --->
 	<cffunction name="translateResource" access="public" returntype="any" output="false">
-		<cfreturn getController().getPlugin( "i18n" ).translateResource( argumentCollection = arguments ) />
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translateResource" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getPlugin( "i18n" ).translateResource( argumentCollection = args )
+			} );
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="translateValidationMessages" access="public" returntype="struct" output="false">
@@ -174,6 +181,16 @@
 			var args = arguments;
 			return simpleRequestCache( "getSingleton" & args.objectName, function(){
 				return getController().getWireBox().getInstance( args.objectName );
+			} );
+		</cfscript>
+	</cffunction>
+	<cffunction name="getPlugin" access="public" returntype="any" output="false">
+		<cfargument name="pluginName" type="string" required="true" />
+
+		<cfscript>
+			var args = arguments;
+			return simpleRequestCache( "getPlugin" & args.pluginName, function(){
+				return getController().getPlugin( args.pluginName );
 			} );
 		</cfscript>
 	</cffunction>
