@@ -34,7 +34,7 @@
 			  		onok : function(){ return uberAssetSelect.processBrowserOk(); }
 				};
 
-			this.browserIframeModal = new PresideIframeModal( iframeSrc, 800, 400, callbacks, modalOptions );
+			this.browserIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
 
 			this.$browserButton = $( '<a class="btn btn-default" href="#"><i class="fa fa-ellipsis-h"></i></a>' );
 			this.$uberSelect.after( this.$browserButton );
@@ -74,7 +74,7 @@
 					}
 			    };
 
-			this.uploadIframeModal = new PresideIframeModal( iframeSrc, 800, 400, callbacks, modalOptions );
+			this.uploadIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
 
 			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" href="#"><i class="fa fa-cloud-upload"></i></a>' );
 			this.$uploaderButton.on( "click", function( e ){
