@@ -209,7 +209,7 @@
 			<cfset child.managedChildrenBaseLink     = args.managedChildrenBaseLink     />
 			<cfset child.previewPageBaseLink         = args.previewPageBaseLink         />
 
-			#renderView( view="/admin/sitetree/_node", args=child, cache=true, cacheSuffix=Hash( SerializeJson( child ) & event.getAdminUserId() & selected ) )#
+			#renderView( view="/admin/sitetree/_node", args=child )#
 		</cfloop>
 
 		<cfloop array="#args.applicationPageTree#" index="node">
