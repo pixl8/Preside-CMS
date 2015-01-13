@@ -98,7 +98,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 	}
 
-	function installVersionAction( event, rc, prc ) output=false {
+	function installVersionAction( event, rc, prc ) output=true {
 		try {
 			updateManagerService.installVersion( version = rc.version ?: "" );
 		} catch( "UpdateManagerService.unknown.version" e ) {
@@ -109,6 +109,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 			messageBox.error( translateResource( uri="cms:updatemanager.install.railo.admin.access.denied", data=[ rc.version ?: "" ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="updateManager" ) );
 
+		} catch( "presidecms.auto.schema.sync.disabled" exception ) {
+			var errorMessage = "";
+			savecontent variable="errorMessage" {
+				include template="/preside/system/views/errors/sqlRebuild.cfm";
+			}
+			header statuscode=500;content reset=true;WriteOutput( Trim( errorMessage ) );abort;
 		}
 
 		messageBox.info( translateResource( uri="cms:updatemanager.installed.confirmation", data=[ rc.version ?: "" ] ) );
