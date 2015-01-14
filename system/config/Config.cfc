@@ -110,7 +110,7 @@ component output=false {
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics        = [];
-		settings.autoSyncDb                = false;
+		settings.autoSyncDb                = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 
 		settings.adminSideBarItems = [
 			  "sitetree"
