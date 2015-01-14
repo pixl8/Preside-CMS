@@ -66,7 +66,7 @@
 	hasNavigatePermission = hasCmsPermission( permissionKey="sitetree.navigate", context="page", contextKeys=args.permission_context );
 
 	if ( hasNavigatePermission ) {
-		pageUrl     = args.previewPageBaseLink & args.id;
+		pageUrl     = quickBuildLink( args.previewPageBaseLink, { id=args.id } );
 		homepageId  = prc.homepage.id ?: "";
 		pageType    = translateResource( "page-types.#args.page_type#:name", args.page_type );
 		pageIcon    = translateResource( "page-types.#args.page_type#:iconclass", "fa-file-o" );
