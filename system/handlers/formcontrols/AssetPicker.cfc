@@ -23,7 +23,7 @@ component output=false {
 		}
 
 		args.multiple    = args.multiple ?: ( ( args.relationship ?: "" ) == "many-to-many" );
-		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="allowedTypes=#allowedTypes#&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="maxRows=100&allowedTypes=#allowedTypes#&prefetchCacheBuster=#prefetchCacheBuster#" );
 		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="q=%QUERY&allowedTypes=#allowedTypes#" );
 		args.browserUrl  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#" );
 		args.uploaderUrl = event.buildAdminLink( linkTo="assetmanager.assetPickerUploader", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#" );
