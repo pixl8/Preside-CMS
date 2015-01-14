@@ -315,7 +315,7 @@ component output="false" singleton=true {
 		var relatedTo = prop.getAttribute( "relatedTo", "none" );
 
 		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
-			return relatedTo & "." & _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
+			return arguments.field & "." & _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
 		}
 
 		return arguments.objectName & "." & fieldName;
