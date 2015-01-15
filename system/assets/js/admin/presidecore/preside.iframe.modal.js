@@ -22,6 +22,7 @@
 			  , callbacks      = this.callbacks
 			  , iframeModal    = this;
 
+
 			this.$iframeContainer = $( '<div style="display:none;"><iframe id="' + iframeId + '" src="' + this.iframeUrl + '" width="' + this.width + '" height="' + this.height + '" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
 			this.registerOnLoadCallback( onLoadCallback, function( iframe ){
 				iframe.parentPresideBootbox = iframeModal.getBootbox();
@@ -33,7 +34,7 @@
 		};
 
 		PresideIframeModal.prototype.registerOnLoadCallback = function( id, callBack ){
-			var target = window.parent || window;
+			var target = typeof parentPresideBootbox == "undefined" ? window : ( window.parent || window );
 
 			target[ id ] = callBack;
 		};
