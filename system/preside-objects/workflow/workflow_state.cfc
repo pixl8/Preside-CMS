@@ -13,5 +13,6 @@ component extends="preside.system.base.SystemPresideObject" output=false {
 	property name="owner"     type="string" dbtype="varchar" maxlength=50 required=true uniqueindexes="workflowstate|3";
 	property name="state"     type="string" dbtype="text";
 	property name="status"    type="string" dbtype="varchar" maxlength=50 required=true;
+	property name="expires"   type="date"   dbtype="datetime" required=false;
 
 }
