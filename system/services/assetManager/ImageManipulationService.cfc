@@ -86,11 +86,11 @@ component output=false singleton=true {
 		return ImageGetBlob( image );
 	}
 
-	public binary function pdfPreview( required binary asset, numeric page=1 ) output=false {
+	public binary function pdfPreview( required binary asset, numeric page=1, numeric scale=25, string resolution="low" ) output=false {
 		var imagePrefix = CreateUUId();
 		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
 
-		pdf action="thumbnail" source=asset destination=GetTempDirectory() imagePrefix=imagePrefix;
+		pdf action="thumbnail" source=asset destination=GetTempDirectory() imagePrefix=imagePrefix scale=arguments.scale resolution=arguments.resolution;
 
 		return FileReadBinary( tmpFilePath );
 	}
