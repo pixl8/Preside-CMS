@@ -86,11 +86,24 @@ component output=false singleton=true {
 		return ImageGetBlob( image );
 	}
 
-	public binary function pdfPreview( required binary asset, numeric page=1, numeric scale=25, string resolution="low" ) output=false {
+	public binary function pdfPreview( required binary asset ) output=false {
 		var imagePrefix = CreateUUId();
 		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
+		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
+		var pdfAttributes = {
+			  action      = "thumbnail"
+			, source      = asset
+			, destination = GetTempDirectory()
+			, imagePrefix = imagePrefix
+		};
 
-		pdf action="thumbnail" source=asset destination=GetTempDirectory() imagePrefix=imagePrefix scale=arguments.scale resolution=arguments.resolution;
+		for( var arg in allowedArgs ) {
+			if ( StructKeyExists( arguments, arg ) ) {
+				pdfAttributes[ arg ] = arguments[ arg ];
+			}
+		}
+
+		pdf attributeCollection=pdfAttributes;
 
 		return FileReadBinary( tmpFilePath );
 	}
