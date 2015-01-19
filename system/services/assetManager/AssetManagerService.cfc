@@ -597,10 +597,10 @@ component singleton=true output=false {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = getAsset( id=arguments.assetId, throwOnMissing=true );
 		var assetBinary     = getAssetBinary( id=arguments.assetId, throwOnMissing=true );
-		var filename        = ListLast( asset.storage_path, "/" );
+		var filename        = LCase( Hash( signature & ListLast( asset.storage_path, "/" ) ) );
 		var fileext         = ListLast( filename, "." );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" );
-		var storagePath     = "/derivatives/#derivativeSlug#/#derivativeSlug##signature#_#filename#";
+		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
 
 		for( var transformation in transformations ) {
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
