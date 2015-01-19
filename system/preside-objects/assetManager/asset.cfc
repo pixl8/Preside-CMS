@@ -8,8 +8,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 
 	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
 	property name="original_title"    type="string"  dbtype="varchar" maxLength=200     required=false;
-	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";
-	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=255     required=false;
+	property name="storage_path"      type="string"  dbtype="varchar" maxLength=500     required=true;
+	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=500     required=false;
 	property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;
 	property name="author"            type="string"  dbtype="varchar" maxLength=100     required=false;
 	property name="size"              type="numeric" dbtype="int"                       required=true;
