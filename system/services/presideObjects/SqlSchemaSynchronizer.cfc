@@ -315,6 +315,7 @@ component output=false singleton=true {
 			}
 		}
 
+
 		for( column in colsSql ) {
 			if ( not ListFindNoCase( dbColumnNames, column ) ) {
 				colSql = colsSql[ column ];
@@ -334,6 +335,11 @@ component output=false singleton=true {
 				indexSql = indexesSql[ index ];
 				_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
 				_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+			} elseif ( !StructKeyExists( arguments.indexes, index ) ) {
+				_runSql(
+					  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
+					, dsn = arguments.dsn
+				);
 			}
 		}
 		for( index in indexesSql ){
@@ -518,7 +524,7 @@ component output=false singleton=true {
 			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
 		} catch( any e ) {
 			if ( e.message contains "there is no table that match the following pattern" ) {
-				return {};
+				return QueryNew('');
 			}
 
 			rethrow;
