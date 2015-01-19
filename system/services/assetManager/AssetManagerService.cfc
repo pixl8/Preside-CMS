@@ -552,7 +552,8 @@ component singleton=true output=false {
 	public query function getAssetDerivative( required string assetId, required string derivativeName ) output=false {
 		var derivativeDao = _getDerivativeDao();
 		var derivative    = "";
-		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName };
+		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
+		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
 
 		lock type="exclusive" name="getAssetDerivative( #assetId#, #arguments.derivativeName# )" timeout=5 {
 			derivative = derivativeDao.selectData( filter=selectFilter );
@@ -580,7 +581,8 @@ component singleton=true output=false {
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 	) output=false {
 		var derivativeDao = _getDerivativeDao();
-		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName };
+		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
+		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
 
 		if ( !derivativeDao.dataExists( filter=selectFilter ) ) {
 			return createAssetDerivative( argumentCollection = arguments );
@@ -592,13 +594,13 @@ component singleton=true output=false {
 		, required string derivativeName
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 	) output=false {
-
+		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = getAsset( id=arguments.assetId, throwOnMissing=true );
 		var assetBinary     = getAssetBinary( id=arguments.assetId, throwOnMissing=true );
 		var filename        = ListLast( asset.storage_path, "/" );
 		var fileext         = ListLast( filename, "." );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" );
-		var storagePath     = "/derivatives/#derivativeSlug#/#derivativeSlug#_#filename#";
+		var storagePath     = "/derivatives/#derivativeSlug#/#derivativeSlug##signature#_#filename#";
 
 		for( var transformation in transformations ) {
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
@@ -621,7 +623,7 @@ component singleton=true output=false {
 		return _getDerivativeDao().insertData( {
 			  asset_type   = assetType.typeName
 			, asset        = arguments.assetId
-			, label        = arguments.derivativeName
+			, label        = arguments.derivativeName & signature
 			, storage_path = storagePath
 		} );
 	}
@@ -663,6 +665,20 @@ component singleton=true output=false {
 		var derivatives = _getConfiguredDerivatives();
 
 		return ( derivatives[ arguments.derivative ].permissions ?: "inherit" ) == "public";
+	}
+
+	public string function getDerivativeConfigSignature( required string derivative ) output=false {
+		var derivatives = _getConfiguredDerivatives();
+
+		if ( derivatives.keyExists( arguments.derivative ) ) {
+			if ( !derivatives[ arguments.derivative ].keyExists( "signature" ) ) {
+				derivatives[ arguments.derivative ].signature = LCase( Hash( SerializeJson( derivatives[ arguments.derivative ] ) ) );
+			}
+
+			return derivatives[ arguments.derivative ].signature;
+		}
+
+		return "";
 	}
 
 // PRIVATE HELPERS
