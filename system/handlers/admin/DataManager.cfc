@@ -847,7 +847,7 @@
 				if ( Len( successAction ?: "" ) ) {
 					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#id#" ) );
 				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#object#&id=#id#" ) );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
 				}
 			}
 		</cfscript>
