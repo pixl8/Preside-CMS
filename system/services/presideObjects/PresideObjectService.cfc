@@ -1381,7 +1381,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 			if ( not StructKeyExists( param, "type" ) ) {
 				if ( ListLen( key, "." ) eq 2 ) {
-					cols = _getObject( ListFirst( key, "." ) ).meta.properties;
+					if ( columnDefinitions.keyExists( ListFirst( key, "." ) ) ) {
+						cols = _getObject( columnDefinitions[ ListFirst( key, "." ) ].relatedTo ?: "" ).meta.properties;
+					} else {
+						cols = _getObject( ListFirst( key, "." ) ).meta.properties;
+					}
 				} else {
 					cols = arguments.columnDefinitions;
 				}
@@ -1909,6 +1913,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
+			var objOrPropRegex = "[a-z_\-\$][a-z0-9_\-\$]*";
+			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)\.(#objOrPropRegex#)", "\1__\2", "all" );
 			result.params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
