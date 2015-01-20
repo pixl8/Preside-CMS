@@ -32,8 +32,8 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 		var siteAssetsUrl     = settings.static.siteAssetsUrl  ?: "/assets";
 		var rootURl           = ( settings.static.rootUrl ?: "" );
 
-		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath )
-		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl );
+		sticker.addBundle( rootDirectory=sysAssetsPath , rootUrl=sysAssetsPath          , config=settings )
+		       .addBundle( rootDirectory=siteAssetsPath, rootUrl=rootUrl & siteAssetsUrl, config=settings );
 
 		for( var ext in settings.activeExtensions ) {
 			try {
