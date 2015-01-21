@@ -34,6 +34,12 @@
 		include template="/app/config/Routes.cfm";
 	}
 
+	getSetting( "activeExtensions" ).each( function( ext ){
+		if ( FileExists( ext.directory & "/config/Routes.cfm" ) ) {
+			include template=ext.directory & "/config/Routes.cfm";
+		}
+	} );
+
 	addRouteHandler( getModel( "errorRouteHandler" ) );
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( "adminRouteHandler" ) );
