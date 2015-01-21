@@ -335,6 +335,11 @@ component output=false singleton=true {
 				indexSql = indexesSql[ index ];
 				_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
 				_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+			} elseif ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
+				_runSql(
+					  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
+					, dsn = arguments.dsn
+				);
 			}
 		}
 		for( index in indexesSql ){
