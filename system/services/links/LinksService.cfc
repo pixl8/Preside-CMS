@@ -30,6 +30,16 @@ component output=false {
 		return "";
 	}
 
+	public string function emailAntiSpam( required string emailAddress ) {
+		var antiSpam = "";
+
+		for ( var i=1; i lte Len( arguments.emailAddress ); i=i+1 ) {
+			antiSpam = antiSpam & "&##" & Asc( Mid( arguments.emailAddress, i, 1 ) ) & ";";
+		}
+
+		return antiSpam;
+	}
+
 // PRIVATE HELPERS
 	private string function _buildEmailHref( required query link ) output=false {
 		var plainHref = "mailto:#link.email_address#";
@@ -43,7 +53,7 @@ component output=false {
 			plainHref &= delim & "body=" & UrlEncodedFormat( link.email_body );
 
 		}
-		return _emailAntiSpam( plainHref );
+		return emailAntiSpam( plainHref );
 	}
 
 	private string function _buildUrlHref( required query link ) output=false {
@@ -59,16 +69,6 @@ component output=false {
 
 	private string function _buildAssetlinkHref( required query link, required any event ) output=false {
 		return _getRequestContext().buildLink( assetId=link.asset );
-	}
-
-	private string function _emailAntiSpam( required string emailAddress ) {
-		var antiSpam = "";
-
-		for ( var i=1; i lte Len( arguments.emailAddress ); i=i+1 ) {
-			antiSpam = antiSpam & "&##" & Asc( Mid( arguments.emailAddress, i, 1 ) ) & ";";
-		}
-
-		return antiSpam;
 	}
 
 	private any function _getRequestContext() output=false {

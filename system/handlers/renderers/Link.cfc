@@ -22,7 +22,7 @@ component output=false {
 			} elseif ( Len( Trim( link.text ) ) ) {
 				args.body = Trim( link.text );
 			} elseif ( link.type == "email" ) {
-				args.body = _emailAntiSpam( link.email_address );
+				args.body = linksService.emailAntiSpam( link.email_address );
 			} elseif ( link.type == "sitetreelink" ) {
 				var page = pageDao.selectData( id=link.page, selectFields=[ "title" ] );
 				args.body = page.title;
