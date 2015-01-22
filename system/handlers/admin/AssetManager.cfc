@@ -116,7 +116,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				} );
 			} catch ( any e ) {
 				logError( e );
-
 				event.renderData( data={
 					  success = false
 					, title   = translateResource( "cms:assetmanager.add.asset.unexpected.error.title" )
@@ -157,6 +156,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			trashed = assetManagerService.trashAsset( assetId );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#parentFolder#" ) );
 		}
@@ -200,6 +200,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			newFolderId = assetManagerService.addFolder( argumentCollection = formData );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.add.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.addFolder", querystring="folder=#formData.parent_folder#" ), persistStruct=formData );
 		}
@@ -269,6 +270,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			assetManagerService.editFolder( id=folderId, data=formData );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.edit.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
 		}
@@ -298,6 +300,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			trashed = assetManagerService.trashFolder( folderId );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.trash.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#parentFolder#" ) );
 		}
@@ -416,6 +419,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			success = assetManagerService.editAsset( id=rc.asset ?: "", data=formData );
 		} catch( any e ) {
+			logError( e );
 			success = false;
 		}
 
@@ -560,7 +564,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( Len( Trim( jsonConfig ) ) ) {
 			try {
 				rc.append( DeSerializeJson( UrlDecode( jsonConfig ) ) );
-			} catch ( any e ){}
+			} catch ( any e ){
+				logError( e );
+			}
+
 		}
 
 
