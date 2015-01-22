@@ -1,6 +1,10 @@
 /**
  * The link object represents a link to just about anything, be it page in the site tree, an email address or
  * plain link
+ *
+ * @datamanagerGroup             links
+ * @datamanagerGridFields        internal_title
+ * @datamanagerAllowedOperations delete
  */
 
 component extends="preside.system.base.SystemPresideObject" labelfield="internal_title" output=false displayname="Link" {
