@@ -537,9 +537,6 @@ component singleton=true output=false {
 		}
 
 		trashedPath = _getStorageProvider().softDeleteObject( asset.storage_path );
-		if ( !Len( Trim( trashedPath ) ) ) {
-			return false;
-		}
 
 		return assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
