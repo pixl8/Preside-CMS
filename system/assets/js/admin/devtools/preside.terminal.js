@@ -96,6 +96,7 @@ window.presideTerminal = ( function( $ ){
 
 	toggleTerminal = function(){
 		var toggle = function(){
+			$( ":focus" ).blur();
 			$terminal.slideToggle( "fast", function(){
 				terminal.clear();
 				terminal.focus( $(this).is( ":visible" ) );
