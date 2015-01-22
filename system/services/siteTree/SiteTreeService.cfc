@@ -481,7 +481,7 @@ component output=false singleton=true {
 		transaction {
 			data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
 			data._hierarchy_id         = _getNextAvailableHierarchyId();
-			data._hierarchy_sort_order = "/#data.sort_order#/";
+			data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 			if ( StructKeyExists( arguments, "parent_page" ) ) {
 				parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false );
@@ -492,9 +492,9 @@ component output=false singleton=true {
 					);
 				}
 				data.parent_page           = arguments.parent_page;
-				data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id & "/";
-				data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug       & "/";
-				data._hierarchy_sort_order = parent._hierarchy_sort_order & data.sort_order      & "/";
+				data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id                & "/";
+				data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug                      & "/";
+				data._hierarchy_sort_order = parent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
 				data._hierarchy_depth      = parent._hierarchy_depth + 1;
 			}
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
@@ -568,7 +568,7 @@ component output=false singleton=true {
 						data._hierarchy_lineage        = newParent._hierarchy_lineage & newParent._hierarchy_id & "/";
 						data._hierarchy_child_selector = data._hierarchy_lineage & existingPage._hierarchy_id & "/%";
 						data._hierarchy_depth          = newParent._hierarchy_depth + 1;
-						data._hierarchy_sort_order     = newParent._hierarchy_sort_order & data.sort_order & "/";
+						data._hierarchy_sort_order     = newParent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
 						data._hierarchy_slug           = newParent._hierarchy_slug & ( slugChanged ? data : existingPage ).slug & "/";
 
 					} elseif ( IsBoolean( arguments.trashed ?: "" ) && arguments.trashed ) {
@@ -577,7 +577,7 @@ component output=false singleton=true {
 						data._hierarchy_lineage        = "/";
 						data._hierarchy_child_selector = "/" & existingPage._hierarchy_id & "/%";
 						data._hierarchy_depth          = 0;
-						data._hierarchy_sort_order     = "/" & data.sort_order & "/";
+						data._hierarchy_sort_order     = "/" & _paddedSortOrder( data.sort_order ) & "/";
 						data._hierarchy_slug           = "/" & ( slugChanged ? data : existingPage ).slug & "/";
 					} else {
 						throw(
@@ -588,7 +588,7 @@ component output=false singleton=true {
 
 				} else {
 					if ( sortOrderChanged ) {
-						data._hierarchy_sort_order = ReReplace( existingPage._hierarchy_sort_order, "/#existingPage.sort_order#/$", "/#data.sort_order#/" );
+						data._hierarchy_sort_order = ReReplace( existingPage._hierarchy_sort_order, "/#ListLast( existingPage._hierarchy_sort_order, '/' )#/$", "/#_paddedSortOrder( data.sort_order )#/" );
 					}
 					if ( slugChanged ) {
 						data._hierarchy_slug = ReReplace( existingPage._hierarchy_slug, "/#existingPage.slug#/$", "/#data.slug#/" );
@@ -955,6 +955,10 @@ component output=false singleton=true {
 		}
 
 		return addPage( argumentCollection=addPageArgs );
+	}
+
+	private string function _paddedSortOrder( required numeric sortOrder ) output=false {
+		return NumberFormat( arguments.sortOrder, '000000' );
 	}
 
 // GETTERS AND SETTERS
