@@ -14,8 +14,6 @@
 </cfscript>
 
 <cfoutput>
-	<h3 class="blue folder-title pull-left"><i class="fa fa-folder"></i> #args.folderTitle#</h3>
-
 	<div class="pull-right">
 		<cfif hasUploadPermission>
 			<a class="inline" href="#event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString="folder=#args.folderId#" )#" data-global-key="l" class="upload-button">
