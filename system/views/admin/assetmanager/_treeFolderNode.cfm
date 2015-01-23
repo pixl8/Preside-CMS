@@ -12,35 +12,10 @@
 	if ( args.label == "$root" ) {
 		args.label = translateResource( "cms:assetmanager.root.folder" );
 	}
-
-	hasAddFolderPermission         = hasCmsPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=args.permissionContext );
-	hasEditFolderPermission        = hasCmsPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=args.permissionContext );
-	hasManageFolderPermsPermission = hasCmsPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=args.permissionContext );
-	hasDeleteFolderPermission      = args.label != "$root" && hasCmsPermission( permissionKey="assetmanager.folders.delete", context="assetmanagerfolder", contextKeys=args.permissionContext );
-	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission || hasDeleteFolderPermission;
 </cfscript>
 
 <cfif hasCmsPermission( permissionKey="assetmanager.general.navigate", context="assetmanagerfolder", contextKeys=[ args.id ] )>
 	<cfoutput>
-		<cfsavecontent variable="nodeOptions">
-			<cfif hasAnyFolderPermissions>
-				<div class="node-options">
-					<cfif hasAddFolderPermission>
-						<a data-context-key="a" href="#event.buildAdminLink( linkTo="assetmanager.addFolder", queryString="folder=#args.id#" )#" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.folder.options.add" ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-fw fa-plus"></i></a>
-					</cfif>
-					<cfif hasEditFolderPermission>
-						<a data-context-key="e" href="#event.buildAdminLink( linkTo="assetmanager.editFolder", queryString="folder=#args.id#" )#" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.folder.options.edit" ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-fw fa-pencil"></i></a>
-					</cfif>
-					<cfif hasManageFolderPermsPermission>
-						<a data-context-key="p" href="#event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#args.id#" )#" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.folder.options.manage.perms" ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-fw fa-lock"></i></a>
-					</cfif>
-					<cfif hasDeleteFolderPermission>
-						<a data-context-key="d" href="#event.buildAdminLink( linkTo="assetmanager.trashFolderAction", queryString="folder=#args.id#" )#" class="confirmation-prompt" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.folder.link", data=[ args.label ] ) )#"><span><!--- hack to bypass some brutal css ---></span><i class="fa fa-fw fa-trash"></i></a>
-					</cfif>
-				</div>
-			</cfif>
-		</cfsavecontent>
-
 		<cfif hasChildren>
 			<div class="tree-folder">
 				<div class="tree-node tree-folder-header<cfif selected eq args.id> selected</cfif>" data-folder-id="#args.id#">
@@ -51,7 +26,6 @@
 
 					<div class="tree-folder-name node-name">
 						<span class="folder-name">#args.label#</span>
-						#Trim( nodeOptions )#
 					</div>
 				</div>
 				<div class="tree-folder-content">
@@ -68,7 +42,6 @@
 						<small><i class="fa fa-lock red"></i></small>
 					</cfif>
 					<span class="folder-name">#args.label#</span>
-					#Trim( nodeOptions )#
 				</div>
 			</div>
 		</cfif>
