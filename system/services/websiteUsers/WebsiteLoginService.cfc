@@ -191,7 +191,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 			_getEmailService().send(
 				  template = "resetWebsitePassword"
 				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name }
+				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
 			);
 
 			return true;
