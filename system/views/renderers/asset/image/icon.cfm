@@ -3,4 +3,4 @@
 	imgTitle = HtmlEditFormat( args.title ?: '' );
 </cfscript>
 
-<cfoutput><img src="#imgSrc#" alt="#imgTitle#" title="#imgTitle#" class="icon-derivative" /></cfoutput>
+<cfoutput><img src="#imgSrc#" alt="" title="#imgTitle#" class="lazy icon-derivative" /></cfoutput>

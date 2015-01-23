@@ -524,7 +524,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified", "datecreated" ];
+		var gridFields = [ "title" ];
 		var renderedOptions = [];
 
 		var records = Duplicate( result.records );
