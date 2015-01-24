@@ -17,7 +17,7 @@ import sys
 import os
 
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "pixl8_rtd_theme"
 html_theme_path = ["_themes", ]
 
 # If extensions (or modules to document with autodoc) are in another directory,
