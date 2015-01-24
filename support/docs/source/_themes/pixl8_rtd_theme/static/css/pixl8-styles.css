@@ -1,4 +1,4 @@
-.header-bar {
+/*.header-bar {
 	width            : 100%;
 	position         : fixed;
 	z-index          : 201;
@@ -14,22 +14,22 @@
 	text-indent    : -9999px;
 	float          : left;
 }
+*/
+.wy-side-nav-search {
+	background-color : #2C3D4E;
 
-.header-bar div[role="search"] {
-	float : left;
-	width : calc( 100% - 320px );
-	padding : 10px;
 }
 
-.header-bar div[role="search"] input[type="text"] {
-	width: 100%;
-	border-radius: 50px;
-	padding: 6px 12px;
-	border-color: #2C3D4E;
+.wy-side-nav-search .home-link {
+	background     : url( ./logo-preside-admin-header.png ) 3px 0px no-repeat;
+	display        : block;
+	height         : 31px;
+	width          : 300px;
+	text-indent    : -9999px;
 }
 
-.wy-grid-for-nav {
-	top : 51px;
+.wy-side-nav-search .home-link:hover {
+	background     : url( ./logo-preside-admin-header.png ) 10px 10px no-repeat;
 }
 
 .wy-menu-vertical li.on a,

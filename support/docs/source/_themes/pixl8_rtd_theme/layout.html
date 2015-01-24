@@ -76,17 +76,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 
 </head>
-
 <body class="wy-body-for-nav" role="document">
-
-  <div class="header-bar">
-    <a href="{{ pathto(master_doc) }}" class="project-title"> {{ project }}</a>
-    {% include "searchbox.html" %}
-  </div>
-
   <div class="wy-grid-for-nav">
     {# SIDE NAV, TOGGLES ON MOBILE #}
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        {% block sidebartitle %}
+          <a href="{{ pathto(master_doc) }}" class="home-link"> {{ project }}</a>
+        {% endblock %}
+        {% include "searchbox.html" %}
+      </div>
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         {% set toctree = toctree(maxdepth=2, collapse=False, includehidden=True) %}
         {% if toctree %}
