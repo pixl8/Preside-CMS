@@ -60,9 +60,10 @@ hr {
 }
 
 .rst-versions.rst-badge {
-	bottom : 0 !important;
-	left   : 0 !important;
-	right  : auto !important;
+	bottom : 0;
+	left   : 0;
+	right  : auto;
+	width  : 300px;
 }
 
 .rst-versions.rst-badge .rst-current-version {
