@@ -26,19 +26,27 @@ component output=false {
 	}
 
 	public void function onApplicationEnd( required struct appScope ) output=false {
-		arguments.appScope.cbBootstrap.onApplicationEnd( argumentCollection=arguments );
+		if ( StructKeyExists( arguments.appScope, "cbBootstrap" ) ) {
+			arguments.appScope.cbBootstrap.onApplicationEnd( argumentCollection=arguments );
+		}
 	}
 
 	public void function onSessionStart() output=false {
-		application.cbBootstrap.onSessionStart();
+		if ( StructKeyExists( arguments, "cbBootstrap" ) ) {
+			application.cbBootstrap.onSessionStart();
+		}
 	}
 
 	public void function onSessionEnd( required struct sessionScope, required struct appScope ) output=false {
-		arguments.appScope.cbBootstrap.onSessionEnd( argumentCollection=arguments );
+		if ( StructKeyExists( arguments.appScope, "cbBootstrap" ) ) {
+			arguments.appScope.cbBootstrap.onSessionEnd( argumentCollection=arguments );
+		}
 	}
 
 	public boolean function onMissingTemplate( required string template ) output=false {
-		return application.cbBootstrap.onMissingTemplate( argumentCollection=arguments );
+		if ( StructKeyExists( application, "cbBootstrap" ) ) {
+			return application.cbBootstrap.onMissingTemplate( argumentCollection=arguments );
+		}
 	}
 
 	public void function onError(  required struct exception, required string eventName ) output=true {
