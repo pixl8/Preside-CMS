@@ -1,11 +1,3 @@
-$( document ).ready(function() {
-    // crazy TOC hack
-    var $pageToc   = $( '#page-toc' )
-      , $pageTitle = $pageToc.prev().find( "h1:first" );
-
-    $pageToc.insertAfter( $pageTitle );
-});
-
 ( function( $ ){
 
     function scroll_if_anchor( href ) {

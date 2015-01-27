@@ -113,9 +113,17 @@
           {% include "breadcrumbs.html" %}
           <div role="main">
             {% block body %}{% endblock %}
-          </div>
-          <div role="navigation" id="page-toc">
-            {{ toc }}
+              <div id="disqus_thread"></div>
+              <script type="text/javascript">
+                  var disqus_shortname = 'presidecmsdocs';
+
+                  (function() {
+                      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                  })();
+              </script>
+              <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
           </div>
           {% include "footer.html" %}
         </div>
@@ -143,15 +151,6 @@
   {% endif %}
 
   <script type="text/javascript" src="{{ pathto('_static/js/theme.js', 1) }}"></script>
-
-  {# STICKY NAVIGATION #}
-  {% if theme_sticky_navigation %}
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-  {% endif %}
 
   {%- block footer %} {% endblock %}
 
