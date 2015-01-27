@@ -15,6 +15,12 @@
 	background     : url( ./logo-preside-admin-header.png ) 3px 0px no-repeat;
 }
 
+.wy-side-nav-search input[type="text"] {
+	border-radius : 5px;
+	padding       : 4px 8px;
+	border-color  : transparent;
+}
+
 .wy-menu-vertical li.on a,
 .wy-menu-vertical li.current > a {
 	border-top : none; /* remove top border 'shadow' doesn't fit with Presideish theme */
