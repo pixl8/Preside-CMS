@@ -1,6 +1,8 @@
 Sitetree Navigation Menus
 =========================
 
+.. contents:: :local:
+
 Overview
 ########
 

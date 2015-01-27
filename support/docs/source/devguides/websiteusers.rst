@@ -1,6 +1,8 @@
 Website users and permissioning
 ===============================
 
+.. contents:: :local:
+
 Overview
 ########
 

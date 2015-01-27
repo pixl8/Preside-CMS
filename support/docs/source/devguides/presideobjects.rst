@@ -1,6 +1,8 @@
 Preside Data Objects
 ====================
 
+.. contents:: :local:
+
 Overview
 ########
 

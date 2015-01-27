@@ -1,6 +1,8 @@
 Custom error pages
 ==================
 
+.. contents:: :local:
+
 Overview
 ########
 

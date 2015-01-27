@@ -1,6 +1,8 @@
 CMS Permissioning
 =================
 
+.. contents:: :local:
+
 Overview
 ########
 

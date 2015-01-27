@@ -1,6 +1,8 @@
 Email templating
 ================
 
+.. contents:: :local:
+
 Overview
 ########
 

@@ -1,6 +1,8 @@
 Editable System settings
 ========================
 
+.. contents:: :local:
+
 Overview
 ########
 

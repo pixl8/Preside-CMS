@@ -1,6 +1,8 @@
 Routing
 =======
 
+.. contents:: :local:
+
 Overview
 ########
 

@@ -1,6 +1,8 @@
 Working with the richeditor
 ===========================
 
+.. contents:: :local:
+
 Overview
 ########
 
