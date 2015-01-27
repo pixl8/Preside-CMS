@@ -79,3 +79,20 @@ hr {
 .rst-versions.rst-badge.shift-up .rst-current-version .fa-book {
 	margin: 9px 0 0 6px;
 }
+
+.contents.local {
+	padding          : 1em 1.5em 0;
+	border           : 1px solid #c9c9c9;
+	background-color : #e3e3e3;
+	float            : right;
+	margin           : 0 0 1em 1em;
+}
+
+.contents.local li {
+	list-style-type : none !important;
+	margin-left     : 0 !important;
+}
+
+div[class^="highlight"] {
+	clear : both;
+}
