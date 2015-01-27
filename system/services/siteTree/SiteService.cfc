@@ -67,6 +67,19 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			}
 		}
 
+		var aliasMatch = _getSiteAliasDomainDao().selectData(
+			  selectFields = [ "site" ]
+			, filter       = { domain = arguments.domain }
+		);
+
+		if ( aliasMatch.recordCount ) {
+			var site = getSite( aliasMatch.site );
+
+			site.domain = arguments.domain
+
+			return site;
+		}
+
 		return {};
 	}
 
