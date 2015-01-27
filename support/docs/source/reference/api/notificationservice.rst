@@ -1,6 +1,12 @@
 Notification Service
 ====================
 
+.. contents::
+    :depth: 2
+    :local:
+
+
+
 Overview
 --------
 
@@ -139,7 +145,7 @@ Name     Type    Required  Description
 =======  ======  ========  =====================================
 topic    string  Yes       Topic of the notification            
 data     struct  Yes       Data associated with the notification
-context  string  Yes                                            
+context  string  Yes       Context of the notification          
 =======  ======  ========  =====================================
 
 

@@ -13,6 +13,7 @@ System form layouts
     linkpickeraddlinkform
     linkpickereditlinkform
     notificationspreferencesform
+    notificationstopicpreferencesform
     richeditorattachmentform
     richeditorattachmentform
     richeditorimageform
@@ -22,6 +23,7 @@ System form layouts
     sitetreepageeditform
     sitetreepagerestoreform
     sitetreepagetypehomepageeditform
+    systemconfigformassetmanager
     systemconfigformemail
     systemconfigformwebsiteusers
     updatemanagersettingsform

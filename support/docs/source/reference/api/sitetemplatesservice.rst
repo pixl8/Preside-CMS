@@ -1,6 +1,12 @@
 Site Templates service
 ======================
 
+.. contents::
+    :depth: 2
+    :local:
+
+
+
 Overview
 --------
 

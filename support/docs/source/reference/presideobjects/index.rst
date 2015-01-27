@@ -4,6 +4,7 @@ System Preside Objects
 .. toctree::
     :maxdepth: 1
 
+    workflow_state
     asset_derivative
     asset_meta
     asset_folder
