@@ -92,7 +92,7 @@
     }
 
     function addCKEditorFields( $form ){
-      $form.find( 'textarea.ckeditor' ).each( function(){
+      $form.find( 'textarea.ckeditor,textarea.richeditor' ).each( function(){
         var $editor = $(this)
           , name    = $editor.attr( 'name' );
         if ( name && CKEDITOR && CKEDITOR.instances && name in CKEDITOR.instances  ) {
