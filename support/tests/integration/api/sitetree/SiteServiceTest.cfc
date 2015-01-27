@@ -79,6 +79,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		return new preside.system.services.sitetree.SiteService(
 			  siteDao               = presideObjectService.getObject( "site" )
+			, siteAliasDomainDao    = presideObjectService.getObject( "site_alias_domain" )
 			, siteRedirectDomainDao = presideObjectService.getObject( "site_redirect_domain" )
 			, sessionStorage        = mockSessionStorage
 			, permissionService     = mockPermissionService
