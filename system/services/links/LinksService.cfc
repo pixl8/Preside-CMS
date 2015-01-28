@@ -67,7 +67,7 @@ component output=false {
 		return _getRequestContext().buildLink( page=link.page );
 	}
 
-	private string function _buildAssetlinkHref( required query link, required any event ) output=false {
+	private string function _buildAssetlinkHref( required query link ) output=false {
 		return _getRequestContext().buildLink( assetId=link.asset );
 	}
 
