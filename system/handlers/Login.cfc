@@ -9,7 +9,7 @@ component output=false {
 		}
 		var loginId      = rc.loginId  ?: "";
 		var password     = rc.password ?: "";
-		var postLoginUrl = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: cgi.http_referer );
+		var postLoginUrl = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( cgi.http_referer );
 		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
 		var loggedIn     = websiteLoginService.login(
 			  loginId              = loginId
@@ -22,6 +22,7 @@ component output=false {
 			websiteLoginService.clearPostLoginUrl();
 			setNextEvent( url=postLoginUrl );
 		}
+		websiteLoginService.setPostLoginUrl( postLoginUrl );
 
 		setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 			  loginId      = loginId
