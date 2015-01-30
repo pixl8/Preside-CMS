@@ -160,7 +160,7 @@ component singleton=true output=false {
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "id", "label", "access_restriction" ]
+			  selectFields = [ "id", "label", "access_restriction", "is_system_folder" ]
 			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder, hidden=false } : { id = getRootFolderId(), hidden=false }
 			, orderBy      = "label"
 		);

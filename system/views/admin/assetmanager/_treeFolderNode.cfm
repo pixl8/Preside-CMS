@@ -2,6 +2,7 @@
 	param name="args.id"                 type="string";
 	param name="args.access_restriction" type="string";
 	param name="args.label"              type="string";
+	param name="args.is_system_folder"   type="boolean";
 	param name="args.children"           type="array";
 	param name="args.permissionContext"  type="array";
 
@@ -19,7 +20,8 @@
 		<cfif hasChildren>
 			<div class="tree-folder">
 				<div class="tree-node tree-folder-header<cfif selected eq args.id> selected</cfif>" data-folder-id="#args.id#">
-					<i class="fa fa-fw fa-folder tree-node-toggler tree-node-icon"></i>
+					<i class="fa fa-fw fa-folder tree-node-toggler tree-node-icon<cfif IsTrue( args.is_system_folder )> grey</cfif>"></i>
+
 					<cfif hasRestrictions>
 						<small><i class="fa fa-lock red"></i></small>
 					</cfif>
@@ -37,7 +39,7 @@
 		<cfelse>
 			<div class="tree-node tree-item<cfif selected eq args.id> selected</cfif>" data-folder-id="#args.id#">
 				<div class="tree-item-name node-name">
-					<i class="fa fa-fw fa-folder-o tree-node-icon"></i>
+					<i class="fa fa-fw fa-folder-o tree-node-icon<cfif IsTrue( args.is_system_folder )> grey</cfif>"></i>
 					<cfif hasRestrictions>
 						<small><i class="fa fa-lock red"></i></small>
 					</cfif>
