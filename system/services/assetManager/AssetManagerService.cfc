@@ -74,11 +74,12 @@ component singleton=true output=false {
 
 	public query function getFolder( required string id, boolean includeHidden=false ) output=false {
 		var filter = { id=arguments.id };
+		var extra  = [];
 		if ( !includeHidden ) {
-			filter.hidden = false;
+			extra.append( _getExcludeHiddenFilter() );
 		}
 
-		return _getFolderDao().selectData( filter=filter );
+		return _getFolderDao().selectData( filter=filter, extraFilters=extra );
 	}
 
 	public query function getFolderAncestors( required string id, boolean includeChildFolder=false ) output=false {
@@ -161,7 +162,8 @@ component singleton=true output=false {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label", "access_restriction", "is_system_folder" ]
-			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder, hidden=false } : { id = getRootFolderId(), hidden=false }
+			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
+			, extraFilters = [ _getExcludeHiddenFilter() ]
 			, orderBy      = "label"
 		);
 
@@ -802,6 +804,10 @@ component singleton=true output=false {
 		var setting = _getSystemConfigurationService().getSetting( "asset-manager", "retrieve_metadata" );
 
 		return IsBoolean( setting ) && setting;
+	}
+
+	private struct function _getExcludeHiddenFilter() output=false {
+		return { filter="hidden is null or hidden = 0" }
 	}
 
 // GETTERS AND SETTERS
