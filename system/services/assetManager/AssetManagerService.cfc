@@ -52,7 +52,12 @@ component singleton=true output=false {
 	public string function addFolder( required string label, string parent_folder="" ) output=false {
 		if ( not Len( Trim( arguments.parent_folder ) ) ) {
 			arguments.parent_folder = getRootFolderId();
+		} else {
+			if ( isSystemFolder( arguments.parent_folder ) ) {
+				throw( type="PresideCMS.AssetManager.invalidOperation", message="You cannot add child folders to system folders." );
+			}
 		}
+
 		return _getFolderDao().insertData( arguments );
 	}
 
@@ -316,7 +321,7 @@ component singleton=true output=false {
 	public boolean function trashFolder( required string id ) output=false {
 		var folder = getFolder( arguments.id );
 
-		if ( !folder.recordCount ) {
+		if ( !folder.recordCount || ( IsBoolean( folder.is_system_folder ?: "" ) && folder.is_system_folder ) ) {
 			return false;
 		}
 
@@ -683,6 +688,10 @@ component singleton=true output=false {
 		}
 
 		return "";
+	}
+
+	public boolean function isSystemFolder( required string folderId ) output=false {
+		return _getFolderDao().dataExists( filter={ id=arguments.folderId, is_system_folder=true } );
 	}
 
 // PRIVATE HELPERS

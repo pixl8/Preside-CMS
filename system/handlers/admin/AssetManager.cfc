@@ -55,9 +55,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.folder = assetManagerService.getFolder( id=rc.folder );
 
 		if ( prc.folder.recordCount ){
-			if ( prc.folder.id == assetManagerService.getRootFolderId() ) {
-				prc.folder.label[1] = translateResource( "cms:assetmanager.root.folder" );
-			} else {
+			if ( prc.folder.id != assetManagerService.getRootFolderId() ) {
 				event.addAdminBreadCrumb(
 					  title = prc.folder.label
 					, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#prc.folder.id#" )
@@ -549,8 +547,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function getFolderTitleAndActions( event, rc, prc ) output=false {
 
 		if ( Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
+			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
 			event.renderData(
-				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label } )
+				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } )
 				, type = "html"
 			);
 		} else {

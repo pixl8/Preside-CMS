@@ -1,16 +1,18 @@
 <cfscript>
-	param name="args.folderId"    type="string";
-	param name="args.folderTitle" type="string";
+	param name="args.folderId"       type="string";
+	param name="args.folderTitle"    type="string";
+	param name="args.isSystemFolder" type="boolean" default=false;
 
 	permissionContext = prc.permissionContext ?: [];
-	args.folderTitle  = args.folderTitle == "$root" ? translateResource( "cms:assetmanager.root.folder" ) : args.folderTitle;
 
+	hasAddFolderPermission         = !args.isSystemFolder && hasCmsPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasDeleteFolderPermission      = !args.isSystemFolder && args.folderTitle != "$root" && hasCmsPermission( permissionKey="assetmanager.folders.delete", context="assetmanagerfolder", contextKeys=permissionContext );
 	hasUploadPermission            = hasCmsPermission( permissionKey="assetmanager.assets.upload"             , context="assetmanagerfolder", contextKeys=permissionContext );
-	hasAddFolderPermission         = hasCmsPermission( permissionKey="assetmanager.folders.add"               , context="assetmanagerfolder", contextKeys=permissionContext );
 	hasEditFolderPermission        = hasCmsPermission( permissionKey="assetmanager.folders.edit"              , context="assetmanagerfolder", contextKeys=permissionContext );
 	hasManageFolderPermsPermission = hasCmsPermission( permissionKey="assetmanager.folders.manageContextPerms", context="assetmanagerfolder", contextKeys=permissionContext );
-	hasDeleteFolderPermission      = args.folderTitle != "$root" && hasCmsPermission( permissionKey="assetmanager.folders.delete", context="assetmanagerfolder", contextKeys=permissionContext );
 	hasAnyFolderPermissions        = hasAddFolderPermission || hasEditFolderPermission || hasManageFolderPermsPermission || hasDeleteFolderPermission;
+
+	args.folderTitle  = args.folderTitle == "$root" ? translateResource( "cms:assetmanager.root.folder" ) : args.folderTitle;
 </cfscript>
 
 <cfoutput>
