@@ -67,8 +67,13 @@ component singleton=true output=false {
 		);
 	}
 
-	public query function getFolder( required string id ) output=false {
-		return _getFolderDao().selectData( filter="id = :id", filterParams={ id = id } );
+	public query function getFolder( required string id, boolean includeHidden=false ) output=false {
+		var filter = { id=arguments.id };
+		if ( !includeHidden ) {
+			filter.hidden = false;
+		}
+
+		return _getFolderDao().selectData( filter=filter );
 	}
 
 	public query function getFolderAncestors( required string id, boolean includeChildFolder=false ) output=false {
@@ -151,7 +156,7 @@ component singleton=true output=false {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label", "access_restriction" ]
-			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
+			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder, hidden=false } : { id = getRootFolderId(), hidden=false }
 			, orderBy      = "label"
 		);
 
