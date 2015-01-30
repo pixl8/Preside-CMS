@@ -9,6 +9,7 @@ component singleton=true output=false {
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
+	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
 	 * @assetDao.inject                   presidecms:object:asset
 	 * @folderDao.inject                  presidecms:object:asset_folder
 	 * @derivativeDao.inject              presidecms:object:asset_derivative
@@ -26,11 +27,12 @@ component singleton=true output=false {
 		, required any    assetMetaDao
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
+		,          struct configuredFolders={}
 	) output=false {
  		_setAssetDao( arguments.assetDao );
 		_setFolderDao( arguments.folderDao );
 
-		_discoverSystemFolderIds();
+		_setupSystemFolders( arguments.configuredFolders );
 
 		_setStorageProvider( arguments.storageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
@@ -679,7 +681,7 @@ component singleton=true output=false {
 	}
 
 // PRIVATE HELPERS
-	private void function _discoverSystemFolderIds() output=false {
+	private void function _setupSystemFolders( required struct configuredFolders ) output=false {
 		var dao         = _getFolderDao();
 		var rootFolder  = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$root" } );
 		var trashFolder = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
@@ -696,6 +698,31 @@ component singleton=true output=false {
 			_setTrashFolderId( dao.insertData( data={ label="$recycle_bin" } ) );
 		}
 
+		for( var folderId in arguments.configuredFolders ){
+			_setupConfiguredSystemFolder( folderId, arguments.configuredFolders[ folderId ], getRootFolderId() );
+		}
+	}
+
+	private void function _setupConfiguredSystemFolder( required string id, required struct settings, required string parentId ) output=false {
+		var dao            = _getFolderDao();
+		var existingRecord = dao.selectData( selectfields=[ "id" ], filter={ is_system_folder=true, system_folder_key=arguments.id } )
+		var folderId       = existingRecord.id ?: "";
+
+		if ( !Len( Trim( folderId ) ) ) {
+			var data = duplicate( arguments.settings );
+
+			data.label             = data.label ?: ListLast( arguments.id, "." );
+			data.is_system_folder  = true;
+			data.system_folder_key = arguments.id;
+			data.parent_folder     = arguments.parentId;
+
+			folderId = dao.insertData( data );
+		}
+
+		var children = arguments.settings.children ?: {};
+		for( var childId in children ){
+			_setupConfiguredSystemFolder( ListAppend( arguments.id, childId, "." ), arguments.settings.children[ childId ], folderId );
+		}
 	}
 
 	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs ) output=false {

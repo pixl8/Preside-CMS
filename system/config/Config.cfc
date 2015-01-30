@@ -130,6 +130,7 @@ component output=false {
 			  maxFileSize       = "5"
 			, types             = _getConfiguredFileTypes()
 			, derivatives       = _getConfiguredAssetDerivatives()
+			, folders           = {}
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
