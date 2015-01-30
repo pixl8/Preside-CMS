@@ -424,9 +424,15 @@ component singleton=true output=false {
 			, path   = newFileName
 		);
 
-		asset.asset_folder     = arguments.folder;
+		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
 		asset.storage_path     = newFileName;
+		asset.size             = asset.size  ?: Len( arguments.fileBinary );
+		asset.title            = asset.title ?: "";
+
+		if ( !Len( Trim( asset.title ) ) ) {
+			asset.title = arguments.fileName;
+		}
 
 		if ( _autoExtractDocumentMeta() ) {
 			asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
@@ -694,6 +700,16 @@ component singleton=true output=false {
 
 	public boolean function isSystemFolder( required string folderId ) output=false {
 		return _getFolderDao().dataExists( filter={ id=arguments.folderId, is_system_folder=true } );
+	}
+
+	public string function resolveFolderId( required string folderId ) output=false {
+		var folder = _getFolderDao().selectData( selectFields=[ "id" ], filter={ system_folder_key=arguments.folderId } );
+
+		if ( folder.recordCount ) {
+			return folder.id;
+		}
+
+		return arguments.folderId;
 	}
 
 // PRIVATE HELPERS
