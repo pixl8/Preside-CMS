@@ -2,7 +2,7 @@
 	param name="args.id"                 type="string";
 	param name="args.access_restriction" type="string";
 	param name="args.label"              type="string";
-	param name="args.is_system_folder"   type="boolean";
+	param name="args.is_system_folder"   type="any";
 	param name="args.children"           type="array";
 	param name="args.permissionContext"  type="array";
 
