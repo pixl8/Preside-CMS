@@ -66,7 +66,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
-			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( QueryNew( '' ) );
 
 		super.assertFalse( userService.login( loginId="dummy", password="whatever" ) );
@@ -76,6 +75,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 
 		userService.$( "isLoggedIn" ).$results( true );
+		userService.$( "isAutoLoggedIn" ).$results( false );
 
 		super.assertFalse( userService.login( loginId="dummy", password="whatever" ) );
 	}
@@ -89,7 +89,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
-			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( false );
 
@@ -104,6 +103,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, display_name          = mockRecord.display_name
 			, login_id              = mockRecord.login_id
 			, id                    = mockRecord.id
+			, password              = "blah"
 			, session_authenticated = true
 		} };
 
@@ -112,7 +112,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
-			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
 		mockSessionService.$( "setVar" );
@@ -122,7 +121,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var sessionServiceCallLog = mockSessionService.$callLog().setVar;
 
 		super.assertEquals( 1, sessionServiceCallLog.len() );
-
 		super.assertEquals( expectedSetVarCall, sessionServiceCallLog[1] );
 	}
 
@@ -140,7 +138,6 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
-			, selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
 		userService.$( "_createNewLoginTokenSeries", testSeries );
@@ -176,6 +173,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test12_isLoggedIn_shouldReturnTrueAndRefreshLoginToken_whenNoLoginSessionExistsButValidRememberMeCookieDoesExist() output=false {
 		var userService         = _getUserService();
 		var testUserTokenRecord = QueryNew( 'id,token,user,login_id,email_address,display_name', 'varchar,varchar,varchar,varchar,varchar,varchar', [ [ 'someid', 'hashedToken', 'userid', 'fred', 'test@test.com', 'fred perry' ] ] );
+		var mockRecord         = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
 		var testCookie          = { loginId="fred", expiry=20, series="someseries", token="sometoken" };
 		var newToken            = CreateUUId();
 
@@ -186,7 +184,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookie );
 		mockUserLoginTokenDao.$( "selectData" ).$args(
-			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user.login_id" ]
 			, filter       = { series = testCookie.series }
 		).$results( testUserTokenRecord );
 		mockUserLoginTokenDao.$( "updateData", true );
@@ -194,6 +192,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockCookieService.$( "setVar" );
 		mockSessionService.$( "setVar" );
 		mockBCryptService.$( "hashPw" ).$args( newToken ).$results( "reHashedToken" );
+		mockUserDao.$( "selectData" ).$args(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = "fred" }
+			, useCache     = false
+		).$results( mockRecord );
+
 		userService.$( "_createNewLoginToken", newToken );
 
 		// assertions
@@ -214,10 +218,11 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		super.assertEquals( 1, setSessionCallLog.len() );
 		super.assertEquals({ name="website_user", value={
-			  email_address         = testUserTokenRecord.email_address
-			, display_name          = testUserTokenRecord.display_name
-			, login_id              = testUserTokenRecord.login_id
-			, id                    = testUserTokenRecord.user
+			  email_address         = mockRecord.email_address
+			, display_name          = mockRecord.display_name
+			, login_id              = mockRecord.login_id
+			, id                    = mockRecord.id
+			, password              = mockRecord.password
 			, session_authenticated = false
 		} }, setSessionCallLog[1] );
 
@@ -227,6 +232,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test13_isLoggedIn_shouldTakeAlertAndSecurityMeasures_whenLoginCookieHasCorrectDetailsExceptForItsToken() output=false {
 		var userService         = _getUserService();
 		var testUserTokenRecord = QueryNew( 'id,token,user,login_id,email_address,display_name', 'varchar,varchar,varchar,varchar,varchar,varchar', [ [ 'someid', 'hashedToken', 'userid', 'fred', 'test@test.com', 'fred perry' ] ] );
+		var mockRecord          = QueryNew( 'password,email_address,login_id,id,display_name', 'varchar,varchar,varchar,varchar,varchar', [['blah', 'test@test.com', 'dummy', 'someid', 'test user' ]] );
 		var testCookie          = { loginId="fred", expiry=20, series="someseries", token="sometoken" };
 		var alertThrown         = false;
 		var testAlertClosure    = function(){ alertThrown = true };
@@ -238,12 +244,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookie );
 		mockUserLoginTokenDao.$( "selectData" ).$args(
-			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+			  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user.login_id" ]
 			, filter       = { series = testCookie.series }
 		).$results( testUserTokenRecord );
 		mockBCryptService.$( "checkPw" ).$args( testCookie.token, testUserTokenRecord.token ).$results( false );
 		mockCookieService.$( "deleteVar" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockUserLoginTokenDao.$( "deleteData" );
+		mockUserDao.$( "selectData" ).$args(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			, filterParams = { login_id = "fred" }
+			, useCache     = false
+		).$results( mockRecord );
 
 		// assertions
 		super.assertFalse( userService.isLoggedIn( securityAlertCallback=testAlertClosure ) );
@@ -295,7 +306,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 		var testLoginId = "watson.dominic@gmail.com";
 
-		userService.$( "_getUserByLoginId" ).$args( testLoginId ).$results( QueryNew('') );
+		userService.$( "_getUserByLoginId" ).$args( testLoginId ).$results( {} );
 
 		super.assertFalse( userService.sendPasswordResetInstructions( testLoginId ) );
 	}
@@ -303,7 +314,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test17_sendPasswordResetInstructions_shouldGenerateTemporaryResetTokenAndSendEmailToUser() output=false {
 		var userService       = _getUserService();
 		var testLoginId       = "M131654131";
-		var testUserRecord    = QueryNew( 'id,email_address,display_name,login_id', 'varchar,varchar,varchar,varchar', [[ CreateUUId(), 'dom@test.com', "My dominic sir", "domwatson" ] ] );
+		var testUserRecord    = { id=CreateUUId(), email_address='dom@test.com', display_name="My dominic sir", login_id="domwatson" };
 		var testTempToken     = CreateUUId();
 		var testTempKey       = CreateUUId();
 		var testTempKeyHashed = CreateUUId();

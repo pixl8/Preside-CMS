@@ -377,8 +377,8 @@ component output=false singleton=true autodoc=true displayName="Website login se
 
 			if ( tokenRecord.recordCount && tokenRecord.login_id == arguments.cookieValue.loginId ) {
 				if ( _getBCryptService().checkPw( arguments.cookieValue.token, tokenRecord.token ) ) {
-					return _getUserByLoginId( tokenRecord.login_id );
 					_recycleLoginToken( tokenRecord.id, arguments.cookieValue );
+					return _getUserByLoginId( tokenRecord.login_id );
 				}
 
 				_getUserLoginTokenDao().deleteData( id=tokenRecord.id );
