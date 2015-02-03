@@ -42,17 +42,13 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 */
 	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, rememberExpiryInDays=90 ) output=false autodoc=true {
-		if ( !isLoggedIn() ) {
+		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.recordCount && _validatePassword( arguments.password, userRecord.password ) ) {
-				_setUserSession( {
-					  id                    = userRecord.id
-					, login_id              = userRecord.login_id
-					, email_address         = userRecord.email_address
-					, display_name          = userRecord.display_name
-					, session_authenticated = true
-				} );
+			if ( userRecord.count() && _validatePassword( arguments.password, userRecord.password ) ) {
+				userRecord.session_authenticated = true;
+
+				_setUserSession( userRecord );
 
 				if ( arguments.rememberLogin ) {
 					_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
@@ -176,7 +172,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	public boolean function sendPasswordResetInstructions( required string loginId ) output=false autodoc=true {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
-		if ( userRecord.recordCount ) {
+		if ( userRecord.count() ) {
 			var resetToken       = _createTemporaryResetToken();
 			var resetKey         = _createTemporaryResetKey();
 			var hashedResetKey   = _getBCryptService().hashPw( resetKey );
@@ -284,13 +280,18 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	}
 
 // private helpers
-	private query function _getUserByLoginId( required string loginId ) output=false {
-		return _getUserDao().selectData(
-			  selectFields = [ "id", "login_id", "email_address", "display_name", "password" ]
-			, filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+	private struct function _getUserByLoginId( required string loginId ) output=false {
+		var record = _getUserDao().selectData(
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
 		);
+
+		for( var r in record ){
+			return r;
+		}
+
+		return {};
 	}
 
 	private boolean function _validatePassword( required string plainText, required string hashed ) output=false {
@@ -349,18 +350,11 @@ component output=false singleton=true autodoc=true displayName="Website login se
 
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
-			var tokenRecord = _getUserRecordFromCookie( cookieValue, securityAlertCallback );
+			var user        = _getUserRecordFromCookie( cookieValue, securityAlertCallback );
 
-			if ( tokenRecord.recordCount ) {
-				_setUserSession( {
-					  id                    = tokenRecord.user
-					, login_id              = tokenRecord.login_id
-					, email_address         = tokenRecord.email_address
-					, display_name          = tokenRecord.display_name
-					, session_authenticated = false
-				} );
-
-				_recycleLoginToken( tokenRecord.id, cookieValue );
+			if ( user.count() ) {
+				user.session_authenticated = false;
+				_setUserSession( user );
 
 				request._presideWebsiteAutoLoginResult = true;
 				return true;
@@ -374,16 +368,17 @@ component output=false singleton=true autodoc=true displayName="Website login se
 
 	}
 
-	private query function _getUserRecordFromCookie( required struct cookieValue, required function securityAlertCallback ) output=false {
+	private struct function _getUserRecordFromCookie( required struct cookieValue, required function securityAlertCallback ) output=false {
 		if ( StructCount( arguments.cookieValue ) ) {
 			var tokenRecord = _getUserLoginTokenDao().selectData(
-				  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user_login_token.user", "website_user.login_id", "website_user.email_address", "website_user.display_name" ]
+				  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user.login_id" ]
 				, filter       = { series = arguments.cookieValue.series }
 			);
 
 			if ( tokenRecord.recordCount && tokenRecord.login_id == arguments.cookieValue.loginId ) {
 				if ( _getBCryptService().checkPw( arguments.cookieValue.token, tokenRecord.token ) ) {
-					return tokenRecord;
+					return _getUserByLoginId( tokenRecord.login_id );
+					_recycleLoginToken( tokenRecord.id, arguments.cookieValue );
 				}
 
 				_getUserLoginTokenDao().deleteData( id=tokenRecord.id );
@@ -391,7 +386,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 			}
 		}
 
-		return QueryNew('');
+		return {};
 	}
 
 	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) output=false {

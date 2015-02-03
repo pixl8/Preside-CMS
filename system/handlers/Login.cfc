@@ -4,7 +4,7 @@ component output=false {
 
 // core events
 	public void function attemptLogin( event, rc, prc ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
+		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 		var loginId      = rc.loginId  ?: "";
@@ -92,7 +92,7 @@ component output=false {
 
 // page type viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
+		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 
