@@ -37,7 +37,6 @@ component output=false singleton=true {
 		var tableVersionExists = "";
 
 		_ensureValidDbEntityNames( arguments.objects );
-
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
@@ -96,10 +95,12 @@ component output=false singleton=true {
 			}
 		}
 
+		var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
+
 		if ( !_getAutoRunScripts() ) {
 			var scriptsToRun = _getBuiltSqlScriptArray();
 			var versionScriptsToRun = _getVersionTableScriptArray();
-			if ( scriptsToRun.len() || versionScriptsToRun.len() ) {
+			if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
 				var newLine = Chr( 10 );
 				var sql = "/**
  * The following commands are to make alterations to the database schema
@@ -115,6 +116,9 @@ component output=false singleton=true {
 				sql &= newline & "/* The commands below ensure that PresideCMS's internal DB versioning tracking is up to date */" & newline & newline;
 				for( var script in versionScriptsToRun ) {
 					sql &= script.sql & ";" & newline;
+				}
+				for( var script in cleanupScripts ) {
+					sql &= script & ";" & newline;
 				}
 
 				throw(
@@ -582,6 +586,8 @@ component output=false singleton=true {
 			}
 		}
 	}
+
+
 
 // GETTERS AND SETTERS
 	private any function _getAdapterFactory() output=false {

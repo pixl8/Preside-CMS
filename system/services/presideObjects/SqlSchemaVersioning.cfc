@@ -111,6 +111,61 @@ component output=false singleton=true {
 		]
 	}
 
+	public array function cleanupDbVersionTableEntries( required struct versionEntries, required struct objects, required string dsn, boolean execute=false ) output=false {
+		var validTables     = {};
+		var tablesToDelete  = [];
+		var columnsToDelete = [];
+		var sqlScripts      = [];
+
+
+		for( var objectName in arguments.objects ) {
+			var obj = arguments.objects[ objectName ];
+
+			validTables[ obj.meta.tableName ] = obj.meta.dbFieldList;
+		}
+		for( var tableName in versionEntries.table ) {
+			if ( !validTables.keyExists( tableName ) ) {
+				tablesToDelete.append( tableName );
+			}
+		}
+		for( var tableName in versionEntries.column ) {
+			if ( !tablesToDelete.find( tableName ) ) {
+				for( var columnName in versionEntries.column[ tableName ] ) {
+					if ( !validTables.keyExists( tableName ) || !ListFindNoCase( validTables[ tableName ], columnName ) ) {
+						columnsToDelete.append({ columnName=columnName, tableName=tableName });
+					}
+				}
+			}
+		}
+
+		for( var tableName in tablesToDelete ) {
+			var sql = getRemoveTablePlainSql( tableName );
+			if ( arguments.execute ){
+				_runSql( sql=sql, dsn=arguments.dsn );
+			} else {
+				sqlScripts.append( sql );
+			}
+		}
+		for( var col in columnsToDelete ) {
+			var sql = getRemoveTablePlainSql( col.tableName, col.columnName );
+			if ( arguments.execute ){
+				_runSql( sql=sql, dsn=arguments.dsn );
+			} else {
+				sqlScripts.append( sql );
+			}
+		}
+
+		return sqlScripts;
+	}
+
+	public string function getRemoveTablePlainSql( required string tableName ) {
+		return "delete from _preside_generated_entity_versions where ( entity_type = 'table' and entity_name = '#arguments.tableName#' ) or ( entity_type = 'column' and parent_entity_name = '#arguments.tableName#' )";
+	}
+
+	public string function getRemoveColumnPlainSql( required string tableName, required string columnName ) {
+		return "delete from _preside_generated_entity_versions where entity_type = 'column' and parent_entity_name = '#arguments.tableName#' and entity_name = '#arguments.columnName#'";
+	}
+
 // PRIVATE HELPERS
 	private void function _checkVersionsTableExistance( required string dsn ) output=false {
 		var versionTable  = "_preside_generated_entity_versions";
