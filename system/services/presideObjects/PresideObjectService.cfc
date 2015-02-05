@@ -334,11 +334,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		if ( StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
 			cleanedData.datemodified = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, "id" ) and ( not StructKeyExists( cleanedData, "id" ) or not Len( Trim( cleanedData.id ) ) ) ) {
-			param name="obj.properties.id.generator" default="UUID";
-			newId = _generateNewIdWhenNecessary( generator=obj.properties.id.generator );
-			if ( Len( Trim( newId ) ) ) {
-				cleanedData.id = newId;
+		if ( StructKeyExists( obj.properties, "id" ) ) {
+			if ( not StructKeyExists( cleanedData, "id" ) or not Len( Trim( cleanedData.id ) ) ) {
+				newId = _generateNewIdWhenNecessary( generator=( obj.properties.id.generator ?: "UUID" ) );
+				if ( Len( Trim( newId ) ) ) {
+					cleanedData.id = newId;
+				}
+			} else {
+				newId = cleanedData.id;
 			}
 		}
 
