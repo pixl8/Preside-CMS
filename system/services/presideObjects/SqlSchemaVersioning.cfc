@@ -116,6 +116,8 @@ component output=false singleton=true {
 		var tablesToDelete  = [];
 		var columnsToDelete = [];
 		var sqlScripts      = [];
+		var tables          = versionEntries.table  ?: {};
+		var columns         = versionEntries.column ?: {};
 
 
 		for( var objectName in arguments.objects ) {
@@ -123,14 +125,14 @@ component output=false singleton=true {
 
 			validTables[ obj.meta.tableName ] = obj.meta.dbFieldList;
 		}
-		for( var tableName in versionEntries.table ) {
+		for( var tableName in tables ) {
 			if ( !validTables.keyExists( tableName ) ) {
 				tablesToDelete.append( tableName );
 			}
 		}
-		for( var tableName in versionEntries.column ) {
+		for( var tableName in columns ) {
 			if ( !tablesToDelete.find( tableName ) ) {
-				for( var columnName in versionEntries.column[ tableName ] ) {
+				for( var columnName in columns[ tableName ] ) {
 					if ( !validTables.keyExists( tableName ) || !ListFindNoCase( validTables[ tableName ], columnName ) ) {
 						columnsToDelete.append({ columnName=columnName, tableName=tableName });
 					}
