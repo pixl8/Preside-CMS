@@ -1877,7 +1877,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		};
 
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
-			result.filterParams = result.filter;
+			result.filterParams = Duplicate( result.filter );
 		}
 
 		for( var savedFilter in arguments.savedFilters ){
