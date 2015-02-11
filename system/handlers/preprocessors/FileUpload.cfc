@@ -18,9 +18,10 @@ component output=false {
 		}
 
 		return {
-			  fileName = uploadResult.clientFile
-			, size     = uploadResult.fileSize
-			, binary   = FileReadBinary( uploadResult.serverDirectory & "/" & uploadResult.serverFile )
+			  fileName     = uploadResult.clientFile
+			, size         = uploadResult.fileSize
+			, binary       = FileReadBinary( uploadResult.serverDirectory & "/" & uploadResult.serverFile )
+			, tempFileInfo = uploadResult
 		};
 	}
 
