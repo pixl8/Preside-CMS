@@ -9,7 +9,6 @@
 	param name="args.datecreated"                 type="date";
 	param name="args.datemodified"                type="date";
 	param name="args.active"                      type="boolean";
-	param name="args.hasChildren"                 type="boolean";
 	param name="args.trashed"                     type="boolean";
 	param name="args.children"                    type="array";
 	param name="args.permission_context"          type="array" default=[];
@@ -85,7 +84,7 @@
 		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=args.permission_context );
 		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=args.permission_context );
 		hasDeletePagePermission  = hasCmsPermission( permissionKey="sitetree.trash"             , context="page", contextKeys=args.permission_context ) && args.id neq homepageId && !isSystemPage;
-		hasSortPagesPermission   = hasCmsPermission( permissionKey="sitetree.sort"              , context="page", contextKeys=args.permission_context ) && args.hasChildren;
+		hasSortPagesPermission   = hasCmsPermission( permissionKey="sitetree.sort"              , context="page", contextKeys=args.permission_context ) && hasChildren;
 		hasManagePermsPermission = hasCmsPermission( permissionKey="sitetree.manageContextPerms", context="page", contextKeys=args.permission_context );
 		hasPageHistoryPermission = hasCmsPermission( permissionKey="sitetree.viewversions"      , context="page", contextKeys=args.permission_context );
 
