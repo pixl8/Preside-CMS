@@ -255,7 +255,7 @@ component output=false singleton=true {
 				renderArgs = Duplicate( fieldset );
 				renderArgs.content = renderedFields.toString();
 				renderedFieldSets.append( coldbox.renderViewlet(
-					  event = arguments.fieldsetLayout
+					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
 					, args  = renderArgs
 				) );
 			}
@@ -264,7 +264,7 @@ component output=false singleton=true {
 			renderArgs.content = renderedFieldSets.toString();
 			renderArgs.active  = activeTab;
 			renderedTabs.append( coldbox.renderViewlet(
-				  event = arguments.tabLayout
+				  event = ( tab.layout ?: arguments.tabLayout )
 				, args  = renderArgs
 			) );
 			activeTab = false;
