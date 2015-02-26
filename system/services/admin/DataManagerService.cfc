@@ -299,8 +299,13 @@ component output="false" singleton=true {
 
 		for( field in arguments.gridFields ){
 			field = ListFirst( field, " " );
-			if ( _propertyIsSearchable( field, arguments.objectName ) ) {
-				filter &= delim & _getFullFieldName( field, arguments.objectName ) & " like :q";
+			var objName = arguments.objectName;
+			if ( ListLen( field, "." ) == 2 ) {
+				objName = ListFirst( field, "." );
+				field = ListLast( field, "." );
+			}
+			if ( _propertyIsSearchable( field, objName ) ) {
+				filter &= delim & _getFullFieldName( field, objName ) & " like :q";
 				delim = " or ";
 			}
 		}
@@ -310,15 +315,27 @@ component output="false" singleton=true {
 
 	private string function _getFullFieldName( required string field, required string objectName ) output=false {
 		var poService = "";
-		var fieldName = ( arguments.field == "#arguments.objectName#.${labelfield}" ) ? _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" ) : arguments.field;
-		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=fieldName );
+		var fieldName = arguments.field;
+		var objName   = arguments.objectName;
+
+		if ( fieldName contains "${labelfield}" ) {
+			fieldName = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" );
+			if ( ListLen( fieldName, "." ) == 2 ) {
+				objName = ListFirst( fieldName, "." );
+				fieldName = ListLast( fieldName, "." );
+			}
+
+			return objName & "." & fieldName;
+		}
+
+		var prop = _getPresideObjectService().getObjectProperty( objectName=objName, propertyName=fieldName );
 		var relatedTo = prop.getAttribute( "relatedTo", "none" );
 
 		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
 			return arguments.field & "." & _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
 		}
 
-		return arguments.objectName & "." & fieldName;
+		return objName & "." & fieldName;
 	}
 
 	private string function _propertyIsSearchable( required string field, required string objectName ) output=false {
