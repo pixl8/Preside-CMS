@@ -571,13 +571,16 @@ component singleton=true output=false {
 		var derivative    = "";
 		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
 		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
+		var lockName      = "getAssetDerivative( #assetId#, #arguments.derivativeName# )";
 
-		lock type="exclusive" name="getAssetDerivative( #assetId#, #arguments.derivativeName# )" timeout=5 {
+		lock type="readonly" name=lockName timeout=5 {
 			derivative = derivativeDao.selectData( filter=selectFilter );
 			if ( derivative.recordCount ) {
 				return derivative;
 			}
+		}
 
+		lock type="exclusive" name=lockName timeout=120 {
 			createAssetDerivative( assetId=arguments.assetId, derivativeName=arguments.derivativeName );
 
 			return derivativeDao.selectData( filter=selectFilter );
