@@ -219,7 +219,7 @@ component output=false singleton=true {
 				prop.relatedTo = propName;
 			}
 
-			if ( ( prop.relationship ?: "" ) == "many-to-many" ) {
+			if ( [ "many-to-many", "one-to-many" ].find( prop.relationship ?: "" ) ) {
 				prop.dbtype = "none";
 			}
 		}
