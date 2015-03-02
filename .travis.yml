@@ -15,9 +15,8 @@ script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Db
 
 notifications:
   email: false
-  hipchat:
-    rooms:
-      secure: EZhnjtmz1hRai2fd2P9a48pFDcqvLOl347amWALojbQmPhw2GkfZ2E2L/WKjg2kqcRHs70nC3+YonLcZIjmrzsjez8eRLtnwH2NP3deFPAhmHXbtRlXDnLbbFhb/p4uORzZB2aNKCKKOPsYeGz5oCtF4mL8826KYbka1WupTZLc=
+  slack:
+    secure: E4SXeyDjcKHLEZI4zyzsHW+2CXg/h1RNAmASsJ0t60q5r19b6uHR8dDvgbR2OIVN7bNVzX5xOjPb4Km2+YYrPbSktFeb4UV7LatGcPoFO3XKQyn+5Q9D2gcQCcWfBgqX4i74kqqXCvnACrAg7ALRmQSkOZUNaK6YtUu+KCkrXQ8=
 
 deploy:
   provider: s3
