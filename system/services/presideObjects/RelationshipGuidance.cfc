@@ -228,7 +228,7 @@ component output=false singleton=true {
 						, propertyName = propertyName
 					} );
 
-				} else if ( property.relationship EQ "many-to-one" ) {
+				} else if ( property.relationship == "many-to-one" ) {
 
 					if ( not StructKeyExists( objects, property.relatedto ) ) {
 						throw(
@@ -288,11 +288,29 @@ component output=false singleton=true {
 						, fk       = propertyName
 						, onUpdate = property.onUpdate
 						, onDelete = property.onDelete
+						, alias    = _calculateOneToManyAlias( property.relatedTo, objects[ property.relatedTo ], objectName, propertyName )
 					} );
 
 					property.setAttribute( "type"     , objects[ property.relatedto ].meta.properties.id.type      );
 					property.setAttribute( "dbType"   , objects[ property.relatedto ].meta.properties.id.dbType    );
 					property.setAttribute( "maxLength", objects[ property.relatedto ].meta.properties.id.maxLength );
+				} else if ( property.relationship == "one-to-many" ) {
+					if ( not StructKeyExists( objects, property.relatedto ) ) {
+						throw(
+							  type    = "RelationshipGuidance.BadRelationship"
+							, message = "Object, [#property.relatedTo#], could not be found"
+							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#]; this object could not be found."
+						);
+					}
+					var relationshipKey = property.relationshipKey ?: objectName;
+
+					if ( ! objects[ property.relatedTo ].meta.properties.keyExists( relationshipKey ) ) {
+						throw(
+							  type    = "RelationshipGuidance.BadRelationship"
+							, message = "Object property, [#property.relatedTo#.#relationshipKey#], could not be found"
+							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#] using foreign key property named, [#relationshipKey#]. The property could not be found."
+						);
+					}
 				}
 			}
 		}
@@ -415,6 +433,17 @@ component output=false singleton=true {
 		}
 
 		return false;
+	}
+
+	private string function _calculateOneToManyAlias( required string oneObjectName, required struct oneObject, required string manyObjectName, required string fkName ) output=false {
+		for ( var propertyName in oneObject.meta.properties ) {
+			var property = oneObject.meta.properties[ propertyName ];
+			if ( property.getAttribute( "relationship" ) == "one-to-many" && property.getAttribute( "relatedTo" ) == manyObjectName && property.getAttribute( "relationshipKey", oneObjectName ) == fkName ) {
+				return propertyName;
+			}
+		}
+
+		return "";
 	}
 
 // GETTERS AND SETTERS
