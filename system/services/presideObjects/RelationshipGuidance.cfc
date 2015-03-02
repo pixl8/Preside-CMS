@@ -141,7 +141,6 @@ component output=false singleton=true {
 			}
 		}
 
-
 		return joins;
 	}
 
@@ -337,15 +336,29 @@ component output=false singleton=true {
 		, required string forceJoins
 
 	) output=false {
-		var currentSource = arguments.objectName;
-		var targetPos     = 0;
-		var joins         = [];
-		var joinAlias     = "";
-		var currentAlias  = "";
+		var currentSource   = arguments.objectName;
+		var targetPos       = 0;
+		var joins           = [];
+		var joinAlias       = "";
+		var currentAlias    = "";
+		var currentJoinType = "inner";
 
 		while( targetPos lt ListLen( target, "$" ) ) {
 			var targetCol    = ListGetAt( target, ++targetPos, "$" );
 			var relationship = _findColumnRelationship( currentSource, targetCol );
+			var joinType     = "";
+
+			if (  Len( Trim ( arguments.forceJoins ) ) ) {
+				joinType = arguments.forceJoins;
+			} elseif ( currentJoinType == "left" ) {
+				joinType = "left";
+			} elseif ( IsBoolean( relationship.required ?: "" ) && relationship.required ) {
+				joinType = "inner";
+			} else {
+				joinType = "left";
+			}
+
+			currentJoinType = joinType;
 
 			if ( not StructCount( relationship ) ) {
 				return [];
@@ -353,7 +366,7 @@ component output=false singleton=true {
 
 			if ( relationship.type eq "many-to-many" ) {
 				ArrayAppend( joins, {
-					  type               = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
+					  type               = joinType
 					, joinToObject       = relationship.pivotObject
 					, joinFromObject     = currentSource
 					, joinFromAlias      = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
@@ -361,12 +374,12 @@ component output=false singleton=true {
 					, joinToProperty     = ( relationship.sourceObject == currentSource ? relationship.sourceFk : relationship.targetFk )
 					, manyToManyProperty = relationship.propertyName
 				} );
-				currentAlias = relationship.pivotObject;
+				currentAlias    = relationship.pivotObject;
 			}
 
 			joinAlias = ListAppend( joinAlias, targetCol, "$" );
 			var join = {
-				  type             = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
+				  type             = joinType
 				, joinToObject     = relationship.object
 			};
 			switch( relationship.type ){
