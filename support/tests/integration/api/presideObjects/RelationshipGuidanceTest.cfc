@@ -444,7 +444,7 @@
 				, joinFromAlias    = "obj_fs"
 				, joinFromProperty = "a_test"
 				, tableAlias       = "obj_fs$a_test"
-				, type             = "inner"
+				, type             = "left"
 			}];
 
 			var objects = {
