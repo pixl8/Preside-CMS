@@ -283,7 +283,7 @@ component output=false singleton=true {
 					}
 					ArrayAppend( relationships[ property.relatedTo ][ objectName ], {
 						  type     = "one-to-many"
-						, required = property.required
+						, required = false
 						, pk       = "id"
 						, fk       = propertyName
 						, onUpdate = property.onUpdate

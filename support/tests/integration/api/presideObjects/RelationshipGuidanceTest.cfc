@@ -38,7 +38,7 @@
 				, joinFromObject   = "obj_a"
 				, joinFromAlias    = "obj_a"
 				, joinFromProperty = "id"
-				, type             = "inner"
+				, type             = "left"
 			}];
 			var objects = {
 				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
@@ -436,7 +436,7 @@
 				, joinFromAlias    = "obj_c"
 				, joinFromProperty = "id"
 				, tableAlias       = "obj_fs"
-				, type             = "inner"
+				, type             = "left"
 			},{
 				  joinToObject     = "obj_a"
 				, joinToProperty   = "id"
