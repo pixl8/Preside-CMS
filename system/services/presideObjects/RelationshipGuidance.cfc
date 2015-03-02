@@ -367,12 +367,35 @@ component output=false singleton=true {
 			joinAlias = ListAppend( joinAlias, targetCol, "$" );
 			var join = {
 				  type             = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
-				, joinToObject     = relationship.type eq "many-to-many" ? relationship.object      : relationship.object
-				, joinFromObject   = relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource
-				, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : ( relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource )
-				, joinFromProperty = relationship.type eq "many-to-many" ? ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk ) : relationship.fk
-				, joinToProperty   = relationship.type eq "many-to-many" ? "id" : relationship.pk
+				, joinToObject     = relationship.object
 			};
+			switch( relationship.type ){
+				case "many-to-many":
+					join.append({
+						  joinFromObject   = relationship.pivotObject
+						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : relationship.pivotObject
+						, joinFromProperty = ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk )
+						, joinToProperty   = "id"
+					});
+				break;
+				case "many-to-one":
+					join.append({
+						  joinFromObject   = currentSource
+						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
+						, joinFromProperty = relationship.fk
+						, joinToProperty   = relationship.pk
+					});
+				break;
+				case "one-to-many":
+					join.append({
+						  joinFromObject   = currentSource
+						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
+						, joinFromProperty = relationship.pk
+						, joinToProperty   = relationship.fk
+					});
+				break;
+			}
+
 			currentSource = relationship.object;
 			currentAlias  = joinAlias;
 
@@ -397,6 +420,10 @@ component output=false singleton=true {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;
+				} elseif ( join.type eq "one-to-many" && join.alias == arguments.columnName ) {
+					found = Duplicate( join );
+					found.object = foreignObj;
+					return found;
 				}
 			}
 		}
@@ -417,17 +444,24 @@ component output=false singleton=true {
 	}
 
 	private boolean function _joinExists( required struct join, required array joins ) output=false {
-		var cleanedJoin    = Duplicate( join );
-		var serializedJoin = "";
-
-		StructDelete( cleanedJoin, "manyToManyProperty" );
-		serializedJoin = SerializeJson( cleanedJoin );
+		var cleanedJoin = Duplicate( join );
+		cleanedJoin.delete( "manyToManyProperty" );
 
 		for( var existingJoin in arguments.joins ) {
-			cleanedJoin = Duplicate( existingJoin );
-			StructDelete( cleanedJoin, "manyToManyProperty" );
+			var cleanedExistingJoin = Duplicate( existingJoin );
+			cleanedExistingJoin.delete( "manyToManyProperty" );
 
-			if ( SerializeJson( cleanedJoin ) eq serializedJoin ) {
+			var isSame = cleanedExistingJoin.count() == cleanedJoin.count();
+			if ( isSame ) {
+				for( var key in cleanedJoin ) {
+					if ( !cleanedExistingJoin.keyExists( key ) || cleanedExistingJoin[ key ] != cleanedJoin[ key ] ) {
+						isSame = false;
+						break;
+					}
+				}
+			}
+
+			if ( isSame ) {
 				return true;
 			}
 		}

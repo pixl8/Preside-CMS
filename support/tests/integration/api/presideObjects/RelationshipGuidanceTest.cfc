@@ -429,15 +429,31 @@
 				, joinFromProperty = "obj_a"
 				, tableAlias       = "obj_b_again$obj_a"
 				, type             = "inner"
+			},{
+				  joinToObject     = "obj_f"
+				, joinToProperty   = "obj_c"
+				, joinFromObject   = "obj_c"
+				, joinFromAlias    = "obj_c"
+				, joinFromProperty = "id"
+				, tableAlias       = "obj_fs"
+				, type             = "inner"
+			},{
+				  joinToObject     = "obj_a"
+				, joinToProperty   = "id"
+				, joinFromObject   = "obj_f"
+				, joinFromAlias    = "obj_fs"
+				, joinFromProperty = "a_test"
+				, tableAlias       = "obj_fs$a_test"
+				, type             = "inner"
 			}];
 
 			var objects = {
 				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
 				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_d = { relationship="many-to-one", relatedTo="obj_d", required=true } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_b_again  = { relationship="many-to-one", relatedTo="obj_b", required=true } } ) }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_b_again  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_fs  = { relationship="one-to-many", relatedTo="obj_f", required=false } } ) }
 				, obj_d.meta = { tableName="pobj_obj_d", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_e = { relationship="many-to-one", relatedTo="obj_e", required=true } } ) }
 				, obj_e.meta = { tableName="pobj_obj_e", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_f.meta = { tableName="pobj_obj_f", properties = _getProperties( { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true } } ) }
+				, obj_f.meta = { tableName="pobj_obj_f", properties = _getProperties( { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true }, a_test = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -447,6 +463,7 @@
 				, joinTargets   = [
 					  "obj_b$obj_d$obj_e"
 					, "obj_b_again$obj_a"
+					, "obj_fs$a_test"
 				  ]
 			);
 
