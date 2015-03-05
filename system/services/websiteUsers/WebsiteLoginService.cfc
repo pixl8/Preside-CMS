@@ -41,11 +41,11 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @rememberExpiryInDays.hint When setting a remember me cookie, how long (in days) before the cookie should expire
 	 *
 	 */
-	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, rememberExpiryInDays=90 ) output=false autodoc=true {
+	public boolean function login( required string loginId, string password="", boolean rememberLogin=false, rememberExpiryInDays=90, boolean skipPasswordCheck=false ) output=false autodoc=true {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.count() && _validatePassword( arguments.password, userRecord.password ) ) {
+			if ( userRecord.count() && ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) ) {
 				userRecord.session_authenticated = true;
 
 				_setUserSession( userRecord );
