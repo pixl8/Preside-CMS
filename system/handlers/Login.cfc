@@ -4,6 +4,8 @@ component output=false {
 
 // core events
 	public void function attemptLogin( event, rc, prc ) output=false {
+		announceInterception( "preAttemptLogin" );
+
 		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
@@ -19,11 +21,15 @@ component output=false {
 		);
 
 		if ( loggedIn ) {
+			announceInterception( "onLoginSuccess"  );
+
 			websiteLoginService.clearPostLoginUrl();
 			setNextEvent( url=postLoginUrl );
 		}
-		websiteLoginService.setPostLoginUrl( postLoginUrl );
 
+		announceInterception( "onLoginFailure"  );
+
+		websiteLoginService.setPostLoginUrl( postLoginUrl );
 		setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 			  loginId      = loginId
 			, password     = password

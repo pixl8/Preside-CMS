@@ -68,6 +68,9 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"         );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotificationConsumer"  );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotificationConsumer" );
+		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                );
+		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                 );
+		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                 );
 
 		cacheBox = {
 			configFile = "preside.system.config.Cachebox"
