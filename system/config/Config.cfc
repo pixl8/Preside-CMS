@@ -278,6 +278,11 @@ component output=false {
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
 		};
 
+		types.video = {
+			  swf = { serveAsAttachment=true, mimeType="application/x-shockwave-flash" }
+			, flv = { serveAsAttachment=true, mimeType="video/x-flv" }
+		};
+
 		types.document = {
 			  pdf  = { serveAsAttachment=true, mimeType="application/pdf"  }
 			, doc  = { serveAsAttachment=true, mimeType="application/msword" }
