@@ -18,3 +18,4 @@ Developer guides & recipes
    customerrorpages
    sitetreenavigationmenus
    adminmenu
+   filestorage
