@@ -44,6 +44,7 @@
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( "adminRouteHandler" ) );
 	addRouteHandler( getModel( "assetRouteHandler" ) );
+	addRouteHandler( getModel( "plainStoredFileRouteHandler" ) );
 	addRouteHandler( getModel( "staticAssetRouteHandler" ) );
 	addRouteHandler( getModel( "standardRouteHandler" ) );
 </cfscript>

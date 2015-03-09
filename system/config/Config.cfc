@@ -71,6 +71,9 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                );
 		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                 );
 		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                 );
+		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                );
+		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                 );
+		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
 
 		cacheBox = {
 			configFile = "preside.system.config.Cachebox"
