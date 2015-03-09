@@ -1316,11 +1316,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				cols = arguments.columnDefinitions;
 			}
 
-			paramName = arguments.prefix & Replace( key, ".", "__", "all" );
+			paramName = arguments.prefix & ReReplace( key, "[\.\$]", "__", "all" );
 			dataType  = arguments.dbAdapter.sqlDataTypeToCfSqlDatatype( cols[ ListLast( key, "." ) ].dbType );
 
-
-			if ( not StructKeyExists( arguments.data,  key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
+			if ( not StructKeyExists( arguments.data, key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
 				param = {
 					  name  = paramName
 					, value = NullValue()
@@ -1366,7 +1365,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		for( key in arguments.params ){
 			param     = arguments.params[ key ];
-			paramName = Replace( key, ".", "__", "all" );
+			paramName = ReReplace( key, "[\.\$]", "__", "all" );
 
 			if ( IsStruct( param ) ) {
 				StructAppend( param, { name=paramName } );
@@ -1916,8 +1915,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
-			var objOrPropRegex = "[a-z_\-\$][a-z0-9_\-\$]*";
-			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)\.(#objOrPropRegex#)", "\1__\2", "all" );
+			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
+			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
 			result.params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
