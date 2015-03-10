@@ -41,8 +41,7 @@ component output=false {
 
 	public void function logout( event, rc, prc ) output=false {
 		websiteLoginService.logout();
-
-		setNextEvent( url=( Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : _getDefaultPostLogoutUrl( argumentCollection=arguments ) ) );
+		setNextEvent( url=_getDefaultPostLogoutUrl( argumentCollection=arguments ) );
 	}
 
 	public void function sendResetInstructions( event, rc, prc ) output=false {
