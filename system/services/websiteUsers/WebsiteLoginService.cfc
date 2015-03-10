@@ -279,6 +279,32 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		return _getSessionService().deleteVar( "websitePostLoginUrl" );
 	}
 
+	/**
+	 * Gets an array of benefit IDs associated with the logged in user
+	 * 
+	 */
+	public array function listLoggedInUserBenefits() autodoc=true {
+		var benefits = _getUserDao().selectData(
+			  id           = getLoggedInUserId()
+			, selectFields = [ "benefits.id" ]
+			, forceJoins   = "inner"
+		);
+
+		return ValueArray( benefits.id );
+	}
+
+	/**
+	 * Returns true / false depending on whether or not a user has access to any of the supplied benefits
+	 * 
+	 * @benefits.hint Array of benefit IDs. If the logged in user has any of these benefits, the method will return true
+	 * 
+	 */
+	public boolean function doesLoggedInUserHaveBenefits( required array benefits ) autodoc=true {
+		return _getUserDao().dataExists(
+			filter = { "website_user.id"=getLoggedInUserId(), "benefits.id"=arguments.benefits }
+		);
+	}
+
 // private helpers
 	private struct function _getUserByLoginId( required string loginId ) output=false {
 		var record = _getUserDao().selectData(
