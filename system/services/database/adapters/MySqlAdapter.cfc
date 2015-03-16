@@ -311,16 +311,21 @@ component output=false singleton=true {
 				}
 			}
 
-			aliases[ join.tableName & join.joinToColumn ] = Len( join.tableAlias ) ? escapeEntity( join.tableAlias ) : escapeEntity( join.tableName );
+			if ( !Len( join.tableAlias ) ) {
+				aliases[ join.tableName & join.joinToColumn ] = escapeEntity( join.tableName );
+			}
 			aliases[ join.joinToTable ] = escapeEntity( join.joinToTable );
 
 		}
 		for( join in arguments.joins ){
 			sql &= " " & ( join.type eq "left" ? "left" : "inner" ) & " join " & escapeEntity( join.tableName );
 			if ( Len( join.tableAlias ) ) {
-				sql &= " " & aliases[ join.tableName & join.joinToColumn ];
+				sql &= " " & escapeEntity( join.tableAlias );
+				sql &= " on (" & escapeEntity( join.tableAlias ) & "." & escapeEntity( join.tableColumn );
+			} else {
+				sql &= " on (" & aliases[ join.tableName & join.joinToColumn ] & "." & escapeEntity( join.tableColumn );
 			}
-			sql &= " on (" & aliases[ join.tableName & join.joinToColumn ] & "." & escapeEntity( join.tableColumn );
+
 			sql &= " = " & aliases[ join.joinToTable ] & "." & escapeEntity( join.joinToColumn ) & ")";
 
 			if ( Len( Trim( join.additionalClauses ?: "" ) ) ) {
