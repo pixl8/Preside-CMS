@@ -116,6 +116,7 @@
 					$parent = $table.find( "tr[data-id='" + ( $parent.data( "parent" ) || '' ) + "']"  );
 				}
 
+				toggleRow( $selected );
 				$selected.focus();
 				$selected.blur( function(){
 					$( this ).removeClass( "selected" );
