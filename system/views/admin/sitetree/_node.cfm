@@ -98,10 +98,8 @@
 	<cfoutput>
 		<tr class="depth-#args._hierarchy_depth#" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> <cfif selected eq args.id> class="selected"</cfif> data-context-container="#args.id#">
 			<td class="page-title-cell">
-				<cfif hasChildren>
-					<i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i>
-				</cfif>
-				<i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
+				<!--- whitespace important here hence one line --->
+				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
 					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
@@ -223,10 +221,5 @@
 				#renderView( view="/admin/sitetree/_node", args=child )#
 			</cfloop>
 		</cfif>
-
-		<cfloop array="#args.applicationPageTree#" index="node">
-			<cfset node.parent_id = args.id />
-			#renderView( view="/admin/sitetree/_applicationPageNode", args=node )#
-		</cfloop>
 	</cfoutput>
 </cfif>

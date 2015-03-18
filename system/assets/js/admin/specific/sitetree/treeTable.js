@@ -1,8 +1,8 @@
 ( function( $ ){
 
 	$.fn.treeTable = function(){
-		var loadingRowTemplate = '<tr class="depth-{{depth}} ajax-loading" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5">' + i18n.translateResource( "cms:sitetree.ajax.loading.message" ) + '</td></tr>'
-		  , errorRowTemplate = '<tr class="depth-{{depth}} ajax-loading-error" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-exclamation-circle red"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.error.message" ) + '</td></tr>'
+		var loadingRowTemplate = '<tr class="depth-{{depth}} ajax-loading" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-refresh fa-spin"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.message" ) + '</td></tr>'
+		  , errorRowTemplate   = '<tr class="depth-{{depth}} ajax-loading-error" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-exclamation-circle"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.error.message" ) + '</td></tr>'
 		  , openChildren, closeChildren, toggleRow, linkWasClicked, loadChildren, getChildren;
 
 		openChildren = function( $parent ){
