@@ -5,7 +5,6 @@
 	prc.pageTitle = site.name ?: translateResource( "cms:sitetree" );
 
 	activeTree          = prc.activeTree ?: [];
-	applicationPageTree = prc.applicationPageTree ?: [];
 	trashCount          = prc.trashCount ?: 0;
 </cfscript>
 
@@ -22,9 +21,6 @@
 		</thead>
 		<tbody data-nav-list-child-selector="tr" data-nav-list="1">
 			<cfloop array="#activeTree#" item="node" index="i">
-				<cfif i eq 1>
-					<cfset node.applicationPageTree = applicationPageTree />
-				</cfif>
 				#renderView( view="/admin/sitetree/_node", args=node )#
 			</cfloop>
 		</tbody>

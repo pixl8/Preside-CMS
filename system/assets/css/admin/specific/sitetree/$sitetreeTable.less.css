@@ -51,27 +51,27 @@
   color: #999999;
   font-style: italic;
 }
-.presidecms .tree-table .depth-1 .page-title-cell {
+.presidecms .tree-table .depth-1 td:first-child {
   padding-left: 3.57142858em;
 }
-.presidecms .tree-table .depth-2 .page-title-cell {
+.presidecms .tree-table .depth-2 td:first-child {
   padding-left: 4.85714287em;
 }
-.presidecms .tree-table .depth-3 .page-title-cell {
+.presidecms .tree-table .depth-3 td:first-child {
   padding-left: 6.14285716em;
 }
-.presidecms .tree-table .depth-4 .page-title-cell {
+.presidecms .tree-table .depth-4 td:first-child {
   padding-left: 7.42857145em;
 }
-.presidecms .tree-table .depth-5 .page-title-cell {
+.presidecms .tree-table .depth-5 td:first-child {
   padding-left: 8.71428574em;
 }
-.presidecms .tree-table .depth-6 .page-title-cell {
+.presidecms .tree-table .depth-6 td:first-child {
   padding-left: 10.00000003em;
 }
-.presidecms .tree-table .depth-7 .page-title-cell {
+.presidecms .tree-table .depth-7 td:first-child {
   padding-left: 11.28571432em;
 }
-.presidecms .tree-table .depth-8 .page-title-cell {
+.presidecms .tree-table .depth-8 td:first-child {
   padding-left: 12.57142861em;
 }

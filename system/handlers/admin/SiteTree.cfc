@@ -46,8 +46,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function ajaxChildNodes( event, rc, prc ) {
-		var rendered = "";
-		var tree     = siteTreeService.getTree( trash = false, format="nestedArray", rootPageId=( rc.parentId ?: "" ), maxDepth=0, selectFields=[
+		var rendered         = "";
+		var parentId         = rc.parentId ?: "";
+		var parentPage       = siteTreeService.getPage( id=parentId, selectFields=[ "_hierarchy_lineage", "_hierarchy_depth", "access_restriction", "page_type" ] );
+		var managedPageTypes = getManagedChildPageTypes( parentPage.page_type ).listToArray();
+		var ancestors        = siteTreeService.getAncestors( id=parentId, selectFields=[ "id", "access_restriction" ] );
+		var tree             = siteTreeService.getTree( trash = false, rootPageId=parentId, maxDepth=0, selectFields=[
 			  "page.id"
 			, "page.parent_page"
 			, "page.title"
@@ -59,10 +63,53 @@ component extends="preside.system.base.AdminHandler" {
 			, "page._hierarchy_slug as full_slug"
 			, "page.trashed"
 			, "page.access_restriction"
+			, "page._hierarchy_depth"
 			, "Count( child_pages.id ) as child_count"
 		] );
 
+		var additionalNodeArgs = {
+			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}"                           )
+			, pageTypeDialogBaseLink      = event.buildAdminLink( linkTo="sitetree.pageTypeDialog"     , queryString="parentPage={id}"                   )
+			, addPageBaseLink             = event.buildAdminLink( linkTo='sitetree.addPage'            , querystring='parent_page={id}&page_type={type}' )
+			, trashPageBaseLink           = event.buildAdminLink( linkTo="sitetree.trashPageAction"    , queryString="id={id}"                           )
+			, pageHistoryBaseLink         = event.buildAdminLink( linkTo="sitetree.pageHistory"        , queryString="id={id}"                           )
+			, editPagePermissionsBaseLink = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}"                           )
+			, reorderChildrenBaseLink     = event.buildAdminLink( linkTo="sitetree.reorderChildren"    , queryString="id={id}"                           )
+			, previewPageBaseLink         = event.buildAdminLink( linkTo="sitetree.previewPage"        , queryString="id={id}"                           )
+			, permission_context          = []
+			, parent_restriction          = "inherited"
+		};
+
+		if ( ancestors.recordCount ) {
+			additionalNodeArgs.permission_context = ValueArray( ancestors.id );
+			additionalNodeArgs.permission_context.reverse();
+		}
+		additionalNodeArgs.permission_context.prepend( parentId );
+
+		if ( parentPage.access_restriction != "inherited" ) {
+			additionalNodeArgs.parent_restriction = parentPage.access_restriction;
+		} else {
+			for( var i=ancestors.recordcount; i>0; i-- ) {
+				if ( ancestors.access_restriction[i] != "inherited" ) {
+					additionalNodeArgs.parent_restriction = ancestors.access_restriction[i];
+					break;
+				}
+			}
+		}
+
+		managedChildrenBaseLink = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent={id}&pageType={type}" );
+
+		for( var pageType in managedPageTypes ) {
+			rendered &= renderView( view="/admin/sitetree/_managedPageTypeNode", args={
+				  depth                   = parentPage._hierarchy_depth + 1
+				, pagetype                = pageType
+				, parentId                = parentId
+				, managedChildrenBaseLink = managedChildrenBaseLink
+			} );
+		}
+
 		for( var node in tree ) {
+			node.append( additionalNodeArgs );
 			rendered &= renderView( view="/admin/sitetree/_node", args=node );
 		}
 
