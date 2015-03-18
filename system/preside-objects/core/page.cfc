@@ -43,6 +43,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="_hierarchy_slug"                  type="string"  dbtype="varchar" maxLength="2000" required=true                                             control="none";
 
 
+	property name="child_pages" relationship="one-to-many" relatedTo="page" relationshipKey="parent_page";
+
 	/**
 	 * This method is used internally by the Sitetree Service to ensure
 	 * that all child nodes of a page have the most up to date helper fields when the parent node

@@ -10,6 +10,7 @@
 	param name="args.datemodified"                type="date";
 	param name="args.active"                      type="boolean";
 	param name="args.trashed"                     type="boolean";
+	param name="args.child_count"                 type="numeric";
 	param name="args.children"                    type="array";
 	param name="args.permission_context"          type="array" default=[];
 	param name="args.access_restriction"          type="string";
@@ -24,6 +25,7 @@
 	param name="args.reorderChildrenBaseLink"     type="string" default="";
 	param name="args.managedChildrenBaseLink"     type="string" default="";
 	param name="args.previewPageBaseLink"         type="string" default="";
+	param name="args.selectedPageTree"            type="string" default="";
 
 	if ( !Len( Trim( args.editPageBaseLink ) ) ) {
 		args.editPageBaseLink = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id={id}" );
@@ -79,7 +81,7 @@
 		allowableChildPageTypes = getAllowableChildPageTypes( args.page_type );
 		managedChildPageTypes   = getManagedChildPageTypes( args.page_type );
 		isSystemPage            = isSystemPageType( args.page_type );
-		hasChildren             = managedChildPageTypes.len() || args.children.len() || args.applicationPageTree.len();
+		hasChildren             = managedChildPageTypes.len() || args.child_count || args.applicationPageTree.len();
 
 		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=args.permission_context );
 		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=args.permission_context );
@@ -94,9 +96,11 @@
 
 <cfif hasNavigatePermission>
 	<cfoutput>
-		<tr data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> <cfif selected eq args.id> class="selected"</cfif> data-context-container="#args.id#">
+		<tr class="depth-#args._hierarchy_depth#" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> <cfif selected eq args.id> class="selected"</cfif> data-context-container="#args.id#">
 			<td class="page-title-cell">
-				#RepeatString( '&nbsp; &nbsp; &nbsp; &nbsp;', args._hierarchy_depth )#
+				<cfif hasChildren>
+					<i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i>
+				</cfif>
 				<i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
@@ -194,30 +198,31 @@
 		</tr>
 
 		<cfloop list="#managedChildPageTypes#" index="pageType">
-			<tr data-id="#args.id#_#pageType#" data-parent="#args.id#" data-depth="#args._hierarchy_depth+1#" data-context-container="#args.id#_#pageType#">
+			<tr class="depth-#args._hierarchy_depth+1#" data-id="#args.id#_#pageType#" data-parent="#args.id#" data-depth="#args._hierarchy_depth+1#" data-context-container="#args.id#_#pageType#">
 				<td colspan="5" class="managed-page-type-link-cell">
-					#RepeatString( '&nbsp; &nbsp; &nbsp; &nbsp;', args._hierarchy_depth+1 )#
 					<i class="fa fa-fw fa-ellipsis-h page-type-icon"></i>
 					<a href="#quickBuildLink( args.managedChildrenBaseLink, { id=args.id, type=pageType } )#">#translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#pageType#:name" ) ) ] )#</a>
 				</td>
 			</tr>
 		</cfloop>
 
-		<cfloop array="#args.children#" index="child">
-			<cfset child.parent_restriction = duplicate( args.access_restriction ) />
-			<cfset child.permission_context = duplicate( args.permission_context ) />
-			<cfset child.editPageBaseLink            = args.editPageBaseLink            />
-			<cfset child.pageTypeDialogBaseLink      = args.pageTypeDialogBaseLink      />
-			<cfset child.addPageBaseLink             = args.addPageBaseLink             />
-			<cfset child.trashPageBaseLink           = args.trashPageBaseLink           />
-			<cfset child.pageHistoryBaseLink         = args.pageHistoryBaseLink         />
-			<cfset child.editPagePermissionsBaseLink = args.editPagePermissionsBaseLink />
-			<cfset child.reorderChildrenBaseLink     = args.reorderChildrenBaseLink     />
-			<cfset child.managedChildrenBaseLink     = args.managedChildrenBaseLink     />
-			<cfset child.previewPageBaseLink         = args.previewPageBaseLink         />
+		<cfif args._hierarchy_depth lt 1>
+			<cfloop array="#args.children#" index="child">
+				<cfset child.parent_restriction = duplicate( args.access_restriction ) />
+				<cfset child.permission_context = duplicate( args.permission_context ) />
+				<cfset child.editPageBaseLink            = args.editPageBaseLink            />
+				<cfset child.pageTypeDialogBaseLink      = args.pageTypeDialogBaseLink      />
+				<cfset child.addPageBaseLink             = args.addPageBaseLink             />
+				<cfset child.trashPageBaseLink           = args.trashPageBaseLink           />
+				<cfset child.pageHistoryBaseLink         = args.pageHistoryBaseLink         />
+				<cfset child.editPagePermissionsBaseLink = args.editPagePermissionsBaseLink />
+				<cfset child.reorderChildrenBaseLink     = args.reorderChildrenBaseLink     />
+				<cfset child.managedChildrenBaseLink     = args.managedChildrenBaseLink     />
+				<cfset child.previewPageBaseLink         = args.previewPageBaseLink         />
 
-			#renderView( view="/admin/sitetree/_node", args=child )#
-		</cfloop>
+				#renderView( view="/admin/sitetree/_node", args=child )#
+			</cfloop>
+		</cfif>
 
 		<cfloop array="#args.applicationPageTree#" index="node">
 			<cfset node.parent_id = args.id />
