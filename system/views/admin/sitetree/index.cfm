@@ -9,6 +9,17 @@
 </cfscript>
 
 <cfoutput>
+	<cfif hasCmsPermission( permissionKey="sites.manage" )>
+		<div class="top-right-button-group">
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="sites.editSite", queryString="id=" & site.id )#">
+				<button class="btn btn-sm">
+					<i class="fa fa-cogs"></i>
+					#translateResource( 'cms:sitetree.edit.site.settings.btn' )#
+				</button>
+			</a>
+		</div>
+	</cfif>
+
 	<table class="table table-striped table-hover tree-table">
 		<thead>
 			<tr>
