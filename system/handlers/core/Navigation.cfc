@@ -40,6 +40,7 @@ component output=false {
 			, includeInactive   = event.isAdminUser()
 			, activeTree        = activeTree
 			, expandAllSiblings = false
+			, isSubMenu         = true
 		);
 
 		return renderView( view="/core/navigation/subNavigation", args=args );

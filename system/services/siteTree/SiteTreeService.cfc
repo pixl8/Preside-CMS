@@ -396,7 +396,8 @@ component singleton=true {
 		, boolean includeInactive   = false
 		, array   activeTree        = []
 		, boolean expandAllSiblings = true
-		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type" ]
+		, boolean isSubMenu         = false
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type" ]
@@ -407,7 +408,7 @@ component singleton=true {
 		}
 
 		var getNavChildren = function( parent, currentDepth, disallowedPageTypes ){
-			filter.parent_page = parent;
+			filterParams.parent_page = parent;
 
 			var result   = [];
 			var extraFilters = [];
@@ -422,6 +423,7 @@ component singleton=true {
 			var children = _getPObj().selectData(
 				  selectFields = args.selectFields
 				, filter       = filter
+				, filterParams = filterParams
 				, extraFilters = extraFilters
 				, orderBy      = "sort_order"
 			);
@@ -459,6 +461,7 @@ component singleton=true {
 			, selectFields = [
 				  "page.id"
 				, "page.exclude_from_navigation"
+				, "page.exclude_from_sub_navigation"
 				, "page.exclude_children_from_navigation"
 				, "page._hierarchy_depth"
 				, "page.page_type"
@@ -466,20 +469,22 @@ component singleton=true {
 			]
 		);
 
-		var isManagedType = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
-		if ( isManagedType || Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) ) {
+		var isManagedType   = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
+		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) )
+		if ( isManagedType || excludedFromNav ) {
 			return [];
 		}
 
 		var maxDepth = Val( page._hierarchy_depth ) + ( arguments.depth < 1 ? 1 : arguments.depth );
-		var filter   = {
-			  exclude_from_navigation = false
-			, trashed                 = false
-		}
 		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
+
+		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
+		var filter = "parent_page = :parent_page and trashed = 0 and ( #exclusionField# is null or #exclusionField# = 0 )";
+		var filterParams = {};
 		if ( !arguments.includeInactive ) {
-			filter.active = true;
+			filter &= " and active = 1";
 		}
+
 		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes );
 	}
 
