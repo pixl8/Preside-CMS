@@ -64,7 +64,7 @@
 				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
 
 				var adapterFactory = new preside.system.services.database.adapters.AdapterFactory(
-					  cache         = cachebox.getCache( "SystemCache" )
+					  cache         = cachebox.getCache( "PresideSystemCache" )
 					, dbInfoService = dbInfoService
 				);
 				var schemaVersioning = new preside.system.services.presideObjects.sqlSchemaVersioning(
@@ -106,7 +106,7 @@
 					, relationshipGuidance   = relationshipGuidance
 					, presideObjectDecorator = presideObjectDecorator
 					, filterService          = mockFilterService
-					, objectCache            = cachebox.getCache( "SystemCache" )
+					, cache                  = cachebox.getCache( "PresideSystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
 					, coldboxController      = coldbox
 					, interceptorService     = arguments.interceptorService

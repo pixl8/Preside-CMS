@@ -4,39 +4,32 @@ component output=false singleton=true {
 
 	/**
 	 * @dbInfoService.inject  DbInfoService
-	 * @cache.inject          cachebox:SystemCache
 	 */
-	public any function init( required any dbInfoService, required any cache ) output=false {
-		_setCache( arguments.cache );
+	public any function init( required any dbInfoService ) output=false {
 		_setDbInfoService( arguments.dbInfoService );
+		_setAdapters( {} )
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public any function getAdapter( required string dsn ) output=false {
-		var cache    = _getCache();
-		var cacheKey = "DBAdaptor for " & arguments.dsn;
-		var adapter  = cache.get( cacheKey );
-		var dbType   = "";
+		var adapters = _getAdapters();
 
-		if ( not IsNull( adapter ) ) {
-			return adapter;
+		if ( !adapters.keyExists( arguments.dsn ) ) {
+			dbType = _getDbType( dsn = arguments.dsn );
+
+			switch( dbType ) {
+				case "MySql":
+					adapters[ arguments.dsn ] = new MySqlAdapter();
+				break;
+
+				default:
+					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
+			}
 		}
 
-		dbType = _getDbType( dsn = arguments.dsn );
-		switch( dbType ) {
-			case "MySql":
-				adapter = new MySqlAdapter();
-			break;
-
-			default:
-				throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
-		}
-
-		cache.set( cacheKey, adapter );
-
-		return adapter;
+		return adapters[ arguments.dsn ];
 	}
 
 // PRIVATE HELPERS
@@ -63,11 +56,11 @@ component output=false singleton=true {
 		_dbInfoService = arguments.dbInfoService;
 	}
 
-	private any function _getCache() output=false {
-		return _cache;
+	private any function _getAdapters() output=false {
+		return _adapters;
 	}
-	private void function _setCache( required any cache ) output=false {
-		_cache = arguments.cache;
+	private void function _setAdapters( required any adapters ) output=false {
+		_adapters = arguments.adapters;
 	}
 
 }

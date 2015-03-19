@@ -28,7 +28,7 @@
 	<cffunction name="_getFactory" access="private" returntype="any" output="false">
 		<cfscript>
 			return new preside.system.services.database.adapters.AdapterFactory(
-				  cache         = _getCachebox().getCache( "SystemCache" )
+				  cache         = _getCachebox().getCache( "PresideSystemCache" )
 				, dbInfoService = new preside.system.services.database.DbInfoService()
 			);
 		</cfscript>

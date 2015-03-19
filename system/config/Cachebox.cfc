@@ -33,7 +33,7 @@ component output=false {
 					}
 				},
 
-				SystemCache = {
+				PresideSystemCache = {
 					  provider   = "preside.system.coldboxModifications.cachebox.CacheProvider"
 					, properties = {
 						  objectDefaultTimeout           = 0
