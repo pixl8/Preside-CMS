@@ -5,14 +5,15 @@ component output=false hint="Create various preside system entities such as widg
 
 	private function index( event, rc, prc ) {
 		var params       = jsonRpc2Plugin.getRequestParams();
-		var validOperations = [ "stats" ];
+		var validOperations = [ "stats", "resetstats" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
 		if ( !params.len() || !ArrayFindNoCase( validOperations, params[1] ) ) {
 			return Chr(10) & "[[b;white;]Usage:] cache [operation]" & Chr(10) & Chr(10)
 			               & "Valid operations:" & Chr(10) & Chr(10)
-			               & "    [[b;white;]stats] : Displays summary statistics of the PresideCMS caches." & Chr(10)
+			               & "    [[b;white;]stats]      : Displays summary statistics of the PresideCMS caches." & Chr(10)
+			               & "    [[b;white;]resetstats] : Resets hit, miss and other agreggated statistics to zero." & Chr(10)
 		}
 
 		return runEvent( event="admin.devtools.terminalCommands.cache.#params[1]#", private=true, prePostExempt=true );
@@ -96,6 +97,24 @@ component output=false hint="Create various preside system entities such as widg
 		}
 
 		return statsOutput;
+	}
+
+	private function resetstats( event, rc, prc ) output=false {
+		var params        = jsonRpc2Plugin.getRequestParams();
+		var cacheName     = params[ 2 ] ?: "";
+		var cachesToClear = cacheName.listToArray( Trim( cacheName ) );
+
+		if ( !cachesToClear.len() ) {
+			cachesToClear = cachebox.getCacheNames();
+		}
+
+		for( var cacheName in cachesToClear ){
+			if ( cachebox.cacheExists( cacheName ) ) {
+				cachebox.getCache( cacheName ).getStats().clearStatistics();
+			}
+		}
+
+		return runEvent( event="admin.devtools.terminalCommands.cache.stats", private=true, prePostExempt=true );
 	}
 
 }
