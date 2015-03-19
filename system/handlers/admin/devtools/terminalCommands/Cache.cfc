@@ -28,6 +28,7 @@ component output=false hint="Create various preside system entities such as widg
 		var objectsWidth     = 7;
 		var hitsWidth        = 4;
 		var missesWidth      = 6;
+		var evictionsWidth   = 9;
 		var performanceWidth = 17;
 		var gcsWidth         = 19;
 		var lastReapWidth    = 9;
@@ -38,25 +39,29 @@ component output=false hint="Create various preside system entities such as widg
 
 		for( var cacheName in cachesToShow ){
 			if ( cachebox.cacheExists( cacheName ) ) {
-				var cache = { name=cacheName };
-				var stats = cachebox.getCache( cacheName ).getStats();
+				var cacheStat = { name=cacheName };
+				var cache     = cachebox.getCache( cacheName );
+				var config    = cache.getMemento().configuration;
+				var stats     = cache.getStats();
 
-				cache.objects     = NumberFormat( stats.getObjectCount() );
-				cache.hits        = NumberFormat( stats.getHits() );
-				cache.misses      = NumberFormat( stats.getMisses() );
-				cache.performance = NumberFormat( stats.getCachePerformanceRatio(), "0.00" );
-				cache.gcs         = NumberFormat( stats.getGarbageCollections() );
-				cache.lastReap    = DateTimeFormat( stats.getLastReapDateTime(), "yyyy-mm-dd HH:mm:ss" );
+				cacheStat.objects     = NumberFormat( stats.getObjectCount() ) & "/" & NumberFormat( config.maxObjects ?: 200 );
+				cacheStat.hits        = NumberFormat( stats.getHits() );
+				cacheStat.misses      = NumberFormat( stats.getMisses() );
+				cacheStat.evictions   = NumberFormat( stats.getEvictionCount() );
+				cacheStat.performance = NumberFormat( stats.getCachePerformanceRatio(), "0.00" );
+				cacheStat.gcs         = NumberFormat( stats.getGarbageCollections() );
+				cacheStat.lastReap    = DateTimeFormat( stats.getLastReapDateTime(), "yyyy-mm-dd HH:mm:ss" );
 
-				cacheStats.append( cache );
+				cacheStats.append( cacheStat );
 
-				titleWidth       = cacheName.len()         > titleWidth       ? cacheName.len()         : titleWidth;
-				objectsWidth     = cache.objects.len()     > objectsWidth     ? cache.objects.len()     : objectsWidth;
-				hitsWidth        = cache.hits.len()        > hitsWidth        ? cache.hits.len()        : hitsWidth;
-				missesWidth      = cache.misses.len()      > missesWidth      ? cache.misses.len()      : missesWidth;
-				performanceWidth = cache.performance.len() > performanceWidth ? cache.performance.len() : performanceWidth;
-				gcsWidth         = cache.gcs.len()         > gcsWidth         ? cache.gcs.len()         : gcsWidth;
-				lastReapWidth    = cache.lastReap.len()    > lastReapWidth    ? cache.lastReap.len()    : lastReapWidth;
+				titleWidth       = cacheName.len()             > titleWidth       ? cacheName.len()             : titleWidth;
+				objectsWidth     = cacheStat.objects.len()     > objectsWidth     ? cacheStat.objects.len()     : objectsWidth;
+				hitsWidth        = cacheStat.hits.len()        > hitsWidth        ? cacheStat.hits.len()        : hitsWidth;
+				missesWidth      = cacheStat.misses.len()      > missesWidth      ? cacheStat.misses.len()      : missesWidth;
+				evictionsWidth   = cacheStat.evictions.len()   > evictionsWidth   ? cacheStat.evictions.len()   : evictionsWidth;
+				performanceWidth = cacheStat.performance.len() > performanceWidth ? cacheStat.performance.len() : performanceWidth;
+				gcsWidth         = cacheStat.gcs.len()         > gcsWidth         ? cacheStat.gcs.len()         : gcsWidth;
+				lastReapWidth    = cacheStat.lastReap.len()    > lastReapWidth    ? cacheStat.lastReap.len()    : lastReapWidth;
 			}
 		}
 
@@ -68,12 +73,12 @@ component output=false hint="Create various preside system entities such as widg
 					 & " [[b;white;]Objects] #RepeatString( ' ', objectsWidth-7 )# "
 					 & " [[b;white;]Hits] #RepeatString( ' ', hitsWidth-4 )# "
 					 & " [[b;white;]Misses] #RepeatString( ' ', missesWidth-6 )# "
+					 & " [[b;white;]Evictions] #RepeatString( ' ', evictionsWidth-9 )# "
 					 & " [[b;white;]Performance ratio] #RepeatString( ' ', performanceWidth-17 )# "
 					 & " [[b;white;]Garbage collections] #RepeatString( ' ', gcsWidth-19 )# "
 					 & " [[b;white;]Last reap] #RepeatString( ' ', lastReapWidth-9 )#";
 
-		var tableWidth = titleBar.len() - 84;
-
+		var tableWidth = titleBar.len() - 96;
 
 		statsOutput = Chr( 10 ) & titleBar & Chr( 10 ) & RepeatString( "=", tableWidth ) & Chr(10);
 
@@ -82,6 +87,7 @@ component output=false hint="Create various preside system entities such as widg
 			             & " #cache.objects# #RepeatString( ' ', objectsWidth-cache.objects.len() )# "
 			             & " #cache.hits# #RepeatString( ' ', hitsWidth-cache.hits.len() )# "
 			             & " #cache.misses# #RepeatString( ' ', missesWidth-cache.misses.len() )# "
+			             & " #cache.evictions# #RepeatString( ' ', evictionsWidth-cache.evictions.len() )# "
 			             & " #cache.performance# #RepeatString( ' ', performanceWidth-cache.performance.len() )# "
 			             & " #cache.gcs# #RepeatString( ' ', gcsWidth-cache.gcs.len() )# "
 			             & " #cache.lastReap# #RepeatString( ' ', lastReapWidth-cache.lastReap.len() )#" & Chr( 10 );
