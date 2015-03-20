@@ -123,6 +123,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function configure( event, rc, prc ) output=false {
+		_checkPermission( "configure", event );
+
 		prc.pageTitle    = translateResource( uri="cms:notifications.configure.title" );
 		prc.pageSubTitle = translateResource( uri="cms:notifications.configure.subtitle" );
 
@@ -139,6 +141,8 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function saveTopicConfigurationAction( event, rc, prc ) {
+		_checkPermission( "configure", event );
+
 		var topic            = rc.topic ?: "";
 		var formName         = "notifications.topic-global-config";
 		var formData         = event.getCollectionForForm( formName );
@@ -162,5 +166,12 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		args.latestNotifications = notificationService.getUnreadTopics( userId = event.getAdminUserId() );
 
 		return renderView( view="/admin/notifications/notificationNavPromo", args=args );
+	}
+
+// HELPERS
+	private void function _checkPermission( required string permission, required any event ) {
+		if ( !hasCmsPermission( "notifications.#arguments.permission#" ) ) {
+			event.adminAccessDenied();
+		}
 	}
 }

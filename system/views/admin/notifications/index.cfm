@@ -5,7 +5,7 @@
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif hasCmsPermission( "resourceLibrary.add" )>
+		<cfif hasCmsPermission( "notifications.configure" )>
 			<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
 				<span class="fa fa-caret-down"></span>
 				<i class="fa fa-fw fa-cogs"></i>&nbsp; #translateResource( uri="cms:notifications.preferences.btn" )#
