@@ -1,13 +1,13 @@
-<cfparam name="args.notificationLink"     type="string" />
-<cfparam name="args.userName"             type="string" />
+<cfparam name="args.notificationLink"     type="string" default="" />
+<cfparam name="args.userName"             type="string" default="" />
 <cfparam name="args.notificationBodyText" type="string" default="" />
 
 <cfoutput>
-Hi, #args.userName#
+<cfif Len( Trim( args.userName ) )>Hi, #args.userName#
 
-You have received a notification from the CMS. To view the notification, please copy and paste the link below into your browser's address bar:
+</cfif>You have received a notification from the CMS.<cfif Len( Trim( args.notificationLink ) )>To view the notification, please copy and paste the link below into your browser's address bar:
 
-#args.notificationLink#
+#args.notificationLink#</cfif>
 <cfif Len( Trim( args.notificationBodyHtml ) )>
 The notification received was:
 

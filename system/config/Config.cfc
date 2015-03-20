@@ -64,6 +64,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"             );
+		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"           );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"          );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"         );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotificationConsumer"  );

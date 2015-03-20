@@ -7,10 +7,13 @@ component output=false {
 		var data  = args.data  ?: {};
 
 
-		args.notificationLink = event.buildAdminLink(
-			  linkto      = "notifications.view"
-			, querystring = "id=" & ( args.notificationId ?: "" )
-		);
+		if ( Len( Trim( args.notificationId ?: "" ) ) ) {
+			args.notificationLink = event.buildAdminLink(
+				  linkto      = "notifications.view"
+				, querystring = "id=" & ( args.notificationId ?: "" )
+			);
+		}
+
 		args.notificationBodyHtml = notificationService.renderNotification( topic, data, "emailHtml" );
 		args.notificationBodyText = notificationService.renderNotification( topic, data, "emailText" );
 

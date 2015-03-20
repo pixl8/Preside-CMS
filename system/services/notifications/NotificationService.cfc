@@ -52,34 +52,55 @@ component autodoc=true displayName="Notification Service" {
 	 *
 	 */
 	public string function createNotification( required string topic, required string type, required struct data ) autodoc=true {
-		var args = Duplicate( arguments );
-		var data = {
-			  topic = arguments.topic
-			, type  = arguments.type
-			, data  = SerializeJson( arguments.data )
-		};
-		data.data_hash = LCase( Hash( data.data ) );
+		var topicConfig = getGlobalTopicConfiguration( arguments.topic );
 
-		var existingNotification = _getNotificationDao().selectData( filter={
-			  topic     = data.topic
-			, type      = data.type
-			, data_hash = data.data_hash
-		} );
+		_announceInterception( "onCreateNotification", arguments );
 
-		if ( existingNotification.recordCount ) {
-			createNotificationConsumers( existingNotification.id, args.topic, data );
-			return existingNotification.id;
+		if ( IsBoolean( topicConfig.save_in_cms ?: "" ) && topicConfig.save_in_cms ) {
+			var args = Duplicate( arguments );
+			var data = {
+				  topic = arguments.topic
+				, type  = arguments.type
+				, data  = SerializeJson( arguments.data )
+			};
+			data.data_hash = LCase( Hash( data.data ) );
+
+			var existingNotification = _getNotificationDao().selectData( filter={
+				  topic     = data.topic
+				, type      = data.type
+				, data_hash = data.data_hash
+			} );
+
+			if ( existingNotification.recordCount ) {
+				createNotificationConsumers( existingNotification.id, args.topic, data );
+				return existingNotification.id;
+			}
+
+			_announceInterception( "preCreateNotification", args );
+
+			args.notificationId = _getNotificationDao().insertData( data=data );
+
+			_announceInterception( "postCreateNotification", args );
+
+			createNotificationConsumers( args.notificationId, topic, data );
+
+			if ( Len( Trim( topicConfig.send_to_email_address ?: "" ) ) ) {
+				sendGlobalNotificationEmail(
+					  recipient = topicConfig.send_to_email_address
+					, topic     = args.topic
+					, data      = args
+				);
+			}
+			return args.notificationId;
 		}
 
-		_announceInterception( "preCreateNotification", args );
-
-		args.notificationId = _getNotificationDao().insertData( data=data );
-
-		_announceInterception( "postCreateNotification", args );
-
-		createNotificationConsumers( args.notificationId, topic, data );
-
-		return args.notificationId;
+		if ( Len( Trim( topicConfig.send_to_email_address ?: "" ) ) ) {
+			sendGlobalNotificationEmail(
+				  recipient = topicConfig.send_to_email_address
+				, topic     = arguments.topic
+				, data      = { data=arguments.data }
+			);
+		}
 	}
 
 	/**
@@ -321,7 +342,7 @@ component autodoc=true displayName="Notification Service" {
 					} );
 
 					if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
-						sendNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
+						sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
 					}
 
 					_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
@@ -362,7 +383,7 @@ component autodoc=true displayName="Notification Service" {
 		_getSubscriptionDao().insertData( data=data );
 	}
 
-	public void function sendNotificationEmail( required string recipient, required string topic, required string notificationid, required struct data ) {
+	public void function sendSubsciberNotificationEmail( required string recipient, required string topic, required string notificationid, required struct data ) {
 		var user = _getUserDao().selectData( id=arguments.recipient, selectFields=[ "email_address", "known_as" ] );
 
 
@@ -376,6 +397,17 @@ component autodoc=true displayName="Notification Service" {
 				, to       = [ user.email_address ]
 			);
 		}
+	}
+
+	public void function sendGlobalNotificationEmail( required string recipient, required string topic, required struct data ) {
+		var emailArgs       = Duplicate( arguments.data );
+			emailArgs.topic = arguments.topic;
+
+		_getEmailService().send(
+			  template = "notification"
+			, args     = emailArgs
+			, to       = ListToArray( arguments.recipient, ",;" )
+		);
 	}
 
 // PRIVATE HELPERS
