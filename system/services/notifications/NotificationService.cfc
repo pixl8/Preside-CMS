@@ -2,28 +2,42 @@
  * The notifications service provides an API to the PresideCMS administrator notifications system
  *
  */
-component output=false autodoc=true displayName="Notification Service" {
+component autodoc=true displayName="Notification Service" {
 
 // CONSTRUCTOR
 	/**
 	 * @notificationDao.inject    presidecms:object:admin_notification
 	 * @subscriptionDao.inject    presidecms:object:admin_notification_subscription
 	 * @consumerDao.inject        presidecms:object:admin_notification_consumer
+	 * @topicDao.inject           presidecms:object:admin_notification_topic
 	 * @userDao.inject            presidecms:object:security_user
 	 * @coldboxController.inject  coldbox
 	 * @configuredTopics.inject   coldbox:setting:notificationTopics
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @emailService.inject       emailService
 	 */
-	public any function init( required any notificationDao, required any consumerDao, required any subscriptionDao, required any userDao, required any coldboxController, required array configuredTopics, required any interceptorService, required any emailService ) output=false {
+	public any function init(
+		  required any   notificationDao
+		, required any   consumerDao
+		, required any   subscriptionDao
+		, required any   userDao
+		, required any   topicDao
+		, required any   coldboxController
+		, required array configuredTopics
+		, required any   interceptorService
+		, required any   emailService
+	) {
 		_setNotificationDao( arguments.notificationDao );
 		_setConsumerDao( arguments.consumerDao );
 		_setSubscriptionDao( arguments.subscriptionDao );
+		_setTopicDao( arguments.topicDao );
 		_setColdboxController( arguments.coldboxController );
 		_setConfiguredTopics( arguments.configuredTopics );
 		_setInterceptorService( arguments.interceptorService );
 		_setUserDao( arguments.userDao );
 		_setEmailService( arguments.emailService );
+
+		_setDefaultConfigurationForTopicsInDb();
 
 		return this;
 	}
@@ -37,7 +51,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @data.hint  Supporting data for the notification. This is used, in combination with the topic, to render the alert for the end users.
 	 *
 	 */
-	public string function createNotification( required string topic, required string type, required struct data ) output=false autodoc=true {
+	public string function createNotification( required string topic, required string type, required struct data ) autodoc=true {
 		var args = Duplicate( arguments );
 		var data = {
 			  topic = arguments.topic
@@ -73,7 +87,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 *
 	 * @userId.hint id of the admin user who's unread notification count we wish to retrieve
 	 */
-	public numeric function getUnreadNotificationCount( required string userId ) output=false autodoc=true {
+	public numeric function getUnreadNotificationCount( required string userId ) autodoc=true {
 		var queryResult = _getConsumerDao().selectData(
 			  selectFields = [ "Count(*) as notification_count" ]
 			, filter       = { security_user = arguments.userId, read = false }
@@ -87,7 +101,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 *
 	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
 	 */
-	public query function getUnreadTopics( required string userId ) output=false autodoc=true {
+	public query function getUnreadTopics( required string userId ) autodoc=true {
 		return _getConsumerDao().selectData(
 			  selectFields = [ "admin_notification.topic", "Count(*) as notification_count" ]
 			, filter       = {
@@ -104,7 +118,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
 	 * @maxRows.hint maximum number of notifications to retrieve
 	 */
-	public array function getNotifications( required string userId, numeric maxRows=10, string topic="" ) output=false autodoc=true {
+	public array function getNotifications( required string userId, numeric maxRows=10, string topic="" ) autodoc=true {
 		var filter  = {
 			  "admin_notification_consumer.security_user" = arguments.userId
 		};
@@ -134,7 +148,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 *
 	 * @id.hint ID of the notification
 	 */
-	public struct function getNotification( required string id ) output=false autodoc=true {
+	public struct function getNotification( required string id ) autodoc=true {
 		var record = _getNotificationDao().selectData( id=arguments.id );
 
 		for( var r in record ) {
@@ -153,7 +167,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @data.hint    Data associated with the notification
 	 * @context.hint Context of the notification
 	 */
-	public string function renderNotification( required string topic, required struct data, required string context ) output=false autodoc=true {
+	public string function renderNotification( required string topic, required struct data, required string context ) autodoc=true {
 		var viewletEvent = "renderers.notifications." & arguments.topic & "." & arguments.context;
 		if ( _getColdboxController().viewletExists( viewletEvent ) ) {
 			return _getColdboxController().renderViewlet(
@@ -169,7 +183,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * Returns array of configured topics
 	 *
 	 */
-	public array function listTopics() output=false autodoc=true {
+	public array function listTopics() autodoc=true {
 		return _getConfiguredTopics();
 	}
 
@@ -179,7 +193,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @notificationIds.hint Array of notification IDs to mark as read
 	 * @userId.hint          The id of the user to mark as read for
 	 */
-	public numeric function markAsRead( required array notificationIds, required string userId ) output=false autodoc=true {
+	public numeric function markAsRead( required array notificationIds, required string userId ) autodoc=true {
 		return _getConsumerDao().updateData(
 			  filter = { admin_notification=arguments.notificationIds, security_user=arguments.userId }
 			, data   = { read = true }
@@ -191,7 +205,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 *
 	 * @notificationIds.hint Array of notification IDs to dismissed
 	 */
-	public numeric function dismiss( required array notificationIds ) output=false autodoc=true {
+	public numeric function dismiss( required array notificationIds ) autodoc=true {
 		return _getNotificationDao().deleteData( filter = { id=arguments.notificationIds } );
 	}
 
@@ -201,7 +215,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @userId.hint ID of the user who's subscribed topics we want to fetch
 	 *
 	 */
-	public array function getUserSubscriptions( required string userId ) output=false autodoc=true {
+	public array function getUserSubscriptions( required string userId ) autodoc=true {
 		if ( _getUserDao().dataExists( filter={ id=arguments.userId, subscribed_to_all_notifications=true } ) ) {
 			var topics = Duplicate( listTopics() );
 			topics.append( "all" );
@@ -221,7 +235,7 @@ component output=false autodoc=true displayName="Notification Service" {
 	 * @topics.hint Array of topics to subscribe to
 	 *
 	 */
-	public void function saveUserSubscriptions( required string userId, required array topics ) output=false autodoc=true {
+	public void function saveUserSubscriptions( required string userId, required array topics ) autodoc=true {
 		var subscriptionDao = _getSubscriptionDao();
 		var forDeletion     = [];
 
@@ -257,7 +271,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		}
 	}
 
-	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) output=false {
+	public void function createNotificationConsumers( required string notificationId, required string topic, required struct data ) {
 		var subscribedToAll   = _getUserDao().selectData( selectFields=[ "id" ], filter={ subscribed_to_all_notifications=true } );
 		var subscribedToTopic = _getSubscriptionDao().selectData( filter={ topic=arguments.topic } );
 		var subscribers = {};
@@ -288,7 +302,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		}
 	}
 
-	public struct function getUserTopicSubscriptionSettings( required string userId, required string topic ) output=false {
+	public struct function getUserTopicSubscriptionSettings( required string userId, required string topic ) {
 		var subscription = _getSubscriptionDao().selectData( filter={
 			  security_user = arguments.userId
 			, topic         = arguments.topic
@@ -301,7 +315,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		return {};
 	}
 
-	public void function saveUserTopicSubscriptionSettings( required string userId, required string topic, required struct settings ) output=false {
+	public void function saveUserTopicSubscriptionSettings( required string userId, required string topic, required struct settings ) {
 		var existingSubscription = getUserTopicSubscriptionSettings( arguments.userId, arguments.topic );
 
 		if ( Len( Trim( existingSubscription.id ?: "" ) ) ) {
@@ -320,7 +334,7 @@ component output=false autodoc=true displayName="Notification Service" {
 		_getSubscriptionDao().insertData( data=data );
 	}
 
-	public void function sendNotificationEmail( required string recipient, required string topic, required string notificationid, required struct data ) output=false {
+	public void function sendNotificationEmail( required string recipient, required string topic, required string notificationid, required struct data ) {
 		var user = _getUserDao().selectData( id=arguments.recipient, selectFields=[ "email_address", "known_as" ] );
 
 
@@ -337,67 +351,101 @@ component output=false autodoc=true displayName="Notification Service" {
 	}
 
 // PRIVATE HELPERS
-	private any function _announceInterception( required string state, struct interceptData={} ) output=false {
+	private any function _announceInterception( required string state, struct interceptData={} ) {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};
 	}
 
+	private void function _setDefaultConfigurationForTopicsInDb() {
+		var configuredTopics = _getConfiguredTopics();
+		var existingTopics   = _getTopicDao().selectData( selectFields=[ "id", "topic" ] );
+		var topicsToDelete   = [];
+		var topicsToInsert   = [];
+
+		for( var topic in existingTopics ) {
+			if ( !configuredTopics.findNoCase( topic.topic ) ) {
+				topicsToDelete.append( topic.id );
+			}
+		}
+
+		existingTopics = ValueArray( existingTopics.topic );
+		for( var topic in configuredTopics ) {
+			if ( !existingTopics.findNoCase( topic ) ) {
+				topicsToInsert.append( topic );
+			}
+		}
+
+		if ( topicsToDelete.len() ) {
+			_getTopicDao().deleteData( filter={ id=topicsToDelete } );
+		}
+		for( var topic in topicsToInsert ) {
+			_getTopicDao().insertData( { topic=topic } );
+		}
+
+	}
 
 // GETTERS AND SETTERS
-	private any function _getNotificationDao() output=false {
+	private any function _getNotificationDao() {
 		return _notificationDao;
 	}
-	private void function _setNotificationDao( required any notificationDao ) output=false {
+	private void function _setNotificationDao( required any notificationDao ) {
 		_notificationDao = arguments.notificationDao;
 	}
 
-	private any function _getConsumerDao() output=false {
+	private any function _getConsumerDao() {
 		return _consumerDao;
 	}
-	private void function _setConsumerDao( required any consumerDao ) output=false {
+	private void function _setConsumerDao( required any consumerDao ) {
 		_consumerDao = arguments.consumerDao;
 	}
 
-	private any function _getSubscriptionDao() output=false {
+	private any function _getSubscriptionDao() {
 		return _subscriptionDao;
 	}
-	private void function _setSubscriptionDao( required any subscriptionDao ) output=false {
+	private void function _setSubscriptionDao( required any subscriptionDao ) {
 		_subscriptionDao = arguments.subscriptionDao;
 	}
 
-	private any function _getColdboxController() output=false {
+	private any function _getTopicDao() output=false {
+		return _topicDao;
+	}
+	private void function _setTopicDao( required any topicDao ) output=false {
+		_topicDao = arguments.topicDao;
+	}
+
+	private any function _getColdboxController() {
 		return _coldboxController;
 	}
-	private void function _setColdboxController( required any coldboxController ) output=false {
+	private void function _setColdboxController( required any coldboxController ) {
 		_coldboxController = arguments.coldboxController;
 	}
 
-	private any function _getConfiguredTopics() output=false {
+	private any function _getConfiguredTopics() {
 		return _configuredTopics;
 	}
-	private void function _setConfiguredTopics( required any configuredTopics ) output=false {
+	private void function _setConfiguredTopics( required any configuredTopics ) {
 		_configuredTopics = arguments.configuredTopics;
 	}
 
-	private any function _getInterceptorService() output=false {
+	private any function _getInterceptorService() {
 		return _interceptorService;
 	}
-	private void function _setInterceptorService( required any interceptorService ) output=false {
+	private void function _setInterceptorService( required any interceptorService ) {
 		_interceptorService = arguments.interceptorService;
 	}
 
-	private any function _getUserDao() output=false {
+	private any function _getUserDao() {
 		return _userDao;
 	}
-	private void function _setUserDao( required any userDao ) output=false {
+	private void function _setUserDao( required any userDao ) {
 		_userDao = arguments.userDao;
 	}
 
-	private any function _getEmailService() output=false {
+	private any function _getEmailService() {
 		return _emailService;
 	}
-	private void function _setEmailService( required any emailService ) output=false {
+	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
 	}
 }
