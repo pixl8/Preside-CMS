@@ -227,6 +227,34 @@ component autodoc=true displayName="Notification Service" {
 		return subscriptions.recordCount ? ValueArray( subscriptions.topic ) : [];
 	}
 
+	/**
+	 * Retrieves globally saved configuration settings for a given notification topic
+	 *
+	 * @topic.hint ID of the topic
+	 *
+	 */
+	public struct function getGlobalTopicConfiguration( required string topic ) autodoc=true {
+		var topic = _getTopicDao().selectData( filter={ topic=arguments.topic } );
+
+		for( var t in topic ) { return t; }
+
+		return {};
+	}
+
+	/**
+	 * Saves configuration for a topic
+	 *
+	 * @topic.hint         ID of the topic
+	 * @configuration.hint Struct containing configuration data
+	 *
+	 */
+	public boolean function saveGlobalTopicConfiguration( required string topic, required struct configuration ) autodoc=true {
+		return _getTopicDao().updateData(
+			  filter = { topic=arguments.topic }
+			, data   = arguments.configuration
+		);
+	}
+
 
 	/**
 	 * Saves a users subscription preferences

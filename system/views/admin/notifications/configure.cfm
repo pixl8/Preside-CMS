@@ -1,8 +1,9 @@
 <cfscript>
-	topics        = prc.topics ?: [];
-	selectedTopic = prc.selectedTopic ?: "";
-	formId        = "configure-form";
-	formAction    = event.buildAdminLink( linkTo="notifications.saveTopicConfiguration" );
+	topics             = prc.topics             ?: [];
+	selectedTopic      = prc.selectedTopic      ?: "";
+	savedConfiguration = prc.topicConfiguration ?: {};
+	formId             = "configure-form";
+	formAction         = event.buildAdminLink( linkTo="notifications.saveTopicConfigurationAction" );
 </cfscript>
 
 <cfoutput>
@@ -34,7 +35,7 @@
 					#renderForm(
 						  formName          = "notifications.topic-global-config"
 						, formId            = formId
-						, savedData         = {}
+						, savedData         = savedConfiguration
 						, validationResult  = rc.validationResult ?: ""
 					)#
 

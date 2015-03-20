@@ -89,21 +89,6 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function configure( event, rc, prc ) output=false {
-		prc.pageTitle    = translateResource( uri="cms:notifications.configure.title" );
-		prc.pageSubTitle = translateResource( uri="cms:notifications.configure.subtitle" );
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( "cms:notifications.configure.breadcrumbTitle" )
-			, link  = event.buildAdminLink( linkTo="notifications.configure" )
-		);
-
-		prc.topics = notificationService.listTopics();
-		if ( prc.topics.len() ) {
-			prc.selectedTopic = rc.topic ?: prc.topics[1];
-		}
-	}
-
 	public void function savePreferencesAction( event, rc, prc ) output=false {
 		notificationService.saveUserSubscriptions(
 			  userId = event.getAdminUserId()
@@ -135,6 +120,40 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="notifications.preferences", queryString="topic=#topic#" ), persistStruct={ validationResult=validationResult } );
 		}
 
+	}
+
+	public void function configure( event, rc, prc ) output=false {
+		prc.pageTitle    = translateResource( uri="cms:notifications.configure.title" );
+		prc.pageSubTitle = translateResource( uri="cms:notifications.configure.subtitle" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:notifications.configure.breadcrumbTitle" )
+			, link  = event.buildAdminLink( linkTo="notifications.configure" )
+		);
+
+		prc.topics = notificationService.listTopics();
+		if ( prc.topics.len() ) {
+			prc.selectedTopic = rc.topic ?: prc.topics[1];
+			prc.topicConfiguration = notificationService.getGlobalTopicConfiguration( prc.selectedTopic );
+		}
+	}
+
+	public void function saveTopicConfigurationAction( event, rc, prc ) {
+		var topic            = rc.topic ?: "";
+		var formName         = "notifications.topic-global-config";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			notificationService.saveGlobalTopicConfiguration( topic, formData );
+			messageBox.info( translateResource( uri="cms:notifications.configuration.saved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure", queryString="topic=#topic#" ) );
+		}
+
+		messageBox.error( translateResource( uri="cms:notifications.configuration.saving.error" ) );
+		var persist = formData;
+		    persist.validationResult = validationResult;
+		setNextEvent( url=event.buildAdminLink( linkTo="notifications.configure", queryString="topic=#topic#" ), persistStruct=persist );
 	}
 
 // VIEWLETS
