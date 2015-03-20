@@ -167,7 +167,7 @@ component output=false singleton=true {
 				);
 			}
 
-			_getCacheProvider().clear( "Context perms for context: " & arguments.context );
+			_getCacheProvider().clearAll();
 		}
 
 		return true;
@@ -259,41 +259,37 @@ component output=false singleton=true {
 		, required string context
 		, required array  contextKeys
 	) {
-		var cacheKey           = "Context perms for context: " & arguments.context;
-		var cntext             = arguments.context;
+		var args               = arguments;
+		var userGroups         = listUserGroups( arguments.userId );
+		var cacheKey           = "ContextPermKeysForPermContextAndGroup: " & Hash( arguments.context & arguments.permissionKey & userGroups.toList() );
 		var cachedContextPerms = _getCacheProvider().getOrSet( objectKey=cacheKey, produce=function(){
 			var permsToCache = {};
 			var permsFromDb  = _getContextPermDao().selectData(
-				  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
-				, filter       = { context = cntext }
+				  selectFields = [ "Max( granted ) as granted", "context_key" ]
+				, filter       = { context = args.context, permission_key = args.permissionKey, security_group = userGroups }
+				, groupBy      = "context_key"
+				, useCache     = false
 			);
 
 			for( var perm in permsFromDb ){
-				permsToCache[ perm.context_key & "_" & perm.permission_key & "_" & perm.security_group ] = perm.granted;
+				permsToCache[ perm.context_key ] = perm.granted;
 			}
 
 			return permsToCache;
 		} );
 
+
+		if ( cachedContextPerms.isEmpty() ) {
+			return;
+		}
+
 		for( var key in arguments.contextKeys ){
-			var perm = NullValue();
-
-			for( var group in listUserGroups( arguments.userId ) ){
-				cacheKey = key & "_" & arguments.permissionKey & "_" & group;
-				if ( StructKeyExists( cachedContextPerms, cacheKey ) ) {
-					perm = cachedContextPerms[ cacheKey ];
-					if ( perm ) {
-						return perm;
-					}
-				}
-			}
-
-			if ( !IsNull( perm ) ) {
-				return perm;
+			if ( cachedContextPerms.keyExists( key ) ) {
+				return cachedContextPerms[ key ];
 			}
 		}
 
-		return NullValue();
+		return;
 	}
 
 	private array function _expandPermissions( required struct permissions, string prefix="" ) output=false {

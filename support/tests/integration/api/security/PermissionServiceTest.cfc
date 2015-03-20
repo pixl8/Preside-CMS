@@ -268,14 +268,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test17_hasPermission_shouldReturnTrue_whenPassedInUserDoesNotHaveRolePermissionBUTdoesHaveContextPermissionForGivenContextAndKey(){
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var hasPerm      = "";
-		var mockContextPerms = QueryNew( "granted,context_key,permission_key,security_group", 'bit,varchar,varchar,varchar', [
-			    [ 1, "some.context.key1", "some.permission.key1", "somegroup" ]
-			  , [ 0, "some.context.key2", "some.permission.key2", "groupx" ]
-			  , [ 1, "some.context.key3", "some.permission.key3", "somegroup" ]
-			  , [ 1, "somekey"          , "a.new.key"           , "anothergroup" ]
-			  , [ 0, "some.context.key" , "some.permission.key4" , "blah" ]
-			  , [ 1, "some.context.key" , "some.permission.key5" , "test" ]
-		] );
+		var mockContextPerms = QueryNew( "granted,context_key", 'bit,varchar', [[ 1, "somekey" ] ] );
 
 		mockLoginService.$( "getLoggedInUserId", "me" );
 		mockLoginService.$( "isSystemUser", false );
@@ -284,8 +277,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
-			, filter       = { context = "someContext" }
+			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
+			, groupBy      = "context_key"
+			, useCache     = false
 		).$results( mockContextPerms );
 
 		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKeys=[ "somekey" ] );
@@ -296,14 +291,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test18_hasPermission_shouldReturnFalse_whenPassedInUserHasRolePermissionBUThasExplictContextPermissionDenialForGivenContextAndKey(){
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var hasPerm      = "";
-		var mockContextPerms = QueryNew( "granted,context_key,permission_key,security_group", 'bit,varchar,varchar,varchar', [
-			    [ 1, "some.context.key1", "some.permission.key1", "somegroup" ]
-			  , [ 0, "some.context.key2", "some.permission.key2", "groupx" ]
-			  , [ 1, "some.context.key3", "some.permission.key3", "somegroup" ]
-			  , [ 0, "somekey"          , "a.new.key"           , "anothergroup" ]
-			  , [ 0, "some.context.key" , "some.permission.key4" , "blah" ]
-			  , [ 1, "some.context.key" , "some.permission.key5" , "test" ]
-		] );
+		var mockContextPerms = QueryNew( "granted,context_key", 'bit,varchar', [ [ 0, "somekey" ] ] );
 
 		mockLoginService.$( "getLoggedInUserId", "me" );
 		mockLoginService.$( "isSystemUser", false );
@@ -312,8 +300,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
-			, filter       = { context = "someContext" }
+			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
+			, groupBy      = "context_key"
+			, useCache     = false
 		).$results( mockContextPerms );
 
 		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKeys=[ "somekey" ] );
@@ -324,14 +314,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test19_hasPermission_shouldReturnTrue_whenPassedInUserHasRolePermissionANDhasNoExplictContextPermissionSetForGivenContext(){
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var hasPerm      = "";
-		var mockContextPerms = QueryNew( "granted,context_key,permission_key,security_group", 'bit,varchar,varchar,varchar', [
-			    [ 1, "some.context.key1", "some.permission.key1", "somegroup" ]
-			  , [ 0, "some.context.key2", "some.permission.key2", "groupx" ]
-			  , [ 1, "some.context.key3", "some.permission.key3", "somegroup" ]
-			  , [ 0, "somekey"          , "a.new.key"           , "anothergroup" ]
-			  , [ 0, "some.context.key" , "some.permission.key4" , "blah" ]
-			  , [ 1, "some.context.key" , "some.permission.key5" , "test" ]
-		] );
+		var mockContextPerms = QueryNew( "granted,context_key", 'bit,varchar', [] );
 
 		mockLoginService.$( "getLoggedInUserId", "me" );
 		mockLoginService.$( "isSystemUser", false );
@@ -340,8 +323,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
-			, filter       = { context = "someContext" }
+			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			, filter       = { context = "someContext", permission_key = "my.perm.key", security_group = [ "somegroup", "anothergroup" ] }
+			, groupBy      = "context_key"
+			, useCache     = false
 		).$results( mockContextPerms );
 
 		hasPerm = permsService.hasPermission( permissionKey="my.perm.key", context="someContext", contextKeys=[ "somekey", "anotherContextKey" ] );
@@ -352,13 +337,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test20_hasPermission_shouldReturnFirstGrantOrDenial_whenMultipleContextKeysAreSuppliedThatHaveMatches(){
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var hasPerm      = "";
-		var mockContextPerms = QueryNew( "granted,context_key,permission_key,security_group", 'bit,varchar,varchar,varchar', [
-			    [ 1, "some.context.key1", "some.permission.key1", "somegroup" ]
-			  , [ 0, "some.context.key2", "some.permission.key2", "groupx" ]
-			  , [ 0, "some.context.key3", "a.new.key"           , "somegroup" ]
-			  , [ 1, "somekey"          , "a.new.key"           , "anothergroup" ]
-			  , [ 0, "some.context.key" , "some.permission.key4", "blah" ]
-			  , [ 0, "some.context.key" , "a.new.key"           , "test" ]
+		var mockContextPerms = QueryNew( "granted,context_key", 'bit,varchar', [
+			    [ 0, "some.context.key3" ]
+			  , [ 1, "somekey"           ]
+			  , [ 0, "some.context.key"  ]
 		] );
 
 		mockLoginService.$( "getLoggedInUserId", "me" );
@@ -368,8 +350,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
-			, filter       = { context = "someContext" }
+			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
+			, groupBy      = "context_key"
+			, useCache     = false
 		).$results( mockContextPerms );
 
 		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKeys=[ "somekey", "some.context.key3", "some.context.key" ] );
@@ -512,13 +496,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test24_hasPermission_shouldReturnTrue_whenUserBelongsToMulipleGroupsWithGivenContextPermSetAndAtLeastOneOfThoseGroupsHasExplicitGrantAccess(){
 		var permsService = _getPermissionService( permissions=testPerms, roles=testRoles );
 		var hasPerm      = "";
-		var mockContextPerms = QueryNew( "granted,context_key,permission_key,security_group", 'bit,varchar,varchar,varchar', [
-			    [ 1, "some.context.key1", "some.permission.key1", "somegroup" ]
-			  , [ 0, "some.context.key2", "some.permission.key2", "groupx" ]
-			  , [ 0, "somekey"          , "a.new.key"           , "somegroup" ]
-			  , [ 1, "somekey"          , "a.new.key"           , "anothergroup" ]
-			  , [ 0, "some.context.key" , "some.permission.key4", "blah" ]
-			  , [ 0, "some.context.key" , "a.new.key"           , "test" ]
+		var mockContextPerms = QueryNew( "granted,context_key", 'bit,varchar', [
+			    [ 1, "somekey"          ]
+			  , [ 0, "some.context.key" ]
 		] );
 
 		mockLoginService.$( "getLoggedInUserId", "me" );
@@ -528,8 +508,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listUserGroups" ).$args( user="me" ).$results( [ "somegroup", "anothergroup" ] );
 
 		mockContextPermDao.$( "selectData" ).$args(
-			  selectFields = [ "granted", "context_key", "permission_key", "security_group" ]
-			, filter       = { context = "someContext" }
+			  selectFields = [ "Max( granted ) as granted", "context_key" ]
+			, filter       = { context = "someContext", permission_key = "a.new.key", security_group = [ "somegroup", "anothergroup" ] }
+			, groupBy      = "context_key"
+			, useCache     = false
 		).$results( mockContextPerms );
 
 		hasPerm = permsService.hasPermission( permissionKey="a.new.key", context="someContext", contextKeys=[ "somekey" ] );
