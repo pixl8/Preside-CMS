@@ -89,6 +89,21 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function configure( event, rc, prc ) output=false {
+		prc.pageTitle    = translateResource( uri="cms:notifications.configure.title" );
+		prc.pageSubTitle = translateResource( uri="cms:notifications.configure.subtitle" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:notifications.configure.breadcrumbTitle" )
+			, link  = event.buildAdminLink( linkTo="notifications.configure" )
+		);
+
+		prc.topics = notificationService.listTopics();
+		if ( prc.topics.len() ) {
+			prc.selectedTopic = rc.topic ?: prc.topics[1];
+		}
+	}
+
 	public void function savePreferencesAction( event, rc, prc ) output=false {
 		notificationService.saveUserSubscriptions(
 			  userId = event.getAdminUserId()
