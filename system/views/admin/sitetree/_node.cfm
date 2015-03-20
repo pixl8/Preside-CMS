@@ -25,8 +25,9 @@
 	param name="args.reorderChildrenBaseLink"     type="string" default=event.buildAdminLink( linkTo="sitetree.reorderChildren", queryString="id={id}" );
 	param name="args.previewPageBaseLink"         type="string" default=event.buildAdminLink( linkTo="sitetree.previewPage", queryString="id={id}" );
 
-	args.permission_context.prepend( args.id );
-	hasNavigatePermission = hasCmsPermission( permissionKey="sitetree.navigate", context="page", contextKeys=args.permission_context );
+	permContextKeys = Duplicate( args.permission_context );
+	permContextKeys.prepend( args.id );
+	hasNavigatePermission = hasCmsPermission( permissionKey="sitetree.navigate", context="page", contextKeys=permContextKeys )
 
 	if ( hasNavigatePermission ) {
 		pageUrl     = quickBuildLink( args.previewPageBaseLink, { id=args.id } );
@@ -44,12 +45,12 @@
 		isSystemPage            = isSystemPageType( args.page_type );
 		hasChildren             = managedChildPageTypes.len() || args.child_count;
 
-		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=args.permission_context );
-		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=args.permission_context );
-		hasDeletePagePermission  = hasCmsPermission( permissionKey="sitetree.trash"             , context="page", contextKeys=args.permission_context ) && args.id neq homepageId && !isSystemPage;
-		hasSortPagesPermission   = hasCmsPermission( permissionKey="sitetree.sort"              , context="page", contextKeys=args.permission_context ) && hasChildren;
-		hasManagePermsPermission = hasCmsPermission( permissionKey="sitetree.manageContextPerms", context="page", contextKeys=args.permission_context );
-		hasPageHistoryPermission = hasCmsPermission( permissionKey="sitetree.viewversions"      , context="page", contextKeys=args.permission_context );
+		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=permContextKeys );
+		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=permContextKeys );
+		hasDeletePagePermission  = hasCmsPermission( permissionKey="sitetree.trash"             , context="page", contextKeys=permContextKeys ) && args.id neq homepageId && !isSystemPage;
+		hasSortPagesPermission   = hasCmsPermission( permissionKey="sitetree.sort"              , context="page", contextKeys=permContextKeys ) && hasChildren;
+		hasManagePermsPermission = hasCmsPermission( permissionKey="sitetree.manageContextPerms", context="page", contextKeys=permContextKeys );
+		hasPageHistoryPermission = hasCmsPermission( permissionKey="sitetree.viewversions"      , context="page", contextKeys=permContextKeys );
 
 		hasDropdown = hasDeletePagePermission || hasSortPagesPermission || hasManagePermsPermission || hasPageHistoryPermission;
 	}
