@@ -34,6 +34,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="exclude_from_navigation"          type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="exclude_from_sub_navigation"      type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="exclude_children_from_navigation" type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_sitemap"             type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="navigation_title"                 type="string"  dbtype="varchar" maxLength="200"  required=false;
 
 	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId";
