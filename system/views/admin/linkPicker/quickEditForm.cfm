@@ -17,7 +17,7 @@
 	<div class="row link-picker">
 		<div class="col-sm-2">
 			<div class="link-type-menu">
-				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes="email,url,sitetreelink" } )#
+				#renderView( view="admin/linkPicker/_linkTypeMenu", args={ selectedType=linkType, allowedTypes="email,url,sitetreelink,asset" } )#
 			</div>
 		</div>
 		<div class="col-sm-10">

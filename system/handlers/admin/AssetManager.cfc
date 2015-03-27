@@ -55,9 +55,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.folder = assetManagerService.getFolder( id=rc.folder );
 
 		if ( prc.folder.recordCount ){
-			if ( prc.folder.id == assetManagerService.getRootFolderId() ) {
-				prc.folder.label[1] = translateResource( "cms:assetmanager.root.folder" );
-			} else {
+			if ( prc.folder.id != assetManagerService.getRootFolderId() ) {
 				event.addAdminBreadCrumb(
 					  title = prc.folder.label
 					, link  = event.buildAdminLink( linkTo="assetmanager", querystring="folder=#prc.folder.id#" )
@@ -116,7 +114,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				} );
 			} catch ( any e ) {
 				logError( e );
-
 				event.renderData( data={
 					  success = false
 					, title   = translateResource( "cms:assetmanager.add.asset.unexpected.error.title" )
@@ -157,6 +154,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			trashed = assetManagerService.trashAsset( assetId );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#parentFolder#" ) );
 		}
@@ -200,6 +198,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			newFolderId = assetManagerService.addFolder( argumentCollection = formData );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.add.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.addFolder", querystring="folder=#formData.parent_folder#" ), persistStruct=formData );
 		}
@@ -269,6 +268,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			assetManagerService.editFolder( id=folderId, data=formData );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.edit.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editFolder", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
 		}
@@ -298,6 +298,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			trashed = assetManagerService.trashFolder( folderId );
 		} catch ( any e ) {
+			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.trash.folder.unexpected.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#parentFolder#" ) );
 		}
@@ -416,6 +417,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		try {
 			success = assetManagerService.editAsset( id=rc.asset ?: "", data=formData );
 		} catch( any e ) {
+			logError( e );
 			success = false;
 		}
 
@@ -520,7 +522,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified", "datecreated" ];
+		var gridFields = [ "title" ];
 		var renderedOptions = [];
 
 		var records = Duplicate( result.records );
@@ -545,8 +547,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function getFolderTitleAndActions( event, rc, prc ) output=false {
 
 		if ( Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
+			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
 			event.renderData(
-				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label } )
+				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } )
 				, type = "html"
 			);
 		} else {
@@ -560,7 +563,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( Len( Trim( jsonConfig ) ) ) {
 			try {
 				rc.append( DeSerializeJson( UrlDecode( jsonConfig ) ) );
-			} catch ( any e ){}
+			} catch ( any e ){
+				logError( e );
+			}
+
 		}
 
 

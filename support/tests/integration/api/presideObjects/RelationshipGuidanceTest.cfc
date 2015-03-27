@@ -38,7 +38,7 @@
 				, joinFromObject   = "obj_a"
 				, joinFromAlias    = "obj_a"
 				, joinFromProperty = "id"
-				, type             = "inner"
+				, type             = "left"
 			}];
 			var objects = {
 				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
@@ -279,8 +279,8 @@
 		<cfscript>
 			var guidanceService = _getGuidanceService();
 			var objects = {
-				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } }
-				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } }
+				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } ) }
+				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } ) }
 			};
 			var expectedObject = {
 				  instance = "auto_generated"
@@ -333,8 +333,8 @@
 				, type             = "inner"
 			}];
 			var objects = {
-				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } }
-				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } }
+				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } ) }
+				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } ) }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -429,15 +429,31 @@
 				, joinFromProperty = "obj_a"
 				, tableAlias       = "obj_b_again$obj_a"
 				, type             = "inner"
+			},{
+				  joinToObject     = "obj_f"
+				, joinToProperty   = "obj_c"
+				, joinFromObject   = "obj_c"
+				, joinFromAlias    = "obj_c"
+				, joinFromProperty = "id"
+				, tableAlias       = "obj_fs"
+				, type             = "left"
+			},{
+				  joinToObject     = "obj_a"
+				, joinToProperty   = "id"
+				, joinFromObject   = "obj_f"
+				, joinFromAlias    = "obj_fs"
+				, joinFromProperty = "a_test"
+				, tableAlias       = "obj_fs$a_test"
+				, type             = "left"
 			}];
 
 			var objects = {
 				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
 				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_d = { relationship="many-to-one", relatedTo="obj_d", required=true } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_b_again  = { relationship="many-to-one", relatedTo="obj_b", required=true } } ) }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_b_again  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_fs  = { relationship="one-to-many", relatedTo="obj_f", required=false } } ) }
 				, obj_d.meta = { tableName="pobj_obj_d", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_e = { relationship="many-to-one", relatedTo="obj_e", required=true } } ) }
 				, obj_e.meta = { tableName="pobj_obj_e", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_f.meta = { tableName="pobj_obj_f", properties = _getProperties( { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true } } ) }
+				, obj_f.meta = { tableName="pobj_obj_f", properties = _getProperties( { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true }, a_test = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -447,10 +463,26 @@
 				, joinTargets   = [
 					  "obj_b$obj_d$obj_e"
 					, "obj_b_again$obj_a"
+					, "obj_fs$a_test"
 				  ]
 			);
 
 			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="test14_setupRelationships_shouldCatalogOneToManyRelationshipsOnTheSingleEntitySide_whenOneToManyPropertyDeclared" returntype="void">
+		<cfscript>
+			var guidanceService = _getGuidanceService();
+			var objects = {
+				  obj_a.meta     = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" }, obj_bs = { relationship="one-to-many", relatedTo="obj_b", relationshipKey="obj_a", required=false } } ) }
+				, obj_b.meta     = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } ) }
+			};
+
+			guidanceService.setupRelationships( objects );
+			var relationships = guidanceService.getObjectRelationships( "obj_a" );
+			super.assertEquals( 1, relationships.len() );
+			super.assertEquals( "obj_bs", relationships.obj_b[1].alias ?: "" );
 		</cfscript>
 	</cffunction>
 

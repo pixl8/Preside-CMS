@@ -21,56 +21,67 @@
 		UberAssetSelect.prototype.setupBrowser = function(){
 			var iframeSrc       = this.$originalInput.data( "browserUrl" )
 			  , modalTitle      = this.$originalInput.data( "modalTitle" )
-			  , iframeId        = this.$originalInput.attr('id') + "_browser_frame"
-			  , uberAssetSelect = this;
+			  , uberAssetSelect = this
+			  , modalOptions    = {
+					title      : modalTitle,
+					className  : "uber-browser-dialog",
+					buttonList : [ "ok", "cancel" ]
+				}
+			  , callbacks = {
+			  		onLoad : function( iframe ) {
+						uberAssetSelect.pickerIframe = iframe;
+					},
+			  		onok : function(){ return uberAssetSelect.processBrowserOk(); }
+				};
 
-			this.$browserIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="browse-iframe" src="' + iframeSrc + '" width="800" height="300" frameBorder="0"></iframe></div>' );
-			this.$browserButton = $( '<a class="btn btn-default" data-toggle="bootbox-modal" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-ellipsis-h"></i></a>' );
-			this.$uberSelect.after( this.$browserIframeContainer );
+			this.browserIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+
+			this.$browserButton = $( '<a class="btn btn-default" href="#"><i class="fa fa-ellipsis-h"></i></a>' );
 			this.$uberSelect.after( this.$browserButton );
 
-			this.$browserButton.presideBootboxModal( {} );
-			this.$browserButton.data( 'modalClass', 'uber-browser-dialog' );
-			this.$browserButton.on( 'bootboxModalok', function(){
-				return uberAssetSelect.processBrowserOk();
+			this.$browserButton.on( 'click', function( e ){
+				e.preventDefault();
+				uberAssetSelect.browserIframeModal.open();
 			} );
 		};
 
 		UberAssetSelect.prototype.setupUploader = function(){
 			var iframeSrc       = this.$originalInput.data( "uploaderUrl" )
 			  , modalTitle      = this.$originalInput.data( "uploaderModalTitle" )
-			  , iframeId        = this.$originalInput.attr('id') + "_uploader_frame"
-			  , onLoadCallback  = "cb" + iframeId
-			  , uberAssetSelect = this;
-
-			window[ onLoadCallback ] = function( iframe ){
-				iframe.uberAssetSelect = uberAssetSelect;
-				if ( typeof iframe.assetUploader !== "undefined" ) {
-					iframe.assetUploader.checkLastStep();
-				}
-			};
-			this.$uploaderIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="upload-iframe" src="' + iframeSrc + '" width="800" height="320" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
-			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-cloud-upload"></i></a>' );
-
-			this.$uberSelect.after( this.$uploaderIframeContainer );
-			this.$uberSelect.after( this.$uploaderButton );
-
-			this.$uploaderButton.data( 'modalClass', 'uber-browser-dialog' );
-
-			this.$uploaderButton.presideBootboxModal({
-				buttons : {
-					cancel : {
-						  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
-						, className : "btn-default"
-					},
-					next : {
-						  label     : '<i class="fa fa-arrow-circle-o-right"></i> ' + i18n.translateResource( "cms:next.btn" )
-						, className : "btn-primary"
-						, callback  : function(){ return uberAssetSelect.processUploadNextButton(); }
+			  , uberAssetSelect = this
+			  , modalOptions    = {
+					title      : modalTitle,
+					className  : "uber-browser-dialog",
+					buttons : {
+						cancel : {
+							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+							, className : "btn-default"
+						},
+						next : {
+							  label     : '<i class="fa fa-arrow-circle-o-right"></i> ' + i18n.translateResource( "cms:next.btn" )
+							, className : "btn-primary"
+							, callback  : function(){ return uberAssetSelect.processUploadNextButton(); }
+						}
 					}
 				}
-			});
+			  , callbacks = {
+			  		onLoad : function( iframe ) {
+			  			iframe.uberAssetSelect = uberAssetSelect;
+						uberAssetSelect.uploadIframe = iframe;
+						if ( typeof iframe.assetUploader !== "undefined" ) {
+							iframe.assetUploader.checkLastStep();
+						}
+					}
+			    };
 
+			this.uploadIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+
+			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" href="#"><i class="fa fa-cloud-upload"></i></a>' );
+			this.$uploaderButton.on( "click", function( e ){
+				e.preventDefault();
+				uberAssetSelect.uploadIframeModal.open();
+			} );
+			this.$uberSelect.after( this.$uploaderButton );
 		};
 
 		UberAssetSelect.prototype.processBrowserOk = function(){
@@ -89,11 +100,11 @@
 		};
 
 		UberAssetSelect.prototype.processUploadNextButton = function(){
-			var uploadIFrame = this.getUploadIframe();
+			var uploadIframe = this.getUploadIframe();
 
-			if ( typeof uploadIFrame.assetUploader !== "undefined" ) {
-				$( uploadIFrame ).focus();
-				uploadIFrame.assetUploader.nextStep();
+			if ( typeof uploadIframe.assetUploader !== "undefined" ) {
+				$( uploadIframe ).focus();
+				uploadIframe.assetUploader.nextStep();
 
 				return false;
 			}
@@ -102,24 +113,19 @@
 		};
 
 		UberAssetSelect.prototype.uploadStepsFinished = function(){
-			var modal = this.$uploaderButton.data( 'modal' )
-			  , uploadIFrame = this.getUploadIframe();
-
-			var selectedAssets = uploadIFrame.assetUploader.getUploaded()
+			var uploadIframe = this.getUploadIframe()
+			  , selectedAssets = uploadIframe.assetUploader.getUploaded()
 			  , i=0, len = selectedAssets.length;
 
 			for( ; i<len; i++ ){
 				this.uberSelect.select( selectedAssets[i] );
 			}
 
-			modal.on('hidden.bs.modal', function (e) {
-  				modal.remove();
-			} );
-			modal.modal( 'hide' );
+			this.uploadIframeModal.close();
 		};
 
 		UberAssetSelect.prototype.enteredLastStep = function(){
-			var $modal      = this.$uploaderButton.data( 'modal' )
+			var $modal      = this.uploadIframeModal.getModal()
 			  , $nextButton = $modal.length && $modal.find( "button[data-bb-handler='next']" );
 
 			if ( $nextButton.length ) {
@@ -128,19 +134,11 @@
 		};
 
 		UberAssetSelect.prototype.getPickerIframe = function(){
-			var $iframe = $( '.modal-dialog iframe.browse-iframe' );
-			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow.assetBrowser;
-			}
+			return this.pickerIframe.assetBrowser;
 		};
 
 		UberAssetSelect.prototype.getUploadIframe = function(){
-			var $iframe = $( '.modal-dialog iframe.upload-iframe' );
-			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow;
-			}
-
-			return {};
+			return this.uploadIframe;
 		};
 
 		return UberAssetSelect;

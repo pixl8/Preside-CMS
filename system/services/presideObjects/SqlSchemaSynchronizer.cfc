@@ -37,7 +37,6 @@ component output=false singleton=true {
 		var tableVersionExists = "";
 
 		_ensureValidDbEntityNames( arguments.objects );
-
 		for( objName in objects ) {
 			obj       = objects[ objName ];
 			obj.sql   = _generateTableAndColumnSql( argumentCollection = obj.meta );
@@ -96,10 +95,12 @@ component output=false singleton=true {
 			}
 		}
 
+		var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
+
 		if ( !_getAutoRunScripts() ) {
 			var scriptsToRun = _getBuiltSqlScriptArray();
 			var versionScriptsToRun = _getVersionTableScriptArray();
-			if ( scriptsToRun.len() || versionScriptsToRun.len() ) {
+			if ( scriptsToRun.len() || versionScriptsToRun.len() || cleanupScripts.len() ) {
 				var newLine = Chr( 10 );
 				var sql = "/**
  * The following commands are to make alterations to the database schema
@@ -115,6 +116,9 @@ component output=false singleton=true {
 				sql &= newline & "/* The commands below ensure that PresideCMS's internal DB versioning tracking is up to date */" & newline & newline;
 				for( var script in versionScriptsToRun ) {
 					sql &= script.sql & ";" & newline;
+				}
+				for( var script in cleanupScripts ) {
+					sql &= script & ";" & newline;
 				}
 
 				throw(
@@ -315,6 +319,7 @@ component output=false singleton=true {
 			}
 		}
 
+
 		for( column in colsSql ) {
 			if ( not ListFindNoCase( dbColumnNames, column ) ) {
 				colSql = colsSql[ column ];
@@ -334,6 +339,11 @@ component output=false singleton=true {
 				indexSql = indexesSql[ index ];
 				_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
 				_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+			} elseif ( !StructKeyExists( arguments.indexes, index ) && ReFindNoCase( '^[iu]x_', index ) ) {
+				_runSql(
+					  sql = adapter.getDropIndexSql( indexName=index, tableName=arguments.tableName )
+					, dsn = arguments.dsn
+				);
 			}
 		}
 		for( index in indexesSql ){
@@ -442,16 +452,18 @@ component output=false singleton=true {
 			for( key in obj.sql.relationships ){
 				if ( !ListFindNoCase( existingKeysNotToTouch[ objName ] ?: "", key ) ) {
 					transaction {
-						// try and catch around a fk deletion, no native way to delete foreign key only if exists
-						// we need to do this because apparently there's some circumstances which lead to the FK already existing
-						// despite our checks above
-						try {
-							deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
-								  foreignKeyName = key
-								, tableName      = obj.meta.tableName
-							);
-							_runSql( sql = deleteSql, dsn = obj.meta.dsn );
-						} catch( any e ) {}
+						if ( _getAutoRunScripts() ) {
+							// try and catch around a fk deletion, no native way to delete foreign key only if exists
+							// we need to do this because apparently there's some circumstances which lead to the FK already existing
+							// despite our checks above
+							try {
+								deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
+									  foreignKeyName = key
+									, tableName      = obj.meta.tableName
+								);
+								_runSql( sql = deleteSql, dsn = obj.meta.dsn );
+							} catch( any e ) {}
+						}
 
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
@@ -512,15 +524,39 @@ component output=false singleton=true {
 	}
 
 	private query function _getTableColumns() output=false {
-		return _getDbInfoService().getTableColumns( argumentCollection = arguments );
+		try {
+			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return QueryNew('');
+			}
+
+			rethrow;
+		}
 	}
 
 	private struct function _getTableIndexes() output=false {
-		return _getDbInfoService().getTableIndexes( argumentCollection = arguments );
+		try {
+			return _getDbInfoService().getTableIndexes( argumentCollection = arguments );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return {};
+			}
+
+			rethrow;
+		}
 	}
 
 	private struct function _getTableForeignKeys() output=false {
-		return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
+		try {
+			return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
+		} catch( any e ) {
+			if ( e.message contains "there is no table that match the following pattern" ) {
+				return {};
+			}
+
+			rethrow;
+		}
 	}
 
 	private struct function _getVersionsOfDatabaseObjects() output=false {
@@ -550,6 +586,8 @@ component output=false singleton=true {
 			}
 		}
 	}
+
+
 
 // GETTERS AND SETTERS
 	private any function _getAdapterFactory() output=false {

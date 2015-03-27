@@ -1,41 +1,104 @@
 ( function( $ ){
 
 	$.fn.treeTable = function(){
-		var openChildren, closeChildren, toggleRow, linkWasClicked;
+		var loadingRowTemplate = '<tr class="depth-{{depth}} ajax-loading" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-refresh fa-spin"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.message" ) + '</td></tr>'
+		  , errorRowTemplate   = '<tr class="depth-{{depth}} ajax-loading-error" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-exclamation-circle"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.error.message" ) + '</td></tr>'
+		  , openChildren, closeChildren, toggleRow, linkWasClicked, loadChildren, getChildren;
 
 		openChildren = function( $parent ){
-			var $childRows = $parent.data( "children" );
+			var $childRows = getChildren( $parent );
+
 			$childRows.show().each( function(){
 				var $childRow = $( this );
 
-				if ( $childRow.data( "children" ) && !$childRow.data( "closed" ) ) {
+				if ( getChildren( $childRow ).length && $childRow.data( "open" ) ) {
 					openChildren( $childRow );
 				}
 			} );
+
+			if ( !$parent.data( "childrenLoaded" ) && !$parent.data( "childrenLoading" ) ) {
+				loadChildren( $parent );
+			}
 		};
 
-		closeChildren = function( $parent ){
-			var $childRows = $parent.data( "children" );
-			$childRows.hide().each( function(){
-				var $childRow = $( this );
+		loadChildren = function( $parent ){
+			$parent.data( "childrenLoading", true )
 
-				if ( $childRow.data( "children" ) ) {
-					closeChildren( $childRow );
-				}
+			var $children = getChildren( $parent )
+			  , $loadingRow = $( Mustache.render( loadingRowTemplate, {
+					  depth  : parseInt( $parent.data( 'depth' ) ) + 1
+					, parent : $parent.data( 'id' )
+				} ) )
+			  , ajaxSuccessHandler, ajaxErrorHandler, ajaxCompleteHandler;
+
+			if ( $children.length ) {
+				$( $children.get( $children.length-1 ) ).after( $loadingRow );
+			} else {
+				$parent.after( $loadingRow );
+			}
+
+			$parent.data( "children", calculateChildren( $parent ) );
+
+			ajaxSuccessHandler = function( data ){
+				$loadingRow.before( data );
+			};
+
+			ajaxErrorHandler = function(){
+				var $errorRow = $( Mustache.render( errorRowTemplate, {
+					  depth  : parseInt( $parent.data( 'depth' ) ) + 1
+					, parent : $parent.data( 'id' )
+				} ) );
+
+				$loadingRow.before( $errorRow );
+			};
+
+			ajaxCompleteHandler = function(){
+				$loadingRow.remove();
+				$parent.data( "childrenLoaded", true );
+				$parent.data( "childrenLoading", false );
+				$parent.data( "children", calculateChildren( $parent ) );
+
+				getChildren( $parent ).attr( "tabindex", $parent.attr( "tabindex" ) );
+			};
+
+			$.ajax( buildAjaxLink( 'sitetree.ajaxChildNodes', { parentId : $parent.data( "id" )  } ), {
+				  method   : "GET"
+				, cache    : false
+				, success  : ajaxSuccessHandler
+				, error    : ajaxErrorHandler
+				, complete : ajaxCompleteHandler
 			} );
 		};
 
-		toggleRow = function( $row ){
-			var $toggler = $row.data( "toggler" )
-			  , closed   = $row.data( "closed" )
+		calculateChildren = function( $parent ) {
+			var $table = $parent.closest( "table" );
 
+			return $table.find( "tr[data-parent='" + $parent.data( "id" ) + "']" )
+		};
+
+		closeChildren = function( $parent ){
+			var $childRows = getChildren( $parent );
+			if ( $childRows.length ) {
+				$childRows.hide().each( function(){
+					var $childRow = $( this );
+
+					if ( getChildren( $childRow ).length ) {
+						closeChildren( $childRow );
+					}
+				} );
+			}
+		};
+
+		toggleRow = function( $row ){
+			var $toggler = $row.find( ".tree-toggler" )
+			  , open     = $row.data( "open" )
 
 			$toggler.toggleClass( "fa-caret-right" );
 			$toggler.toggleClass( "fa-caret-down" );
 
-			closed ? openChildren( $row ) : closeChildren( $row );
+			open ? closeChildren( $row ) : openChildren( $row );
+			$row.data( "open", !open );
 
-			$row.data( "closed", !closed );
 		}
 
 		linkWasClicked = function( eventTarget ){
@@ -44,31 +107,23 @@
 			    || $( eventTarget ).data( 'toggle' );
 		};
 
+		getChildren = function( $parent ) {
+			if ( typeof $parent.data( "children" ) === "undefined" ) {
+				$parent.data( "children", calculateChildren( $parent ) );
+			}
+
+			return $parent.data( "children" );
+		}
+
 		return this.each( function(){
 			var $table      = $( this )
-			  , $parentRows = $table.find( "tr[data-has-children='true']" )
 			  , $selected   = $table.find( "tr.selected:first" );
-
-			$parentRows.each( function(){
-				var $parentRow = $( this )
-				  , $children  = $table.find( "tr[data-parent='" + $parentRow.data( "id" ) + "']" )
-				  , $toggler   = $( '<i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i>' );
-
-				$toggler.insertBefore( $parentRow.find( '.page-type-icon' ) );
-				$toggler.data( "parentRow", $parentRow );
-
-				$parentRow.data( "toggler" , $toggler );
-				$parentRow.data( "children", $children );
-				$parentRow.data( "closed"  , true );
-
-				$children.hide();
-			} );
 
 			$table.on( "click", ".tree-toggler", function( e ){
 				e.preventDefault();
 
 				var $toggler   = $( this )
-				  , $parentRow = $toggler.data( "parentRow" )
+				  , $parentRow = $toggler.closest( "tr" );
 
 				toggleRow( $parentRow );
 			} );
@@ -77,7 +132,7 @@
 				e.stopPropagation();
 				var $row = $( this );
 
-				if ( !$row.data( "closed" ) ) {
+				if ( $row.data( "open" ) ) {
 					toggleRow( $row );
 				}
 			} );
@@ -98,7 +153,7 @@
 			$table.on( "keydown", "tbody > tr", "right", function( e ){
 				e.stopPropagation();
 				var $row = $( this );
-				if ( $row.data( "closed" ) ) {
+				if ( !$row.data( "open" ) ) {
 					toggleRow( $row );
 				}
 			} );
@@ -116,13 +171,14 @@
 					$parent = $table.find( "tr[data-id='" + ( $parent.data( "parent" ) || '' ) + "']"  );
 				}
 
+				toggleRow( $selected );
 				$selected.focus();
 				$selected.blur( function(){
 					$( this ).removeClass( "selected" );
 				} );
 
 			} else {
-				toggleRow( $parentRows.first() );
+				toggleRow( $table.find( "tr[data-has-children='true']" ).first() );
 			}
 
 		} );

@@ -1,6 +1,8 @@
 Preside viewlets
 ================
 
+.. contents:: :local:
+
 Overview
 ########
 

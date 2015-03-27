@@ -27,6 +27,7 @@ module.exports = function( grunt ) {
 					, 'js/admin/presidecore/i18n.js'
 					, 'js/admin/presidecore/preside.richeditor.js'
 					, 'js/admin/presidecore/preside.bootbox.modal.js'
+					, 'js/admin/presidecore/preside.iframe.modal.js'
 					, 'js/admin/presidecore/preside.asset.picker.js'
 					, 'js/admin/presidecore/preside.object.picker.js'
 					, 'js/admin/presidecore/preside.imageDimension.picker.js'
@@ -81,7 +82,7 @@ module.exports = function( grunt ) {
 					  	"js/admin/lib/plugins/jquery.dataTables.js", // must come first
 					  	"js/admin/lib/plugins/*.js"
 					  ]
-					, dest : "js/admin/lib/plugins-1.0.003.min.js"
+					, dest : "js/admin/lib/plugins-1.0.005.min.js"
 				},{
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"

@@ -141,7 +141,6 @@ component output=false singleton=true {
 			}
 		}
 
-
 		return joins;
 	}
 
@@ -228,7 +227,7 @@ component output=false singleton=true {
 						, propertyName = propertyName
 					} );
 
-				} else if ( property.relationship EQ "many-to-one" ) {
+				} else if ( property.relationship == "many-to-one" ) {
 
 					if ( not StructKeyExists( objects, property.relatedto ) ) {
 						throw(
@@ -283,16 +282,34 @@ component output=false singleton=true {
 					}
 					ArrayAppend( relationships[ property.relatedTo ][ objectName ], {
 						  type     = "one-to-many"
-						, required = property.required
+						, required = false
 						, pk       = "id"
 						, fk       = propertyName
 						, onUpdate = property.onUpdate
 						, onDelete = property.onDelete
+						, alias    = _calculateOneToManyAlias( property.relatedTo, objects[ property.relatedTo ], objectName, propertyName )
 					} );
 
 					property.setAttribute( "type"     , objects[ property.relatedto ].meta.properties.id.type      );
 					property.setAttribute( "dbType"   , objects[ property.relatedto ].meta.properties.id.dbType    );
 					property.setAttribute( "maxLength", objects[ property.relatedto ].meta.properties.id.maxLength );
+				} else if ( property.relationship == "one-to-many" ) {
+					if ( not StructKeyExists( objects, property.relatedto ) ) {
+						throw(
+							  type    = "RelationshipGuidance.BadRelationship"
+							, message = "Object, [#property.relatedTo#], could not be found"
+							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#]; this object could not be found."
+						);
+					}
+					var relationshipKey = property.relationshipKey ?: objectName;
+
+					if ( ! objects[ property.relatedTo ].meta.properties.keyExists( relationshipKey ) ) {
+						throw(
+							  type    = "RelationshipGuidance.BadRelationship"
+							, message = "Object property, [#property.relatedTo#.#relationshipKey#], could not be found"
+							, detail  = "The property, [#propertyName#], in Preside component, [#objectName#], declared a [#property.relationship#] relationship with the object [#property.relatedTo#] using foreign key property named, [#relationshipKey#]. The property could not be found."
+						);
+					}
 				}
 			}
 		}
@@ -319,15 +336,29 @@ component output=false singleton=true {
 		, required string forceJoins
 
 	) output=false {
-		var currentSource = arguments.objectName;
-		var targetPos     = 0;
-		var joins         = [];
-		var joinAlias     = "";
-		var currentAlias  = "";
+		var currentSource   = arguments.objectName;
+		var targetPos       = 0;
+		var joins           = [];
+		var joinAlias       = "";
+		var currentAlias    = "";
+		var currentJoinType = "inner";
 
 		while( targetPos lt ListLen( target, "$" ) ) {
 			var targetCol    = ListGetAt( target, ++targetPos, "$" );
 			var relationship = _findColumnRelationship( currentSource, targetCol );
+			var joinType     = "";
+
+			if (  Len( Trim ( arguments.forceJoins ) ) ) {
+				joinType = arguments.forceJoins;
+			} elseif ( currentJoinType == "left" ) {
+				joinType = "left";
+			} elseif ( IsBoolean( relationship.required ?: "" ) && relationship.required ) {
+				joinType = "inner";
+			} else {
+				joinType = "left";
+			}
+
+			currentJoinType = joinType;
 
 			if ( not StructCount( relationship ) ) {
 				return [];
@@ -335,7 +366,7 @@ component output=false singleton=true {
 
 			if ( relationship.type eq "many-to-many" ) {
 				ArrayAppend( joins, {
-					  type               = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
+					  type               = joinType
 					, joinToObject       = relationship.pivotObject
 					, joinFromObject     = currentSource
 					, joinFromAlias      = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
@@ -343,18 +374,41 @@ component output=false singleton=true {
 					, joinToProperty     = ( relationship.sourceObject == currentSource ? relationship.sourceFk : relationship.targetFk )
 					, manyToManyProperty = relationship.propertyName
 				} );
-				currentAlias = relationship.pivotObject;
+				currentAlias    = relationship.pivotObject;
 			}
 
 			joinAlias = ListAppend( joinAlias, targetCol, "$" );
 			var join = {
-				  type             = ( Len( Trim ( arguments.forceJoins ) ) ? arguments.forceJoins : ( relationship.required ? 'inner' : 'left' ) )
-				, joinToObject     = relationship.type eq "many-to-many" ? relationship.object      : relationship.object
-				, joinFromObject   = relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource
-				, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : ( relationship.type eq "many-to-many" ? relationship.pivotObject : currentSource )
-				, joinFromProperty = relationship.type eq "many-to-many" ? ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk ) : relationship.fk
-				, joinToProperty   = relationship.type eq "many-to-many" ? "id" : relationship.pk
+				  type             = joinType
+				, joinToObject     = relationship.object
 			};
+			switch( relationship.type ){
+				case "many-to-many":
+					join.append({
+						  joinFromObject   = relationship.pivotObject
+						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : relationship.pivotObject
+						, joinFromProperty = ( relationship.sourceObject == currentSource ? relationship.targetFk : relationship.sourceFk )
+						, joinToProperty   = "id"
+					});
+				break;
+				case "many-to-one":
+					join.append({
+						  joinFromObject   = currentSource
+						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
+						, joinFromProperty = relationship.fk
+						, joinToProperty   = relationship.pk
+					});
+				break;
+				case "one-to-many":
+					join.append({
+						  joinFromObject   = currentSource
+						, joinFromAlias    = Len( Trim( currentAlias ) ) ? currentAlias : currentSource
+						, joinFromProperty = relationship.pk
+						, joinToProperty   = relationship.fk
+					});
+				break;
+			}
+
 			currentSource = relationship.object;
 			currentAlias  = joinAlias;
 
@@ -379,6 +433,10 @@ component output=false singleton=true {
 					found = Duplicate( join );
 					found.object = foreignObj;
 					return found;
+				} elseif ( join.type eq "one-to-many" && join.alias == arguments.columnName ) {
+					found = Duplicate( join );
+					found.object = foreignObj;
+					return found;
 				}
 			}
 		}
@@ -399,22 +457,40 @@ component output=false singleton=true {
 	}
 
 	private boolean function _joinExists( required struct join, required array joins ) output=false {
-		var cleanedJoin    = Duplicate( join );
-		var serializedJoin = "";
-
-		StructDelete( cleanedJoin, "manyToManyProperty" );
-		serializedJoin = SerializeJson( cleanedJoin );
+		var cleanedJoin = Duplicate( join );
+		cleanedJoin.delete( "manyToManyProperty" );
 
 		for( var existingJoin in arguments.joins ) {
-			cleanedJoin = Duplicate( existingJoin );
-			StructDelete( cleanedJoin, "manyToManyProperty" );
+			var cleanedExistingJoin = Duplicate( existingJoin );
+			cleanedExistingJoin.delete( "manyToManyProperty" );
 
-			if ( SerializeJson( cleanedJoin ) eq serializedJoin ) {
+			var isSame = cleanedExistingJoin.count() == cleanedJoin.count();
+			if ( isSame ) {
+				for( var key in cleanedJoin ) {
+					if ( !cleanedExistingJoin.keyExists( key ) || cleanedExistingJoin[ key ] != cleanedJoin[ key ] ) {
+						isSame = false;
+						break;
+					}
+				}
+			}
+
+			if ( isSame ) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	private string function _calculateOneToManyAlias( required string oneObjectName, required struct oneObject, required string manyObjectName, required string fkName ) output=false {
+		for ( var propertyName in oneObject.meta.properties ) {
+			var property = oneObject.meta.properties[ propertyName ];
+			if ( property.getAttribute( "relationship" ) == "one-to-many" && property.getAttribute( "relatedTo" ) == manyObjectName && property.getAttribute( "relationshipKey", oneObjectName ) == fkName ) {
+				return propertyName;
+			}
+		}
+
+		return "";
 	}
 
 // GETTERS AND SETTERS

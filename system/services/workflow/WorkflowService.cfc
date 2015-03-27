@@ -28,6 +28,7 @@ component output=false singleton=true {
 		,          string reference  = ""
 		,          string owner      = _getSessionBasedOwner()
 		,          string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
+		,          date   expires
 
 	) output=false {
 		var serializedState = SerializeJson( arguments.state );
@@ -35,7 +36,7 @@ component output=false singleton=true {
 		if ( Len( Trim( arguments.id ) ) ) {
 			_getStateDao().updateData(
 				  id   = arguments.id
-				, data = { state=serializedState, status=arguments.status }
+				, data = { state=serializedState, status=arguments.status, expires=arguments.expires ?: "" }
 			);
 
 			return arguments.id;
@@ -47,6 +48,7 @@ component output=false singleton=true {
 			, workflow  = arguments.workflow
 			, reference = arguments.reference
 			, owner     = arguments.owner
+			, expires   = arguments.expires ?: ""
 		});
 	}
 
@@ -57,6 +59,7 @@ component output=false singleton=true {
 		,          string reference  = ""
 		,          string owner      = _getSessionBasedOwner()
 		,          string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
+		,          date   expires
 
 	) output=false {
 		var existingWf = getState( argumentCollection=arguments );
@@ -75,6 +78,11 @@ component output=false singleton=true {
 	) output=false {
 		if ( Len( Trim( arguments.id  ) ) ) {
 			var record = _getStateDao().selectData( id=arguments.id );
+
+			if ( _hasStateExpired( record.expires ) ) {
+				complete( id=record.id );
+				return {};
+			}
 
 			for( var r in record ){
 				r.state = IsJson( r.state ) ? DeserializeJson( r.state ) : {};
@@ -101,9 +109,14 @@ component output=false singleton=true {
 	private string function _getRecordIdByWorkflowNameReferenceAndOwner( required string workflow, required string reference, required string owner ) output=false {
 		if ( Len( Trim( arguments.workflow ) ) && Len( Trim( arguments.reference ) ) && Len( Trim( arguments.owner ) ) ) {
 			var record = _getStateDao().selectData(
-				  selectFields = [ "id" ]
+				  selectFields = [ "id", "expires" ]
 				, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=arguments.owner }
 			);
+
+			if ( _hasStateExpired( record.expires ) ) {
+				complete( id=record.id );
+				return "";
+			}
 
 			if ( !record.recordCount && owner != _getSessionBasedOwner() ) {
 				record = _getStateDao().selectData(
@@ -133,6 +146,10 @@ component output=false singleton=true {
 		}
 
 		return owner;
+	}
+
+	private boolean function _hasStateExpired( required any expires ) output=false {
+		return IsDate( arguments.expires ) && Now() > expires;
 	}
 
 // GETTERS AND SETTERS

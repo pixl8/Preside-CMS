@@ -5,6 +5,7 @@
 	  , $listingTable     = $( '#asset-listing-table' )
 	  , $tableHeaders     = $listingTable.find( 'thead > tr > th')
 	  , $titleAndActions  = $( '.title-and-actions-container' ).first()
+	  , $pageSubtitle     = $( '.page-subtitle' ).first()
 	  , colConfig         = []
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
@@ -25,6 +26,7 @@
 				, success : function( html ){
 					activeFolder = newActiveFolder;
 					$titleAndActions.html( html );
+					$pageSubtitle.html( $node.find( '.folder-name:first' ).html() );
 
 					dataTable && dataTable.fnPageChange( 'first' );
 				}

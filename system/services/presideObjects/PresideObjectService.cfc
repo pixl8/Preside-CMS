@@ -16,7 +16,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @relationshipGuidance.inject   RelationshipGuidance
 	 * @presideObjectDecorator.inject PresideObjectDecorator
 	 * @filterService.inject          presideObjectSavedFilterService
-	 * @objectCache.inject            cachebox:SystemCache
+	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
 	 * @coldboxController.inject      coldbox
 	 * @interceptorService.inject     coldbox:InterceptorService
@@ -30,7 +30,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any     relationshipGuidance
 		, required any     presideObjectDecorator
 		, required any     filterService
-		, required any     objectCache
+		, required any     cache
 		, required any     defaultQueryCache
 		, required any     coldboxController
 		, required any     interceptorService
@@ -44,7 +44,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setPresideObjectDecorator( arguments.presideObjectDecorator );
 		_setFilterService( arguments.filterService );
-		_setObjectCache( arguments.objectCache );
+		_setCache( arguments.cache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
 		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
 		_setCacheMaps( {} );
@@ -210,7 +210,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		}
 
 		if ( ArrayLen( joinTargets ) ) {
-			var joinsCache    = _getObjectCache();
+			var joinsCache    = _getCache();
 			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( joinTargets )#"
 
 			joins = joinsCache.get( joinsCacheKey );
@@ -334,11 +334,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		if ( StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
 			cleanedData.datemodified = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, "id" ) and ( not StructKeyExists( cleanedData, "id" ) or not Len( Trim( cleanedData.id ) ) ) ) {
-			param name="obj.properties.id.generator" default="UUID";
-			newId = _generateNewIdWhenNecessary( generator=obj.properties.id.generator );
-			if ( Len( Trim( newId ) ) ) {
-				cleanedData.id = newId;
+		if ( StructKeyExists( obj.properties, "id" ) ) {
+			if ( not StructKeyExists( cleanedData, "id" ) or not Len( Trim( cleanedData.id ) ) ) {
+				newId = _generateNewIdWhenNecessary( generator=( obj.properties.id.generator ?: "UUID" ) );
+				if ( Len( Trim( newId ) ) ) {
+					cleanedData.id = newId;
+				}
+			} else {
+				newId = cleanedData.id;
 			}
 		}
 
@@ -939,8 +942,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_announceInterception( "preDbSyncObjects" );
 
 		_getSqlSchemaSynchronizer().synchronize(
-			  dsns    = _getAllDsns()
-			, objects = _getAllObjects()
+			  dsns    = _getDsns()
+			, objects = _getObjects()
 		);
 
 		_announceInterception( "postDbSyncObjects" );
@@ -953,8 +956,9 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
 	 */
 	public void function reload() output=false autodoc=true {
-		_getObjectCache().clearAll();
+		_getCache().clearAll();
 		_getDefaultQueryCache().clearAll();
+		_setObjects({});
 		_loadObjects();
 	}
 
@@ -962,7 +966,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
 	 */
 	public array function listObjects() autodoc=true output=false {
-		var objects     = _getAllObjects();
+		var objects     = _getObjects();
 		var objectNames = [];
 
 		for( var objectName in objects ){
@@ -982,7 +986,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @objectName.hint Name of the object that you wish to check the existance of
 	 */
 	public boolean function objectExists( required string objectName ) output=false autodoc=true {
-		var objects = _getAllObjects();
+		var objects = _getObjects();
 
 		return StructKeyExists( objects, arguments.objectName );
 	}
@@ -1219,7 +1223,6 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_announceInterception( state="preLoadPresideObjects", interceptData={ objectPaths=objectPaths } );
 
 		var objects = _getObjectReader().readObjects( objectPaths );
-		var cache   = _getObjectCache();
 		var dsns    = {};
 
 		for( var objName in objects ){
@@ -1231,34 +1234,14 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 			_getVersioningService().setupVersioningForVersionedObjects( objects, StructKeyArray( dsns )[1] );
 		}
 
-		cache.set( "PresideObjectService: objects", objects );
-		cache.set( "PresideObjectService: dsns"   , StructKeyArray( dsns ) );
+		_setObjects( objects );
+		_setDsns( StructKeyArray( dsns ) );
 
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 	}
 
-	private struct function _getAllObjects() output=false {
-		var cache = _getObjectCache();
-
-		if ( not cache.lookup( "PresideObjectService: objects" ) ) {
-			_loadObjects();
-		}
-
-		return _getObjectCache().get( "PresideObjectService: objects" );
-	}
-
-	private array function _getAllDsns() output=false {
-		var cache = _getObjectCache();
-
-		if ( not cache.lookup( "PresideObjectService: dsns" ) ) {
-			_loadObjects();
-		}
-
-		return _getObjectCache().get( "PresideObjectService: dsns" );
-	}
-
 	private struct function _getObject( required string objectName ) output=false {
-		var objects = _getAllObjects();
+		var objects = _getObjects();
 
 		if ( not StructKeyExists( objects, arguments.objectName ) ) {
 			throw( type="PresideObjectService.missingObject", message="Object [#arguments.objectName#] does not exist" );
@@ -1313,11 +1296,10 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				cols = arguments.columnDefinitions;
 			}
 
-			paramName = arguments.prefix & Replace( key, ".", "__", "all" );
+			paramName = arguments.prefix & ReReplace( key, "[\.\$]", "__", "all" );
 			dataType  = arguments.dbAdapter.sqlDataTypeToCfSqlDatatype( cols[ ListLast( key, "." ) ].dbType );
 
-
-			if ( not StructKeyExists( arguments.data,  key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
+			if ( not StructKeyExists( arguments.data, key ) ) { // should use IsNull() arguments.data[key] but bug in Railo prevents this
 				param = {
 					  name  = paramName
 					, value = NullValue()
@@ -1363,7 +1345,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 		for( key in arguments.params ){
 			param     = arguments.params[ key ];
-			paramName = Replace( key, ".", "__", "all" );
+			paramName = ReReplace( key, "[\.\$]", "__", "all" );
 
 			if ( IsStruct( param ) ) {
 				StructAppend( param, { name=paramName } );
@@ -1381,7 +1363,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 			if ( not StructKeyExists( param, "type" ) ) {
 				if ( ListLen( key, "." ) eq 2 ) {
-					cols = _getObject( ListFirst( key, "." ) ).meta.properties;
+					if ( columnDefinitions.keyExists( ListFirst( key, "." ) ) ) {
+						cols = _getObject( columnDefinitions[ ListFirst( key, "." ) ].relatedTo ?: "" ).meta.properties;
+					} else {
+						cols = _getObject( ListFirst( key, "." ) ).meta.properties;
+					}
 				} else {
 					cols = arguments.columnDefinitions;
 				}
@@ -1404,7 +1390,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 
 	) output=false {
 		var key        = "";
-		var cache      = _getObjectCache();
+		var cache      = _getCache();
 		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( arguments.filter ) ? StructKeyList( arguments.filter ) : arguments.filter#"
 		var objects    = cache.get( cacheKey );
 
@@ -1467,7 +1453,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	private array function _convertObjectJoinsToTableJoins( required array objectJoins ) output=false {
 		var tableJoins = [];
 		var objJoin = "";
-		var objects = _getAllObjects();
+		var objects = _getObjects();
 		var tableJoin = "";
 
 		for( objJoin in arguments.objectJoins ){
@@ -1652,7 +1638,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		if ( not StructKeyExists( this, "_aliasedFieldRegex" ) ) {
 			var entities = {};
 
-			for( var objName in _getAllObjects() ){
+			for( var objName in _getObjects() ){
 				entities[ objName ] = 1;
 
 				for( var propertyName in getObjectProperties( objName ) ) {
@@ -1870,7 +1856,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		};
 
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
-			result.filterParams = result.filter;
+			result.filterParams = Duplicate( result.filter );
 		}
 
 		for( var savedFilter in arguments.savedFilters ){
@@ -1909,6 +1895,8 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 				, dbAdapter         = adapter
 			);
 		} else {
+			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
+			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
 			result.params = _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
@@ -2032,11 +2020,11 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_filterService = arguments.filterService;
 	}
 
-	private any function _getObjectCache() output=false {
-		return _objectCache;
+	private any function _getCache() output=false {
+		return _cache;
 	}
-	private void function _setObjectCache( required any objectCache ) output=false {
-		_objectCache = arguments.objectCache;
+	private void function _setCache( required any cache ) output=false {
+		_cache = arguments.cache;
 	}
 
 	private any function _getDefaultQueryCache() output=false {
@@ -2058,5 +2046,19 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 	private void function _setInterceptorService( required any IiterceptorService ) output=false {
 		_interceptorService = arguments.IiterceptorService;
+	}
+
+	private struct function _getObjects() output=false {
+		return _objects;
+	}
+	private void function _setObjects( required struct objects ) output=false {
+		_objects = arguments.objects;
+	}
+
+	private array function _getDsns() output=false {
+		return _dsns;
+	}
+	private void function _setDsns( required array dsns ) output=false {
+		_dsns = arguments.dsns;
 	}
 }

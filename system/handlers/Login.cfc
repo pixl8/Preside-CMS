@@ -4,12 +4,14 @@ component output=false {
 
 // core events
 	public void function attemptLogin( event, rc, prc ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
+		announceInterception( "preAttemptLogin" );
+
+		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 		var loginId      = rc.loginId  ?: "";
 		var password     = rc.password ?: "";
-		var postLoginUrl = websiteLoginService.getPostLoginUrl( rc.postLoginUrl ?: cgi.http_referer );
+		var postLoginUrl = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( cgi.http_referer );
 		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
 		var loggedIn     = websiteLoginService.login(
 			  loginId              = loginId
@@ -19,10 +21,15 @@ component output=false {
 		);
 
 		if ( loggedIn ) {
+			announceInterception( "onLoginSuccess"  );
+
 			websiteLoginService.clearPostLoginUrl();
 			setNextEvent( url=postLoginUrl );
 		}
 
+		announceInterception( "onLoginFailure"  );
+
+		websiteLoginService.setPostLoginUrl( postLoginUrl );
 		setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 			  loginId      = loginId
 			, password     = password
@@ -34,8 +41,7 @@ component output=false {
 
 	public void function logout( event, rc, prc ) output=false {
 		websiteLoginService.logout();
-
-		setNextEvent( url=( Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : _getDefaultPostLogoutUrl( argumentCollection=arguments ) ) );
+		setNextEvent( url=_getDefaultPostLogoutUrl( argumentCollection=arguments ) );
 	}
 
 	public void function sendResetInstructions( event, rc, prc ) output=false {
@@ -91,7 +97,7 @@ component output=false {
 
 // page type viewlets
 	private string function loginPage( event, rc, prc, args={} ) output=false {
-		if ( websiteLoginService.isLoggedIn() ) {
+		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
 

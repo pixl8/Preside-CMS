@@ -3,6 +3,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 	property name="siteService"     inject="siteService";
 	property name="siteTreeService" inject="siteTreeService";
 	property name="siteDao"         inject="presidecms:object:site";
+	property name="aliasDao"        inject="presidecms:object:site_alias_domain";
 	property name="redirectDao"     inject="presidecms:object:site_redirect_domain";
 	property name="messagebox"      inject="coldbox:plugin:messagebox";
 
@@ -54,6 +55,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 
 		siteTreeService.ensureSystemPagesExistForSite( siteId );
 		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
+		siteService.syncSiteAliasDomains( siteId, rc.alias_domains ?: "" );
 
 		messageBox.info( translateResource( "cms:sites.added.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
@@ -71,6 +73,10 @@ component output=false extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
+		var aliasDomains = aliasDao.selectData( filter={ site=siteId } );
+		if ( aliasDomains.recordCount ) {
+			prc.record.alias_domains = ValueList( aliasDomains.domain, Chr(13) & Chr(10) );
+		}
 		var redirectDomains = redirectDao.selectData( filter={ site=siteId } );
 		if ( redirectDomains.recordCount ) {
 			prc.record.redirect_domains = ValueList( redirectDomains.domain, Chr(13) & Chr(10) );
@@ -104,6 +110,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 		);
 
 		siteService.syncSiteRedirectDomains( siteId, rc.redirect_domains ?: "" );
+		siteService.syncSiteAliasDomains( siteId, rc.alias_domains ?: "" );
 
 		messageBox.info( translateResource( "cms:sites.saved.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sites.manage" ) );
@@ -155,8 +162,15 @@ component output=false extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 
-		siteService.setActiveAdminSite( activeSiteId );
+		var currentActiveSite = siteService.getActiveAdminSite();
+		var newSite           = siteService.getSite( activeSiteId );
 
+		if ( newSite.domain != currentActiveSite.domain ) {
+			event.setSite( newSite );
+			setNextEvent( url=event.buildAdminLink( linkto="sitetree.index" ) );
+		}
+
+		siteService.setActiveAdminSite( activeSiteId );
 		setNextEvent( url=event.buildAdminLink( linkto="sitetree.index" ) );
 	}
 

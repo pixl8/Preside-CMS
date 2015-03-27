@@ -311,16 +311,21 @@ component output=false singleton=true {
 				}
 			}
 
-			aliases[ join.tableName & join.joinToColumn ] = Len( join.tableAlias ) ? escapeEntity( join.tableAlias ) : escapeEntity( join.tableName );
+			if ( !Len( join.tableAlias ) ) {
+				aliases[ join.tableName & join.joinToColumn ] = escapeEntity( join.tableName );
+			}
 			aliases[ join.joinToTable ] = escapeEntity( join.joinToTable );
 
 		}
 		for( join in arguments.joins ){
 			sql &= " " & ( join.type eq "left" ? "left" : "inner" ) & " join " & escapeEntity( join.tableName );
 			if ( Len( join.tableAlias ) ) {
-				sql &= " " & aliases[ join.tableName & join.joinToColumn ];
+				sql &= " " & escapeEntity( join.tableAlias );
+				sql &= " on (" & escapeEntity( join.tableAlias ) & "." & escapeEntity( join.tableColumn );
+			} else {
+				sql &= " on (" & aliases[ join.tableName & join.joinToColumn ] & "." & escapeEntity( join.tableColumn );
 			}
-			sql &= " on (" & aliases[ join.tableName & join.joinToColumn ] & "." & escapeEntity( join.tableColumn );
+
 			sql &= " = " & aliases[ join.joinToTable ] & "." & escapeEntity( join.joinToColumn ) & ")";
 
 			if ( Len( Trim( join.additionalClauses ?: "" ) ) ) {
@@ -341,7 +346,7 @@ component output=false singleton=true {
 		var n        = 0;
 		var paramName = "";
 		var filterKeys = "";
-		var dottedSqlParamRegex = "([$\s]:[a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*([\s\),]|$))";
+		var dottedSqlParamRegex = "([$\s]:[a-zA-Z_][a-zA-Z0-9_]*)[\.\$]([a-zA-Z_][a-zA-Z0-9_]*([\s\),]|$))";
 
 		if ( IsSimpleValue( arguments.filter ) ) {
 			return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
@@ -354,7 +359,7 @@ component output=false singleton=true {
 		for( i=1; i lte ArrayLen( filterKeys ); i++ ) {
 			col = filterKeys[i];
 			entity = hasAlias and ListLen( col, "." ) eq 1 ? "#arguments.tableAlias#.#col#" : col;
-			paramName = Replace( col, ".", "__", "all" );
+			paramName = ReReplace( col, "[\.\$]", "__", "all" );
 			sql &= delim & " " & escapeEntity( entity );
 
 			if ( IsArray( arguments.filter[ col ] ) ) {

@@ -40,8 +40,18 @@ component output=false {
 			, includeInactive   = event.isAdminUser()
 			, activeTree        = activeTree
 			, expandAllSiblings = false
+			, isSubMenu         = true
 		);
 
 		return renderView( view="/core/navigation/subNavigation", args=args );
+	}
+
+	private string function htmlSiteMap( event, rc, prc, args={} ) output=false {
+		args.tree = siteTreeSvc.getTree(
+			  selectFields = [ "id", "title", "active", "exclude_from_sitemap" ]
+			, format       = "nestedArray"
+		);
+
+		return renderView( view="/core/navigation/htmlSiteMap", args=args );
 	}
 }

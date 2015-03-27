@@ -1,6 +1,8 @@
 Working with multiple sites 
 ===========================
 
+.. contents:: :local:
+
 Overview
 ########
 

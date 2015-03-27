@@ -1,6 +1,8 @@
 Building Preside locally
 ========================
 
+.. contents:: :local:
+
 In order to run Preside from a local copy of the codebase, the system requires that external dependencies be pulled in to the expected locations in the project. Before continuing, you will need to make sure you have ant_ installed. Build steps:
 
 1. Clone the `GitHub repository`_ (you probably want to `fork it`_ first)

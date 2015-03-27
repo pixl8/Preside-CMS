@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Notifications: topic global configuration form
+
+This form is used for managing global notification preferences for a particular topic
+-->
+<form>
+	<tab id="basic" sortorder="10" >
+		<fieldset id="basic" sortorder="10">
+			<field sortorder="10" binding="admin_notification_topic.save_in_cms" />
+			<field sortorder="20" binding="admin_notification_topic.send_to_email_address" control="textinput" />
+		</fieldset>
+	</tab>
+</form>

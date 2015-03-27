@@ -64,10 +64,17 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"             );
+		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"           );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"          );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"         );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotificationConsumer"  );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotificationConsumer" );
+		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                );
+		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                 );
+		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                 );
+		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                );
+		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                 );
+		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
 
 		cacheBox = {
 			configFile = "preside.system.config.Cachebox"
@@ -110,14 +117,17 @@ component output=false {
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics        = [];
-		settings.autoSyncDb                = false;
+		settings.autoSyncDb                = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 
 		settings.adminSideBarItems = [
 			  "sitetree"
 			, "assetmanager"
 			, "datamanager"
-			, "usermanager"
 			, "websiteUserManager"
+		];
+
+		settings.adminConfigurationMenuItems = [
+			  "usermanager"
 			, "systemConfiguration"
 			, "updateManager"
 			, "errorLogs"
@@ -127,6 +137,7 @@ component output=false {
 			  maxFileSize       = "5"
 			, types             = _getConfiguredFileTypes()
 			, derivatives       = _getConfiguredAssetDerivatives()
+			, folders           = {}
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
@@ -142,6 +153,7 @@ component output=false {
 			, websiteUserManager     = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
 			, devtools               = [ "console" ]
 			, systemConfiguration    = [ "manage" ]
+			, notifications          = [ "configure" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -160,7 +172,7 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*" ];
+		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*" ];
 		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
 		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 
@@ -269,6 +281,11 @@ component output=false {
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }
+		};
+
+		types.video = {
+			  swf = { serveAsAttachment=true, mimeType="application/x-shockwave-flash" }
+			, flv = { serveAsAttachment=true, mimeType="video/x-flv" }
 		};
 
 		types.document = {

@@ -1,6 +1,8 @@
 Modifying the administrator left hand menu
 ==========================================
 
+.. contents:: :local:
+
 Overview
 ########
 

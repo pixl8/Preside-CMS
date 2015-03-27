@@ -24,79 +24,66 @@
 		};
 
 		PresideObjectPicker.prototype.setupQuickAdd = function(){
-			var iframeSrc       = this.$originalInput.data( "quickAddUrl" )
-			  , modalTitle      = this.$originalInput.data( "quickAddModalTitle" )
-			  , iframeId        = this.$originalInput.attr('id') + "_quickadd_frame"
-			  , onLoadCallback  = "cb" + iframeId
-			  , presideObjectPicker = this;
+			var iframeSrc           = this.$originalInput.data( "quickAddUrl" )
+			  , modalTitle          = this.$originalInput.data( "quickAddModalTitle" )
+			  , presideObjectPicker = this
+			  , modalOptions        = {
+					title     : modalTitle,
+					className : "quick-add-modal",
+					buttons   : {
+						cancel : {
+							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+							, className : "btn-default"
+						},
+						add : {
+							  label     : '<i class="fa fa-plus"></i> ' + i18n.translateResource( "cms:add.btn" )
+							, className : "btn-primary"
+							, callback  : function(){ return presideObjectPicker.processAddRecord(); }
+						}
+					}
+				}
+			  , callbacks = {
+					onLoad : function( iframe ) {
+						iframe.presideObjectPicker = presideObjectPicker;
+						presideObjectPicker.quickAddIframe = iframe;
+					},
+					onShow : function( modal, iframe ){
+						if ( typeof iframe !== "undefined" && typeof iframe.quickAdd !== "undefined" ) {
+							iframe.quickAdd.focusForm();
 
-			window[ onLoadCallback ] = function( iframe ){
-				iframe.presideObjectPicker = presideObjectPicker;
-			};
-			this.$quickAddIframeContainer = $( '<div id="' + iframeId + '" style="display:none;"><iframe class="quick-add-iframe" src="' + iframeSrc + '" width="900" height="400" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>' );
-			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#' + iframeId + '" title="' + modalTitle + '"><i class="fa fa-plus"></i></a>' );
+							return false;
+						}
+
+						modal.on('hidden.bs.modal', function (e) {
+							modal.remove();
+						} );
+					}
+				};
+
+			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+
+			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.uberSelect.search_field.attr( "tabindex" ) );
 			} else if ( this.$originalInput.attr( "tabindex" ) && this.$originalInput.attr( "tabindex" ) != "-1" ) {
 				this.$quickAddButton.attr( "tabindex", this.$originalInput.attr( "tabindex" ) );
 			}
 
-			this.$uberSelect.after( this.$quickAddIframeContainer );
+			this.$quickAddButton.on( "click", function( e ) {
+				presideObjectPicker.quickAddIframeModal.open();
+			} );
+
 			this.$uberSelect.after( this.$quickAddButton );
-
-			this.$quickAddButton.data( 'modalClass', 'quick-add-modal' );
-
-			this.$quickAddButton.presideBootboxModal({
-				buttons : {
-					cancel : {
-						  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
-						, className : "btn-default"
-					},
-					add : {
-						  label     : '<i class="fa fa-plus"></i> ' + i18n.translateResource( "cms:add.btn" )
-						, className : "btn-primary"
-						, callback  : function(){ return presideObjectPicker.processAddRecord(); }
-					}
-				},
-				onShow : function( modal ){
-					var uploadIFrame = presideObjectPicker.getQuickAddIFrame();
-
-					if ( typeof uploadIFrame.quickAdd !== "undefined" ) {
-						uploadIFrame.quickAdd.focusForm();
-
-						return false;
-					}
-
-					modal.on('hidden.bs.modal', function (e) {
-		  				modal.remove();
-					} );
-				}
-			});
 		};
 
 		PresideObjectPicker.prototype.setupQuickEdit = function(){
 			var iframeSrc           = this.$originalInput.data( "quickEditUrl" )
 			  , modalTitle          = this.$originalInput.data( "quickEditModalTitle" )
-			  , iframeId            = this.$originalInput.attr('id') + "_quickedit_frame"
-			  , onLoadCallback      = "cb" + iframeId
-			  , presideObjectPicker = this;
-
-			window[ onLoadCallback ] = function( iframe ){
-				iframe.presideObjectPicker = presideObjectPicker;
-			};
-
-			this.uberSelect.container.on( "click", ".quick-edit-link", function(e){
-				e.preventDefault();
-
-				var $quickEditLink = $( this )
-				  , href           = $quickEditLink.attr( "href" )
-
-				presideObjectPicker.editModal = presideBootbox.dialog( {
-					  title     : $quickEditLink.data( "title" ) || $quickEditLink.attr( "title" )
-					, message   : '<div id="' + iframeId + '"><iframe class="quick-edit-iframe" src="' + href + '" width="900" height="400" frameBorder="0" onload="' + onLoadCallback + '( this.contentWindow )"></iframe></div>'
-					, className : "quick-add-modal"
-					, show      : false
-					, buttons   : {
+			  , presideObjectPicker = this
+			  , modalOptions        = {
+					title     : modalTitle,
+					className : "quick-add-modal",
+					buttons   : {
 						cancel : {
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
 							, className : "btn-default"
@@ -106,22 +93,35 @@
 							, className : "btn-primary"
 							, callback  : function(){ return presideObjectPicker.processEditRecord(); }
 						}
-					  }
-				} );
-
-				presideObjectPicker.editModal.on( "shown.bs.modal", function(){
-					presideObjectPicker.editModal.off( "shown.bs.modal" );
-
-					var editIFrame = presideObjectPicker.getQuickEditIFrame();
-
-					if ( typeof editIFrame.quickEdit !== "undefined" ) {
-						editIFrame.quickEdit.focusForm();
-
-						return false;
 					}
-				} );
+				}
+			  , callbacks = {
+					onLoad : function( iframe ) {
+						iframe.presideObjectPicker = presideObjectPicker;
+						presideObjectPicker.quickEditIframe = iframe;
+					},
+					onShow : function( modal, iframe ){
+						if ( typeof iframe !== "undefined" && typeof iframe.quickEdit !== "undefined" ) {
+							iframe.quickEdit.focusForm();
 
-				presideObjectPicker.editModal.modal( "show" );
+							return false;
+						}
+
+						modal.on('hidden.bs.modal', function (e) {
+							modal.remove();
+						} );
+					}
+				};
+
+			this.uberSelect.container.on( "click", ".quick-edit-link", function(e){
+				e.preventDefault();
+
+				var $quickEditLink = $( this )
+				  , href           = $quickEditLink.attr( "href" );
+
+				presideObjectPicker.quickEditIframeModal = new PresideIframeModal( href, 900, 400, callbacks, modalOptions );
+
+				presideObjectPicker.quickEditIframeModal.open();
 			} );
 		};
 
@@ -130,9 +130,7 @@
 		};
 
 		PresideObjectPicker.prototype.closeQuickAddDialog = function(){
-			var modal = this.$quickAddButton.data( 'modal' );
-
-			modal.modal( 'hide' );
+			this.quickAddIframeModal.close();
 
 			this.uberSelect.isSearchable() && this.uberSelect.search_field.focus();
 		};
@@ -173,36 +171,21 @@
 		};
 
 		PresideObjectPicker.prototype.closeQuickEditDialog = function(){
-			typeof this.editModal !== "undefined" && this.editModal.modal( "hide" );
+			this.quickEditIframeModal.close();
 
 			this.uberSelect.isSearchable() && this.uberSelect.search_field.focus();
 		};
 
 		PresideObjectPicker.prototype.quickAddFinished = function(){
-			var modal = this.$quickAddButton.data( 'modal' );
-
-			modal.on('hidden.bs.modal', function (e) {
-  				modal.remove();
-			} );
-			modal.modal( 'hide' );
+			this.quickAddIframeModal.close();
 		};
 
 		PresideObjectPicker.prototype.getQuickAddIFrame = function(){
-			var $iframe = $( '.modal-dialog iframe.quick-add-iframe' );
-			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow;
-			}
-
-			return {};
+			return this.quickAddIframe;
 		};
 
 		PresideObjectPicker.prototype.getQuickEditIFrame = function(){
-			var $iframe = $( '.modal-dialog iframe.quick-edit-iframe' );
-			if ( $iframe.length ) {
-				return $iframe.get(0).contentWindow;
-			}
-
-			return {};
+			return this.quickEditIframe;
 		};
 
 		return PresideObjectPicker;

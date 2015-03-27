@@ -23,6 +23,7 @@ component output=false {
 
 
 		doc.append( _rstTitle( title ) );
+		doc.append( DOUBLELINE & _rstToc() );
 
 		doc.append( DOUBLELINE & _rstTitle( "Overview", "-" ) & DOUBLELINE );
 		doc.append( "**Full path:** *#arguments.componentPath#*" );
@@ -59,7 +60,6 @@ component output=false {
 		var title = meta.displayName ?: objName;
 
 		doc.append( _rstTitle( title ) );
-
 		doc.append( DOUBLELINE & _rstTitle( "Overview", "-" ) & DOUBLELINE );
 
 		if ( Len( Trim( meta.hint ?: "" ) ) ) {
@@ -318,5 +318,9 @@ component output=false {
 		props = Replace( props, "$$$", "", "all" );
 
 		return props;
+	}
+
+	private string function _rstToc() output=false {
+		return ".. contents::" & NEWLINE & INDENT & ":depth: 2" & NEWLINE & INDENT & ":local:" & DOUBLELINE;
 	}
 }

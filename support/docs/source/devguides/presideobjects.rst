@@ -1,6 +1,8 @@
 Preside Data Objects
 ====================
 
+.. contents:: :local:
+
 Overview
 ########
 
@@ -284,6 +286,22 @@ The :code:`category` property will be created as a field in the :code:`event` ob
 .. note::
 
     The :code:`event` object lives on the **many** side of this relationship (there are *many events* to *one category*), hence why we use the relationship type, *many-to-one*.
+
+You can also declare the relationship on the other side (i.e. the 'one' side). This will allow you to traverse the relationship from either angle (see :ref:`presideobjectsrelationships`). e.g. we could add a 'one-to-many' property on the `eventCategory.cfc` object; this will not create a field in the database table, but will allow you to query the relationship from the category viewpoint:
+
+.. code-block:: java
+
+    // eventCategory.cfc
+    component output=false {
+        // note that the 'relationshipKey' property is the FK in the event object
+        // this will default to the name of this object
+        property name="events" relationship="one-to-many" relatedTo="event" relationshipKey="eventCategory";
+    }
+
+    // event.cfc
+    component output=false {
+        property name="eventCategory" relationship="many-to-one" required=true;
+    }    
 
 Many to Many relationships
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -611,7 +629,7 @@ More complex filters can be achieved with a plain SQL filter combined with filte
 Making use of relationships
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As seen in the examples above, you can use a special field syntax to reference properties in objects that are related to the object that you are selecting data from / updating data on. When you do this, the service layer will automatically create the necessery SQL joins for you. 
+As seen in the examples above, you can use a special field syntax to reference properties in objects that are related to the object that you are selecting data from / updating data on. When you do this, the service layer will automatically create the necessary SQL joins for you. 
 
 The syntax takes the form: :code:`(relatedObjectReference).(propertyName)`. The related object reference can either be the name of the related object, or a :code:`$` delimited path of property names that navigate through the relationships (see examples below).
 
@@ -631,7 +649,8 @@ To help with the examples, we'll illustrate a simple relationship between three 
 
     // category.cfc
     component output=false {
-        property name="category_tag" relationship="many-to-one" relatedto="tag" required=true;
+        property name="category_tag" relationship="many-to-one" relatedto="tag"  required=true;
+        property name="news_items"   relationship="one-to-many" relatedTo="news" relationshipKey="news_category";
         // ..
     }
 
@@ -641,11 +660,11 @@ To help with the examples, we'll illustrate a simple relationship between three 
         // ..
     }
 
-Syntax by example:
+Auto join example
+.................
 
 .. code-block:: java
 
-    // flavour 1: auto join on just object name
     // update news items who's category tag = "red"
     presideObjectService.updateData(
           objectName = "news"
@@ -653,8 +672,11 @@ Syntax by example:
         , filter     = { "tag.label" = "red" } // the system will automatically figure out the relationship path between the news object and the tag object
     );
 
-    // flavour 2: using property names that define relationships
-    // 2a. joining to one immediately related object
+Property name examples
+......................
+
+.. code-block:: java
+
     // delete news items who's category label = "red"
     presideObjectService.deleteData(
           objectName = "news"
@@ -662,20 +684,24 @@ Syntax by example:
         , filter     = { "news_category.label" = "red" } 
     );
 
-    // 2b. joining through multiple objects (note the $ delimiter to denote that the next property will also define a relationship)
     // select title and category tag from all news objects, order by the category tag
     presideObjectService.selectData(
           objectName   = "news"
         , selectFields = [ "news.title", "news_category$category_tag.label as tag" ]
         , orderby      = "news_category$category_tag.label"
     );
-    
+
+    // selecting categories with a count of news articles for each category
+    presideObjectService.selectData(
+          objectName   = "category"
+        , selectFields = [ "category.label", "Count( news_items.id ) as news_item_count" ]
+        , orderBy      = "news_item_count desc"
+    );    
 
 
-Auto joins vs. specific column join mappings
-............................................
+.. warning::
 
-While the auto join syntax (just referencing by related object name) can be really useful, it is limited to cases where there is only a single relationship path between the two objects. If there are multiple ways in which you could join the two objects, the system can have no way of knowing which path it should take.
+    While the auto join syntax can be really useful, it is limited to cases where there is only a single relationship path between the two objects. If there are multiple ways in which you could join the two objects, the system can have no way of knowing which path it should take and will throw an error.
 
 Caching
 ~~~~~~~

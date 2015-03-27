@@ -18,7 +18,7 @@
 			<cfif Len( Trim( args.subTitle ) )>
 				<small>
 					<i class="fa fa-angle-double-right"></i>
-					#args.subTitle#
+					<span class="page-subtitle">#args.subTitle#</span>
 				</small>
 			</cfif>
 		</h1>

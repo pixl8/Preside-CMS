@@ -52,6 +52,7 @@
 			bProcessing   : true,
 			bStateSave    : true,
 			bFilter       : allowSearch,
+			bAutoWidth    : false,
 			aLengthMenu   : [ 5, 10, 25, 50, 100 ],
 			sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 			sAjaxSource   : datasourceUrl,

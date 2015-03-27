@@ -29,7 +29,8 @@ This form is used for the "add site" form in the site manager
         </tab>
         <tab id="advanced" sortorder="30" title="preside-objects.site:advanced.tab.title">
             <fieldset id="advanced" sortorder="10">
-                <field name="redirect_domains" sortorder="10" control="textarea" label="preside-objects.site:field.redirect_domains.title" />
+                <field name="alias_domains"    sortorder="10" control="textarea" label="preside-objects.site:field.alias_domains.title"    help="preside-objects.site:field.alias_domains.help" />
+                <field name="redirect_domains" sortorder="20" control="textarea" label="preside-objects.site:field.redirect_domains.title" help="preside-objects.site:field.redirect_domains.help" />
             </fieldset>
         </tab>
     </form>

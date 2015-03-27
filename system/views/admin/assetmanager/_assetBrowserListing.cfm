@@ -3,7 +3,7 @@
 
 <cfoutput>
 	<tr>
-		<td>#renderAsset( assetId=args.id, context="icon" )#
+		<td>#renderAsset( assetId=args.id, context="icon" )#</td>
 		<td>#args.title#</td>
 		<td>
 			<div class="action-buttons">

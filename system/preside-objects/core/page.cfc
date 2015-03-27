@@ -32,7 +32,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="access_restriction"               type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|none|full|partial)"  control="select"          values="inherit,none,full,partial" labels="preside-objects.page:access_restriction.option.inherit,preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
 	property name="full_login_required"              type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="exclude_from_navigation"          type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_sub_navigation"      type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="exclude_children_from_navigation" type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_sitemap"             type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="navigation_title"                 type="string"  dbtype="varchar" maxLength="200"  required=false;
 
 	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId";
@@ -42,6 +44,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="_hierarchy_depth"                 type="numeric" dbtype="int"                      required=true                                             control="none" indexes="depth";
 	property name="_hierarchy_slug"                  type="string"  dbtype="varchar" maxLength="2000" required=true                                             control="none";
 
+
+	property name="child_pages" relationship="one-to-many" relatedTo="page" relationshipKey="parent_page";
 
 	/**
 	 * This method is used internally by the Sitetree Service to ensure

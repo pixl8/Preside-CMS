@@ -6,15 +6,17 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 // CONSTRUCTOR
 	/**
 	 * @siteDao.inject               presidecms:object:site
+	 * @siteAliasDomainDao.inject    presidecms:object:site_alias_domain
 	 * @siteRedirectDomainDao.inject presidecms:object:site_redirect_domain
 	 * @sessionStorage.inject        coldbox:plugin:sessionStorage
 	 * @permissionService.inject     permissionService
 	 * @coldbox.inject               coldbox
 	 *
 	 */
-	public any function init( required any siteDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox ) output=false {
+	public any function init( required any siteDao, required any siteAliasDomainDao, required any siteRedirectDomainDao, required any sessionStorage, required any permissionService, required any coldbox ) output=false {
 		_setSiteDao( arguments.siteDao );
 		_setSiteRedirectDomainDao( arguments.siteRedirectDomainDao );
+		_setSiteAliasDomainDao( arguments.siteAliasDomainDao );
 		_setSessionStorage( arguments.sessionStorage );
 		_setPermissionService( arguments.permissionService );
 		_setColdbox( arguments.coldbox );
@@ -63,6 +65,19 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			if ( arguments.path.startsWith( match.path ) ) {
 				return match;
 			}
+		}
+
+		var aliasMatch = _getSiteAliasDomainDao().selectData(
+			  selectFields = [ "site" ]
+			, filter       = { domain = arguments.domain }
+		);
+
+		if ( aliasMatch.recordCount ) {
+			var site = getSite( aliasMatch.site );
+
+			site.domain = arguments.domain
+
+			return site;
 		}
 
 		return {};
@@ -144,6 +159,24 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	}
 
 	/**
+	 * Sync alias domains with the site record
+	 */
+	public boolean function syncSiteAliasDomains( required string siteId, required string domains ) output=false autodoc=true {
+		var aliasDomainsDao = _getSiteAliasDomainDao();
+		var aliasDomains    = ListToArray( arguments.domains, Chr(10) & Chr(13) & "," );
+
+		aliasDomainsDao.deleteData( filter={ site = arguments.siteId } );
+		for( var domain in aliasDomains ){
+			try {
+				aliasDomainsDao.insertData( { site=arguments.siteId, domain=domain } );
+			} catch( any e ) {}
+		}
+
+
+		return true;
+	}
+
+	/**
 	 * Sync redirect domains with the site record
 	 */
 	public boolean function syncSiteRedirectDomains( required string siteId, required string domains ) output=false autodoc=true {
@@ -153,7 +186,7 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 		redirectDomainsDao.deleteData( filter={ site = arguments.siteId } );
 		for( var domain in redirectDomains ){
 			try {
-				redirectDomainsDao.insertData( { site=arguments.siteId, domain=domain } )
+				redirectDomainsDao.insertData( { site=arguments.siteId, domain=domain } );
 			} catch( any e ) {}
 		}
 
@@ -198,6 +231,13 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	}
 	private void function _setColdbox( required any coldbox ) output=false {
 		_coldbox = arguments.coldbox;
+	}
+
+	private any function _getSiteAliasDomainDao() output=false {
+		return _siteAliasDomainDao;
+	}
+	private void function _setSiteAliasDomainDao( required any siteAliasDomainDao ) output=false {
+		_siteAliasDomainDao = arguments.siteAliasDomainDao;
 	}
 
 	private any function _getSiteRedirectDomainDao() output=false {

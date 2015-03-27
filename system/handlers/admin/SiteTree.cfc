@@ -1,4 +1,4 @@
-component output="false" extends="preside.system.base.AdminHandler" {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="siteTreeService"          inject="siteTreeService";
 	property name="formsService"             inject="formsService";
@@ -7,7 +7,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 
-	public void function preHandler( event, rc, prc ) output=false {
+	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "sitetree" ) ) {
@@ -26,16 +26,107 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function index( event, rc, prc ) output=false {
-		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+	public void function index( event, rc, prc ) {
+		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", maxDepth=0, selectFields=[
+			  "page.id"
+			, "page.parent_page"
+			, "page.title"
+			, "page.slug"
+			, "page.active"
+			, "page.page_type"
+			, "page.datecreated"
+			, "page.datemodified"
+			, "page._hierarchy_slug as full_slug"
+			, "page.trashed"
+			, "page.access_restriction"
+			, "Count( child_pages.id ) as child_count"
+		] );
+
+		prc.trashCount = siteTreeService.getTrashCount();
 	}
 
-	public void function trash( event, rc, prc ) output=false {
+	public void function ajaxChildNodes( event, rc, prc ) {
+		var rendered         = "";
+		var parentId         = rc.parentId ?: "";
+		var parentPage       = siteTreeService.getPage( id=parentId, selectFields=[ "_hierarchy_lineage", "_hierarchy_depth", "access_restriction", "page_type" ] );
+		var managedPageTypes = getManagedChildPageTypes( parentPage.page_type ).listToArray();
+		var ancestors        = siteTreeService.getAncestors( id=parentId, selectFields=[ "id", "access_restriction" ] );
+		var tree             = siteTreeService.getTree( trash = false, rootPageId=parentId, maxDepth=0, selectFields=[
+			  "page.id"
+			, "page.parent_page"
+			, "page.title"
+			, "page.slug"
+			, "page.active"
+			, "page.page_type"
+			, "page.datecreated"
+			, "page.datemodified"
+			, "page._hierarchy_slug as full_slug"
+			, "page.trashed"
+			, "page.access_restriction"
+			, "page._hierarchy_depth"
+			, "Count( child_pages.id ) as child_count"
+		] );
+
+		var additionalNodeArgs = {
+			  editPageBaseLink            = event.buildAdminLink( linkTo="sitetree.editPage"           , queryString="id={id}"                           )
+			, pageTypeDialogBaseLink      = event.buildAdminLink( linkTo="sitetree.pageTypeDialog"     , queryString="parentPage={id}"                   )
+			, addPageBaseLink             = event.buildAdminLink( linkTo='sitetree.addPage'            , querystring='parent_page={id}&page_type={type}' )
+			, trashPageBaseLink           = event.buildAdminLink( linkTo="sitetree.trashPageAction"    , queryString="id={id}"                           )
+			, pageHistoryBaseLink         = event.buildAdminLink( linkTo="sitetree.pageHistory"        , queryString="id={id}"                           )
+			, editPagePermissionsBaseLink = event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id={id}"                           )
+			, reorderChildrenBaseLink     = event.buildAdminLink( linkTo="sitetree.reorderChildren"    , queryString="id={id}"                           )
+			, previewPageBaseLink         = event.buildAdminLink( linkTo="sitetree.previewPage"        , queryString="id={id}"                           )
+			, permission_context          = []
+			, parent_restriction          = "inherited"
+		};
+
+		if ( ancestors.recordCount ) {
+			additionalNodeArgs.permission_context = ValueArray( ancestors.id );
+			additionalNodeArgs.permission_context.reverse();
+		}
+		additionalNodeArgs.permission_context.prepend( parentId );
+
+		if ( parentPage.access_restriction != "inherited" ) {
+			additionalNodeArgs.parent_restriction = parentPage.access_restriction;
+		} else {
+			for( var i=ancestors.recordcount; i>0; i-- ) {
+				if ( ancestors.access_restriction[i] != "inherited" ) {
+					additionalNodeArgs.parent_restriction = ancestors.access_restriction[i];
+					break;
+				}
+			}
+		}
+
+		managedChildrenBaseLink = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent={id}&pageType={type}" );
+
+		for( var pageType in managedPageTypes ) {
+			rendered &= renderView( view="/admin/sitetree/_managedPageTypeNode", args={
+				  depth                   = parentPage._hierarchy_depth + 1
+				, pagetype                = pageType
+				, parentId                = parentId
+				, managedChildrenBaseLink = managedChildrenBaseLink
+			} );
+		}
+
+		for( var node in tree ) {
+			node.append( additionalNodeArgs );
+			rendered &= renderView( view="/admin/sitetree/_node", args=node );
+		}
+
+		event.renderData( data=rendered );
+	}
+
+	public void function trash( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="viewtrash" );
 		prc.treeTrash = siteTreeService.getTree( trash = true, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:sitetree.trash.breadcrumb" )
+			, link  = event.buildAdminLink( linkTo="sitetree.trash" )
+		);
 	}
 
-	public void function addPage( event, rc, prc ) output=false {
+	public void function addPage( event, rc, prc ) {
 		var parentPageId = rc.parent_page ?: "";
 		var pageType     = rc.page_type ?: "";
 
@@ -66,7 +157,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
 	}
 
-	public void function addPageAction( event, rc, prc ) output=false {
+	public void function addPageAction( event, rc, prc ) {
 		var parent            = rc.parent_page ?: "";
 		var pageType          = rc.page_type   ?: "";
 		var formName          = "preside-objects.page.add";
@@ -128,7 +219,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function editPage( event, rc, prc ) output=false {
+	public void function editPage( event, rc, prc ) {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
 		var version          = Val ( rc.version    ?: "" );
@@ -166,7 +257,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function editPageAction( event, rc, prc ) output=false {
+	public void function editPageAction( event, rc, prc ) {
 		var pageId            = event.getValue( "id", "" );
 		var validationRuleset = "";
 		var validationResult  = "";
@@ -229,7 +320,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function trashPageAction( event, rc, prc ) output=false {
+	public void function trashPageAction( event, rc, prc ) {
 		var pageId  = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="trash", pageId=pageId );
@@ -251,7 +342,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 	}
 
-	public void function deletePageAction( event, rc, prc ) output=false {
+	public void function deletePageAction( event, rc, prc ) {
 		var pageId = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="delete", pageId=pageId );
@@ -266,10 +357,10 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		siteTreeService.permanentlyDeletePage( event.getValue( "id", "" ) );
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageDeleted.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.trash" ) );
 	}
 
-	public void function emptyTrashAction( event, rc, prc ) output=false {
+	public void function emptyTrashAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="emptytrash" );
 
 		siteTreeService.emptyTrash();
@@ -278,7 +369,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 	}
 
-	public void function restorePage( event, rc, prc ) output=false {
+	public void function restorePage( event, rc, prc ) {
 		var pageId = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="restore", pageId=pageId );
@@ -293,7 +384,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function restorePageAction( event, rc, prc ) output=false {
+	public void function restorePageAction( event, rc, prc ) {
 		var pageId            = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="restore", pageId=pageId );
@@ -325,7 +416,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
 	}
 
-	public void function reorderChildren( event, rc, prc ) output=false {
+	public void function reorderChildren( event, rc, prc ) {
 		var pageId = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
@@ -344,7 +435,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function reorderChildrenAction( event, rc, prc ) output=false {
+	public void function reorderChildrenAction( event, rc, prc ) {
 		var pageId  = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
@@ -363,7 +454,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
 	}
 
-	public void function editPagePermissions( event, rc, prc ) output=false {
+	public void function editPagePermissions( event, rc, prc ) {
 		var pageId   = event.getValue( "id", "" );
 
 		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
@@ -378,7 +469,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function editPagePermissionsAction( event, rc, prc ) output=false {
+	public void function editPagePermissionsAction( event, rc, prc ) {
 		var pageId = event.getValue( "id", "" );
 		var page   = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
@@ -393,7 +484,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPagePermissions", queryString="id=#pageId#" ) );
 	}
 
-	public void function pageHistory( event, rc, prc ) output=false {
+	public void function pageHistory( event, rc, prc ) {
 		var pageId   = event.getValue( "id", "" );
 		var pageType = "";
 
@@ -407,7 +498,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function pageTypeDialog( event, rc, prc ) output=false {
+	public void function pageTypeDialog( event, rc, prc ) {
 		var parentPage = sitetreeService.getPage( id=rc.parentPage, selectFields=[ "page_type" ] );
 
 		if ( parentPage.recordCount ) {
@@ -419,7 +510,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		event.setView( view="admin/sitetree/pageTypeDialog", nolayout=true );
 	}
 
-	public void function getPagesForAjaxPicker( event, rc, prc ) output=false {
+	public void function getPagesForAjaxPicker( event, rc, prc ) {
 		var records = siteTreeService.getPagesForAjaxSelect(
 			  maxRows      = rc.maxRows      ?: 1000
 			, searchQuery  = rc.q            ?: ""
@@ -441,7 +532,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data=preparedPages );
 	}
 
-	public void function getPageHistoryForAjaxDataTables( event, rc, prc ) output=false {
+	public void function getPageHistoryForAjaxDataTables( event, rc, prc ) {
 		var pageId = rc.id     ?: "";
 
 		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
@@ -459,7 +550,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function managedChildren( event, rc, prc ) output=false {
+	public void function managedChildren( event, rc, prc ) {
 		var parentId = rc.parent   ?: "";
 		var pageType = rc.pageType ?: "";
 
@@ -486,7 +577,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function getManagedPagesForAjaxDataTables( event, rc, prc ) output=false {
+	public void function getManagedPagesForAjaxDataTables( event, rc, prc ) {
 		var parentId = rc.parent   ?: "";
 		var pageType = rc.pageType ?: "";
 
@@ -530,9 +621,13 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
 	}
 
+	public void function previewPage( event, rc, prc ) {
+		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ) ) );
+	}
+
 
 <!--- private helpers --->
-	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) output=false {
+	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) {
 		var permitted = "";
 		var permKey   = arguments.prefix & arguments.key;
 
@@ -550,7 +645,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		return permitted;
 	}
 
-	private string function _getPageTypeFormName( required any pageType, required string addOrEdit ) output=false {
+	private string function _getPageTypeFormName( required any pageType, required string addOrEdit ) {
 		var specificForm = addOrEdit == "add" ? pageType.getAddForm() : pageType.getEditForm();
 		var defaultForm  = pageType.getDefaultForm();
 
@@ -564,7 +659,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		return "";
 	}
 
-	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false ) output=false {
+	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false ) {
 		var pageId  = arguments.pageId        ?: ( rc.id ?: "" );
 		var version = arguments.allowVersions ? 0 : ( rc.version ?: 0 );
 		var page    = siteTreeService.getPage(
@@ -582,7 +677,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		return page;
 	}
 
-	private array function _getPagePermissionContext( event, rc, prc, pageId, includePageId=true ) output=false {
+	private array function _getPagePermissionContext( event, rc, prc, pageId, includePageId=true ) {
 		var pageId   = arguments.pageId ?: ( rc.id ?: "" );
 		var cacheKey = "pagePermissionContext";
 
@@ -607,7 +702,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		return reversed;
 	}
 
-	private boolean function _isManagedPage( required string parentId, required string pageType ) output=false {
+	private boolean function _isManagedPage( required string parentId, required string pageType ) {
 		var parent = siteTreeService.getPage( id=parentId, selectFields=[ "page_type" ] );
 
 		if ( !parent.recordCount ) {

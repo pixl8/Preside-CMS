@@ -46,9 +46,7 @@ component extends="coldbox.system.Coldbox" output="false" {
 	}
 
 	public any function getController() output=false {
-		lock type="readonly" name=instance.appHash timeout=instance.lockTimeout throwontimeout=true {
-			return application[ locateAppKey() ] ?: NullValue();
-		}
+		return application[ locateAppKey() ] ?: NullValue();
 	}
 
 	public void function processColdBoxRequest() output=true {

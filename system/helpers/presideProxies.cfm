@@ -10,24 +10,24 @@
 
 <!--- system settings --->
 	<cffunction name="getSystemSetting" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "systemConfigurationService" ).getSetting( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "systemConfigurationService" ).getSetting( argumentCollection = arguments ) />
 	</cffunction>
 
 <!--- preside objects --->
 	<cffunction name="getPresideObject" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "PresideObjectService" ).getObject( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "PresideObjectService" ).getObject( argumentCollection = arguments ) />
 	</cffunction>
 
 <!--- rendering --->
 	<cffunction name="renderView" access="public" returntype="any" output="false">
 		<cfscript>
 			if ( Len( Trim( arguments.presideObject ?: "" ) ) ) {
-				return getController().getWireBox().getInstance( "presideObjectViewService" ).renderView(
+				return getSingleton( "presideObjectViewService" ).renderView(
 					argumentCollection = arguments
 				);
 			}
 
-			return getController().getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
+			return getPlugin( "Renderer" ).renderView( argumentCollection=arguments );
 		</cfscript>
 	</cffunction>
 
@@ -36,15 +36,15 @@
 	</cffunction>
 
 	<cffunction name="renderContent" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).render( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "contentRendererService" ).render( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderEditableContent" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).makeContentEditable( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "contentRendererService" ).makeContentEditable( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderField" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "contentRendererService" ).renderField( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "contentRendererService" ).renderField( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderLink" access="public" returntype="any" output="false">
@@ -53,49 +53,56 @@
 	</cffunction>
 
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderNotification" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "notificationService" ).renderNotification( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "notificationService" ).renderNotification( argumentCollection = arguments ) />
 	</cffunction>
 
 
 
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "widgetsService" ).renderWidget( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "widgetsService" ).renderWidget( argumentCollection = arguments ) />
 	</cffunction>
 
 	<cffunction name="renderWidgetConfigForm" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "widgetsService" ).renderWidgetConfigForm( argumentCollection = arguments ) />
+		<cfreturn getSingleton( "widgetsService" ).renderWidgetConfigForm( argumentCollection = arguments ) />
 	</cffunction>
 
 
 <!--- FORMS --->
 	<cffunction name="renderForm" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "formsService" ).renderForm( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "formsService" ).renderForm( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="renderFormControl" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "formsService" ).renderFormControl( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "formsService" ).renderFormControl( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="validateForm" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "formsService" ).validateForm( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "formsService" ).validateForm( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="preProcessForm" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "formsService" ).preProcessForm( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "formsService" ).preProcessForm( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="preProcessFormField" access="public" returntype="any" output="false">
-		<cfreturn getController().getWireBox().getInstance( "formsService" ).preProcessFormField( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "formsService" ).preProcessFormField( argumentCollection=arguments ) />
 	</cffunction>
 
 <!--- i18n --->
 	<cffunction name="translateResource" access="public" returntype="any" output="false">
-		<cfreturn getController().getPlugin( "i18n" ).translateResource( argumentCollection = arguments ) />
+		<cfscript>
+			var args     = arguments;
+			var cacheKey = "translateResource" & SerializeJson( args );
+
+			return simpleRequestCache( cacheKey, function(){
+				return getPlugin( "i18n" ).translateResource( argumentCollection = args )
+			} );
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="translateValidationMessages" access="public" returntype="struct" output="false">
@@ -119,35 +126,71 @@
 
 <!--- permissioning and users --->
 	<cffunction name="hasCmsPermission" access="public" returntype="boolean" output="false">
-		<cfreturn getController().getWireBox().getInstance( "permissionService" ).hasPermission( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "permissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="hasWebsitePermission" access="public" returntype="boolean" output="false">
-		<cfreturn getController().getWireBox().getInstance( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "websitePermissionService" ).hasPermission( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="isLoggedIn" access="public" returntype="boolean" output="false">
-		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "websiteLoginService" ).isLoggedIn( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="isAutoLoggedIn" access="public" returntype="boolean" output="false">
-		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "websiteLoginService" ).isAutoLoggedIn( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="getLoggedInUserId" access="public" returntype="string" output="false">
-		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserId( argumentCollection=arguments ) />
 	</cffunction>
 
 	<cffunction name="getLoggedInUserDetails" access="public" returntype="struct" output="false">
-		<cfreturn getController().getWireBox().getInstance( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "websiteLoginService" ).getLoggedInUserDetails( argumentCollection=arguments ) />
 	</cffunction>
 
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
-		<cfreturn getController().getWireBox().getInstance( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
+		<cfreturn getSingleton( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cffunction>
 
 <!--- errors --->
 	<cffunction name="logError" access="public" returntype="void" output="false">
 		<cfreturn getController().getWireBox().getInstance( "errorLogService" ).raiseError( argumentCollection=arguments ) />
+	</cffunction>
+
+<!--- helpers --->
+	<cffunction name="simpleRequestCache" access="public" returntype="any" output="false">
+		<cfargument name="key" type="string" required="true" />
+		<cfargument name="generator" type="any" required="true" />
+
+		<cfscript>
+			request._simpleRequestCache = request._simpleRequestCache ?: {};
+
+			if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+				request._simpleRequestCache[ arguments.key ] = arguments.generator();
+			}
+
+			return request._simpleRequestCache[ arguments.key ];
+		</cfscript>
+	</cffunction>
+	<cffunction name="getSingleton" access="public" returntype="any" output="false">
+		<cfargument name="objectName" type="string" required="true" />
+
+		<cfscript>
+			var args = arguments;
+			return simpleRequestCache( "getSingleton" & args.objectName, function(){
+				return getController().getWireBox().getInstance( args.objectName );
+			} );
+		</cfscript>
+	</cffunction>
+	<cffunction name="getPlugin" access="public" returntype="any" output="false">
+		<cfargument name="pluginName" type="string" required="true" />
+
+		<cfscript>
+			var args = arguments;
+			return simpleRequestCache( "getPlugin" & args.pluginName, function(){
+				return getController().getPlugin( args.pluginName );
+			} );
+		</cfscript>
 	</cffunction>

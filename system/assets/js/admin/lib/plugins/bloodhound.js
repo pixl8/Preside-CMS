@@ -234,11 +234,20 @@
                 },
                 set: function(key, val, ttl) {
                     if (_.isNumber(ttl)) {
-                        ls.setItem(this._ttlKey(key), encode(now() + ttl));
+                        try {
+                            ls.setItem(this._ttlKey(key), encode(now() + ttl));
+                        } catch ( e ) {
+                            ls.clear();
+                        }
                     } else {
                         ls.removeItem(this._ttlKey(key));
                     }
-                    return ls.setItem(this._prefix(key), encode(val));
+
+                    try {
+                        return ls.setItem(this._prefix(key), encode(val));
+                    } catch ( e ) {
+                        ls.clear();
+                    }
                 },
                 remove: function(key) {
                     ls.removeItem(this._ttlKey(key));

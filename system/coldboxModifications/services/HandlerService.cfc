@@ -127,6 +127,20 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		return getRegisteredHandler( handlerBean.getFullEvent() );
 	}
 
+	public any function getHandler( required any ehBean, required any requestContext ) output=false {
+		try {
+			return super.getHandler( argumentCollection=arguments );
+		} catch( expression e ) {
+			if ( ( e.message ?: "" ) contains "has no accessible Member with name" ) {
+				invalidEvent( arguments.ehBean.getFullEvent(), arguments.ehBean );
+
+				return getHandler( getRegisteredHandler( arguments.ehBean.getFullEvent()), arguments.requestContext );
+			} else {
+				rethrow;
+			}
+		}
+	}
+
 	public array function listHandlers( string thatStartWith="" ) output=false {
 		var handlers = {};
 		var startWithLen = Len( arguments.thatStartWith );

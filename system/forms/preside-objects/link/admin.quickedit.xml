@@ -26,6 +26,10 @@ This form is used for editing links through the link picker form control
 			<field sortorder="20" binding="link.email_subject" control="textinput" />
 			<field sortorder="30" binding="link.email_body"     />
 		</fieldset>
+
+		<fieldset id="asset" sortorder="50">
+			<field sortorder="10" binding="link.asset" />
+		</fieldset>
 	</tab>
 
 	<tab id="content" sortorder="20" title="preside-objects.link:content.tab.title">

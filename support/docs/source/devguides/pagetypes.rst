@@ -1,6 +1,8 @@
 Working with page types
 =======================
 
+.. contents:: :local:
+
 Overview
 ########
 

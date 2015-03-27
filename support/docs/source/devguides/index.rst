@@ -4,30 +4,19 @@ Developer guides & recipes
 .. toctree::
    :maxdepth: 1
 
-   developeroverview
-   designeroverview
    presideobjects
    presideobjectviews
-   datamanager
-   formlayouts
-   formcontrols
    viewlets
-   widgets
    pagetypes
    sites
    richeditor
-   routing
-   configcfc
-   i18n
-   caching
-   reloading
-   cssandjs
+   routing   
    permissioning
    websiteusers
    systemsettings
    emailtemplates
-   developerconsole
+   notifications
    customerrorpages
-   coldboxenvironments
    sitetreenavigationmenus
    adminmenu
+   filestorage

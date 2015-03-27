@@ -2572,6 +2572,20 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test081_dbSync_shouldNotCreateDbFieldsForOneToManyRelationshipTypeProperties" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+
+			poService.dbSync();
+
+			var columns = _getDbTableColumns( "ptest_object_b" );
+
+			super.assertFalse( columns.keyExists( "object_cs" ), "DBSync() created a field for a one-to-many relationship property, it should not have." );
+		</cfscript>
+	</cffunction>
+
+
+
 <!--- private helpers --->
 	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
 		<cfset var tables = _getDbTables() />

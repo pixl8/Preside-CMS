@@ -1,7 +1,7 @@
-component output=false singleton=true {
+component output=false singleton=true implements="preside.system.services.fileStorage.StorageProvider" {
 
 // CONSTRUCTOR
-	public any function init( required string rootDirectory, required string trashDirectory, required string rootUrl ) output=false {
+	public any function init( required string rootDirectory, required string trashDirectory, required string rootUrl ){
 		_setRootDirectory( arguments.rootDirectory );
 		_setTrashDirectory( arguments.trashDirectory );
 		_setRootUrl( arguments.rootUrl );
@@ -10,11 +10,11 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public boolean function objectExists( required string path ) output=false {
+	public boolean function objectExists( required string path ){
 		return FileExists( _expandPath( arguments.path ) );
 	}
 
-	public query function listObjects( required string path ) output=false {
+	public query function listObjects( required string path ){
 		var cleanedPath = _cleanPath( arguments.path );
 		var fullPath    = _expandPath( arguments.path );
 		var objects     = QueryNew( "name,path,size,lastmodified" );
@@ -39,7 +39,7 @@ component output=false singleton=true {
 		return objects;
 	}
 
-	public binary function getObject( required string path ) output=false {
+	public binary function getObject( required string path ){
 		try {
 			return FileReadBinary( _expandPath( arguments.path ) );
 		} catch ( java.io.FileNotFoundException e ) {
@@ -50,7 +50,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public struct function getObjectInfo( required string path ) output=false {
+	public struct function getObjectInfo( required string path ){
 		try {
 			var info = GetFileInfo( _expandPath( arguments.path ) );
 
@@ -70,7 +70,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public void function putObject( required any object, required string path ) output=false {
+	public void function putObject( required any object, required string path ){
 		var fullPath = _expandPath( arguments.path );
 
 		if ( not IsBinary( arguments.object ) and not ( IsSimpleValue( arguments.object ) and FileExists( arguments.object ) ) ) {
@@ -89,7 +89,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public void function deleteObject( required string path ) output=false {
+	public void function deleteObject( required string path ){
 		try {
 			FileDelete( _expandPath( arguments.path ) );
 		} catch ( any e ) {
@@ -100,7 +100,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public string function softDeleteObject( required string path ) output=false {
+	public string function softDeleteObject( required string path ){
 		var fullPath      = _expandPath( arguments.path );
 		var newPath       = CreateUUId() & ".trash";
 		var fullTrashPath = _getTrashDirectory() & newPath;
@@ -117,7 +117,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public boolean function restoreObject( required string trashedPath, required string newPath ) output=false {
+	public boolean function restoreObject( required string trashedPath, required string newPath ){
 		var fullTrashedPath   = _expandPath( arguments.trashedPath, _getTrashDirectory() );
 		var fullNewPath       = _expandPath( arguments.newPath );
 		var trashedFileExists = false;
@@ -134,16 +134,16 @@ component output=false singleton=true {
 		}
 	}
 
-	public string function getObjectUrl( required string path ) output=false {
+	public string function getObjectUrl( required string path ){
 		return _getRootUrl() & _cleanPath( arguments.path );
 	}
 
 // PRIVATE HELPERS
-	private string function _expandPath( required string path, string rootDir=_getRootDirectory() ) output=false {
+	private string function _expandPath( required string path, string rootDir=_getRootDirectory() ){
 		return arguments.rootDir & _cleanPath( arguments.path );
 	}
 
-	private string function _cleanPath( required string path ) output=false {
+	private string function _cleanPath( required string path ){
 		var cleaned = ListChangeDelims( arguments.path, "/", "\" );
 
 		cleaned = ReReplace( cleaned, "^/", "" );
@@ -153,7 +153,7 @@ component output=false singleton=true {
 		return cleaned;
 	}
 
-	private void function _ensureDirectoryExist( required string dir ) output=false {
+	private void function _ensureDirectoryExist( required string dir ){
 		var parentDir = "";
 		if ( not DirectoryExists( arguments.dir ) ) {
 			parentDir = ListDeleteAt( arguments.dir, ListLen( arguments.dir, "/" ), "/" );
@@ -163,10 +163,10 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private string function _getRootDirectory() output=false {
+	private string function _getRootDirectory(){
 		return _rootDirectory;
 	}
-	private void function _setRootDirectory( required string rootDirectory ) output=false {
+	private void function _setRootDirectory( required string rootDirectory ){
 		_rootDirectory = arguments.rootDirectory;
 		_rootDirectory = listChangeDelims( _rootDirectory, "/", "\" );
 		if ( Right( _rootDirectory, 1 ) NEQ "/" ) {
@@ -175,10 +175,10 @@ component output=false singleton=true {
 		_ensureDirectoryExist( _rootDirectory );
 	}
 
-	private string function _getTrashDirectory() output=false {
+	private string function _getTrashDirectory(){
 		return _trashDirectory;
 	}
-	private void function _setTrashDirectory( required string trashDirectory ) output=false {
+	private void function _setTrashDirectory( required string trashDirectory ){
 		_trashDirectory = arguments.trashDirectory;
 		_trashDirectory = listChangeDelims( _trashDirectory, "/", "\" );
 		if ( Right( _trashDirectory, 1 ) NEQ "/" ) {
@@ -188,10 +188,10 @@ component output=false singleton=true {
 		_ensureDirectoryExist( _trashDirectory );
 	}
 
-	private string function _getRootUrl() output=false {
+	private string function _getRootUrl(){
 		return _rootUrl;
 	}
-	private void function _setRootUrl( required string rootUrl ) output=false {
+	private void function _setRootUrl( required string rootUrl ){
 		_rootUrl = arguments.rootUrl;
 		if ( Right( _rootUrl, 1 ) NEQ "/" ) {
 			_rootUrl &= "/";

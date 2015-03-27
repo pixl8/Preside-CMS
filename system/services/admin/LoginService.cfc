@@ -33,6 +33,7 @@ component output="false" singleton=true {
 
 		if ( success ) {
 			_persistUserSession( usr );
+			recordLogin();
 		}
 
 		return success;
@@ -40,6 +41,7 @@ component output="false" singleton=true {
 
 	public void function logout() output=false {
 		if ( isLoggedIn() ) {
+			recordLogout();
 			_destroyUserSession();
 		}
 	}
@@ -220,6 +222,43 @@ component output="false" singleton=true {
 			);
 		}
 		return false;
+	}
+
+	/**
+	 * Sets the last logged in date for the logged in user
+	 */
+	public boolean function recordLogin() autodoc=true {
+		var userId = getLoggedInUserId();
+
+		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
+			last_logged_in = Now()
+		} );
+	}
+
+	/**
+	 * Sets the last logged out date for the logged in user. Note, must be
+	 * called before logging the user out
+	 *
+	 */
+	public boolean function recordLogout() autodoc=true {
+		var userId = getLoggedInUserId();
+
+		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
+			last_logged_out = Now()
+		} );
+	}
+
+	/**
+	 * Records the visit for the currently logged in user
+	 * Currently, all this does is to set the last request made datetime value
+	 *
+	 */
+	public boolean function recordVisit() autodoc=true {
+		var userId = getLoggedInUserId();
+
+		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
+			last_request_made = Now()
+		} );
 	}
 
 // PRIVATE HELPERS

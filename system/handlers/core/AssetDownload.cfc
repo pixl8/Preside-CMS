@@ -12,7 +12,13 @@ component output=false {
 		var asset           = "";
 
 		if ( Len( Trim( derivativeName ) ) ) {
-			asset = assetManagerService.getAssetDerivative( assetId=assetId, derivativeName=derivativeName );
+			try {
+				asset = assetManagerService.getAssetDerivative( assetId=assetId, derivativeName=derivativeName );
+			} catch ( "AssetManager.assetNotFound" e ) {
+				asset = QueryNew('');
+			} catch ( "storageProvider.objectNotFound" e ) {
+				asset = QueryNew('');
+			}
 		} else {
 			asset = assetManagerService.getAsset( id=assetId );
 		}
@@ -49,7 +55,7 @@ component output=false {
 			abort;
 		}
 
-		event.renderData( data="not found", type="text", statusCode=404 );
+		event.renderData( data="404 not found", type="text", statusCode=404 );
 
 	}
 
@@ -70,7 +76,7 @@ component output=false {
 			}
 		}
 
-		event.renderData( data="not found", type="text", statusCode=404 );
+		event.renderData( data="404 not found", type="text", statusCode=404 );
 	}
 
 

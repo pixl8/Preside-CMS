@@ -1,6 +1,8 @@
 Preside Data Object Views
 =========================
 
+.. contents:: :local:
+
 Overview
 --------
 

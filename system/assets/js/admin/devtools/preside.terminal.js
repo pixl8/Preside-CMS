@@ -21,7 +21,7 @@ window.presideTerminal = ( function( $ ){
 
 			config = {
 				  prompt               : prompt
-				, greetings            : false
+				, greetings            : '[[b;white;]:: Welcome to Preside developer console! Type "help" for commands.\n\n]'
 				, completion           : autoCompleteCommands
 				, ignoreSystemDescribe : true
 				, exit                 : false
@@ -96,8 +96,8 @@ window.presideTerminal = ( function( $ ){
 
 	toggleTerminal = function(){
 		var toggle = function(){
+			$( ":focus" ).blur();
 			$terminal.slideToggle( "fast", function(){
-				terminal.clear();
 				terminal.focus( $(this).is( ":visible" ) );
 			} );
 		};

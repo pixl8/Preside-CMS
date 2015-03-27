@@ -31,7 +31,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, eventArguments = {
 				  object          = "website_user"
-				, gridFields      = "active,login_id,display_name,email_address"
+				, gridFields      = "active,login_id,display_name,email_address,last_request_made"
 				, actionsView     = "/admin/websiteUserManager/_usersGridActions"
 				, useMultiActions = false
 			}

@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
@@ -9,7 +9,7 @@ component output=false singleton=true {
 	 * @coldboxController.inject    coldbox
 	 * @presideObjectService.inject presideObjectService
 	 */
-	public any function init( required any loginService, required any pageTypesService, required any siteService, required any presideObjectService, required any coldboxController, required any i18nService ) output=false {
+	public any function init( required any loginService, required any pageTypesService, required any siteService, required any presideObjectService, required any coldboxController, required any i18nService ) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setSiteService( arguments.siteService );
@@ -28,26 +28,52 @@ component output=false singleton=true {
 		, array   selectFields = []
 		, string  format       = "query"
 		, boolean useCache     = true
+		, string  rootPageId   = ""
+		, numeric maxDepth     = -1
 
-	) output=false {
-		var tree = "";
+	) {
+		var tree             = "";
+		var rootPage         = "";
 		var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes();
+		var maxDepth         = arguments.maxDepth;
 		var args = {
-			  orderBy  = "_hierarchy_sort_order"
-			, filter   = { trashed = arguments.trash, page_type = allowedPageTypes }
-			, useCache = arguments.useCache
+			  orderBy      = "page._hierarchy_sort_order"
+			, filter       = "page.trashed = :trashed and page.page_type in (:page_type)"
+			, filterParams = { trashed = arguments.trash, page_type = allowedPageTypes }
+			, useCache     = arguments.useCache
+			, groupBy      = "page.id"
 		};
 
 		if ( ArrayLen( arguments.selectFields ) ) {
 			args.selectFields = arguments.selectFields;
-			if ( format eq "nestedArray" and not args.selectFields.find( "_hierarchy_depth" ) ) {
-				ArrayAppend( args.selectFields, "_hierarchy_depth" );
+			if ( format eq "nestedArray" and not args.selectFields.find( "_hierarchy_depth" ) and not args.selectFields.find( "page._hierarchy_depth" ) ) {
+				ArrayAppend( args.selectFields, "page._hierarchy_depth" );
 			}
 		}
+
+		if ( Len( Trim( arguments.rootPageId ) ) ) {
+			rootPage = getPage( id = arguments.rootPageId, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ] );
+
+			args.filter       &= " and page._hierarchy_lineage like :_hierarchy_lineage";
+			args.filterParams._hierarchy_lineage = rootPage._hierarchy_child_selector;
+
+			if ( maxDepth >= 0 ) {
+				maxDepth += rootPage._hierarchy_depth+1;
+			}
+		}
+
+		if ( maxDepth >= 0 ) {
+			args.filter       &= " and page._hierarchy_depth <= :_hierarchy_depth";
+			args.filterParams._hierarchy_depth = maxDepth;
+		}
+
 
 		tree = _getPObj().selectData( argumentCollection = args );
 
 		if ( arguments.format eq "nestedArray" ) {
+			if ( Len( Trim( arguments.rootPageId ) ) ) {
+				return _treeQueryToNestedArray( tree, rootPage );
+			}
 			return _treeQueryToNestedArray( tree );
 		}
 
@@ -63,7 +89,7 @@ component output=false singleton=true {
 		, boolean useCache     = true
 		, numeric version      = 0
 
-	) output=false {
+	) {
 		var args = { filter="", filterParams={}, useCache=arguments.useCache };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
@@ -106,7 +132,7 @@ component output=false singleton=true {
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
 		, array   ids         = []
-	) output=false {
+	) {
 		var filter = "( page.trashed = 0 )";
 		var params = {};
 
@@ -128,7 +154,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public struct function getExtendedPageProperties( required string id, required string pageType ) output=false {
+	public struct function getExtendedPageProperties( required string id, required string pageType ) {
 		var ptSvc = _getPageTypesService();
 
 		if ( !ptSvc.pageTypeExists( arguments.pageType ) ) {
@@ -160,11 +186,11 @@ component output=false singleton=true {
 		,          string  cascadeMethod    = "closest"
 		,          string  cascadeSkipValue = "inherit"
 
-	) output=false {
+	) {
 		var value          = "";
 		var poService      = _getPresideObjectService();
 		var collectedValue = [];
-		var __valueExists  = function( v ) output=false { return !IsNull( v ) && (!IsSimpleValue( v ) || Len( Trim( v ) ) ); };
+		var __valueExists  = function( v ) { return !IsNull( v ) && (!IsSimpleValue( v ) || Len( Trim( v ) ) ); };
 
 		if ( StructKeyExists( arguments.page, arguments.propertyName ) ) {
 			value = arguments.page[ arguments.propertyName ];
@@ -235,7 +261,7 @@ component output=false singleton=true {
 		return arguments.defaultValue;
 	}
 
-	public query function getDescendants( required string id, numeric depth=0, array selectFields=[] ) output=false {
+	public query function getDescendants( required string id, numeric depth=0, array selectFields=[] ) {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ] );
 		var args = "";
 
@@ -269,7 +295,7 @@ component output=false singleton=true {
 		,          numeric maxRows      = 10
 		,          string  orderBy      = "title"
 		,          string  searchQuery  = ""
-	) output=false {
+	) {
 		var result = {};
 		var args = {
 			  objectName   = "page"
@@ -302,7 +328,7 @@ component output=false singleton=true {
 		return result;
 	}
 
-	public query function getAncestors( required string id, numeric depth=0, array selectFields=[], boolean includeSiblings=false ) output=false {
+	public query function getAncestors( required string id, numeric depth=0, array selectFields=[], boolean includeSiblings=false ) {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ] );
 		var args = "";
 
@@ -337,7 +363,7 @@ component output=false singleton=true {
 		return QueryNew('');
 	}
 
-	public query function getSiteHomepage( array selectFields=[], boolean createIfNotExists=true ) output=false {
+	public query function getSiteHomepage( array selectFields=[], boolean createIfNotExists=true ) {
 		var loginSvc       = _getLoginService();
 		var homepage       = _getPobj().selectData(
 			  maxRows      = 1
@@ -370,22 +396,35 @@ component output=false singleton=true {
 		, boolean includeInactive   = false
 		, array   activeTree        = []
 		, boolean expandAllSiblings = true
-		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
-	) output=false {
+		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type" ]
+		, boolean isSubMenu         = false
+	) {
 		var args = arguments;
-		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type" ]
 		for( var field in requiredSelectFields) {
-			if ( !args.selectFields.find( field ) ) {
-				args.selectFields.append( field );
+			if ( !args.selectFields.find( field ) && !args.selectFields.find( "page." & field ) ) {
+				args.selectFields.append( "page." & field );
 			}
 		}
 
-		var getNavChildren = function( parent, currentDepth ){
-			filter.parent_page = parent;
+		var getNavChildren = function( parent, currentDepth, disallowedPageTypes ){
+			filterParams.parent_page = parent;
+
 			var result   = [];
+			var extraFilters = [];
+
+			if ( disallowedPageTypes.len() ) {
+				extraFilters.append({
+					  filter = "page_type not in (:page_type)"
+					, filterParams = { page_type = arguments.disallowedPageTypes }
+				});
+			}
+
 			var children = _getPObj().selectData(
 				  selectFields = args.selectFields
 				, filter       = filter
+				, filterParams = filterParams
+				, extraFilters = extraFilters
 				, orderBy      = "sort_order"
 			);
 
@@ -395,7 +434,7 @@ component output=false singleton=true {
 				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.id ) );
 
 				if (  fetchChildren  ) {
-					child.children = getNavChildren( child.id, currentDepth+1 );
+					child.children = getNavChildren( child.id, currentDepth+1, getManagedChildTypesForParentType( child.page_type ) );
 				}
 
 				var page = {
@@ -419,21 +458,34 @@ component output=false singleton=true {
 
 		var page = getPage(
 			  id           = arguments.rootPage
-			, selectFields = [ "id", "exclude_from_navigation", "exclude_children_from_navigation", "_hierarchy_depth" ]
+			, selectFields = [
+				  "page.id"
+				, "page.exclude_from_navigation"
+				, "page.exclude_from_sub_navigation"
+				, "page.exclude_children_from_navigation"
+				, "page._hierarchy_depth"
+				, "page.page_type"
+				, "parent_page.page_type as parent_type"
+			]
 		);
-		if ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) ) {
+
+		var isManagedType   = Len( Trim( page.parent_type ) ) && getManagedChildTypesForParentType( page.parent_type ).findNoCase( page.page_type );
+		var excludedFromNav = arguments.isSubMenu ? Val( page.exclude_from_sub_navigation ) : ( Val( page.exclude_from_navigation ) || Val( page.exclude_children_from_navigation ) )
+		if ( isManagedType || excludedFromNav ) {
 			return [];
 		}
 
 		var maxDepth = Val( page._hierarchy_depth ) + ( arguments.depth < 1 ? 1 : arguments.depth );
-		var filter   = {
-			  exclude_from_navigation = false
-			, trashed                 = false
-		}
+		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
+
+		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
+		var filter = "parent_page = :parent_page and trashed = 0 and ( #exclusionField# is null or #exclusionField# = 0 )";
+		var filterParams = {};
 		if ( !arguments.includeInactive ) {
-			filter.active = true;
+			filter &= " and active = 1";
 		}
-		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1 );
+
+		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes );
 	}
 
 	public string function addPage(
@@ -443,7 +495,7 @@ component output=false singleton=true {
 		,          string parent_page
 		,          string userId      = _getLoginService().getLoggedInUserId()
 
-	) output=false {
+	) {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var homepage        = getSiteHomepage( [ "id" ], false );
 		var pageType        = _getPageTypesService().getPageType( arguments.page_type );
@@ -481,7 +533,7 @@ component output=false singleton=true {
 		transaction {
 			data.sort_order            = _calculateSortOrder( argumentCollection = arguments );
 			data._hierarchy_id         = _getNextAvailableHierarchyId();
-			data._hierarchy_sort_order = "/#data.sort_order#/";
+			data._hierarchy_sort_order = "/#_paddedSortOrder( data.sort_order )#/";
 
 			if ( StructKeyExists( arguments, "parent_page" ) ) {
 				parent = getPage( id = arguments.parent_page, selectFields=[ "_hierarchy_id", "_hierarchy_lineage", "_hierarchy_depth", "_hierarchy_slug", "_hierarchy_sort_order" ], includeTrash = true, useCache=false );
@@ -492,9 +544,9 @@ component output=false singleton=true {
 					);
 				}
 				data.parent_page           = arguments.parent_page;
-				data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id & "/";
-				data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug       & "/";
-				data._hierarchy_sort_order = parent._hierarchy_sort_order & data.sort_order      & "/";
+				data._hierarchy_lineage    = parent._hierarchy_lineage    & parent._hierarchy_id                & "/";
+				data._hierarchy_slug       = parent._hierarchy_slug       & arguments.slug                      & "/";
+				data._hierarchy_sort_order = parent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
 				data._hierarchy_depth      = parent._hierarchy_depth + 1;
 			}
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
@@ -514,7 +566,7 @@ component output=false singleton=true {
 		return pageId;
 	}
 
-	public boolean function editPage( required string id ) output=false {
+	public boolean function editPage( required string id ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -568,7 +620,7 @@ component output=false singleton=true {
 						data._hierarchy_lineage        = newParent._hierarchy_lineage & newParent._hierarchy_id & "/";
 						data._hierarchy_child_selector = data._hierarchy_lineage & existingPage._hierarchy_id & "/%";
 						data._hierarchy_depth          = newParent._hierarchy_depth + 1;
-						data._hierarchy_sort_order     = newParent._hierarchy_sort_order & data.sort_order & "/";
+						data._hierarchy_sort_order     = newParent._hierarchy_sort_order & _paddedSortOrder( data.sort_order ) & "/";
 						data._hierarchy_slug           = newParent._hierarchy_slug & ( slugChanged ? data : existingPage ).slug & "/";
 
 					} elseif ( IsBoolean( arguments.trashed ?: "" ) && arguments.trashed ) {
@@ -577,7 +629,7 @@ component output=false singleton=true {
 						data._hierarchy_lineage        = "/";
 						data._hierarchy_child_selector = "/" & existingPage._hierarchy_id & "/%";
 						data._hierarchy_depth          = 0;
-						data._hierarchy_sort_order     = "/" & data.sort_order & "/";
+						data._hierarchy_sort_order     = "/" & _paddedSortOrder( data.sort_order ) & "/";
 						data._hierarchy_slug           = "/" & ( slugChanged ? data : existingPage ).slug & "/";
 					} else {
 						throw(
@@ -588,7 +640,7 @@ component output=false singleton=true {
 
 				} else {
 					if ( sortOrderChanged ) {
-						data._hierarchy_sort_order = ReReplace( existingPage._hierarchy_sort_order, "/#existingPage.sort_order#/$", "/#data.sort_order#/" );
+						data._hierarchy_sort_order = ReReplace( existingPage._hierarchy_sort_order, "/#ListLast( existingPage._hierarchy_sort_order, '/' )#/$", "/#_paddedSortOrder( data.sort_order )#/" );
 					}
 					if ( slugChanged ) {
 						data._hierarchy_slug = ReReplace( existingPage._hierarchy_slug, "/#existingPage.slug#/$", "/#data.slug#/" );
@@ -642,7 +694,7 @@ component output=false singleton=true {
 		return updated;
 	}
 
-	public boolean function trashPage( required string id ) output=false {
+	public boolean function trashPage( required string id ) {
 		var pobj     = _getPObj();
 		var page    = "";
 		var updated = 0;
@@ -677,7 +729,7 @@ component output=false singleton=true {
 		, required string slug
 		, required string active
 
-	) output=false {
+	) {
 		var pobj    = _getPObj();
 		var page    = "";
 		var updated = 0;
@@ -699,7 +751,7 @@ component output=false singleton=true {
 		return updated;
 	}
 
-	public boolean function permanentlyDeletePage( required string id ) output=false {
+	public boolean function permanentlyDeletePage( required string id ) {
 		var pobj     = _getPObj();
 		var homepage = getSiteHomepage( [ "id" ] );
 		var rootPage = "";
@@ -726,18 +778,18 @@ component output=false singleton=true {
 		return nDeleted;
 	}
 
-	public boolean function emptyTrash() output=false {
+	public boolean function emptyTrash() {
 		return _getPObj().deleteData( filter = { trashed = true } );
 	}
 
-	public struct function getActivePageFilter( string pageTableAlais="page" ) output=false {
+	public struct function getActivePageFilter( string pageTableAlais="page" ) {
 		return {
 			  filter       = "#pageTableAlais#.active = 1 and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
 			, filterParams = {}
 		};
 	}
 
-	public void function ensureSystemPagesExistForSite( required string siteId ) output=false {
+	public void function ensureSystemPagesExistForSite( required string siteId ) {
 		var siteService        = _getSiteService();
 		var pageTypesService   = _getPageTypesService();
 		var site               = siteService.getSite( arguments.siteId );
@@ -761,7 +813,7 @@ component output=false singleton=true {
 		event.setSite( originalActiveSite );
 	}
 
-	public struct function getAccessRestrictionRulesForPage( required string pageId ) output=false {
+	public struct function getAccessRestrictionRulesForPage( required string pageId ) {
 		var page = getPage( id=arguments.pageId, selectFields=[ "parent_page", "access_restriction", "full_login_required" ] );
 
 		if ( !page.recordCount ) {
@@ -789,8 +841,21 @@ component output=false singleton=true {
 		};
 	}
 
+	public numeric function getTrashCount() {
+		var trashed = _getPobj().selectData(
+			  selectFields = [ "Count(*) as page_count" ]
+			, filter       = { trashed = true }
+		);
+
+		return Val( trashed.page_count ?: "" );
+	}
+
+	public array function getManagedChildTypesForParentType( required string parentType ) {
+		return _getPageTypesService().getPageType( arguments.parentType ).getManagedChildTypes().listToArray();
+	}
+
 // PRIVATE HELPERS
-	private numeric function _calculateSortOrder( string parent_page ) output=false {
+	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
 		var filter       = "";
 		var filterParams = {};
@@ -815,7 +880,7 @@ component output=false singleton=true {
 		return Val( result.sort_order ) + 1;
 	}
 
-	private struct function _getValidAddAndEditPageFieldsFromArguments() output=false {
+	private struct function _getValidAddAndEditPageFieldsFromArguments() {
 		var data        = {};
 		var arg         = "";
 		var exists      = "";
@@ -833,19 +898,21 @@ component output=false singleton=true {
 		return data;
 	}
 
-	private array function _treeQueryToNestedArray( required query treeQuery ) output=false {
-		var treeArray = [];
-		var node      = "";
-		var parents   = [];
-		var parent    = "";
+	private array function _treeQueryToNestedArray( required query treeQuery, any rootPage ) {
+		var treeArray       = [];
+		var node            = "";
+		var parents         = [];
+		var parent          = "";
+		var startDepth      = StructKeyExists( arguments, "rootPage" ) ? arguments.rootPage._hierarchy_depth : 0;
+		var firstLevelDepth = StructKeyExists( arguments, "rootPage" ) ? arguments.rootPage._hierarchy_depth + 1 : 0;
 
 		for( node in treeQuery ){
-			parents[ node._hierarchy_depth+1 ] = node;
+			parents[ ( node._hierarchy_depth+1 ) - startDepth ] = node;
 			node.children    = [];
 			node.hasChildren = false;
 
-			if ( node._hierarchy_depth ) {
-				parent = parents[ node._hierarchy_depth ];
+			if ( ( node._hierarchy_depth - startDepth ) > firstLevelDepth ) {
+				parent = parents[ ( node._hierarchy_depth ) - startDepth ];
 				parent.hasChildren = true;
 				ArrayAppend( parent.children, node );
 			} else {
@@ -856,13 +923,13 @@ component output=false singleton=true {
 		return treeArray;
 	}
 
-	private numeric function _getNextAvailableHierarchyId() output=false {
+	private numeric function _getNextAvailableHierarchyId() {
 		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ] );
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
 	}
 
-	private void function _checkForBadHomepageOperations( required string id ) output=false {
+	private void function _checkForBadHomepageOperations( required string id ) {
 		var homepage = getSiteHomepage( [ "id" ], false );
 
 		if ( arguments.id != homepage.id ) {
@@ -891,7 +958,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private string function _getSourceObjectForPageProperty( required string propertyName, required string pageType ) output=false {
+	private string function _getSourceObjectForPageProperty( required string propertyName, required string pageType ) {
 		var poService    = _getPresideObjectService();
 		var ptService    = _getPageTypesService();
 		var sourceObject = "page";
@@ -912,14 +979,14 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private void function _ensureSystemPagesExistInTree() output=false {
+	private void function _ensureSystemPagesExistInTree() {
 		_getSiteService().ensureDefaultSiteExists();
 		for( var site in _getSiteService().listSites() ) {
 			ensureSystemPagesExistForSite( site.id );
 		}
 	}
 
-	private string function _createSystemPage( required any pageType ) output=false {
+	private string function _createSystemPage( required any pageType ) {
 		var parentType = pageType.getParentSystemPageType();
 		var loginSvc   = _getLoginService();
 
@@ -948,54 +1015,58 @@ component output=false singleton=true {
 		return addPage( argumentCollection=addPageArgs );
 	}
 
+	private string function _paddedSortOrder( required numeric sortOrder ) {
+		return NumberFormat( arguments.sortOrder, '000000' );
+	}
+
 // GETTERS AND SETTERS
-	private any function _getLoginService() output=false {
+	private any function _getLoginService() {
 		return _loginService;
 	}
-	private void function _setLoginService( required any loginService ) output=false {
+	private void function _setLoginService( required any loginService ) {
 		_loginService = arguments.loginService;
 	}
 
-	private any function _getPageTypesService() output=false {
+	private any function _getPageTypesService() {
 		return _pageTypesService;
 	}
-	private void function _setPageTypesService( required any pageTypesService ) output=false {
+	private void function _setPageTypesService( required any pageTypesService ) {
 		_pageTypesService = arguments.pageTypesService;
 	}
 
-	private any function _getSiteService() output=false {
+	private any function _getSiteService() {
 		return _siteService;
 	}
-	private void function _setSiteService( required any siteService ) output=false {
+	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
 	}
 
-	private any function _getColdboxController() output=false {
+	private any function _getColdboxController() {
 		return _coldboxController;
 	}
-	private void function _setColdboxController( required any coldboxController ) output=false {
+	private void function _setColdboxController( required any coldboxController ) {
 		_coldboxController = arguments.coldboxController;
 	}
 
-	private any function _getI18nService() output=false {
+	private any function _getI18nService() {
 		return _i18nService;
 	}
-	private void function _setI18nService( required any i18nService ) output=false {
+	private void function _setI18nService( required any i18nService ) {
 		_i18nService = arguments.i18nService;
 	}
 
-	private any function _getPresideObject() output=false {
+	private any function _getPresideObject() {
 		return _getPresideObjectService().getObject( argumentCollection=arguments );
 	}
 
-	private any function _getPobj() output=false {
+	private any function _getPobj() {
 		return _getPresideObject( "page" );
 	}
 
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _PresideObjectService;
 	}
-	private void function _setPresideObjectService( required any PresideObjectService ) output=false {
+	private void function _setPresideObjectService( required any PresideObjectService ) {
 		_PresideObjectService = arguments.PresideObjectService;
 	}
 }

@@ -1,6 +1,12 @@
 Notification Service
 ====================
 
+.. contents::
+    :depth: 2
+    :local:
+
+
+
 Overview
 --------
 
@@ -139,7 +145,7 @@ Name     Type    Required  Description
 =======  ======  ========  =====================================
 topic    string  Yes       Topic of the notification            
 data     struct  Yes       Data associated with the notification
-context  string  Yes                                            
+context  string  Yes       Context of the notification          
 =======  ======  ========  =====================================
 
 
@@ -221,6 +227,49 @@ Name    Type    Required  Description
 ======  ======  ========  =======================================================
 userId  string  Yes       ID of the user who's subscribed topics we want to fetch
 ======  ======  ========  =======================================================
+
+
+.. _notificationservice-getglobaltopicconfiguration:
+
+GetGlobalTopicConfiguration()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public struct function getGlobalTopicConfiguration( required string topic )
+
+Retrieves globally saved configuration settings for a given notification topic
+
+Arguments
+.........
+
+=====  ======  ========  ===============
+Name   Type    Required  Description    
+=====  ======  ========  ===============
+topic  string  Yes       ID of the topic
+=====  ======  ========  ===============
+
+
+.. _notificationservice-saveglobaltopicconfiguration:
+
+SaveGlobalTopicConfiguration()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function saveGlobalTopicConfiguration( required string topic, required struct configuration )
+
+Saves configuration for a topic
+
+Arguments
+.........
+
+=============  ======  ========  ====================================
+Name           Type    Required  Description                         
+=============  ======  ========  ====================================
+topic          string  Yes       ID of the topic                     
+configuration  struct  Yes       Struct containing configuration data
+=============  ======  ========  ====================================
 
 
 .. _notificationservice-saveusersubscriptions:

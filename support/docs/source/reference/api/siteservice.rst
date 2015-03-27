@@ -1,6 +1,12 @@
 Site service
 ============
 
+.. contents::
+    :depth: 2
+    :local:
+
+
+
 Overview
 --------
 
@@ -158,6 +164,28 @@ Arguments
 .........
 
 *This method does not accept any arguments.*
+
+.. _siteservice-syncsitealiasdomains:
+
+SyncSiteAliasDomains()
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function syncSiteAliasDomains( required string siteId, required string domains )
+
+Sync alias domains with the site record
+
+Arguments
+.........
+
+=======  ======  ========  ===========
+Name     Type    Required  Description
+=======  ======  ========  ===========
+siteId   string  Yes                  
+domains  string  Yes                  
+=======  ======  ========  ===========
+
 
 .. _siteservice-syncsiteredirectdomains:
 

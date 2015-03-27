@@ -4,7 +4,7 @@ component singleton=true output="false" {
 
 	/**
 	 * @coldbox.inject              coldbox
-	 * @cache.inject                cachebox:systemCache
+	 * @cache.inject                cachebox:PresideSystemCache
 	 * @assetRendererService.inject AssetRendererService
 	 * @widgetsService.inject       WidgetsService
 	 * @presideObjectService.inject PresideObjectService
