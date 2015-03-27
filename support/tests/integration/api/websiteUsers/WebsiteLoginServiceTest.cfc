@@ -50,10 +50,23 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
 		mockCookieService.$( "exists", false );
-
+		userService.$( "recordLogout", true );
 		userService.logout();
 
 		var log = mockSessionService.$calllog().deleteVar;
+
+		super.assertEquals( 1, log.len() );
+	}
+
+	function test06_01_logout_shouldRecordTheLogout() output=false {
+		var userService = _getUserService();
+
+		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+		mockCookieService.$( "exists", false );
+		userService.$( "recordLogout", true );
+		userService.logout();
+
+		var log = userService.$calllog().recordLogout;
 
 		super.assertEquals( 1, log.len() );
 	}
@@ -108,6 +121,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		} };
 
 		userService.$( "isLoggedIn" ).$results( false );
+		userService.$( "recordLogin" ).$results( true );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
@@ -134,6 +148,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		// mocking
 		userService.$( "isLoggedIn" ).$results( false );
+		userService.$( "recordLogin" ).$results( true );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = "dummy" }
@@ -278,6 +293,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookieValue );
 		mockCookieService.$( "deleteVar" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockUserLoginTokenDao.$( "deleteData" ).$args( filter={ series=testCookieValue.series } ).$results( true );
+		userService.$( "recordLogout" ).$results( true );
 
 		userService.logout();
 
