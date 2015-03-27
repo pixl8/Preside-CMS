@@ -54,6 +54,8 @@ component output=false singleton=true autodoc=true displayName="Website login se
 					_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
 				}
 
+				recordLogin();
+
 				return true;
 			}
 		}
@@ -79,6 +81,8 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 */
 	public void function logout() output=false autodoc=true {
+		recordLogout();
+
 		_getSessionService().deleteVar( name=_getSessionKey() );
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
@@ -281,7 +285,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 
 	/**
 	 * Gets an array of benefit IDs associated with the logged in user
-	 * 
+	 *
 	 */
 	public array function listLoggedInUserBenefits() autodoc=true {
 		var benefits = _getUserDao().selectData(
@@ -295,14 +299,51 @@ component output=false singleton=true autodoc=true displayName="Website login se
 
 	/**
 	 * Returns true / false depending on whether or not a user has access to any of the supplied benefits
-	 * 
+	 *
 	 * @benefits.hint Array of benefit IDs. If the logged in user has any of these benefits, the method will return true
-	 * 
+	 *
 	 */
 	public boolean function doesLoggedInUserHaveBenefits( required array benefits ) autodoc=true {
 		return _getUserDao().dataExists(
 			filter = { "website_user.id"=getLoggedInUserId(), "benefits.id"=arguments.benefits }
 		);
+	}
+
+	/**
+	 * Sets the last logged in date for the logged in user
+	 */
+	public boolean function recordLogin() autodoc=true {
+		var userId = getLoggedInUserId();
+
+		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
+			last_logged_in = Now()
+		} );
+	}
+
+	/**
+	 * Sets the last logged out date for the logged in user. Note, must be
+	 * called before logging the user out
+	 *
+	 */
+	public boolean function recordLogout() autodoc=true {
+		var userId = getLoggedInUserId();
+
+		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
+			last_logged_out = Now()
+		} );
+	}
+
+	/**
+	 * Records the visit for the currently logged in user
+	 * Currently, all this does is to set the last request made datetime value
+	 *
+	 */
+	public boolean function recordVisit() autodoc=true {
+		var userId = getLoggedInUserId();
+
+		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
+			last_request_made = Now()
+		} );
 	}
 
 // private helpers
