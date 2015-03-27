@@ -91,7 +91,8 @@ component output=false {
 	private struct function _readMaintenanceModeFromFile() output=false {
 		var filePath = _getConfigPath();
 		try {
-			return SerializeJson( FileRead( filePath ) );
+			var modeSettings = DeSerializeJson( FileRead( filePath ) );
+			return IsStruct( modeSettings ) ? modeSettings : {};
 		} catch( any e ) {
 			return {};
 		}
