@@ -209,7 +209,6 @@ component output=false {
 	}
 
 	private void function _maintenanceModeCheck() output=false {
-		// new preside.system.services.maintenanceMode.MaintenanceModeService().setMaintenanceMode( "maintenance mode active", [], "poo" );
 		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
 	}
 }
