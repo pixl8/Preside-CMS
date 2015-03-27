@@ -6,6 +6,7 @@ component output=false {
 	property name="formsService"              inject="formsService";
 	property name="applicationReloadService"  inject="applicationReloadService";
 	property name="websiteLoginService"       inject="websiteLoginService";
+	property name="adminLoginService"         inject="loginService";
 
 	public void function applicationStart( event, rc, prc ) output=false {
 		_autoRegisterPresideObjectValidators();
@@ -15,7 +16,7 @@ component output=false {
 
 	public void function requestStart( event, rc, prc ) output=false {
 		_reloadChecks( argumentCollection = arguments );
-		_recordUserVisits();
+		_recordUserVisits( argumentCollection = arguments );
 	}
 
 	public void function notFound( event, rc, prc ) output=false {
@@ -154,7 +155,10 @@ component output=false {
 		return false;
 	}
 
-	private void function _recordUserVisits() {
-		websiteLoginService.recordVisit();
+	private void function _recordUserVisits( event, rc, prc ) {
+		if ( !event.isAjax() ) {
+			websiteLoginService.recordVisit();
+			adminLoginService.recordVisit();
+		}
 	}
 }
