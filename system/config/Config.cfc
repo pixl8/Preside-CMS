@@ -131,6 +131,7 @@ component output=false {
 			, "systemConfiguration"
 			, "updateManager"
 			, "errorLogs"
+			, "maintenanceMode"
 		];
 
 		settings.assetManager = {
@@ -154,6 +155,7 @@ component output=false {
 			, devtools               = [ "console" ]
 			, systemConfiguration    = [ "manage" ]
 			, notifications          = [ "configure" ]
+			, maintenanceMode        = [ "configure" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
