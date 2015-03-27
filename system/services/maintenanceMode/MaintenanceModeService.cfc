@@ -5,15 +5,15 @@
  * methods for handling maintenance mode display and settings
  *
  */
-component output=false {
+component {
 
 // constructor
-	public any function init( string configPath=ExpandPath( "/app/config/.maintenance" ) ) output=false {
+	public any function init( string configPath=ExpandPath( "/app/config/.maintenance" ) ) {
 		_setConfigPath( arguments.configPath );
 	}
 
 // public api
-	public boolean function setMaintenanceMode( required string maintenanceHtml, required array allowedIps, required string bypassPassword ) output=false {
+	public boolean function setMaintenanceMode( required string maintenanceHtml, required array allowedIps, required string bypassPassword ) {
 		var settings = {
 			  html           = arguments.maintenanceHtml
 			, allowedIps     = arguments.allowedIps
@@ -26,7 +26,7 @@ component output=false {
 		return true;
 	}
 
-	public boolean function clearMaintenanceMode() output=false {
+	public boolean function clearMaintenanceMode() {
 		var filePath = _getConfigPath();
 
 		if ( FileExists( filePath ) ) {
@@ -37,7 +37,7 @@ component output=false {
 		return true;
 	}
 
-	public struct function getMaintenanceModeSettings() output=false {
+	public struct function getMaintenanceModeSettings() {
 		var settings = _getApplicationVariable();
 
 		if ( IsNull( settings ) ) {
@@ -48,11 +48,11 @@ component output=false {
 		return settings;
 	}
 
-	public boolean function isMaintenanceModeActive() output=false {
+	public boolean function isMaintenanceModeActive() {
 		return getMaintenanceModeSettings().count();
 	}
 
-	public boolean function canRequestBypassMaintenanceMode() output=false {
+	public boolean function canRequestBypassMaintenanceMode() {
 		var settings       = getMaintenanceModeSettings();
 		var safeIps        = settings.allowedIps ?: [];
 		var bypassPassword = settings.bypassPassword;
@@ -77,7 +77,7 @@ component output=false {
 		return false;
 	}
 
-	public void function showMaintenancePageIfActive() output=false {
+	public void function showMaintenancePageIfActive() {
 		if ( isMaintenanceModeActive() && !canRequestBypassMaintenanceMode() ) {
 			var settings = getMaintenanceModeSettings();
 			header statuscode=503;
@@ -88,7 +88,7 @@ component output=false {
 	}
 
 // private helpers
-	private struct function _readMaintenanceModeFromFile() output=false {
+	private struct function _readMaintenanceModeFromFile() {
 		var filePath = _getConfigPath();
 		try {
 			var modeSettings = DeSerializeJson( FileRead( filePath ) );
@@ -103,7 +103,7 @@ component output=false {
 		FileWrite( filePath, SerializeJson( arguments.maintenanceModeSettings ) );
 	}
 
-	private any function _getApplicationVariable() output=false {
+	private any function _getApplicationVariable() {
 		return application.presideMaintenanceMode ?: NullValue();
 	}
 	private void function _setApplicationVariable( required struct maintenanceModeSettings ) {
@@ -111,10 +111,10 @@ component output=false {
 	}
 
 // getters and setters
-	private string function _getConfigPath() output=false {
+	private string function _getConfigPath() {
 		return _configPath;
 	}
-	private void function _setConfigPath( required string configPath ) output=false {
+	private void function _setConfigPath( required string configPath ) {
 		_configPath = arguments.configPath;
 	}
 }
