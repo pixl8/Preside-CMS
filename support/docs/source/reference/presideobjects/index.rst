@@ -14,6 +14,7 @@ System Preside Objects
     security_context_permission
     audit_log
     admin_notification
+    admin_notification_topic
     admin_notification_subscription
     admin_notification_consumer
     system_config
@@ -29,6 +30,7 @@ System Preside Objects
     reset_password
     notfound
     page
+    site_alias_domain
     draft
     site_redirect_domain
     link

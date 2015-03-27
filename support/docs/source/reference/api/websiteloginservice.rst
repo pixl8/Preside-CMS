@@ -27,7 +27,7 @@ Login()
 
 .. code-block:: java
 
-    public boolean function login( required string loginId, required string password, boolean rememberLogin=false, any rememberExpiryInDays=90 )
+    public boolean function login( required string loginId, string password="", boolean rememberLogin=false, any rememberExpiryInDays=90, boolean skipPasswordCheck=false )
 
 Logs the user in by matching the passed login id against either the login id or email address
 fields and running a bcrypt password check to verify the security credentials. Returns true on success, false otherwise.
@@ -39,9 +39,10 @@ Arguments
 Name                  Type     Required            Description                                                                          
 ====================  =======  ==================  =====================================================================================
 loginId               string   Yes                 Either the login id or email address of the user to login                            
-password              string   Yes                 The password that the user has entered during login                                  
+password              string   No (default="")     The password that the user has entered during login                                  
 rememberLogin         boolean  No (default=false)  Whether or not to set a "remember me" cookie                                         
 rememberExpiryInDays  any      No (default=90)     When setting a remember me cookie, how long (in days) before the cookie should expire
+skipPasswordCheck     boolean  No (default=false)                                                                                       
 ====================  =======  ==================  =====================================================================================
 
 
@@ -260,3 +261,91 @@ Name      Type    Required  Description
 password  string  Yes       The new password                                                                         
 userId    string  No        ID of the user who's password we wish to change (defaults to currently logged in user id)
 ========  ======  ========  =========================================================================================
+
+
+.. _websiteloginservice-listloggedinuserbenefits:
+
+ListLoggedInUserBenefits()
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public array function listLoggedInUserBenefits( )
+
+Gets an array of benefit IDs associated with the logged in user
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _websiteloginservice-doesloggedinuserhavebenefits:
+
+DoesLoggedInUserHaveBenefits()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function doesLoggedInUserHaveBenefits( required array benefits )
+
+Returns true / false depending on whether or not a user has access to any of the supplied benefits
+
+Arguments
+.........
+
+========  =====  ========  ==================================================================================================
+Name      Type   Required  Description                                                                                       
+========  =====  ========  ==================================================================================================
+benefits  array  Yes       Array of benefit IDs. If the logged in user has any of these benefits, the method will return true
+========  =====  ========  ==================================================================================================
+
+
+.. _websiteloginservice-recordlogin:
+
+RecordLogin()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function recordLogin( )
+
+Sets the last logged in date for the logged in user
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _websiteloginservice-recordlogout:
+
+RecordLogout()
+~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function recordLogout( )
+
+Sets the last logged out date for the logged in user. Note, must be
+called before logging the user out
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
+.. _websiteloginservice-recordvisit:
+
+RecordVisit()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function recordVisit( )
+
+Records the visit for the currently logged in user
+Currently, all this does is to set the last request made datetime value
+
+Arguments
+.........
+
+*This method does not accept any arguments.*

@@ -229,6 +229,49 @@ userId  string  Yes       ID of the user who's subscribed topics we want to fetc
 ======  ======  ========  =======================================================
 
 
+.. _notificationservice-getglobaltopicconfiguration:
+
+GetGlobalTopicConfiguration()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public struct function getGlobalTopicConfiguration( required string topic )
+
+Retrieves globally saved configuration settings for a given notification topic
+
+Arguments
+.........
+
+=====  ======  ========  ===============
+Name   Type    Required  Description    
+=====  ======  ========  ===============
+topic  string  Yes       ID of the topic
+=====  ======  ========  ===============
+
+
+.. _notificationservice-saveglobaltopicconfiguration:
+
+SaveGlobalTopicConfiguration()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function saveGlobalTopicConfiguration( required string topic, required struct configuration )
+
+Saves configuration for a topic
+
+Arguments
+.........
+
+=============  ======  ========  ====================================
+Name           Type    Required  Description                         
+=============  ======  ========  ====================================
+topic          string  Yes       ID of the topic                     
+configuration  struct  Yes       Struct containing configuration data
+=============  ======  ========  ====================================
+
+
 .. _notificationservice-saveusersubscriptions:
 
 SaveUserSubscriptions()

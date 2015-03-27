@@ -13,6 +13,7 @@ System form layouts
     linkpickeraddlinkform
     linkpickereditlinkform
     notificationspreferencesform
+    notificationstopicglobalconfigurationform
     notificationstopicpreferencesform
     richeditorattachmentform
     richeditorattachmentform

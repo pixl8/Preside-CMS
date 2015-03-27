@@ -53,7 +53,9 @@ This form is used as the base "edit page" form for Sitetree pages. See also :doc
             <fieldset id="navigation" sortorder="10">
                 <field sortorder="10" binding="page.navigation_title" control="textinput" placeholder="preside-objects.page:field.navigation_title.placeholder" />
                 <field sortorder="20" binding="page.exclude_from_navigation" />
-                <field sortorder="30" binding="page.exclude_children_from_navigation" />
+                <field sortorder="30" binding="page.exclude_from_sub_navigation" />
+                <field sortorder="40" binding="page.exclude_children_from_navigation" />
+                <field sortorder="50" binding="page.exclude_from_sitemap" />
             </fieldset>
         </tab>
 

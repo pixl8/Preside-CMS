@@ -28,5 +28,8 @@ Properties
     property name="reset_password_token"        type="string"   dbtype="varchar" maxLength="35"  required=false indexes="resettoken";
     property name="reset_password_key"          type="string"   dbtype="varchar" maxLength="60"  required=false;
     property name="reset_password_token_expiry" type="datetime" dbtype="datetime"                required=false;
+    property name="last_logged_in"              type="datetime" dbtype="datetime"                required=false;
+    property name="last_logged_out"             type="datetime" dbtype="datetime"                required=false;
+    property name="last_request_made"           type="datetime" dbtype="datetime"                required=false;
 
     property name="benefits" relationship="many-to-many" relatedTo="website_benefit";
