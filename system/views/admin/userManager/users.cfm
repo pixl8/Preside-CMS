@@ -24,7 +24,7 @@
 		  objectName      = objectName
 		, useMultiActions = false
 		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=userManager.getUsersForAjaxDataTables" )
-		, gridFields      = [ "active", "login_id", "known_as", "email_address" ]
+		, gridFields      = [ "active", "login_id", "known_as", "email_address", "last_request_made" ]
 	} )#
 
 </cfoutput>

@@ -126,7 +126,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, eventArguments = {
 				  object          = "security_user"
-				, gridFields      = "active,login_id,known_as,email_address"
+				, gridFields      = "active,login_id,known_as,email_address,last_request_made"
 				, actionsView     = "/admin/usermanager/_usersGridActions"
 				, useMultiActions = false
 			}
