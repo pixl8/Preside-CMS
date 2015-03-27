@@ -15,6 +15,7 @@ Developer guides & recipes
    websiteusers
    systemsettings
    emailtemplates
+   notifications
    customerrorpages
    sitetreenavigationmenus
    adminmenu
