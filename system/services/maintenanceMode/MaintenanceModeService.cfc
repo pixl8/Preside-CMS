@@ -64,11 +64,10 @@ component {
 
 		if ( Len( Trim( bypassPassword  ) ) ) {
 			var scopes = [ session, cookie, form, url ];
-			var key    = "maintenanceModeByPass";
 
 			for( var scope in scopes ){
-				if ( scope.keyExists( key ) && scope[ key ] == bypassPassword ) {
-					session[ key ] = bypassPassword;
+				if ( scope.keyExists( bypassPassword ) ) {
+					session[ bypassPassword ] = true;
 					return true;
 				}
 			}

@@ -114,6 +114,7 @@ component output=false {
 		settings.accessDeniedViewlet       = "errors.accessDenied";
 		settings.serverErrorLayout         = "Main";
 		settings.serverErrorViewlet        = "errors.serverError";
+		settings.maintenanceModeViewlet    = "errors.maintenanceMode";
 		settings.cookieEncryptionKey       = _getCookieEncryptionKey();
 		settings.injectedConfig            = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics        = [];

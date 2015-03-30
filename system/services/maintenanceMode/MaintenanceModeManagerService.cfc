@@ -11,10 +11,14 @@ component {
 	/**
 	 * @maintenanceModeService.inject     maintenanceModeService
 	 * @systemConfigurationService.inject systemConfigurationService
+	 * @maintenanceModeViewlet.inject     coldbox:setting:maintenanceModeViewlet
+	 * @coldbox.inject                    coldbox
 	 */
-	public any function init( required any maintenanceModeService, required any systemConfigurationService ) {
+	public any function init( required any maintenanceModeService, required any systemConfigurationService, required any coldbox, required string maintenanceModeViewlet ) {
 		_setMaintenanceModeService( arguments.maintenanceModeService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setMaintenanceModeViewlet( arguments.maintenanceModeViewlet );
+		_setColdbox( arguments.coldbox );
 	}
 
 // public api
@@ -24,6 +28,7 @@ component {
 
 	public void function saveSettings( required struct settings ) {
 		var configService = _getSystemConfigurationService();
+		var active        = IsBoolean( arguments.settings.active ?: "" ) && arguments.settings.active;
 
 		for( var settingName in settings ) {
 			configService.saveSetting(
@@ -32,9 +37,29 @@ component {
 				, value    = settings[ settingName ]
 			)
 		}
+
+		active ? _activateMaintenanceMode( arguments.settings ) : _deactivateMaintenanceMode();
 	}
 
 // private helpers
+	private void function _activateMaintenanceMode( required struct settings ) {
+		_getMaintenanceModeService().setMaintenanceMode(
+			  maintenanceHtml = _generateMaintenanceModePage( settings.message ?: "" )
+			, bypassPassword  = arguments.settings.bypass_password ?: ""
+			, allowedIps      = ListToArray( arguments.settings.ip_whitelist ?: "", Chr(10) & Chr(13) & "," )
+		);
+	}
+
+	private void function _deactivateMaintenanceMode() {
+		_getMaintenanceModeService().clearMaintenanceMode();
+	}
+
+	private string function _generateMaintenanceModePage( required string message ) {
+		return _getColdbox().renderViewlet(
+			  event = _getMaintenanceModeViewlet()
+			, args  = { message = arguments.message }
+		);
+	}
 
 // getters and setters
 	private any function _getMaintenanceModeService() {
@@ -49,5 +74,19 @@ component {
 	}
 	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
+	}
+
+	private any function _getColdbox() output=false {
+		return _coldbox;
+	}
+	private void function _setColdbox( required any coldbox ) output=false {
+		_coldbox = arguments.coldbox;
+	}
+
+	private string function _getMaintenanceModeViewlet() output=false {
+		return _maintenanceModeViewlet;
+	}
+	private void function _setMaintenanceModeViewlet( required string maintenanceModeViewlet ) output=false {
+		_maintenanceModeViewlet = arguments.maintenanceModeViewlet;
 	}
 }
