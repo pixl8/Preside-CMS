@@ -1,5 +1,6 @@
 <cfscript>
-	formId = "maintenance-mode-settings";
+	formId        = "maintenance-mode-settings";
+	savedSettings = prc.settings ?: {};
 </cfscript>
 
 <cfoutput>
@@ -13,6 +14,7 @@
 			  formName          = "maintenance-mode.settings"
 			, context           = "admin"
 			, formId            = formId
+			, savedData         = savedSettings
 			, validationResult  = rc.validationResult ?: ""
 		)#
 
