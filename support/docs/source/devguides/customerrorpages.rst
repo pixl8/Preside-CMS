@@ -1,5 +1,5 @@
-Custom error pages
-==================
+Custom error pages & Maintenance mode
+=====================================
 
 .. contents:: :local:
 
@@ -354,3 +354,88 @@ In most cases however, you will not need to configure this for your local enviro
 .. note::
 
     PresideCMS's built-in local environment configuration will map URLs like "mysite.local", "local.mysite", "localhost" and "127.0.0.1" to the "local" environment.
+
+503 Maintenance mode page
+#########################
+
+The administrator interface provides a simple GUI for putting the site into maintenance mode (see figure below). This interface allows administrators to enter a custom title and message, turn maintenance mode on/off and also to supply custom settings to allow users to bypass maintenance mode.
+
+.. figure:: /images/maintenance_mode.png
+
+    Screenshot of maintenance mode management GUI
+
+
+Creating a custom 503 page
+--------------------------
+
+The 503 template is implemented as a Preside Viewlet (see :doc:`viewlets`) and a core implementation already exists. The name of the viewlet is configured in your application's Config.cfc with the :code:`maintenanceModeViewlet` setting. The default is "errors.maintenanceMode":
+
+.. code-block:: java
+
+    // /application/config/Config.cfc
+    component extends="preside.system.config.Config" output=false {
+
+        public void function configure() output=false {
+            super.configure();
+
+            // other settings...
+            settings.maintenanceModeViewlet = "errors.maintenanceMode";
+        }
+    }
+
+To create a custom template, you can choose either to provide your own viewlet by changing the config setting, or by overriding the view and/or handler of the :code:`errors.maintenanceMode` viewlet.
+
+For example, in your site's :code:`/application/views/errors/` folder, you could create a :code:`maintenanceMode.cfm` file with the following:
+
+.. code-block:: html
+
+    <cfparam name="args.title"   />
+    <cfparam name="args.message" />
+
+    <cfoutput><!DOCTYPE html>
+    <html>
+        <head>
+            <title>#args.title#</title>
+            <meta charset="utf-8">
+            <meta name="robots" content="noindex,nofollow" />
+        </head>
+        <body>
+            <h1>#args.title#</h1>
+            #args.message#
+        </body>
+    </html></cfoutput>
+
+.. note::
+
+    The maintenance mode viewlet needs to render the entire HTML of the page.
+
+Manually clearing maintenance mode
+----------------------------------
+
+You may find yourself in a situation where you application is in maintenance mode and you have no means by which to access the admin because the password has been lost. In this case, you have two options:
+
+Method 1: Set bypass password directly in the database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To find the current bypass password, you can query the database with:
+
+.. code:: sql
+    
+    select value 
+    from   psys_system_config 
+    where  category = 'maintenanceMode' 
+    and    setting  = 'bypass_password';
+
+If the value does not exist, create it with:
+
+.. code:: sql
+
+    insert into psys_system_config (id, category, setting, `value`, datecreated, datemodified)
+    values( '{a unique id}', 'maintenancemode', 'bypass_password', '{new password}', now(), now() );
+
+The bypass password can then be used by supplying it as a URL parameter to your site, e.g. :code:`http://www.mysite.com/?thepassword`. From there, you should be able to login to the administrator and turn off maintenance mode.
+
+Method 2: Delete the maintenance mode file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When maintenance mode is activated, a file is created at :code:`/yoursite/application/config/.maintenance`. To clear maintenance mode, delete that file and restart the application.
