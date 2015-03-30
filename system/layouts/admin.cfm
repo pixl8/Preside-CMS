@@ -1,9 +1,9 @@
 <cfscript>
 	body             = renderView();
 	navbar           = renderView( 'admin/layout/navbar' );
+	siteAlerts       = renderViewlet( 'admin.layout.siteAlerts' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
 	sideBarNav       = renderView( 'admin/layout/sideBarNavigation' );
-//	uiSettingsWidget = renderView( 'admin/layout/uiSettingsWidget' );
 	backToTopWidget  = renderView( 'admin/layout/backToTopWidget' );
 	notifications    = renderView( 'admin/general/notifications' );
 
@@ -52,6 +52,7 @@
 
 	<body class="preside-theme">
 		#navbar#
+		#siteAlerts#
 
 		<div class="main-container" id="main-container">
 			<script type="text/javascript">
