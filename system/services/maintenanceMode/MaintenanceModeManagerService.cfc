@@ -44,7 +44,7 @@ component {
 // private helpers
 	private void function _activateMaintenanceMode( required struct settings ) {
 		_getMaintenanceModeService().setMaintenanceMode(
-			  maintenanceHtml = _generateMaintenanceModePage( settings.message ?: "" )
+			  maintenanceHtml = _generateMaintenanceModePage( settings )
 			, bypassPassword  = arguments.settings.bypass_password ?: ""
 			, allowedIps      = ListToArray( arguments.settings.ip_whitelist ?: "", Chr(10) & Chr(13) & "," )
 		);
@@ -54,10 +54,10 @@ component {
 		_getMaintenanceModeService().clearMaintenanceMode();
 	}
 
-	private string function _generateMaintenanceModePage( required string message ) {
+	private string function _generateMaintenanceModePage( required struct settings ) {
 		return _getColdbox().renderViewlet(
 			  event = _getMaintenanceModeViewlet()
-			, args  = { message = arguments.message }
+			, args  = arguments.settings
 		);
 	}
 

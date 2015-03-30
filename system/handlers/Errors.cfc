@@ -33,6 +33,7 @@ component {
 
 	private string function maintenanceMode( event, rc, prc, args={} ) {
 		args.message = renderContent( renderer="richeditor", data=args.message ?: "", context=[ "maintenanceMode", "website" ] );
+		args.title   = Len( Trim( args.title ?: "" ) ) ? args.title : "We're sorry, this site is currently down for maintenance";
 
 		return renderView( view="/errors/maintenanceMode", args=args );
 	}

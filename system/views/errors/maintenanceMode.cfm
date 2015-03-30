@@ -1,9 +1,10 @@
 <cfparam name="args.message" type="string" default="" />
+<cfparam name="args.title"   type="string" default="We're sorry, this website is currently down for maintenance" />
 
 <cfoutput><!DOCTYPE html>
 <html>
 	<head>
-		<title>Down for maintenance</title>
+		<title>#args.title#</title>
 		<meta charset="utf-8">
 		<meta name="robots" content="noindex,nofollow" />
 		<style type="text/css">
@@ -52,7 +53,7 @@
 	</head>
 	<body>
 		<div id="main">
-			<h1><span>503</span> We're sorry, this website is currently down for maintenance</h1>
+			<h1><span>503</span> #args.title#</h1>
 
 			#args.message#
 		</div>
