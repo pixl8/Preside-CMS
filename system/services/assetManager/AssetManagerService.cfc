@@ -785,6 +785,14 @@ component {
 		return false;
 	}
 
+	public query function getAssetVersions( required string assetId, array selectFields=[] ) {
+		return _getAssetVersionDao().selectData(
+			  filter       = { asset = arguments.assetId }
+			, orderBy      = "version_number"
+			, selectfields = arguments.selectfields
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _setupSystemFolders( required struct configuredFolders ) {
 		var dao         = _getFolderDao();
