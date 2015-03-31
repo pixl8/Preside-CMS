@@ -25199,6 +25199,9 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-theme .sitewide-alert {
   margin-bottom: 0;
 }
+.presidecms .preside-theme .tab-content {
+  background-color: #ffffff;
+}
 .presidecms .preside-loading-sheen {
   position: absolute;
   top: 0;
