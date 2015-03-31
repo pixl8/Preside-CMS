@@ -1,4 +1,4 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="assetManagerService"      inject="assetManagerService";
 	property name="websitePermissionService" inject="websitePermissionService";
@@ -9,7 +9,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="datatableHelper"         inject="coldbox:myplugin:JQueryDatatablesHelpers";
 
-	function preHandler( event, rc, prc ) output=false {
+	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "assetManager" ) ) {
@@ -68,13 +68,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
 	}
 
-	function index( event, rc, prc ) output=false {
+	function index( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
 
 		prc.folderTree   = assetManagerService.getFolderTree();
 	}
 
-	function addAssets( event, rc, prc ) output=false {
+	function addAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileIds = ListToArray( rc.fileId ?: "" );
@@ -86,7 +86,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function addAssetAction( event, rc, prc ) output=false {
+	function addAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileId           = rc.fileId ?: "";
@@ -128,7 +128,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function addAssetsInPicker( event, rc, prc ) output=false {
+	function addAssetsInPicker( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileIds = ListToArray( rc.fileId ?: "" );
@@ -143,7 +143,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.setView( "admin/assetManager/addAssetsInPicker" );
 	}
 
-	function trashAssetAction( event, rc, prc ) output=false {
+	function trashAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
 
 		var assetId          = rc.asset ?: "";
@@ -168,11 +168,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
-	function addFolder( event, rc, prc ) output=false {
+	function addFolder( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.add" );
 	}
 
-	function addFolderAction( event, rc, prc ) output=false {
+	function addFolderAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.add" );
 
 		var formName         = "preside-objects.asset_folder.admin.add";
@@ -221,7 +221,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function editFolder( event, rc, prc ) output=false {
+	function editFolder( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
 
 		prc.record = prc.folder ?: QueryNew('');
@@ -242,7 +242,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.record.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
 	}
 
-	function editFolderAction( event, rc, prc ) output=false {
+	function editFolderAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.edit" );
 
 		var folderId          = ( rc.id ?: "" );
@@ -287,7 +287,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 
-	function trashFolderAction( event, rc, prc ) output=false {
+	function trashFolderAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.delete" );
 
 		var folderId         = rc.folder ?: "";
@@ -312,7 +312,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
-	function uploadAssets( event, rc, prc ) output=false {
+	function uploadAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var folderSettings = assetManagerService.getCascadingFolderSettings( id=rc.folder ?: "", settings=[ "allowed_filetypes", "max_filesize_in_mb" ] );
@@ -328,7 +328,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} );
 	}
 
-	function uploadTempFileAction( event, rc, prc ) output=false {
+	function uploadTempFileAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		if ( event.valueExists( "file" ) ) {
@@ -344,7 +344,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function deleteTempFile( event, rc, prc ) output=false {
+	function deleteTempFile( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		try {
@@ -356,7 +356,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.renderData( data={ success=true }, type="json" );
 	}
 
-	function previewTempFile( event, rc, prc ) output=false {
+	function previewTempFile( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var fileId          = rc.tmpId ?: "";
@@ -376,7 +376,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.renderData( data="not found", type="text", statusCode=404 );
 	}
 
-	function editAsset( event, rc, prc ) output=false {
+	function editAsset( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
 
 		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
@@ -388,9 +388,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.asset.deny_access_to_benefits  = ArrayToList( contextualAccessPerms.benefit.deny );
 		prc.asset.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
 		prc.asset.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
+
+		prc.versions = assetManagerService.getAssetVersions( rc.asset );
 	}
 
-	function editAssetAction( event, rc, prc ) output=false {
+	function editAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
 
 		var assetId          = rc.asset  ?: "";
@@ -441,7 +443,38 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function assetPickerBrowser( event, rc, prc ) output=false {
+	function uploadNewVersionAction( event, rc, prc ) {
+		var assetId  = rc.asset ?: "";
+
+		if ( !Len( Trim( assetId ) ) ) {
+			event.notFound();
+		}
+
+		var formName = "preside-objects.asset.newversion";
+		var formData = event.getCollectionForForm( formName );
+
+		preProcessForm( formName, formData );
+
+		if ( !IsStruct( formData.file ?: "" ) || formData.file.isEmpty() ) {
+			messagebox.error( translateResource( "cms:assetmanager.upload.new.version.missing.file" ) );
+		} else {
+			var success = assetmanagerService.addAssetVersion(
+				  assetId    = assetId
+				, fileBinary = formData.file.binary
+				, fileName   = formData.file.fileName
+			);
+
+			if ( success ) {
+				messagebox.info( translateResource( "cms:assetmanager.upload.new.version.confirmation" ) );
+			} else {
+				messagebox.error( translateResource( "cms:assetmanager.upload.new.version.unknown.error" ) );
+			}
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", queryString="asset=" & assetId ) )
+	}
+
+	function assetPickerBrowser( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.pick" );
 
 		var allowedTypes = rc.allowedTypes ?: "";
@@ -475,7 +508,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function assetPickerUploader( event, rc, prc ) output=false {
+	function assetPickerUploader( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var multiple       = rc.multiple ?: "";
@@ -497,7 +530,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.setView( "admin/assetmanager/assetPickerUploader" );
 	}
 
-	function getAssetsForAjaxPicker( event, rc, prc ) output=false {
+	function getAssetsForAjaxPicker( event, rc, prc ) {
 		var records = assetManagerService.getAssetsForAjaxSelect(
 			  maxRows      = rc.maxRows      ?: 1000
 			, searchQuery  = rc.q            ?: ""
@@ -514,7 +547,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.renderData( type="json", data=recordsWithIcons );
 	}
 
-	function assetsForListingGrid( event, rc, prc ) output=false {
+	function assetsForListingGrid( event, rc, prc ) {
 		var result = assetManagerService.getAssetsForGridListing(
 			  startRow    = datatableHelper.getStartRow()
 			, maxRows     = datatableHelper.getMaxRows()
@@ -544,7 +577,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
 	}
 
-	function getFolderTitleAndActions( event, rc, prc ) output=false {
+	function getFolderTitleAndActions( event, rc, prc ) {
 
 		if ( Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
 			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
@@ -557,7 +590,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public void function pickerForEditorDialog( event, rc, prc ) output=false {
+	public void function pickerForEditorDialog( event, rc, prc ) {
 		var jsonConfig = rc.configJson ?: "";
 
 		if ( Len( Trim( jsonConfig ) ) ) {
@@ -574,7 +607,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.setView( "admin/assetManager/pickerForEditorDialog" );
 	}
 
-	public void function getImageDetailsForCKEditorImageDialog( event, rc, prc ) output=false {
+	public void function getImageDetailsForCKEditorImageDialog( event, rc, prc ) {
 		var assetId = rc.asset ?: "";
 		var asset   = assetManagerService.getAsset( assetId );
 		var binary  = assetManagerService.getAssetBinary( assetId );
@@ -594,7 +627,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public void function getAttachmentDetailsForCKEditorDialog( event, rc, prc ) output=false {
+	public void function getAttachmentDetailsForCKEditorDialog( event, rc, prc ) {
 		var assetId = rc.asset ?: "";
 		var asset   = assetManagerService.getAsset( assetId );
 
@@ -606,21 +639,21 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public void function renderEmbeddedImageForEditor( event, rc, prc ) output=false {
+	public void function renderEmbeddedImageForEditor( event, rc, prc ) {
 		var richContent = rc.embeddedImage ?: "";
 		var rendered    = contentRendererService.renderEmbeddedImages( richContent );
 
 		event.renderData( data=rendered );
 	}
 
-	public void function renderEmbeddedAttachmentForEditor( event, rc, prc ) output=false {
+	public void function renderEmbeddedAttachmentForEditor( event, rc, prc ) {
 		var richContent = rc.embeddedAttachment ?: "";
 		var rendered    = contentRendererService.renderEmbeddedAttachments( richContent );
 
 		event.renderData( data=rendered );
 	}
 
-	public void function managePerms( event, rc, prc ) output=false {
+	public void function managePerms( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.managePerms" );
 
 		event.addAdminBreadCrumb(
@@ -629,7 +662,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	public void function savePermsAction( event, rc, prc ) output=false {
+	public void function savePermsAction( event, rc, prc ) {
 		var folderId = rc.folder ?: "";
 		var folderRecord = prc.folder ?: QueryNew( 'label' );
 
@@ -645,7 +678,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // PRIVATE HELPERS
-	private void function _checkPermissions( event, rc, prc, required string key ) output=false {
+	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permitted = "";
 		var permKey   = "assetmanager." & arguments.key;
 

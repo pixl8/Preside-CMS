@@ -1,0 +1,10 @@
+.presidecms .edit-asset-preview img {
+  padding: 5px;
+  -webkit-box-shadow: 1px 1px 3px 0px rgba(50, 50, 50, 0.3);
+  -moz-box-shadow: 1px 1px 3px 0px rgba(50, 50, 50, 0.3);
+  box-shadow: 1px 1px 3px 0px rgba(50, 50, 50, 0.3);
+}
+.presidecms figcaption {
+  margin-top: 7px;
+  color: #999999;
+}
