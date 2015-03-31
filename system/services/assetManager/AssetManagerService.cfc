@@ -557,26 +557,33 @@ component {
 		);
 	}
 
-	public binary function getAssetBinary( required string id, boolean throwOnMissing=false ) {
-		var asset = getAsset( id = arguments.id, throwOnMissing = arguments.throwOnMissing );
+	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false ) {
 		var assetBinary = "";
+		var asset       = Len( Trim( arguments.versionId ) )
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] );
 
 		if ( asset.recordCount ) {
 			return _getStorageProvider().getObject( asset.storage_path );
 		}
 	}
 
-	public string function getAssetEtag( required string id, string derivativeName="", boolean throwOnMissing=false ) output="false" {
-		var asset = "";
+	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false ) output="false" {
+		var asset        = "";
+		var selectFields = [ "storage_path" ];
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
 				  assetId        = arguments.id
+				, versionId      = arguments.versionId
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
+				, selectFields   = selectFields
 			);
 		} else {
-			asset = getAsset( id = arguments.id, throwOnMissing = arguments.throwOnMissing );
+			asset = Len( Trim( arguments.versionId ) )
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields );
 		}
 
 		if ( asset.recordCount ) {
@@ -608,29 +615,44 @@ component {
 		} );
 	}
 
-	public query function getAssetDerivative( required string assetId, required string derivativeName ) {
-		var derivativeDao = _getDerivativeDao();
-		var derivative    = "";
-		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
-		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
-		var lockName      = "getAssetDerivative( #assetId#, #arguments.derivativeName# )";
+	public query function getAssetDerivative( required string assetId, required string derivativeName, string versionId="", array selectFields=[] ) {
+		var derivativeDao      = _getDerivativeDao();
+		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
+		var derivative         = "";
+		var lockName           = "getAssetDerivative( #arguments.assetId#, #arguments.derivativeName#, #arguments.versionId# )";
+		var selectFilter       = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
+		var selectFilterParams = {
+			  "asset_derivative.asset"         = arguments.assetId
+			, "asset_derivative.label"         = arguments.derivativeName & signature
+		};
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			selectFilter &= " and asset_derivative.asset_version = :asset_derivative.asset_version";
+			selectFilterParams[ "asset_derivative.asset_version" ] = arguments.versionId;
+		} else {
+			selectFilter &= " and asset_derivative.asset_version is null";
+		}
 
 		lock type="readonly" name=lockName timeout=5 {
-			derivative = derivativeDao.selectData( filter=selectFilter );
+			derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 			if ( derivative.recordCount ) {
 				return derivative;
 			}
 		}
 
 		lock type="exclusive" name=lockName timeout=120 {
-			createAssetDerivative( assetId=arguments.assetId, derivativeName=arguments.derivativeName );
+			createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 
-			return derivativeDao.selectData( filter=selectFilter );
+			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		}
 	}
 
-	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName ) {
-		var derivative = getAssetDerivative( assetId = arguments.assetId, derivativeName = arguments.derivativeName );
+	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="" ) {
+		var derivative = getAssetDerivative(
+			  assetId        = arguments.assetId
+			, derivativeName = arguments.derivativeName
+			, versionId      = arguments.versionId
+		);
 
 		if ( derivative.recordCount ) {
 			return _getStorageProvider().getObject( derivative.storage_path );
@@ -654,11 +676,15 @@ component {
 	public string function createAssetDerivative(
 		  required string assetId
 		, required string derivativeName
+		,          string versionId = ""
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
-		var asset           = getAsset( id=arguments.assetId, throwOnMissing=true );
-		var assetBinary     = getAssetBinary( id=arguments.assetId, throwOnMissing=true );
+		var asset           = Len( Trim( arguments.versionId ) )
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "storage_path" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path" ] );
+
+		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var filename        = ListLast( asset.storage_path, "/" );
 		var fileext         = ListLast( filename, "." );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" );
@@ -683,10 +709,11 @@ component {
 		_getStorageProvider().putObject( assetBinary, storagePath );
 
 		return _getDerivativeDao().insertData( {
-			  asset_type   = assetType.typeName
-			, asset        = arguments.assetId
-			, label        = arguments.derivativeName & signature
-			, storage_path = storagePath
+			  asset_type    = assetType.typeName
+			, asset         = arguments.assetId
+			, asset_version = arguments.versionId
+			, label         = arguments.derivativeName & signature
+			, storage_path  = storagePath
 		} );
 	}
 
@@ -791,6 +818,32 @@ component {
 			, orderBy      = "version_number"
 			, selectfields = arguments.selectfields
 		);
+	}
+
+	public query function getAssetVersion( required string assetId, required string versionId, array selectFields=[], boolean throwOnMissing=false ) {
+		var assetVersion = _getAssetVersionDao().selectData(
+			  selectFields = arguments.selectFields
+			, filter       = { id=arguments.versionId, asset=arguments.assetId }
+		);
+
+		if ( throwOnMissing && !assetVersion.recordCount ) {
+			throw(
+				  type    = "AssetManager.versionNotFound"
+				, message = "Asset version with asset id [#arguments.assetId#] and version id [#arguments.versionId#] not found"
+			);
+		}
+
+		return assetVersion;
+	}
+
+	public string function getCurrentVersionId( required string assetId ) {
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version" ] );
+
+			return asset.active_version ?: "";
+		}
+
+		return "";
 	}
 
 // PRIVATE HELPERS
