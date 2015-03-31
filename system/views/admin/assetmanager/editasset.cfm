@@ -2,7 +2,7 @@
 	assetId = rc.asset  ?: "";
 	asset   = prc.asset ?: StructNew();
 
-	prc.pageIcon     = "picture";
+	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
 	prc.pageSubTitle = translateResource( "cms:assetmanager.edit.asset.title" );
 
