@@ -16,6 +16,8 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="asset_type"        type="string" dbtype="varchar" maxLength=10       required=true;
 	property name="raw_text_content"  type="string" dbtype="longtext";
 
+	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false;
+
 	property name="access_restriction"  type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset:access_restriction.option.inherit,preside-objects.asset:access_restriction.option.none,preside-objects.asset:access_restriction.option.full";
 	property name="full_login_required" type="boolean" dbtype="boolean"               required=false default=false;
 
