@@ -6,8 +6,9 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="contentRendererService"   inject="contentRendererService";
 	property name="imageManipulationService" inject="imageManipulationService";
+	property name="errorLogService"          inject="errorLogService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
-	property name="datatableHelper"         inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="datatableHelper"          inject="coldbox:myplugin:JQueryDatatablesHelpers";
 
 	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -488,11 +489,22 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !IsStruct( formData.file ?: "" ) || formData.file.isEmpty() ) {
 			messagebox.error( translateResource( "cms:assetmanager.upload.new.version.missing.file" ) );
 		} else {
-			var success = assetmanagerService.addAssetVersion(
-				  assetId    = assetId
-				, fileBinary = formData.file.binary
-				, fileName   = formData.file.fileName
-			);
+			var success = false;
+
+			try {
+				success = assetmanagerService.addAssetVersion(
+					  assetId    = assetId
+					, fileBinary = formData.file.binary
+					, fileName   = formData.file.fileName
+				);
+			} catch ( "AssetManager.mismatchedMimeType" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.upload.new.version.mismatched.type.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", queryString="asset=" & assetId ) )
+
+			} catch ( any e ) {
+				success = false;
+				errorLogService.raiseError( e );
+			}
 
 			if ( success ) {
 				messagebox.info( translateResource( "cms:assetmanager.upload.new.version.confirmation" ) );

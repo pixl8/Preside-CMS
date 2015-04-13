@@ -459,10 +459,22 @@ component {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
-		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
-		var versionId    = "";
-		var assetVersion = {
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type" ] );
+
+		if( !originalAsset.recordCount ) {
+			return false;
+		}
+
+		var originalFileTypeInfo = getAssetType( name=originalAsset.asset_type, throwOnMissing=true );
+		var fileTypeInfo         = getAssetType( filename=arguments.fileName, throwOnMissing=true );
+
+		if ( fileTypeInfo.mimeType != originalFileTypeInfo.mimeType ) {
+			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
+		}
+
+		var newFileName          = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
+		var versionId            = "";
+		var assetVersion         = {
 			  asset        = arguments.assetId
 			, asset_type   = fileTypeInfo.typeName
 			, storage_path = newFileName
