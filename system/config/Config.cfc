@@ -280,7 +280,7 @@ component output=false {
 		var types = {};
 
 		types.image = {
-			  jpg  = { serveAsAttachment=false, mimeType="image/jpg"  }
+			  jpg  = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
 			, gif  = { serveAsAttachment=false, mimeType="image/gif"  }
 			, png  = { serveAsAttachment=false, mimeType="image/png"  }

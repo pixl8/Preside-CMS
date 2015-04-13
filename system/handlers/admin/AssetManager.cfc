@@ -393,6 +393,7 @@ component extends="preside.system.base.AdminHandler" {
 		     .include( "/css/admin/specific/owlcarousel/" );
 
 		prc.versions = assetManagerService.getAssetVersions( rc.asset );
+		prc.assetType = assetManagerService.getAssetType( name=prc.asset.asset_type );
 	}
 
 	function editAssetAction( event, rc, prc ) {

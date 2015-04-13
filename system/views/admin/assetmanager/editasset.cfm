@@ -1,7 +1,8 @@
 <cfscript>
-	assetId = rc.asset  ?: "";
-	asset   = prc.asset ?: StructNew();
-	versions = prc.versions ?: "";
+	assetId   = rc.asset      ?: "";
+	asset     = prc.asset     ?: StructNew();
+	assetType = prc.assetType ?: QueryNew( "" );
+	versions  = prc.versions  ?: QueryNew( "" );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -34,9 +35,13 @@
 		</a>
 		<form id="upload-version-form" action="#event.buildAdminLink( linkTo='assetManager.uploadNewVersionAction' )#" method="post" enctype="multipart/form-data" class="hide">
 			<input type="hidden" name="asset" value="#assetId#">
-			#renderForm(
-				  formName  = "preside-objects.asset.newversion"
-				, context   = "admin"
+			#renderFormControl(
+				  name    = "file"
+				, type    = "fileupload"
+				, accept  = assetType.mimetype
+				, context = "admin"
+				, id      = "upload-version-file"
+				, label   = "cms:assetmanager.newversion.form.file.label"
 			)#
 		</form>
 	</div>
