@@ -12,6 +12,7 @@
 		} );
 
 		$fileInput.on( "change", function(){
+			$('body').presideLoadingSheen( true );
 			$uploadForm.submit();
 		} );
 	}
