@@ -76,12 +76,13 @@
 						</cfloop>
 					</div>
 				<cfelse>
-					<figure>
-						<div class="edit-asset-preview">
-							#renderAsset( assetId=assetId, context="adminPreview" )#
-						</div>
-						<figcaption><em>#FileSizeFormat( asset.size )#, #asset.asset_type# file</em></figcaption>
-					</figure>
+					<cfset version                  = Duplicate( asset ) />
+					<cfset version.asset            = version.id />
+					<cfset version.id               = "" />
+					<cfset version.isCurrentVersion = true />
+					<cfset version.version_number   = 1 />
+
+					#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
 				</cfif>
 			</div>
 		</div>

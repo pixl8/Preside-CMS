@@ -25,14 +25,14 @@
 				#translateResource( uri="cms:assetmanager.download.asset.link" )#
 			</a><br>
 			<cfif not args.isCurrentVersion>
-				<a href="##">
+				<a href="#event.buildAdminLink( linkTo='assetManager.makeVersionActiveAction', querystring='asset=#args.asset#&version=#args.id#' )#">
 					<i class="fa fa-fw fa-check green"></i>
 					#translateResource( uri="cms:assetmanager.versionpreview.makeactive.link" )#
 
 				</a><br>
 				<a href="##">
 					<i class="fa fa-fw fa-trash red"></i>
-					Delete version
+					#translateResource( uri="cms:assetmanager.versionpreview.delete.link" )#
 				</a><br>
 			</cfif>
 		</figcaption>

@@ -446,6 +446,19 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	function makeVersionActiveAction( event, rc, prc ) {
+		var success = assetManagerService.makeVersionActive(
+			  assetId   = ( rc.asset   ?: "" )
+			, versionId = ( rc.version ?: "" )
+		);
+
+		if ( success ) {
+			messagebox.info( translateResource( "cms:assetmanager.asset.make.version.active.success" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#rc.asset#" ) );
+	}
+
 	function uploadNewVersionAction( event, rc, prc ) {
 		var assetId  = rc.asset ?: "";
 
