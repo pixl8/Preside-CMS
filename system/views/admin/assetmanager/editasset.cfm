@@ -47,7 +47,7 @@
 	</div>
 
 	<div class="row">
-		<div class="col-sm-8">
+		<div class="col-sm-12 col-m-6 col-lg-7">
 			<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
 				<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
@@ -70,7 +70,7 @@
 			</form>
 		</div>
 
-		<div class="col-sm-4">
+		<div class="col-sm-12 col-m-6 col-lg-5">
 			<div class="well">
 				<cfif versions.recordCount>
 					<div id="version-carousel" class="owl-carousel owl-theme">
