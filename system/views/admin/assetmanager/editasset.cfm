@@ -72,7 +72,7 @@
 
 		<div class="col-sm-4">
 			<div class="well">
-				<cfif versions.recordCount gt 1>
+				<cfif versions.recordCount>
 					<div id="version-carousel" class="owl-carousel owl-theme">
 						<cfloop query="versions">
 							<cfset version = QueryRowToStruct( versions, versions.currentRow ) />
