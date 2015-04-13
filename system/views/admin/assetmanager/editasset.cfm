@@ -43,26 +43,26 @@
 
 	<div class="row">
 		<div class="col-sm-8">
-				<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
-					<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
+			<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
+				<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
-					#renderForm(
-						  formName         = "preside-objects.asset.admin.edit"
-						, formId           = "edit-asset-form"
-						, context          = "admin"
-						, savedData        = asset
-						, validationResult = rc.validationResult ?: ""
-					)#
+				#renderForm(
+					  formName         = "preside-objects.asset.admin.edit"
+					, formId           = "edit-asset-form"
+					, context          = "admin"
+					, savedData        = asset
+					, validationResult = rc.validationResult ?: ""
+				)#
 
-					<br>
+				<br>
 
-					<div class="pull-right">
-						<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
-						<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
-					</div>
+				<div class="pull-right">
+					<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
+					<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
+				</div>
 
-					<div class="clearfix"></div>
-				</form>
+				<div class="clearfix"></div>
+			</form>
 		</div>
 
 		<div class="col-sm-4">
