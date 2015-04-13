@@ -459,6 +459,19 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#rc.asset#" ) );
 	}
 
+	function deleteAssetVersionAction( event, rc, prc ) {
+		var success = assetManagerService.deleteAssetVersion(
+			  assetId   = ( rc.asset   ?: "" )
+			, versionId = ( rc.version ?: "" )
+		);
+
+		if ( success ) {
+			messagebox.info( translateResource( "cms:assetmanager.asset.delete.version.success" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#rc.asset#" ) );
+	}
+
 	function uploadNewVersionAction( event, rc, prc ) {
 		var assetId  = rc.asset ?: "";
 

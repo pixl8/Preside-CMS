@@ -30,7 +30,7 @@
 					#translateResource( uri="cms:assetmanager.versionpreview.makeactive.link" )#
 
 				</a><br>
-				<a href="##">
+				<a href="#event.buildAdminLink( linkTo='assetManager.deleteAssetVersionAction', querystring='asset=#args.asset#&version=#args.id#' )#" class="confirmation-prompt" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.delete.asset.version.prompt", data=[ args.version_number ] ) )#">
 					<i class="fa fa-fw fa-trash red"></i>
 					#translateResource( uri="cms:assetmanager.versionpreview.delete.link" )#
 				</a><br>

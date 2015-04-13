@@ -812,6 +812,18 @@ component {
 		return false;
 	}
 
+	public boolean function deleteAssetVersion( required string assetId, required string versionId ) {
+		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version" ] );
+
+		if ( !asset.recordCount || asset.active_version == arguments.versionId ) {
+			return false;
+		}
+
+		return _getAssetVersionDao().deleteData(
+			filter = { id=arguments.versionId, asset=arguments.assetId }
+		);
+	}
+
 	public query function getAssetVersions( required string assetId, array selectFields=[] ) {
 		return _getAssetVersionDao().selectData(
 			  filter       = { asset = arguments.assetId }
