@@ -5,6 +5,11 @@
   box-shadow: 1px 1px 3px 0px rgba(50, 50, 50, 0.3);
 }
 .presidecms figcaption {
-  margin-top: 7px;
+  margin-left: 1em;
   color: #999999;
+  width: calc(100% - 245px);
+}
+.presidecms figcaption .title {
+  padding-bottom: 4px;
+  border-bottom: 1px solid #dddddd;
 }

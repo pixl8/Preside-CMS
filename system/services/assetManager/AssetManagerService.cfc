@@ -815,7 +815,7 @@ component {
 	public query function getAssetVersions( required string assetId, array selectFields=[] ) {
 		return _getAssetVersionDao().selectData(
 			  filter       = { asset = arguments.assetId }
-			, orderBy      = "version_number"
+			, orderBy      = "version_number desc"
 			, selectfields = arguments.selectfields
 		);
 	}

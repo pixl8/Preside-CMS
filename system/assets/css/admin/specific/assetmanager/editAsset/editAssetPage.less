@@ -12,8 +12,14 @@
 
 	}
 	figcaption {
-		margin-top : 7px;
-		color      : @default-light-font-colour;
+		margin-left : 1em;
+		color       : @default-light-font-colour;
+		width       : calc( ~"100% - 245px" );
+
+		.title {
+			padding-bottom : 4px;
+			border-bottom  : 1px solid @default-panel-border-colour;
+		}
 	}
 
 }

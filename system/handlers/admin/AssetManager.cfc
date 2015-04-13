@@ -389,6 +389,9 @@ component extends="preside.system.base.AdminHandler" {
 		prc.asset.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
 		prc.asset.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
 
+		event.include( "/js/admin/specific/owlcarousel/"  )
+		     .include( "/css/admin/specific/owlcarousel/" );
+
 		prc.versions = assetManagerService.getAssetVersions( rc.asset );
 	}
 

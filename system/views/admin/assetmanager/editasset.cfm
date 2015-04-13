@@ -1,6 +1,7 @@
 <cfscript>
 	assetId = rc.asset  ?: "";
 	asset   = prc.asset ?: StructNew();
+	versions = prc.versions ?: "";
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -22,13 +23,6 @@
 			<button class="btn btn-danger btn-sm">
 				<i class="fa fa-trash-o"></i>
 				#translateResource( uri="cms:assetmanager.delete.btn" )#
-			</button>
-		</a>
-
-		<a class="pull-right inline" href="#event.buildLink( assetId=assetId )#" data-global-key="w" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.download.asset.link", data=[ asset.title ] ) )#" target="_blank">
-			<button class="btn btn-info btn-sm">
-				<i class="fa fa-download"></i>
-				#translateResource( uri="cms:assetmanager.download.btn" )#
 			</button>
 		</a>
 
@@ -73,12 +67,22 @@
 			</div>
 
 			<div class="col-sm-4">
-				<figure>
-					<div class="edit-asset-preview">
-						#renderAsset( assetId=assetId, context="adminPreview" )#
+				<cfif versions.recordCount gt 1>
+					<div id="version-carousel" class="owl-carousel owl-theme">
+						<cfloop query="versions">
+							<cfset version = QueryRowToStruct( versions, versions.currentRow ) />
+							<cfset version.isCurrentVersion = version.id == asset.active_version />
+							#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+						</cfloop>
 					</div>
-					<figcaption><em>#FileSizeFormat( asset.size )#, #asset.asset_type# file</em></figcaption>
-				</figure>
+				<cfelse>
+					<figure>
+						<div class="edit-asset-preview">
+							#renderAsset( assetId=assetId, context="adminPreview" )#
+						</div>
+						<figcaption><em>#FileSizeFormat( asset.size )#, #asset.asset_type# file</em></figcaption>
+					</figure>
+				</cfif>
 			</div>
 		</div>
 
