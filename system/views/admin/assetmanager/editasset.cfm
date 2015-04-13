@@ -43,7 +43,6 @@
 
 	<div class="row">
 		<div class="col-sm-8">
-			<div class="well">
 				<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
 					<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
@@ -64,27 +63,27 @@
 
 					<div class="clearfix"></div>
 				</form>
-			</div>
 		</div>
 
 		<div class="col-sm-4">
-			<cfif versions.recordCount gt 1>
-				<div id="version-carousel" class="owl-carousel owl-theme">
-					<cfloop query="versions">
-						<cfset version = QueryRowToStruct( versions, versions.currentRow ) />
-						<cfset version.isCurrentVersion = version.id == asset.active_version />
-						#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
-					</cfloop>
-				</div>
-			<cfelse>
-				<cfset version                  = Duplicate( asset ) />
-				<cfset version.asset            = version.id />
-				<cfset version.id               = "" />
-				<cfset version.isCurrentVersion = true />
-				<cfset version.version_number   = 1 />
+			<div class="well">
+				<cfif versions.recordCount gt 1>
+					<div id="version-carousel" class="owl-carousel owl-theme">
+						<cfloop query="versions">
+							<cfset version = QueryRowToStruct( versions, versions.currentRow ) />
+							<cfset version.isCurrentVersion = version.id == asset.active_version />
+							#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+						</cfloop>
+					</div>
+				<cfelse>
+					<cfset version                  = Duplicate( asset ) />
+					<cfset version.asset            = version.id />
+					<cfset version.id               = "" />
+					<cfset version.isCurrentVersion = true />
+					<cfset version.version_number   = 1 />
 
-				#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
-			</cfif>
+					#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+				</cfif>
 		</div>
 	</div>
 </cfoutput>
