@@ -674,13 +674,22 @@ component {
 	public string function createAssetDerivativeWhenNotExists(
 		  required string assetId
 		, required string derivativeName
+		,          string versionId       = getCurrentVersionId( arguments.assetId )
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
 	) {
 		var derivativeDao = _getDerivativeDao();
 		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
-		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
+		var selectFilter  = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
+		var filterParams  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
 
-		if ( !derivativeDao.dataExists( filter=selectFilter ) ) {
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			selectFilter &= " and asset_derivative.asset_version = :asset_derivative.asset_version";
+			filterParams[ "asset_derivative.asset_version" ] = arguments.versionId;
+		} else {
+			selectFilter &= " and asset_derivative.asset_version is null";
+		}
+
+		if ( !derivativeDao.dataExists( filter=selectFilter, filterParams=filterParams ) ) {
 			return createAssetDerivative( argumentCollection = arguments );
 		}
 	}
