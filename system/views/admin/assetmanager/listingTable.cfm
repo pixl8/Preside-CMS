@@ -10,7 +10,7 @@
 
 <cfoutput>
 	<table id="asset-listing-table" class="table table-hover asset-listing-table">
-		<thead>
+		<thead class="hide">
 			<tr>
 				<th data-field="title">#translateResource( "preside-objects.asset:title.singular" )#</th>
 				<th data-width="100px">&nbsp;</th>

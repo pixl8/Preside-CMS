@@ -63,24 +63,16 @@
 		},
 		bProcessing   : false,
 		bStateSave    : false,
+		bPaginate     : false,
+		bLengthChange : false,
 		aaSorting     : [],
-		sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+		sDom          : "t",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
 			$row.addClass( "clickable" ); // make work with clickable tr Preside system
 		},
-		fnInitComplete : function( settings ){
-			var $searchContainer = $( settings.aanFeatures.f[0] )
-			  , $input           = $searchContainer.find( "input" ).first();
 
-			$input.addClass( "data-table-search" );
-			$input.attr( "data-global-key", "s" );
-			$input.attr( "autocomplete", "off" );
-			$input.attr( "placeholder", i18n.translateResource( "cms:datamanager.search.placeholder", { data : [ assets ], defaultValue : "" } ) );
-			$input.wrap( '<span class="input-icon"></span>' );
-			$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
-		},
 		oLanguage : {
 			oAria : {
 				sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),

@@ -1,10 +1,10 @@
 .presidecms .asset-listing-table tbody tr td {
-  height: 45px;
   vertical-align: middle;
 }
 .presidecms .asset-listing-table tbody tr td .icon-derivative {
-  margin-right: 1em;
-  height: 32px;
-  width: 32px;
+  margin-right: 0.5em;
   display: inline-block;
+}
+.presidecms .asset-listing-table tbody tr:first-child td {
+  border-top: none;
 }

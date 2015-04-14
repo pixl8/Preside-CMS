@@ -41,7 +41,7 @@ component extends="coldbox.system.Plugin" output="false" singleton="true" {
 	public numeric function getMaxRows() output=false {
 		var maxRows = Val( getRequestContext().getValue( name="iDisplayLength", defaultValue="10" ) );
 		if ( maxRows lte 0 ) {
-			return 10;
+			return 0;
 		}
 
 		return maxRows;
