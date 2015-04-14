@@ -10,13 +10,17 @@
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
 	  , activeFolderTitle = ""
-	  , dataTable, i, nodeClickHandler;
+	  , dataTable, i, nodeClickHandler, presideTreeNav, setupCheckboxBehaviour, enabledContextHotkeys, setupMultiActionButtons;
 
 	nodeClickHandler = function( $node ){
 		var newActiveFolder = $node.data( "folderId" ) || "";
 
 		$nodes.removeClass( "selected" );
 		$node.addClass( "selected" );
+
+		if ( $node.parent().hasClass( 'tree-folder' ) ) {
+			presideTreeNav.toggleNode( $node.parent() );
+		}
 
 		if ( activeFolder !== newActiveFolder ) {
 			$.ajax({
@@ -35,13 +39,73 @@
 		}
 	};
 
+	setupCheckboxBehaviour = function(){
+	  	var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
+	  	  , $multiActionBtns = $( "#multi-action-buttons" );
+
+		$selectAllCBox.on( 'click' , function(){
+			var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
+
+			$allCBoxes.each( function(){
+				this.checked = $selectAllCBox.is( ':checked' );
+				$(this).closest('tr').toggleClass('selected');
+			});
+		});
+
+		$multiActionBtns.data( 'hidden', true );
+		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
+			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			enabledContextHotkeys( !anyBoxesTicked );
+
+			if ( anyBoxesTicked && $multiActionBtns.data( 'hidden' ) ) {
+				$multiActionBtns
+					.slideDown( 250 )
+					.data( 'hidden', false )
+					.find( "button" ).prop( 'disabled', false );
+
+			} else if ( !anyBoxesTicked && !$multiActionBtns.data( 'hidden' ) ) {
+				$multiActionBtns
+					.slideUp( 250 )
+					.data( 'hidden', true )
+					.find( "button" ).prop( 'disabled', true );
+			}
+		} );
+	};
+
+	setupMultiActionButtons = function(){
+		var $form              = $( '#multi-action-form' )
+		  , $hiddenActionField = $form.find( '[name=multiAction]' );
+
+		$( "#multi-action-buttons button" ).click( function( e ){
+			$hiddenActionField.val( $( this ).attr( 'name' ) );
+		} );
+	};
+
+	enabledContextHotkeys = function( enabled ){
+		$listingTable.find( 'tbody > tr' ).each( function(){
+			if ( enabled ) {
+				$( this ).attr( 'data-context-container', '1' );
+			} else {
+				$( this ).removeAttr( 'data-context-container' );
+			}
+		} );
+	};
+
 	$tree.presideTreeNav( {
 		  onClick      : nodeClickHandler
 		, collapseIcon : "fa-folder-open"
 		, expandIcon   : "fa-folder"
 	} );
+	presideTreeNav = $tree.data( 'presideTreeNav' );
 
-	for( i=0; i < $tableHeaders.length-1; i++ ){
+	colConfig.push( {
+		sClass    : "center",
+		bSortable : false,
+		mData     : "_checkbox",
+		sWidth    : "5em"
+	} );
+	for( i=1; i < $tableHeaders.length-1; i++ ){
 		colConfig.push( {
 			  mData  : $( $tableHeaders.get(i) ).data( 'field' )
 			, sWidth : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
@@ -98,5 +162,8 @@
 			sInfoPostFix : ''
 		}
 	} );
+
+	setupCheckboxBehaviour();
+	setupMultiActionButtons();
 
 } )( presideJQuery );

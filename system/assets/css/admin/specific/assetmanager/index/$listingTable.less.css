@@ -1,3 +1,6 @@
+.presidecms .form-actions {
+  display: none;
+}
 .presidecms .asset-listing-table tbody tr td {
   vertical-align: middle;
 }

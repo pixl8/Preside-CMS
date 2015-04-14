@@ -15,7 +15,7 @@
 		#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
 	</div>
 	<div id="browse" class="row">
-		<div class="col-sm-5 col-md-4 col-lg-3">
+		<div class="col-sm-5 col-md-4 col-lg-4">
 			<div class="navigation-tree-container">
 				<div class="preside-tree-nav tree tree-unselectable" data-nav-list="1" data-nav-list-child-selector=".tree-folder-header,.tree-item">
 					<cfloop array="#folderTree#" index="node">
@@ -24,7 +24,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-sm-7 col-md-8 col-lg-9">
+		<div class="col-sm-7 col-md-8 col-lg-8">
 			#renderView( "admin/assetmanager/listingtable" )#
 		</div>
 	</div>

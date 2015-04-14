@@ -9,14 +9,29 @@
 </cfscript>
 
 <cfoutput>
-	<table id="asset-listing-table" class="table table-hover asset-listing-table">
-		<thead class="hide">
-			<tr>
-				<th data-field="title">#translateResource( "preside-objects.asset:title.singular" )#</th>
-				<th data-width="100px">&nbsp;</th>
-			</tr>
-		</thead>
-		<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
-		</tbody>
-	</table>
+	<form action="#event.buildAdminLink( linkTo='assetManager.multiRecordAction' )#" method="post" id="multi-action-form">
+		<input type="hidden" name="multiAction" value="">
+		<table id="asset-listing-table" class="table table-hover table-striped asset-listing-table">
+			<thead>
+				<tr>
+					<th class="center" data-width="50px">
+						<label>
+							<input type="checkbox" class="ace" />
+							<span class="lbl"></span>
+						</label>
+					</th>
+					<th data-field="title">#translateResource( "preside-objects.asset:title.singular" )#</th>
+					<th data-width="100px">#translateResource( "cms:assetmanager.browser.table.actions.header" )#</th>
+				</tr>
+			</thead>
+			<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
+			</tbody>
+		</table>
+		<div class="form-actions" id="multi-action-buttons">
+			<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#translateResource( "cms:assetmanager.browser.deleteMulti.prompt" )#">
+				<i class="fa fa-trash-o bigger-110"></i>
+				#translateResource( "cms:assetmanager.browser.deleteMulti.btn" )#
+			</button>
+		</div>
+	</form>
 </cfoutput>

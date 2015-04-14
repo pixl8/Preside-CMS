@@ -153,6 +153,7 @@ component extends="preside.system.base.AdminHandler" {
 		var trashed          = "";
 
 		try {
+
 			trashed = assetManagerService.trashAsset( assetId );
 		} catch ( any e ) {
 			logError( e );
@@ -166,6 +167,44 @@ component extends="preside.system.base.AdminHandler" {
 			messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
 		}
 
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
+	}
+
+	function multiRecordAction( event, rc, prc ) {
+		// TODO: permissions checks, etc.
+		var action = rc.multiAction ?: ""
+		var ids    = rc.id          ?: ""
+
+		if ( not Len( Trim( ids ) ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager" ) );
+		}
+
+		switch( action ){
+			case "delete":
+				return trashMultiAssetsAction( argumentCollection = arguments );
+			break;
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager" ) );
+	}
+
+	function trashMultiAssetsAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
+		var parentFolder = "";
+
+		for( var assetId in ListToArray( rc.id ?: "" ) ) {
+			var asset = assetManagerService.getAsset( assetId );
+			parentFolder = asset.recordCount ? asset.asset_folder : "";
+			try {
+				assetManagerService.trashAsset( assetId );
+			} catch ( any e ) {
+				logError( e );
+				messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#parentFolder#" ) );
+			}
+		}
+
+		messageBox.info( translateResource( uri="cms:assetmanager.trash.assets.success" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
@@ -599,6 +638,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		var gridFields = [ "title" ];
 		var renderedOptions = [];
+		var checkboxCol     = []
 
 		var records = Duplicate( result.records );
 
@@ -610,10 +650,13 @@ component extends="preside.system.base.AdminHandler" {
 				}
 			}
 
+			checkboxCol.append( renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 			renderedOptions.append( renderView( view="/admin/assetmanager/_assetGridActions", args=record ) );
 		}
 
 		QueryAddColumn( records, "_options" , renderedOptions );
+		QueryAddColumn( records, "_checkbox", checkboxCol );
+		gridFields.prepend( "_checkbox" );
 		gridFields.append( "_options" );
 
 		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
