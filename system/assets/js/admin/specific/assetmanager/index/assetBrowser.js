@@ -12,13 +12,14 @@
 	  , activeFolderTitle = ""
 	  , dataTable, i, nodeClickHandler, presideTreeNav, setupCheckboxBehaviour, enabledContextHotkeys, setupMultiActionButtons;
 
-	nodeClickHandler = function( $node ){
-		var newActiveFolder = $node.data( "folderId" ) || "";
+	nodeClickHandler = function( $node, e ){
+		var newActiveFolder = $node.data( "folderId" ) || ""
+		  , $clickedElement = $( e.target );
 
 		$nodes.removeClass( "selected" );
 		$node.addClass( "selected" );
 
-		if ( $node.parent().hasClass( 'tree-folder' ) ) {
+		if ( $clickedElement.hasClass( 'folder-name' ) && $node.parent().hasClass( 'tree-folder' ) ) {
 			presideTreeNav.toggleNode( $node.parent() );
 		}
 
