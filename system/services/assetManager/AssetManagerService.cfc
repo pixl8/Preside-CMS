@@ -168,10 +168,12 @@ component {
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "id", "label", "access_restriction", "is_system_folder" ]
+			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "Count( asset.id ) as asset_count" ]
 			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
 			, extraFilters = [ _getExcludeHiddenFilter() ]
+			, groupBy      = "asset_folder.id"
 			, orderBy      = "label"
+
 		);
 
 		for ( var folder in folders ) {
