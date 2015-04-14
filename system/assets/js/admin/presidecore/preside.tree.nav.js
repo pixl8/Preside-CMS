@@ -40,7 +40,7 @@
 				treeNav.$tree.on( "keydown", ".tree-node", "return", function( e ){
 					var $node = $( this );
 
-					treeNav.options.onClick( $node );
+					treeNav.options.onClick( $node, e );
 
 					e.stopPropagation();
 				} );
