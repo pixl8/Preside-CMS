@@ -26,7 +26,7 @@
 		} );
 
 		$form.on( "click", function( e ){
-			if ( !$(e.target).hasClass( "btn" ) ) {
+			if ( !$(e.target).hasClass( "btn" ) && !$(e.target).parents('.upload-instructions').length ) {
 				dz.hiddenFileInput.click();
 			}
 		} );
