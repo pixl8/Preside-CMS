@@ -25209,6 +25209,7 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-theme .search-box {
   border-radius: 5px !important;
   border-color: #ffffff;
+  background-color: #ffffff !important;
 }
 .presidecms .preside-theme .search-box:hover,
 .presidecms .preside-theme .search-box:focus,
@@ -25412,6 +25413,25 @@ img.presidecms .editable-click:hover {
 .presidecms .role-picker-checkbox .role-desc {
   position: relative;
   top: -3px;
+}
+.presidecms .tt-dropdown-menu {
+  background-color: #ffffff;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #eeeeee;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+}
+.presidecms .tt-dropdown-menu .tt-suggestions {
+  background-color: #ffffff;
+}
+.presidecms .tt-dropdown-menu .tt-suggestions .tt-suggestion {
+  background-color: #ffffff;
+  padding: 4px;
+}
+.presidecms .tt-dropdown-menu .tt-suggestions .tt-suggestion.tt-cursor {
+  background-color: #eeeeee;
+  border-radius: 5px;
 }
 .modal-dialog-layout-container .main-content {
   margin-left: 0;
