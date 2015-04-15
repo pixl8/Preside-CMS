@@ -1,7 +1,7 @@
 ( function( $ ){
 
 	var $searchBox = $( '#asset-search-box' )
-	  , setupTypeahead, setupBloodhound, suggestionTemplate, renderSuggestion, setupTemplates;
+	  , setupTypeahead, setupBloodhound, suggestionTemplate, renderSuggestion, setupTemplates, itemSelectedHandler;
 
 	setupTypeahead = function(){
 		setupBloodhound( function( bloodhound ){
@@ -17,6 +17,7 @@
 			    }
 
 			$searchBox.typeahead( typeAheadSettings, datasetSettings );
+			$searchBox.on( "typeahead:selected", function( e, result ){ itemSelectedHandler( result ); } );
 		} );
 	};
 
@@ -38,6 +39,11 @@
 
 	renderSuggestion = function( result ) {
 		return Mustache.render( suggestionTemplate, result );
+	};
+
+	itemSelectedHandler = function( result ) {
+		$('body').presideLoadingSheen( true );
+		window.location = buildAdminLink( "assetmanager", "editasset", { asset : result.value } );
 	};
 
 	setupTemplates = function(){
