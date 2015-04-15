@@ -12,12 +12,21 @@
 
 <cfoutput>
 	<div class="info-bar">
-			<label class="block clearfix">
-				<span class="block input-icon">
-					<input type="text" class="search-box form-control" placeholder="#translateResource( 'cms:assetmanager.search.placeholder' )#" name="q" autocomplete="off" />
-					<i class="fa fa-search"></i>
-				</span>
-			</label>
+		<label class="block clearfix">
+			<span class="block input-icon">
+				<input type              = "text"
+				       id                = "asset-search-box"
+				       class             = "search-box form-control"
+				       placeholder       = "#translateResource( 'cms:assetmanager.search.placeholder' )#"
+				       name              = "q"
+				       autocomplete      = "off"
+				       data-global-key   = "s"
+				       data-prefetch-url = "#event.buildAdminLink( linkTo='assetmanager.getAssetsForAjaxPicker', querystring='maxRows=100' )#"
+				       data-remote-url   = "#event.buildAdminLink( linkTo='assetmanager.getAssetsForAjaxPicker', querystring='q=%QUERY' )#">
+
+				<i class="fa fa-search"></i>
+			</span>
+		</label>
 		<div class="clearfix"></div>
 	</div>
 
