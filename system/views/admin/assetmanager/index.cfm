@@ -11,6 +11,16 @@
 </cfscript>
 
 <cfoutput>
+	<div class="info-bar">
+			<label class="block clearfix">
+				<span class="block input-icon">
+					<input type="text" class="search-box form-control" placeholder="#translateResource( 'cms:assetmanager.search.placeholder' )#" name="q" autocomplete="off" />
+					<i class="fa fa-search"></i>
+				</span>
+			</label>
+		<div class="clearfix"></div>
+	</div>
+
 	<div class="top-right-button-group title-and-actions-container clearfix">
 		#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
 	</div>

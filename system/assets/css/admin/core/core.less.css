@@ -25200,6 +25200,21 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-theme .tab-content {
   background-color: #ffffff;
 }
+.presidecms .preside-theme .info-bar {
+  margin-top: -13px;
+  background-color: #f2f2f2;
+  padding: 8px;
+  margin-bottom: 14px;
+}
+.presidecms .preside-theme .search-box {
+  border-radius: 5px !important;
+  border-color: #ffffff;
+}
+.presidecms .preside-theme .search-box:hover,
+.presidecms .preside-theme .search-box:focus,
+.presidecms .preside-theme .search-box:active {
+  border-color: #ffffff;
+}
 .presidecms .preside-loading-sheen {
   position: absolute;
   top: 0;
