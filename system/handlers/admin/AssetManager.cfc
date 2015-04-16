@@ -611,21 +611,26 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "admin/assetmanager/assetPickerUploader" );
 	}
 
-	function getAssetsForAjaxPicker( event, rc, prc ) {
-		var records = assetManagerService.getAssetsForAjaxSelect(
+	function ajaxSearchAssets( event, rc, prc ) {
+		var records = assetManagerService.searchAssets(
 			  maxRows      = rc.maxRows      ?: 1000
 			, searchQuery  = rc.q            ?: ""
 			, ids          = ListToArray( rc.values       ?: "" )
 			, allowedTypes = ListToArray( rc.allowedTypes ?: "" )
 		);
-		var recordsWithIcons = [];
+		var rootFolderName   = translateResource( "cms:assetmanager.root.folder" );
+		var processedRecords = [];
 
 		for ( record in records ) {
 			record.icon = renderAsset( record.value, "pickerIcon" );
-			recordsWithIcons.append( record );
+			if ( record.folder == "$root" ) {
+				record.folder = rootFolderName;
+			}
+
+			processedRecords.append( record );
 		}
 
-		event.renderData( type="json", data=recordsWithIcons );
+		event.renderData( type="json", data=processedRecords );
 	}
 
 	function assetsForListingGrid( event, rc, prc ) {
@@ -766,8 +771,8 @@ component extends="preside.system.base.AdminHandler" {
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( [] );
 
-		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
-		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="q=%QUERY" );
+		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="q=%QUERY" );
 
 		return renderView( view="/admin/assetmanager/_searchBox", args=args );
 	}

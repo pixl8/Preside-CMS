@@ -253,7 +253,7 @@ component {
 		return result;
 	}
 
-	public array function getAssetsForAjaxSelect( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
+	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
 		var assetDao    = _getAssetDao();
 		var filter      = "( asset.asset_folder != :asset_folder )";
 		var params      = { asset_folder = _getTrashFolderId() };
@@ -278,12 +278,8 @@ component {
 			}
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			filter &= " and ( asset.title like (:title) )";
+			filter &= " and ( asset.title like (:title) or asset_folder.label like (:title) )";
 			params.title = "%#arguments.searchQuery#%";
-		}
-
-		if ( params.isEmpty() ) {
-			filter = {};
 		}
 
 		records = assetDao.selectData(
