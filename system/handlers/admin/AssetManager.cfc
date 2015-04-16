@@ -215,7 +215,12 @@ component extends="preside.system.base.AdminHandler" {
 		var folderId   = rc.toFolder   ?: "";
 		var fromFolder = rc.fromFolder ?: "";
 
+
 		if ( assetIds.len() ) {
+			if ( !Len( Trim( fromFolder ) ) ) {
+				var asset = assetmanagerService.getAsset( assetIds[1] );
+				fromFolder = asset.asset_folder ?: "";
+			}
 			assetManagerService.moveAssets(
 				  assetIds = assetIds
 				, folderId = folderId

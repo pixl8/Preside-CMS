@@ -1,6 +1,6 @@
 ( function( $ ){
 
-	var MoveAssetsDialog;
+	var MoveAssetsDialog, getSelectedAssets;
 
 	MoveAssetsDialog = function( $dialogContainer, assets, fromFolder, title  ){
 		this.$dialogContainer = $dialogContainer;
@@ -58,7 +58,7 @@
 		$( "body" ).append( this.$dialogContainer );
 	};
 
-	$( "body" ).on( "click", '[data-toggle="move-assets-dialog"]', function( e ){
+	$( "body" ).on( "click", 'a[data-toggle="move-assets-dialog"]', function( e ){
 		e.preventDefault();
 
 		var $link            = $( this )
@@ -71,5 +71,29 @@
 		dialog.open();
 
 	} );
+
+	$( "body" ).on( "click", 'button[data-toggle="move-assets-dialog"]', function( e ){
+		e.preventDefault();
+
+		var $button          = $( this )
+		  , $dialogContainer = $( '#' + $button.data( "target" ) )
+		  , assets           = getSelectedAssets( $button.closest( "form" ) )
+		  , fromFolder       = ""
+		  , title            = $button.data( "dialogTitle" )
+		  , dialog           = new MoveAssetsDialog( $dialogContainer, assets, fromFolder, title );
+
+		dialog.open();
+
+	} );
+
+	getSelectedAssets = function( $form ){
+		var assets = [];
+
+		$form.find( "[name='id']:checked" ).each( function(){
+			assets.push( $(this).val() );
+		} );
+
+		return assets.join( "," );
+	};
 
 } )( presideJQuery );
