@@ -1,0 +1,35 @@
+.presidecms .info-bar label {
+  margin-bottom: 0;
+}
+.presidecms .info-bar .twitter-typeahead {
+  width: 100%;
+}
+.presidecms .info-bar .twitter-typeahead .search-box {
+  padding-left: 25px;
+}
+.presidecms .info-bar .twitter-typeahead .result-container {
+  cursor: pointer;
+}
+.presidecms .info-bar .twitter-typeahead .result-container .icon-container {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: top;
+  min-width: 48px;
+}
+.presidecms .info-bar .twitter-typeahead .result-container .icon-container img {
+  margin-top: 2px;
+}
+.presidecms .info-bar .twitter-typeahead .result-container .folder-and-text {
+  display: inline-block;
+}
+.presidecms .info-bar .twitter-typeahead .result-container .folder-and-text .folder {
+  display: block;
+  font-style: italic;
+  font-size: 10px;
+  color: #999999;
+  margin-bottom: 2px;
+}
+.presidecms .info-bar .twitter-typeahead .result-container .folder-and-text .title {
+  display: block;
+  font-size: 12px;
+}

@@ -10,13 +10,18 @@
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
 	  , activeFolderTitle = ""
-	  , dataTable, i, nodeClickHandler;
+	  , dataTable, i, nodeClickHandler, presideTreeNav, setupCheckboxBehaviour, enabledContextHotkeys, setupMultiActionButtons;
 
-	nodeClickHandler = function( $node ){
-		var newActiveFolder = $node.data( "folderId" ) || "";
+	nodeClickHandler = function( $node, e ){
+		var newActiveFolder = $node.data( "folderId" ) || ""
+		  , $clickedElement = $( e.target );
 
 		$nodes.removeClass( "selected" );
 		$node.addClass( "selected" );
+
+		if ( $clickedElement.hasClass( 'folder-name' ) && $node.parent().hasClass( 'tree-folder' ) ) {
+			presideTreeNav.toggleNode( $node.parent() );
+		}
 
 		if ( activeFolder !== newActiveFolder ) {
 			$.ajax({
@@ -35,13 +40,73 @@
 		}
 	};
 
+	setupCheckboxBehaviour = function(){
+	  	var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
+	  	  , $multiActionBtns = $( "#multi-action-buttons" );
+
+		$selectAllCBox.on( 'click' , function(){
+			var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
+
+			$allCBoxes.each( function(){
+				this.checked = $selectAllCBox.is( ':checked' );
+				$(this).closest('tr').toggleClass('selected');
+			});
+		});
+
+		$multiActionBtns.data( 'hidden', true );
+		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
+			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			enabledContextHotkeys( !anyBoxesTicked );
+
+			if ( anyBoxesTicked && $multiActionBtns.data( 'hidden' ) ) {
+				$multiActionBtns
+					.slideDown( 250 )
+					.data( 'hidden', false )
+					.find( "button" ).prop( 'disabled', false );
+
+			} else if ( !anyBoxesTicked && !$multiActionBtns.data( 'hidden' ) ) {
+				$multiActionBtns
+					.slideUp( 250 )
+					.data( 'hidden', true )
+					.find( "button" ).prop( 'disabled', true );
+			}
+		} );
+	};
+
+	setupMultiActionButtons = function(){
+		var $form              = $( '#multi-action-form' )
+		  , $hiddenActionField = $form.find( '[name=multiAction]' );
+
+		$( "#multi-action-buttons button" ).click( function( e ){
+			$hiddenActionField.val( $( this ).attr( 'name' ) );
+		} );
+	};
+
+	enabledContextHotkeys = function( enabled ){
+		$listingTable.find( 'tbody > tr' ).each( function(){
+			if ( enabled ) {
+				$( this ).attr( 'data-context-container', '1' );
+			} else {
+				$( this ).removeAttr( 'data-context-container' );
+			}
+		} );
+	};
+
 	$tree.presideTreeNav( {
 		  onClick      : nodeClickHandler
 		, collapseIcon : "fa-folder-open"
 		, expandIcon   : "fa-folder"
 	} );
+	presideTreeNav = $tree.data( 'presideTreeNav' );
 
-	for( i=0; i < $tableHeaders.length-1; i++ ){
+	colConfig.push( {
+		sClass    : "center",
+		bSortable : false,
+		mData     : "_checkbox",
+		sWidth    : "5em"
+	} );
+	for( i=1; i < $tableHeaders.length-1; i++ ){
 		colConfig.push( {
 			  mData  : $( $tableHeaders.get(i) ).data( 'field' )
 			, sWidth : $( $tableHeaders.get(i) ).data( 'width' ) || 'auto'
@@ -63,24 +128,16 @@
 		},
 		bProcessing   : false,
 		bStateSave    : false,
+		bPaginate     : false,
+		bLengthChange : false,
 		aaSorting     : [],
-		sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+		sDom          : "t",
 		fnRowCallback : function( row ){
 			$row = $( row );
 			$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
 			$row.addClass( "clickable" ); // make work with clickable tr Preside system
 		},
-		fnInitComplete : function( settings ){
-			var $searchContainer = $( settings.aanFeatures.f[0] )
-			  , $input           = $searchContainer.find( "input" ).first();
 
-			$input.addClass( "data-table-search" );
-			$input.attr( "data-global-key", "s" );
-			$input.attr( "autocomplete", "off" );
-			$input.attr( "placeholder", i18n.translateResource( "cms:datamanager.search.placeholder", { data : [ assets ], defaultValue : "" } ) );
-			$input.wrap( '<span class="input-icon"></span>' );
-			$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
-		},
 		oLanguage : {
 			oAria : {
 				sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
@@ -106,5 +163,8 @@
 			sInfoPostFix : ''
 		}
 	} );
+
+	setupCheckboxBehaviour();
+	setupMultiActionButtons();
 
 } )( presideJQuery );

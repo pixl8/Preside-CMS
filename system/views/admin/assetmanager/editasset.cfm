@@ -1,6 +1,8 @@
 <cfscript>
-	assetId = rc.asset  ?: "";
-	asset   = prc.asset ?: StructNew();
+	assetId   = rc.asset      ?: "";
+	asset     = prc.asset     ?: StructNew();
+	assetType = prc.assetType ?: QueryNew( "" );
+	versions  = prc.versions  ?: QueryNew( "" );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -16,15 +18,38 @@
 </cfscript>
 
 <cfoutput>
-	<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
-		<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
+	<div class="top-right-button-group">
 
-		<div class="row">
-			<div class="col-sm-2">
-				#renderAsset( assetId=assetId, context="adminPreview" )#
-			</div>
+		<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#assetId#")#" data-global-key="d" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.asset.link", data=[ asset.title ] ) )#">
+			<button class="btn btn-danger btn-sm">
+				<i class="fa fa-trash-o"></i>
+				#translateResource( uri="cms:assetmanager.delete.btn" )#
+			</button>
+		</a>
 
-			<div class="col-sm-10">
+		<a class="pull-right inline" data-global-key="a" id="upload-button">
+			<button class="btn btn-success btn-sm">
+				<i class="fa fa-cloud-upload"></i>
+				#translateResource( uri="cms:assetmanager.add.version.btn" )#
+			</button>
+		</a>
+		<form id="upload-version-form" action="#event.buildAdminLink( linkTo='assetManager.uploadNewVersionAction' )#" method="post" enctype="multipart/form-data" class="hide">
+			<input type="hidden" name="asset" value="#assetId#">
+			#renderFormControl(
+				  name    = "file"
+				, type    = "fileupload"
+				, accept  = assetType.mimetype
+				, context = "admin"
+				, id      = "upload-version-file"
+				, label   = "cms:assetmanager.newversion.form.file.label"
+			)#
+		</form>
+	</div>
+
+	<div class="row">
+		<div class="col-sm-12 col-m-6 col-lg-7">
+			<form id="edit-asset-form" class="form-horizontal edit-asset-form" data-auto-focus-form="true" data-dirty-form="protect" action="#event.buildAdminLink( linkto="assetmanager.editAssetAction" )#" method="post">
+				<input type="hidden" name="asset" value="#( rc.asset ?: "" )#" />
 
 				#renderForm(
 					  formName         = "preside-objects.asset.admin.edit"
@@ -34,15 +59,36 @@
 					, validationResult = rc.validationResult ?: ""
 				)#
 
-			</div>
+				<br>
 
-		</div>
-		<div class="form-actions row clearfix">
-			<div class="col-md-offset-4">
-				<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
-				<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
-			</div>
+				<div class="pull-right">
+					<a href="#event.buildAdminLink( linkTo="assetmanager", queryString="folder=#asset.asset_folder#" )#" class="btn cancel-asset-btn"><i class="fa fa-remove-sign"></i> #cancelBtnTitle#</a>
+					<button type="input" class="btn btn-primary"><i class="fa fa-check"></i> #saveBtnTitle#</button>
+				</div>
+
+				<div class="clearfix"></div>
+			</form>
 		</div>
 
-	</form>
+		<div class="col-sm-12 col-m-6 col-lg-5">
+			<div class="well">
+				<cfif versions.recordCount>
+					<div id="version-carousel" class="owl-carousel owl-theme">
+						<cfloop query="versions">
+							<cfset version = QueryRowToStruct( versions, versions.currentRow ) />
+							<cfset version.isCurrentVersion = version.id == asset.active_version />
+							#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+						</cfloop>
+					</div>
+				<cfelse>
+					<cfset version                  = Duplicate( asset ) />
+					<cfset version.asset            = version.id />
+					<cfset version.id               = "" />
+					<cfset version.isCurrentVersion = true />
+					<cfset version.version_number   = 1 />
+
+					#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
+				</cfif>
+		</div>
+	</div>
 </cfoutput>

@@ -1,19 +1,25 @@
 @import url( 'globals.less' );
 
 .presidecms {
+
+	.form-actions {
+		display : none;
+	}
+
 	.asset-listing-table {
 		tbody {
 			tr {
 				td {
-					height         : 45px;
 					vertical-align : middle;
 
 					.icon-derivative {
-						margin-right     : 1em;
-						height           : 32px;
-						width            : 32px;
+						margin-right     : 0.5em;
 						display          : inline-block;
 					}
+				}
+
+				&:first-child td {
+					border-top : none;
 				}
 			}
 		}

@@ -1,0 +1,27 @@
+@import url( 'globals.less' );
+
+.presidecms {
+
+	.edit-asset-preview {
+		background-color : @white;
+		img {
+			padding            : 5px;
+			-webkit-box-shadow : 3px 3px 3px 0px rgba(50, 50, 50, 0.3);
+			-moz-box-shadow    : 3px 3px 3px 0px rgba(50, 50, 50, 0.3);
+			box-shadow         : 3px 3px 3px 0px rgba(50, 50, 50, 0.3);
+		}
+
+	}
+	figcaption {
+		margin-left : 1em;
+		color       : @default-light-font-colour;
+		width       : calc( ~"100% - 245px" );
+		min-width   : 200px;
+
+		.title {
+			padding-bottom : 4px;
+			border-bottom  : 1px solid @default-panel-border-colour;
+		}
+	}
+
+}

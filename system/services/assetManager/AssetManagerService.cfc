@@ -1,4 +1,8 @@
-component singleton=true output=false {
+/**
+ * @singleton true
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -11,6 +15,7 @@ component singleton=true output=false {
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
 	 * @assetDao.inject                   presidecms:object:asset
+	 * @assetVersionDao.inject            presidecms:object:asset_version
 	 * @folderDao.inject                  presidecms:object:asset_folder
 	 * @derivativeDao.inject              presidecms:object:asset_derivative
 	 * @assetMetaDao.inject               presidecms:object:asset_meta
@@ -22,14 +27,16 @@ component singleton=true output=false {
 		, required any    tikaWrapper
 		, required any    systemConfigurationService
 		, required any    assetDao
+		, required any    assetVersionDao
 		, required any    folderDao
 		, required any    derivativeDao
 		, required any    assetMetaDao
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
-	) output=false {
+	) {
  		_setAssetDao( arguments.assetDao );
+ 		_setAssetVersionDao( arguments.assetVersionDao );
 		_setFolderDao( arguments.folderDao );
 
 		_setupSystemFolders( arguments.configuredFolders );
@@ -49,7 +56,7 @@ component singleton=true output=false {
 	}
 
 // PUBLIC API METHODS
-	public string function addFolder( required string label, string parent_folder="" ) output=false {
+	public string function addFolder( required string label, string parent_folder="" ) {
 		if ( not Len( Trim( arguments.parent_folder ) ) ) {
 			arguments.parent_folder = getRootFolderId();
 		} else {
@@ -61,7 +68,7 @@ component singleton=true output=false {
 		return _getFolderDao().insertData( arguments );
 	}
 
-	public boolean function editFolder( required string id, required struct data ) output=false {
+	public boolean function editFolder( required string id, required struct data ) {
 		if ( arguments.data.keyExists( "parent_folder" ) && not Len( Trim( arguments.data.parent_folder ) ) ) {
 			arguments.data.parent_folder = getRootFolderId();
 		}
@@ -72,7 +79,7 @@ component singleton=true output=false {
 		);
 	}
 
-	public query function getFolder( required string id, boolean includeHidden=false ) output=false {
+	public query function getFolder( required string id, boolean includeHidden=false ) {
 		var filter = { id=arguments.id };
 		var extra  = [];
 		if ( !includeHidden ) {
@@ -82,7 +89,7 @@ component singleton=true output=false {
 		return _getFolderDao().selectData( filter=filter, extraFilters=extra );
 	}
 
-	public query function getFolderAncestors( required string id, boolean includeChildFolder=false ) output=false {
+	public query function getFolderAncestors( required string id, boolean includeChildFolder=false ) {
 		var folder        = getFolder( id=arguments.id );
 		var ancestors     = QueryNew( folder.columnList );
 		var ancestorArray = [];
@@ -110,7 +117,7 @@ component singleton=true output=false {
 		return ancestors;
 	}
 
-	public struct function getCascadingFolderSettings( required string id, required array settings ) output=false {
+	public struct function getCascadingFolderSettings( required string id, required array settings ) {
 		var folder            = getFolder( arguments.id );
 		var collectedSettings = {};
 
@@ -138,7 +145,7 @@ component singleton=true output=false {
 		return collectedSettings;
 	}
 
-	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) output=false {
+	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, filter       = { parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId() }
@@ -161,10 +168,12 @@ component singleton=true output=false {
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
 		var tree    = [];
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "id", "label", "access_restriction", "is_system_folder" ]
+			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "Count( asset.id ) as asset_count" ]
 			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
 			, extraFilters = [ _getExcludeHiddenFilter() ]
+			, groupBy      = "asset_folder.id"
 			, orderBy      = "label"
+
 		);
 
 		for ( var folder in folders ) {
@@ -182,7 +191,7 @@ component singleton=true output=false {
 		return tree;
 	}
 
-	public array function expandTypeList( required array types, boolean prefixExtensionsWithPeriod=false ) output=false {
+	public array function expandTypeList( required array types, boolean prefixExtensionsWithPeriod=false ) {
 		var expanded = [];
 		var types    = _getTypes();
 
@@ -212,7 +221,7 @@ component singleton=true output=false {
 		, string  searchQuery = ""
 		, string  folder      = ""
 
-	) output=false {
+	) {
 
 		var result       = { totalRecords = 0, records = "" };
 		var parentFolder = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
@@ -244,7 +253,7 @@ component singleton=true output=false {
 		return result;
 	}
 
-	public array function getAssetsForAjaxSelect( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) output=false {
+	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
 		var assetDao    = _getAssetDao();
 		var filter      = "( asset.asset_folder != :asset_folder )";
 		var params      = { asset_folder = _getTrashFolderId() };
@@ -269,12 +278,8 @@ component singleton=true output=false {
 			}
 		}
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			filter &= " and ( asset.title like (:title) )";
+			filter &= " and ( asset.title like (:title) or asset_folder.label like (:title) )";
 			params.title = "%#arguments.searchQuery#%";
-		}
-
-		if ( params.isEmpty() ) {
-			filter = {};
 		}
 
 		records = assetDao.selectData(
@@ -293,7 +298,7 @@ component singleton=true output=false {
 		return result;
 	}
 
-	public string function getPrefetchCachebusterForAjaxSelect( array allowedTypes=[] ) output=false {
+	public string function getPrefetchCachebusterForAjaxSelect( array allowedTypes=[] ) {
 		var filter  = "( asset.asset_folder != :asset_folder )";
 		var params  = { asset_folder = _getTrashFolderId() };
 		var records = "";
@@ -320,7 +325,15 @@ component singleton=true output=false {
 		return records.recordCount ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
-	public boolean function trashFolder( required string id ) output=false {
+	public boolean function folderHasContent( required string id ) {
+		return _getAssetDao().dataExists( filter={ asset_folder=arguments.id } ) || _getFolderDao().dataExists( filter={ parent_folder=arguments.id } );
+	}
+
+	public boolean function trashFolder( required string id ) {
+		if ( folderHasContent( arguments.id ) ) {
+			return false;
+		}
+
 		var folder = getFolder( arguments.id );
 
 		if ( !folder.recordCount || ( IsBoolean( folder.is_system_folder ?: "" ) && folder.is_system_folder ) ) {
@@ -334,7 +347,7 @@ component singleton=true output=false {
 		} );
 	}
 
-	public string function uploadTemporaryFile( required string fileField ) output=false {
+	public string function uploadTemporaryFile( required string fileField ) {
 		var tmpId         = CreateUUId();
 		var storagePath   = "/" & tmpId & "/";
 		var uploadedFile  = "";
@@ -363,14 +376,14 @@ component singleton=true output=false {
 		return tmpId;
 	}
 
-	public void function deleteTemporaryFile( required string tmpId ) output=false {
+	public void function deleteTemporaryFile( required string tmpId ) {
 		var details = getTemporaryFileDetails( arguments.tmpId );
 		if ( Len( Trim( details.path ?: "" ) ) ) {
 			_getTemporaryStorageProvider().deleteObject( details.path );
 		}
 	}
 
-	public struct function getTemporaryFileDetails( required string tmpId, boolean includeMeta=false ) output=false {
+	public struct function getTemporaryFileDetails( required string tmpId, boolean includeMeta=false ) {
 		var storageProvider = _getTemporaryStorageProvider();
 		var files           = storageProvider.listObjects( "/#arguments.tmpId#/" );
 		var details         = {};
@@ -390,7 +403,7 @@ component singleton=true output=false {
 		return details;
 	}
 
-	public binary function getTemporaryFileBinary( required string tmpId ) output=false {
+	public binary function getTemporaryFileBinary( required string tmpId ) {
 		var details = getTemporaryFileDetails( arguments.tmpId );
 
 		return _getTemporaryStorageProvider().getObject( details.path ?: "" );
@@ -414,7 +427,7 @@ component singleton=true output=false {
 		return newId;
 	}
 
-	public string function addAsset( required binary fileBinary, required string fileName, required string folder, struct assetData={} ) output=false {
+	public string function addAsset( required binary fileBinary, required string fileName, required string folder, struct assetData={} ) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
@@ -451,7 +464,54 @@ component singleton=true output=false {
 		return newId;
 	}
 
-	public string function getRawTextContent( required string assetId ) output=false {
+	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type" ] );
+
+		if( !originalAsset.recordCount ) {
+			return false;
+		}
+
+		var originalFileTypeInfo = getAssetType( name=originalAsset.asset_type, throwOnMissing=true );
+		var fileTypeInfo         = getAssetType( filename=arguments.fileName, throwOnMissing=true );
+
+		if ( fileTypeInfo.mimeType != originalFileTypeInfo.mimeType ) {
+			throw( type="AssetManager.mismatchedMimeType", message="The mime type of the uploaded file, [#fileTypeInfo.mimeType#], does not match that of the original version [#originalFileTypeInfo.mimeType#]." );
+		}
+
+		var newFileName          = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
+		var versionId            = "";
+		var assetVersion         = {
+			  asset        = arguments.assetId
+			, asset_type   = fileTypeInfo.typeName
+			, storage_path = newFileName
+			, size         = Len( arguments.fileBinary )
+			, version_number = _getNextAssetVersionNumber( arguments.assetId )
+		};
+
+		if ( _autoExtractDocumentMeta() ) {
+			assetVersion.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+		}
+
+		_getStorageProvider().putObject( object = arguments.fileBinary, path = newFileName );
+
+		versionId = _getAssetVersionDao().insertData( data=assetVersion );
+
+		if ( arguments.makeActive ) {
+			makeVersionActive( arguments.assetId, versionId );
+		}
+
+		if ( _autoExtractDocumentMeta() ) {
+			_saveAssetMetaData(
+				  assetId   = arguments.assetId
+				, versionId = versionId
+				, metaData  = _getTikaWrapper().getMetaData( arguments.fileBinary )
+			);
+		}
+
+		return true;
+	}
+
+	public string function getRawTextContent( required string assetId ) {
 		var asset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "raw_text_content" ] );
 
 		if ( asset.recordCount && asset.asset_type != "image" ) {
@@ -475,11 +535,23 @@ component singleton=true output=false {
 		return "";
 	}
 
-	public boolean function editAsset( required string id, required struct data ) output=false {
+	public boolean function editAsset( required string id, required struct data ) {
 		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
 	}
 
-	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) output=false {
+	public boolean function moveAssets( required array assetIds, required string folderId ) {
+		var folder = getFolder( arguments.folderId );
+		if ( folder.recordCount ) {
+			return _getAssetDao().updateData(
+				  filter = { id = arguments.assetIds }
+				, data   = { asset_folder = arguments.folderId }
+			);
+		}
+
+		return false;
+	}
+
+	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) {
 		var types = _getTypes();
 
 		if ( StructKeyExists( types, arguments.name ) ) {
@@ -496,13 +568,13 @@ component singleton=true output=false {
 		);
 	}
 
-	public array function listTypesForGroup( required string groupName ) output=false {
+	public array function listTypesForGroup( required string groupName ) {
 		var groups = _getGroups();
 
 		return groups[ arguments.groupName ] ?: [];
 	}
 
-	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) output=false {
+	public query function getAsset( required string id, array selectFields=[], boolean throwOnMissing=false ) {
 		var asset = Len( Trim( arguments.id ) ) ? _getAssetDao().selectData( id=arguments.id, selectFields=arguments.selectFields ) : QueryNew('');
 
 		if ( asset.recordCount or not throwOnMissing ) {
@@ -515,26 +587,33 @@ component singleton=true output=false {
 		);
 	}
 
-	public binary function getAssetBinary( required string id, boolean throwOnMissing=false ) output=false {
-		var asset = getAsset( id = arguments.id, throwOnMissing = arguments.throwOnMissing );
+	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false ) {
 		var assetBinary = "";
+		var asset       = Len( Trim( arguments.versionId ) )
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] );
 
 		if ( asset.recordCount ) {
 			return _getStorageProvider().getObject( asset.storage_path );
 		}
 	}
 
-	public string function getAssetEtag( required string id, string derivativeName="", boolean throwOnMissing=false ) output="false" {
-		var asset = "";
+	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false ) output="false" {
+		var asset        = "";
+		var selectFields = [ "storage_path" ];
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
 				  assetId        = arguments.id
+				, versionId      = arguments.versionId
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
+				, selectFields   = selectFields
 			);
 		} else {
-			asset = getAsset( id = arguments.id, throwOnMissing = arguments.throwOnMissing );
+			asset = Len( Trim( arguments.versionId ) )
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields );
 		}
 
 		if ( asset.recordCount ) {
@@ -547,7 +626,7 @@ component singleton=true output=false {
 		return "";
 	}
 
-	public boolean function trashAsset( required string id ) output=false {
+	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
 		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title" ] );
 		var trashedPath = "";
@@ -566,29 +645,44 @@ component singleton=true output=false {
 		} );
 	}
 
-	public query function getAssetDerivative( required string assetId, required string derivativeName ) output=false {
-		var derivativeDao = _getDerivativeDao();
-		var derivative    = "";
-		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
-		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
-		var lockName      = "getAssetDerivative( #assetId#, #arguments.derivativeName# )";
+	public query function getAssetDerivative( required string assetId, required string derivativeName, string versionId="", array selectFields=[] ) {
+		var derivativeDao      = _getDerivativeDao();
+		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
+		var derivative         = "";
+		var lockName           = "getAssetDerivative( #arguments.assetId#, #arguments.derivativeName#, #arguments.versionId# )";
+		var selectFilter       = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
+		var selectFilterParams = {
+			  "asset_derivative.asset"         = arguments.assetId
+			, "asset_derivative.label"         = arguments.derivativeName & signature
+		};
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			selectFilter &= " and asset_derivative.asset_version = :asset_derivative.asset_version";
+			selectFilterParams[ "asset_derivative.asset_version" ] = arguments.versionId;
+		} else {
+			selectFilter &= " and asset_derivative.asset_version is null";
+		}
 
 		lock type="readonly" name=lockName timeout=5 {
-			derivative = derivativeDao.selectData( filter=selectFilter );
+			derivative = derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 			if ( derivative.recordCount ) {
 				return derivative;
 			}
 		}
 
 		lock type="exclusive" name=lockName timeout=120 {
-			createAssetDerivative( assetId=arguments.assetId, derivativeName=arguments.derivativeName );
+			createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 
-			return derivativeDao.selectData( filter=selectFilter );
+			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
 		}
 	}
 
-	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName ) output=false {
-		var derivative = getAssetDerivative( assetId = arguments.assetId, derivativeName = arguments.derivativeName );
+	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="" ) {
+		var derivative = getAssetDerivative(
+			  assetId        = arguments.assetId
+			, derivativeName = arguments.derivativeName
+			, versionId      = arguments.versionId
+		);
 
 		if ( derivative.recordCount ) {
 			return _getStorageProvider().getObject( derivative.storage_path );
@@ -598,13 +692,22 @@ component singleton=true output=false {
 	public string function createAssetDerivativeWhenNotExists(
 		  required string assetId
 		, required string derivativeName
+		,          string versionId       = getCurrentVersionId( arguments.assetId )
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
-	) output=false {
+	) {
 		var derivativeDao = _getDerivativeDao();
 		var signature     = getDerivativeConfigSignature( arguments.derivativeName );
-		var selectFilter  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
+		var selectFilter  = "asset_derivative.asset = :asset_derivative.asset and asset_derivative.label = :asset_derivative.label";
+		var filterParams  = { "asset_derivative.asset" = arguments.assetId, "asset_derivative.label" = arguments.derivativeName & signature };
 
-		if ( !derivativeDao.dataExists( filter=selectFilter ) ) {
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			selectFilter &= " and asset_derivative.asset_version = :asset_derivative.asset_version";
+			filterParams[ "asset_derivative.asset_version" ] = arguments.versionId;
+		} else {
+			selectFilter &= " and asset_derivative.asset_version is null";
+		}
+
+		if ( !derivativeDao.dataExists( filter=selectFilter, filterParams=filterParams ) ) {
 			return createAssetDerivative( argumentCollection = arguments );
 		}
 	}
@@ -612,11 +715,15 @@ component singleton=true output=false {
 	public string function createAssetDerivative(
 		  required string assetId
 		, required string derivativeName
+		,          string versionId = ""
 		,          array  transformations = _getPreconfiguredDerivativeTransformations( arguments.derivativeName )
-	) output=false {
+	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
-		var asset           = getAsset( id=arguments.assetId, throwOnMissing=true );
-		var assetBinary     = getAssetBinary( id=arguments.assetId, throwOnMissing=true );
+		var asset           = Len( Trim( arguments.versionId ) )
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "storage_path" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path" ] );
+
+		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var filename        = ListLast( asset.storage_path, "/" );
 		var fileext         = ListLast( filename, "." );
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" );
@@ -641,14 +748,15 @@ component singleton=true output=false {
 		_getStorageProvider().putObject( assetBinary, storagePath );
 
 		return _getDerivativeDao().insertData( {
-			  asset_type   = assetType.typeName
-			, asset        = arguments.assetId
-			, label        = arguments.derivativeName & signature
-			, storage_path = storagePath
+			  asset_type    = assetType.typeName
+			, asset         = arguments.assetId
+			, asset_version = arguments.versionId
+			, label         = arguments.derivativeName & signature
+			, storage_path  = storagePath
 		} );
 	}
 
-	public struct function getAssetPermissioningSettings( required string assetId ) output=false {
+	public struct function getAssetPermissioningSettings( required string assetId ) {
 		var asset    = getAsset( arguments.assetId );
 		var settings = {
 			  contextTree       = [ arguments.assetId ] //ListToArray( ValueList( folders.id ) ) };
@@ -681,13 +789,13 @@ component singleton=true output=false {
 		return settings;
 	}
 
-	public boolean function isDerivativePubliclyAccessible( required string derivative ) output=false {
+	public boolean function isDerivativePubliclyAccessible( required string derivative ) {
 		var derivatives = _getConfiguredDerivatives();
 
 		return ( derivatives[ arguments.derivative ].permissions ?: "inherit" ) == "public";
 	}
 
-	public string function getDerivativeConfigSignature( required string derivative ) output=false {
+	public string function getDerivativeConfigSignature( required string derivative ) {
 		var derivatives = _getConfiguredDerivatives();
 
 		if ( derivatives.keyExists( arguments.derivative ) ) {
@@ -701,11 +809,11 @@ component singleton=true output=false {
 		return "";
 	}
 
-	public boolean function isSystemFolder( required string folderId ) output=false {
+	public boolean function isSystemFolder( required string folderId ) {
 		return _getFolderDao().dataExists( filter={ id=arguments.folderId, is_system_folder=true } );
 	}
 
-	public string function resolveFolderId( required string folderId ) output=false {
+	public string function resolveFolderId( required string folderId ) {
 		var folder = _getFolderDao().selectData( selectFields=[ "id" ], filter={ system_folder_key=arguments.folderId } );
 
 		if ( folder.recordCount ) {
@@ -715,8 +823,82 @@ component singleton=true output=false {
 		return arguments.folderId;
 	}
 
+	public boolean function makeVersionActive( required string assetId, required string versionId ) {
+		var versionToMakeActive = _getAssetVersionDao().selectData(
+			  id           = arguments.versionId
+			, selectFields = [
+				  "storage_path"
+				, "size"
+				, "asset_type"
+				, "raw_text_content"
+				, "created_by"
+				, "updated_by"
+			]
+		);
+
+		if ( versionToMakeActive.recordCount ) {
+			return _getAssetDao().updateData( id=arguments.assetId, data={
+				  active_version   = arguments.versionId
+				, storage_path     = versionToMakeActive.storage_path
+				, size             = versionToMakeActive.size
+				, asset_type       = versionToMakeActive.asset_type
+				, raw_text_content = versionToMakeActive.raw_text_content
+				, created_by       = versionToMakeActive.created_by
+				, updated_by       = versionToMakeActive.updated_by
+			} );
+		}
+
+		return false;
+	}
+
+	public boolean function deleteAssetVersion( required string assetId, required string versionId ) {
+		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version" ] );
+
+		if ( !asset.recordCount || asset.active_version == arguments.versionId ) {
+			return false;
+		}
+
+		return _getAssetVersionDao().deleteData(
+			filter = { id=arguments.versionId, asset=arguments.assetId }
+		);
+	}
+
+	public query function getAssetVersions( required string assetId, array selectFields=[] ) {
+		return _getAssetVersionDao().selectData(
+			  filter       = { asset = arguments.assetId }
+			, orderBy      = "version_number desc"
+			, selectfields = arguments.selectfields
+		);
+	}
+
+	public query function getAssetVersion( required string assetId, required string versionId, array selectFields=[], boolean throwOnMissing=false ) {
+		var assetVersion = _getAssetVersionDao().selectData(
+			  selectFields = arguments.selectFields
+			, filter       = { id=arguments.versionId, asset=arguments.assetId }
+		);
+
+		if ( throwOnMissing && !assetVersion.recordCount ) {
+			throw(
+				  type    = "AssetManager.versionNotFound"
+				, message = "Asset version with asset id [#arguments.assetId#] and version id [#arguments.versionId#] not found"
+			);
+		}
+
+		return assetVersion;
+	}
+
+	public string function getCurrentVersionId( required string assetId ) {
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version" ] );
+
+			return asset.active_version ?: "";
+		}
+
+		return "";
+	}
+
 // PRIVATE HELPERS
-	private void function _setupSystemFolders( required struct configuredFolders ) output=false {
+	private void function _setupSystemFolders( required struct configuredFolders ) {
 		var dao         = _getFolderDao();
 		var rootFolder  = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$root" } );
 		var trashFolder = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
@@ -738,7 +920,7 @@ component singleton=true output=false {
 		}
 	}
 
-	private void function _setupConfiguredSystemFolder( required string id, required struct settings, required string parentId ) output=false {
+	private void function _setupConfiguredSystemFolder( required string id, required struct settings, required string parentId ) {
 		var dao            = _getFolderDao();
 		var existingRecord = dao.selectData( selectfields=[ "id" ], filter={ is_system_folder=true, system_folder_key=arguments.id } )
 		var folderId       = existingRecord.id ?: "";
@@ -760,7 +942,7 @@ component singleton=true output=false {
 		}
 	}
 
-	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs ) output=false {
+	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs ) {
 		var args        = Duplicate( arguments.transformationArgs );
 
 		// todo, sanity check the input
@@ -769,7 +951,7 @@ component singleton=true output=false {
 		return _getAssetTransformer()[ arguments.transformationMethod ]( argumentCollection = args );
 	}
 
-	private array function _getPreconfiguredDerivativeTransformations( required string derivativeName ) output=false {
+	private array function _getPreconfiguredDerivativeTransformations( required string derivativeName ) {
 		var configured = _getConfiguredDerivatives();
 
 		if ( StructKeyExists( configured, arguments.derivativeName ) ) {
@@ -782,7 +964,7 @@ component singleton=true output=false {
 		);
 	}
 
-	private void function _setupConfiguredFileTypesAndGroups( required struct typesByGroup ) output=false {
+	private void function _setupConfiguredFileTypesAndGroups( required struct typesByGroup ) {
 		var types  = {};
 		var groups = {};
 
@@ -806,125 +988,171 @@ component singleton=true output=false {
 		_setTypes( types );
 	}
 
-	private void function _saveAssetMetaData( required string assetId, required struct metaData ) output=false {
+	private void function _saveAssetMetaData( required string assetId, required struct metaData, string versionId="" ) {
 		var dao = _getAssetMetaDao();
 
 		dao.deleteData( filter={ asset=assetId } );
 		for( var key in arguments.metaData ) {
 			dao.insertData( {
-				  asset = arguments.assetId
-				, key   = key
-				, value = arguments.metaData[ key ]
+				  asset         = arguments.assetId
+				, asset_version = arguments.versionId
+				, key           = key
+				, value         = arguments.metaData[ key ]
 			} );
 		}
 	}
 
-	private boolean function _autoExtractDocumentMeta() output=false {
+	private boolean function _autoExtractDocumentMeta() {
 		var setting = _getSystemConfigurationService().getSetting( "asset-manager", "retrieve_metadata" );
 
 		return IsBoolean( setting ) && setting;
 	}
 
-	private struct function _getExcludeHiddenFilter() output=false {
+	private struct function _getExcludeHiddenFilter() {
 		return { filter="hidden is null or hidden = 0" }
 	}
 
+	private numeric function _getNextAssetVersionNumber( required string assetId ) {
+		_setupFirstVersionForAssetIfNoActiveVersion( arguments.assetId );
+
+		var latestVersion = _getAssetVersionDao().selectData(
+			  filter = { asset = arguments.assetId }
+			, selectFields = [ "Max( version_number ) as version_number" ]
+		);
+
+		return Val( latestVersion.version_number ) + 1;
+	}
+
+	private void function _setupFirstVersionForAssetIfNoActiveVersion( required string assetId ) {
+		var asset = getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[
+			  "storage_path"
+			, "size"
+			, "asset_type"
+			, "active_version"
+			, "raw_text_content"
+			, "created_by"
+			, "updated_by"
+		] );
+
+		if ( !Len( Trim( asset.active_version ) ) ) {
+			var versionId = _getAssetVersionDao().insertData( {
+				  asset            = arguments.assetId
+				, version_number   = 1
+				, storage_path     = asset.storage_path
+				, size             = asset.size
+				, asset_type       = asset.asset_type
+				, raw_text_content = asset.raw_text_content
+				, created_by       = asset.created_by
+				, updated_by       = asset.updated_by
+			} );
+
+			_getAssetDao().updateData( id=arguments.assetId, data={ active_version=versionId } );
+		}
+	}
+
 // GETTERS AND SETTERS
-	private any function _getStorageProvider() output=false {
+	private any function _getStorageProvider() {
 		return _storageProvider;
 	}
-	private void function _setStorageProvider( required any storageProvider ) output=false {
+	private void function _setStorageProvider( required any storageProvider ) {
 		_storageProvider = arguments.storageProvider;
 	}
 
-	private any function _getTemporaryStorageProvider() output=false {
+	private any function _getTemporaryStorageProvider() {
 		return _temporaryStorageProvider;
 	}
-	private void function _setTemporaryStorageProvider( required any temporaryStorageProvider ) output=false {
+	private void function _setTemporaryStorageProvider( required any temporaryStorageProvider ) {
 		_temporaryStorageProvider = arguments.temporaryStorageProvider;
 	}
 
-	private any function _getAssetTransformer() output=false {
+	private any function _getAssetTransformer() {
 		return _assetTransformer;
 	}
-	private void function _setAssetTransformer( required any assetTransformer ) output=false {
+	private void function _setAssetTransformer( required any assetTransformer ) {
 		_assetTransformer = arguments.assetTransformer;
 	}
 
-	private struct function _getConfiguredDerivatives() output=false {
+	private struct function _getConfiguredDerivatives() {
 		return _configuredDerivatives;
 	}
-	private void function _setConfiguredDerivatives( required struct configuredDerivatives ) output=false {
+	private void function _setConfiguredDerivatives( required struct configuredDerivatives ) {
 		_configuredDerivatives = arguments.configuredDerivatives;
 	}
 
-	public string function getRootFolderId() output=false {
+	public string function getRootFolderId() {
 		return _rootFolderId;
 	}
-	private void function _setRootFolderId( required string rootFolderId ) output=false {
+	private void function _setRootFolderId( required string rootFolderId ) {
 		_rootFolderId = arguments.rootFolderId;
 	}
 
-	private string function _getTrashFolderId() output=false {
+	private string function _getTrashFolderId() {
 		return _trashFolderId;
 	}
-	private void function _setTrashFolderId( required string trashFolderId ) output=false {
+	private void function _setTrashFolderId( required string trashFolderId ) {
 		_trashFolderId = arguments.trashFolderId;
 	}
 
-	private any function _getGroups() output=false {
+	private any function _getGroups() {
 		return _groups;
 	}
-	private void function _setGroups( required any groups ) output=false {
+	private void function _setGroups( required any groups ) {
 		_groups = arguments.groups;
 	}
 
-	private struct function _getTypes() output=false {
+	private struct function _getTypes() {
 		return _types;
 	}
-	private void function _setTypes( required struct types ) output=false {
+	private void function _setTypes( required struct types ) {
 		_types = arguments.types;
 	}
 
-	private any function _getSystemConfigurationService() output=false {
+	private any function _getSystemConfigurationService() {
 		return _systemConfigurationService;
 	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 
-	private any function _getAssetDao() output=false {
+	private any function _getAssetDao() {
 		return _assetDao;
 	}
-	private void function _setAssetDao( required any assetDao ) output=false {
+	private void function _setAssetDao( required any assetDao ) {
 		_assetDao = arguments.assetDao;
 	}
 
-	private any function _getFolderDao() output=false {
+	private any function _getAssetVersionDao() {
+		return _assetVersionDao;
+	}
+	private void function _setAssetVersionDao( required any assetVersionDao ) {
+		_assetVersionDao = arguments.assetVersionDao;
+	}
+
+	private any function _getFolderDao() {
 		return _folderDao;
 	}
-	private void function _setFolderDao( required any folderDao ) output=false {
+	private void function _setFolderDao( required any folderDao ) {
 		_folderDao = arguments.folderDao;
 	}
 
-	private any function _getDerivativeDao() output=false {
+	private any function _getDerivativeDao() {
 		return _derivativeDao;
 	}
-	private void function _setDerivativeDao( required any derivativeDao ) output=false {
+	private void function _setDerivativeDao( required any derivativeDao ) {
 		_derivativeDao = arguments.derivativeDao;
 	}
 
-	private any function _getAssetMetaDao() output=false {
+	private any function _getAssetMetaDao() {
 		return _assetMetaDao;
 	}
-	private void function _setAssetMetaDao( required any assetMetaDao ) output=false {
+	private void function _setAssetMetaDao( required any assetMetaDao ) {
 		_assetMetaDao = arguments.assetMetaDao;
 	}
 
-	private any function _getTikaWrapper() output=false {
+	private any function _getTikaWrapper() {
 		return _tikaWrapper;
 	}
-	private void function _setTikaWrapper( required any tikaWrapper ) output=false {
+	private void function _setTikaWrapper( required any tikaWrapper ) {
 		_tikaWrapper = arguments.tikaWrapper;
 	}
 }

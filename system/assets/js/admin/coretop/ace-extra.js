@@ -2,7 +2,7 @@ if(! ('ace' in window) ) window['ace'] = {}
 
 ace.config = {
  cookie_expiry : 604800, //1 week duration for saved settings
- storage_method: 2 //2 means use cookies, 1 means localStorage, 0 means localStorage if available otherwise cookies
+ storage_method: 1 //2 means use cookies, 1 means localStorage, 0 means localStorage if available otherwise cookies
 }
 
 ace.settings = {

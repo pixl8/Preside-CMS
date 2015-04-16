@@ -44,6 +44,8 @@ component output=false {
 		bundle.asset( "/js/admin/presidecore/"   ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
 			                                      .after    ( "i18n-resource-bundle", "ckeditor" )
 			                                      .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
+
+		bundle.asset( "/js/admin/specific/assetmanager/editasset/" ).dependsOn( "/js/admin/specific/owlcarousel/" );
 	}
 
 }

@@ -1,0 +1,50 @@
+@import url( 'globals.less' );
+
+.presidecms {
+
+	.info-bar {
+		label {
+			margin-bottom : 0;
+		}
+
+		.twitter-typeahead {
+			width : 100%;
+
+			.search-box {
+				padding-left : 25px;
+			}
+
+			.result-container {
+				cursor : pointer;
+
+				.icon-container {
+					display        : inline-block;
+					margin-right   : 5px;
+					vertical-align : top;
+					min-width      : 48px;
+
+					img {
+						margin-top : 2px;
+					}
+				}
+
+				.folder-and-text {
+					display : inline-block;
+
+					.folder {
+						display       : block;
+						font-style    : italic;
+						font-size     : 10px;
+						color         : @default-light-font-colour;
+						margin-bottom : 2px;
+					}
+
+					.title {
+						display : block;
+						font-size : 12px;
+					}
+				}
+			}
+		}
+	}
+}

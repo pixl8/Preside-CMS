@@ -19,12 +19,16 @@ component implements="iRouteHandler" output=false singleton=true {
 
 	public void function translate( required string path, required any event ) output=false {
 		var assetId      = UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) );
+		var versionId    = ListLen( assetId, "." ) > 1 ? ListRest( assetId, "." ) : "";
 		var isTempAsset  = Left( assetId, 1 ) eq "_";
 		var derivativeId = "";
 		var urlParam     = "";
 
-		event.setValue( "assetId", ReReplace( assetId, "^_", "" ) );
+		assetId = ListFirst( assetId, "." );
+		assetId = ReReplace( assetId, "^_", "" );
 
+		event.setValue( "assetId"  , assetId );
+		event.setValue( "versionId", versionId );
 		event.setValue( _getEventName(), "core.AssetDownload." & ( isTempAsset ? "tempFile" : "asset" ) );
 
 		if ( ReFind( "^/asset/.*?/(.*?)/.*$", arguments.path ) ) {
@@ -38,11 +42,20 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var link = "/asset/#UrlEncodedFormat( buildArgs.assetId ?: '' )#/";
+		var assetId    = buildArgs.assetId    ?: "";
+		var derivative = buildArgs.derivative ?: "";
+		var versionId  = buildArgs.versionId  ?: _getAssetManagerService().getCurrentVersionId( assetId );
+		var link       = "/asset/" & UrlEncodedFormat( assetId );
 
-		if ( Len( Trim( buildArgs.derivative ?: "" ) ) ) {
-			link &= "#UrlEncodedFormat( buildArgs.derivative )#/";
-			var signature = _getAssetManagerService().getDerivativeConfigSignature( buildArgs.derivative );
+		if ( Len( Trim( versionId ) ) ) {
+			link &= "." & UrlEncodedFormat( versionId );
+		}
+
+		link &= "/";
+
+		if ( Len( Trim( derivative ) ) ) {
+			link &= UrlEncodedFormat( derivative ) & "/";
+			var signature = _getAssetManagerService().getDerivativeConfigSignature( derivative );
 			if ( Len( Trim( signature ) ) ) {
 				link &= "#UrlEncodedFormat( signature )#/";
 			}

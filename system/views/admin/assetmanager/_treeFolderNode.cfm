@@ -2,6 +2,7 @@
 	param name="args.id"                 type="string";
 	param name="args.access_restriction" type="string";
 	param name="args.label"              type="string";
+	param name="args.asset_count"        type="string";
 	param name="args.is_system_folder"   type="any";
 	param name="args.children"           type="array";
 	param name="args.permissionContext"  type="array";
@@ -27,7 +28,7 @@
 					</cfif>
 
 					<div class="tree-folder-name node-name">
-						<span class="folder-name">#args.label#</span>
+						<span class="folder-name">#args.label# (#args.asset_count#)</span>
 					</div>
 				</div>
 				<div class="tree-folder-content">
@@ -43,7 +44,7 @@
 					<cfif hasRestrictions>
 						<small><i class="fa fa-lock red"></i></small>
 					</cfif>
-					<span class="folder-name">#args.label#</span>
+					<span class="folder-name">#args.label# (#args.asset_count#)</span>
 				</div>
 			</div>
 		</cfif>

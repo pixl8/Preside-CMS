@@ -8,32 +8,38 @@ component output=false {
 		_checkDownloadPermissions( argumentCollection=arguments );
 
 		var assetId         = rc.assetId      ?: "";
+		var versionId       = rc.versionId    ?: "";
 		var derivativeName  = rc.derivativeId ?: "";
 		var asset           = "";
+		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
 
 		if ( Len( Trim( derivativeName ) ) ) {
 			try {
-				asset = assetManagerService.getAssetDerivative( assetId=assetId, derivativeName=derivativeName );
+				asset = assetManagerService.getAssetDerivative( assetId=assetId, versionId=versionId, derivativeName=derivativeName, selectFields=assetSelectFields );
 			} catch ( "AssetManager.assetNotFound" e ) {
+				asset = QueryNew('');
+			} catch ( "AssetManager.versionNotFound" e ) {
 				asset = QueryNew('');
 			} catch ( "storageProvider.objectNotFound" e ) {
 				asset = QueryNew('');
 			}
+		} elseif( Len( Trim( versionId ) ) ) {
+			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
 		} else {
-			asset = assetManagerService.getAsset( id=assetId );
+			asset = assetManagerService.getAsset( id=assetId, selectFields=assetSelectFields );
 		}
 
 		if ( asset.recordCount ) {
 			var assetBinary = "";
 			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
-			var etag        = assetManagerService.getAssetEtag( id=assetId, derivativeName=derivativeName, throwOnMissing=true );
+			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true );
 
 			_doBrowserEtagLookup( etag );
 
 			if ( Len( Trim( derivativeName ) ) ) {
-				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, derivativeName=derivativeName );
+				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
 			} else {
-				assetBinary = assetManagerService.getAssetBinary( id=assetId );
+				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId );
 			}
 
 			if ( type.serveAsAttachment ) {
