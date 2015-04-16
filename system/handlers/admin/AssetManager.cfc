@@ -331,6 +331,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="folders.delete" );
 
 		var folderId         = rc.folder ?: "";
+
+		if ( assetManagerService.folderHasContent( folderId ) ) {
+			messageBox.warn( translateResource( "cms:assetmanager.trash.folder.not.empty.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", querystring="folder=#folderId#" ) );
+		}
+
 		var folder           = assetManagerService.getFolder( folderId );
 		var parentFolder     = folder.recordCount ? folder.parent_folder : "";
 		var trashed          = "";
