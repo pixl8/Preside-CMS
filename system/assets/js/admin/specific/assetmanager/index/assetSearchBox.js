@@ -47,7 +47,7 @@
 	};
 
 	setupTemplates = function(){
-		suggestionTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div>';
+		suggestionTemplate = '<div class="result-container"><div class="icon-container">{{{icon}}}</div> <div class="folder-and-text"><span class="folder">{{folder}}</span> <span class="title">{{text}}</span></div></div><div class="clearfix"></div>';
 	};
 
 	if ( $searchBox.length ) {

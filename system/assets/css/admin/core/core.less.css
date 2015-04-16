@@ -25421,6 +25421,9 @@ img.presidecms .editable-click:hover {
   border: 1px solid #eeeeee;
   border-top: none;
   border-radius: 0 0 5px 5px;
+  -webkit-box-shadow: 5px 5px 10px 0px rgba(50, 50, 50, 0.5);
+  -moz-box-shadow: 5px 5px 10px 0px rgba(50, 50, 50, 0.5);
+  box-shadow: 5px 5px 10px 0px rgba(50, 50, 50, 0.5);
 }
 .presidecms .tt-dropdown-menu .tt-suggestions {
   background-color: #ffffff;
@@ -25428,6 +25431,10 @@ img.presidecms .editable-click:hover {
 .presidecms .tt-dropdown-menu .tt-suggestions .tt-suggestion {
   background-color: #ffffff;
   padding: 4px;
+  border-bottom: 1px solid #eeeeee;
+}
+.presidecms .tt-dropdown-menu .tt-suggestions .tt-suggestion:last-child {
+  border-bottom: none;
 }
 .presidecms .tt-dropdown-menu .tt-suggestions .tt-suggestion.tt-cursor {
   background-color: #eeeeee;
