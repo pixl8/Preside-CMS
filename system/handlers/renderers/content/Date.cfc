@@ -4,7 +4,7 @@ component output=false {
 		var data = args.data ?: "";
 
 		if ( IsDate( data ) ) {
-			return getPlugin("i18n").i18nDateFormat( data, 1 );
+			return dateFormat( parseDateTime( data ), "long" );
 		}
 
 		return data;
