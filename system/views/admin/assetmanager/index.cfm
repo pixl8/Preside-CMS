@@ -12,7 +12,7 @@
 
 <cfoutput>
 	<div class="info-bar">
-		<label class="block clearfix">
+		<label class="block clearfix" for="asset-search-box">
 			<span class="block input-icon">
 				<input type              = "text"
 				       id                = "asset-search-box"
