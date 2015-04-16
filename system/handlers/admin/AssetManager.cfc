@@ -208,6 +208,24 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 
+	function moveAssetsAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var assetIds   = ListToArray( rc.assets ?: "" );
+		var folderId   = rc.toFolder   ?: "";
+		var fromFolder = rc.fromFolder ?: "";
+
+		if ( assetIds.len() ) {
+			assetManagerService.moveAssets(
+				  assetIds = assetIds
+				, folderId = folderId
+			);
+		}
+
+		messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
+	}
+
 	function addFolder( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.add" );
 	}

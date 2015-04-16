@@ -28,8 +28,10 @@
 			</div>
 		</div>
 		<div class="col-sm-7 col-md-8 col-lg-8">
-			#renderView( "admin/assetmanager/listingtable" )#
+			#renderView( "/admin/assetmanager/listingtable" )#
 		</div>
 	</div>
+
+	#renderView( '/admin/assetmanager/_moveAssetsForm' )#
 </cfoutput>
 

@@ -539,6 +539,18 @@ component {
 		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
 	}
 
+	public boolean function moveAssets( required array assetIds, required string folderId ) {
+		var folder = getFolder( arguments.folderId );
+		if ( folder.recordCount ) {
+			return _getAssetDao().updateData(
+				  filter = { id = arguments.assetIds }
+				, data   = { asset_folder = arguments.folderId }
+			);
+		}
+
+		return false;
+	}
+
 	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) {
 		var types = _getTypes();
 
