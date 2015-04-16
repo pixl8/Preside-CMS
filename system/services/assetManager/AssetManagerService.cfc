@@ -325,7 +325,15 @@ component {
 		return records.recordCount ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
+	public boolean function folderHasContent( required string id ) {
+		return _getAssetDao().dataExists( filter={ asset_folder=arguments.id } ) || _getFolderDao().dataExists( filter={ parent_folder=arguments.id } );
+	}
+
 	public boolean function trashFolder( required string id ) {
+		if ( folderHasContent( arguments.id ) ) {
+			return false;
+		}
+
 		var folder = getFolder( arguments.id );
 
 		if ( !folder.recordCount || ( IsBoolean( folder.is_system_folder ?: "" ) && folder.is_system_folder ) ) {
