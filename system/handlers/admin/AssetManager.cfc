@@ -762,6 +762,16 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#folderId#" ) );
 	}
 
+// PRIVATE VIEWLETS
+	private string function searchBox( event, rc, prc, args={} ) {
+		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( [] );
+
+		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.getAssetsForAjaxPicker", querystring="q=%QUERY" );
+
+		return renderView( view="/admin/assetmanager/_searchBox", args=args );
+	}
+
 // PRIVATE HELPERS
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permitted = "";
