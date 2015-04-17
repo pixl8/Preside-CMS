@@ -113,6 +113,10 @@ component extends="preside.system.base.AdminHandler" {
 					, title   = ( rc.label ?: "" )
 					, id      = assetId
 				} );
+			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
+				validationResult.addError( fieldname="folder", message=translateResource( uri="cms:assetmanager.folder.type.restriction.validation.message" ) );
+			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
+				validationResult.addError( fieldname="folder", message=translateResource( uri="cms:assetmanager.folder.size.restriction.validation.message" ) );
 			} catch ( any e ) {
 				logError( e );
 				event.renderData( data={
@@ -121,7 +125,9 @@ component extends="preside.system.base.AdminHandler" {
 					, message = translateResource( "cms:assetmanager.add.asset.unexpected.error.message" )
 				}, type="json" );
 			}
-		} else {
+		}
+
+		if ( !validationResult.validated() ) {
 			event.renderData( data={
 				  success          = false
 				, validationResult = translateValidationMessages( validationResult )
