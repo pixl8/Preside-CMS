@@ -384,17 +384,10 @@ component extends="preside.system.base.AdminHandler" {
 	function uploadAssets( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var folderSettings = assetManagerService.getCascadingFolderSettings( id=rc.folder ?: "", settings=[ "allowed_filetypes", "max_filesize_in_mb" ] );
-		var globalSettings = getSetting( name="assetManager", defaultValue={} );
+		var folderId           = rc.folder ?: "";
+		var folderRestrictions = assetManagerService.getFolderRestrictions( id=folderId );
 
-		if ( Len( Trim( folderSettings.allowed_filetypes ?: "" ) ) ) {
-			folderSettings.allowed_filetypes = ArrayToList( assetManagerService.expandTypeList( ListToArray( folderSettings.allowed_filetypes ), true ) );
-		}
-
-		event.includeData( {
-			  maxFileSize       = ( folderSettings.max_filesize_in_mb ?: ( settings.maxFileSize       ?: 10 ) )
-			, allowedExtensions = ( folderSettings.allowed_filetypes  ?: ( settings.allowedExtensions ?: "" ) )
-		} );
+		event.includeData( folderRestrictions );
 	}
 
 	function uploadTempFileAction( event, rc, prc ) {

@@ -145,6 +145,22 @@ component {
 		return collectedSettings;
 	}
 
+	public struct function getFolderRestrictions( required string id ) {
+		var folderSettings = getCascadingFolderSettings( id=arguments.id, settings=[ "allowed_filetypes", "max_filesize_in_mb" ] );
+
+		folderSettings.allowed_filetypes = ListToArray( folderSettings.allowed_filetypes ?: "" );
+		folderSettings.max_filesize_in_mb = folderSettings.max_filesize_in_mb ?: "";
+
+		if ( folderSettings.allowed_filetypes.len() ) {
+			folderSettings.allowed_filetypes = expandTypeList( folderSettings.allowed_filetypes, true );
+		}
+
+		return {
+			  maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? : 10
+			, allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
+		};
+	}
+
 	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
