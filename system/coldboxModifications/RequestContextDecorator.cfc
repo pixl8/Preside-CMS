@@ -165,6 +165,15 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="isAdminRequest" access="public" returntype="boolean" output="false">
+		<cfscript>
+			var currentUrl = getCurrentUrl();
+			var adminPath  = getAdminPath();
+
+			return currentUrl.startsWith( adminPath );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="isAdminUser" access="public" returntype="boolean" output="false">
 		<cfscript>
 			var loginSvc = getModel( "loginService" );
@@ -183,8 +192,18 @@
 
 	<cffunction name="adminAccessDenied" access="public" returntype="void" output="false">
 		<cfscript>
-			// todo, something much better here!
-			content reset=true type="text/html";header statusCode="401";WriteOutput("<h1>Access denied</h1>");abort;
+			var event = getRequestContext();
+
+			announceInterception( "onAccessDenied" , arguments );
+
+			event.setView( view="/admin/errorPages/accessDenied" );
+			event.setLayout( "admin" );
+
+			event.setHTTPHeader( statusCode="401" );
+			event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
+			event.setHTTPHeader( name="WWW-Authenticate", value='Website realm="website"' );
+
+			content reset=true type="text/html";header statusCode="401";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 		</cfscript>
 	</cffunction>
 
