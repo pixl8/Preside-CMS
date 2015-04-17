@@ -221,10 +221,21 @@ component extends="preside.system.base.AdminHandler" {
 				var asset = assetmanagerService.getAsset( assetIds[1] );
 				fromFolder = asset.asset_folder ?: "";
 			}
-			assetManagerService.moveAssets(
-				  assetIds = assetIds
-				, folderId = folderId
-			);
+			var success = true;
+			try {
+				assetManagerService.moveAssets(
+					  assetIds = assetIds
+					, folderId = folderId
+				);
+			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
+				success = false;
+			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
+				success = false;
+			}
+			if ( !success ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
+			}
 		}
 
 		messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );

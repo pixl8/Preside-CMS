@@ -161,13 +161,41 @@ component {
 		};
 	}
 
+	public boolean function areAssetsAllowedInFolder(
+		  required array   assetIds
+		, required string  folderId
+		,          boolean throwIfNot = false
+	) {
+		var restrictions = getFolderRestrictions( arguments.folderId );
+		var assets       = _getAssetDao().selectData(
+			  filter       = { id = arguments.assetIds }
+			, selectFields = [ "asset_type", "size" ]
+		);
+
+		for( var asset in assets ) {
+			var allowed = isAssetAllowedInFolder(
+				  type         = asset.asset_type
+				, size         = asset.size
+				, folderId     = arguments.folderId
+				, throwIfNot   = arguments.throwIfNot
+				, restrictions = restrictions
+			);
+
+			if ( !allowed ) {
+				return false;
+			}
+		}
+
+
+	}
+
 	public boolean function isAssetAllowedInFolder(
 		  required string  type
 		, required string  size
 		, required string  folderId
-		,          boolean throwIfNot = false
+		,          boolean throwIfNot   = false
+		,          struct  restrictions = getFolderRestrictions( arguments.folderId )
 	) {
-		var restrictions   = getFolderRestrictions( arguments.folderId );
 		var typeDisallowed = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
 		var sizeInMb       = arguments.size / 1048576;
 		var tooBig         = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
@@ -601,6 +629,12 @@ component {
 	public boolean function moveAssets( required array assetIds, required string folderId ) {
 		var folder = getFolder( arguments.folderId );
 		if ( folder.recordCount ) {
+			areAssetsAllowedInFolder(
+				  assetIds   = arguments.assetIds
+				, folderId   = arguments.folderId
+				, throwIfNot = true
+			);
+
 			return _getAssetDao().updateData(
 				  filter = { id = arguments.assetIds }
 				, data   = { asset_folder = arguments.folderId }
