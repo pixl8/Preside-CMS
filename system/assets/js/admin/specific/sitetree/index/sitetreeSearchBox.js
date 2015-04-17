@@ -47,7 +47,8 @@
 	};
 
 	setupTemplates = function(){
-		suggestionTemplate = '{{text}}';
+		suggestionTemplate = '<i class="fa fa-fw {{icon}}"></i> {{text}}';
+		suggestionTemplate = '<span class="result-container"><i class="fa fa-fw {{icon}}"></i> <span class="parent">{{{parent}}} /</span> <span class="title">{{text}}</span>';
 	};
 
 	if ( $searchBox.length ) {

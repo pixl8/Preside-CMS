@@ -527,6 +527,29 @@ component extends="preside.system.base.AdminHandler" {
 				record.parent = RepeatString( "&rarr;", record.depth ) & record.parent;
 			}
 
+			record.icon = translateResource( "page-types.#record.page_type#:iconclass", "fa-file-o" );
+
+			preparedPages.append( record );
+		}
+
+		event.renderData( type="json", data=preparedPages );
+	}
+
+	public void function ajaxSearch( event, rc, prc ) {
+		var records = siteTreeService.getPagesForAjaxSelect(
+			  maxRows      = rc.maxRows      ?: 1000
+			, searchQuery  = rc.q            ?: ""
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+		var preparedPages = [];
+
+		for ( record in records ) {
+			if ( IsNull( record.parent ?: ""  ) || !Len( Trim( record.parent ?: "" ) ) ) {
+				record.parent = "";
+			}
+
+			record.icon = translateResource( "page-types.#record.page_type#:iconclass", "fa-file-o" );
+
 			preparedPages.append( record );
 		}
 
@@ -630,8 +653,8 @@ component extends="preside.system.base.AdminHandler" {
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = datamanagerService.getPrefetchCachebusterForAjaxSelect( "page" );
 
-		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
-		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="q=%QUERY" );
+		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.ajaxSearch", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.ajaxSearch", querystring="q=%QUERY" );
 
 		return renderView( view="/admin/sitetree/_searchBox", args=args );
 	}

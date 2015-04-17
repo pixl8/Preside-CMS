@@ -7,3 +7,6 @@
 .presidecms .info-bar .twitter-typeahead .search-box {
   padding-left: 25px;
 }
+.presidecms .info-bar .twitter-typeahead .parent {
+  color: #999999;
+}

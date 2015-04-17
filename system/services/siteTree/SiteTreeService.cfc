@@ -146,7 +146,7 @@ component singleton=true {
 		}
 
 		return _getPobj().selectData(
-			  selectFields = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth" ]
+			  selectFields = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
 			, filter       = filter
 			, filterParams = params
 			, maxRows      = arguments.maxRows
