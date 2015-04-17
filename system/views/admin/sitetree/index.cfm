@@ -20,6 +20,8 @@
 		</div>
 	</cfif>
 
+	<div class="info-bar">#renderViewlet( event='admin.sitetree.searchBox' )#</div>
+
 	<table class="table table-striped table-hover tree-table">
 		<thead>
 			<tr>

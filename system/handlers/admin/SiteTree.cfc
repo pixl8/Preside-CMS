@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="pageTypesService"         inject="pageTypesService";
 	property name="validationEngine"         inject="validationEngine";
 	property name="websitePermissionService" inject="websitePermissionService";
+	property name="dataManagerService"       inject="dataManagerService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 
 	public void function preHandler( event, rc, prc ) {
@@ -625,6 +626,15 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ) ) );
 	}
 
+<!--- private viewlets --->
+	private string function searchBox( event, rc, prc, args={} ) {
+		var prefetchCacheBuster = datamanagerService.getPrefetchCachebusterForAjaxSelect( "page" );
+
+		args.prefetchUrl = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="maxRows=100&prefetchCacheBuster=#prefetchCacheBuster#" );
+		args.remoteUrl   = event.buildAdminLink( linkTo="sitetree.getPagesForAjaxPicker", querystring="q=%QUERY" );
+
+		return renderView( view="/admin/sitetree/_searchBox", args=args );
+	}
 
 <!--- private helpers --->
 	private boolean function _checkPermissions( event, rc, prc, required string key, string pageId="", string prefix="sitetree.", boolean throwOnError=true ) {
