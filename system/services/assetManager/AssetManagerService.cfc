@@ -156,9 +156,45 @@ component {
 		}
 
 		return {
-			  maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? : 10
+			  maxFileSize       = IsNumeric( folderSettings.max_filesize_in_mb ) ? folderSettings.max_filesize_in_mb : 10
 			, allowedExtensions = ArrayToList( folderSettings.allowed_filetypes )
 		};
+	}
+
+	public boolean function isAssetAllowedInFolder(
+		  required string  type
+		, required string  size
+		, required string  folderId
+		,          boolean throwIfNot = false
+	) {
+		var restrictions   = getFolderRestrictions( arguments.folderId );
+		var typeDisallowed = restrictions.allowedExtensions.len() && !ListFindNoCase( restrictions.allowedExtensions, "." & arguments.type );
+		var sizeInMb       = arguments.size / 1048576;
+		var tooBig         = restrictions.maxFileSize && sizeInMb > restrictions.maxFileSize;
+
+		if ( typeDisallowed  ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.AssetManager.asset.wrong.type.for.folder"
+					, message = "Cannot add file to asset folder due to file type restrictions. File type supplied: [#arguments.type#]. Allowed types: [#restrictions.allowedExtensions#]"
+				);
+			}
+
+			return false;
+		}
+
+		if ( tooBig ) {
+			if ( arguments.throwIfNot ) {
+				throw(
+					  type    = "PresideCMS.AssetManager.asset.too.big.for.folder"
+					, message = "Cannot add file to asset folder due to size restriction. Size of file: [#NumberFormat( sizeInMb, '0.00' )#Mb]. Maximum size: [#restrictions.maxFileSize#Mb]."
+				);
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
 	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
@@ -448,16 +484,23 @@ component {
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
 
-		_getStorageProvider().putObject(
-			  object = arguments.fileBinary
-			, path   = newFileName
-		);
-
 		asset.asset_folder     = resolveFolderId( arguments.folder );
 		asset.asset_type       = fileTypeInfo.typeName;
 		asset.storage_path     = newFileName;
 		asset.size             = asset.size  ?: Len( arguments.fileBinary );
 		asset.title            = asset.title ?: "";
+
+		isAssetAllowedInFolder(
+			  type       = asset.asset_type
+			, size       = asset.size
+			, folderId   = asset.asset_folder
+			, throwIfNot = true
+		);
+
+		_getStorageProvider().putObject(
+			  object = arguments.fileBinary
+			, path   = newFileName
+		);
 
 		if ( !Len( Trim( asset.title ) ) ) {
 			asset.title = arguments.fileName;
