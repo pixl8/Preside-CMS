@@ -724,9 +724,9 @@ component {
 			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path" ] );
 
 		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
-		var filename        = ListLast( asset.storage_path, "/" );
-		var fileext         = ListLast( filename, "." );
-		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" );
+		var fileext         = ListLast( asset.storage_path, "." );
+		var filename        = arguments.assetId & ( Len( Trim( arguments.versionId ) ) ? ".#arguments.versionId#" : "" ) & ".#fileext#";
+		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
 		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
 
 		for( var transformation in transformations ) {
