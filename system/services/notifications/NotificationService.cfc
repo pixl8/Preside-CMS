@@ -139,10 +139,13 @@ component autodoc=true displayName="Notification Service" {
 	 * @userId.hint  id of the admin user who's unread notifications we wish to retrieve
 	 * @maxRows.hint maximum number of notifications to retrieve
 	 */
-	public array function getNotifications( required string userId, numeric maxRows=10, string topic="" ) autodoc=true {
-		var filter  = {
-			  "admin_notification_consumer.security_user" = arguments.userId
-		};
+	public query function getNotifications(
+		  required string  userId
+		,          string  topic       = ""
+		,          numeric startRow    = 1
+		,          numeric maxRows     = 10
+	) autodoc=true {
+		var filter  = { "admin_notification_consumer.security_user" = arguments.userId };
 
 		if ( Len( Trim( arguments.topic ) ) ) {
 			filter[ "admin_notification.topic" ] = arguments.topic;
@@ -150,15 +153,20 @@ component autodoc=true displayName="Notification Service" {
 
 		var records = _getConsumerDao().selectData(
 			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data", "admin_notification.type", "admin_notification.datecreated", "admin_notification_consumer.read" ]
-			, maxRows      = arguments.maxRows
 			, filter       = filter
+			, startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
 			, orderby      = "admin_notification_consumer.datecreated desc"
 		);
-		var notifications = [];
 
-		for( var record in records ) {
-			record.data = Len( Trim( record.data ?: "" ) ) ? DeserializeJson( record.data ) : {};
-			notifications.append( record );
+		var notifications = Duplicate( records );
+
+		for( var i=1; i<=notifications.recordCount; i++ ) {
+			if ( Len( Trim( notifications["data"][i] ?: "" ) ) ) {
+				notifications["data"][i] = DeserializeJson( notifications["data"][i] );
+			} else {
+				notifications["data"][i] = {};
+			}
 		}
 
 		return notifications;
@@ -178,6 +186,27 @@ component autodoc=true displayName="Notification Service" {
 		}
 
 		return {};
+	}
+
+	/**
+	 * Returns the count of non-dismissed notifications for the given user id and optional topic
+	 *
+	 * @userId.hint id of the admin user who's unread notifications we wish to retrieve
+	 * @topic.hint  topic by which to filter the notifications
+	 */
+	public numeric function getNotificationsCount( required string userId, string topic="" ) autodoc=true  {
+		var filter  = { "admin_notification_consumer.security_user" = arguments.userId };
+
+		if ( Len( Trim( arguments.topic ) ) ) {
+			filter[ "admin_notification.topic" ] = arguments.topic;
+		}
+
+		var result = _getConsumerDao().selectData(
+			  selectFields = [ "Count( * ) as notification_count" ]
+			, filter       = filter
+		);
+
+		return Val( result.notification_count ?: "" );
 	}
 
 

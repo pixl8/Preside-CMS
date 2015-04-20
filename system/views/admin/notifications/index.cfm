@@ -1,6 +1,17 @@
 <cfscript>
+	topic = rc.topic ?: "";
 	event.include( "/css/admin/specific/datamanager/object/" );
-	notifications = prc.notifications ?: [];
+
+	event.include( "/js/admin/specific/datamanager/object/");
+	event.include( "/css/admin/specific/datamanager/object/");
+	event.includeData( {
+		  objectName      = "admin_notification_consumer"
+		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=notifications.getNotificationsForAjaxDataTables&topic=#topic#" )
+		, useMultiActions = true
+		, allowSearch     = false
+	} );
+
+	gridFields = [ "data", "datecreated" ];
 </cfscript>
 
 <cfoutput>
@@ -37,48 +48,22 @@
 		<form id="multi-action-form" class="form-horizontal" method="post" action="#event.buildAdminLink( linkTo='notifications.multiAction' )#">
 			<input type="hidden" name="multiAction" value="" />
 
-			<table id="notifications-listing-table" class="table table-hover object-listing-table notifications-listing-table">
+			<table id="object-listing-table-admin_notification_consumer" class="table table-hover object-listing-table">
 				<thead>
 					<tr>
-						<th>
+						<th class="center">
 							<label>
 								<input type="checkbox" class="ace" />
 								<span class="lbl"></span>
 							</label>
 						</th>
-						<th>#translateResource( 'cms:notifications.table.header.notification' )#</th>
-					<th>&nbsp;</th>
+						<cfloop array="#gridFields#" index="fieldName">
+							<th data-field="#fieldName#">#translateResource( uri="preside-objects.admin_notification_consumer:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
+						</cfloop>
+						<th>&nbsp;</th>
 					</tr>
 				</thead>
 				<tbody data-nav-list="1" data-nav-list-child-selector="> tr > td :checkbox">
-					<cfloop array="#notifications#" index="i" item="notification">
-						<tr class="notification-#LCase( notification.type )#<cfif !notification.read> unread</cfif>">
-							<td>
-								<label>
-									<input name="id" type="checkbox" class="ace" value="#notification.id#">
-									<span class="lbl"></span>
-								</label>
-							</td>
-							<td>#renderNotification( topic=notification.topic, data=notification.data, context='datatable' )#</td>
-							<td>
-								<div class="action-buttons">
-									<a class="blue" href="#event.buildAdminLink( linkTo="notifications.view", queryString="id=#notification.id#")#" data-context-key="v">
-										<i class="fa fa-eye bigger-130"></i>
-									</a>
-									<cfif !notification.read>
-										<a class="green" href="#event.buildAdminLink( linkTo="notifications.readAction", queryString="id=#notification.id#")#" data-context-key="r">
-											<i class="fa fa-check bigger-130"></i>
-										</a>
-									<cfelse>
-										<a class="disabled" disabled="disabled"><i class="fa fa-check bigger-130 grey"></i></a>
-									</cfif>
-									<a class="red confirmation-prompt" href="#event.buildAdminLink( linkTo="notifications.dismissAction", queryString="id=#notification.id#")#" data-context-key="d" title="#translateResource( 'cms:notifications.discard.prompt' )#">
-										<i class="fa fa-trash bigger-130"></i>
-									</a>
-								</div>
-							</td>
-						</tr>
-					</cfloop>
 				</tbody>
 			</table>
 
