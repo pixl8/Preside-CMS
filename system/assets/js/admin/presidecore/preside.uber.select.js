@@ -1237,9 +1237,12 @@
 				$('body').append(div);
 				w = div.width() + 25;
 				div.remove();
-				f_width = this.container.outerWidth();
-				if (w > f_width - 10) {
-					w = f_width - 10;
+
+				if ( this.container.is( ":visible" ) ) {
+					f_width = this.container.outerWidth();
+					if (w > f_width - 10) {
+						w = f_width - 10;
+					}
 				}
 				return this.search_field.css({
 					'width': w + 'px'
