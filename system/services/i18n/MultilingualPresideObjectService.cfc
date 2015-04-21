@@ -13,6 +13,18 @@ component autodoc=true {
 	}
 
 // PUBLIC METHODS
+	public void function addTranslationObjectsForMultilingualEnabledObjects( required struct objects ) {
+		for( var objectName in arguments.objects ){
+			var object = arguments.objects[ objectName ];
+
+			if ( isObjectMultilingual( object.meta ?: {} ) ) {
+
+				arguments.objects[ "_translation_" & objectName ] = createTranslationObject( objectName, object );
+				decorateMultilingualObject( objectName, object );
+			}
+		}
+	}
+
 	public boolean function isObjectMultilingual( required struct objectMeta ) {
 		var multiLingualFlag = arguments.objectMeta.multilingual ?: "";
 
@@ -33,14 +45,17 @@ component autodoc=true {
 		return multilingualProperties;
 	}
 
-	public struct function createTranslationObject( required struct sourceObject ) {
+	public struct function createTranslationObject( required string objectName, required struct sourceObject ) {
 		var translationObject     = Duplicate( arguments.sourceObject.meta );
 		var translationProperties = translationObject.properties ?: {};
 		var dbFieldList           = ListToArray( translationObject.dbFieldList ?: "" );
 		var propertyNames         = translationObject.propertyNames ?: [];
 		var validProperties       = listMultilingualObjectProperties( arguments.sourceObject.meta ?: {} );
 
-		translationObject.name      = "_translation_" & ( arguments.sourceObject.meta.name      ?: "" );
+		validProperties.append( "id" );
+		validProperties.append( "datecreated" );
+		validProperties.append( "datemodified" );
+
 		translationObject.tableName = "_translation_" & ( arguments.sourceObject.meta.tableName ?: "" );
 
 		for( var propertyName in translationProperties ) {
@@ -53,7 +68,7 @@ component autodoc=true {
 
 		translationProperties._translation_source_record = new preside.system.services.presideobjects.Property(
 			  relationship  = "many-to-one"
-			, relatedto     = ( arguments.sourceObject.meta.name ?: "" )
+			, relatedto     = arguments.objectName
 			, required      = true
 			, uniqueindexes = "translation|1"
 			, indexes       = ""
@@ -83,17 +98,17 @@ component autodoc=true {
 		translationObject.propertyNames = propertyNames;
 
 		translationObject.indexes       = translationObject.indexes ?: {};
-		translationObject.indexes[ "ux_" & translationObject.name & "_translation" ] = { unique=true, fields="_translation_source_record,_translation_language" };
+		translationObject.indexes[ "ux_translation_" & arguments.objectName & "_translation" ] = { unique=true, fields="_translation_source_record,_translation_language" };
 
 		return { meta=translationObject, instance="auto_created" };
 	}
 
-	public void function decorateMultilingualObject( required struct object ) {
+	public void function decorateMultilingualObject( required string objectName, required struct object ) {
 		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
 
 		arguments.object.meta.properties._translations = new preside.system.services.presideobjects.Property(
 			  relationship    = "one-to-many"
-			, relatedto       = "_translation_" & ( arguments.object.meta.name ?: "" )
+			, relatedto       = "_translation_" & arguments.objectName
 			, relationshipKey = "_translation_source_record"
 			, required        = false
 			, uniqueindexes   = ""

@@ -2,21 +2,21 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 
 	function test01_isObjectMultilingual_shouldReturnFalseWhenMultiLingualFlagNotSet() {
 		var svc         = _getService();
-		var dummyObject = { name="myobject" };
+		var dummyObject = { name="app.preside-objects.myobject" };
 
 		super.assertFalse( svc.isObjectMultilingual( dummyObject ) );
 	}
 
 	function test02_isObjectMultilingual_shouldReturnTrueWhenMultiLingualFlagIsSetToTrue() {
 		var svc         = _getService();
-		var dummyObject = { name="myobject", multilingual=true };
+		var dummyObject = { name="app.preside-objects.myobject", multilingual=true };
 
 		super.assertTrue( svc.isObjectMultilingual( dummyObject ) );
 	}
 
 	function test03_isObjectMultilingual_shouldReturnFalseWhenMultiLingualFlagIsSetToFalse() {
 		var svc         = _getService();
-		var dummyObject = { name="myobject", multilingual=true };
+		var dummyObject = { name="app.preside-objects.myobject", multilingual=true };
 
 		super.assertTrue( svc.isObjectMultilingual( dummyObject ) );
 	}
@@ -33,26 +33,9 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
 		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
 
-		var dummyObject = { name="myobject", multilingual=true, properties=dummyProps };
+		var dummyObject = { name="app.preside-objects.myobject", multilingual=true, properties=dummyProps };
 
 		super.assertEquals( expectedProperies, svc.listMultilingualObjectProperties( dummyObject ) );
-	}
-
-	function test05_createTranslationObject_shouldReturnAnObjectWhosNameIsTheSourceObjectPrependedWith_translation() {
-		var svc               = _getService();
-		var dummyProps        = StructNew( "linked" );
-
-		dummyProps.prop1 = _dummyObjectProperty( name="prop1", multilingual=true );
-		dummyProps.prop2 = _dummyObjectProperty( name="prop2", multilingual=false );
-		dummyProps.prop3 = _dummyObjectProperty( name="prop3" );
-		dummyProps.prop4 = _dummyObjectProperty( name="prop4" );
-		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
-		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
-
-		var dummyObject = { meta={ name="myobject", multilingual=true, properties=dummyProps } };
-		var multilingualObject = svc.createTranslationObject( dummyObject );
-
-		super.assertEquals( "_translation_myobject", multilingualObject.meta.name ?: "" );
 	}
 
 	function test06_createTranslationObject_shouldReturnAnObjectWhosTableNameIsTheSourceObjectPrependedWith_translation() {
@@ -66,8 +49,8 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
 		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
 
-		var dummyObject = { meta={ name="myobject", tableName="test_table_name", multilingual=true, properties=dummyProps } };
-		var multilingualObject = svc.createTranslationObject( dummyObject );
+		var dummyObject = { meta={ name="app.preside-objects.myobject", tableName="test_table_name", multilingual=true, properties=dummyProps } };
+		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 
 		super.assertEquals( "_translation_test_table_name", multilingualObject.meta.tableName ?: "" );
 	}
@@ -83,8 +66,8 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
 		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
 
-		var dummyObject = { meta={ name="myobject", multilingual=true, properties=dummyProps } };
-		var multilingualObject = svc.createTranslationObject( dummyObject );
+		var dummyObject = { meta={ name="app.preside-objects.myobject", multilingual=true, properties=dummyProps } };
+		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 		var actualProperties   = multilingualObject.meta.properties ?: {};
 
 		super.assert( actualProperties.keyExists( "prop1") );
@@ -97,8 +80,8 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 
 	function test08_createTranslationObject_shouldAddFieldsForRelatingToSourceRecordAndDefiningLanguage() {
 		var svc                = _getService();
-		var dummyObject        = { meta={ name="myobject", tableName="test_table_name", multilingual=true, properties={} } };
-		var multilingualObject = svc.createTranslationObject( dummyObject );
+		var dummyObject        = { meta={ name="app.preside-objects.myobject", tableName="test_table_name", multilingual=true, properties={} } };
+		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 		var actualProperties   = multilingualObject.meta.properties ?: {};
 
 		super.assert( actualProperties.keyExists( "_translation_source_record" ) );
@@ -139,25 +122,25 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
 		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
 
-		var dummyObject = { meta={ name="myobject", multilingual=true, properties=dummyProps, dbFieldList="prop1,prop2,prop4,prop6" } };
-		var multilingualObject = svc.createTranslationObject( dummyObject );
+		var dummyObject = { meta={ name="app.preside-objects.myobject", multilingual=true, properties=dummyProps, dbFieldList="prop1,prop2,prop4,prop6" } };
+		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 
 		super.assertEquals( "prop1,prop6,_translation_source_record,_translation_language", multilingualObject.meta.dbFieldList ?: ""  );
 	}
 
 	function test10_createTranslationObject_shouldAddUniqueIndexToTheObjectDefinition() {
 		var svc                = _getService();
-		var dummyObject        = { meta={ name="myobject", tableName="test_table_name", multilingual=true, properties={} } };
-		var multilingualObject = svc.createTranslationObject( dummyObject );
+		var dummyObject        = { meta={ name="app.preside-objects.myobject", tableName="test_table_name", multilingual=true, properties={} } };
+		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 
-		super.assertEquals( { unique=true, fields="_translation_source_record,_translation_language" }, ( multilingualObject.meta.indexes[ "ux__translation_myobject_translation" ] ?: {} ) );
+		super.assertEquals( { unique=true, fields="_translation_source_record,_translation_language" }, ( multilingualObject.meta.indexes[ "ux_translation_myobject_translation" ] ?: {} ) );
 	}
 
 	function test11_decorateMultilingualObject_shouldAddOneToManyPropertyToSourceObject_toAidWithTranslationLookupQueries(){
 		var svc                = _getService();
-		var dummyObject        = { meta={ name="myobject", tableName="test_table_name", multilingual=true, properties={} } };
+		var dummyObject        = { meta={ name="app.preside-objects.myobject", tableName="test_table_name", multilingual=true, properties={} } };
 
-		svc.decorateMultilingualObject( dummyObject );
+		svc.decorateMultilingualObject( "myobject", dummyObject );
 
 		super.assert( dummyObject.meta.properties.keyExists( "_translations" ) );
 		super.assertEquals( {
