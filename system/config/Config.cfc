@@ -56,6 +56,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"         );
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"           );
+		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"          );
 		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"               );
 		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"            );
@@ -65,6 +66,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"           );
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"            );
+		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"           );
 		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"             );
 		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"           );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"          );
