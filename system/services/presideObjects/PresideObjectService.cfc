@@ -165,109 +165,69 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          string  forceJoins        = ""
 
 	) autodoc=true {
-		var interceptorResult = _announceInterception( "preSelectObjectData", arguments );
+		var args    = Duplicate( arguments );
+		var objMeta = _getObject( args.objectName ).meta;
+		var adapter = _getAdapter( objMeta.dsn );
+		var result  = "";
+
+		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
-		var result     = "";
-		var queryCache = "";
-		var cacheArgs  = { objectName=arguments.objectName };
+		if ( args.useCache ) {
+			args.cachekey = args.objectName & "_" & Hash( LCase( SerializeJson( args ) ) );
 
-		if ( arguments.useCache ) {
-			queryCache = _getDefaultQueryCache();
-			cacheArgs.cachekey = arguments.objectName & "_" & Hash( LCase( SerializeJson( arguments ) ) );
+			_announceInterception( "onCreateSelectDataCacheKey", args );
 
-			_announceInterception( "onCreateSelectDataCacheKey", cacheArgs );
-
-			result = queryCache.get( cacheArgs.cacheKey );
-
+			result = _getDefaultQueryCache().get( args.cacheKey );
 			if ( not IsNull( result ) ) {
 				return result;
 			}
 		}
 
-		var sql                  = "";
-		var obj                  = _getObject( arguments.objectName ).meta;
-		var adapter              = _getAdapter( obj.dsn );
-		var compiledSelectFields = _parseSelectFields( arguments.objectName, Duplicate( arguments.selectFields ) );
-		var joinTargets          = _extractForeignObjectsFromArguments( objectName=arguments.objectName, selectFields=compiledSelectFields, filter=arguments.filter, orderBy=arguments.orderBy );
-		var joins                = [];
-		var i                    = "";
-		var preparedFilter       = _prepareFilter(
-			  objectName        = arguments.objectName
-			, id                = arguments.id
-			, filter            = arguments.filter
-			, filterParams      = arguments.filterParams
-			, extraFilters      = arguments.extraFilters
-			, savedFilters      = arguments.savedFilters
-			, adapter           = adapter
-			, columnDefinitions = obj.properties
+		args.selectFields   = _parseSelectFields( argumentCollection=args );
+		args.preparedFilter = _prepareFilter(
+			  argumentCollection = args
+			, adapter            = adapter
+			, columnDefinitions  = objMeta.properties
 		);
+		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
+		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
 
-		if ( not ArrayLen( compiledSelectFields ) ) {
-			compiledSelectFields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
-		}
-
-		if ( ArrayLen( joinTargets ) ) {
-			var joinsCache    = _getCache();
-			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( joinTargets )#"
-
-			joins = joinsCache.get( joinsCacheKey );
-
-			if ( IsNull( joins ) ) {
-				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
-
-				joinsCache.set( joinsCacheKey, joins );
-			}
-		}
-
-		if ( arguments.fromVersionTable && objectIsVersioned( arguments.objectName ) ) {
+		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			result = _selectFromVersionTables(
-				  objectName        = arguments.objectName
-				, originalTableName = obj.tableName
-				, joins             = joins
-				, selectFields      = arguments.selectFields
-				, maxVersion        = arguments.maxVersion
-				, specificVersion   = arguments.specificVersion
-				, filter            = preparedFilter.filter
-				, params            = preparedFilter.params
-				, orderBy           = arguments.orderBy
-				, groupBy           = arguments.groupBy
-				, maxRows           = arguments.maxRows
-				, startRow          = arguments.startRow
+				  argumentCollection = args
+				, filter             = args.preparedFilter.filter
+				, params             = args.preparedFilter.params
+				, originalTableName  = objMeta.tableName
 			);
 		} else {
-			sql = adapter.getSelectSql(
-				  tableName     = obj.tableName
-				, tableAlias    = arguments.objectName
-				, selectColumns = compiledSelectFields
-				, filter        = preparedFilter.filter
-				, joins         = _convertObjectJoinsToTableJoins( joins )
-				, orderBy       = arguments.orderBy
-				, groupBy       = arguments.groupBy
-				, maxRows       = arguments.maxRows
-				, startRow      = arguments.startRow
+			var sql = adapter.getSelectSql(
+				  argumentCollection = args
+				, tableName          = objMeta.tableName
+				, tableAlias         = args.objectName
+				, selectColumns      = args.selectFields
+				, filter             = args.preparedFilter.filter
+				, joins              = _convertObjectJoinsToTableJoins( args.joins )
 			);
-			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params );
+			result = _runSql( sql=sql, dsn=objMeta.dsn, params=args.preparedFilter.params );
 		}
 
 
-		if ( arguments.useCache ) {
-			queryCache.set( cacheArgs.cacheKey, result );
+		if ( args.useCache ) {
+			_getDefaultQueryCache().set( args.cacheKey, result );
 			_recordCacheSoThatWeCanClearThemWhenDataChanges(
-				  objectName   = arguments.objectName
-				, cacheKey     = cacheArgs.cacheKey
-				, filter       = preparedFilter.filter
-				, filterParams = preparedFilter.filterParams
-				, joinTargets  = joinTargets
+				  objectName   = args.objectName
+				, cacheKey     = args.cacheKey
+				, filter       = args.preparedFilter.filter
+				, filterParams = args.preparedFilter.filterParams
+				, joinTargets  = args.joinTargets
 			);
 		}
 
-		var interceptionArgs        = arguments;
-		    interceptionArgs.result = result;
-
-		_announceInterception( "postSelectObjectData", interceptionArgs );
+		args.result = result;
+		_announceInterception( "postSelectObjectData", args );
 
 		return result;
 	}
@@ -1450,6 +1410,25 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return objects;
 	}
 
+	private array function _getJoinsFromJoinTargets( required string objectName, required array joinTargets, required string forceJoins ) {
+		var joins = [];
+
+		if ( ArrayLen( arguments.joinTargets ) ) {
+			var joinsCache    = _getCache();
+			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#"
+
+			joins = joinsCache.get( joinsCacheKey );
+
+			if ( IsNull( joins ) ) {
+				joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets, forceJoins = arguments.forceJoins );
+
+				joinsCache.set( joinsCacheKey, joins );
+			}
+		}
+
+		return joins;
+	}
+
 	private array function _convertObjectJoinsToTableJoins( required array objectJoins ) {
 		var tableJoins = [];
 		var objJoin = "";
@@ -1788,11 +1767,21 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	}
 
 	private array function _parseSelectFields( required string objectName, required array selectFields ) {
-		for( var i=1; i <=arguments.selectFields.len(); i++ ){
-			var objName = "";
-			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.selectFields[i], 1, true );
+		_announceInterception( "preParseSelectFields", arguments );
+		var fields = arguments.selectFields;
 
-			match = match.len[1] ? Mid( arguments.selectFields[i], match.pos[1], match.len[1] ) : "";
+		if ( not ArrayLen( fields ) ) {
+			var obj     = _getObject( arguments.objectName ).meta;
+			var adapter = _getAdapter( obj.dsn ?: "" );
+
+			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
+		}
+
+		for( var i=1; i <=fields.len(); i++ ){
+			var objName = "";
+			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", fields[i], 1, true );
+
+			match = match.len[1] ? Mid( fields[i], match.pos[1], match.len[1] ) : "";
 
 			if ( Len( Trim( match ) ) ) {
 				var labelField = "";
@@ -1807,11 +1796,14 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
 				}
 
-				arguments.selectFields[i] = Replace( arguments.selectFields[i], "${labelfield}", labelField, "all" );
+				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
 		}
 
-		return arguments.selectFields;
+		arguments.selectFields = fields;
+		_announceInterception( "postParseSelectFields", arguments );
+
+		return fields;
 	}
 
 	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) {
