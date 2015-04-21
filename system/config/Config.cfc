@@ -31,10 +31,11 @@ component output=false {
 		};
 
 		interceptors = [
-			{ class="preside.system.interceptors.CsrfProtectionInterceptor"          , properties={} },
-			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.SES"                                , properties = { configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
+			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
+			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
+			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
+			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -52,6 +53,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObjects"         );
 		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"        );
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"          );
+		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"         );
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"               );

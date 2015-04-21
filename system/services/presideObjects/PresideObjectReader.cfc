@@ -36,6 +36,8 @@ component output=false singleton=true {
 
 		objects = _mergeObjects( objects );
 
+		_announceInterception( state="postReadPresideObjects", interceptData={ objects=objects } );
+
 		return objects;
 	}
 
