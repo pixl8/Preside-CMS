@@ -4,7 +4,7 @@
  * For a full developer guide on using Preside Objects and this service, see :doc:`/devguides/presideobjects`.
  */
 
-component output=false singleton=true autodoc=true displayName="Preside Object Service" {
+component singleton=true autodoc=true displayName="Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
@@ -35,7 +35,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any     coldboxController
 		, required any     interceptorService
 		,          boolean reloadDb = true
-	) output=false {
+	) {
 		_setObjectDirectories( arguments.objectDirectories );
 		_setObjectReader( arguments.objectReader );
 		_setSqlSchemaSynchronizer( arguments.sqlSchemaSynchronizer );
@@ -80,7 +80,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 *
 	 * @objectName.hint The name of the object to get
 	 */
-	public any function getObject( required string objectName ) autodoc=true output=false {
+	public any function getObject( required string objectName ) autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		if ( not StructKeyExists( obj, "decoratedInstance" ) ) {
@@ -164,7 +164,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          numeric specificVersion   = 0
 		,          string  forceJoins        = ""
 
-	) output=false autodoc=true {
+	) autodoc=true {
 		var interceptorResult = _announceInterception( "preSelectObjectData", arguments );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
@@ -300,7 +300,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 
-	) output=false autodoc=true {
+	) autodoc=true {
 		var interceptorResult = _announceInterception( "preInsertObjectData", arguments );
 
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
@@ -448,7 +448,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          boolean updateManyToManyRecords = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
-	) output=false autodoc=true {
+	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
@@ -623,7 +623,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          array   extraFilters   = []
 		,          array   savedFilters   = []
 		,          boolean forceDeleteAll = false
-	) output=false autodoc=true {
+	) autodoc=true {
 		var interceptorResult = _announceInterception( "preDeleteObjectData", arguments );
 
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
@@ -698,7 +698,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 *
 	 * @objectName.hint Name of the object in which the records may or may not exist
 	 */
-	public boolean function dataExists( required string  objectName ) output=false autodoc=true {
+	public boolean function dataExists( required string  objectName ) autodoc=true {
 		var args = arguments;
 		args.useCache     = false;
 		args.selectFields = [ "1" ];
@@ -736,7 +736,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required string  propertyName
 		,          array   selectFields = []
 		,          string  orderBy      = ""
-	) output=false autodoc=true {
+	) autodoc=true {
 		if ( !isManyToManyProperty( arguments.objectName, arguments.propertyName ) ) {
 			throw(
 				  type    = "PresideObjectService.notManyToMany"
@@ -796,7 +796,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required string sourceProperty
 		, required string sourceId
 		, required string targetIdList
-	) output=false autodoc=true {
+	) autodoc=true {
 		var prop = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
 		var targetObject = prop.relatedTo ?: "";
 		var pivotTable   = prop.relatedVia ?: "";
@@ -875,7 +875,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          boolean fromVersionTable = false
 		,          string  maxVersion       = "HEAD"
 		,          numeric specificVersion  = 0
-	) output=false autodoc=true {
+	) autodoc=true {
 		var props          = getObjectProperties( arguments.objectName );
 		var manyToManyData = {};
 
@@ -906,7 +906,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @fieldName.hint  Optional name of one of the object's property which which to filter the history. Doing so will show only versions in which this field changed.
 	 *
 	 */
-	public query function getRecordVersions( required string objectName, required string id, string fieldName ) output=false autodoc=true {
+	public query function getRecordVersions( required string objectName, required string id, string fieldName ) autodoc=true {
 		var args = {};
 
 		for( var key in arguments ){ // we do this, because simply duplicating the arguments causes issues with the Argument type being more than a plain ol' structure
@@ -938,7 +938,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * .. note::
 	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
 	 */
-	public void function dbSync() output=false autodoc=true {
+	public void function dbSync() autodoc=true {
 		_announceInterception( "preDbSyncObjects" );
 
 		_getSqlSchemaSynchronizer().synchronize(
@@ -955,7 +955,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * .. note::
 	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
 	 */
-	public void function reload() output=false autodoc=true {
+	public void function reload() autodoc=true {
 		_getCache().clearAll();
 		_getDefaultQueryCache().clearAll();
 		_setObjects({});
@@ -965,7 +965,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	/**
 	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
 	 */
-	public array function listObjects() autodoc=true output=false {
+	public array function listObjects() autodoc=true {
 		var objects     = _getObjects();
 		var objectNames = [];
 
@@ -985,7 +985,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 *
 	 * @objectName.hint Name of the object that you wish to check the existance of
 	 */
-	public boolean function objectExists( required string objectName ) output=false autodoc=true {
+	public boolean function objectExists( required string objectName ) autodoc=true {
 		var objects = _getObjects();
 
 		return StructKeyExists( objects, arguments.objectName );
@@ -997,7 +997,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @objectName.hint Name of the object who's field you wish to check
 	 * @fieldName.hint  Name of the field you wish to check the existance of
 	 */
-	public boolean function fieldExists( required string objectName, required string fieldName ) output=false autodoc=true {
+	public boolean function fieldExists( required string objectName, required string fieldName ) autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		return StructKeyExists( obj.meta.properties, arguments.fieldName );
@@ -1024,7 +1024,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
-	public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" ) output=false autodoc=true {
+	public any function getObjectAttribute( required string objectName, required string attributeName, string defaultValue="" ) autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		return obj.meta[ arguments.attributeName ] ?: arguments.defaultValue;
@@ -1053,7 +1053,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
 	 */
-	public string function getObjectPropertyAttribute( required string objectName, required string propertyName, required string attributeName, string defaultValue="" ) output=false autodoc=true {
+	public string function getObjectPropertyAttribute( required string objectName, required string propertyName, required string attributeName, string defaultValue="" ) autodoc=true {
 		var obj = _getObject( arguments.objectName );
 
 		return obj.meta.properties[ arguments.propertyName ][ arguments.attributeName ] ?: arguments.defaultValue;
@@ -1066,7 +1066,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 *
 	 * @sourceObjectName.hint Name of the object who's version object name we wish to retrieve
 	 */
-	public string function getVersionObjectName( required string sourceObjectName ) output=false autodoc=true {
+	public string function getVersionObjectName( required string sourceObjectName ) autodoc=true {
 		var obj = _getObject( arguments.sourceObjectName );
 
 		return obj.meta.versionObjectName ?: "";
@@ -1077,7 +1077,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 *
 	 * @objectName.hint Name of the object you wish to check
 	 */
-	public boolean function objectIsVersioned( required string objectName ) output=false autodoc=true {
+	public boolean function objectIsVersioned( required string objectName ) autodoc=true {
 		var obj = _getObject( objectName );
 
 		return IsBoolean( obj.meta.versioned ?: "" ) && obj.meta.versioned;
@@ -1090,43 +1090,43 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	 * This is an auto incrementing integer that is global to all versioning tables
 	 * in the system.
 	 */
-	public numeric function getNextVersionNumber() output=false autodoc=true {
+	public numeric function getNextVersionNumber() autodoc=true {
 		return _getVersioningService().getNextVersionNumber();
 	}
 
-	public any function getObjectProperties( required string objectName ) output=false {
+	public any function getObjectProperties( required string objectName ) {
 		return _getObject( arguments.objectName ).meta.properties;
 	}
 
-	public any function getObjectProperty( required string objectName, required string propertyName ) output=false {
+	public any function getObjectProperty( required string objectName, required string propertyName ) {
 		return _getObject( arguments.objectName ).meta.properties[ arguments.propertyName ];
 	}
 
 
-	public boolean function isPageType( required string objectName ) output=false {
+	public boolean function isPageType( required string objectName ) {
 		var objMeta = _getObject( arguments.objectName ).meta;
 
 		return IsBoolean( objMeta.isPageType ?: "" ) && objMeta.isPageType;
 	}
 
-	public string function getResourceBundleUriRoot( required string objectName ) output=false {
+	public string function getResourceBundleUriRoot( required string objectName ) {
 		if ( objectExists( arguments.objectName ) ) {
 			return ( isPageType( arguments.objectName ) ? "page-types" : "preside-objects" ) & ".#arguments.objectName#:";
 		}
 		return "cms:";
 	}
 
-	public boolean function isManyToManyProperty( required string objectName, required string propertyName ) output=false {
+	public boolean function isManyToManyProperty( required string objectName, required string propertyName ) {
 		return getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relationship", "" ) == "many-to-many";
 	}
 
-	public any function getDbAdapterForObject( required string objectName ) output=false {
+	public any function getDbAdapterForObject( required string objectName ) {
 		var obj = _getObject( arguments.objectName ).meta;
 
 		return _getAdapter( obj.dsn );
 	}
 
-	public array function listForeignObjectsBlockingDelete( required string objectName, required any recordId ) output=false {
+	public array function listForeignObjectsBlockingDelete( required string objectName, required any recordId ) {
 		var obj   = _getObject( objectName=arguments.objectName );
 		var joins = _getRelationshipGuidance().getObjectRelationships( arguments.objectName );
 		var foreignObjName  = "";
@@ -1152,7 +1152,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return blocking;
 	}
 
-	public numeric function deleteRelatedData( required string objectName, required any recordId ) output=false {
+	public numeric function deleteRelatedData( required string objectName, required any recordId ) {
 		var blocking       = listForeignObjectsBlockingDelete( argumentCollection = arguments );
 		var totalDeleted   = 0;
 		var blocker        = "";
@@ -1177,7 +1177,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return totalDeleted;
 	}
 
-	public string function getDefaultFormControlForPropertyAttributes( string type="string", string dbType="varchar", string relationship="none", string relatedTo="", numeric maxLength=0 ) output=false {
+	public string function getDefaultFormControlForPropertyAttributes( string type="string", string dbType="varchar", string relationship="none", string relatedTo="", numeric maxLength=0 ) {
 		switch( arguments.relationship ){
 			case "many-to-one" :
 				switch( arguments.relatedTo ) {
@@ -1217,7 +1217,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 
 // PRIVATE HELPERS
-	private void function _loadObjects() output=false {
+	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
 
 		_announceInterception( state="preLoadPresideObjects", interceptData={ objectPaths=objectPaths } );
@@ -1240,7 +1240,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		_announceInterception( state="postLoadPresideObjects", interceptData={ objects=objects } );
 	}
 
-	private struct function _getObject( required string objectName ) output=false {
+	private struct function _getObject( required string objectName ) {
 		var objects = _getObjects();
 
 		if ( not StructKeyExists( objects, arguments.objectName ) ) {
@@ -1250,7 +1250,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return objects[ arguments.objectName ];
 	}
 
-	private array function _getAllObjectPaths() output=false {
+	private array function _getAllObjectPaths() {
 		var dirs        = _getObjectDirectories();
 		var dir         = "";
 		var dirExpanded = "";
@@ -1333,7 +1333,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return params;
 	}
 
-	private array function _convertUserFilterParamsToQueryParams( required struct columnDefinitions, required struct params, required any dbAdapter ) output=false {
+	private array function _convertUserFilterParamsToQueryParams( required struct columnDefinitions, required struct params, required any dbAdapter ) {
 		var key        = "";
 		var params     = [];
 		var param      = "";
@@ -1388,7 +1388,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		,          array  selectFields = []
 		,          string orderBy      = ""
 
-	) output=false {
+	) {
 		var key        = "";
 		var cache      = _getCache();
 		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( arguments.filter ) ? StructKeyList( arguments.filter ) : arguments.filter#"
@@ -1450,7 +1450,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return objects;
 	}
 
-	private array function _convertObjectJoinsToTableJoins( required array objectJoins ) output=false {
+	private array function _convertObjectJoinsToTableJoins( required array objectJoins ) {
 		var tableJoins = [];
 		var objJoin = "";
 		var objects = _getObjects();
@@ -1489,7 +1489,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required string  groupBy
 		, required numeric maxRows
 		, required numeric startRow
-	) output=false {
+	) {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
 		var versionTableName     = versionObj.tableName;
@@ -1544,7 +1544,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
 	}
 
-	private struct function _getVersionCheckJoin( required string tableName, required string tableAlias, required any adapter ) output=false {
+	private struct function _getVersionCheckJoin( required string tableName, required string tableAlias, required any adapter ) {
 		return {
 			  tableName         = arguments.tableName
 			, tableAlias        = "_latestVersionCheck"
@@ -1560,7 +1560,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		  required array  joins
 		, required string originalTableName
 		, required string versionTableName
-	) output=false {
+	) {
 		var manyToManyObjects = {};
 		for( var join in arguments.joins ){
 			if ( Len( Trim( join.manyToManyProperty ?: "" ) ) ) {
@@ -1590,7 +1590,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return _convertObjectJoinsToTableJoins( arguments.joins );
 	}
 
-	private array function _dbFieldListToSelectFieldsArray( required string fieldList, required string tableAlias, required any dbAdapter ) output=false {
+	private array function _dbFieldListToSelectFieldsArray( required string fieldList, required string tableAlias, required any dbAdapter ) {
 		var fieldArray   = ListToArray( arguments.fieldList );
 		var escapedAlias = dbAdapter.escapeEntity( arguments.tableAlias );
 
@@ -1601,7 +1601,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return fieldArray;
 	}
 
-	private string function _mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) output=false {
+	private string function _mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) {
 		var parsed1 = arguments.dbAdapter.getClauseSql( arguments.filter1, arguments.tableAlias );
 		var parsed2 = arguments.dbAdapter.getClauseSql( arguments.filter2, arguments.tableAlias );
 
@@ -1615,7 +1615,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return Len( Trim( parsed1 ) ) ? parsed1 : parsed2;
 	}
 
-	private string function _generateNewIdWhenNecessary( required string generator ) output=false {
+	private string function _generateNewIdWhenNecessary( required string generator ) {
 		switch( arguments.generator ){
 			case "UUID": return CreateUUId();
 		}
@@ -1623,7 +1623,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return "";
 	}
 
-	private array function _arrayMerge( required array arrayA, required array arrayB ) output=false {
+	private array function _arrayMerge( required array arrayA, required array arrayB ) {
 		var newArray = Duplicate( arguments.arrayA );
 		var node     = "";
 
@@ -1634,7 +1634,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return newArray;
 	}
 
-	private string function _getAlaisedFieldRegex() output=false {
+	private string function _getAlaisedFieldRegex() {
 		if ( not StructKeyExists( this, "_aliasedFieldRegex" ) ) {
 			var entities = {};
 
@@ -1653,7 +1653,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return _aliasedFieldRegex;
 	}
 
-	private struct function _reSearch( required string regex, required string text ) output=false {
+	private struct function _reSearch( required string regex, required string text ) {
 		var final 	= StructNew();
 		var pos		= 1;
 		var result	= ReFindNoCase( arguments.regex, arguments.text, pos, true );
@@ -1678,7 +1678,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return final;
 	}
 
-	private boolean function _isEmptyFilter( required any filter ) output=false {
+	private boolean function _isEmptyFilter( required any filter ) {
 		if ( IsStruct( arguments.filter ) ) {
 			return StructIsEmpty( arguments.filter );
 		}
@@ -1696,7 +1696,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any    filter
 		, required struct filterParams
 		, required array  joinTargets
-	) output=false {
+	) {
 		var cacheMaps = _getCacheMaps();
 		var objId     = "";
 		var id        = "";
@@ -1745,7 +1745,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required any     filter
 		, required struct  filterParams
 		,          boolean clearSingleRecordCaches = true
-	) output=false {
+	) {
 		var cacheMaps   = _getCacheMaps();
 		var keysToClear = "";
 		var objIds      = "";
@@ -1787,7 +1787,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		}
 	}
 
-	private array function _parseSelectFields( required string objectName, required array selectFields ) output=false {
+	private array function _parseSelectFields( required string objectName, required array selectFields ) {
 		for( var i=1; i <=arguments.selectFields.len(); i++ ){
 			var objName = "";
 			var match   = ReFindNoCase( "([\S]+\.)?\$\{labelfield\}", arguments.selectFields[i], 1, true );
@@ -1814,7 +1814,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return arguments.selectFields;
 	}
 
-	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) output=false {
+	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) {
 		var currentObject = arguments.startObject;
 		var columns       = _getObject( currentObject ).meta.properties;
 		var steps         = ListToArray( arguments.joinSyntax, "$" );
@@ -1847,7 +1847,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		, required array  savedFilters
 		, required any    adapter
 		, required struct columnDefinitions
-	) output=false {
+	) {
 		_announceInterception( "prePrepareObjectFilter", arguments );
 
 		var result = {
@@ -1912,7 +1912,7 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 		return result;
 	}
 
-	private struct function _addDefaultValuesToDataSet( required string objectName, required struct data ) output=false {
+	private struct function _addDefaultValuesToDataSet( required string objectName, required struct data ) {
 		var props   = getObjectProperties( arguments.objectName );
 		var newData = Duplicate( arguments.data );
 
@@ -1942,123 +1942,123 @@ component output=false singleton=true autodoc=true displayName="Preside Object S
 	}
 
 // SIMPLE PRIVATE PROXIES
-	private any function _getAdapter() output=false {
+	private any function _getAdapter() {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
 	}
 
-	private any function _runSql() output=false {
+	private any function _runSql() {
 		return _getSqlRunner().runSql( argumentCollection = arguments );
 	}
 
-	private any function _announceInterception( required string state, struct interceptData={} ) output=false {
+	private any function _announceInterception( required string state, struct interceptData={} ) {
 		_getInterceptorService().processState( argumentCollection=arguments );
 
 		return interceptData.interceptorResult ?: {};
 	}
 
 // GETTERS AND SETTERS
-	private array function _getObjectDirectories() output=false {
+	private array function _getObjectDirectories() {
 		return _objectDirectories;
 	}
-	private void function _setObjectDirectories( required array objectDirectories ) output=false {
+	private void function _setObjectDirectories( required array objectDirectories ) {
 		_objectDirectories = arguments.objectDirectories;
 	}
 
-	private any function _getObjectReader() output=false {
+	private any function _getObjectReader() {
 		return _objectReader;
 	}
-	private void function _setObjectReader( required any objectReader ) output=false {
+	private void function _setObjectReader( required any objectReader ) {
 		_objectReader = arguments.objectReader;
 	}
 
-	private any function _getSqlSchemaSynchronizer() output=false {
+	private any function _getSqlSchemaSynchronizer() {
 		return _sqlSchemaSynchronizer;
 	}
-	private void function _setSqlSchemaSynchronizer( required any sqlSchemaSynchronizer ) output=false {
+	private void function _setSqlSchemaSynchronizer( required any sqlSchemaSynchronizer ) {
 		_sqlSchemaSynchronizer = arguments.sqlSchemaSynchronizer;
 	}
 
-	private any function _getAdapterFactory() output=false {
+	private any function _getAdapterFactory() {
 		return _adapterFactory;
 	}
-	private void function _setAdapterFactory( required any adapterFactory ) output=false {
+	private void function _setAdapterFactory( required any adapterFactory ) {
 		_adapterFactory = arguments.adapterFactory;
 	}
 
-	private any function _getSqlRunner() output=false {
+	private any function _getSqlRunner() {
 		return _sqlRunner;
 	}
-	private void function _setSqlRunner( required any sqlRunner ) output=false {
+	private void function _setSqlRunner( required any sqlRunner ) {
 		_sqlRunner = arguments.sqlRunner;
 	}
 
-	private any function _getRelationshipGuidance() output=false {
+	private any function _getRelationshipGuidance() {
 		return _relationshipGuidance;
 	}
-	private void function _setRelationshipGuidance( required any relationshipGuidance ) output=false {
+	private void function _setRelationshipGuidance( required any relationshipGuidance ) {
 		_relationshipGuidance = arguments.relationshipGuidance;
 	}
 
-	private any function _getVersioningService() output=false {
+	private any function _getVersioningService() {
 		return _versioningService;
 	}
-	private void function _setVersioningService( required any versioningService ) output=false {
+	private void function _setVersioningService( required any versioningService ) {
 		_versioningService = arguments.versioningService;
 	}
 
-	private any function _getPresideObjectDecorator() output=false {
+	private any function _getPresideObjectDecorator() {
 		return _presideObjectDecorator;
 	}
-	private void function _setPresideObjectDecorator( required any presideObjectDecorator ) output=false {
+	private void function _setPresideObjectDecorator( required any presideObjectDecorator ) {
 		_presideObjectDecorator = arguments.presideObjectDecorator;
 	}
 
-	private any function _getFilterService() output=false {
+	private any function _getFilterService() {
 		return _filterService;
 	}
-	private void function _setFilterService( required any filterService ) output=false {
+	private void function _setFilterService( required any filterService ) {
 		_filterService = arguments.filterService;
 	}
 
-	private any function _getCache() output=false {
+	private any function _getCache() {
 		return _cache;
 	}
-	private void function _setCache( required any cache ) output=false {
+	private void function _setCache( required any cache ) {
 		_cache = arguments.cache;
 	}
 
-	private any function _getDefaultQueryCache() output=false {
+	private any function _getDefaultQueryCache() {
 		return _defaultQueryCache;
 	}
-	private void function _setDefaultQueryCache( required any defaultQueryCache ) output=false {
+	private void function _setDefaultQueryCache( required any defaultQueryCache ) {
 		_defaultQueryCache = arguments.defaultQueryCache;
 	}
 
-	private struct function _getCacheMaps() output=false {
+	private struct function _getCacheMaps() {
 		return _cacheMaps;
 	}
-	private void function _setCacheMaps( required struct cacheMaps ) output=false {
+	private void function _setCacheMaps( required struct cacheMaps ) {
 		_cacheMaps = arguments.cacheMaps;
 	}
 
-	private any function _getInterceptorService() output=false {
+	private any function _getInterceptorService() {
 		return _interceptorService;
 	}
-	private void function _setInterceptorService( required any IiterceptorService ) output=false {
+	private void function _setInterceptorService( required any IiterceptorService ) {
 		_interceptorService = arguments.IiterceptorService;
 	}
 
-	private struct function _getObjects() output=false {
+	private struct function _getObjects() {
 		return _objects;
 	}
-	private void function _setObjects( required struct objects ) output=false {
+	private void function _setObjects( required struct objects ) {
 		_objects = arguments.objects;
 	}
 
-	private array function _getDsns() output=false {
+	private array function _getDsns() {
 		return _dsns;
 	}
-	private void function _setDsns( required array dsns ) output=false {
+	private void function _setDsns( required array dsns ) {
 		_dsns = arguments.dsns;
 	}
 }
