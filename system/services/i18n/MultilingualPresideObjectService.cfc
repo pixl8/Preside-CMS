@@ -88,6 +88,19 @@ component autodoc=true {
 		return { meta=translationObject, instance="auto_created" };
 	}
 
+	public void function decorateMultilingualObject( required struct object ) {
+		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
+
+		arguments.object.meta.properties._translations = new preside.system.services.presideobjects.Property(
+			  relationship    = "one-to-many"
+			, relatedto       = "_translation_" & ( arguments.object.meta.name ?: "" )
+			, relationshipKey = "_translation_source_record"
+			, required        = false
+			, uniqueindexes   = ""
+			, indexes         = ""
+			, generator       = "none"
+		);
+	}
 
 
 }

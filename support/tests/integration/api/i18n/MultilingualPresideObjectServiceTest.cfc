@@ -153,6 +153,24 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assertEquals( { unique=true, fields="_translation_source_record,_translation_language" }, ( multilingualObject.meta.indexes[ "ux__translation_myobject_translation" ] ?: {} ) );
 	}
 
+	function test11_decorateMultilingualObject_shouldAddOneToManyPropertyToSourceObject_toAidWithTranslationLookupQueries(){
+		var svc                = _getService();
+		var dummyObject        = { meta={ name="myobject", tableName="test_table_name", multilingual=true, properties={} } };
+
+		svc.decorateMultilingualObject( dummyObject );
+
+		super.assert( dummyObject.meta.properties.keyExists( "_translations" ) );
+		super.assertEquals( {
+ 			  relationship    = "one-to-many"
+			, relatedto       = "_translation_myobject"
+			, relationshipKey = "_translation_source_record"
+			, required        = false
+			, uniqueindexes   = ""
+			, indexes         = ""
+			, generator       = "none"
+		}, dummyObject.meta.properties._translations.getMemento() );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService() {
 		return new preside.system.services.i18n.MultilingualPresideObjectService();
