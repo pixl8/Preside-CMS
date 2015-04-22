@@ -1,12 +1,12 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
-	public any function init() output=false {
+	public any function init() {
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public string function escapeEntity( required string entityName ) output=false {
+	public string function escapeEntity( required string entityName ) {
 		var escaped = "`#arguments.entityName#`";
 
 		return Replace( escaped, ".", "`.`", "all" );
@@ -20,7 +20,7 @@ component output=false singleton=true {
 		,          boolean  primaryKey    = false
 		,          boolean  autoIncrement = false
 
-	) output=false {
+	) {
 
 		var columnDef  = escapeEntity( arguments.columnName )
 		var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
@@ -61,7 +61,7 @@ component output=false singleton=true {
 		,          string  newName       = arguments.columnName
 
 
-	) output=false {
+	) {
 		var columnDef = getColumnDefinitionSql(
 			  columnName    = arguments.newName
 			, dbType        = arguments.dbType
@@ -84,13 +84,13 @@ component output=false singleton=true {
 		,          boolean nullable      = true
 		,          boolean primaryKey    = false
 		,          boolean autoIncrement = false
-	) output=false {
+	) {
 		var columnDef = getColumnDefinitionSql( argumentCollection = arguments );
 
 		return "alter table #escapeEntity( arguments.tableName )# add #columnDef#";
 	}
 
-	public string function getTableDefinitionSql( required string tableName, required string columnSql ) output=false {
+	public string function getTableDefinitionSql( required string tableName, required string columnSql ) {
 		return "create table #escapeEntity( arguments.tableName )# ( #arguments.columnSql# ) ENGINE=InnoDB";
 	}
 
@@ -102,7 +102,7 @@ component output=false singleton=true {
 		, required string foreignColumn
 		,          string onDelete = "set null"
 		,          string onUpdate = "cascade"
-	) output=false {
+	) {
 		var sql = "alter table #escapeEntity( arguments.sourceTable )#";
 
 		sql &= " add constraint #escapeEntity( arguments.constraintName )#";
@@ -118,7 +118,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public string function getDropForeignKeySql( required string foreignKeyName, required string tableName) output=false {
+	public string function getDropForeignKeySql( required string foreignKeyName, required string tableName) {
 		return "alter table #escapeEntity( arguments.tableName )# drop foreign key #escapeEntity( arguments.foreignKeyName )#";
 	}
 
@@ -128,7 +128,7 @@ component output=false singleton=true {
 		, required string  fieldList
 		,          boolean unique=false
 
-	) output=false {
+	) {
 		var fields = ListToArray( arguments.fieldList );
 		var field  = "";
 		var sql    = "create ";
@@ -150,7 +150,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public string function getDropIndexSql( required string indexName, required string tableName ) output=false {
+	public string function getDropIndexSql( required string indexName, required string tableName ) {
 		return "alter table #escapeEntity( arguments.tableName )# drop index #escapeEntity( arguments.indexName )#";
 	}
 
@@ -160,7 +160,7 @@ component output=false singleton=true {
 		, required any    filter
 		,          string tableAlias = ""
 		,          array  joins      = []
-	) output=false {
+	) {
 		var sql      = "update #escapeEntity( arguments.tableName )#";
 		var delim    = "";
 		var col      = "";
@@ -194,7 +194,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) output=false {
+	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) {
 		var sql = "delete from "
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
@@ -209,7 +209,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) output=false {
+	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
 		var sql          = "insert into #escapeEntity( arguments.tableName )# (";
 		var delim        = " ";
 		var rowdelim     = " (";
@@ -254,7 +254,7 @@ component output=false singleton=true {
 		,          numeric maxRows       = 0
 		,          numeric startRow      = 1
 
-	) output=false {
+	) {
 		var sql         = "select";
 		var delim       = " ";
 		var col         = "";
@@ -294,7 +294,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public string function getJoinSql( required string tableName, string tableAlias="", array joins=[] ) output=false {
+	public string function getJoinSql( required string tableName, string tableAlias="", array joins=[] ) {
 		var aliases     = {};
 		var join        = "";
 		var requiredCol = "";
@@ -336,7 +336,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public string function getClauseSql( required any filter, string tableAlias="" ) output=false {
+	public string function getClauseSql( required any filter, string tableAlias="" ) {
 		var sql      = "";
 		var delim    = " where";
 		var col      = "";
@@ -373,11 +373,11 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	public numeric function getTableNameMaxLength() output=false {
+	public numeric function getTableNameMaxLength() {
 		return 64;
 	}
 
-	public string function sqlDataTypeToCfSqlDatatype( required string sqlDataType ) output=false {
+	public string function sqlDataTypeToCfSqlDatatype( required string sqlDataType ) {
 		switch( arguments.sqlDataType ){
 			case "bigint signed":
 			case "int unsigned":
@@ -462,15 +462,19 @@ component output=false singleton=true {
 		}
 	}
 
-	public boolean function canToggleForeignKeyChecks() output=false {
+	public boolean function canToggleForeignKeyChecks() {
 		return true;
 	}
 
-	public string function getToggleForeignKeyChecks( required boolean checksEnabled ) output=false {
+	public string function getToggleForeignKeyChecks( required boolean checksEnabled ) {
 		return "set foreign_key_checks=" & ( arguments.checksEnabled ? '1' : '0' );
 	}
 
-	public boolean function doesColumnTypeRequireLengthSpecification( required string sqlDataType ) output=false {
+	public string function getIfNullStatement( required string statement, required string alternativeStatement, required string alias ) {
+		return "IfNull( #arguments.statement#, #arguments.alternativeStatement# ) as #arguments.alias#";
+	}
+
+	public boolean function doesColumnTypeRequireLengthSpecification( required string sqlDataType ) {
 		switch( arguments.sqlDataType ){
 			case "char":
 			case "varchar":

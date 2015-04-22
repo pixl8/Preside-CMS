@@ -10,4 +10,31 @@ component extends="coldbox.system.Interceptor" output=false {
 			objects = ( interceptData.objects ?: {} )
 		);
 	}
+
+	public void function postParseSelectFields( event, interceptData ) {
+		if ( event.getLanguage().len() ) {
+			multilingualPresideObjectService.mixinTranslationSpecificSelectLogicToSelectDataCall(
+				argumentCollection = interceptData
+			);
+		}
+	}
+
+	public void function postPrepareTableJoins( event, interceptData ) {
+		var language = event.getLanguage();
+		if ( language.len() ){
+			multilingualPresideObjectService.addLanguageClauseToTranslationJoins(
+				  argumentCollection = interceptData
+				, language           = language
+			);
+		}
+	}
+
+	public void function onCreateSelectDataCacheKey( event, interceptData ) {
+		var language = event.getLanguage();
+		if ( language.len() ){
+			interceptData.cacheKey = interceptData.cacheKey ?: "";
+			interceptData.cacheKey &= "_" & language;
+		}
+	}
+
 }

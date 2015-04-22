@@ -166,57 +166,61 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
-		var objMeta = _getObject( args.objectName ).meta;
-		var adapter = _getAdapter( objMeta.dsn );
-		var result  = "";
 
 		var interceptorResult = _announceInterception( "preSelectObjectData", args );
 		if ( IsBoolean( interceptorResult.abort ?: "" ) && interceptorResult.abort ) {
 			return IsQuery( interceptorResult.returnValue ?: "" ) ? interceptorResult.returnValue : QueryNew('');
 		}
 
+
 		if ( args.useCache ) {
 			args.cachekey = args.objectName & "_" & Hash( LCase( SerializeJson( args ) ) );
 
 			_announceInterception( "onCreateSelectDataCacheKey", args );
 
-			result = _getDefaultQueryCache().get( args.cacheKey );
-			if ( not IsNull( result ) ) {
-				return result;
+			var cachedResult = _getDefaultQueryCache().get( args.cacheKey );
+			if ( not IsNull( cachedResult ) ) {
+				return cachedResult;
 			}
 		}
+
+		args.objMeta = _getObject( args.objectName ).meta;
+		args.adapter = _getAdapter( args.objMeta.dsn );
 
 		args.selectFields   = _parseSelectFields( argumentCollection=args );
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
-			, adapter            = adapter
-			, columnDefinitions  = objMeta.properties
+			, adapter            = args.adapter
+			, columnDefinitions  = args.objMeta.properties
 		);
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
 
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
-			result = _selectFromVersionTables(
+			args.result = _selectFromVersionTables(
 				  argumentCollection = args
 				, filter             = args.preparedFilter.filter
 				, params             = args.preparedFilter.params
-				, originalTableName  = objMeta.tableName
+				, originalTableName  = args.objMeta.tableName
 			);
 		} else {
-			var sql = adapter.getSelectSql(
+			var sql = args.adapter.getSelectSql(
 				  argumentCollection = args
-				, tableName          = objMeta.tableName
+				, tableName          = args.objMeta.tableName
 				, tableAlias         = args.objectName
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
-				, joins              = _convertObjectJoinsToTableJoins( args.joins )
+				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
 			);
-			result = _runSql( sql=sql, dsn=objMeta.dsn, params=args.preparedFilter.params );
+
+
+
+			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
 		}
 
 
 		if ( args.useCache ) {
-			_getDefaultQueryCache().set( args.cacheKey, result );
+			_getDefaultQueryCache().set( args.cacheKey, args.result );
 			_recordCacheSoThatWeCanClearThemWhenDataChanges(
 				  objectName   = args.objectName
 				, cacheKey     = args.cacheKey
@@ -226,10 +230,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			);
 		}
 
-		args.result = result;
 		_announceInterception( "postSelectObjectData", args );
 
-		return result;
+		return args.result;
 	}
 
 	/**
@@ -1429,13 +1432,13 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return joins;
 	}
 
-	private array function _convertObjectJoinsToTableJoins( required array objectJoins ) {
+	private array function _convertObjectJoinsToTableJoins( required array joins ) {
 		var tableJoins = [];
 		var objJoin = "";
 		var objects = _getObjects();
 		var tableJoin = "";
 
-		for( objJoin in arguments.objectJoins ){
+		for( objJoin in arguments.joins ){
 			var join = {
 				  tableName         = objects[ objJoin.joinToObject ].meta.tableName
 				, tableAlias        = objJoin.tableAlias ?: objJoin.joinToObject
@@ -1452,7 +1455,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			tableJoins.append( join );
 		}
 
-		return tableJoins;
+		var interceptArguments = arguments;
+		interceptArguments.tableJoins = tableJoins;
+		_announceInterception( "postPrepareTableJoins", arguments );
+
+		return interceptArguments.tableJoins;
 	}
 
 	private query function _selectFromVersionTables(

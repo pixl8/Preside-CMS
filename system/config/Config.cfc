@@ -57,6 +57,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"          );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareTableJoins"          );
 		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"               );
 		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"            );

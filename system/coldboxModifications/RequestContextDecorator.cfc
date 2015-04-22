@@ -576,6 +576,16 @@
 		<cfset getRequestContext().setValue( name="_presideCmsEditPageLink", value=arguments.editPageLink, private=true ) />
 	</cffunction>
 
+<!--- FRONT END - Multilingual helpers --->
+	<cffunction name="getLanguage" access="public" returntype="string" output="false">
+		<cfreturn getRequestContext().getValue( name="_language", defaultValue="", private=true ) />
+	</cffunction>
+	<cffunction name="setLanguage" access="public" returntype="void" output="false">
+		<cfargument name="language" type="string" required="true" />
+
+		<cfset getRequestContext().setValue( name="_language", value=arguments.language, private=true ) />
+	</cffunction>
+
 <!--- status codes --->
 	<cffunction name="notFound" access="public" returntype="void" output="false">
 		<cfscript>
