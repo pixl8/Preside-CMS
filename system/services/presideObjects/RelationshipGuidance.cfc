@@ -328,6 +328,24 @@ component output=false singleton=true {
 		return {};
 	}
 
+	public string function resolveRelationshipPathToTargetObject( required string sourceObject, required string relationshipPath ) {
+		var pathPieces    = ListToArray( arguments.relationshipPath, "$" );
+		var currentSource = arguments.sourceObject;
+
+		for( var relationshipPiece in pathPieces ) {
+			var relationship = _findColumnRelationship( currentSource, relationshipPiece );
+
+			if ( not StructCount( relationship ) ) {
+				return pathPieces.len() == 1 ? pathPieces[1] : "";
+				break;
+			}
+
+			currentSource = relationship.object;
+		}
+
+		return currentSource;
+	}
+
 // PRIVATE HELPERS
 	private array function _calculateColumnJoins(
 		  required string objectName

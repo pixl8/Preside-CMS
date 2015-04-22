@@ -1807,27 +1807,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	}
 
 	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) {
-		var currentObject = arguments.startObject;
-		var columns       = _getObject( currentObject ).meta.properties;
-		var steps         = ListToArray( arguments.joinSyntax, "$" );
-
-		for( var i=1; i <= steps.len(); i++ ){
-			var step = steps[i];
-
-			if ( columns.keyExists( step ) && ( columns[step].relatedTo ?: "none" ) !== "none" ) {
-				currentObject = columns[step].relatedTo;
-			} elseif ( objectExists( step ) ) {
-				currentObject = step;
-			} else {
-				return ""; // cannot resolve
-			}
-
-			if ( i < steps.len() ) {
-				columns = _getObject( currentObject ).meta.properties;
-			}
-		}
-
-		return currentObject;
+		return _getRelationshipGuidance().resolveRelationshipPathToTargetObject(
+			  sourceObject     = arguments.startObject
+			, relationshipPath = arguments.joinSyntax
+		);
 	}
 
 	private struct function _prepareFilter(
