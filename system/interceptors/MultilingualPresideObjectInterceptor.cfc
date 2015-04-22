@@ -1,6 +1,7 @@
 component extends="coldbox.system.Interceptor" output=false {
 
 	property name="multilingualPresideObjectService" inject="provider:multilingualPresideObjectService";
+	property name="featureService"                   inject="provider:featureService";
 
 // PUBLIC
 	public void function configure() output=false {}
@@ -12,7 +13,7 @@ component extends="coldbox.system.Interceptor" output=false {
 	}
 
 	public void function postParseSelectFields( event, interceptData ) {
-		if ( event.getLanguage().len() ) {
+		if ( featureService.isFeatureEnabled( "multilingual" ) && event.getLanguage().len() ) {
 			multilingualPresideObjectService.mixinTranslationSpecificSelectLogicToSelectDataCall(
 				argumentCollection = interceptData
 			);
@@ -20,20 +21,24 @@ component extends="coldbox.system.Interceptor" output=false {
 	}
 
 	public void function postPrepareTableJoins( event, interceptData ) {
-		var language = event.getLanguage();
-		if ( language.len() ){
-			multilingualPresideObjectService.addLanguageClauseToTranslationJoins(
-				  argumentCollection = interceptData
-				, language           = language
-			);
+		if ( featureService.isFeatureEnabled( "multilingual" ) ) {
+			var language = event.getLanguage();
+			if ( language.len() ){
+				multilingualPresideObjectService.addLanguageClauseToTranslationJoins(
+					  argumentCollection = interceptData
+					, language           = language
+				);
+			}
 		}
 	}
 
 	public void function onCreateSelectDataCacheKey( event, interceptData ) {
-		var language = event.getLanguage();
-		if ( language.len() ){
-			interceptData.cacheKey = interceptData.cacheKey ?: "";
-			interceptData.cacheKey &= "_" & language;
+		if ( featureService.isFeatureEnabled( "multilingual" ) ) {
+			var language = event.getLanguage();
+			if ( language.len() ){
+				interceptData.cacheKey = interceptData.cacheKey ?: "";
+				interceptData.cacheKey &= "_" & language;
+			}
 		}
 	}
 
