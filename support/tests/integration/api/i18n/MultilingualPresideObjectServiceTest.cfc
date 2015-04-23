@@ -118,7 +118,9 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		return new preside.system.services.i18n.MultilingualPresideObjectService();
+		mockRelationshipGuidance = getMockbox().createEmptyMock( "preside.system.services.presideObjects.RelationshipGuidance" );
+
+		return new preside.system.services.i18n.MultilingualPresideObjectService( relationshipGuidance=mockRelationshipGuidance );
 	}
 
 	private any function _dummyObjectProperty() {
