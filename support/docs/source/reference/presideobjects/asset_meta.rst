@@ -20,6 +20,7 @@ Properties
 
 .. code-block:: java
 
-    property name="asset" relationship="many-to-one"                   required=true   uniqueindexes="assetmeta|1";
-    property name="key"   type="string" dbtype="varchar" maxLength=150 required=true   uniqueindexes="assetmeta|2";
-    property name="value" type="string" dbtype="text"                  required=false;
+    property name="asset"         relationship="many-to-one"                   required=true   uniqueindexes="assetmeta|1";
+    property name="asset_version" relationship="many-to-one"                   required=false  uniqueindexes="assetmeta|2";
+    property name="key"           type="string" dbtype="varchar" maxLength=150 required=true   uniqueindexes="assetmeta|3";
+    property name="value"         type="string" dbtype="text"                  required=false;

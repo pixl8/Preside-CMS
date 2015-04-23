@@ -20,9 +20,10 @@ Properties
 
 .. code-block:: java
 
-    property name="asset"      relationship="many-to-one" required=true uniqueindexes="derivative|1";
+    property name="asset"         relationship="many-to-one" required=true  uniqueindexes="derivative|1";
+    property name="asset_version" relationship="many-to-one" required=false uniqueindexes="derivative|2";
 
-    property name="label" maxLength=200 required=true uniqueindexes="derivative|2"; // unique derivative label per asset
+    property name="label" maxLength=200 required=true uniqueindexes="derivative|3";
 
     property name="storage_path" type="string" dbtype="varchar" maxLength=255 required=true   uniqueindexes="assetpath";
     property name="trashed_path" type="string" dbtype="varchar" maxLength=255 required=false;

@@ -1,19 +1,41 @@
 Richeditor: attachment form
 ===========================
 
-*/forms/richeditor/attachment.xml*
+*/forms/richeditor/link.xml*
 
-This form is used for the add/edit attachment screen in the richeditor.
+This form is used for the add/edit link screen in the richeditor.
 
 .. code-block:: xml
 
     <?xml version="1.0" encoding="UTF-8"?>
 
     <form>
-        <tab id="main" sortorder="10">
-            <fieldset id="main" sortorder="10">
-                <field sortorder="10" name="asset"     control="assetPicker" required="true"  label="cms:ckeditor.attachmentpicker.asset.label" allowedtypes="document" />
-                <field sortorder="20" name="link_text" control="textinput"   required="false" label="cms:ckeditor.attachmentpicker.link_text.label" maxLength="200" />
+        <tab id="basic" sortorder="10" title="cms:ckeditor.linkpicker.basic.tab">
+            <!-- we will show/hide these fieldsets depending on the selected link type -->
+            <fieldset id="sitetree" sortorder="10">
+                <field sortorder="10" name="page" control="sitetreePagePicker" required="true" label="cms:ckeditor.linkpicker.page.label" />
+            </fieldset>
+
+            <fieldset id="url" sortorder="20">
+                <field sortorder="10" name="protocol" control="select" required="true" label="cms:ckeditor.linkpicker.protocol.label" defaultValue="http://" values="http://,https://,ftp://,news://" />
+                <field sortorder="20" name="address" control="textinput" required="true" label="cms:ckeditor.linkpicker.address.label" placeholder="cms:ckeditor.linkpicker.address.placeholder" />
+            </fieldset>
+
+            <fieldset id="email" sortorder="30">
+                <field sortorder="10" name="emailaddress" control="textinput" required="true"  maxlength="255" label="cms:ckeditor.linkpicker.emailaddress.label" placeholder="cms:ckeditor.linkpicker.emailaddress.placeholder" />
+                <field sortorder="20" name="emailsubject" control="textinput" required="false" maxlength="100" label="cms:ckeditor.linkpicker.emailsubject.label" />
+                <field sortorder="30" name="emailbody"    control="textarea"  required="false" maxlength="200" label="cms:ckeditor.linkpicker.emailbody.label" />
+            </fieldset>
+
+            <fieldset id="anchor" sortorder="40">
+                <field sortorder="10" name="anchor" control="select" required="true" label="cms:ckeditor.linkpicker.anchor.label" placeholder="cms:ckeditor.linkpicker.anchor.placeholder" values="" />
+            </fieldset>
+        </tab>
+
+        <tab id="advanced" sortorder="20" title="cms:ckeditor.linkpicker.advanced.tab">
+            <fieldset id="advanced" sortorder="10">
+                <field sortorder="10" name="link_target" control="select" required="true" label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" />
+                <field sortorder="20" name="title" control="textinput" required="false" maxlength="200" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" />
             </fieldset>
         </tab>
     </form>

@@ -10,8 +10,10 @@ System form layouts
     assetfolderaddform
     assetfoldereditform
     assetfoldereditrootfolderform
+    assetnewversionform
     linkpickeraddlinkform
     linkpickereditlinkform
+    maintenancemodesettingsform
     notificationspreferencesform
     notificationstopicglobalconfigurationform
     notificationstopicpreferencesform

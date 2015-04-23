@@ -4,12 +4,13 @@ System Service API
 .. toctree::
     :maxdepth: 1
 
+    updatemanagerservice
+    multilingualpresideobjectservice
     tikawrapper
     presideobjectservice
-    sitetemplatesservice
-    siteservice
+    featureservice
+    websiteloginservice
     notificationservice
     emailservice
-    updatemanagerservice
-    websiteloginservice
-    featureservice
+    siteservice
+    sitetemplatesservice

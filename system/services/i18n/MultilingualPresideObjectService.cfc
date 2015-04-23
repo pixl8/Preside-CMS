@@ -3,16 +3,14 @@
  * translations of standard preside objects possible in a transparent way. Note: You are
  * unlikely to need to deal with this API directly.
  *
- * @displayName Multilingual Preside Object Service
  * @singleton   true
  * @autodoc     true
  */
-component {
+component displayName="Multilingual Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
 	 * @relationshipGuidance.inject relationshipGuidance
-	 *
 	 */
 	public any function init( required any relationshipGuidance ) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
@@ -22,6 +20,15 @@ component {
 	}
 
 // PUBLIC METHODS
+
+	/**
+	 * Returns whether or not the given object and optional property are multilingual
+	 * enabled.
+	 *
+	 * @autodoc           true
+	 * @objectName.hint   Name of the object that we wish to check
+	 * @propertyName.hint Optional name of the property that we wish to check
+	 */
 	public boolean function isMultilingual( required string objectName, string propertyName="" ) {
 		var multiLingualObjectReference = _getMultiLingualObjectReference();
 
@@ -32,6 +39,13 @@ component {
 		return !Len( Trim( arguments.propertyName ) ) || multiLingualObjectReference[ arguments.objectName ].findNoCase( arguments.propertyName );
 	}
 
+	/**
+	 * Performs the magic of creating extra database tables (preside objects) to store the
+	 * translations of multilingual enabled objects.
+	 *
+	 * @autodoc      true
+	 * @objects.hint Objects as compiled and read by the preside object service.
+	 */
 	public void function addTranslationObjectsForMultilingualEnabledObjects( required struct objects ) {
 		var multiLingualObjectReference = {};
 
@@ -49,6 +63,14 @@ component {
 		_setMultiLingualObjectReference( multiLingualObjectReference );
 	}
 
+	/**
+	 * Returns the meta data for our auto generated translation object based on a given
+	 * source object
+	 *
+	 * @autodoc           true
+	 * @objectName.hint   The name of the source object
+	 * @sourceObject.hint The metadata of the source object
+	 */
 	public struct function createTranslationObject( required string objectName, required struct sourceObject ) {
 		var translationObject     = Duplicate( arguments.sourceObject.meta );
 		var translationProperties = translationObject.properties ?: {};
@@ -107,6 +129,14 @@ component {
 		return { meta=translationObject, instance="auto_created" };
 	}
 
+	/**
+	 * Adds utility properties to the multilingual enabled source object
+	 * so that its translations can be easily queried
+	 *
+	 * @autodoc         true
+	 * @objectName.hint The name of the source object
+	 * @object.hint     The metadata of the source object
+	 */
 	public void function decorateMultilingualObject( required string objectName, required struct object ) {
 		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
 
@@ -121,7 +151,18 @@ component {
 		);
 	}
 
-	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields, required array extraFilters, required any adapter ) {
+	/**
+	 * Works on intercepted select queries to discover and replace multilingual
+	 * select fields with special IfNull( translation, original ) syntax
+	 * to automagically select translations without the developer having to
+	 * do anything about it
+	 *
+	 * @autodoc           true
+	 * @objectName.hint   The name of the source object
+	 * @selectFields.hint Array of select fields as passed into the presideObjectService.selectData() method
+	 * @adapter.hint      Database adapter to be used in generating the select query SQL
+	 */
+	public void function mixinTranslationSpecificSelectLogicToSelectDataCall( required string objectName, required array selectFields, required any adapter ) {
 		for( var i=1; i <= arguments.selectFields.len(); i++ ) {
 			var field = arguments.selectFields[ i ];
 			var resolved = _resolveSelectField( arguments.objectName, field );
@@ -132,6 +173,16 @@ component {
 		}
 	}
 
+	/**
+	 * Works on intercepted select queries to discover and decorate
+	 * joins on translation objects with an additional clause for the
+	 * passed in language
+	 *
+	 * @autodoc             true
+	 * @tableJoins.hint     Array of table joins as calculated by the SelectData() logic
+	 * @language.hint       The language to filter on
+	 * @preparedFilter.hint The fully prepared and resolved filter that will be used in the select query
+	 */
 	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter ) {
 
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){

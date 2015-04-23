@@ -89,20 +89,21 @@ GetNotifications()
 
 .. code-block:: java
 
-    public array function getNotifications( required string userId, numeric maxRows=10, string topic="" )
+    public query function getNotifications( required string userId, string topic="", numeric startRow=1, numeric maxRows=10 )
 
 Returns the latest unread notifications for the given user id. Returns an array of structs, each struct contains id and data keys.
 
 Arguments
 .........
 
-=======  =======  ===============  ===================================================================
-Name     Type     Required         Description                                                        
-=======  =======  ===============  ===================================================================
-userId   string   Yes              id of the admin user who's unread notifications we wish to retrieve
-maxRows  numeric  No (default=10)  maximum number of notifications to retrieve                        
-topic    string   No (default="")                                                                     
-=======  =======  ===============  ===================================================================
+========  =======  ===============  ===================================================================
+Name      Type     Required         Description                                                        
+========  =======  ===============  ===================================================================
+userId    string   Yes              id of the admin user who's unread notifications we wish to retrieve
+topic     string   No (default="")                                                                     
+startRow  numeric  No (default=1)                                                                      
+maxRows   numeric  No (default=10)  maximum number of notifications to retrieve                        
+========  =======  ===============  ===================================================================
 
 
 .. _notificationservice-getnotification:
@@ -124,6 +125,28 @@ Name  Type    Required  Description
 ====  ======  ========  ======================
 id    string  Yes       ID of the notification
 ====  ======  ========  ======================
+
+
+.. _notificationservice-getnotificationscount:
+
+GetNotificationsCount()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public numeric function getNotificationsCount( required string userId, string topic="" )
+
+Returns the count of non-dismissed notifications for the given user id and optional topic
+
+Arguments
+.........
+
+======  ======  ===============  ===================================================================
+Name    Type    Required         Description                                                        
+======  ======  ===============  ===================================================================
+userId  string  Yes              id of the admin user who's unread notifications we wish to retrieve
+topic   string  No (default="")  topic by which to filter the notifications                         
+======  ======  ===============  ===================================================================
 
 
 .. _notificationservice-rendernotification:
