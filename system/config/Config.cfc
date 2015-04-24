@@ -82,7 +82,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
 
 		cacheBox = {
-			configFile = "preside.system.config.Cachebox"
+			configFile = _discoverCacheboxConfigurator()
 		};
 
 		wirebox = {
@@ -276,6 +276,14 @@ component output=false {
 		}
 
 		return 'preside.system.config.WireBox';
+	}
+
+	private string function _discoverCacheboxConfigurator() output=false {
+		if ( FileExists( "/app/config/Cachebox.cfc" ) ) {
+			return "app.config.Cachebox";
+		}
+
+		return "preside.system.config.Cachebox";
 	}
 
 	private array function _loadExtensions() output=false {
