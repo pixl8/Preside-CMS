@@ -27,7 +27,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assertEquals( expectedResult, svc.listLanguages() );
 	}
 
-	function test01_listLanguages_shouldNotIncludeDefaultLanguage_whenFlagToExcludeDefaultIsSetToTrue() {
+	function test02_listLanguages_shouldNotIncludeDefaultLanguage_whenFlagToExcludeDefaultIsSetToTrue() {
 		var svc = _getService();
 		var mockSettings = {
 			  default_language     = "id-2"
