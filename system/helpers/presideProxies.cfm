@@ -151,6 +151,9 @@
 
 <!--- features --->
 	<cffunction name="isFeatureEnabled" access="public" returntype="boolean" output="false">
+		<cfargument name="feature"      type="string" required="true" />
+		<cfargument name="siteTemplate" type="string" required="false" default="#getSingleton( "siteService" ).getActiveSiteTemplate()#" />
+
 		<cfreturn getSingleton( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cffunction>
 
