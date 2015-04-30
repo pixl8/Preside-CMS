@@ -459,12 +459,13 @@
 		<cfscript>
 			var object            = rc.object   ?: "";
 			var id                = rc.id       ?: "";
-			var language          = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 			var version           = rc.version  ?: "";
 			var objectName        = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var record            = "";
 
-			if ( language.isempty() ) {
+			prc.language          = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+
+			if ( prc.language.isempty() ) {
 				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
 			}
@@ -477,10 +478,10 @@
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
 			if ( prc.useVersioning && Val( version ) ) {
 				prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
-				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=language.id, useCache=false, version=version );
+				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false, version=version );
 			} else {
 				prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
-				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=language.id, useCache=false );
+				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false );
 			}
 
 			if ( not prc.sourceRecord.recordCount ) {
@@ -491,14 +492,16 @@
 			prc.record = queryRowToStruct( prc.record );
 			prc.recordLabel = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
+			prc.canDelete = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
+			prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+
 			_addObjectNameBreadCrumb( event, object );
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ language.name ] )
+				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 				, link  = ""
 			);
 			prc.pageIcon  = "pencil";
-			prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectName, prc.recordLabel, language.name ] );
-
+			prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectName, prc.recordLabel, prc.language.name ] );
 		</cfscript>
 	</cffunction>
 
