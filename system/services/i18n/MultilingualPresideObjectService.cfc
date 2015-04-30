@@ -10,10 +10,18 @@ component displayName="Multilingual Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @relationshipGuidance.inject relationshipGuidance
+	 * @relationshipGuidance.inject       relationshipGuidance
+	 * @systemConfigurationService.inject provider:systemConfigurationService
+	 * @languageDao.inject                provider:presidecms:object:multilingual_language
 	 */
-	public any function init( required any relationshipGuidance ) {
+	public any function init(
+		  required any relationshipGuidance
+		, required any systemConfigurationService
+		, required any languageDao
+	) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
+		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setLanguageDao( arguments.languageDao );
 		_setMultiLingualObjectReference( {} );
 
 		return this;
@@ -212,6 +220,31 @@ component displayName="Multilingual Preside Object Service" {
 
 	}
 
+	public array function listLanguages() {
+		var settings        = _getSystemConfigurationService().getCategorySettings( "multilingual" );
+		var defaultLanguage = settings.default_language ?: "";
+		var languageIds     = ListToArray( settings.additional_languages ?: "" );
+		var languages       = [];
+
+		if ( defaultLanguage.len() ) {
+			languageIds.prepend( defaultLanguage );
+		}
+
+		var dbRecords = _getLanguageDao().selectData( filter={ id=languageIds } );
+
+		for( var record in dbRecords ) {
+			record.default = record.id == defaultLanguage;
+			record.sortOrder = languageIds.find( record.id );
+			languages.append( record );
+		}
+
+		languages.sort( function( a, b ){
+			return a.sortorder > b.sortorder ? 1 : -1;
+		} );
+
+		return languages;
+	}
+
 // PRIVATE HELPERS
 	private boolean function _isObjectMultilingual( required struct objectMeta ) {
 		var multilingualFlag = arguments.objectMeta.multilingual ?: "";
@@ -287,6 +320,20 @@ component displayName="Multilingual Preside Object Service" {
 	}
 	private void function _setRelationshipGuidance( required any relationshipGuidance ) {
 		_relationshipGuidance = arguments.relationshipGuidance;
+	}
+
+	private any function _getSystemConfigurationService() {
+		return _systemConfigurationService;
+	}
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
+		_systemConfigurationService = arguments.systemConfigurationService;
+	}
+
+	private any function _getLanguageDao() {
+		return _languageDao;
+	}
+	private void function _setLanguageDao( required any languageDao ) {
+		_languageDao = arguments.languageDao;
 	}
 
 }
