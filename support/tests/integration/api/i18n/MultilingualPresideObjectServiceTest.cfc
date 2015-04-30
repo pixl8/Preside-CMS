@@ -195,13 +195,15 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 
 		super.assert( dummyObject.meta.properties.keyExists( "_translations" ) );
 		super.assertEquals( {
- 			  relationship    = "one-to-many"
+			  name            = "_translations"
+ 			, relationship    = "one-to-many"
 			, relatedto       = "_translation_myobject"
 			, relationshipKey = "_translation_source_record"
 			, required        = false
 			, uniqueindexes   = ""
 			, indexes         = ""
 			, generator       = "none"
+			, control         = "none"
 		}, dummyObject.meta.properties._translations.getMemento() );
 	}
 

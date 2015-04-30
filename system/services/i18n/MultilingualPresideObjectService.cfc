@@ -165,13 +165,15 @@ component displayName="Multilingual Preside Object Service" {
 		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
 
 		arguments.object.meta.properties._translations = new preside.system.services.presideobjects.Property(
-			  relationship    = "one-to-many"
+			  name            = "_translations"
+			, relationship    = "one-to-many"
 			, relatedto       = "_translation_" & arguments.objectName
 			, relationshipKey = "_translation_source_record"
 			, required        = false
 			, uniqueindexes   = ""
 			, indexes         = ""
 			, generator       = "none"
+			, control         = "none"
 		);
 	}
 
