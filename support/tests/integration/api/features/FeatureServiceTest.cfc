@@ -19,18 +19,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertFalse( svc.isFeatureEnabled( feature="sitetree" ) );
 	}
 
-	function test04_isFeatureEnabled_shouldReturnFalse_whenFeatureIsEnabledButNotForTheCurrentSiteTemplate() output=false {
+	function test04_isFeatureEnabled_shouldReturnFalse_whenFeatureIsEnabledButNotForThePassedSiteTemplate() output=false {
 		var svc = _getService();
 
-		mockSiteService.$( "getActiveSiteTemplate", "somesite" );
-		super.assertFalse( svc.isFeatureEnabled( feature="sites" ) );
+		super.assertFalse( svc.isFeatureEnabled( feature="sites", siteTemplate="somesiteTemplate" ) );
 	}
 
 	function test05_isFeatureEnabled_shouldReturnTrue_whenFeatureHasDefaultTemplateSet_andCurrentTemplateIsBlank() output=false {
 		var svc = _getService();
 
 		mockSiteService.$( "getActiveSiteTemplate", "" );
-		super.assert( svc.isFeatureEnabled( feature="sites" ) ) ;
+		super.assert( svc.isFeatureEnabled( feature="sites", siteTemplate="" ) ) ;
 	}
 
 // PRIVATE HELPERS

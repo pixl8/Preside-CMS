@@ -111,6 +111,7 @@
 			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
 			var result   = formsSvc.getForm( "event.cms.add" );
 			var expected = {
+				feature = "enabled-feature",
 				tabs = [{
 					title       = "",
 					description = "",
@@ -563,11 +564,15 @@
 			mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
 			mockSiteService             = getMockBox().createMock( "preside.system.services.siteTree.SiteService" );
 			mockValidationRuleGenerator = getMockBox().createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
+			mockFeatureService          = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
 			poService                   = _getPresideObjectService();
 
 			mockSiteService.$( "getActiveSiteTemplate", arguments.activeSiteTemplate );
-
 			mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
+
+			mockFeatureService.$( "isFeatureEnabled" ).$args( "enabled-feature" ).$results( true );
+			mockFeatureService.$( "isFeatureEnabled" ).$args( "disabled-feature" ).$results( false );
+			mockFeatureService.$( "isFeatureEnabled", true );
 
 			return new preside.system.services.forms.FormsService(
 				  presideObjectService = poService
@@ -580,6 +585,7 @@
 				, presideFieldRuleGenerator = mockValidationRuleGenerator
 				, defaultContextName   = "index"
 				, configuredControls   = {}
+				, featureService       = mockFeatureService
 			);
 		</cfscript>
 	</cffunction>

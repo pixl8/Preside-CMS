@@ -54,10 +54,12 @@
 
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
+				var mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
 				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
 					, interceptorService = arguments.interceptorService
+					, featureService = mockFeatureService
 				);
 				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.services.database.DbInfoService();
@@ -88,6 +90,7 @@
 
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
+				mockFeatureService.$( "isFeatureEnabled", true );
 
 				if ( !StructKeyExists( arguments, "coldbox" ) ) {
 					var event   = getMockbox().createStub();

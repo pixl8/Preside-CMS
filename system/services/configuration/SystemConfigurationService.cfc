@@ -1,23 +1,29 @@
-component output=false singleton=true {
+/**
+ * @singleton true
+ */
+component {
 
 // CONSTRUCTOR
 	/**
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
 	 * @injectedConfig.inject          coldbox:setting:injectedConfig
+	 * @formsService.inject            provider:formsService
 	 */
-	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig ) output=false {
+	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig, required any formsService ) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao )
 		_setInjectedConfig( arguments.injectedConfig );
-
-		reload();
+		_setFormsService( arguments.formsService );
+		_setLoaded( false );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public string function getSetting( required string category, required string setting, string default="" ) output=false {
+	public string function getSetting( required string category, required string setting, string default="" ) {
+		_reloadCheck();
+
 		var injected = _getInjectedConfig();
 		var result   = _getDao().selectData(
 			  selectFields = [ "value" ]
@@ -31,7 +37,9 @@ component output=false singleton=true {
 		return injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
 	}
 
-	public struct function getCategorySettings( required string category ) output=false {
+	public struct function getCategorySettings( required string category ) {
+		_reloadCheck();
+
 		var rawResult = _getDao().selectData(
 			  selectFields = [ "setting", "value" ]
 			, filter       = { category = arguments.category }
@@ -55,7 +63,9 @@ component output=false singleton=true {
 		return result;
 	}
 
-	public any function saveSetting( required string category, required string setting, required string value ) output=false  {
+	public any function saveSetting( required string category, required string setting, required string value )  {
+		_reloadCheck();
+
 		var dao = _getDao();
 
 		transaction {
@@ -77,7 +87,9 @@ component output=false singleton=true {
 		}
 	}
 
-	public array function listConfigCategories() output=false {
+	public array function listConfigCategories() {
+		_reloadCheck();
+
 		var categories = _getConfigCategories();
 		var result    = [];
 
@@ -88,7 +100,9 @@ component output=false singleton=true {
 		return result;
 	}
 
-	public ConfigCategory function getConfigCategory( required string id ) output=false {
+	public ConfigCategory function getConfigCategory( required string id ) {
+		_reloadCheck();
+
 		var categories = _getConfigCategories();
 
 		if ( categories.keyExists( arguments.id ) ) {
@@ -105,13 +119,13 @@ component output=false singleton=true {
 		);
 	}
 
-	public void function reload() output=false {
+	public void function reload() {
 		_setConfigCategories({});
 		_autoDiscoverCategories();
 	}
 
 // PRIVATE HELPERS
-	private void function _autoDiscoverCategories() output=false {
+	private void function _autoDiscoverCategories() {
 		var objectsPath             = "/forms/system-config";
 		var ids                     = {};
 		var autoDiscoverDirectories = _getAutoDiscoverDirectories();
@@ -128,11 +142,13 @@ component output=false singleton=true {
 		}
 
 		for( var id in ids ) {
-			_registerCategory( id = LCase( id ) );
+			if ( _getFormsService().formExists( formName="system-config." & id, checkSiteTemplates=false ) ) {
+				_registerCategory( id = LCase( id ) );
+			}
 		}
 	}
 
-	private void function _registerCategory( required string id ) output=false {
+	private void function _registerCategory( required string id ) {
 		var categories = _getConfigCategories();
 
 		categories[ arguments.id ] = new ConfigCategory(
@@ -144,46 +160,66 @@ component output=false singleton=true {
 		);
 	}
 
-	private string function _getConventionsBaseCategoryName( required string id ) output=false {
+	private string function _getConventionsBaseCategoryName( required string id ) {
 		return "system-config.#arguments.id#:name";
 	}
-	private string function _getConventionsBaseCategoryDescription( required string id ) output=false {
+	private string function _getConventionsBaseCategoryDescription( required string id ) {
 		return "system-config.#arguments.id#:description";
 	}
-	private string function _getConventionsBaseCategoryIcon( required string id ) output=false {
+	private string function _getConventionsBaseCategoryIcon( required string id ) {
 		return "system-config.#arguments.id#:iconClass";
 	}
-	private string function _getConventionsBaseCategoryForm( required string id ) output=false {
+	private string function _getConventionsBaseCategoryForm( required string id ) {
 		return "system-config.#arguments.id#";
 	}
 
+	private void function _reloadCheck() {
+		if ( !_isLoaded() ) {
+			reload();
+			_setLoaded( true );
+		}
+	}
+
 // GETTERS AND SETTERS
-	private array function _getAutoDiscoverDirectories() output=false {
+	private array function _getAutoDiscoverDirectories() {
 		return _autoDiscoverDirectories;
 	}
-	private void function _setAutoDiscoverDirectories( required array autoDiscoverDirectories ) output=false {
+	private void function _setAutoDiscoverDirectories( required array autoDiscoverDirectories ) {
 		_autoDiscoverDirectories = arguments.autoDiscoverDirectories;
 	}
 
-	private any function _getDao() output=false {
+	private any function _getDao() {
 		return _dao;
 	}
-	private void function _setDao( required any dao ) output=false {
+	private void function _setDao( required any dao ) {
 		_dao = arguments.dao;
 	}
 
-	private struct function _getConfigCategories() output=false {
+	private struct function _getConfigCategories() {
 		return _configCategories;
 	}
-	private void function _setConfigCategories( required struct configCategories ) output=false {
+	private void function _setConfigCategories( required struct configCategories ) {
 		_configCategories = arguments.configCategories;
 	}
 
-	private struct function _getInjectedConfig() output=false {
+	private struct function _getInjectedConfig() {
 		return _injectedConfig;
 	}
-	private void function _setInjectedConfig( required struct injectedConfig ) output=false {
+	private void function _setInjectedConfig( required struct injectedConfig ) {
 		_injectedConfig = arguments.injectedConfig;
 	}
 
+	private struct function _getFormsService() {
+		return _formsService;
+	}
+	private void function _setFormsService( required struct formsService ) {
+		_formsService = arguments.formsService;
+	}
+
+	private boolean function _isLoaded() {
+		return _loaded;
+	}
+	private void function _setLoaded( required boolean loaded ) {
+		_loaded = arguments.loaded;
+	}
 }

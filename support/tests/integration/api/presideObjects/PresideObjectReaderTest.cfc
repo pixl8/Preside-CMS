@@ -159,11 +159,15 @@
 		<cfargument name="dsn"         type="string" required="false" default="default_dsn" />
 		<cfargument name="tablePrefix" type="string" required="false" default="pobj_" />
 
-		<cfreturn new preside.system.services.presideObjects.PresideObjectReader(
-			  dsn                = arguments.dsn
-			, tablePrefix        = arguments.tablePrefix
-			, interceptorService = _getMockInterceptorService()
-		) />
+		<cfscript>
+			mockFeatureService = getMockbox().createEmptyMock( "preside.system.services.features.FeatureService" );
+			return new preside.system.services.presideObjects.PresideObjectReader(
+				  dsn                = arguments.dsn
+				, tablePrefix        = arguments.tablePrefix
+				, interceptorService = _getMockInterceptorService()
+				, featureService     = mockFeatureService
+			);
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="_propertiesToStruct" access="private" returntype="struct" output="false">
