@@ -226,6 +226,16 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="translationRecordHistory" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			renderData( "not yet implemented" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="deleteRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
@@ -567,6 +577,38 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="translationVersionNavigator" access="private" returntype="string" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+		<cfargument name="args"  type="struct" required="false" default="#StructNew()#" />
+
+		<cfscript>
+			var selectedVersion = Val( args.version ?: "" );
+			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( args.object ?: "" );
+
+			args.versions = presideObjectService.getRecordVersions(
+				  objectName = translationObjectName
+				, id         = args.id     ?: ""
+			);
+
+			if ( !selectedVersion && args.versions.recordCount ) {
+				selectedVersion = args.versions._version_number; // first record, they are ordered reverse chronologically
+			}
+
+			args.nextVersion = 0;
+			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
+
+			for( var i=1; i <= args.versions.recordCount; i++ ){
+				if ( args.versions._version_number[i] == selectedVersion ) {
+					args.nextVersion = i > 1 ? args.versions._version_number[i-1] : 0;
+					args.prevVersion = i < args.versions.recordCount ? args.versions._version_number[i+1] : 0;
+				}
+			}
+
+			return renderView( view="admin/datamanager/translationVersionNavigator", args=args );
+		</cfscript>
+	</cffunction>
 
 <!--- private events for sharing --->
 	<cffunction name="_getObjectRecordsForAjaxDataTables" access="private" returntype="void" output="false">

@@ -44,4 +44,8 @@
 			</a>
 		</cfif>
 	</div>
+
+	<cfif useVersioning>
+		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "" } )#
+	</cfif>
 </cfoutput>
