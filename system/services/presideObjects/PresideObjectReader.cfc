@@ -5,11 +5,13 @@ component output=false singleton=true {
 	 * @dsn.inject                coldbox:setting:dsn
 	 * @tablePrefix.inject        coldbox:setting:presideObjectsTablePrefix
 	 * @interceptorService.inject coldbox:InterceptorService
+	 * @featureService.inject     featureService
 	 */
-	public any function init( required string dsn, required string tablePrefix, required any interceptorService ) output=false {
+	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService ) output=false {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
 		_setInterceptorService( arguments.interceptorService );
+		_setFeatureService( arguments.featureService );
 
 		return this;
 	}
@@ -35,6 +37,7 @@ component output=false singleton=true {
 		}
 
 		objects = _mergeObjects( objects );
+		_removeObjectsUsedInDisabledFeatures( objects );
 
 		return objects;
 	}
@@ -387,6 +390,18 @@ component output=false singleton=true {
 		arguments.objectMeta.noLabel = arguments.objectMeta.noLabel ?: arguments.objectMeta.labelfield !== "label";
 	}
 
+	private void function _removeObjectsUsedInDisabledFeatures( required struct objects ) {
+		var featureService = _getFeatureService();
+
+		for( var objectName in arguments.objects ) {
+			var meta = arguments.objects[ objectName ].meta;
+
+			if ( Len( Trim( meta.feature ?: "" ) ) && !featureService.isFeatureEnabled( Trim( meta.feature ) ) ) {
+				arguments.objects.delete( objectName );
+			}
+		}
+	}
+
 	private any function _announceInterception() output=false {
 		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
@@ -409,7 +424,14 @@ component output=false singleton=true {
 	private any function _getInterceptorService() output=false {
 		return _interceptorService;
 	}
-	private void function _setInterceptorService( required any IiterceptorService ) output=false {
-		_interceptorService = arguments.IiterceptorService;
+	private void function _setInterceptorService( required any interceptorService ) output=false {
+		_interceptorService = arguments.interceptorService;
+	}
+
+	private any function _getFeatureService() output=false {
+		return _featureService;
+	}
+	private void function _setFeatureService( required any featureService ) output=false {
+		_featureService = arguments.featureService;
 	}
 }
