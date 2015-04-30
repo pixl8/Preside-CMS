@@ -152,10 +152,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE HELPERS
 	private any function _getConfigSvc( array autoDiscoverDirectories=[], struct injectedConfig={} ) ouput=false {
+		mockFormsService = getMockBox().createEmptyMock( "preside.system.services.forms.FormsService" );
+
+		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
+		mockFormsService.$( "formExists", true );
+
 		return new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 			, injectedConfig          = arguments.injectedConfig
+			, formsService            = mockFormsService
 		);
 	}
 }
