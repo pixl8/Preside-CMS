@@ -6,7 +6,7 @@
  * also been done to make upgrades easier as this asset version feature has been added later.
  *
  */
-component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" feature="assetManager" {
 
 	property name="asset"             relationship="many-to-one" relatedTo="asset"      required=true  uniqueindexes="assetversion|1";
 	property name="version_number"    type="numeric" dbtype="int"                       required=true  uniqueindexes="assetversion|2";

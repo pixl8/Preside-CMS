@@ -2,7 +2,7 @@
  * The asset object represents the core data associated with any file uploaded into the Asset manager
  *
  */
-component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
+component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" feature="assetManager" {
 
 	property name="asset_folder" relationship="many-to-one"                          required=true   uniqueindexes="assetfolder|1";
 
