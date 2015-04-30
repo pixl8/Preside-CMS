@@ -104,7 +104,8 @@ component displayName="Multilingual Preside Object Service" {
 		}
 
 		translationProperties._translation_source_record = new preside.system.services.presideobjects.Property(
-			  relationship  = "many-to-one"
+			  name          = "_translation_source_record"
+			, relationship  = "many-to-one"
 			, relatedto     = arguments.objectName
 			, required      = true
 			, uniqueindexes = "translation|1"
@@ -112,12 +113,14 @@ component displayName="Multilingual Preside Object Service" {
 			, ondelete      = "cascade"
 			, onupdate      = "cascade"
 			, generator     = "none"
+			, control       = "none"
 		);
 		dbFieldList.append( "_translation_source_record" );
 		propertyNames.append( "_translation_source_record" );
 
 		translationProperties._translation_language = new preside.system.services.presideobjects.Property(
-			  relationship  = "many-to-one"
+			  name          = "_translation_language"
+			, relationship  = "many-to-one"
 			, relatedto     = "multilingual_language"
 			, required      = true
 			, uniqueindexes = "translation|2"
@@ -125,12 +128,14 @@ component displayName="Multilingual Preside Object Service" {
 			, ondelete      = "error"
 			, onupdate      = "cascade"
 			, generator     = "none"
+			, control       = "none"
 		);
 		dbFieldList.append( "_translation_language" );
 		propertyNames.append( "_translation_language" );
 
 		translationProperties._translation_active = new preside.system.services.presideobjects.Property(
-			  required      = false
+			  name          = "_translation_active"
+			, required      = false
 			, default       = false
 			, type          = "boolean"
 			, dbtype        = "boolean"
@@ -140,6 +145,7 @@ component displayName="Multilingual Preside Object Service" {
 			, relatedto     = "none"
 			, generator     = "none"
 			, maxLength     = 0
+			, control       = "none"
 		);
 		dbFieldList.append( "_translation_active" );
 		propertyNames.append( "_translation_active" );

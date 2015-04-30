@@ -467,13 +467,14 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object            = rc.object   ?: "";
-			var id                = rc.id       ?: "";
-			var version           = rc.version  ?: "";
-			var objectName        = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var record            = "";
+			var object                = rc.object   ?: "";
+			var id                    = rc.id       ?: "";
+			var version               = rc.version  ?: "";
+			var objectName            = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+			var record                = "";
 
-			prc.language          = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+			prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 
 			if ( prc.language.isempty() ) {
 				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
@@ -504,6 +505,12 @@
 
 			prc.canDelete = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+
+			if ( formsService.formExists( "preside-objects.#object#.admin.translate" ) ) {
+				prc.formName = "preside-objects.#object#.admin.translate";
+			} else {
+				prc.formName = "preside-objects.#translationObjectName#.admin.edit";
+			}
 
 			_addObjectNameBreadCrumb( event, object );
 			event.addAdminBreadCrumb(
