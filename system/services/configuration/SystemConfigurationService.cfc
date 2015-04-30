@@ -8,21 +8,22 @@ component {
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
 	 * @injectedConfig.inject          coldbox:setting:injectedConfig
-	 * @formsService.inject            formsService
+	 * @formsService.inject            provider:formsService
 	 */
 	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig, required any formsService ) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao )
 		_setInjectedConfig( arguments.injectedConfig );
 		_setFormsService( arguments.formsService );
-
-		reload();
+		_setLoaded( false );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
 	public string function getSetting( required string category, required string setting, string default="" ) {
+		_reloadCheck();
+
 		var injected = _getInjectedConfig();
 		var result   = _getDao().selectData(
 			  selectFields = [ "value" ]
@@ -37,6 +38,8 @@ component {
 	}
 
 	public struct function getCategorySettings( required string category ) {
+		_reloadCheck();
+
 		var rawResult = _getDao().selectData(
 			  selectFields = [ "setting", "value" ]
 			, filter       = { category = arguments.category }
@@ -61,6 +64,8 @@ component {
 	}
 
 	public any function saveSetting( required string category, required string setting, required string value )  {
+		_reloadCheck();
+
 		var dao = _getDao();
 
 		transaction {
@@ -83,6 +88,8 @@ component {
 	}
 
 	public array function listConfigCategories() {
+		_reloadCheck();
+
 		var categories = _getConfigCategories();
 		var result    = [];
 
@@ -94,6 +101,8 @@ component {
 	}
 
 	public ConfigCategory function getConfigCategory( required string id ) {
+		_reloadCheck();
+
 		var categories = _getConfigCategories();
 
 		if ( categories.keyExists( arguments.id ) ) {
@@ -164,6 +173,13 @@ component {
 		return "system-config.#arguments.id#";
 	}
 
+	private void function _reloadCheck() {
+		if ( !_isLoaded() ) {
+			reload();
+			_setLoaded( true );
+		}
+	}
+
 // GETTERS AND SETTERS
 	private array function _getAutoDiscoverDirectories() {
 		return _autoDiscoverDirectories;
@@ -198,5 +214,12 @@ component {
 	}
 	private void function _setFormsService( required struct formsService ) {
 		_formsService = arguments.formsService;
+	}
+
+	private boolean function _isLoaded() {
+		return _loaded;
+	}
+	private void function _setLoaded( required boolean loaded ) {
+		_loaded = arguments.loaded;
 	}
 }
