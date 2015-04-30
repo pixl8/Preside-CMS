@@ -48,6 +48,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 
 		super.assert( actualProperties.keyExists( "_translation_source_record" ) );
 		super.assert( actualProperties.keyExists( "_translation_language"      ) );
+		super.assert( actualProperties.keyExists( "_translation_active"        ) );
 
 		super.assertEquals( {
 			  relationship  = "many-to-one"
@@ -71,6 +72,18 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, relatedto     = "none"
 			, generator     = "none"
 		}, actualProperties._translation_language.getMemento() );
+
+		super.assertEquals( {
+			  required      = false
+			, type          = "boolean"
+			, dbtype        = "boolean"
+			, default       = false
+			, uniqueindexes = ""
+			, indexes       = ""
+			, relationship  = "none"
+			, relatedto     = "none"
+			, generator     = "none"
+		}, actualProperties._translation_active.getMemento() );
 	}
 
 	function test09_createTranslationObject_shouldModifyDbFieldListBasedOnAdditionalFieldsAndMultilingualFields(){
@@ -87,7 +100,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		var dummyObject = { meta={ name="app.preside-objects.myobject", multilingual=true, properties=dummyProps, dbFieldList="prop1,prop2,prop4,prop6" } };
 		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 
-		super.assertEquals( "prop1,prop6,_translation_source_record,_translation_language", multilingualObject.meta.dbFieldList ?: ""  );
+		super.assertEquals( "prop1,prop6,_translation_source_record,_translation_language,_translation_active", multilingualObject.meta.dbFieldList ?: ""  );
 	}
 
 	function test10_createTranslationObject_shouldAddUniqueIndexToTheObjectDefinition() {
