@@ -1,4 +1,7 @@
-component output=false singleton=true {
+/**
+ * @singleton true
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -9,6 +12,7 @@ component output=false singleton=true {
 	 * @i18n.inject                      coldbox:plugin:i18n
 	 * @coldbox.inject                   coldbox
 	 * @presideFieldRuleGenerator.inject PresideFieldRuleGenerator
+	 * @featureService.inject            featureService
 	 * @defaultContextName.inject        coldbox:fwSetting:EventAction
 	 * @configuredControls.inject        coldbox:setting:formControls
 	 */
@@ -20,15 +24,17 @@ component output=false singleton=true {
 		, required any    i18n
 		, required any    coldbox
 		, required any    presideFieldRuleGenerator
+		, required any    featureService
 		, required string defaultContextName
 		, required struct configuredControls
-	) output=false {
+	) {
 		_setValidationEngine( arguments.validationEngine );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setI18n( arguments.i18n );
 		_setColdbox( arguments.coldbox );
 		_setFormDirectories( arguments.formDirectories );
 		_setPresideFieldRuleGenerator( arguments.presideFieldRuleGenerator );
+		_setFeatureService( arguments.featureService );
 		_setDefaultContextName( arguments.defaultContextName );
 		_setConfiguredControls( arguments.configuredControls );
 		_setSiteService( arguments.siteService );
@@ -39,7 +45,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public array function listForms() output=false {
+	public array function listForms() {
 		var forms = StructKeyArray( _getForms() );
 
 		ArraySort( forms, "textnocase" );
@@ -47,13 +53,13 @@ component output=false singleton=true {
 		return forms;
 	}
 
-	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) output=false {
+	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) {
 		var forms = _getForms();
 
 		return StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
 	}
 
-	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) output=false {
+	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) {
 		var forms        = _getForms();
 		var objectName   = "";
 		var form         = "";
@@ -86,7 +92,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public struct function mergeForms( required string formName, required string mergeWithFormName, boolean autoMergeSiteForm=true ) output=false {
+	public struct function mergeForms( required string formName, required string mergeWithFormName, boolean autoMergeSiteForm=true ) {
 		var mergedName = getMergedFormName( arguments.formName, arguments.mergeWithFormName, false );
 
 		if ( formExists( mergedName ) ) {
@@ -103,7 +109,7 @@ component output=false singleton=true {
 		return merged;
 	}
 
-	public struct function getFormField( required string formName, required string fieldName ) output=false {
+	public struct function getFormField( required string formName, required string fieldName ) {
 		var frm = getForm( arguments.formName );
 
 		for( var tab in frm.tabs ){
@@ -122,7 +128,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public any function listFields( required string formName ) output=false {
+	public any function listFields( required string formName ) {
 		var frm    = getForm( arguments.formName );
 		var fields = [];
 
@@ -145,7 +151,7 @@ component output=false singleton=true {
 		return fields;
 	}
 
-	public struct function getDefaultFormForPresideObject( required string objectName ) output=false {
+	public struct function getDefaultFormForPresideObject( required string objectName ) {
 		var fields = _getPresideObjectService().getObjectProperties( objectName = arguments.objectName );
 		var formLayout = {
 			tabs = [{
@@ -186,7 +192,7 @@ component output=false singleton=true {
 		,          struct  savedData            = {}
 		,          string  fieldNamePrefix      = ""
 		,          string  fieldNameSuffix      = ""
-	) output=false {
+	) {
 		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
 		var coldbox           = _getColdbox();
 		var i18n              = _getI18n();
@@ -293,7 +299,7 @@ component output=false singleton=true {
 		,          boolean required     = false
 		,          string  layout       = "formcontrols.layouts.field"
 
-	) output=false {
+	) {
 		var coldbox         = _getColdbox();
 		var handler         = _getFormControlHandler( type=arguments.type, context=arguments.context );
 		var renderedControl = "";
@@ -323,7 +329,7 @@ component output=false singleton=true {
 		return renderedControl;
 	}
 
-	public any function validateForm( required string formName, required struct formData, boolean preProcessData=true, boolean ignoreMissing=false ) output=false {
+	public any function validateForm( required string formName, required struct formData, boolean preProcessData=true, boolean ignoreMissing=false ) {
 		var ruleset = _getValidationRulesetFromFormName( arguments.formName );
 		var data    = Duplicate( arguments.formData );
 
@@ -345,7 +351,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public any function getValidationJs( required string formName, string mergeWithFormName="" ) output=false {
+	public any function getValidationJs( required string formName, string mergeWithFormName="" ) {
 		var validationFormName = Len( Trim( mergeWithFormName ) ) ? getMergedFormName( formName, mergeWithFormName ) : formName;
 
 		return _getValidationEngine().getJqueryValidateJs(
@@ -353,7 +359,7 @@ component output=false singleton=true {
 		);
 	}
 
-	public any function preProcessForm( required string formName, required struct formData ) output=false {
+	public any function preProcessForm( required string formName, required struct formData ) {
 		var formFields       = listFields( arguments.formName );
 		var fieldValue       = "";
 		var validationResult = _getValidationEngine().newValidationResult();
@@ -379,7 +385,7 @@ component output=false singleton=true {
 		return validationResult;
 	}
 
-	public any function preProcessFormField( required string formName, required string fieldName, required string fieldValue ) output=false {
+	public any function preProcessFormField( required string formName, required string fieldName, required string fieldValue ) {
 		var field        = getFormField( formName = arguments.formName, fieldName = arguments.fieldName );
 		var preProcessor = _getPreProcessorForField( argumentCollection = field );
 
@@ -395,7 +401,7 @@ component output=false singleton=true {
 		return arguments.fieldValue;
 	}
 
-	public string function getMergedFormName( required string formName, required string mergeWithFormName, boolean createIfNotExists=true ) output=false {
+	public string function getMergedFormName( required string formName, required string mergeWithFormName, boolean createIfNotExists=true ) {
 		var mergedName = formName & ".merged.with." & mergeWithFormName;
 
 		if ( createIfNotExists && !formExists( mergedName ) ) {
@@ -405,12 +411,12 @@ component output=false singleton=true {
 		return mergedName;
 	}
 
-	public void function reload() output=false {
+	public void function reload() {
 		_loadForms();
 	}
 
 // PRIVATE HELPERS
-	private void function _loadForms() output=false {
+	private void function _loadForms() {
 		var dirs     = _getFormDirectories();
 		var prefix   = "";
 		var dir      = "";
@@ -452,22 +458,24 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _registerForm( required string formName, required struct formDefinition ) output=false {
-		var forms   = _getForms();
-		var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#" );
+	private void function _registerForm( required string formName, required struct formDefinition ) {
+		if ( _formDoesNotBelongToDisabledFeature( arguments.formDefinition ) ) {
+			var forms   = _getForms();
+			var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#" );
 
-		forms[ formName ] = formDefinition;
+			forms[ formName ] = formDefinition;
 
-		ruleset.addRules(
-			rules = _getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition )
-		);
+			ruleset.addRules(
+				rules = _getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition )
+			);
+		}
 	}
 
-	private struct function _readForm( required string filePath ) output=false {
-		var xml     = "";
-		var tabs    = "";
-		var theForm = { tabs = [] };
-		var form    = "";
+	private struct function _readForm( required string filePath ) {
+		var xml            = "";
+		var tabs           = "";
+		var theForm        = {};
+		var formAttributes = {};
 
 		try {
 			xml = XmlParse( arguments.filePath );
@@ -479,6 +487,12 @@ component output=false singleton=true {
 
 			);
 		}
+
+		formAttribs = xml.form.xmlAttributes ?: {};
+		for( var key in formAttribs ){
+			theForm[ key ] = formAttribs[ key ];
+		}
+		theForm.tabs = [];
 
 		tabs = XmlSearch( xml, "/form/tab" );
 
@@ -530,7 +544,7 @@ component output=false singleton=true {
 		return theForm;
 	}
 
-	private void function _bindAttributesFromPresideObjectField( required struct field ) output=false {
+	private void function _bindAttributesFromPresideObjectField( required struct field ) {
 		var property    = "";
 		var boundObject = "";
 		var boundField  = "";
@@ -571,7 +585,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private array function _parseRules( required any field ) output=false {
+	private array function _parseRules( required any field ) {
 		var rules = [];
 		var rule  = "";
 		var newRule = "";
@@ -604,7 +618,7 @@ component output=false singleton=true {
 		return rules;
 	}
 
-	private string function _getPresideObjectNameFromFormNameByConvention( required string formName ) output=false {
+	private string function _getPresideObjectNameFromFormNameByConvention( required string formName ) {
 		if ( ListFirst( arguments.formName, "." ) eq "preside-objects" and ListLen( arguments.formName, "." ) gt 1 ) {
 			return ListGetAt( arguments.formName, 2, "." );
 		}
@@ -612,7 +626,7 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private string function _getFormControlHandler( required string type, required string context ) output=false {
+	private string function _getFormControlHandler( required string type, required string context ) {
 		var configuredControls = _getConfiguredControls();
 		var defaultContext     = _getDefaultContextName();
 
@@ -637,11 +651,11 @@ component output=false singleton=true {
 		return "formcontrols.#arguments.type#.#defaultContext#";
 	}
 
-	private string function _getDefaultFormControl() output=false {
+	private string function _getDefaultFormControl() {
 		return _getPresideObjectService().getDefaultFormControlForPropertyAttributes( argumentCollection = arguments );
 	}
 
-	private string function _getValidationRulesetFromFormName( required string formName ) output=false {
+	private string function _getValidationRulesetFromFormName( required string formName ) {
 		var objectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
 
 		if ( formExists( arguments.formName, false ) ) {
@@ -660,7 +674,7 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private struct function _getI18nFieldAttributes( required struct field, required string formName ) output=false {
+	private struct function _getI18nFieldAttributes( required struct field, required string formName ) {
 		var i18n            = _getI18n();
 		var fieldName       = arguments.field.name ?: "";
 		var objectName      = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
@@ -685,7 +699,7 @@ component output=false singleton=true {
 		return attributes;
 	}
 
-	private string function _getPreProcessorForField( string preProcessor="", string control="" ) output=false {
+	private string function _getPreProcessorForField( string preProcessor="", string control="" ) {
 		var coldboxEvent = "";
 		var coldbox      = _getColdbox();
 
@@ -713,7 +727,7 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private struct function _mergeForms( required struct form1, required struct form2 ) output=false {
+	private struct function _mergeForms( required struct form1, required struct form2 ) {
 		for( var tab in form2.tabs ){
 			var matchingTab = {};
 			if ( Len( Trim( tab.id ?: "" ) ) ) {
@@ -808,7 +822,7 @@ component output=false singleton=true {
 		return form1;
 	}
 
-	private string function _getSiteTemplatePrefixForDirectory( required string directory ) output=false {
+	private string function _getSiteTemplatePrefixForDirectory( required string directory ) {
 		var matchRegex = "^.*?site-templates[\\/]([^/]+)[\\/]forms.*$";
 
 		if (  ReFindNoCase( matchRegex, arguments.directory ) ) {
@@ -818,7 +832,7 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private boolean function _formControlHasLayout( required string control ) output=false {
+	private boolean function _formControlHasLayout( required string control ) {
 		switch( arguments.control ){
 			case "hidden":
 				return false;
@@ -827,79 +841,90 @@ component output=false singleton=true {
 		return true;
 	}
 
-	private string function _getSiteTemplatePrefix() output=false {
+	private string function _getSiteTemplatePrefix() {
 		var siteTemplate = _getSiteService().getActiveSiteTemplate();
 		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
+	private boolean function _formDoesNotBelongToDisabledFeature( required struct formDefinition ) {
+		return !Len( Trim( formDefinition.feature ?: "" ) ) || _getFeatureService().isFeatureEnabled( Trim( formDefinition.feature ) );
+	}
+
 // GETTERS AND SETTERS
-	private array function _getFormDirectories() output=false {
+	private array function _getFormDirectories() {
 		return _formDirectories;
 	}
-	private void function _setFormDirectories( required array formDirectories ) output=false {
+	private void function _setFormDirectories( required array formDirectories ) {
 		_formDirectories = arguments.formDirectories;
 	}
 
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
 	}
 
-	private struct function _getForms() output=false {
+	private struct function _getForms() {
 		return _forms;
 	}
-	private void function _setForms( required struct forms ) output=false {
+	private void function _setForms( required struct forms ) {
 		_forms = arguments.forms;
 	}
 
-	private any function _getValidationEngine() output=false {
+	private any function _getValidationEngine() {
 		return _validationEngine;
 	}
-	private void function _setValidationEngine( required any validationEngine ) output=false {
+	private void function _setValidationEngine( required any validationEngine ) {
 		_validationEngine = arguments.validationEngine;
 	}
 
-	private any function _getI18n() output=false {
+	private any function _getI18n() {
 		return _i18n;
 	}
-	private void function _setI18n( required any i18n ) output=false {
+	private void function _setI18n( required any i18n ) {
 		_i18n = arguments.i18n;
 	}
 
-	private any function _getColdBox() output=false {
+	private any function _getColdBox() {
 		return _coldBox;
 	}
-	private void function _setColdBox( required any coldBox ) output=false {
+	private void function _setColdBox( required any coldBox ) {
 		_coldBox = arguments.coldBox;
 	}
 
-	private string function _getDefaultContextName() output=false {
+	private string function _getDefaultContextName() {
 		return _defaultContextName;
 	}
-	private void function _setDefaultContextName( required string defaultContextName ) output=false {
+	private void function _setDefaultContextName( required string defaultContextName ) {
 		_defaultContextName = arguments.defaultContextName;
 	}
 
-	private struct function _getConfiguredControls() output=false {
+	private struct function _getConfiguredControls() {
 		return _configuredControls;
 	}
-	private void function _setConfiguredControls( required struct configuredControls ) output=false {
+	private void function _setConfiguredControls( required struct configuredControls ) {
 		_configuredControls = arguments.configuredControls;
 	}
 
-	private any function _getPresideFieldRuleGenerator() output=false {
+	private any function _getPresideFieldRuleGenerator() {
 		return _presideFieldRuleGenerator;
 	}
-	private void function _setPresideFieldRuleGenerator( required any presideFieldRuleGenerator ) output=false {
+	private void function _setPresideFieldRuleGenerator( required any presideFieldRuleGenerator ) {
 		_presideFieldRuleGenerator = arguments.presideFieldRuleGenerator;
 	}
 
-	private any function _getSiteService() output=false {
+	private any function _getFeatureService() {
+		return _featureService;
+	}
+	private void function _setFeatureService( required any featureService ) {
+		_featureService = arguments.featureService;
+	}
+
+	private any function _getSiteService() {
 		return _siteService;
 	}
-	private void function _setSiteService( required any siteService ) output=false {
+	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
 	}
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form feature="enabled-feature">
+<form feature="disabled-feature">
 	<tab>
 		<fieldset>
 			<field binding="security_user.known_as" control="overridenControl" required="false" />
