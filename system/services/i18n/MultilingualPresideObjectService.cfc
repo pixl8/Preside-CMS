@@ -220,13 +220,13 @@ component displayName="Multilingual Preside Object Service" {
 
 	}
 
-	public array function listLanguages() {
+	public array function listLanguages( boolean includeDefault=true ) {
 		var settings        = _getSystemConfigurationService().getCategorySettings( "multilingual" );
 		var defaultLanguage = settings.default_language ?: "";
 		var languageIds     = ListToArray( settings.additional_languages ?: "" );
 		var languages       = [];
 
-		if ( defaultLanguage.len() ) {
+		if ( arguments.includeDefault && defaultLanguage.len() ) {
 			languageIds.prepend( defaultLanguage );
 		}
 

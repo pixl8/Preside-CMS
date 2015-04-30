@@ -27,6 +27,30 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assertEquals( expectedResult, svc.listLanguages() );
 	}
 
+	function test01_listLanguages_shouldNotIncludeDefaultLanguage_whenFlagToExcludeDefaultIsSetToTrue() {
+		var svc = _getService();
+		var mockSettings = {
+			  default_language     = "id-2"
+			, additional_languages = "id-3,id-1,id-4"
+		};
+		var mockDbData = QueryNew( 'id,iso_code,name,native_name,left_to_right', 'varchar,varchar,varchar,varchar,bit', [
+			 [ "id-1", "fr", "French" , "francais", 0 ]
+			,[ "id-3", "en", "English", "English" , 0 ]
+			,[ "id-4", "de", "German" , "Deutche" , 0 ]
+		] );
+		var expectedResult = [
+			  { id="id-3", iso_code="en", name="English", native_name="English" , left_to_right=0, default=false, sortOrder=1 }
+			, { id="id-1", iso_code="fr", name="French" , native_name="francais", left_to_right=0, default=false, sortOrder=2 }
+			, { id="id-4", iso_code="de", name="German" , native_name="Deutche" , left_to_right=0, default=false, sortOrder=3 }
+		];
+
+		var languagesCombined = ListToArray( mockSettings.additional_languages );
+		mockSystemConfigurationService.$( "getCategorySettings" ).$args( "multilingual" ).$results( mockSettings );
+		mockLanguageDao.$( "selectData" ).$args( filter={ id=languagesCombined } ).$results( mockDbData );
+
+		super.assertEquals( expectedResult, svc.listLanguages( includeDefault=false ) );
+	}
+
 	function test06_createTranslationObject_shouldReturnAnObjectWhosTableNameIsTheSourceObjectPrependedWith_translation() {
 		var svc               = _getService();
 		var dummyProps        = StructNew( "linked" );
