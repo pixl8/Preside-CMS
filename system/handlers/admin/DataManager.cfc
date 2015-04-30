@@ -1,11 +1,12 @@
 <cfcomponent output="false" extends="preside.system.base.AdminHandler">
 
-	<cfproperty name="presideObjectService" inject="presideObjectService"        />
-	<cfproperty name="dataManagerService"   inject="dataManagerService"          />
-	<cfproperty name="formsService"         inject="formsService"                />
-	<cfproperty name="validationEngine"     inject="validationEngine"            />
-	<cfproperty name="siteService"          inject="siteService"                 />
-	<cfproperty name="messageBox"           inject="coldbox:plugin:messageBox"   />
+	<cfproperty name="presideObjectService"             inject="presideObjectService"             />
+	<cfproperty name="multilingualPresideObjectService" inject="multilingualPresideObjectService" />
+	<cfproperty name="dataManagerService"               inject="dataManagerService"               />
+	<cfproperty name="formsService"                     inject="formsService"                     />
+	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
+	<cfproperty name="siteService"                      inject="siteService"                      />
+	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -399,12 +400,6 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 
-			// validity checks
-			if ( not presideObjectService.objectExists( object ) ) {
-				messageBox.error( translateResource( uri="cms:datamanager.objectNotFound.error", data=[object] ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.index" ) );
-			}
-
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
 			if ( prc.useVersioning && Val( version ) ) {
 				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
@@ -416,7 +411,17 @@
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
+
 			prc.record = queryRowToStruct( prc.record );
+			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
+			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
+			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
+
+			if ( prc.canTranslate ) {
+				prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+			}
 
 			// breadcrumb setup
 			_addObjectNameBreadCrumb( event, object );
@@ -443,6 +448,57 @@
 				, prePostExempt  = true
 				, private        = true
 			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="translateRecord" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object            = rc.object   ?: "";
+			var id                = rc.id       ?: "";
+			var language          = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+			var version           = rc.version  ?: "";
+			var objectName        = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var record            = "";
+
+			if ( language.isempty() ) {
+				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			}
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="translate", object=object );
+
+
+			prc.useVersioning = presideObjectService.objectIsVersioned( object );
+			if ( prc.useVersioning && Val( version ) ) {
+				prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
+				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=language.id, useCache=false, version=version );
+			} else {
+				prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=language.id, useCache=false );
+			}
+
+			if ( not prc.sourceRecord.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			prc.record = queryRowToStruct( prc.record );
+			prc.recordLabel = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			_addObjectNameBreadCrumb( event, object );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ language.name ] )
+				, link  = ""
+			);
+			prc.pageIcon  = "pencil";
+			prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectName, prc.recordLabel, language.name ] );
+
 		</cfscript>
 	</cffunction>
 

@@ -76,6 +76,23 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assertEquals( expectedResult, svc.getTranslationStatus( objectName, recordId ) );
 	}
 
+	function test04_getLanguage_shouldReturnAnEmptyStruct_whenTheLanguageIsNotAnActivelyTranslatableLanguage() {
+		var svc = _getService();
+
+		svc.$( "listLanguages", [{id="id-1", name="French", default=true }] );
+
+		super.assert( svc.getLanguage( "id-5" ).isEmpty() );
+	}
+
+	function test05_getLanguage_shouldReturnDetailsOfActivelyTranslatableLanguage() {
+		var svc = _getService();
+		var languages = [{id="id-1", name="French", default=true }, {id="id-2", name="English", default=false}]
+
+		svc.$( "listLanguages", languages );
+
+		super.assertEquals( languages[ 2 ], svc.getLanguage( "id-2" ) );
+	}
+
 	function test06_createTranslationObject_shouldReturnAnObjectWhosTableNameIsTheSourceObjectPrependedWith_translation() {
 		var svc               = _getService();
 		var dummyProps        = StructNew( "linked" );
@@ -205,6 +222,28 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, generator       = "none"
 			, control         = "none"
 		}, dummyObject.meta.properties._translations.getMemento() );
+	}
+
+	function test12_getTranslationObjectName_shouldReturnTheGivenObjectNamePrefixedWithTheTranslationObjectPrefix() {
+		var svc = _getService();
+
+		super.assertEquals( "_translation_my_object", svc.getTranslationObjectName( "my_object" ) );
+	}
+
+	function test13_selectTranslation_shouldReturnResultOfSelectDataCallWithTranslationFilters() {
+		var svc = _getService();
+		var objectName = "my_object";
+		var id         = "someid";
+		var language   = "somelanguage";
+		var mockResult = QueryNew('id,label', 'varchar,varchar', [ ["idtest","labeltest"] ]);
+
+		mockPresideObjectService.$( "selectData" ).$args(
+			  selectFields = []
+			, objectName   = "_translation_" & objectName
+			, filter       = { _translation_source_record=id, _translation_language=language }
+		).$results( mockResult );
+
+		super.assertEquals( mockResult, svc.selectTranslation( objectName, id, language ) );
 	}
 
 // PRIVATE HELPERS

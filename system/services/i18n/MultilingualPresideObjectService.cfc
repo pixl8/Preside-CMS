@@ -65,7 +65,7 @@ component displayName="Multilingual Preside Object Service" {
 
 			if ( _isObjectMultilingual( object.meta ?: {} ) ) {
 
-				arguments.objects[ "_translation_" & objectName ] = createTranslationObject( objectName, object );
+				arguments.objects[ _getTranslationObjectPrefix() & objectName ] = createTranslationObject( objectName, object );
 				decorateMultilingualObject( objectName, object );
 				multiLingualObjectReference[ objectName ] = _listMultilingualObjectProperties( object.meta );
 			}
@@ -93,7 +93,7 @@ component displayName="Multilingual Preside Object Service" {
 		validProperties.append( "datecreated" );
 		validProperties.append( "datemodified" );
 
-		translationObject.tableName = "_translation_" & ( arguments.sourceObject.meta.tableName ?: "" );
+		translationObject.tableName = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
 
 		for( var propertyName in translationProperties ) {
 			if ( !validProperties.find( propertyName ) ) {
@@ -167,7 +167,7 @@ component displayName="Multilingual Preside Object Service" {
 		arguments.object.meta.properties._translations = new preside.system.services.presideobjects.Property(
 			  name            = "_translations"
 			, relationship    = "one-to-many"
-			, relatedto       = "_translation_" & arguments.objectName
+			, relatedto       = _getTranslationObjectPrefix() & arguments.objectName
 			, relationshipKey = "_translation_source_record"
 			, required        = false
 			, uniqueindexes   = ""
@@ -225,6 +225,13 @@ component displayName="Multilingual Preside Object Service" {
 
 	}
 
+	/**
+	 * Returns an array of actively supported languages. Each language
+	 * is represented as a struct with id, name, native_name, iso_code and default keys
+	 *
+	 * @includeDefault.hint Whether or not to include the default language in the array
+	 * @autoDoc             true
+	 */
 	public array function listLanguages( boolean includeDefault=true ) {
 		var settings        = _getSystemConfigurationService().getCategorySettings( "multilingual" );
 		var defaultLanguage = settings.default_language ?: "";
@@ -250,10 +257,19 @@ component displayName="Multilingual Preside Object Service" {
 		return languages;
 	}
 
+	/**
+	 * Returns an array of actively supported languages as per listLanguages()
+	 * with an additional 'status' field indicating the status of the translation
+	 * for the given object record
+	 *
+	 * @objectName.hint Name of the object that has the record we wish to get the translation status of
+	 * @recordId.hint   ID of the record we wish to get the translation status of
+	 * @autoDoc         true
+	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
 		var languages = listLanguages( includeDefault=false );
 		var dbRecords = _getPresideObjectService().selectData(
-			  objectName   = "_translation_" & objectName
+			  objectName   = _getTranslationObjectPrefix() & objectName
 			, selectFields = [ "_translation_language", "_translation_active" ]
 			, filter       = { _translation_source_record = arguments.recordId }
 		);
@@ -272,6 +288,65 @@ component displayName="Multilingual Preside Object Service" {
 		}
 
 		return languages;
+	}
+
+	/**
+	 * Returns a structure of language details for the given language.
+	 * If the language is not an actively translatable language,
+	 * an empty structure will be returned.
+	 *
+	 * @languageId.hint ID of the language to get
+	 * @autodoc         true
+	 *
+	 */
+	public struct function getLanguage( required string languageId ) {
+		var languages = listLanguages();
+		for( var language in languages ) {
+			if ( language.id == arguments.languageId ) {
+				return language;
+			}
+		}
+
+		return {};
+	}
+
+	/**
+	 * Returns the name of the given object's corresponding translation object
+	 *
+	 * @objectName.hint Name of the object who's corresponding translation object name we wish to get
+	 * @autodoc         true
+	 *
+	 */
+	public string function getTranslationObjectName( required string sourceObjectName ) {
+		return _getTranslationObjectPrefix() & arguments.sourceObjectName;
+	}
+
+	/**
+	 * Returns the equivalent translation record
+	 * for the given object record (object name and id)
+	 * and language
+	 *
+	 */
+	public query function selectTranslation( required string objectName, required string id, required string languageId, array selectFields=[], string version="", boolean useCache=true ) {
+		var translationObjectName = getTranslationObjectName( arguments.objectName );
+		var filter                = { _translation_source_record=arguments.id, _translation_language=arguments.languageId };
+		var presideObjectService  = _getPresideObjectService();
+		var args                  = {
+			  objectName   = translationObjectName
+			, filter       = filter
+			, selectFields = arguments.selectFields
+		};
+
+		if ( !arguments.useCache ) {
+			args.useCache = false;
+		}
+
+		if ( Val( arguments.version ) ) {
+			args.fromVersionTable = true;
+			args.specificVersion  = arguments.version;
+		}
+
+		return presideObjectService.selectData( argumentCollection=args );
 	}
 
 // PRIVATE HELPERS
@@ -334,6 +409,10 @@ component displayName="Multilingual Preside Object Service" {
 		}
 
 		return arguments.plainObjectPath & "$_translations";
+	}
+
+	private string function _getTranslationObjectPrefix() {
+		return "_translation_";
 	}
 
 // GETTERS AND SETTERS
