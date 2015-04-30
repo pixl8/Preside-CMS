@@ -22,7 +22,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.stylesheetParser_validSelectors = /^(p|span|pre|li|ul|ol|dl|dt|dd|small|i|b|em|strong)\.\w+/;
 
 	// Set the most common block elements.
-	config.format_tags = 'p;h1;h2;h3;pre';
+	config.format_tags = 'p;h1;h2;h3;h4;h5;h6;pre;div';
 
 	// auto grow config
 	config.autoGrow_onStartup = true;
