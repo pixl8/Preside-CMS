@@ -51,10 +51,30 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assertEquals( expectedResult, svc.listLanguages( includeDefault=false ) );
 	}
 
-	// function test03_getTranslationStatus_shouldReturnStatusesOfTranslationsForEachNonDefaultLanguage_byLookingUpTranslationRecords() {
-	// 	var svc = _getService();
-	// 	var mockLanguages = [{},{},{}];
-	// }
+	function test03_getTranslationStatus_shouldReturnStatusesOfTranslationsForEachNonDefaultLanguage_byLookingUpTranslationRecords() {
+		var svc           = _getService();
+		var objectName    = "someobject";
+		var recordId      = CreateUUId();
+		var mockLanguages = [{id="lang_1"},{id="lang_2"},{id="lang_3"}];
+		var mockDbResult  = QueryNew('_translation_language,_translation_active', "varchar,bit", [
+			 [ "lang_3", 0 ]
+			,[ "lang_1", 1 ]
+		]);
+		var expectedResult = [
+			  { id="lang_1", status="active" }
+			, { id="lang_2", status="notstarted" }
+			, { id="lang_3", status="inprogress" }
+		];
+
+		svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
+		mockPresideObjectService.$( "selectData" ).$args(
+			  selectFields = [ "_translation_language", "_translation_active" ]
+			, objectName   = "_translation_" & objectName
+			, filter       = { _translation_source_record=recordId }
+		).$results( mockDbResult );
+
+		super.assertEquals( expectedResult, svc.getTranslationStatus( objectName, recordId ) );
+	}
 
 	function test06_createTranslationObject_shouldReturnAnObjectWhosTableNameIsTheSourceObjectPrependedWith_translation() {
 		var svc               = _getService();
@@ -189,13 +209,15 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 	private any function _getService() {
 		mockRelationshipGuidance       = getMockbox().createEmptyMock( "preside.system.services.presideObjects.RelationshipGuidance" );
 		mockSystemConfigurationService = getMockbox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
+		mockPresideObjectService       = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockLanguageDao                = getMockbox().createStub();
 
-		return new preside.system.services.i18n.MultilingualPresideObjectService(
+		return getMockbox().createMock( object=new preside.system.services.i18n.MultilingualPresideObjectService(
 			  relationshipGuidance       = mockRelationshipGuidance
 			, systemConfigurationService = mockSystemConfigurationService
+			, presideObjectService       = mockPresideObjectService
 			, languageDao                = mockLanguageDao
-		);
+		) );
 	}
 
 	private any function _dummyObjectProperty() {

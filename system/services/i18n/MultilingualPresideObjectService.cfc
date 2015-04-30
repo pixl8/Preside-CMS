@@ -12,15 +12,18 @@ component displayName="Multilingual Preside Object Service" {
 	/**
 	 * @relationshipGuidance.inject       relationshipGuidance
 	 * @systemConfigurationService.inject provider:systemConfigurationService
+	 * @presideObjectService.inject       provider:presideObjectService
 	 * @languageDao.inject                provider:presidecms:object:multilingual_language
 	 */
 	public any function init(
 		  required any relationshipGuidance
 		, required any systemConfigurationService
+		, required any presideObjectService
 		, required any languageDao
 	) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setPresideObjectService( arguments.presideObjectService );
 		_setLanguageDao( arguments.languageDao );
 		_setMultiLingualObjectReference( {} );
 
@@ -245,6 +248,30 @@ component displayName="Multilingual Preside Object Service" {
 		return languages;
 	}
 
+	public array function getTranslationStatus( required string objectName, required string recordId ) {
+		var languages = listLanguages( includeDefault=false );
+		var dbRecords = _getPresideObjectService().selectData(
+			  objectName   = "_translation_" & objectName
+			, selectFields = [ "_translation_language", "_translation_active" ]
+			, filter       = { _translation_source_record = arguments.recordId }
+		);
+		var mappedRecords = {};
+
+		for( var record in dbRecords ){
+			mappedrecords[ record._translation_language ] = record._translation_active;
+		}
+
+		for( var language in languages ) {
+			if ( mappedRecords.keyExists( language.id ) ) {
+				language.status = Val( mappedRecords[ language.id ] ) ? "active" : "inprogress";
+			} else {
+				language.status = "notstarted"
+			}
+		}
+
+		return languages;
+	}
+
 // PRIVATE HELPERS
 	private boolean function _isObjectMultilingual( required struct objectMeta ) {
 		var multilingualFlag = arguments.objectMeta.multilingual ?: "";
@@ -327,6 +354,13 @@ component displayName="Multilingual Preside Object Service" {
 	}
 	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
+	}
+
+	private any function _getPresideObjectService() {
+		return _presideObjectService;
+	}
+	private void function _setPresideObjectService( required any presideObjectService ) {
+		_presideObjectService = arguments.presideObjectService;
 	}
 
 	private any function _getLanguageDao() {
