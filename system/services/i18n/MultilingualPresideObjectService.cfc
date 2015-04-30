@@ -114,14 +114,13 @@ component displayName="Multilingual Preside Object Service" {
 		propertyNames.append( "_translation_source_record" );
 
 		translationProperties._translation_language = new preside.system.services.presideobjects.Property(
-			  required      = true
-			, type          = "string"
-			, dbtype        = "varchar"
-			, maxlength     = 8
+			  relationship  = "many-to-one"
+			, relatedto     = "multilingual_language"
+			, required      = true
 			, uniqueindexes = "translation|2"
 			, indexes       = ""
-			, relationship  = "none"
-			, relatedto     = "none"
+			, ondelete      = "error"
+			, onupdate      = "cascade"
 			, generator     = "none"
 		);
 		dbFieldList.append( "_translation_language" );
@@ -137,6 +136,7 @@ component displayName="Multilingual Preside Object Service" {
 			, relationship  = "none"
 			, relatedto     = "none"
 			, generator     = "none"
+			, maxLength     = 0
 		);
 		dbFieldList.append( "_translation_active" );
 		propertyNames.append( "_translation_active" );

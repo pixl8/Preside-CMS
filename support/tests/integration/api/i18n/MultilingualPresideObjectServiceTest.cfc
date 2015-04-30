@@ -51,6 +51,11 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assertEquals( expectedResult, svc.listLanguages( includeDefault=false ) );
 	}
 
+	// function test03_getTranslationStatus_shouldReturnStatusesOfTranslationsForEachNonDefaultLanguage_byLookingUpTranslationRecords() {
+	// 	var svc = _getService();
+	// 	var mockLanguages = [{},{},{}];
+	// }
+
 	function test06_createTranslationObject_shouldReturnAnObjectWhosTableNameIsTheSourceObjectPrependedWith_translation() {
 		var svc               = _getService();
 		var dummyProps        = StructNew( "linked" );
@@ -113,14 +118,13 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		}, actualProperties._translation_source_record.getMemento() );
 
 		super.assertEquals( {
-			  required      = true
-			, type          = "string"
-			, dbtype        = "varchar"
-			, maxlength     = 8
+			  relationship  = "many-to-one"
+			, relatedto     = "multilingual_language"
+			, required      = true
 			, uniqueindexes = "translation|2"
 			, indexes       = ""
-			, relationship  = "none"
-			, relatedto     = "none"
+			, ondelete      = "error"
+			, onupdate      = "cascade"
 			, generator     = "none"
 		}, actualProperties._translation_language.getMemento() );
 
@@ -134,6 +138,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, relationship  = "none"
 			, relatedto     = "none"
 			, generator     = "none"
+			, maxLength     = 0
 		}, actualProperties._translation_active.getMemento() );
 	}
 
