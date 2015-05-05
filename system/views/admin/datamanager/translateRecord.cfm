@@ -71,12 +71,13 @@
 
 		<div class="form-actions row">
 			#renderFormControl(
-				  type    = "yesNoSwitch"
-				, context = "admin"
-				, name    = "_translation_active"
-				, id      = "_translation_active"
-				, savedData = prc.record ?: {}
-				, label   = translateResource( uri="cms:datamanager.translation.active" )
+				  type         = "yesNoSwitch"
+				, context      = "admin"
+				, name         = "_translation_active"
+				, id           = "_translation_active"
+				, label        = translateResource( uri="cms:datamanager.translation.active" )
+				, savedData    = prc.record ?: {}
+				, defaultValue = IsTrue( prc.record._translation_active ?: "" )
 			)#
 
 			<div class="col-md-offset-2">
