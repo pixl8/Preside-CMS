@@ -1,8 +1,8 @@
 <cfscript>
+	object              = rc.object ?: "";
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 	currentLanguage     = prc.language ?: {};
 	currentLanguageId   = rc.language ?: "";
-	object              = rc.object ?: "";
 	id                  = rc.id ?: "";
 	version             = rc.version ?: "";
 	recordLabel         = prc.recordLabel;
@@ -62,11 +62,12 @@
 		</cfif>
 
 		#renderForm(
-			  formName          = formName
-			, context           = "admin"
-			, formId            = formId
-			, savedData         = prc.record ?: {}
-			, validationResult  = rc.validationResult ?: ""
+			  formName           = formName
+			, context            = "admin"
+			, formId             = formId
+			, savedData          = prc.record ?: {}
+			, validationResult   = rc.validationResult ?: ""
+			, defaultI18nBaseUri = "preside-objects.#object#:"
 		)#
 
 		<div class="form-actions row">
