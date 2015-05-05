@@ -192,6 +192,7 @@ component {
 		,          struct  savedData            = {}
 		,          string  fieldNamePrefix      = ""
 		,          string  fieldNameSuffix      = ""
+		,          string  defaultI18nBaseUri   = _getDefaultI18nBaseUriForForm( arguments.formName )
 	) {
 		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
 		var coldbox           = _getColdbox();
@@ -252,7 +253,7 @@ component {
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						StructAppend( renderArgs, field, false );
-						StructAppend( renderArgs, _getI18nFieldAttributes( field=field, formName=arguments.formName ) );
+						StructAppend( renderArgs, _getI18nFieldAttributes( field=field, formName=arguments.formName, defaultI18nBaseUri=arguments.defaultI18nBaseUri ) );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -674,18 +675,20 @@ component {
 		return "";
 	}
 
-	private struct function _getI18nFieldAttributes( required struct field, required string formName ) {
-		var i18n            = _getI18n();
-		var fieldName       = arguments.field.name ?: "";
-		var objectName      = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		var rootUri         = _getPresideObjectService().getResourceBundleUriRoot( objectName ) & "field.#fieldName#.";
-		var defaultLabelUri = rootUri & "title";
-		var backupLabelUri  = "cms:preside-objects.default.field.#fieldName#.title";
-		var fieldLabel      = arguments.field.label ?: "";
-		var attributes      = {};
+	private struct function _getI18nFieldAttributes( required struct field, required string formName, required string defaultI18nBaseUri ) {
+		var i18n             = _getI18n();
+		var fieldName        = arguments.field.name ?: "";
+		var objectName       = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+		var rootUri          = ( Len( Trim( arguments.defaultI18nBaseUri ) ) ? arguments.defaultI18nBaseUri : _getPresideObjectService().getResourceBundleUriRoot( objectName ) ) & "field.#fieldName#.";
+		var defaultLabelUri  = rootUri & "title";
+		var backupLabelUri   = "cms:preside-objects.default.field.#fieldName#.title";
+		var fieldLabel       = arguments.field.label  ?: "";
+		var fieldHelp        = attributes.help        ?: "";
+		var fieldPlaceholder = attributes.placeholder ?: "";
+		var attributes       = {};
 
 		if ( Len( Trim( fieldLabel ) ) ) {
-			attributes.label = i18n.translateResource( uri=fieldLabel, defaultValue=fieldLabel );
+			attributes.label = i18n.translateResource( uri=fieldLabel, defaultValue=i18n.translateResource( uri=rootUri & fieldLabel, defaultValue=fieldLabel ) );
 		} else {
 			attributes.label = i18n.translateResource(
 				  uri          = defaultLabelUri
@@ -693,8 +696,16 @@ component {
 			);
 		}
 
-		attributes.help = field.help ?: i18n.translateResource( uri=rootUri & "help", defaultValue="" );
-		attributes.placeholder = field.placeholder ?: i18n.translateResource( uri=rootUri & "placeholder", defaultValue="" );
+		if ( Len( Trim( fieldHelp ) ) ) {
+			attributes.help = i18n.translateResource( uri=fieldHelp, defaultValue=i18n.translateResource( uri=rootUri & fieldHelp, defaultValue=fieldHelp ) );
+		} else {
+			attributes.help = i18n.translateResource( uri=rootUri & "help", defaultValue="" );
+		}
+		if ( Len( Trim( fieldPlaceholder ) ) ) {
+			attributes.placeholder = i18n.translateResource( uri=fieldPlaceholder, defaultValue=i18n.translateResource( uri=rootUri & fieldPlaceholder, defaultValue=fieldPlaceholder ) );
+		} else {
+			attributes.placeholder = i18n.translateResource( uri=rootUri & "placeholder", defaultValue="" );
+		}
 
 		return attributes;
 	}
@@ -848,6 +859,22 @@ component {
 
 	private boolean function _formDoesNotBelongToDisabledFeature( required struct formDefinition ) {
 		return !Len( Trim( formDefinition.feature ?: "" ) ) || _getFeatureService().isFeatureEnabled( Trim( formDefinition.feature ) );
+	}
+
+	private string function _getDefaultI18nBaseUriForForm( required string formName ) {
+		if ( formExists( arguments.formName ) ) {
+			var formConfig = getForm( arguments.formName );
+
+			if ( Len( Trim( formConfig.i18nBaseUri ?: "" ) ) ) {
+				return formConfig.i18nBaseUri;
+			}
+		}
+
+		var presideObjectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
+
+		if ( Len( Trim( presideObjectName ) ) ) {
+			return "preside-objects.#presideObjectName#:";
+		}
 	}
 
 // GETTERS AND SETTERS
