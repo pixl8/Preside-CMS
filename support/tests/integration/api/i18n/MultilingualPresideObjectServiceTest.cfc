@@ -144,7 +144,8 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		super.assert( actualProperties.keyExists( "_translation_active"        ) );
 
 		super.assertEquals( {
-			  relationship  = "many-to-one"
+			  name          = "_translation_source_record"
+			, relationship  = "many-to-one"
 			, relatedto     = "myobject"
 			, required      = true
 			, uniqueindexes = "translation|1"
@@ -152,10 +153,12 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, ondelete      = "cascade"
 			, onupdate      = "cascade"
 			, generator     = "none"
+			, control       = "none"
 		}, actualProperties._translation_source_record.getMemento() );
 
 		super.assertEquals( {
-			  relationship  = "many-to-one"
+			  name          = "_translation_language"
+			, relationship  = "many-to-one"
 			, relatedto     = "multilingual_language"
 			, required      = true
 			, uniqueindexes = "translation|2"
@@ -163,10 +166,12 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, ondelete      = "error"
 			, onupdate      = "cascade"
 			, generator     = "none"
+			, control       = "none"
 		}, actualProperties._translation_language.getMemento() );
 
 		super.assertEquals( {
-			  required      = false
+			  name          = "_translation_active"
+			, required      = false
 			, type          = "boolean"
 			, dbtype        = "boolean"
 			, default       = false
@@ -175,6 +180,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, relationship  = "none"
 			, relatedto     = "none"
 			, generator     = "none"
+			, control       = "none"
 			, maxLength     = 0
 		}, actualProperties._translation_active.getMemento() );
 	}
