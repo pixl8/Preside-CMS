@@ -355,6 +355,57 @@ component displayName="Multilingual Preside Object Service" {
 		return presideObjectService.selectData( argumentCollection=args );
 	}
 
+	/**
+	 * Saves a translation record for a given preside object
+	 * and record ID
+	 *
+	 * @objectName.hint Name of the object who's record we are to save the translation for
+	 * @id.hint         ID of the record we are to save the translation for
+	 * @languageId.hint ID of the language that the translation is for
+	 * @data.hint       Structure of data containing to save in the translation record
+	 *
+	 */
+	public string function saveTranslation(
+ 		  required string objectName
+		, required string id
+		, required string languageId
+		, required struct data
+	){
+		var returnValue = "";
+
+		transaction {
+			var translationObjectName = getTranslationObjectName( arguments.objectName );
+			var existingTranslation = selectTranslation(
+				  objectName   = arguments.objectName
+				, id           = arguments.id
+				, languageId   = arguments.languageId
+				, selectFields = [ "id" ]
+			);
+
+			if ( existingTranslation.recordCount ) {
+				returnValue = existingTranslation.id;
+				_getPresideObjectService().updateData(
+					  objectName              = translationObjectName
+					, id                      = existingTranslation.id
+					, data                    = arguments.data
+					, updateManyToManyRecords = true
+				);
+			} else {
+				var newRecordData = Duplicate( arguments.data );
+				    newRecordData._translation_source_record = arguments.id;
+				    newRecordData._translation_language      = arguments.languageId;
+
+				returnValue = _getPresideObjectService().insertData(
+					  objectName              = translationObjectName
+					, data                    = newRecordData
+					, insertManyToManyRecords = true
+				);
+			}
+		}
+
+		return returnValue;
+	}
+
 // PRIVATE HELPERS
 	private boolean function _isObjectMultilingual( required struct objectMeta ) {
 		var multilingualFlag = arguments.objectMeta.multilingual ?: "";

@@ -522,15 +522,73 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="translateRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+
+		<cfscript>
+			var id                    = rc.id       ?: "";
+			var object                = rc.object   ?: "";
+			var languageId            = rc.language ?: "";
+			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="translate", object=object );
+
+			prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+			if ( prc.language.isempty() ) {
+				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			}
+
+			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			var formName = "preside-objects.#object#.admin.translate";
+			if ( !formsService.formExists( formName  ) ) {
+				formName = "preside-objects.#translationObjectName#.admin.edit";
+			}
+
+			var version          = rc.version ?: "";
+			var formData         = event.getCollectionForForm( formName );
+			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var obj              = "";
+//			var validationResult = validateForm( formName=formName, formData=formData );
+			var persist          = "";
+
+
+			// if ( not validationResult.validated() ) {
+			// 	messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+			// 	persist = formData;
+			// 	persist.validationResult = validationResult;
+
+			// 	setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
+			// }
+
+			multilingualPresideObjectService.saveTranslation(
+				  objectName = object
+				, id         = id
+				, data       = formData
+				, languageId = languageId
+			);
+
+			messageBox.info( translateResource( uri="cms:datamanager.recordTranslated.confirmation", data=[ objectName ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="multiRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 
 		<cfscript>
-			var object     = rc.object      ?: ""
-			var action     = rc.multiAction ?: ""
-			var ids        = rc.id          ?: ""
+			var object     = rc.object      ?: "";
+			var action     = rc.multiAction ?: "";
+			var ids        = rc.id          ?: "";
 			var listingUrl = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.object", queryString="id=#object#" );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
