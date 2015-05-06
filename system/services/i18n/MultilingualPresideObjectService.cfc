@@ -88,6 +88,7 @@ component displayName="Multilingual Preside Object Service" {
 		var dbFieldList           = ListToArray( translationObject.dbFieldList ?: "" );
 		var propertyNames         = translationObject.propertyNames ?: [];
 		var validProperties       = _listMultilingualObjectProperties( arguments.sourceObject.meta ?: {} );
+		var extraLanguageIndexes  = "";
 
 		validProperties.append( "id" );
 		validProperties.append( "datecreated" );
@@ -100,7 +101,33 @@ component displayName="Multilingual Preside Object Service" {
 				translationProperties.delete( propertyName );
 				dbFieldList.delete( propertyName );
 				propertyNames.delete( propertyName );
+				continue;
 			}
+
+			var prop = translationProperties[ propertyName ];
+
+			if ( Len( Trim( prop.uniqueindexes ?: "" ) ) ) {
+				var newIndexDefinition = "";
+
+				for( var ix in ListToArray( prop.uniqueindexes ) ) {
+					var languageIndexName = ListFirst( ix, "|" ) & "|1";
+
+					if ( !ListFindNoCase( extraLanguageIndexes, languageIndexName ) ) {
+						extraLanguageIndexes = ListAppend( extraLanguageIndexes, languageIndexName );
+					}
+
+					if ( ListLen( ix, "|" ) > 1 ) {
+						newIndexDefinition = ListAppend( newIndexDefinition, ListFirst( ix, "|" ) & "|" & Val( ListRest( ix, "|" ) )+1 );
+					} else {
+						newIndexDefinition = ListAppend( newIndexDefinition, ix & "|2" );
+					}
+				}
+
+				prop.uniqueindexes = newIndexDefinition;
+			}
+		}
+		if ( Len( Trim( extraLanguageIndexes ) ) ) {
+			extraLanguageIndexes = "," & extraLanguageIndexes;
 		}
 
 		translationProperties._translation_source_record = new preside.system.services.presideobjects.Property(
@@ -123,7 +150,7 @@ component displayName="Multilingual Preside Object Service" {
 			, relationship  = "many-to-one"
 			, relatedto     = "multilingual_language"
 			, required      = true
-			, uniqueindexes = "translation|2"
+			, uniqueindexes = "translation|2" & extraLanguageIndexes
 			, indexes       = ""
 			, ondelete      = "error"
 			, onupdate      = "cascade"
@@ -154,6 +181,11 @@ component displayName="Multilingual Preside Object Service" {
 		translationObject.propertyNames = propertyNames;
 
 		translationObject.indexes       = translationObject.indexes ?: {};
+		for( var indexName in translationObject.indexes ) {
+			if ( translationObject.indexes[ indexName ].unique ) {
+				translationObject.indexes[ indexName ].fields = "_translation_language," & translationObject.indexes[ indexName ].fields;
+			}
+		}
 		translationObject.indexes[ "ux_translation_" & arguments.objectName & "_translation" ] = { unique=true, fields="_translation_source_record,_translation_language" };
 
 		return { meta=translationObject, instance="auto_created" };
