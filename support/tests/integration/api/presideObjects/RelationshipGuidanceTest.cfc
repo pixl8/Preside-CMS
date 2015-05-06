@@ -489,10 +489,14 @@
 <!--- private helpers --->
 	<cffunction name="_getGuidanceService" access="private" returntype="any" output="false">
 		<cfscript>
+			mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
+			mockFeatureService.$( "isFeatureEnabled", true );
+
 			var reader               = new preside.system.services.presideObjects.PresideObjectReader(
 				  dsn                = "default_dsn"
 				, tablePrefix        = "pobj_"
 				, interceptorService = _getMockInterceptorService()
+				, featureService     = mockFeatureService
 			);
 
 			return new preside.system.services.presideObjects.RelationshipGuidance(
