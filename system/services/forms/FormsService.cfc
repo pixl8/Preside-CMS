@@ -881,6 +881,8 @@ component {
 		if ( Len( Trim( presideObjectName ) ) ) {
 			return "preside-objects.#presideObjectName#:";
 		}
+
+		return "";
 	}
 
 // GETTERS AND SETTERS
