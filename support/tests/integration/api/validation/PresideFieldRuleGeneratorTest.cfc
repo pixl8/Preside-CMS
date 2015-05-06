@@ -96,11 +96,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			{ fieldName="somefield", validator="presideObjectUniqueIndex", params={ objectName="test", fields="someField" }, message="preside-objects.test:validation.somefield.presideObjectUniqueIndex.message" },
 		];
 		var rules     = "";
-		var mockObject = getMockbox().createStub();
 
-		mockPresideObjectService.$( "getObject", mockObject );
-
-		mockObject.$( "getObjectProperties", {
+		mockPresideObjectService.$( "getObjectProperties", {
 			  field1    = new preside.system.services.presideObjects.Property( name="field1", uniqueIndexes="index1|2" )
 			, field2    = new preside.system.services.presideObjects.Property( name="field2", uniqueIndexes="index1|2,index3|2" )
 			, someField = new preside.system.services.presideObjects.Property( name="someField", uniqueIndexes="index1|3,index2,index3|1" )
