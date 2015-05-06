@@ -487,11 +487,11 @@
 
 
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
+			prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+
 			if ( prc.useVersioning && Val( version ) ) {
-				prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
 				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false, version=version );
 			} else {
-				prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 				prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false );
 			}
 
@@ -655,10 +655,20 @@
 		<cfscript>
 			var selectedVersion = Val( args.version ?: "" );
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( args.object ?: "" );
+			var existingTranslation = multilingualPresideObjectService.selectTranslation(
+				  objectName   = args.object ?: ""
+				, id           = args.id ?: ""
+				, languageId   = args.language ?: ""
+				, selectFields = [ "id" ]
+			);
+
+			if ( !existingTranslation.recordCount ) {
+				return "";
+			}
 
 			args.versions = presideObjectService.getRecordVersions(
 				  objectName = translationObjectName
-				, id         = args.id     ?: ""
+				, id         = existingTranslation.id
 			);
 
 			if ( !selectedVersion && args.versions.recordCount ) {

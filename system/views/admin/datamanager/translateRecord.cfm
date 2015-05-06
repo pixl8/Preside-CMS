@@ -50,7 +50,7 @@
 	</div>
 
 	<cfif useVersioning>
-		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "" } )#
+		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "", language=currentLanguageId } )#
 	</cfif>
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#event.buildAdminLink( linkTo='datamanager.translateRecordAction' )#">

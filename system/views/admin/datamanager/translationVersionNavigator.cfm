@@ -3,6 +3,7 @@
 
 	param name="args.prevVersion"    type="numeric";
 	param name="args.nextVersion"    type="numeric";
+	param name="args.id"             type="string";
 	param name="args.object"         type="string";
 	param name="args.version"        type="string";
 	param name="args.versions"       type="query";
