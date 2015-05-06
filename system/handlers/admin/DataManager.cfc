@@ -505,12 +505,7 @@
 
 			prc.canDelete = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
-
-			if ( formsService.formExists( "preside-objects.#object#.admin.translate" ) ) {
-				prc.formName = "preside-objects.#object#.admin.translate";
-			} else {
-				prc.formName = "preside-objects.#translationObjectName#.admin.edit";
-			}
+			prc.formName = "preside-objects.#translationObjectName#.admin.edit";
 
 			_addObjectNameBreadCrumb( event, object );
 			event.addAdminBreadCrumb(
@@ -547,26 +542,34 @@
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
-			var formName = "preside-objects.#object#.admin.translate";
-			if ( !formsService.formExists( formName  ) ) {
-				formName = "preside-objects.#translationObjectName#.admin.edit";
-			}
-
+			var formName         = "preside-objects.#translationObjectName#.admin.edit";
 			var version          = rc.version ?: "";
 			var formData         = event.getCollectionForForm( formName );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var existingTranslation = multilingualPresideObjectService.selectTranslation(
+				  objectName   = object
+				, id           = id
+				, languageId   = languageId
+				, selectFields = [ "id" ]
+			);
+
 			var obj              = "";
-//			var validationResult = validateForm( formName=formName, formData=formData );
 			var persist          = "";
 
+			formData._translation_language = languageId;
+			if ( existingTranslation.recordCount ) {
+				formData.id = existingTranslation.id;
+			}
+			var validationResult = validateForm( formName=formName, formData=formData );
 
-			// if ( not validationResult.validated() ) {
-			// 	messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
-			// 	persist = formData;
-			// 	persist.validationResult = validationResult;
+			if ( not validationResult.validated() ) {
+				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+				persist = formData;
+				persist.validationResult = validationResult;
+				persist.delete( "id" );
 
-			// 	setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
-			// }
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
+			}
 
 			formData._translation_active = IsTrue( rc._translation_active ?: "" );
 			multilingualPresideObjectService.saveTranslation(
