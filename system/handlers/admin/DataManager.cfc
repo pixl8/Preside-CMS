@@ -232,7 +232,45 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			renderData( "not yet implemented" );
+			var object     = rc.object   ?: "";
+			var recordId   = rc.id       ?: "";
+			var languageId = rc.language ?: "";
+			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+
+			prc.language = multilingualPresideObjectService.getLanguage( languageId );
+
+			if ( prc.language.isempty() ) {
+				messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			}
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="translate"   , object=object );
+			_checkPermission( argumentCollection=arguments, key="viewversions", object=object );
+
+			if ( !presideObjectService.objectIsVersioned( object ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( not prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			// breadcrumb setup
+			_addObjectNameBreadCrumb( event, object );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
+				, link  = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#recordId#&language=#languageId#" )
+			);
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
+				, link  = ""
+			);
 		</cfscript>
 	</cffunction>
 
