@@ -108,6 +108,35 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getTranslationRecordHistoryForAjaxDataTables" access="public" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+
+		<cfscript>
+			var objectName = rc.object   ?: "";
+			var recordId   = rc.id       ?: "";
+			var languageId = rc.language ?: "";
+
+			_checkPermission( argumentCollection=arguments, key="translate", object=objectName );
+			_checkPermission( argumentCollection=arguments, key="viewversions", object=objectName );
+
+			runEvent(
+				  event          = "admin.DataManager._getTranslationRecordHistoryForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object     = objectName
+					, recordId   = recordId
+					, languageId = languageId
+					, gridFields = ( rc.gridFields ?: 'datemodified,label' )
+				}
+			);
+		</cfscript>
+	</cffunction>
+
+
+
 	<cffunction name="getObjectRecordsForAjaxSelectControl" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -835,6 +864,67 @@
 						  objectName = object
 						, recordId   = recordId
 						, editRecordLink = event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#record.id#&version=#record._version_number#" )
+					} ) );
+				}
+			}
+
+			QueryAddColumn( records, "_options" , optionsCol );
+			ArrayAppend( gridFields, "_options" );
+
+			event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getTranslationRecordHistoryForAjaxDataTables" access="private" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="languageId"      type="string"  required="false" default="#( rc.language ?: '' )#" />
+		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
+		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
+		<cfargument name="actionsView"     type="string"  required="false" default="" />
+
+		<cfscript>
+			gridFields = ListToArray( gridFields );
+
+			var translationObject   = multilingualPresideObjectService.getTranslationObjectName( object );
+			var translationRecord   = multilingualPresideObjectService.selectTranslation(
+				  objectName   = object
+				, id           = recordId
+				, languageId   = languageId
+				, selectFields = [ "id" ]
+			);
+			var versionObject       = presideObjectService.getVersionObjectName( translationObject );
+			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var optionsCol          = [];
+			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+			var results             = dataManagerService.getRecordHistoryForGridListing(
+				  objectName  = translationObject
+				, recordId    = translationRecord.id ?: ""
+				, property    = property
+				, gridFields  = gridFields
+				, startRow    = dtHelper.getStartRow()
+				, maxRows     = dtHelper.getMaxRows()
+				, orderBy     = dtHelper.getSortOrder()
+				, searchQuery = dtHelper.getSearchQuery()
+				, filter      = { _translation_language = languageId }
+			);
+			var records = Duplicate( results.records );
+
+			for( var record in records ){
+				for( var field in gridFields ){
+					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+				}
+
+				if ( Len( Trim( actionsView ) ) ) {
+					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
+				} else {
+					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_historyActions", args={
+						  objectName = object
+						, recordId   = recordId
+						, editRecordLink = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#recordId#&language=#languageId#&version=#record._version_number#" )
 					} ) );
 				}
 			}

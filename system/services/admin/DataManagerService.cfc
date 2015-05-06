@@ -134,10 +134,12 @@ component output="false" singleton=true {
 		  required string  objectName
 		, required string  recordId
 		, required array   gridFields
-		,          string  property    = ""
-		,          numeric startRow    = 1
-		,          numeric maxRows     = 10
-		,          string  orderBy     = ""
+		,          string  property     = ""
+		,          numeric startRow     = 1
+		,          numeric maxRows      = 10
+		,          string  orderBy      = ""
+		,          any     filter       = ""
+		,          any     filterParams = {}
 	) output=false {
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
@@ -147,12 +149,13 @@ component output="false" singleton=true {
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
+			, filter           = arguments.filter
+			, filterParams     = arguments.filterParams
 		};
 
 		if ( Len( Trim( arguments.property ) ) ) {
 			args.fieldName = arguments.property;
 		}
-
 		result.records = _getPresideObjectService().getRecordVersions( argumentCollection = args );
 
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
