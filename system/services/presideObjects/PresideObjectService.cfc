@@ -1771,6 +1771,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				_getDefaultQueryCache().clearMulti( keysToClear );
 			}
 		}
+
+		var derivedFrom = getObjectAttribute( arguments.objectName, "derivedFrom", "" );
+		if ( Len( Trim( derivedFrom ) ) ) {
+			_clearRelatedCaches( argumentCollection=arguments, objectName=derivedFrom );
+		}
 	}
 
 	private array function _parseSelectFields( required string objectName, required array selectFields ) {

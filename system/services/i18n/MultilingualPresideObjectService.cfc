@@ -94,7 +94,8 @@ component displayName="Multilingual Preside Object Service" {
 		validProperties.append( "datecreated" );
 		validProperties.append( "datemodified" );
 
-		translationObject.tableName = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
+		translationObject.tableName   = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
+		translationObject.derivedFrom = arguments.objectName;
 
 		for( var propertyName in translationProperties ) {
 			if ( !validProperties.find( propertyName ) ) {
