@@ -928,12 +928,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	/**
 	 * Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
 	 */
-	public array function listObjects() autodoc=true {
+	public array function listObjects( boolean includeGeneratedObjects=false ) autodoc=true {
 		var objects     = _getObjects();
 		var objectNames = [];
 
 		for( var objectName in objects ){
-			if ( !IsSimpleValue( objects[ objectName ].instance ?: "" ) ) {
+			if ( arguments.includeGeneratedObjects || !IsSimpleValue( objects[ objectName ].instance ?: "" ) ) {
 				objectNames.append( objectName );
 			}
 		}

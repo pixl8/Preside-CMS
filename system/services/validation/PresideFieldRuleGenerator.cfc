@@ -13,8 +13,8 @@ component output="false" singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public array function generateRulesFromPresideObject( required any presideObject ) {
-		var fields        = presideObject.getObjectProperties();
+	public array function generateRulesFromPresideObject( required string objectName ) {
+		var fields        = _getPresideObjectService().getObjectProperties( objectName=arguments.objectName );
 		var field         = "";
 		var fieldRules    = "";
 		var rules         = [];
@@ -23,7 +23,7 @@ component output="false" singleton=true {
 		for( field in fields ){
 			if ( !ListFindNoCase( "hidden,none", fields[field].getAttribute( "control", "" ) ) ) {
 				fieldRules = getRulesForField(
-					  objectName      = presideObject.getName()
+					  objectName      = arguments.objectName
 					, fieldName       = field
 					, fieldAttributes = fields[ field ]
 				);
@@ -91,7 +91,6 @@ component output="false" singleton=true {
 		var field = arguments.fieldAttributes;
 		var rules = [];
 		var index = "";
-		var obj   = "";
 		var rule  = "";
 		var conventionBasedMessageKey = "";
 		var poService = _getPresideObjectService();
@@ -153,11 +152,9 @@ component output="false" singleton=true {
 
 		// unique indexes
 		if ( StructKeyExists( field, "uniqueindexes" ) ) {
-			obj = poService.getObject( arguments.objectName );
-
 			for( index in ListToArray( field.uniqueindexes ) ) {
-				if ( _isLastFieldInUniqueIndex( index, obj, arguments.fieldName ) ) {
-					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="presideObjectUniqueIndex", params={ objectName=arguments.objectName, fields=_getUniqueIndexFields( index, obj ) } } );
+				if ( _isLastFieldInUniqueIndex( index, arguments.objectName, arguments.fieldName ) ) {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="presideObjectUniqueIndex", params={ objectName=arguments.objectName, fields=_getUniqueIndexFields( index, arguments.objectName ) } } );
 				}
 			}
 		}
@@ -175,14 +172,14 @@ component output="false" singleton=true {
 	}
 
 // PRIVATE UTILITY
-	private boolean function _isLastFieldInUniqueIndex( required string indexDefinition, required any object, required string fieldName ) output=false {
+	private boolean function _isLastFieldInUniqueIndex( required string indexDefinition, required string objectName, required string fieldName ) output=false {
 		if ( ListLen( arguments.indexDefinition, "|" ) eq 1 ) {
 			return true;
 		}
 
 		var position  = Val( ListLast( arguments.indexDefinition, "|" ) );
 		var indexName = ListFirst( arguments.indexDefinition, "|" );
-		var props     = arguments.object.getObjectProperties();
+		var props     = _getPresideObjectService().getObjectProperties( objectName=arguments.objectName );
 		var propName  = "";
 		var indexes   = "";
 		var index     = "";
@@ -203,9 +200,9 @@ component output="false" singleton=true {
 		return true;
 	}
 
-	private string function _getUniqueIndexFields( required string indexDefinition, required any object ) output=false {
+	private string function _getUniqueIndexFields( required string indexDefinition, required string objectName ) output=false {
 		var indexName = ListFirst( arguments.indexDefinition, "|" );
-		var props     = arguments.object.getObjectProperties();
+		var props     = _getPresideObjectService().getObjectProperties( objectName=arguments.objectName );
 		var propName  = "";
 		var indexes   = "";
 		var index     = "";

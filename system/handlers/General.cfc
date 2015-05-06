@@ -41,7 +41,7 @@ component output=false {
 
 // private helpers
 	private void function _autoRegisterPresideObjectValidators() output=false {
-		var objects = presideObjectService.listObjects();
+		var objects = presideObjectService.listObjects( includeGeneratedObjects=true );
 		var objName = "";
 		var obj     = "";
 		var ruleset = "";
@@ -52,12 +52,12 @@ component output=false {
 			obj = presideObjectService.getObject( objName );
 			if ( not IsSimpleValue( obj ) ) {
 				validationEngine.newProvider( obj );
-
-				ruleset = validationEngine.newRuleset( name="PresideObject.#objName#" );
-				ruleset.addRules(
-					rules = presideFieldRuleGenerator.generateRulesFromPresideObject( obj )
-				);
 			}
+
+			ruleset = validationEngine.newRuleset( name="PresideObject.#objName#" );
+			ruleset.addRules(
+				rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName )
+			);
 		}
 	}
 
