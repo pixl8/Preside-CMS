@@ -226,10 +226,11 @@ component {
 					}
 					if ( ( field.control ?: "default" ) neq "none" ) {
 						renderArgs = {
-							  name      = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
-							, type      = field.control ?: "default"
-							, context   = arguments.context
-							, savedData = arguments.savedData
+							  name               = arguments.fieldNamePrefix & ( field.name ?: "" ) & arguments.fieldNameSuffix
+							, type               = field.control ?: "default"
+							, context            = arguments.context
+							, savedData          = arguments.savedData
+							, defaultI18nBaseUri = arguments.defaultI18nBaseUri
 						};
 
 						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( field.name ) ) {
@@ -261,15 +262,19 @@ component {
 
 				renderArgs = Duplicate( fieldset );
 				renderArgs.content = renderedFields.toString();
+				renderArgs.defaultI18nBaseUri = arguments.defaultI18nBaseUri;
+
 				renderedFieldSets.append( coldbox.renderViewlet(
 					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
 					, args  = renderArgs
 				) );
 			}
 
-			renderArgs = Duplicate( tab );
-			renderArgs.content = renderedFieldSets.toString();
-			renderArgs.active  = activeTab;
+			renderArgs                    = Duplicate( tab );
+			renderArgs.content            = renderedFieldSets.toString();
+			renderArgs.active             = activeTab;
+			renderArgs.defaultI18nBaseUri = arguments.defaultI18nBaseUri;
+
 			renderedTabs.append( coldbox.renderViewlet(
 				  event = ( tab.layout ?: arguments.tabLayout )
 				, args  = renderArgs
@@ -278,11 +283,12 @@ component {
 		}
 
 		return coldbox.renderViewlet( event=arguments.formLayout, args={
-			  formId           = arguments.formId
-			, content          = renderedTabs.toString()
-			, tabs             = frm.tabs
-			, validationResult = arguments.validationResult
-			, validationJs     = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
+			  formId             = arguments.formId
+			, content            = renderedTabs.toString()
+			, tabs               = frm.tabs
+			, validationResult   = arguments.validationResult
+			, validationJs       = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
+			, defaultI18nBaseUri = arguments.defaultI18nBaseUri
 		} );
 	}
 
