@@ -499,6 +499,44 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
 	}
 
+	public void function translationHistory( event, rc, prc ) {
+		var pageId     = rc.id ?: "";
+		var languageId = rc.language ?: "";
+		var pageType   = "";
+
+		_checkPermissions( argumentCollection=arguments, key="viewversions", pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
+
+		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
+		}
+
+		prc.page                   = _getPageAndThrowOnMissing( argumentCollection=arguments );
+		prc.pageType               = pageTypesService.getPageType( prc.page.page_type );
+		prc.pageTypeObjectName     = prc.pageType.getPresideObject();
+		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
+		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( prc.pageTypeObjectName );
+		prc.versionedObjectName    = prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
+			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & pageId )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )
+			, link  = event.buildAdminLink( linkto="sitetree.translatePage", queryString="id=#pageId#&language=#languageId#" )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.pageTranslationHistory.crumb", data=[ prc.page.title, prc.language.name ] )
+			, link  = ""
+		);
+
+		prc.pageTitle = translateResource( uri="cms:sitetree.pageTranslationHistory.title", data=[ prc.page.title, prc.language.name ] )
+		prc.pageIcon  = "history";
+	}
+
 	public void function trashPageAction( event, rc, prc ) {
 		var pageId  = event.getValue( "id", "" );
 
@@ -737,7 +775,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getPageHistoryForAjaxDataTables( event, rc, prc ) {
 		var pageId = rc.id     ?: "";
 
-		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="viewversion", pageId=pageId );
 
 		runEvent(
 			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
@@ -751,6 +789,42 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		);
 	}
+
+	public void function getPageTranslationHistoryForAjaxDataTables( event, rc, prc ) {
+		var pageId     = rc.id ?: "";
+		var languageId = rc.language ?: "";
+
+		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="viewversions", pageId=pageId );
+
+		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
+		}
+
+		var page                   = _getPageAndThrowOnMissing( argumentCollection=arguments );
+		var pageType               = pageTypesService.getPageType( page.page_type );
+		var pageTypeObjectName     = pageType.getPresideObject();
+		var pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
+		var pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageTypeObjectName );
+		var versionedObjectName    = pageIsMultilingual ? "page" : pageTypeObjectName
+
+		runEvent(
+			  event          = "admin.DataManager._getTranslationRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = versionedObjectName
+				, recordId   = pageId
+				, languageId = languageId
+				, gridFields = ( rc.gridFields ?: "datemodified,_version_author,title" )
+				, actionsView = "admin/sitetree/_translationHistoryActions"
+			}
+		);
+	}
+
+
 
 	public void function managedChildren( event, rc, prc ) {
 		var parentId = rc.parent   ?: "";
