@@ -194,17 +194,19 @@
 			var result   = formsSvc.getDefaultFormForPresideObject( objectName="security_group" );
 			var expected = {
 				tabs = [{
-					title="",
-					description="",
+					id="default",
+					title="preside-objects.security_group:tab.default.title",
+					description="preside-objects.security_group:tab.default.description",
 					fieldsets=[{
-						title="",
-						description="",
+						id="default",
+						title="preside-objects.security_group:fieldset.default.title",
+						description="preside-objects.security_group:fieldset.default.description",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group", label="preside-objects.security_group:field.label.title", help="preside-objects.security_group:field.label.help", placeholder="preside-objects.security_group:field.label.placeholder"
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group"
+							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder"
 						},{
-							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group"
+							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder"
 						}]
 					}]
 				}]
@@ -249,17 +251,19 @@
 			var result   = formsSvc.getForm( "preside-objects.security_group.add.form" );
 			var expected = {
 				tabs = [{
-					title="",
-					description="",
+					id="default",
+					title="preside-objects.security_group:tab.default.title",
+					description="preside-objects.security_group:tab.default.description",
 					fieldsets=[{
-						title="",
-						description="",
+						id="default",
+						title="preside-objects.security_group:fieldset.default.title",
+						description="preside-objects.security_group:fieldset.default.description",
 						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group"
+							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group", label="preside-objects.security_group:field.label.title", help="preside-objects.security_group:field.label.help", placeholder="preside-objects.security_group:field.label.placeholder"
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group"
+							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder"
 						},{
-							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group"
+							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder"
 						}]
 					}]
 				}]
