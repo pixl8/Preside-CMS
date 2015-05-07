@@ -1,12 +1,13 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="siteTreeService"          inject="siteTreeService";
-	property name="formsService"             inject="formsService";
-	property name="pageTypesService"         inject="pageTypesService";
-	property name="validationEngine"         inject="validationEngine";
-	property name="websitePermissionService" inject="websitePermissionService";
-	property name="dataManagerService"       inject="dataManagerService";
-	property name="messageBox"               inject="coldbox:plugin:messageBox";
+	property name="siteTreeService"                  inject="siteTreeService";
+	property name="formsService"                     inject="formsService";
+	property name="pageTypesService"                 inject="pageTypesService";
+	property name="validationEngine"                 inject="validationEngine";
+	property name="websitePermissionService"         inject="websitePermissionService";
+	property name="dataManagerService"               inject="dataManagerService";
+	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
+	property name="messageBox"                       inject="coldbox:plugin:messageBox";
 
 	public void function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -260,6 +261,15 @@ component extends="preside.system.base.AdminHandler" {
 		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
 		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false );
 		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
+
+		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
+		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
+		prc.isMultilingual         = prc.pageIsMultilingual || prc.pageTypeIsMultilingual;
+		prc.canTranslate           = prc.isMultilingual && _checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId, throwOnError=false );
+
+		if ( prc.canTranslate ) {
+			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
