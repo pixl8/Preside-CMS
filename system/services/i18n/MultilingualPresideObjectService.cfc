@@ -94,14 +94,6 @@ component displayName="Multilingual Preside Object Service" {
 		validProperties.append( "datecreated" );
 		validProperties.append( "datemodified" );
 
-		if ( IsBoolean( translationObject.siteFiltered ?: "" ) && translationObject.siteFiltered ) {
-			validProperties.append( "site" );
-		}
-
-		if ( IsBoolean( translationObject.isPageType ?: "" ) && translationObject.isPageType ) {
-			validProperties.append( "page" );
-		}
-
 		translationObject.tableName   = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
 		translationObject.derivedFrom = arguments.objectName;
 
@@ -191,7 +183,14 @@ component displayName="Multilingual Preside Object Service" {
 
 		translationObject.indexes       = translationObject.indexes ?: {};
 		for( var indexName in translationObject.indexes ) {
-			if ( translationObject.indexes[ indexName ].unique ) {
+			for( var indexField in translationObject.indexes[ indexName ].fields.listToArray() ) {
+				if ( !dbFieldList.findNoCase( indexField ) ) {
+					translationObject.indexes.delete( indexName );
+					break;
+				}
+			}
+
+			if ( translationObject.indexes.keyExists( indexName ) && translationObject.indexes[ indexName ].unique ) {
 				translationObject.indexes[ indexName ].fields = "_translation_language," & translationObject.indexes[ indexName ].fields;
 			}
 		}
