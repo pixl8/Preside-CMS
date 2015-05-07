@@ -340,6 +340,77 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function translatePage( event, rc, prc ) {
+		var pageId           = rc.id               ?: "";
+		var validationResult = rc.validationResult ?: "";
+		var version          = Val ( rc.version    ?: "" );
+		var pageType         = "";
+
+		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+
+		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
+		}
+
+		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( prc.page.page_type );
+		var pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
+		var pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
+		var isMultilingual         = pageIsMultilingual || pageTypeIsMultilingual;
+
+		if ( !isMultilingual ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
+		}
+
+		var translationPageObject = multilingualPresideObjectService.getTranslationObjectName( "page" );
+		var translationPageTypeObject = multilingualPresideObjectService.getTranslationObjectName( pageType.getPresideObject() );
+
+		prc.savedTranslation = {};
+
+
+		if ( pageIsMultilingual ) {
+			prc.mainFormName  = "preside-objects.#translationPageObject#.admin.edit";
+			prc.mergeFormName = "";
+
+			var translation = multiLingualPresideObjectService.selectTranslation( objectName="page", id=pageId, languageId=prc.language.id, useCache=false, version=version );
+
+			for( var t in translation ) {
+				prc.savedTranslation.append( t );
+			}
+		}
+		if ( pageTypeIsMultilingual ) {
+			if ( pageIsMultilingual ) {
+				prc.mergeFormName  = "preside-objects.#translationPageTypeObject#.admin.edit";
+			} else {
+				prc.mainFormName  = "preside-objects.#translationPageTypeObject#.admin.edit";
+				prc.mergeFormName = "";
+			}
+
+			var translation = multiLingualPresideObjectService.selectTranslation( objectName=pageType.getPresideObject(), id=pageId, languageId=prc.language.id, useCache=false, version=version );
+
+			for( var t in translation ) {
+				prc.savedTranslation.append( t );
+			}
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
+			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & pageId )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )
+			, link  = ""
+		);
+		prc.pageIcon  = "pencil";
+		prc.pageTitle = translateResource( uri="cms:sitetree.translatepage.title", data=[ prc.page.title, prc.language.name ] );
+	}
+
 	public void function trashPageAction( event, rc, prc ) {
 		var pageId  = event.getValue( "id", "" );
 
@@ -697,18 +768,21 @@ component extends="preside.system.base.AdminHandler" {
 		return permitted;
 	}
 
-	private string function _getPageTypeFormName( required any pageType, required string addOrEdit ) {
-		var specificForm = addOrEdit == "add" ? pageType.getAddForm() : pageType.getEditForm();
+	private string function _getPageTypeFormName( required any pageType, required string action ) {
+		var specificForm = "";
 		var defaultForm  = pageType.getDefaultForm();
+
+		switch( arguments.action ) {
+			case "add"      : specificForm = pageType.getAddForm(); break;
+			case "edit"     : specificForm = pageType.getEditForm(); break;
+			case "translate": specificForm = pageType.getTranslateForm(); break;
+			default: return "";
+		}
 
 		if ( formsService.formExists( specificForm ) ) {
 			return specificForm;
 		}
-		if ( formsService.formExists( defaultForm ) ) {
-			return defaultForm;
-		}
-
-		return "";
+		return formsService.formExists( defaultForm ) ? defaultForm : "";
 	}
 
 	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false ) {
