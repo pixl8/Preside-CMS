@@ -58,6 +58,10 @@ component extends="coldbox.system.plugins.i18n" output=false {
 		return js;
 	}
 
+	public boolean function isValidResourceUri( required string uri ) {
+		return resourceBundleService.isValidResourceUri( arguments.uri );
+	}
+
 // PRIVATE HEPERS
 	private struct function _getBundleData() output=false {
 		var data    = {};

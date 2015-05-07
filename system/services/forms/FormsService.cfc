@@ -157,10 +157,12 @@ component {
 			tabs = [{
 				title       = "",
 				description = "",
+				id          = "default",
 				fieldsets   = [{
 					title       = "",
 					description = "",
-					fields      = []
+					fields      = [],
+					id          = "default"
 				}]
 			}]
 		};
@@ -173,6 +175,8 @@ component {
 				formLayout.tabs[1].fieldsets[1].fields[ ArrayLen( formLayout.tabs[1].fieldsets[1].fields ) ].sourceObject = arguments.objectName;
 			}
 		}
+
+		_applyDefaultLabellingToForm( formName="preside-objects.#objectName#.default", frm=formLayout );
 
 		return formLayout;
 	}
@@ -192,7 +196,6 @@ component {
 		,          struct  savedData            = {}
 		,          string  fieldNamePrefix      = ""
 		,          string  fieldNameSuffix      = ""
-		,          string  defaultI18nBaseUri   = _getDefaultI18nBaseUriForForm( arguments.formName )
 	) {
 		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
 		var coldbox           = _getColdbox();
@@ -202,6 +205,7 @@ component {
 		var renderedFieldSets = "";
 		var renderedFields    = "";
 		var renderArgs        = "";
+		var tabs              = [];
 
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
@@ -230,7 +234,6 @@ component {
 							, type               = field.control ?: "default"
 							, context            = arguments.context
 							, savedData          = arguments.savedData
-							, defaultI18nBaseUri = arguments.defaultI18nBaseUri
 						};
 
 						if ( not IsSimpleValue( validationResult ) and validationResult.fieldHasError( field.name ) ) {
@@ -254,7 +257,7 @@ component {
 						renderArgs.layout = field.layout ?: _formControlHasLayout( renderArgs.type ) ? arguments.fieldlayout : "";
 
 						StructAppend( renderArgs, field, false );
-						StructAppend( renderArgs, _getI18nFieldAttributes( field=field, formName=arguments.formName, defaultI18nBaseUri=arguments.defaultI18nBaseUri ) );
+						StructAppend( renderArgs, _getI18nFieldAttributes( field=field ) );
 
 						renderedFields.append( renderFormControl( argumentCollection=renderArgs ) );
 					}
@@ -262,7 +265,7 @@ component {
 
 				renderArgs = Duplicate( fieldset );
 				renderArgs.content = renderedFields.toString();
-				renderArgs.defaultI18nBaseUri = arguments.defaultI18nBaseUri;
+				renderArgs.append( _getI18nTabOrFieldsetAttributes( fieldset ) );
 
 				renderedFieldSets.append( coldbox.renderViewlet(
 					  event = ( fieldset.layout ?: arguments.fieldsetLayout )
@@ -270,10 +273,12 @@ component {
 				) );
 			}
 
-			renderArgs                    = Duplicate( tab );
-			renderArgs.content            = renderedFieldSets.toString();
-			renderArgs.active             = activeTab;
-			renderArgs.defaultI18nBaseUri = arguments.defaultI18nBaseUri;
+			renderArgs         = Duplicate( tab );
+			renderArgs.content = renderedFieldSets.toString();
+			renderArgs.active  = activeTab;
+			renderArgs.append( _getI18nTabOrFieldsetAttributes( tab ) );
+
+			tabs.append( renderArgs );
 
 			renderedTabs.append( coldbox.renderViewlet(
 				  event = ( tab.layout ?: arguments.tabLayout )
@@ -285,10 +290,9 @@ component {
 		return coldbox.renderViewlet( event=arguments.formLayout, args={
 			  formId             = arguments.formId
 			, content            = renderedTabs.toString()
-			, tabs               = frm.tabs
+			, tabs               = tabs
 			, validationResult   = arguments.validationResult
 			, validationJs       = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
-			, defaultI18nBaseUri = arguments.defaultI18nBaseUri
 		} );
 	}
 
@@ -475,6 +479,8 @@ component {
 			ruleset.addRules(
 				rules = _getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition )
 			);
+
+			_applyDefaultLabellingToForm( formName );
 		}
 	}
 
@@ -681,36 +687,63 @@ component {
 		return "";
 	}
 
-	private struct function _getI18nFieldAttributes( required struct field, required string formName, required string defaultI18nBaseUri ) {
+	private struct function _getI18nFieldAttributes( required struct field ) {
 		var i18n             = _getI18n();
 		var fieldName        = arguments.field.name ?: "";
-		var objectName       = Len( Trim( field.binding ?: "" ) ) ? ListFirst( field.binding, "." ) : _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-		var rootUri          = ( Len( Trim( arguments.defaultI18nBaseUri ) ) ? arguments.defaultI18nBaseUri : _getPresideObjectService().getResourceBundleUriRoot( objectName ) ) & "field.#fieldName#.";
-		var defaultLabelUri  = rootUri & "title";
 		var backupLabelUri   = "cms:preside-objects.default.field.#fieldName#.title";
-		var fieldLabel       = arguments.field.label  ?: "";
-		var fieldHelp        = attributes.help        ?: "";
-		var fieldPlaceholder = attributes.placeholder ?: "";
+		var fieldLabel       = arguments.field.label       ?: "";
+		var fieldHelp        = arguments.field.help        ?: "";
+		var fieldPlaceholder = arguments.field.placeholder ?: "";
 		var attributes       = {};
 
 		if ( Len( Trim( fieldLabel ) ) ) {
-			attributes.label = i18n.translateResource( uri=fieldLabel, defaultValue=i18n.translateResource( uri=rootUri & fieldLabel, defaultValue=fieldLabel ) );
+			if ( i18n.isValidResourceUri( fieldLabel ) ) {
+				attributes.label = i18n.translateResource( uri=fieldLabel, defaultValue=i18n.translateResource( uri = backupLabelUri, defaultValue = fieldName ) );
+			} else {
+				attributes.label = fieldLabel;
+			}
 		} else {
-			attributes.label = i18n.translateResource(
-				  uri          = defaultLabelUri
-				, defaultValue = i18n.translateResource( uri = backupLabelUri, defaultValue = fieldName )
-			);
+			attributes.label = i18n.translateResource( uri = backupLabelUri, defaultValue = fieldName );
 		}
 
 		if ( Len( Trim( fieldHelp ) ) ) {
-			attributes.help = i18n.translateResource( uri=fieldHelp, defaultValue=i18n.translateResource( uri=rootUri & fieldHelp, defaultValue=fieldHelp ) );
-		} else {
-			attributes.help = i18n.translateResource( uri=rootUri & "help", defaultValue="" );
+			if ( i18n.isValidResourceUri( fieldHelp ) ) {
+				attributes.help = i18n.translateResource( uri=fieldHelp, defaultValue="" );
+			} else {
+				attributes.help = fieldHelp;
+			}
 		}
+
 		if ( Len( Trim( fieldPlaceholder ) ) ) {
-			attributes.placeholder = i18n.translateResource( uri=fieldPlaceholder, defaultValue=i18n.translateResource( uri=rootUri & fieldPlaceholder, defaultValue=fieldPlaceholder ) );
-		} else {
-			attributes.placeholder = i18n.translateResource( uri=rootUri & "placeholder", defaultValue="" );
+			if ( i18n.isValidResourceUri( fieldPlaceholder ) ) {
+				attributes.placeholder = i18n.translateResource( uri=fieldPlaceholder, defaultValue="" );
+			} else {
+				attributes.placeholder = fieldPlaceholder;
+			}
+		}
+
+
+		return attributes;
+	}
+
+	private struct function _getI18nTabOrFieldsetAttributes( required struct tabOrFieldset ) {
+		var i18n       = _getI18n();
+		var attributes = {};
+
+		if ( Len( Trim( tabOrFieldset.title ?: "" ) ) ) {
+			if ( i18n.isValidResourceUri( tabOrFieldset.title ) ) {
+				attributes.title = i18n.translateResource( uri=tabOrFieldset.title, defaultValue="" );
+			} else {
+				attributes.title = tabOrFieldset.title;
+			}
+		}
+
+		if ( Len( Trim( tabOrFieldset.description ?: "" ) ) ) {
+			if ( i18n.isValidResourceUri( tabOrFieldset.description ) ) {
+				attributes.description = i18n.translateResource( uri=tabOrFieldset.description, defaultValue="" );
+			} else {
+				attributes.description = tabOrFieldset.description;
+			}
 		}
 
 		return attributes;
@@ -877,12 +910,62 @@ component {
 		}
 
 		var presideObjectName = _getPresideObjectNameFromFormNameByConvention( arguments.formName );
-
 		if ( Len( Trim( presideObjectName ) ) ) {
+			var presideObjectName = _getPresideObjectService().getObjectAttribute( presideObjectName, "derivedFrom", presideObjectName );
+			if ( _getPresideObjectService().getObjectAttribute( presideObjectName, "isPageType", false ) ) {
+				return "page-types.#presideObjectName#:";
+			}
 			return "preside-objects.#presideObjectName#:";
 		}
 
 		return "";
+	}
+
+	private void function _applyDefaultLabellingToForm( required string formName, struct frm=getForm( arguments.formName ) ) {
+		var baseI18nUri = _getDefaultI18nBaseUriForForm( arguments.formName );
+
+		if ( !Len( Trim( baseI18nUri ) ) ) {
+			return;
+		}
+
+		var tabs = frm.tabs ?: [];
+
+		for( var tab in tabs ) {
+			if ( Len( Trim( tab.id ?: "" ) ) ) {
+				if ( !Len( Trim( tab.title ?: "" ) ) ) {
+					tab.title = baseI18nUri & "tab.#tab.id#.title";
+				}
+				if ( !Len( Trim( tab.description ?: "" ) ) ) {
+					tab.description = baseI18nUri & "tab.#tab.id#.description";
+				}
+			}
+			var fieldsets = tab.fieldsets ?: [];
+			for( var fieldset in fieldsets ) {
+				if ( Len( Trim( fieldset.id ?: "" ) ) ) {
+					if ( !Len( Trim( fieldset.title ?: "" ) ) ) {
+						fieldset.title = baseI18nUri & "fieldset.#fieldset.id#.title";
+					}
+					if ( !Len( Trim( fieldset.description ?: "" ) ) ) {
+						fieldset.description = baseI18nUri & "fieldset.#fieldset.id#.description";
+					}
+				}
+
+				var fields = fieldset.fields ?: [];
+				for( var field in fields ) {
+					if ( Len( Trim( field.name ?: "" ) ) ) {
+						if ( !Len( Trim( field.label ?: "" ) ) ) {
+							field.label = baseI18nUri & "field.#field.name#.title";
+						}
+						if ( !Len( Trim( field.placeholder ?: "" ) ) ) {
+							field.placeholder = baseI18nUri & "field.#field.name#.placeholder";
+						}
+						if ( !Len( Trim( field.help ?: "" ) ) ) {
+							field.help = baseI18nUri & "field.#field.name#.help";
+						}
+					}
+				}
+			}
+		}
 	}
 
 // GETTERS AND SETTERS

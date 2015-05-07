@@ -68,6 +68,12 @@ component output=false singleton=true {
 		_discoverBundles();
 	}
 
+	public boolean function isValidResourceUri( required string uri ) {
+		var validUriRegex = "[\w][\w-\.]*\:[\w][\w-\.]*[^\.]";
+
+		return ReFind( validUriRegex, arguments.uri ) > 0;
+	}
+
 
 // PRIVATE HELPERS
 	private void function _discoverBundles() output=false {
@@ -229,7 +235,7 @@ component output=false singleton=true {
 	}
 
 	private void function _validateUri( required string uri ) output=false {
-		if ( ListLen( arguments.uri, ":" ) neq 2 ) {
+		if ( !isValidResourceUri( arguments.uri ) ) {
 			throw(
 				  type    = "ResourceBundleService.MalformedResourceUri"
 				, message = "The URI, [#arguments.uri#], was malformed. Valid URIs take the form {bundleName}:{keyName}"

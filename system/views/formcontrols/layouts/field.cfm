@@ -7,8 +7,6 @@
 	param name="args.required" type="boolean";
 
 	hasError = Len( Trim( args.error ) );
-
-	help = Len( Trim( args.help ) ) ? HtmlEditFormat( translateResource( uri=args.help, defaultValue=args.help ) ) : "";
 </cfscript>
 
 <cfoutput>
@@ -32,9 +30,9 @@
 				<div for="#args.for#" class="help-block">#args.error#</div>
 			</cfif>
 		</div>
-		<cfif Len( Trim( help ) )>
+		<cfif Len( Trim( args.help ) )>
 			<div class="col-sm-1">
-				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#help#" title="#translateResource( 'cms:help.popover.title' )#"></span>
+				<span class="help-button fa fa-question" data-rel="popover" data-trigger="hover" data-placement="left" data-content="#HtmlEditFormat( args.help )#" title="#translateResource( 'cms:help.popover.title' )#"></span>
 			</div>
 		</cfif>
 	</div>
