@@ -252,6 +252,15 @@ component extends="preside.system.base.AdminHandler" {
 		prc.page.grant_access_to_users    = ArrayToList( contextualAccessPerms.user.grant );
 		prc.page.deny_access_to_users     = ArrayToList( contextualAccessPerms.user.deny );
 
+		prc.allowableChildPageTypes = getAllowableChildPageTypes( prc.page.page_type );
+		prc.managedChildPageTypes   = getManagedChildPageTypes( prc.page.page_type );
+		prc.isSystemPage            = isSystemPageType( prc.page.page_type );
+
+		prc.canAddChildren     = _checkPermissions( argumentCollection=arguments, key="add"               , pageId=pageId, throwOnError=false ) && prc.allowableChildPageTypes != "none";
+		prc.canDeletePage      = _checkPermissions( argumentCollection=arguments, key="trash"             , pageId=pageId, throwOnError=false ) && !prc.isSystemPage;
+		prc.canSortChildren    = _checkPermissions( argumentCollection=arguments, key="sort"              , pageId=pageId, throwOnError=false );
+		prc.canManagePagePerms = _checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId, throwOnError=false );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
 			, link  = ""

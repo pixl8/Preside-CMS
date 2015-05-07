@@ -13,6 +13,16 @@
 	version = rc.version ?: "";
 
 	safeTitle = HtmlEditFormat( page.title );
+
+	allowableChildPageTypes = prc.allowableChildPageTypes ?: "";
+	managedChildPageTypes   = prc.managedChildPageTypes   ?: "";
+	isSystemPage            = prc.isSystemPage            ?: false;
+	canAddChildren          = prc.canAddChildren          ?: false;
+	canDeletePage           = prc.canDeletePage           ?: false;
+	canSortChildren         = prc.canSortChildren         ?: false;
+	canManagePagePerms      = prc.canManagePagePerms      ?: false;
+
+	hasContextMenu = canDeletePage || canSortChildren || canManagePagePerms || managedChildPageTypes.len();
 </cfscript>
 
 <cfoutput>
@@ -25,6 +35,47 @@
 	} )#
 
 	<div class="top-right-button-group">
+		<cfif hasContextMenu>
+			<button data-toggle="dropdown" class="btn btn-sm pull-right inline">
+				<span class="fa fa-caret-down"></span>
+				<i class="fa fa-fw fa-cog"></i>&nbsp; #translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )#
+			</button>
+			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<cfif canDeletePage>
+					<li>
+						<a data-global-key="d" href="#event.buildAdminLink( linkTo='sitetree.trashPageAction', queryString='id=' & pageId )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.trash.child.page.link", data=[ safeTitle ] )#">
+							<i class="fa fa-fw fa-trash-o"></i>&nbsp;
+							#translateResource( "cms:sitetree.trash.page.dropdown" )#
+						</a>
+					</li>
+				</cfif>
+				<cfif canSortChildren>
+					<li>
+						<a data-global-key="o" href="#event.buildAdminLink( linkTo='sitetree.reorderChildren', queryString='id=' & pageId )#" title="#translateResource( uri="cms:sitetree.reorder.children.link", data=[ safeTitle ] )#">
+							<i class="fa fa-fw fa-sort-amount-asc"></i>&nbsp;
+							#translateResource( "cms:sitetree.sort.children.dropdown" )#
+						</a>
+					</li>
+				</cfif>
+				<cfif canManagePagePerms>
+					<li>
+						<a data-global-key="m" href="#event.buildAdminLink( linkTo='sitetree.editPagePermissions', queryString='id=' & pageId )#">
+							<i class="fa fa-fw fa-lock"></i>&nbsp;
+							#translateResource( "cms:sitetree.page.permissioning.dropdown" )#
+						</a>
+					</li>
+				</cfif>
+				<cfloop list="#managedChildPageTypes#" index="i" item="managedPageType">
+					<li>
+						<a href="#event.buildAdminLink( linkTo='sitetree.managedChildren', queryString='parent=#pageId#&pageType=#managedPageType#' )#">
+							<i class="fa fa-fw fa-ellipsis-h"></i>&nbsp;
+							#translateResource( uri="cms:sitetree.manage.type", data=[ LCase( translateResource( "page-types.#managedPageType#:name" ) ) ] )#
+						</a>
+					</li>
+				</cfloop>
+			</ul>
+		</cfif>
+
 		<a class="pull-right inline" href="#event.buildLink( page=page.id )#" data-global-key="p" target="_blank">
 			<button class="btn btn-info btn-sm">
 				<i class="fa fa-external-link"></i>
