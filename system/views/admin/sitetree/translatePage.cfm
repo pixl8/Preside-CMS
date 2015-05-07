@@ -1,9 +1,13 @@
 <cfscript>
-	formId            = "translate-page-form";
-	pageId            = rc.id ?: "";
-	currentLanguageId = rc.language ?: "";
-	translations      = prc.translations ?: [];
-	translateUrlBase  = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
+	formId                 = "translate-page-form";
+	pageId                 = rc.id ?: "";
+	currentLanguageId      = rc.language ?: "";
+	version                = rc.version ?: "";
+	translations           = prc.translations ?: [];
+	translateUrlBase       = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
+	pageTypeObjectName     = prc.pageTypeObjectName     ?: "page";
+	pageIsMultilingual     = prc.pageIsMultilingual     ?: false;
+	pageTypeIsMultilingual = prc.pageTypeIsMultilingual ?: false;
 </cfscript>
 
 <cfoutput>
@@ -27,6 +31,15 @@
 			</ul>
 		</cfif>
 	</div>
+
+	#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={
+		  object         = pageIsMultilingual ? "page" : pageTypeObjectName
+		, id             = pageId
+		, version        = version
+		, language       = currentLanguageId
+		, baseUrl        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=#currentLanguageId#&version=" )
+		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.translationHistory", queryString="id=#pageId#&language=#currentLanguageId#" )
+	} )#
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal translate-page-form" method="post" action="#event.buildAdminLink( linkTo='sitetree.translatePageAction' )#">
 		<input type="hidden" name="id"       value="#pageId#" />

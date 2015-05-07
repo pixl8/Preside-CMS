@@ -360,20 +360,21 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( prc.page.page_type );
-		var pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
-		var pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
-		var isMultilingual         = pageIsMultilingual || pageTypeIsMultilingual;
+		prc.pageTypeObjectName     = pageType.getPresideObject();
+		prc.pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
+		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( prc.pageTypeObjectName );
+		var isMultilingual         = prc.pageIsMultilingual || prc.pageTypeIsMultilingual;
 
 		if ( !isMultilingual ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
 		}
 
 		var translationPageObject = multilingualPresideObjectService.getTranslationObjectName( "page" );
-		var translationPageTypeObject = multilingualPresideObjectService.getTranslationObjectName( pageType.getPresideObject() );
+		var translationPageTypeObject = multilingualPresideObjectService.getTranslationObjectName( prc.pageTypeObjectName );
 
 		prc.savedTranslation = {};
 
-		if ( pageIsMultilingual ) {
+		if ( prc.pageIsMultilingual ) {
 			prc.mainFormName  = "preside-objects.#translationPageObject#.admin.edit";
 			prc.mergeFormName = "";
 
@@ -383,21 +384,21 @@ component extends="preside.system.base.AdminHandler" {
 				prc.savedTranslation.append( t );
 			}
 		}
-		if ( pageTypeIsMultilingual ) {
-			if ( pageIsMultilingual ) {
+		if ( prc.pageTypeIsMultilingual ) {
+			if ( prc.pageIsMultilingual ) {
 				prc.mergeFormName  = "preside-objects.#translationPageTypeObject#.admin.edit";
 			} else {
 				prc.mainFormName  = "preside-objects.#translationPageTypeObject#.admin.edit";
 				prc.mergeFormName = "";
 			}
 
-			var translation = multiLingualPresideObjectService.selectTranslation( objectName=pageType.getPresideObject(), id=pageId, languageId=prc.language.id, useCache=false, version=version );
+			var translation = multiLingualPresideObjectService.selectTranslation( objectName=prc.pageTypeObjectName, id=pageId, languageId=prc.language.id, useCache=false, version=version );
 			for( var t in translation ) {
 				prc.savedTranslation.append( t );
 			}
 		}
 
-		prc.translations = multilingualPresideObjectService.getTranslationStatus( ( pageIsMultilingual ? "page" : pageType.getPresideObject() ), pageId );
+		prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName ), pageId );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
