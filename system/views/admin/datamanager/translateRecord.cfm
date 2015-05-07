@@ -67,7 +67,6 @@
 			, formId             = formId
 			, savedData          = prc.record ?: {}
 			, validationResult   = rc.validationResult ?: ""
-			, defaultI18nBaseUri = "preside-objects.#object#:"
 		)#
 
 		<div class="form-actions row">
