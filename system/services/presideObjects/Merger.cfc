@@ -11,7 +11,8 @@ component output=false singleton=true hint="I do the logic for merging two objec
 		object1.instance           = _mergeObjectInstances( object1.instance, object2.instance );
 		object1.meta.siteTemplates = _mergeSiteTemplatesSpecification( object1, object2 );
 
-		var ignoreKeys = [ "properties", "siteTemplates" ];
+		var ignoreKeys = [ "properties", "siteTemplates", "propertyNames", "dbFieldList", "indexes" ];
+
 		for ( var key in object2.meta ) {
 			if ( !ignoreKeys.find( key ) ) {
 				object1.meta[ key ] = object2.meta[ key ];
