@@ -72,9 +72,11 @@ component output="false" singleton=true {
 						ArrayAppend( rules, rule );
 					}
 
-					for( rule in field.rules ){
-						rule.fieldName = field.name;
-						ArrayAppend( rules, rule );
+					if ( field.keyExists( "rules" ) ) {
+						for( rule in field.rules ){
+							rule.fieldName = field.name;
+							ArrayAppend( rules, rule );
+						}
 					}
 				}
 			}
