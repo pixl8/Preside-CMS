@@ -94,6 +94,14 @@ component displayName="Multilingual Preside Object Service" {
 		validProperties.append( "datecreated" );
 		validProperties.append( "datemodified" );
 
+		if ( IsBoolean( translationObject.siteFiltered ?: "" ) && translationObject.siteFiltered ) {
+			validProperties.append( "site" );
+		}
+
+		if ( IsBoolean( translationObject.isPageType ?: "" ) && translationObject.isPageType ) {
+			validProperties.append( "page" );
+		}
+
 		translationObject.tableName   = _getTranslationObjectPrefix() & ( arguments.sourceObject.meta.tableName ?: "" );
 		translationObject.derivedFrom = arguments.objectName;
 
