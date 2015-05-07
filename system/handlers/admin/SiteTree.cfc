@@ -373,7 +373,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.savedTranslation = {};
 
-
 		if ( pageIsMultilingual ) {
 			prc.mainFormName  = "preside-objects.#translationPageObject#.admin.edit";
 			prc.mergeFormName = "";
@@ -397,6 +396,8 @@ component extends="preside.system.base.AdminHandler" {
 				prc.savedTranslation.append( t );
 			}
 		}
+
+		prc.translations = multilingualPresideObjectService.getTranslationStatus( ( pageIsMultilingual ? "page" : pageType.getPresideObject() ), pageId );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )

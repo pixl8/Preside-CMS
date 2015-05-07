@@ -2,9 +2,32 @@
 	formId            = "translate-page-form";
 	pageId            = rc.id ?: "";
 	currentLanguageId = rc.language ?: "";
+	translations      = prc.translations ?: [];
+	translateUrlBase  = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
 </cfscript>
 
 <cfoutput>
+	<cfif translations.len() gt 1>
+		<div class="top-right-button-group">
+			<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
+				<span class="fa fa-caret-down"></span>
+				<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:datamanager.translate.record.btn" )#
+			</button>
+
+			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<cfloop array="#translations#" index="i" item="language">
+					<cfif language.id != currentLanguageId>
+						<li>
+							<a href="#translateUrlBase##language.id#">
+								<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
+							</a>
+						</li>
+					</cfif>
+				</cfloop>
+			</ul>
+		</cfif>
+	</div>
+
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal translate-page-form" method="post" action="#event.buildAdminLink( linkTo='sitetree.translatePageAction' )#">
 		<input type="hidden" name="id"       value="#pageId#" />
 		<input type="hidden" name="language" value="#currentLanguageId#" />
