@@ -393,7 +393,6 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			var translation = multiLingualPresideObjectService.selectTranslation( objectName=pageType.getPresideObject(), id=pageId, languageId=prc.language.id, useCache=false, version=version );
-
 			for( var t in translation ) {
 				prc.savedTranslation.append( t );
 			}
@@ -409,6 +408,93 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		prc.pageIcon  = "pencil";
 		prc.pageTitle = translateResource( uri="cms:sitetree.translatepage.title", data=[ prc.page.title, prc.language.name ] );
+	}
+
+	public void function translatePageAction( event, rc, prc ) {
+		var pageId            = event.getValue( "id", "" );
+		var languageId        = event.getValue( "language", "" );
+		var validationRuleset = "";
+		var validationResult  = "";
+		var newId             = "";
+		var persist           = "";
+		var formData          = "";
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
+
+		var language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+		if ( language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
+		}
+
+		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+		pageType = pageTypesService.getPageType( page.page_type );
+
+		var pageIsMultilingual     = multilingualPresideObjectService.isMultilingual( "page" );
+		var pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( pageType.getPresideObject() );
+		var isMultilingual         = pageIsMultilingual || pageTypeIsMultilingual;
+
+		if ( !isMultilingual ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editpage", queryString="id=#pageId#" ) );
+		}
+
+		var translationPageObject     = multilingualPresideObjectService.getTranslationObjectName( "page" );
+		var translationPageTypeObject = multilingualPresideObjectService.getTranslationObjectName( pageType.getPresideObject() );
+		var formName                  = "";
+		var mergeFormName             = "";
+
+		if ( pageIsMultilingual ) {
+			formName  = "preside-objects.#translationPageObject#.admin.edit";
+		}
+		if ( pageTypeIsMultilingual ) {
+			if ( pageIsMultilingual ) {
+				mergeFormName  = "preside-objects.#translationPageTypeObject#.admin.edit";
+			} else {
+				formName  = "preside-objects.#translationPageTypeObject#.admin.edit";
+			}
+		}
+
+		if ( Len( Trim( mergeFormName ) ) ) {
+			formName = formsService.getMergedFormName( formName, mergeFormName );
+		}
+
+		formData         = event.getCollectionForForm( formName );
+		validationResult = validateForm( formName=formName, formData=formData );
+
+		if ( not validationResult.validated() ) {
+			getPlugin( "MessageBox" ).error( translateResource( "cms:sitetree.data.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.translatePage", querystring="id=#pageId#&language=#languageId#" ), persistStruct=persist );
+		}
+
+		formData._translation_active = IsTrue( rc._translation_active ?: "" );
+
+		if ( pageIsMultilingual ) {
+			multilingualPresideObjectService.saveTranslation(
+				  objectName = "page"
+				, id         = pageId
+				, data       = formData
+				, languageId = languageId
+			);
+		}
+
+		if ( pageTypeIsMultilingual ) {
+			multilingualPresideObjectService.saveTranslation(
+				  objectName = pageType.getPresideObject()
+				, id         = pageId
+				, data       = formData
+				, languageId = languageId
+			);
+		}
+
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
 	}
 
 	public void function trashPageAction( event, rc, prc ) {
