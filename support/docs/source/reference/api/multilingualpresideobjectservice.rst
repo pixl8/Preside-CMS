@@ -159,3 +159,93 @@ tableJoins      array   Yes       Array of table joins as calculated by the Sele
 language        string  Yes       The language to filter on                                                   
 preparedFilter  struct  Yes       The fully prepared and resolved filter that will be used in the select query
 ==============  ======  ========  ============================================================================
+
+
+.. _multilingualpresideobjectservice-listlanguages:
+
+ListLanguages()
+~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public array function listLanguages( boolean includeDefault=true )
+
+Returns an array of actively supported languages. Each language
+is represented as a struct with id, name, native_name, iso_code and default keys
+
+Arguments
+.........
+
+==============  =======  =================  ===========================================================
+Name            Type     Required           Description                                                
+==============  =======  =================  ===========================================================
+includeDefault  boolean  No (default=true)  Whether or not to include the default language in the array
+==============  =======  =================  ===========================================================
+
+
+.. _multilingualpresideobjectservice-gettranslationstatus:
+
+GetTranslationStatus()
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public array function getTranslationStatus( required string objectName, required string recordId )
+
+Returns an array of actively supported languages as per listLanguages()
+with an additional 'status' field indicating the status of the translation
+for the given object record
+
+Arguments
+.........
+
+==========  ======  ========  ===============================================================================
+Name        Type    Required  Description                                                                    
+==========  ======  ========  ===============================================================================
+objectName  string  Yes       Name of the object that has the record we wish to get the translation status of
+recordId    string  Yes       ID of the record we wish to get the translation status of                      
+==========  ======  ========  ===============================================================================
+
+
+.. _multilingualpresideobjectservice-getlanguage:
+
+GetLanguage()
+~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public struct function getLanguage( required string languageId )
+
+Returns a structure of language details for the given language.
+If the language is not an actively translatable language,
+an empty structure will be returned.
+
+Arguments
+.........
+
+==========  ======  ========  =========================
+Name        Type    Required  Description              
+==========  ======  ========  =========================
+languageId  string  Yes       ID of the language to get
+==========  ======  ========  =========================
+
+
+.. _multilingualpresideobjectservice-gettranslationobjectname:
+
+GetTranslationObjectName()
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public string function getTranslationObjectName( required string sourceObjectName )
+
+Returns the name of the given object's corresponding translation object
+
+Arguments
+.........
+
+================  ======  ========  ===========
+Name              Type    Required  Description
+================  ======  ========  ===========
+sourceObjectName  string  Yes                  
+================  ======  ========  ===========

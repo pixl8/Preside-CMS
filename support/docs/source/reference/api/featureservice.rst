@@ -26,15 +26,16 @@ IsFeatureEnabled()
 
 .. code-block:: java
 
-    public boolean function isFeatureEnabled( required string feature )
+    public boolean function isFeatureEnabled( required string feature, string siteTemplate )
 
 Returns whether or not the passed feature is currently enabled
 
 Arguments
 .........
 
-=======  ======  ========  ============================
-Name     Type    Required  Description                 
-=======  ======  ========  ============================
-feature  string  Yes       name of the feature to check
-=======  ======  ========  ============================
+============  ======  ========  ===============================================================================================
+Name          Type    Required  Description                                                                                    
+============  ======  ========  ===============================================================================================
+feature       string  Yes       name of the feature to check                                                                   
+siteTemplate  string  No        current active site template - can be used to check features that can be site template specific
+============  ======  ========  ===============================================================================================

@@ -527,14 +527,19 @@ ListObjects()
 
 .. code-block:: java
 
-    public array function listObjects( )
+    public array function listObjects( boolean includeGeneratedObjects=false )
 
 Returns an array of names for all of the registered objects, sorted alphabetically (ignoring case)
 
 Arguments
 .........
 
-*This method does not accept any arguments.*
+=======================  =======  ==================  ===========
+Name                     Type     Required            Description
+=======================  =======  ==================  ===========
+includeGeneratedObjects  boolean  No (default=false)             
+=======================  =======  ==================  ===========
+
 
 .. _presideobjectservice-objectexists:
 

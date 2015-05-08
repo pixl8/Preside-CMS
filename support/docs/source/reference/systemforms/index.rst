@@ -28,6 +28,7 @@ System form layouts
     sitetreepagetypehomepageeditform
     systemconfigformassetmanager
     systemconfigformemail
+    systemconfigformmultilingualsettings
     systemconfigformwebsiteusers
     updatemanagersettingsform
     useraddform

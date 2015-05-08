@@ -20,3 +20,4 @@ Developer guides & recipes
    sitetreenavigationmenus
    adminmenu
    filestorage
+   multilingual

@@ -11,6 +11,7 @@ System Preside Objects
     homepage
     reset_password
     standard_page
+    multilingual_language
     asset_derivative
     asset_folder
     asset_version
