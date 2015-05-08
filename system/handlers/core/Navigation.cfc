@@ -34,6 +34,8 @@ component output=false {
 			args.rootTitle = "";
 		}
 
+		args.rootPageId=rootPageId;
+
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
 			  rootPage          = rootPageId
 			, depth             = args.depth ?: 3
