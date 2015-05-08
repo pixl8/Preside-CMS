@@ -470,6 +470,18 @@ component displayName="Multilingual Preside Object Service" {
 	}
 
 	private struct function _resolveSelectField( required string sourceObject, required string selectField ) {
+		var bareFieldRegex   = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
+
+		if ( ReFind( bareFieldRegex, arguments.selectField ) ) {
+			return {
+				  objectName   = arguments.sourceObject
+				, propertyName = arguments.selectField
+				, selector     = "#arguments.sourceObject#.#arguments.selectField#"
+				, alias        = arguments.selectField
+			};
+		}
+
+
 		var fieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*\.[_a-zA-Z][_a-zA-Z0-9]*$";
 		var selectFieldParts = ListToArray( selectField, " " );
 

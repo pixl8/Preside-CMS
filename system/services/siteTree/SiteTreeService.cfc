@@ -396,7 +396,7 @@ component singleton=true {
 		, boolean includeInactive   = false
 		, array   activeTree        = []
 		, boolean expandAllSiblings = true
-		, array   selectFields      = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type" ]
+		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
 		, boolean isSubMenu         = false
 	) {
 		var args = arguments;

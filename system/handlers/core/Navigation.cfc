@@ -10,7 +10,7 @@ component output=false {
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
 			  rootPage        = args.rootPage     ?: siteTreeSvc.getSiteHomepage().id
 			, depth           = args.depth        ?: 1
-			, selectFields    = args.selectFields ?: [ "id", "title", "navigation_title", "exclude_children_from_navigation" ]
+			, selectFields    = args.selectFields ?: [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation" ]
 			, includeInactive = event.isAdminUser()
 			, activeTree      = activeTree
 		);
