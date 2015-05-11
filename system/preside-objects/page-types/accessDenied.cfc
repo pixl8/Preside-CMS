@@ -5,6 +5,7 @@
  * @isSystemPageType      true
  * @pagetypeViewlet       errors.accessDeniedPageType
  * @allowedChildPageTypes none
+ * @feature               websiteUsers
  *
  */
 

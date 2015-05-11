@@ -4,6 +4,7 @@
  * @displayName      Page type: Login
  * @isSystemPageType true
  * @pagetypeViewlet  login.loginPage
+ * @feature          websiteUsers
  *
  */
 

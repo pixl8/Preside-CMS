@@ -5,6 +5,7 @@
  * @isSystemPageType     true
  * @parentSystemPageType login
  * @pagetypeViewlet      login.forgottenPassword
+ * @feature              websiteUsers
  *
  */
 component extends="preside.system.base.SystemPresideObject" output=false {}
