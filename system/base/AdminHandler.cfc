@@ -10,6 +10,7 @@
 			_checkLogin( event );
 
 			event.setLayout( "admin" );
+			event.setLanguage( "" );
 			event.includeData( {
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
 				, adminBaseUrl = event.getAdminPath()
