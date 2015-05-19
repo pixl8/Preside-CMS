@@ -25216,6 +25216,11 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-theme .search-box:active {
   border-color: #ffffff;
 }
+.presidecms .preside-theme .form-control.form-control-no-border {
+  border: none;
+  height: 32px;
+  padding-top: 4px;
+}
 .presidecms .preside-loading-sheen {
   position: absolute;
   top: 0;
