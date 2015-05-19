@@ -191,21 +191,30 @@ Valid values are:
 		<if>
 			<equals arg1="${tag}" arg2="" />
 			<then>
-				<switch value="${branch}">
-					<case value="master">
+				<propertyregex property="branchtype" input="${branch}" regexp="^(.*?)(-|$).*$" select="\1" />
+				<echo>${branchtype}</echo>
+				<switch value="${branchtype}">
+					<case value="stable">
 						<property name="release.name" value="stable" />
+						<property name="build.label" value="PresideCMS-${preside.version}-stable.${build.number}" />
 					</case>
-					<case value="develop">
+					<case value="release">
 						<property name="release.name" value="bleeding-edge" />
+						<property name="build.label" value="PresideCMS-${preside.version}-release.${build.number}" />
+					</case>
+					<case value="feature">
+						<propertyregex property="featurename" input="${branch}" regexp="^feature-(.*)$" select="\1" />
+						<property name="release.name" value="feature/${featurename}" />
+						<property name="build.label" value="PresideCMS-${preside.version}-feature-${featurename}.${build.number}" />
 					</case>
 					<default>
 						<property name="release.name" value="${branch}" />
+						<property name="build.label" value="PresideCMS-${preside.version}-${branch}.${build.number}" />
 					</default>
 				</switch>
-				<property name="build.label" value="PresideCMS-${preside.version}-${release.name}.${build.number}" />
 			</then>
 			<else>
-				<property name="release.name" value="${tag}" />
+				<property name="release.name" value="release" />
 				<property name="build.label" value="PresideCMS-${preside.version}.${build.number}"/>
 			</else>
 		</if>
