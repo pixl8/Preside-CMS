@@ -680,6 +680,17 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="manageOneToManyRecords" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+
+		<cfscript>
+			// todo, figure out permissioning
+			event.setLayout( "adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
 <!--- VIEWLETS --->
 	<cffunction name="versionNavigator" access="private" returntype="string" output="false">
 		<cfargument name="event" type="any"    required="true" />

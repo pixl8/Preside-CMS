@@ -19,6 +19,8 @@ component output=false {
 			args.linkTitle  = translateResource( uri="cms:formcontrol.oneToManyManager.link.title", data=[ LCase( args.objectName ) ] );
 		}
 
+		event.include( "/js/admin/specific/oneToManyManager/" );
+
 		return renderView( view="formcontrols/oneToManyManager/index", args=args );
 	}
 }
