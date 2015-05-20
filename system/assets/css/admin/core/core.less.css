@@ -25220,6 +25220,7 @@ img.presidecms .editable-click:hover {
   border: none;
   height: 32px;
   padding-top: 4px;
+  padding-left: 0px;
 }
 .presidecms .preside-loading-sheen {
   position: absolute;
