@@ -15,11 +15,11 @@
 
 			modalOptions = {
 				title      : modalTitle,
-				className  : "one-to-many-manager-dialog",
+				className  : "full-screen-dialog",
 				buttonList : [ "ok" ]
 			};
 
-			this.iframeModal = new PresideIframeModal( iframeSrc, 900, 400, {}, modalOptions );
+			this.iframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", {}, modalOptions );
 		};
 
 		OneToManyManager.prototype.setupLinkBehaviour = function(){
