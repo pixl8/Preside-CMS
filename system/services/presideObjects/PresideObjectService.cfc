@@ -1296,11 +1296,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return params;
 	}
 
-	private array function _convertUserFilterParamsToQueryParams( required struct columnDefinitions, required struct params, required any dbAdapter ) {
+	private array function _convertUserFilterParamsToQueryParams( required struct columnDefinitions, required struct params, required any dbAdapter, required string objectName ) {
 		var key        = "";
 		var params     = [];
 		var param      = "";
-		var objectName = "";
 		var cols       = "";
 		var i          = 0;
 		var paramName  = "";
@@ -1326,11 +1325,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 			if ( not StructKeyExists( param, "type" ) ) {
 				if ( ListLen( key, "." ) eq 2 ) {
-					if ( columnDefinitions.keyExists( ListFirst( key, "." ) ) ) {
-						cols = _getObject( columnDefinitions[ ListFirst( key, "." ) ].relatedTo ?: "" ).meta.properties;
-					} else {
-						cols = _getObject( ListFirst( key, "." ) ).meta.properties;
-					}
+					var paramObjectName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( key, "." ) );
+					cols = _getObject( paramObjectName ).meta.properties;
+
 				} else {
 					cols = arguments.columnDefinitions;
 				}
@@ -1888,6 +1885,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
 				, dbAdapter         = adapter
+				, objectName        = arguments.objectName
 			);
 		}
 
