@@ -970,7 +970,12 @@ component {
 				for( var field in fields ) {
 					var fieldBaseI18n = "";
 					if ( ListLen( field.binding ?: "", "." ) == 2 ) {
-						fieldBaseI18n = "preside-objects.#ListFirst( field.binding, "." )#:";
+						var objName = ListFirst( field.binding, "." );
+						if ( _getPresideObjectService().isPageType( objName ) ) {
+							fieldBaseI18n = "page-types.#objName#:";
+						} else {
+							fieldBaseI18n = "preside-objects.#objName#:";
+						}
 					} else {
 						fieldBaseI18n = baseI18nUri;
 					}
