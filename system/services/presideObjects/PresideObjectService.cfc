@@ -411,6 +411,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          boolean updateManyToManyRecords = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
+		,          boolean forceVersionCreation    = false
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -471,13 +472,14 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		transaction {
 			if ( requiresVersioning ) {
 				_getVersioningService().saveVersionForUpdate(
-					  objectName     = arguments.objectName
-					, id             = arguments.id
-					, filter         = preparedFilter.filter
-					, filterParams   = preparedFilter.filterParams
-					, data           = cleanedData
-					, manyToManyData = manyToManyData
-					, versionNumber  = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					  objectName           = arguments.objectName
+					, id                   = arguments.id
+					, filter               = preparedFilter.filter
+					, filterParams         = preparedFilter.filterParams
+					, data                 = cleanedData
+					, manyToManyData       = manyToManyData
+					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					, forceVersionCreation = arguments.forceVersionCreation
 				);
 			}
 
@@ -1296,11 +1298,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return params;
 	}
 
-	private array function _convertUserFilterParamsToQueryParams( required struct columnDefinitions, required struct params, required any dbAdapter ) {
+	private array function _convertUserFilterParamsToQueryParams( required struct columnDefinitions, required struct params, required any dbAdapter, required string objectName ) {
 		var key        = "";
 		var params     = [];
 		var param      = "";
-		var objectName = "";
 		var cols       = "";
 		var i          = 0;
 		var paramName  = "";
@@ -1326,11 +1327,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 			if ( not StructKeyExists( param, "type" ) ) {
 				if ( ListLen( key, "." ) eq 2 ) {
-					if ( columnDefinitions.keyExists( ListFirst( key, "." ) ) ) {
-						cols = _getObject( columnDefinitions[ ListFirst( key, "." ) ].relatedTo ?: "" ).meta.properties;
-					} else {
-						cols = _getObject( ListFirst( key, "." ) ).meta.properties;
-					}
+					var paramObjectName = _resolveObjectNameFromColumnJoinSyntax( startObject=arguments.objectName, joinSyntax=ListFirst( key, "." ) );
+					cols = _getObject( paramObjectName ).meta.properties;
+
 				} else {
 					cols = arguments.columnDefinitions;
 				}
@@ -1413,12 +1412,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return objects;
 	}
 
-	private array function _getJoinsFromJoinTargets( required string objectName, required array joinTargets, required string forceJoins ) {
+	private array function _getJoinsFromJoinTargets( required string objectName, required array joinTargets, required string forceJoins, required boolean fromVersionTable ) {
 		var joins = [];
 
 		if ( ArrayLen( arguments.joinTargets ) ) {
 			var joinsCache    = _getCache();
-			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#"
+			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#. From version table: #arguments.fromVersionTable#."
 
 			joins = joinsCache.get( joinsCacheKey );
 
@@ -1564,9 +1563,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
 				if ( manyToManyObjects.keyExists( join.joinFromObject ) ) {
-					join.joinFromObject = join.joinFromAlias = getVersionObjectName( join.joinFromObject );
+					join.joinFromObject = getVersionObjectName( join.joinFromObject );
 				}
 				if ( manyToManyObjects.keyExists( join.joinToObject ) ) {
+					join.tableAlias = join.joinToObject;
 					join.joinToObject = getVersionObjectName( join.joinToObject );
 					join.addVersionClause = true;
 				}
@@ -1888,6 +1888,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
 				, dbAdapter         = adapter
+				, objectName        = arguments.objectName
 			);
 		}
 
