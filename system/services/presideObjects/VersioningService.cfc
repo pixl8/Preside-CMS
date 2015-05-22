@@ -170,11 +170,10 @@ component output=false singleton=true {
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
 		var poService            = _getPresideObjectService();
 		var changedFields        = [];
-		var dbTypesToSkipNullFor = [ "boolean" ];
 		var oldData              = arguments.existingData ?: NullValue();
 		var oldManyToManyData    = arguments.existingManyToManyData ?: NullValue();
 		var properties           = poService.getObjectProperties( arguments.objectName );
-		var ignoredFields        = [ "datemodified" ];
+		var ignoredFields        = _getIgnoredFieldsForVersioning( arguments.objectName );
 
 		if ( IsNull( oldManyToMay ) ) {
 			oldManyToManyData = poService.getDeNormalizedManyToManyData(
@@ -199,8 +198,10 @@ component output=false singleton=true {
 				}
 			} else {
 				var propDbType = properties[ field ].getAttribute( "dbtype", "" );
-				if ( IsEmpty( arguments.newData[ field ] ) && dbTypesToSkipNullFor.findNoCase( propDbType ) ) {
-					continue;
+				if ( IsEmpty( arguments.newData[ field ] ) ) {
+					if ( propDbType == "boolean" ) {
+						arguments.newData[ field ] = 0;
+					}
 				}
 				if ( StructKeyExists( oldData, field ) && oldData[ field ] != arguments.newData[ field ] ) {
 					changedFields.append( field );
@@ -345,6 +346,21 @@ component output=false singleton=true {
 		var event = _getColdboxController().getRequestContext();
 
 		return event.isAdminUser() ? event.getAdminUserId() : "";
+	}
+
+	private array function _getIgnoredFieldsForVersioning( required string objectName ) {
+		var ignoredFields = [ "datemodified" ];
+		var properties    = _getPresideObjectService().getObjectProperties( arguments.objectName );
+
+		for( var propertyName in properties ) {
+			var ignore = properties[ propertyName ].getAttribute( "ignoreChangesForVersioning", false );
+
+			if ( IsBoolean( ignore ) && ignore ) {
+				ignoredFields.append( propertyName );
+			}
+		}
+
+		return ignoredFields;
 	}
 
 // GETTERS AND SETTERS
