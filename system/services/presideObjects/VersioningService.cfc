@@ -73,6 +73,7 @@ component output=false singleton=true {
 		, required struct  data
 		, required struct  manyToManyData
 		,          numeric versionNumber = getNextVersionNumber()
+		,          boolean forceVersionCreation = false
 		,          string  versionAuthor = _getLoggedInUserId()
 	) output=false {
 		var poService              = _getPresideObjectService();
@@ -99,7 +100,7 @@ component output=false singleton=true {
 			);
 			var dataChanged = changedFields.len();
 
-			if ( !dataChanged ) {
+			if ( !arguments.forceVersionCreation && !dataChanged ) {
 				continue;
 			}
 
