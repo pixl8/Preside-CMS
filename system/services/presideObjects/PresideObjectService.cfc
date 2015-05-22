@@ -1410,12 +1410,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return objects;
 	}
 
-	private array function _getJoinsFromJoinTargets( required string objectName, required array joinTargets, required string forceJoins ) {
+	private array function _getJoinsFromJoinTargets( required string objectName, required array joinTargets, required string forceJoins, required boolean fromVersionTable ) {
 		var joins = [];
 
 		if ( ArrayLen( arguments.joinTargets ) ) {
 			var joinsCache    = _getCache();
-			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#"
+			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#. From version table: #arguments.fromVersionTable#."
 
 			joins = joinsCache.get( joinsCacheKey );
 
