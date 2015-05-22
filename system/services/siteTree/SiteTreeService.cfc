@@ -8,14 +8,16 @@ component singleton=true {
 	 * @i18nService.inject          coldbox:plugin:i18n
 	 * @coldboxController.inject    coldbox
 	 * @presideObjectService.inject presideObjectService
+	 * @versioningService.inject    versioningService
 	 */
-	public any function init( required any loginService, required any pageTypesService, required any siteService, required any presideObjectService, required any coldboxController, required any i18nService ) {
+	public any function init( required any loginService, required any pageTypesService, required any siteService, required any presideObjectService, required any coldboxController, required any i18nService, required any versioningService ) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setSiteService( arguments.siteService );
 		_setPresideObjectService( arguments.presideObjectService );
 		_setColdboxController( arguments.coldboxController );
 		_setI18nService( arguments.i18nService );
+		_setVersioningService( arguments.versioningService );
 
 		_ensureSystemPagesExistInTree();
 
@@ -577,6 +579,7 @@ component singleton=true {
 		var parentChanged    = false;
 		var pageType         = "";
 		var versionNumber    = "";
+		var pageTypeObj      = "";
 
 		_checkForBadHomepageOperations( argumentCollection = arguments );
 
@@ -653,24 +656,32 @@ component singleton=true {
 			}
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
+
+			var pageDataHasChanged     = _getVersioningService().dataHasChanged( objectName="page", recordId=arguments.id, newData=arguments );
+			var pageTypeDataHasChanged = false;
+
+			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
+				pageType               = _getPageTypesService().getPageType( existingPage.page_type );
+				pageTypeObj            = _getPresideObject( pageType.getPresideObject() );
+				pageTypeDataHasChanged = _getVersioningService().dataHasChanged( objectName=pageType.getPresideObject(), recordId=arguments.id, newData=arguments );
+			}
+
 			updated = pobj.updateData(
 				  data                    = data
 				, id                      = arguments.id
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
+				, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
-				pageType = _getPageTypesService().getPageType( existingPage.page_type );
-
-				var pageTypeObj = _getPresideObject( pageType.getPresideObject() );
-
 				if ( pageTypeObj.dataExists( filter={ page=arguments.id } ) ) {
 					_getPresideObject( pageType.getPresideObject() ).updateData(
 						  data                    = arguments
 						, filter                  = { page=arguments.id }
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
+						, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
 					);
 				} else {
 					var insertData = Duplicate( arguments );
@@ -1068,5 +1079,12 @@ component singleton=true {
 	}
 	private void function _setPresideObjectService( required any PresideObjectService ) {
 		_PresideObjectService = arguments.PresideObjectService;
+	}
+
+	private any function _getVersioningService() {
+		return _versioningService;
+	}
+	private void function _setVersioningService( required any versioningService ) {
+		_versioningService = arguments.versioningService;
 	}
 }

@@ -538,6 +538,10 @@ component {
 			asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
 		}
 
+		if ( fileTypeInfo.groupName == "image" ) {
+			asset.append( _getImageInfo( arguments.fileBinary ) );
+		}
+
 		if ( not Len( Trim( asset.asset_folder ) ) ) {
 			asset.asset_folder = getRootFolderId();
 		}
@@ -1140,6 +1144,18 @@ component {
 			} );
 
 			_getAssetDao().updateData( id=arguments.assetId, data={ active_version=versionId } );
+		}
+	}
+
+	private struct function _getImageInfo( fileBinary ) {
+		try {
+			var info = ImageInfo( arguments.fileBinary );
+			return {
+				  width  = Val( info.width  ?: 0 )
+				, height = Val( info.height ?: 0 )
+			};
+		} catch ( any e ) {
+			return {};
 		}
 	}
 

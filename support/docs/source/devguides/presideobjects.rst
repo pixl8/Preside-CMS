@@ -787,6 +787,17 @@ In addition, you can specify whether or not you wish to use the versioning syste
 
 Finally, you can select data from the version history tables with the :ref:`presideobjectservice-selectdata` method by using the :code:`fromVersionTable`, :code:`maxVersion` and :code:`specificVersion` arguments.
 
+Ignoring changes
+----------------
+
+By default, when the data actually changes in your object, a new version will be created. If you wish certain fields to be ignored when it comes to determining whether or not a new version should be created, you can add a :code:`ignoreChangesForVersioning` attribute to the property in the preside object.
+
+An example scenario for this might be an object who's data is synced with an external source on a schedule. You may add a helper property to record the last sync check date, if no other fields have changed, you probably don't want a new version record being created just for that sync check date. In this case, you could do:
+
+.. code-block:: java
+
+    property name="_last_sync_check" type="date" dbtype="datetime" ignoreChangesForVersioning=true; 
+
 .. _presideobjectssites:
 
 Organising data by sites
