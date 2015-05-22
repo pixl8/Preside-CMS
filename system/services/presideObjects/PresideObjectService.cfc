@@ -1561,9 +1561,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
 				if ( manyToManyObjects.keyExists( join.joinFromObject ) ) {
-					join.joinFromObject = join.joinFromAlias = getVersionObjectName( join.joinFromObject );
+					join.joinFromObject = getVersionObjectName( join.joinFromObject );
 				}
 				if ( manyToManyObjects.keyExists( join.joinToObject ) ) {
+					join.tableAlias = join.joinToObject;
 					join.joinToObject = getVersionObjectName( join.joinToObject );
 					join.addVersionClause = true;
 				}
