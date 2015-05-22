@@ -411,6 +411,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          boolean updateManyToManyRecords = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
+		,          boolean forceVersionCreation    = false
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -471,13 +472,14 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		transaction {
 			if ( requiresVersioning ) {
 				_getVersioningService().saveVersionForUpdate(
-					  objectName     = arguments.objectName
-					, id             = arguments.id
-					, filter         = preparedFilter.filter
-					, filterParams   = preparedFilter.filterParams
-					, data           = cleanedData
-					, manyToManyData = manyToManyData
-					, versionNumber  = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					  objectName           = arguments.objectName
+					, id                   = arguments.id
+					, filter               = preparedFilter.filter
+					, filterParams         = preparedFilter.filterParams
+					, data                 = cleanedData
+					, manyToManyData       = manyToManyData
+					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					, forceVersionCreation = arguments.forceVersionCreation
 				);
 			}
 

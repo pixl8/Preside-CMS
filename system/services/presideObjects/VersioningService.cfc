@@ -73,6 +73,7 @@ component output=false singleton=true {
 		, required struct  data
 		, required struct  manyToManyData
 		,          numeric versionNumber = getNextVersionNumber()
+		,          boolean forceVersionCreation = false
 		,          string  versionAuthor = _getLoggedInUserId()
 	) output=false {
 		var poService              = _getPresideObjectService();
@@ -83,30 +84,23 @@ component output=false singleton=true {
 		StructDelete( newData, "datemodified" );
 
 		for( var oldData in existingRecords ) {
-			var changedFields = [];
-			var dataChanged = false;
 			var oldManyToManyData = poService.getDeNormalizedManyToManyData(
-				  objectName       = arguments.objectName
-				, id               = oldData.id
+				  objectName = arguments.objectName
+				, id         = oldData.id
 			);
+			var newDataForChangedFieldsCheck = Duplicate( arguments.data );
 
-			for( var field in newData ) {
-				if ( StructKeyExists( oldData, field ) ) {
-					var oldValue = IsNull( oldData[ field ] ) ? "" : oldData[ field ];
-					var newValue = IsNull( newData[ field ] ) ? "" : newData[ field ];
+			newDataForChangedFieldsCheck.append( arguments.manyToManyData );
+			var changedFields = getChangedFields(
+				  objectName             = arguments.objectName
+				, recordId               = oldData.id
+				, newData                = newDataForChangedFieldsCheck
+				, existingData           = oldData
+				, existingManyToManyData = oldManyToManyData
+			);
+			var dataChanged = changedFields.len();
 
-				 	if ( oldValue != newValue ) {
-						changedFields.append( field );
-				 	}
-				}
-			}
-			for( var field in arguments.manyToManyData ) {
-				if ( StructKeyExists( oldManyToManyData, field ) && oldManyToManyData[ field ] != arguments.manyToManyData[ field ] ) {
-					changedFields.append( field );
-				}
-			}
-			dataChanged = changedFields.len();
-			if ( !dataChanged ) {
+			if ( !arguments.forceVersionCreation && !dataChanged ) {
 				continue;
 			}
 
@@ -171,6 +165,54 @@ component output=false singleton=true {
 		}
 
 		return arguments.versionNumber;
+	}
+
+	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
+		var poService            = _getPresideObjectService();
+		var changedFields        = [];
+		var dbTypesToSkipNullFor = [ "boolean" ];
+		var oldData              = arguments.existingData ?: NullValue();
+		var oldManyToManyData    = arguments.existingManyToManyData ?: NullValue();
+		var properties           = poService.getObjectProperties( arguments.objectName );
+		var ignoredFields        = [ "datemodified" ];
+
+		if ( IsNull( oldManyToMay ) ) {
+			oldManyToManyData = poService.getDeNormalizedManyToManyData(
+				  objectName = arguments.objectName
+				, id         = arguments.recordId
+			);
+		}
+		if ( IsNull( oldData ) ) {
+			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId );
+			for( var d in oldData ) { oldData = d; } // query to struct hack
+		}
+
+		for( var field in arguments.newData ) {
+			if ( ignoredFields.findNoCase( field ) || !properties.keyExists( field ) ) {
+				continue;
+			}
+
+			var isManyToManyField = properties[ field ].getAttribute( "relationship", "" ) == "many-to-many";
+			if ( isManyToManyField ) {
+				if ( StructKeyExists( oldManyToManyData, field ) && oldManyToManyData[ field ] != arguments.newData[ field ] ) {
+					changedFields.append( field );
+				}
+			} else {
+				var propDbType = properties[ field ].getAttribute( "dbtype", "" );
+				if ( IsEmpty( arguments.newData[ field ] ) && dbTypesToSkipNullFor.findNoCase( propDbType ) ) {
+					continue;
+				}
+				if ( StructKeyExists( oldData, field ) && oldData[ field ] != arguments.newData[ field ] ) {
+					changedFields.append( field );
+				}
+			}
+		}
+
+		return changedFields;
+	}
+
+	public boolean function dataHasChanged() {
+		return getChangedFields( argumentCollection=arguments ).len() > 0;
 	}
 
 // PRIVATE HELPERS
