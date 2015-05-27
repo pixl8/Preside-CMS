@@ -468,9 +468,15 @@ component output=false singleton=true {
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
 						} catch( any e ) {
+							var message = "An error occurred while attempting to create a foreign key for the [#objName#] object.";
+
+							if ( ( e.detail ?: "" ) contains "Cannot add or update a child row: a foreign key constraint fails" ) {
+								message &= " This error has been caused by existing data in the table not matching the foreign key requirements, or the foreign key field being newly added and not nullable. To fix, ensure that the foreign key column contains valid data and then reload the application once more.";
+							}
+
 							throw(
 								  type    = "presideobjectservice.dbsync.error"
-								, message = "An error occurred while attempting to create a foreign key for the [#objName#] object."
+								, message = message
 								, detail  = "SQL: [#obj.sql.relationships[ key ].createSql#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
 							);
 						}
