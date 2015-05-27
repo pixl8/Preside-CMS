@@ -306,7 +306,8 @@ component output=false {
 		};
 
 		types.document = {
-			  pdf  = { serveAsAttachment=true, mimeType="application/pdf"  }
+			  pdf  = { serveAsAttachment=true, mimeType="application/pdf"    }
+			, csv  = { serveAsAttachment=true, mimeType="application/csv"    }
 			, doc  = { serveAsAttachment=true, mimeType="application/msword" }
 			, dot  = { serveAsAttachment=true, mimeType="application/msword" }
 			, docx = { serveAsAttachment=true, mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
