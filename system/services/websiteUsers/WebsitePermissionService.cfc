@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
@@ -16,7 +16,7 @@ component output=false singleton=true {
 		, required any    benefitsDao
 		, required any    userDao
 		, required any    appliedPermDao
-	) output=false {
+	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
 		_setCacheProvider( arguments.cacheProvider )
 		_setBenefitsDao( arguments.benefitsDao );
@@ -29,7 +29,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public array function listPermissionKeys( string benefit="", string user="", array filter=[] ) output=false {
+	public array function listPermissionKeys( string benefit="", string user="", array filter=[] ) {
 		if ( Len( Trim( arguments.benefit ) ) ) {
 			return _getBenefitPermissions( arguments.benefit );
 
@@ -48,7 +48,7 @@ component output=false singleton=true {
 		,          string context       = ""
 		,          array  contextKeys   = []
 		,          string userId        = _getWebsiteLoginService().getLoggedInUserId()
-	) output=false {
+	) {
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			return false;
 		}
@@ -63,22 +63,47 @@ component output=false singleton=true {
 		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
 
-	public array function listUserBenefits( required string userId ) output=false {
-		var benefits = _getUserDao().selectManyToManyData(
+	public array function listUserBenefits( required string userId ) {
+		var comboBenefits = _getComboBenefits();
+		var benefits      = _getUserDao().selectManyToManyData(
 			  propertyName = "benefits"
 			, id           = arguments.userId
 			, selectFields = [ "benefits.id" ]
 			, orderby      = "benefits.priority desc"
 		);
 
-		return ListToArray( ValueList( benefits.id ) );
+		var userBenefits = ValueArray( benefits.id );
+		var comboFound   = false;
+
+		do {
+			comboFound = false;
+			for( var comboBenefit in comboBenefits ){
+				if ( userBenefits.find( comboBenefit.id ) ) {
+					continue;
+				}
+				var hasComboBenefit = true;
+				for( var benefitId in ListToArray( comboBenefit.combined_benefits ) ){
+					if ( !userBenefits.find( benefitId ) ) {
+						hasComboBenefit = false;
+						break;
+					}
+				}
+
+				if ( hasComboBenefit ) {
+					userBenefits.append( comboBenefit.id );
+					comboFound = true;
+				}
+			}
+		} while( comboFound );
+
+		return userBenefits;
 	}
 
-	public array function listUserPermissions( required string userId ) output=false {
+	public array function listUserPermissions( required string userId ) {
 		return _getUserPermissions( arguments.userId, false );
 	}
 
-	public void function syncBenefitPermissions( required string benefitId, required array permissions ) output=false {
+	public void function syncBenefitPermissions( required string benefitId, required array permissions ) {
 		var dao = _getAppliedPermDao();
 
 		transaction {
@@ -93,7 +118,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public void function syncUserPermissions( required string userId, required array permissions ) output=false {
+	public void function syncUserPermissions( required string userId, required array permissions ) {
 		var dao = _getAppliedPermDao();
 
 		transaction {
@@ -116,7 +141,7 @@ component output=false singleton=true {
 		, required array  denyBenefits
 		, required array  grantUsers
 		, required array  denyUsers
-	) output=false {
+	) {
 		var dao = _getAppliedPermDao();
 
 		transaction {
@@ -163,7 +188,7 @@ component output=false singleton=true {
 		_getCacheProvider().clear( "Context perms for context: " & arguments.context );
 	}
 
-	public struct function getContextualPermissions( required string context, required string contextKey, required string permissionKey ) output=false {
+	public struct function getContextualPermissions( required string context, required string contextKey, required string permissionKey ) {
 		var perms = {
 			  benefit = { grant=[], deny=[] }
 			, user    = { grant=[], deny=[] }
@@ -184,7 +209,7 @@ component output=false singleton=true {
 		return perms;
 	}
 
-	public void function prioritizeBenefits( required array benefitsInOrder ) output=false {
+	public void function prioritizeBenefits( required array benefitsInOrder ) {
 		var dao = _getBenefitsDao();
 
 		for ( var i=1; i <= arguments.benefitsInOrder.len(); i++ ) {
@@ -193,11 +218,11 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private void function _denormalizeAndSaveConfiguredPermissions( required struct permissionsConfig ) output=false {
+	private void function _denormalizeAndSaveConfiguredPermissions( required struct permissionsConfig ) {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
 	}
 
-	private array function _getBenefitPermissions( required string benefit ) output=false {
+	private array function _getBenefitPermissions( required string benefit ) {
 		var dbData = _getAppliedPermDao().selectData(
 			  selectFields = [ "granted", "permission_key" ]
 			, filter       = "benefit = :website_benefit.id and context is null and context_key is null"
@@ -217,7 +242,7 @@ component output=false singleton=true {
 		return perms;
 	}
 
-	private array function _getUserPermissions( required string user, boolean includeBenefitPerms=true ) output=false {
+	private array function _getUserPermissions( required string user, boolean includeBenefitPerms=true ) {
 		var perms = [];
 
 		if ( arguments.includeBenefitPerms ) {
@@ -261,7 +286,7 @@ component output=false singleton=true {
 		return perms;
 	}
 
-	private array function _filterPermissions( required array filter ) output=false {
+	private array function _filterPermissions( required array filter ) {
 		var filtered   = [];
 		var exclusions = [];
 		var allPerms   = _getPermissions();
@@ -342,7 +367,7 @@ component output=false singleton=true {
 		return NullValue();
 	}
 
-	private array function _expandPermissions( required struct permissions, string prefix="" ) output=false {
+	private array function _expandPermissions( required struct permissions, string prefix="" ) {
 		var expanded = [];
 
 		for( var perm in permissions ){
@@ -365,7 +390,7 @@ component output=false singleton=true {
 		return expanded;
 	}
 
-	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
+	private array function _expandWildCardPermissionKey( required string permissionKey ) {
 		var regex       = Replace( _reEscape( arguments.permissionKey ), "\*", "(.*?)", "all" );
 		var permissions = _getPermissions();
 
@@ -374,7 +399,7 @@ component output=false singleton=true {
 		} );
 	}
 
-	private string function _reEscape( required string stringToEscape ) output=false {
+	private string function _reEscape( required string stringToEscape ) {
 		var charsToEscape = [ "\", "$","{","}","(",")","<",">","[","]","^",".","*","+","?","##",":","&" ];
 		var escaped       = arguments.stringToEscape;
 
@@ -385,7 +410,7 @@ component output=false singleton=true {
 		return escaped;
 	}
 
-	private array function _getDefaultBenefitsForPermission( required string permissionKey ) output=false {
+	private array function _getDefaultBenefitsForPermission( required string permissionKey ) {
 		var roles         = _getRoles();
 		var rolesWithPerm = {};
 		var benefits        = [];
@@ -414,46 +439,54 @@ component output=false singleton=true {
 		return benefits;
 	}
 
+	private query function _getComboBenefits() {
+		return _getBenefitsDao().selectData(
+			  selectFields = [ "website_benefit.id", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
+			, groupBy      = "website_benefit.id"
+			, forceJoins   = "inner"
+		);
+	}
+
 // GETTERS AND SETTERS
-	private array function _getPermissions() output=false {
+	private array function _getPermissions() {
 		return _permissions;
 	}
-	private void function _setPermissions( required array permissions ) output=false {
+	private void function _setPermissions( required array permissions ) {
 		_permissions = arguments.permissions;
 	}
 
-	private any function _getWebsiteLoginService() output=false {
+	private any function _getWebsiteLoginService() {
 		return _websiteLoginService;
 	}
-	private void function _setWebsiteLoginService( required any websiteLoginService ) output=false {
+	private void function _setWebsiteLoginService( required any websiteLoginService ) {
 		_websiteLoginService = arguments.websiteLoginService;
 	}
 
-	private any function _getCacheProvider() output=false {
+	private any function _getCacheProvider() {
 		return _cacheProvider;
 	}
-	private void function _setCacheProvider( required any cacheProvider ) output=false {
+	private void function _setCacheProvider( required any cacheProvider ) {
 		_cacheProvider = arguments.cacheProvider;
 	}
 
-	private any function _getBenefitsDao() output=false {
+	private any function _getBenefitsDao() {
 		return _benefitsDao;
 	}
-	private void function _setBenefitsDao( required any benefitsDao ) output=false {
+	private void function _setBenefitsDao( required any benefitsDao ) {
 		_benefitsDao = arguments.benefitsDao;
 	}
 
-	private any function _getUserDao() output=false {
+	private any function _getUserDao() {
 		return _userDao;
 	}
-	private void function _setUserDao( required any userDao ) output=false {
+	private void function _setUserDao( required any userDao ) {
 		_userDao = arguments.userDao;
 	}
 
-	private any function _getAppliedPermDao() output=false {
+	private any function _getAppliedPermDao() {
 		return _appliedPermDao;
 	}
-	private void function _setAppliedPermDao( required any appliedPermDao ) output=false {
+	private void function _setAppliedPermDao( required any appliedPermDao ) {
 		_appliedPermDao = arguments.appliedPermDao;
 	}
 }
