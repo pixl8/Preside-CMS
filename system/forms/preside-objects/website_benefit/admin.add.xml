@@ -7,8 +7,9 @@ This form is used for the "add website benefit" form in the website user manager
 <form>
 	<tab id="basic" sortorder="10">
 		<fieldset id="basic" sortorder="10">
-			<field binding="website_benefit.label"       sortorder="10"  />
-			<field binding="website_benefit.description" sortorder="20"  />
+			<field binding="website_benefit.label"             sortorder="10"  />
+			<field binding="website_benefit.description"       sortorder="20"  />
+			<field binding="website_benefit.combined_benefits" sortorder="25"  />
 			<field name="permissions"                    sortorder="30" control="websitePermissionsPicker" label="cms:website.permissions.picker.label" help="cms:website.permissions.picker.help" />
 		</fieldset>
 	</tab>
