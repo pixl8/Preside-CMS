@@ -9,9 +9,10 @@
 		style &= "margin:#Trim(args.spacing)#px;";
 
 		switch( args.alignment ?: "" ) {
-			case "left"  : style &= "margin-left:0;"; break;
-			case "right" : style &= "margin-right:0;"; break;
-			default      : style &= "margin-left:0;margin-right:0;"; break;
+			case "left"   : style &= "margin-left:0;"; break;
+			case "right"  : style &= "margin-right:0;"; break;
+			case "center" : style &= "margin:0 auto; display:block;text-align:center"; break;
+			default       : style &= "margin-left:0;margin-right:0;"; break;
 		}
 	}
 </cfscript>
