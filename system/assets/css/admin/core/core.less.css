@@ -25455,3 +25455,6 @@ img.presidecms .editable-click:hover {
 .quick-edit-modal .modal-dialog .modal-footer {
   margin-top: 0;
 }
+.presidecms.modal-backdrop {
+  z-index: 1030;
+}
