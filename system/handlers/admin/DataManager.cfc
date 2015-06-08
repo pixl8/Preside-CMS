@@ -102,6 +102,7 @@
 					  object          = objectName
 					, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+					, actionsView     = "/admin/datamanager/_oneToManyListingActions"
 					, filter          = { "#relationshipKey#" : parentId }
 				}
 			);
