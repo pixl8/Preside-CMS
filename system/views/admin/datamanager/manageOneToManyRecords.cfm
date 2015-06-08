@@ -26,6 +26,7 @@
 				</button>
 			</a>
 		</cfif>
+		<div class="clearfix"></div>
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
