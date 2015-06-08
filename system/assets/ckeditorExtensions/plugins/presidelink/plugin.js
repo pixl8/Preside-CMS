@@ -51,13 +51,13 @@
 			var allowed = 'a[!href]',
 				required = 'a[href]';
 
-			if ( CKEDITOR.dialog.isTabEnabled( editor, 'link', 'advanced' ) )
+			if ( CKEDITOR.dialog.isTabEnabled( editor, 'presidelink', 'advanced' ) )
 				allowed = allowed.replace( ']', ',accesskey,charset,dir,id,lang,name,rel,tabindex,title,type]{*}(*)' );
-			if ( CKEDITOR.dialog.isTabEnabled( editor, 'link', 'target' ) )
+			if ( CKEDITOR.dialog.isTabEnabled( editor, 'presidelink', 'target' ) )
 				allowed = allowed.replace( ']', ',target,onclick]' );
 
 			// Add the link and unlink buttons.
-			editor.addCommand( 'link', new CKEDITOR.dialogCommand( 'link', {
+			editor.addCommand( 'presidelink', new CKEDITOR.dialogCommand( 'presidelink', {
 				allowedContent: allowed,
 				requiredContent: required
 			} ) );
@@ -68,12 +68,12 @@
 			editor.addCommand( 'unlink', new CKEDITOR.unlinkCommand() );
 			editor.addCommand( 'removeAnchor', new CKEDITOR.removeAnchorCommand() );
 
-			editor.setKeystroke( CKEDITOR.CTRL + 76 /*L*/, 'link' );
+			editor.setKeystroke( CKEDITOR.CTRL + 76 /*L*/, 'presidelink' );
 
 			if ( editor.ui.addButton ) {
 				editor.ui.addButton( 'PresideLink', {
 					label: editor.lang.presidelink.toolbar,
-					command: 'link',
+					command: 'presidelink',
 					toolbar: 'links,10'
 				} );
 				editor.ui.addButton( 'PresideUnlink', {
@@ -88,7 +88,7 @@
 				} );
 			}
 
-			CKEDITOR.dialog.add( 'link', this.path + 'dialogs/link.js' );
+			CKEDITOR.dialog.add( 'presidelink', this.path + 'dialogs/presidelink.js' );
 			CKEDITOR.dialog.add( 'anchor', this.path + 'dialogs/anchor.js' );
 
 			editor.on( 'doubleclick', function( evt ) {
@@ -96,7 +96,7 @@
 
 				if ( !element.isReadOnly() ) {
 					if ( element.is( 'a' ) ) {
-						evt.data.dialog = ( element.getAttribute( 'name' ) && ( !element.getAttribute( 'href' ) || !element.getChildCount() ) ) ? 'anchor' : 'link';
+						evt.data.dialog = ( element.getAttribute( 'name' ) && ( !element.getAttribute( 'href' ) || !element.getChildCount() ) ) ? 'anchor' : 'presidelink';
 
 						// Pass the link to be selected along with event data.
 						evt.data.link = element;
@@ -131,15 +131,15 @@
 
 					link: {
 						label: editor.lang.presidelink.menu,
-						command: 'link',
-						group: 'link',
+						command: 'presidelink',
+						group: 'presidelink',
 						order: 1
 					},
 
 					unlink: {
 						label: editor.lang.presidelink.unlink,
 						command: 'unlink',
-						group: 'link',
+						group: 'presidelink',
 						order: 5
 					}
 				} );

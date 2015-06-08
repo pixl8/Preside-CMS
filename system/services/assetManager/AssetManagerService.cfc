@@ -186,7 +186,7 @@ component {
 			}
 		}
 
-
+		return true;
 	}
 
 	public boolean function isAssetAllowedInFolder(

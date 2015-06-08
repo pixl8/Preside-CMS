@@ -75,11 +75,12 @@
 					, dbInfoService  = dbInfoService
 				);
 				var schemaSync = new preside.system.services.presideObjects.sqlSchemaSynchronizer(
-					  adapterFactory          = adapterFactory
-					, sqlRunner               = sqlRunner
-					, dbInfoService           = dbInfoService
-					, schemaVersioningService = schemaVersioning
-					, autoRunScripts          = true
+					  adapterFactory              = adapterFactory
+					, sqlRunner                   = sqlRunner
+					, dbInfoService               = dbInfoService
+					, schemaVersioningService     = schemaVersioning
+					, autoRunScripts              = true
+					, autoRestoreDeprecatedFields = true
 				);
 				var relationshipGuidance = new preside.system.services.presideObjects.relationshipGuidance(
 					  objectReader = objReader

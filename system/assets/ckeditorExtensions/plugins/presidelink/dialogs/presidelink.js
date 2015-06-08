@@ -6,7 +6,7 @@
 'use strict';
 
 ( function( $ ) {
-	CKEDITOR.dialog.add( 'link', function( editor ) {
+	CKEDITOR.dialog.add( 'presidelink', function( editor ) {
 		var plugin     = CKEDITOR.plugins.presidelink
 		  , commonLang = editor.lang.common
 		  , linkLang   = editor.lang.presidelink

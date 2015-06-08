@@ -1822,6 +1822,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					throw( type="PresideObjectService.no.label.field", message="The object [#objName#] has no label field" );
 				}
 
+				if ( ListLen( labelField, "." ) > 1 ) {
+					fields[i] = Replace( fields[i], "#arguments.objectName#.${labelfield}", "${labelfield}", "all" );
+					fields[i] = Replace( fields[i], ".${labelfield}", "$${labelfield}", "all" );
+				}
 				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
 		}

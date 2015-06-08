@@ -252,9 +252,11 @@ component output="false" singleton=true {
 		var objName      = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
 
 		sqlFields.delete( "id" );
-		sqlFields.delete( "label" );
 		sqlFields.append( "#objName#.id" );
-		sqlFields.append( "#objName#.${labelfield} as label" );
+		if ( sqlFields.find( "label" ) ) {
+			sqlFields.delete( "label" );
+			sqlFields.append( "#objName#.${labelfield} as label" );
+		}
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
