@@ -19,7 +19,7 @@
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif canAdd>
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#objectName#" )#" data-global-key="a">
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", queryString="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" )#" data-global-key="a">
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>
 					#addRecordTitle#

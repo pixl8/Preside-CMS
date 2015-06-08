@@ -196,6 +196,7 @@ component {
 		,          struct  savedData            = {}
 		,          string  fieldNamePrefix      = ""
 		,          string  fieldNameSuffix      = ""
+		,          array   suppressFields       = []
 	) {
 		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
 		var coldbox           = _getColdbox();
@@ -225,7 +226,7 @@ component {
 				renderedFields = CreateObject( "java", "java.lang.StringBuffer" );
 
 				for( var field in fieldset.fields ) {
-					if ( IsBoolean( field.deleted ?: "" ) && field.deleted ) {
+					if ( ( IsBoolean( field.deleted ?: "" ) && field.deleted ) || arguments.suppressFields.findNoCase( field.name ) ) {
 						continue;
 					}
 					if ( ( field.control ?: "default" ) neq "none" ) {
