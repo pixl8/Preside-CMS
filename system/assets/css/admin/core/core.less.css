@@ -20,7 +20,7 @@
 }
 html.presidecms {
   overflow-y: scroll;
-  min-height: 100%;
+  height: 100%;
   position: relative;
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
@@ -28,6 +28,9 @@ html.presidecms {
 }
 html.presidecms.iframe {
   overflow-y: auto;
+}
+body {
+  height: 100%;
 }
 .presidecms {
   font-family: 'Preside Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -25459,11 +25462,27 @@ img.presidecms .editable-click:hover {
 .quick-edit-modal .modal-dialog .modal-footer {
   margin-top: 0;
 }
+.full-screen-dialog {
+  height: 100%;
+}
 .full-screen-dialog .modal-dialog {
   width: calc(100% - 25px);
+  height: 100%;
 }
-.full-screen-dialog .modal-dialog .modal-body {
-  height: calc(100% - 25px);
+.full-screen-dialog .modal-dialog .modal-content {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body {
+  height: calc(100% - 116px);
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body iframe {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-footer {
+  margin-top: 0;
 }
 .presidecms.modal-backdrop {
   z-index: 1030;

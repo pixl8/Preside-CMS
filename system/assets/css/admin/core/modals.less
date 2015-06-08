@@ -20,10 +20,29 @@
 }
 
 .full-screen-dialog {
+	height : 100%;
 	.modal-dialog {
 		width : calc( ~"100% - 25px" );
-		.modal-body {
-			height : calc( ~"100% - 25px" );
+		height : 100%;
+
+		.modal-content {
+			height : 100%;
+
+			.modal-body {
+				height : calc( ~"100% - 116px" );
+
+				.bootbox-body {
+					height : 100%;
+
+					iframe {
+						height : 100%;
+					}
+				}
+			}
+
+			.modal-footer {
+				margin-top : 0;
+			}
 		}
 	}
 }
