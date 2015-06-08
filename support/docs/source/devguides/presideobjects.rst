@@ -787,6 +787,21 @@ In addition, you can specify whether or not you wish to use the versioning syste
 
 Finally, you can select data from the version history tables with the :ref:`presideobjectservice-selectdata` method by using the :code:`fromVersionTable`, :code:`maxVersion` and :code:`specificVersion` arguments.
 
+Many-to-many related data
+-------------------------
+
+By default, auto generated :code:`many-to-many` data tables will be versioned along with your record changes. You can opt out of this by adding a :code:`versioned=false` attribute to the :code:`many-to-many` property:
+
+.. code-block:: java
+
+    property name="categories" relationship="many-to-many" relatedTo="category" versioned=false;
+
+Inversely, you may have a :code:`many-to-many` relationship for which you have an explicit join table that you'd like versioned along with the parent record. In this scenario, you can explicitly set :code:`versioned=true`:
+
+.. code-block:: java
+
+    property name="categories" relationship="many-to-many" relatedTo="category" relatedVia="explicit_categories_obj" versioned=true;
+
 Ignoring changes
 ----------------
 
