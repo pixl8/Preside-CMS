@@ -26,6 +26,7 @@
 					modal.on( "shown.bs.modal", function(){
 						modal.off( "shown.bs.modal" );
 						modalOptions.onShow( modal );
+						$( ".modal-backdrop" ).addClass( "presidecms" );
 					} );
 				}
 

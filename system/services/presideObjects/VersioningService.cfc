@@ -200,12 +200,12 @@ component output=false singleton=true {
 				}
 			} else {
 				var propDbType = properties[ field ].getAttribute( "dbtype", "" );
-				if ( IsEmpty( arguments.newData[ field ] ) ) {
+				if ( IsEmpty( arguments.newData[ field ] ?: "" ) ) {
 					if ( propDbType == "boolean" ) {
 						arguments.newData[ field ] = 0;
 					}
 				}
-				if ( StructKeyExists( oldData, field ) && oldData[ field ] != arguments.newData[ field ] ) {
+				if ( StructKeyExists( oldData, field ) && oldData[ field ] != ( arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
 			}

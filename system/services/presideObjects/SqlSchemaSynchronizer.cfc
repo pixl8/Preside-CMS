@@ -2,11 +2,12 @@ component output=false singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @adapterFactory.inject          AdapterFactory
-	 * @sqlRunner.inject               SqlRunner
-	 * @dbInfoService.inject           DbInfoService
-	 * @schemaVersioningService.inject SqlSchemaVersioning
-	 * @autoRunScripts.inject          coldbox:setting:autoSyncDb
+	 * @adapterFactory.inject              AdapterFactory
+	 * @sqlRunner.inject                   SqlRunner
+	 * @dbInfoService.inject               DbInfoService
+	 * @schemaVersioningService.inject     SqlSchemaVersioning
+	 * @autoRunScripts.inject              coldbox:setting:autoSyncDb
+	 * @autoRestoreDeprecatedFields.inject coldbox:setting:autoRestoreDeprecatedFields
 	 */
 	public any function init(
 		  required any     adapterFactory
@@ -14,6 +15,7 @@ component output=false singleton=true {
 		, required any     dbInfoService
 		, required any     schemaVersioningService
 		, required boolean autoRunScripts
+		, required boolean autoRestoreDeprecatedFields
 
 	) output=false {
 
@@ -22,6 +24,7 @@ component output=false singleton=true {
 		_setDbInfoService( arguments.dbInfoService );
 		_setSchemaVersioningService( arguments.schemaVersioningService );
 		_setAutoRunScripts( arguments.autoRunScripts );
+		_setAutoRestoreDeprecatedFields( arguments.autoRestoreDeprecatedFields );
 
 		return this;
 	}
@@ -262,37 +265,58 @@ component output=false singleton=true {
 		, required struct columnVersions
 
 	) output=false {
-		var columnsFromDb = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
-		var indexesFromDb = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
-		var dbColumnNames = ValueList( columnsFromDb.column_name );
-		var colsSql       = arguments.generatedSql.columns;
-		var indexesSql    = arguments.generatedSql.indexes;
-		var adapter       = _getAdapter( arguments.dsn );
-		var column        = "";
-		var colSql        = "";
-		var index         = "";
-		var indexSql      = "";
-		var deprecateSql  = "";
+		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
+		var dbColumnNames  = ValueList( columnsFromDb.column_name );
+		var colsSql        = arguments.generatedSql.columns;
+		var indexesSql     = arguments.generatedSql.indexes;
+		var adapter        = _getAdapter( arguments.dsn );
+		var column         = "";
+		var colSql         = "";
+		var index          = "";
+		var indexSql       = "";
+		var deprecateSql   = "";
+		var columnName     = "";
+		var deDeprecateSql = "";
 
 		for( column in columnsFromDb ){
-			if ( not column.column_name contains "__deprecated__" ) {
-				if ( StructKeyExists( colsSql, column.column_name ) ) {
-					colSql = colsSql[ column.column_name ];
+			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
+				columnName = Replace( column.column_name, "__deprecated__", "" );
 
-					if ( not StructKeyExists( columnVersions, column.column_name ) or colSql.version neq columnVersions[ column.column_name ] ) {
+				if ( StructKeyExists( colsSql, columnName ) ) {
+					colSql = colsSql[ columnName ];
+
+					if ( column.column_name contains "__deprecated__" ) {
+						deDeprecateSql = adapter.getAlterColumnSql(
+							  tableName     = arguments.tableName
+							, columnName    = column.column_name
+							, newName       = columnName
+							, dbType        = column.type_name
+							, nullable      = true // it was deprecated, must be nullable!
+							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+							, primaryKey    = column.is_primarykey
+							, autoIncrement = column.is_autoincrement
+						);
+
+						dbColumnNames = Replace( dbColumnNames, column.column_name, columnName );
+
+						_runSql( sql=deDeprecateSql, dsn=arguments.dsn );
+					}
+
+					if ( not StructKeyExists( columnVersions, columnName ) or colSql.version neq columnVersions[ columnName ] ) {
 						if ( column.is_foreignkey ){
-							_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=column.column_name, dsn=arguments.dsn );
+							_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=columnName, dsn=arguments.dsn );
 						}
 						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 						_setDatabaseObjectVersion(
 							  entityType   = "column"
 							, parentEntity = arguments.tableName
-							, entityName   = column.column_name
+							, entityName   = columnName
 							, version      = colSql.version
 							, dsn          = arguments.dsn
 						);
 					}
-				} else {
+				} else if ( !column.column_name contains "__deprecated__" ) {
 					deprecateSql = adapter.getAlterColumnSql(
 						  tableName     = arguments.tableName
 						, columnName    = column.column_name
@@ -321,7 +345,7 @@ component output=false singleton=true {
 
 
 		for( column in colsSql ) {
-			if ( not ListFindNoCase( dbColumnNames, column ) ) {
+			if ( !ListFindNoCase( dbColumnNames, column ) ) {
 				colSql = colsSql[ column ];
 				_runSql( sql=colSql.addSql, dsn=arguments.dsn );
 				_setDatabaseObjectVersion(
@@ -468,9 +492,15 @@ component output=false singleton=true {
 						try {
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
 						} catch( any e ) {
+							var message = "An error occurred while attempting to create a foreign key for the [#objName#] object.";
+
+							if ( ( e.detail ?: "" ) contains "Cannot add or update a child row: a foreign key constraint fails" ) {
+								message &= " This error has been caused by existing data in the table not matching the foreign key requirements, or the foreign key field being newly added and not nullable. To fix, ensure that the foreign key column contains valid data and then reload the application once more.";
+							}
+
 							throw(
 								  type    = "presideobjectservice.dbsync.error"
-								, message = "An error occurred while attempting to create a foreign key for the [#objName#] object."
+								, message = message
 								, detail  = "SQL: [#obj.sql.relationships[ key ].createSql#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
 							);
 						}
@@ -623,5 +653,12 @@ component output=false singleton=true {
 	}
 	private void function _setAutoRunScripts( required boolean autoRunScripts ) output=false {
 		_autoRunScripts = arguments.autoRunScripts;
+	}
+
+	private boolean function _getAutoRestoreDeprecatedFields() {
+		return _autoRestoreDeprecatedFields;
+	}
+	private void function _setAutoRestoreDeprecatedFields( required boolean autoRestoreDeprecatedFields ) {
+		_autoRestoreDeprecatedFields = arguments.autoRestoreDeprecatedFields;
 	}
 }
