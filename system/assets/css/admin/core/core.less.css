@@ -6048,9 +6048,9 @@ body.presidecms .modal-open,
   filter: alpha(opacity=50);
 }
 .presidecms .modal-header {
-  padding: 15px;
-  border-bottom: 1px solid #e5e5e5;
-  min-height: 16.42857143px;
+  padding: 10px;
+  border-bottom: 1px solid #dddddd;
+  min-height: 11.42857143px;
 }
 .presidecms .modal-header .close {
   margin-top: -2px;
@@ -6067,7 +6067,7 @@ body.presidecms .modal-open,
   margin-top: 15px;
   padding: 19px 20px 20px;
   text-align: right;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #dddddd;
 }
 .presidecms .modal-footer:before,
 .presidecms .modal-footer:after {
@@ -25452,6 +25452,27 @@ img.presidecms .editable-click:hover {
 .quick-add-modal .modal-dialog .modal-footer,
 .quick-edit-modal .modal-dialog .modal-footer {
   margin-top: 0;
+}
+.presidecms .modal-content {
+  border-radius: 5px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+}
+.presidecms .modal-header {
+  background-color: #eeeeee;
+  border-radius: 5px 5px 0 0;
+}
+.presidecms .modal-header .modal-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+.presidecms .modal-header .close {
+  border: none;
+  opacity: 0.7;
+  font-size: 19px;
+  text-shadow: none;
+}
+.presidecms .modal-footer {
+  border-radius: 0 0 5px 5px;
 }
 .presidecms.modal-backdrop {
   z-index: 1030;

@@ -19,6 +19,34 @@
 	}
 }
 
-.presidecms.modal-backdrop {
-	z-index : 1030;
+.presidecms {
+	.modal-content {
+		border-radius : 5px;
+		box-shadow    : 0px 5px 15px rgba(0, 0, 0, 0.5);
+	}
+
+	.modal-header {
+		background-color : @grey14;
+		border-radius    : 5px 5px 0 0;
+
+		.modal-title {
+			font-size   : 13px;
+			font-weight : 700;
+		}
+
+		.close {
+			border      : none;
+			opacity     : 0.7;
+			font-size   : 19px;
+			text-shadow : none;
+		}
+	}
+
+	.modal-footer {
+		border-radius : 0 0 5px 5px;
+	}
+
+	&.modal-backdrop {
+		z-index : 1030;
+	}
 }
