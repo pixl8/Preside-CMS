@@ -84,6 +84,30 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getChildObjectRecordsForAjaxDataTables" access="public" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+
+		<cfscript>
+			var objectName      = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+
+			runEvent(
+				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object          = objectName
+					, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+					, filter          = { "#relationshipKey#" : parentId }
+				}
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getRecordHistoryForAjaxDataTables" access="public" returntype="void" output="false">
 		<cfargument name="event"           type="any"     required="true" />
 		<cfargument name="rc"              type="struct"  required="true" />
@@ -686,7 +710,21 @@
 		<cfargument name="prc"   type="struct"  required="true" />
 
 		<cfscript>
+			var objectName = rc.object ?: "";
+
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+
 			// todo, figure out permissioning
+			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
+			// _addObjectNameBreadCrumb( event, objectName );
+			// prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
+			// prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+
+			prc.canAdd     = true;
+			prc.canDelete  = true;
+			prc.gridFields = _getObjectFieldsForGrid( objectName );
+
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
 	</cffunction>

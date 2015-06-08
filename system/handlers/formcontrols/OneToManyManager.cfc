@@ -3,9 +3,10 @@ component output=false {
 	property name="presideObjectService" inject="presideObjectService";
 
 	public string function index( event, rc, prc, args={} ) output=false {
-		args.object       = args.relatedTo    ?: "";
-		args.sourceObject = args.sourceObject ?: "";
-		args.sourceId     = args.savedData.id ?: "";
+		args.object          = args.relatedTo    ?: "";
+		args.sourceObject    = args.sourceObject ?: "";
+		args.sourceId        = args.savedData.id ?: "";
+		args.relationshipKey = args.relationshipKey ?: "";
 
 		if ( !Len( Trim( args.sourceId ) ) || !Len( Trim( args.object ) ) && !Len( Trim( args.sourceObject ) ) ) {
 			return "";
@@ -21,7 +22,10 @@ component output=false {
 			args.modalTitle = translateResource( uri="cms:formcontrol.oneToManyManager.modal.title", data=[ args.objectName ] );
 		}
 
-		args.managerUrl = event.buildAdminLink( linkTo='datamanager.manageOneToManyRecords', queryString="object=#args.objectName#&parentObject=#args.sourceObject#&parentId=#args.sourceId#" );
+		args.managerUrl = event.buildAdminLink(
+			  linkTo      = 'datamanager.manageOneToManyRecords'
+			, queryString = "object=#args.object#&parentObject=#args.sourceObject#&parentId=#args.sourceId#&relationshipKey=#args.relationshipKey#"
+		);
 
 		event.include( "/js/admin/specific/oneToManyManager/" );
 

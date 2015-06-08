@@ -95,10 +95,12 @@ component output="false" singleton=true {
 
 		  required string  objectName
 		, required array   gridFields
-		,          numeric startRow    = 1
-		,          numeric maxRows     = 10
-		,          string  orderBy     = ""
-		,          string  searchQuery = ""
+		,          numeric startRow     = 1
+		,          numeric maxRows      = 10
+		,          string  orderBy      = ""
+		,          string  searchQuery  = ""
+		,          any     filter       = {}
+		,          struct  filterParams = {}
 
 	) output=false {
 
@@ -109,11 +111,16 @@ component output="false" singleton=true {
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
+			, filter           = arguments.filter
+			, filterParams     = arguments.filterParams
+			, extraFilters     = []
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.gridFields );
-			args.filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
+			args.extraFilters.append({
+				  filter       = _buildSearchFilter( arguments.searchQuery, arguments.objectName, arguments.gridFields )
+				, filterParams = { q = { type="varchar", value="%" & arguments.searchQuery & "%" } }
+			});
 		}
 
 		result.records = _getPresideObjectService().selectData( argumentCollection = args );
