@@ -347,6 +347,33 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="deleteOneToManyRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var objectName      = rc.object ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var parentId        = rc.parentId ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			// TODO, permission checking
+
+			runEvent(
+				  event          = "admin.DataManager._deleteRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					postActionUrl  = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&relationshipKey=#relationshipKey#&parentId=#parentId#" )
+				}
+			);
+		</cfscript>
+		<cfscript>
+
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="cascadeDeletePrompt" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -1187,6 +1214,7 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
+		<cfargument name="postActionUrl"     type="string"  required="false" default="#( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 
 		<cfscript>
@@ -1199,7 +1227,6 @@
 			var blockers         = "";
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
-			var postActionUrl    = event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 
 			obj = presideObjectService.getObject( object );
