@@ -814,8 +814,14 @@
 			var objectName = event.getValue( name="object", defaultValue="" );
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			// _checkPermission( argumentCollection=arguments, key="add", object=objectName );
+
+
+			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
+			var objectTitle   = translateResource( "preside-objects.#objectName#:title.singular" );
+
+			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.addRecord.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.addRecord.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageIcon      = "plus";
 
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
