@@ -815,7 +815,6 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 
-
 			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
 			var objectTitle   = translateResource( "preside-objects.#objectName#:title.singular" );
 
@@ -842,7 +841,6 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 
-			// TODO: permissions, versions, translations!
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
@@ -850,6 +848,12 @@
 			}
 			prc.record = queryRowToStruct( prc.record );
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
+
+			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.title"   , data=[ objectName, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.subtitle", data=[ objectName, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageIcon      = "pencil";
 
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
