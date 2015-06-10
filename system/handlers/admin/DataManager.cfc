@@ -84,6 +84,31 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="getChildObjectRecordsForAjaxDataTables" access="public" returntype="void" output="false">
+		<cfargument name="event"           type="any"     required="true" />
+		<cfargument name="rc"              type="struct"  required="true" />
+		<cfargument name="prc"             type="struct"  required="true" />
+
+		<cfscript>
+			var objectName      = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+
+			runEvent(
+				  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  object          = objectName
+					, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+					, actionsView     = "/admin/datamanager/_oneToManyListingActions"
+					, filter          = { "#relationshipKey#" : parentId }
+				}
+			);
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getRecordHistoryForAjaxDataTables" access="public" returntype="void" output="false">
 		<cfargument name="event"           type="any"     required="true" />
 		<cfargument name="rc"              type="struct"  required="true" />
@@ -322,6 +347,33 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="deleteOneToManyRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var objectName      = rc.object ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var parentId        = rc.parentId ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			// TODO, permission checking
+
+			runEvent(
+				  event          = "admin.DataManager._deleteRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					postActionUrl  = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&relationshipKey=#relationshipKey#&parentId=#parentId#" )
+				}
+			);
+		</cfscript>
+		<cfscript>
+
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="cascadeDeletePrompt" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
@@ -379,6 +431,25 @@
 
 			runEvent(
 				  event          = "admin.DataManager._addRecordAction"
+				, prePostExempt  = true
+				, private        = true
+			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="addOneToManyRecordAction" access="public" returntype="any" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var objectName = rc.object ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			// todo check permissions
+
+			runEvent(
+				  event          = "admin.DataManager._addOneToManyRecordAction"
 				, prePostExempt  = true
 				, private        = true
 			);
@@ -677,6 +748,132 @@
 
 			messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
 			setNextEvent( url=listingUrl );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="multiOneToManyRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var action          = rc.multiAction     ?: "";
+			var ids             = rc.id              ?: "";
+			var listingUrl      = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+
+			if ( not Len( Trim( ids ) ) ) {
+				messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+				setNextEvent( url=listingUrl );
+			}
+
+			switch( action ){
+				case "delete":
+					return deleteOneToManyRecordAction( argumentCollection = arguments );
+				break;
+			}
+
+			messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+			setNextEvent( url=listingUrl );
+		</cfscript>
+	</cffunction>
+
+
+	<cffunction name="manageOneToManyRecords" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+
+		<cfscript>
+			var objectName = rc.object ?: "";
+
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+
+			// todo, figure out permissioning
+			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
+			// _addObjectNameBreadCrumb( event, objectName );
+			// prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
+			// prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+
+			prc.canAdd     = true;
+			prc.canDelete  = true;
+			prc.gridFields = _getObjectFieldsForGrid( objectName );
+
+			event.setLayout( "adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="addOneToManyRecord" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var objectName = event.getValue( name="object", defaultValue="" );
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
+			// _checkPermission( argumentCollection=arguments, key="add", object=objectName );
+
+			event.setLayout( "adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="editOneToManyRecord" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var id              = rc.id              ?: "";
+			var version         = rc.version         ?: "";
+			var objectName      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+
+			// TODO: permissions, versions, translations!
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( not prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" ) );
+			}
+			prc.record = queryRowToStruct( prc.record );
+			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			event.setLayout( "adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="editOneToManyRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var id              = rc.id              ?: "";
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+
+			runEvent(
+				  event          = "admin.DataManager._editRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  errorUrl   = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord"   , queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#&id=#id#" )
+					, successUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
+				}
+			);
 		</cfscript>
 	</cffunction>
 
@@ -1000,6 +1197,74 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_addOneToManyRecordAction" access="private" returntype="any" output="false">
+		<cfargument name="event"             type="any"     required="true"  />
+		<cfargument name="rc"                type="struct"  required="true"  />
+		<cfargument name="prc"               type="struct"  required="true"  />
+		<cfargument name="object"            type="string"  required="false" default="#( rc.object          ?: '' )#" />
+		<cfargument name="parentId"          type="string"  required="false" default="#( rc.parentId        ?: '' )#" />
+		<cfargument name="relationshipKey"   type="string"  required="false" default="#( rc.relationshipKey ?: '' )#" />
+		<cfargument name="errorAction"       type="string"  required="false" default=""     />
+		<cfargument name="viewRecordAction"  type="string"  required="false" default=""     />
+		<cfargument name="addAnotherAction"  type="string"  required="false" default=""     />
+		<cfargument name="successAction"     type="string"  required="false" default=""     />
+		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+
+		<cfscript>
+			var formData         = event.getCollectionForForm( arguments.formName );
+			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
+			var obj              = "";
+			var validationResult = "";
+			var newId            = "";
+			var newRecordLink    = "";
+			var persist          = "";
+
+			formData[ arguments.relationshipKey ] = arguments.parentId;
+
+			validationResult = validateForm( formName=arguments.formName, formData=formData );
+
+			if ( not validationResult.validated() ) {
+				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+				persist = formData;
+				persist.validationResult = validationResult;
+				if ( Len( errorAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", querystring="object=#object#&parentId=#arguments.parentId#&relationshipKey=#arguments.relationshipKey#" ), persistStruct=persist );
+				}
+			}
+
+			obj = presideObjectService.getObject( object );
+			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+
+			if ( !redirectOnSuccess ) {
+				return newId;
+			}
+
+			newRecordLink = event.buildAdminLink( linkTo=viewRecordAction ?: "datamanager.viewRecord", queryString="object=#object#&id=#newId#" );
+
+			messageBox.info( translateResource( uri="cms:datamanager.recordAdded.confirmation", data=[
+				  translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object )
+				, '<a href="#newRecordLink#">#event.getValue( name=labelField, defaultValue=translateResource( uri="cms:datamanager.record" ) )#</a>'
+			] ) );
+
+			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
+				if ( Len( addAnotherAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", queryString="object=#object#&parentId=#arguments.parentId#&relationshipKey=#arguments.relationshipKey#" ), persist="_addAnother" );
+				}
+			} else {
+				if ( Len( successAction ?: "" ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo=successAction ) );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#arguments.parentId#&relationshipKey=#arguments.relationshipKey#" ) );
+				}
+			}
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="_quickAddRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"    type="any"    required="true" />
 		<cfargument name="rc"       type="struct" required="true" />
@@ -1034,6 +1299,7 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
+		<cfargument name="postActionUrl"     type="string"  required="false" default="#( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 
 		<cfscript>
@@ -1046,7 +1312,6 @@
 			var blockers         = "";
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
-			var postActionUrl    = event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) );
 			var labelField       = presideObjectService.getObjectAttribute( object, "labelfield", "label" );
 
 			obj = presideObjectService.getObject( object );
@@ -1106,7 +1371,9 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="errorAction"       type="string"  required="false" default="" />
+		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) )#" />
 		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
@@ -1125,11 +1392,7 @@
 			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-				}
+				setNextEvent( url=errorUrl );
 			}
 
 			formData.id = id;
@@ -1140,11 +1403,7 @@
 				persist = formData;
 				persist.validationResult = validationResult;
 
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", querystring="id=#id#&object=#object#&version=#version#" ), persistStruct=persist );
-				}
+				setNextEvent( url=errorUrl );
 			}
 
 			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
@@ -1152,11 +1411,7 @@
 			if ( redirectOnSuccess ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#id#" ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
-				}
+				setNextEvent( url=successUrl );
 			}
 		</cfscript>
 	</cffunction>

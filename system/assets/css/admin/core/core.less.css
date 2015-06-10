@@ -20,7 +20,7 @@
 }
 html.presidecms {
   overflow-y: scroll;
-  min-height: 100%;
+  height: 100%;
   position: relative;
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
@@ -28,6 +28,9 @@ html.presidecms {
 }
 html.presidecms.iframe {
   overflow-y: auto;
+}
+body {
+  height: 100%;
 }
 .presidecms {
   font-family: 'Preside Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -23973,6 +23976,10 @@ img.presidecms .editable-click:hover {
 .presidecms .top-right-button-group .no-btn {
   margin-top: 7px;
 }
+.presidecms .modal-dialog-layout-container .top-right-button-group {
+  position: static;
+  margin-bottom: 10px;
+}
 .presidecms .form-group .required sup i {
   color: #f5962d;
   font-size: 8px;
@@ -25214,6 +25221,12 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-theme .search-box:active {
   border-color: #ffffff;
 }
+.presidecms .preside-theme .form-control.form-control-no-border {
+  border: none;
+  height: 32px;
+  padding-top: 4px;
+  padding-left: 0px;
+}
 .presidecms .preside-loading-sheen {
   position: absolute;
   top: 0;
@@ -25476,4 +25489,26 @@ img.presidecms .editable-click:hover {
 }
 .presidecms.modal-backdrop {
   z-index: 1030;
+}
+.full-screen-dialog {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog {
+  width: calc(100% - 25px);
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body {
+  height: calc(100% - 116px);
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body iframe {
+  height: 100%;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-footer {
+  margin-top: 0;
 }

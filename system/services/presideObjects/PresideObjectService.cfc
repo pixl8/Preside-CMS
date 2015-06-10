@@ -1168,6 +1168,8 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					case "link" : return "MultiLinkPicker";
 					default     : return "manyToManySelect";
 				}
+			case "one-to-many":
+				return "oneToManyManager";
 		}
 
 		switch ( arguments.type ) {
