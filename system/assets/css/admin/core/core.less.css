@@ -23976,10 +23976,6 @@ img.presidecms .editable-click:hover {
 .presidecms .top-right-button-group .no-btn {
   margin-top: 7px;
 }
-.presidecms .modal-dialog-layout-container .top-right-button-group {
-  position: static;
-  margin-bottom: 10px;
-}
 .presidecms .form-group .required sup i {
   color: #f5962d;
   font-size: 8px;

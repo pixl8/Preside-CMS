@@ -791,18 +791,15 @@
 		<cfscript>
 			var objectName = rc.object ?: "";
 
-
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 
-			// todo, figure out permissioning
-			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			// _addObjectNameBreadCrumb( event, objectName );
-			// prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
-			// prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
+			var objectTitle   = translateResource( "preside-objects.#objectName#:title" );
 
-			prc.canAdd     = true;
-			prc.canDelete  = true;
-			prc.gridFields = _getObjectFieldsForGrid( objectName );
+			prc.gridFields    = _getObjectFieldsForGrid( objectName );
+			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToManyListing.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToManyListing.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageIcon      = "puzzle-piece";
 
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
@@ -1536,6 +1533,37 @@
 				);
 			}
 			return false;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getParentDetailsForOneToManyActions" access="private" returntype="struct" output="false">
+		<cfargument name="event"  type="any"    required="true" />
+		<cfargument name="rc"     type="struct" required="true" />
+		<cfargument name="prc"    type="struct" required="true" />
+
+		<cfscript>
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var parentObject    = presideObjectService.getObjectPropertyAttribute(
+				  objectName    = object
+				, propertyName  = relationshipKey
+				, attributeName = "relatedTo"
+			);
+			var parentRecord      = presideObjectService.selectData( objectName=parentObject, id=parentId, selectFields=[ "${labelfield} as label" ] );
+			var parentObjectTitle = "";
+
+			if ( presideObjectService.isPageType( parentObject ) ) {
+				parentObjectTitle = translateResource( "page-types.#parentObject#:name" );
+			} else {
+				parentObjectTitle = translateResource( "preside-objects.#parentObject#:title.singular" );
+			}
+
+			return {
+				  parentObject      = parentObject
+				, parentRecordLabel = parentRecord.label ?: ""
+				, parentObjectTitle = parentObjectTitle
+			};
 		</cfscript>
 	</cffunction>
 
