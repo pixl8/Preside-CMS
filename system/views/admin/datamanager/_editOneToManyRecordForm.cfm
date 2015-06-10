@@ -34,6 +34,7 @@
 			, formId            = formId
 			, savedData         = args.record
 			, validationResult  = rc.validationResult ?: ""
+			, suppressFields    = [ args.relationshipKey ]
 		)#
 
 		<div class="form-actions row">

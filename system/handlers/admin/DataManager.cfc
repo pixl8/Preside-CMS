@@ -863,6 +863,8 @@
 			var parentId        = rc.parentId        ?: "";
 			var relationshipKey = rc.relationshipKey ?: "";
 
+			rc[ relationshipKey ] = parentId;
+
 			_checkObjectExists( argumentCollection=arguments, object=object );
 
 			runEvent(
