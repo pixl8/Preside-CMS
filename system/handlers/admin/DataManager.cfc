@@ -358,7 +358,7 @@
 			var parentId        = rc.parentId ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			// TODO, permission checking
+			rc.forceDelete = true;
 
 			runEvent(
 				  event          = "admin.DataManager._deleteRecordAction"
