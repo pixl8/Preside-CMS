@@ -24,7 +24,7 @@
 			  , uberAssetSelect = this
 			  , modalOptions    = {
 					title      : modalTitle,
-					className  : "uber-browser-dialog",
+					className  : "full-screen-dialog",
 					buttonList : [ "ok", "cancel" ]
 				}
 			  , callbacks = {
@@ -34,7 +34,7 @@
 			  		onok : function(){ return uberAssetSelect.processBrowserOk(); }
 				};
 
-			this.browserIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+			this.browserIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
 			this.$browserButton = $( '<a class="btn btn-default" href="#"><i class="fa fa-ellipsis-h"></i></a>' );
 			this.$uberSelect.after( this.$browserButton );
@@ -51,7 +51,7 @@
 			  , uberAssetSelect = this
 			  , modalOptions    = {
 					title      : modalTitle,
-					className  : "uber-browser-dialog",
+					className  : "full-screen-dialog",
 					buttons : {
 						cancel : {
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
@@ -74,7 +74,7 @@
 					}
 			    };
 
-			this.uploadIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+			this.uploadIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
 			this.$uploaderButton = $( '<a class="btn btn-default upload-btn" href="#"><i class="fa fa-cloud-upload"></i></a>' );
 			this.$uploaderButton.on( "click", function( e ){

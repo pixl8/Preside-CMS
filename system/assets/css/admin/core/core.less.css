@@ -25498,6 +25498,7 @@ img.presidecms .editable-click:hover {
 }
 .full-screen-dialog .modal-dialog .modal-content .modal-body {
   height: calc(100% - 116px);
+  padding: 0;
 }
 .full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body {
   height: 100%;
@@ -25507,4 +25508,8 @@ img.presidecms .editable-click:hover {
 }
 .full-screen-dialog .modal-dialog .modal-content .modal-footer {
   margin-top: 0;
+}
+.presidecms.iframe .page-content {
+  padding-left: 0;
+  padding-right: 0;
 }

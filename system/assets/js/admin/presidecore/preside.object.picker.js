@@ -29,7 +29,7 @@
 			  , presideObjectPicker = this
 			  , modalOptions        = {
 					title     : modalTitle,
-					className : "quick-add-modal",
+					className : "full-screen-dialog",
 					buttons   : {
 						cancel : {
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
@@ -60,7 +60,7 @@
 					}
 				};
 
-			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, 900, 400, callbacks, modalOptions );
+			this.quickAddIframeModal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
 
 			this.$quickAddButton = $( '<a class="btn btn-default quick-add-btn" href="#"><i class="fa fa-plus"></i></a>' );
 			if ( this.uberSelect.isSearchable() && this.uberSelect.search_field.attr( "tabindex" ) &&  this.uberSelect.search_field.attr( "tabindex" ) != "-1" ) {
@@ -82,7 +82,7 @@
 			  , presideObjectPicker = this
 			  , modalOptions        = {
 					title     : modalTitle,
-					className : "quick-add-modal",
+					className : "full-screen-dialog",
 					buttons   : {
 						cancel : {
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
@@ -119,7 +119,7 @@
 				var $quickEditLink = $( this )
 				  , href           = $quickEditLink.attr( "href" );
 
-				presideObjectPicker.quickEditIframeModal = new PresideIframeModal( href, 900, 400, callbacks, modalOptions );
+				presideObjectPicker.quickEditIframeModal = new PresideIframeModal( href, "100%", "100%", callbacks, modalOptions );
 
 				presideObjectPicker.quickEditIframeModal.open();
 			} );
