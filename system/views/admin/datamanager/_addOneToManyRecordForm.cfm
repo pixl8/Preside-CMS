@@ -29,6 +29,7 @@
 			, formId           = formId
 			, validationResult = args.validationResult
 			, savedData        = { "#args.relationshipKey#" = args.parentId }
+			, suppressFields   = [ args.relationshipKey ]
 		)#
 
 		<div class="form-actions row">

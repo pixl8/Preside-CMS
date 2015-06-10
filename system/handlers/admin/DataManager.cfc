@@ -358,7 +358,7 @@
 			var parentId        = rc.parentId ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			// TODO, permission checking
+			rc.forceDelete = true;
 
 			runEvent(
 				  event          = "admin.DataManager._deleteRecordAction"
@@ -791,18 +791,15 @@
 		<cfscript>
 			var objectName = rc.object ?: "";
 
-
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 
-			// todo, figure out permissioning
-			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			// _addObjectNameBreadCrumb( event, objectName );
-			// prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
-			// prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
+			var objectTitle   = translateResource( "preside-objects.#objectName#:title" );
 
-			prc.canAdd     = true;
-			prc.canDelete  = true;
-			prc.gridFields = _getObjectFieldsForGrid( objectName );
+			prc.gridFields    = _getObjectFieldsForGrid( objectName );
+			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToManyListing.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToManyListing.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageIcon      = "puzzle-piece";
 
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
@@ -817,8 +814,13 @@
 			var objectName = event.getValue( name="object", defaultValue="" );
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			// _objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
-			// _checkPermission( argumentCollection=arguments, key="add", object=objectName );
+
+			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
+			var objectTitle   = translateResource( "preside-objects.#objectName#:title.singular" );
+
+			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.addRecord.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.addRecord.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageIcon      = "plus";
 
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
@@ -839,7 +841,6 @@
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 
-			// TODO: permissions, versions, translations!
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
@@ -847,6 +848,12 @@
 			}
 			prc.record = queryRowToStruct( prc.record );
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
+
+			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.title"   , data=[ objectName, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToMany.editRecord.page.subtitle", data=[ objectName, prc.recordLabel, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
+			prc.pageIcon      = "pencil";
 
 			event.setLayout( "adminModalDialog" );
 		</cfscript>
@@ -862,6 +869,8 @@
 			var object          = rc.object          ?: "";
 			var parentId        = rc.parentId        ?: "";
 			var relationshipKey = rc.relationshipKey ?: "";
+
+			rc[ relationshipKey ] = parentId;
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 
@@ -1534,6 +1543,37 @@
 				);
 			}
 			return false;
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getParentDetailsForOneToManyActions" access="private" returntype="struct" output="false">
+		<cfargument name="event"  type="any"    required="true" />
+		<cfargument name="rc"     type="struct" required="true" />
+		<cfargument name="prc"    type="struct" required="true" />
+
+		<cfscript>
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var parentObject    = presideObjectService.getObjectPropertyAttribute(
+				  objectName    = object
+				, propertyName  = relationshipKey
+				, attributeName = "relatedTo"
+			);
+			var parentRecord      = presideObjectService.selectData( objectName=parentObject, id=parentId, selectFields=[ "${labelfield} as label" ] );
+			var parentObjectTitle = "";
+
+			if ( presideObjectService.isPageType( parentObject ) ) {
+				parentObjectTitle = translateResource( "page-types.#parentObject#:name" );
+			} else {
+				parentObjectTitle = translateResource( "preside-objects.#parentObject#:title.singular" );
+			}
+
+			return {
+				  parentObject      = parentObject
+				, parentRecordLabel = parentRecord.label ?: ""
+				, parentObjectTitle = parentObjectTitle
+			};
 		</cfscript>
 	</cffunction>
 

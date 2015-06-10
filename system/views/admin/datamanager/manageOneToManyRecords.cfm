@@ -10,29 +10,24 @@
 	objectDescription   = translateResource( uri="preside-objects.#objectName#:description", defaultValue="" );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
 
-	canAdd    = prc.canAdd    ?: false;
-	canDelete = prc.canDelete ?: false;
-
-	datatableSourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#objectName#&action=dataManager.getChildObjectRecordsForAjaxDataTables&useMultiActions=#canDelete#&gridFields=#ArrayToList( gridFields )#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
+	datatableSourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#objectName#&action=dataManager.getChildObjectRecordsForAjaxDataTables&useMultiActions=true&gridFields=#ArrayToList( gridFields )#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
 </cfscript>
 
 <cfoutput>
 	<div class="top-right-button-group">
-		<cfif canAdd>
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", queryString="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" )#" data-global-key="a">
-				<button class="btn btn-success btn-sm">
-					<i class="fa fa-plus"></i>
-					#addRecordTitle#
-				</button>
-			</a>
-		</cfif>
+		<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.addOneToManyRecord", queryString="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" )#" data-global-key="a">
+			<button class="btn btn-success btn-sm">
+				<i class="fa fa-plus"></i>
+				#addRecordTitle#
+			</button>
+		</a>
 		<div class="clearfix"></div>
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName
 		, datasourceUrl   = datatableSourceUrl
-		, useMultiActions = canDelete
+		, useMultiActions = true
 		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiOneToManyRecordAction', querystring="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
 		, gridFields      = gridFields
 	} )#

@@ -40,7 +40,20 @@
 		<div class="main-container modal-dialog-layout-container" id="main-container">
 			<div class="main-container-inner">
 				<div class="main-content">
-					#body#
+					<div class="page-content">
+						<cfif Len( Trim( prc.pageTitle ?: "" ) )>
+							#renderView( view="admin/general/pageTitle", args={
+								  title    = ( prc.pageTitle    ?: "" )
+								, subTitle = ( prc.pageSubTitle ?: "" )
+								, icon     = ( prc.pageIcon     ?: "" )
+							} )#
+						</cfif>
+						<div class="row">
+							<div class="col-xs-12">
+								#body#
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
  		</div>
