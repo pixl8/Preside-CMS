@@ -33,7 +33,7 @@
 		  objectName      = objectName
 		, datasourceUrl   = datatableSourceUrl
 		, useMultiActions = canDelete
-		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
+		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiOneToManyRecordAction', querystring="object=#objectName#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
 		, gridFields      = gridFields
 	} )#
 </cfoutput>

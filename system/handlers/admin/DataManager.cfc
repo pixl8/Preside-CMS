@@ -751,6 +751,38 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="multiOneToManyRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var action          = rc.multiAction     ?: "";
+			var ids             = rc.id              ?: "";
+			var listingUrl      = event.buildAdminLink( linkTo=rc.postAction ?: "datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+
+			if ( not Len( Trim( ids ) ) ) {
+				messageBox.error( translateResource( "cms:datamanager.norecordsselected.error" ) );
+				setNextEvent( url=listingUrl );
+			}
+
+			switch( action ){
+				case "delete":
+					return deleteOneToManyRecordAction( argumentCollection = arguments );
+				break;
+			}
+
+			messageBox.error( translateResource( "cms:datamanager.invalid.multirecord.action.error" ) );
+			setNextEvent( url=listingUrl );
+		</cfscript>
+	</cffunction>
+
+
 	<cffunction name="manageOneToManyRecords" access="public" returntype="void" output="false">
 		<cfargument name="event" type="any"     required="true" />
 		<cfargument name="rc"    type="struct"  required="true" />
