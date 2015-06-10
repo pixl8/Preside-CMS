@@ -824,6 +824,34 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="editOneToManyRecord" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+			var id              = rc.id              ?: "";
+			var version         = rc.version         ?: "";
+			var objectName      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+
+			// TODO: permissions, versions, translations!
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+			if ( not prc.record.recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", querystring="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" ) );
+			}
+			prc.record = queryRowToStruct( prc.record );
+			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
+
+			event.setLayout( "adminModalDialog" );
+		</cfscript>
+	</cffunction>
+
 <!--- VIEWLETS --->
 	<cffunction name="versionNavigator" access="private" returntype="string" output="false">
 		<cfargument name="event" type="any"    required="true" />
