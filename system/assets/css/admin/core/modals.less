@@ -29,7 +29,8 @@
 			height : 100%;
 
 			.modal-body {
-				height : calc( ~"100% - 116px" );
+				height  : calc( ~"100% - 116px" );
+				padding : 0;
 
 				.bootbox-body {
 					height : 100%;
@@ -49,4 +50,11 @@
 
 .presidecms.modal-backdrop {
 	z-index : 1030;
+}
+
+.presidecms.iframe {
+	.page-content {
+		padding-left  : 0;
+		padding-right : 0;
+	}
 }
