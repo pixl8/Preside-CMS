@@ -852,6 +852,31 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="editOneToManyRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+
+		<cfscript>
+			var id              = rc.id              ?: "";
+			var object          = rc.object          ?: "";
+			var parentId        = rc.parentId        ?: "";
+			var relationshipKey = rc.relationshipKey ?: "";
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+
+			runEvent(
+				  event          = "admin.DataManager._editRecordAction"
+				, prePostExempt  = true
+				, private        = true
+				, eventArguments = {
+					  errorUrl   = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord"   , queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#&id=#id#" )
+					, successUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
+				}
+			);
+		</cfscript>
+	</cffunction>
+
 <!--- VIEWLETS --->
 	<cffunction name="versionNavigator" access="private" returntype="string" output="false">
 		<cfargument name="event" type="any"    required="true" />
@@ -1346,7 +1371,9 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="errorAction"       type="string"  required="false" default="" />
+		<cfargument name="errorUrl"          type="string"  required="false" default="#( errorAction.len() ? event.buildAdminLink( linkTo=errorAction ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) )#" />
 		<cfargument name="successAction"     type="string"  required="false" default="" />
+		<cfargument name="successUrl"        type="string"  required="false" default="#( successAction.len() ? event.buildAdminLink( linkTo=successAction, queryString='id=' & id ) : event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
@@ -1365,11 +1392,7 @@
 			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
-				}
+				setNextEvent( url=errorUrl );
 			}
 
 			formData.id = id;
@@ -1380,11 +1403,7 @@
 				persist = formData;
 				persist.validationResult = validationResult;
 
-				if ( Len( errorAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=errorAction ), persistStruct=persist );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", querystring="id=#id#&object=#object#&version=#version#" ), persistStruct=persist );
-				}
+				setNextEvent( url=errorUrl );
 			}
 
 			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
@@ -1392,11 +1411,7 @@
 			if ( redirectOnSuccess ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
-				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#id#" ) );
-				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
-				}
+				setNextEvent( url=successUrl );
 			}
 		</cfscript>
 	</cffunction>
