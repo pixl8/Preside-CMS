@@ -36,7 +36,7 @@
 		#topJs#
 	</head>
 
-	<body>
+	<body class="preside-theme">
 		<div class="main-container modal-dialog-layout-container" id="main-container">
 			<div class="main-container-inner">
 				<div class="main-content">
