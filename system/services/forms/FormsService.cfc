@@ -328,14 +328,20 @@ component {
 		}
 
 		if ( Len( Trim( arguments.layout ) ) && Len( Trim( renderedControl ) ) ) {
-			renderedControl = coldbox.renderViewlet( event=arguments.layout, args={
+			var layoutArgs = {
 				  control  = renderedControl
 				, label    = arguments.label
 				, for      = arguments.id
 				, error    = arguments.error
 				, required = arguments.required
 				, help     = arguments.help
-			} );
+			};
+			layoutArgs.append( arguments, false );
+
+			renderedControl = coldbox.renderViewlet(
+				  event = arguments.layout
+				, args  = layoutArgs
+			);
 		}
 
 		return renderedControl;
