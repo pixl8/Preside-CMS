@@ -21,8 +21,9 @@
 
 .presidecms {
 	.modal-content {
-		border-radius : 5px;
-		box-shadow    : 0px 5px 15px rgba(0, 0, 0, 0.5);
+		border-radius    : 5px;
+		box-shadow       : 0px 5px 15px rgba(0, 0, 0, 0.5);
+		background-color : @grey14
 	}
 
 	.modal-header {
@@ -42,8 +43,14 @@
 		}
 	}
 
+	.modal-body {
+		background-color : @white;
+	}
+
 	.modal-footer {
-		border-radius : 0 0 5px 5px;
+		border-radius    : 0 0 5px 5px;
+		background-color : @grey14;
+		margin-top       : 0;
 	}
 
 	&.modal-backdrop {
