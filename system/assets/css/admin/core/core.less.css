@@ -25456,6 +25456,7 @@ img.presidecms .editable-click:hover {
 .presidecms .modal-content {
   border-radius: 5px;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+  background-color: #eeeeee;
 }
 .presidecms .modal-header {
   background-color: #eeeeee;
@@ -25471,8 +25472,13 @@ img.presidecms .editable-click:hover {
   font-size: 19px;
   text-shadow: none;
 }
+.presidecms .modal-body {
+  background-color: #ffffff;
+}
 .presidecms .modal-footer {
   border-radius: 0 0 5px 5px;
+  background-color: #eeeeee;
+  margin-top: 0;
 }
 .presidecms.modal-backdrop {
   z-index: 1030;
