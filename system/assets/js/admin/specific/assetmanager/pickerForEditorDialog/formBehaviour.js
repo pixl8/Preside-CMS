@@ -61,8 +61,8 @@
 	};
 
 	populateAssetDetails = function( data ){
-		if ( assetType === "image" && data.width && data.height ) {
-			$dimensions.data( "ImageDimensionPicker" ).reset( data.width, data.height );
+		if ( assetType === "image" && data.WIDTH && data.HEIGHT ) {
+			$dimensions.data( "ImageDimensionPicker" ).reset( data.WIDTH, data.HEIGHT );
 		}
 
 		$titleInput.attr( 'placeholder', data.LABEL || '' );
