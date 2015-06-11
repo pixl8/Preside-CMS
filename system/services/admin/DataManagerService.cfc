@@ -131,6 +131,8 @@ component output="false" singleton=true {
 			result.totalRecords = _getPresideObjectService().selectData(
 				  objectName       = arguments.objectName
 				, selectFields     = [ "count( * ) as nRows" ]
+				, filter           = arguments.filter
+				, filterParams     = arguments.filterParams
 			).nRows;
 		}
 
