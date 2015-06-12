@@ -25,13 +25,22 @@ component output=false singleton=true {
 			throw( type="AssetTransformer.resize.notAnImage" );
 		}
 
-		if ( not arguments.height ) {
+		currentImageInfo = ImageInfo( image );
+
+		if ( !arguments.height ) {
+			if ( currentImageInfo.width == arguments.width ) {
+				return arguments.asset;
+			}
 			ImageScaleToFit( image, arguments.width, "", interpolation );
-		} else if ( not arguments.width ) {
+		} else if ( !arguments.width ) {
+			if ( currentImageInfo.height == arguments.height ) {
+				return arguments.asset;
+			}
 			ImageScaleToFit( image, "", arguments.height, interpolation );
+		} else if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
+			return arguments.asset;
 		} else {
 			if ( maintainAspectRatio ) {
-				currentImageInfo   = ImageInfo( image );
 				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
 				targetAspectRatio  = arguments.width / arguments.height;
 			}

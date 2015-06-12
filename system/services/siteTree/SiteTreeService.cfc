@@ -37,10 +37,16 @@ component singleton=true {
 		var tree             = "";
 		var rootPage         = "";
 		var allowedPageTypes = _getPageTypesService().listSiteTreePageTypes();
+
+		var filter           = "page.trashed = :trashed";
+		if( !arguments.trash ){
+			filter &= " and page.page_type in (:page_type)"
+		}
+
 		var maxDepth         = arguments.maxDepth;
 		var args = {
 			  orderBy      = "page._hierarchy_sort_order"
-			, filter       = "page.trashed = :trashed and page.page_type in (:page_type)"
+			, filter       = filter
 			, filterParams = { trashed = arguments.trash, page_type = allowedPageTypes }
 			, useCache     = arguments.useCache
 			, groupBy      = "page.id"
@@ -59,7 +65,7 @@ component singleton=true {
 			args.filter       &= " and page._hierarchy_lineage like :_hierarchy_lineage";
 			args.filterParams._hierarchy_lineage = rootPage._hierarchy_child_selector;
 
-			if ( maxDepth >= 0 ) {
+			if ( maxDepth >= 0 && !isNull( rootPage._hierarchy_depth ) ) {
 				maxDepth += rootPage._hierarchy_depth+1;
 			}
 		}
