@@ -470,20 +470,21 @@ component displayName="Multilingual Preside Object Service" {
 	}
 
 	private struct function _resolveSelectField( required string sourceObject, required string selectField ) {
-		var bareFieldRegex   = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
+		var fieldMinusSqlEscapes = ReReplace( arguments.selectField, "[`\[\]]", "", "all" );
+		var bareFieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*$";
 
-		if ( ReFind( bareFieldRegex, arguments.selectField ) ) {
+		if ( ReFind( bareFieldRegex, fieldMinusSqlEscapes ) ) {
 			return {
 				  objectName   = arguments.sourceObject
-				, propertyName = arguments.selectField
-				, selector     = "#arguments.sourceObject#.#arguments.selectField#"
-				, alias        = arguments.selectField
+				, propertyName = fieldMinusSqlEscapes
+				, selector     = "#arguments.sourceObject#.#fieldMinusSqlEscapes#"
+				, alias        = fieldMinusSqlEscapes
 			};
 		}
 
 
 		var fieldRegex       = "^[_a-zA-Z][_a-zA-Z0-9\$]*\.[_a-zA-Z][_a-zA-Z0-9]*$";
-		var selectFieldParts = ListToArray( selectField, " " );
+		var selectFieldParts = ListToArray( fieldMinusSqlEscapes, " " );
 
 		if ( !selectFieldParts.len() || !ReFind( fieldRegex, selectFieldParts[ 1 ] ) || selectFieldParts.len() > 3 || ( selectFieldParts.len() == 3 && selectFieldParts[ 2 ] != "as" ) ) {
 			return {};
