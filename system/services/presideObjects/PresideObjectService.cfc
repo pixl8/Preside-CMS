@@ -1158,15 +1158,17 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		switch( arguments.relationship ){
 			case "many-to-one" :
 				switch( arguments.relatedTo ) {
-					case "asset": return "assetPicker";
-					case "link" : return "linkPicker";
-					default     : return "manyToOneSelect";
+					case "page"  : return "siteTreePagePicker";
+					case "asset" : return "assetPicker";
+					case "link"  : return "linkPicker";
+					default      : return "manyToOneSelect";
 				}
 			case "many-to-many":
 				switch( arguments.relatedTo ) {
-					case "asset": return "assetPicker";
-					case "link" : return "MultiLinkPicker";
-					default     : return "manyToManySelect";
+					case "page"  : return "siteTreePagePicker";
+					case "asset" : return "assetPicker";
+					case "link"  : return "MultiLinkPicker";
+					default      : return "manyToManySelect";
 				}
 			case "one-to-many":
 				return "oneToManyManager";
