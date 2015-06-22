@@ -274,10 +274,10 @@ component output=false singleton=true {
 			  name         = "_version_changed_fields"
 			, required     = false
 			, type         = "string"
-			, dbtype       = "varchar"
+			, dbtype       = "text"
 			, indexes      = ""
 			, control      = "none"
-			, maxLength    = 800
+			, maxLength    = 0
 			, relationship = "none"
 			, relatedto    = "none"
 			, generator    = "none"
