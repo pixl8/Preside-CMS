@@ -39,8 +39,8 @@ This form is used as the base "edit page" form for Sitetree pages. See also :doc
 
 	<tab id="dates" sortorder="30" title="preside-objects.page:editform.dateControlTab.title" description="preside-objects.page:editform.dateControlTab.description">
 		<fieldset id="dates" sortorder="10">
-			<field sortorder="10" binding="page.embargo_date" control="datepicker" />
-			<field sortorder="20" binding="page.expiry_date"  control="datepicker" />
+			<field sortorder="10" binding="page.embargo_date" />
+			<field sortorder="20" binding="page.expiry_date"  />
 		</fieldset>
 	</tab>
 
