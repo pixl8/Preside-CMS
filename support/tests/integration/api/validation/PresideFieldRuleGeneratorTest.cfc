@@ -132,7 +132,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test12_getRulesForField_shouldReturnDateValidator_whenFieldIsDateType(){
 		var expected  = [{ fieldName="some_datefield", validator="date", message="preside-objects.test:validation.some_datefield.date.message" }];
 		var rules     = generator.getRulesForField( objectName="test", fieldName="some_datefield", fieldAttributes={
-			type = "date"
+			type = "date", dbtype="date"
 		} );
 
 		super.assertEquals( expected, rules );
