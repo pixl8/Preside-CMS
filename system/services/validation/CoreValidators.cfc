@@ -76,7 +76,7 @@ component validationProvider=true {
 		return IsDate( arguments.value );
 	}
 	public string function datetime_js() {
-		return "function( value, el, params ) { var parts = value.split( ' ' ); return !/Invalid|NaN/.test(new Date( parts[0] ).toString()) && ( parts.length == 1 || ( parts.length == 2 && /^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/i.test( parts[1] ) ) ); }";
+		return "function( value, el, params ) { var parts = value.split( ' ' ); return !value.length || ( !/Invalid|NaN/.test(new Date( parts[0] ).toString()) && ( parts.length == 1 || ( parts.length == 2 && /^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/i.test( parts[1] ) ) ) ); }";
 	}
 
 	public boolean function match( required string fieldName, string value="", required string regex ) validatorMessage="cms:validation.match.default" {
