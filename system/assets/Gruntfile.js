@@ -80,6 +80,7 @@ module.exports = function( grunt ) {
 				},{
 					  src  : [
 					  	"js/admin/lib/plugins/jquery.dataTables.js", // must come first
+					  	"js/admin/lib/plugins/jquery.moment.js", // must come first
 					  	"js/admin/lib/plugins/*.js"
 					  ]
 					, dest : "js/admin/lib/plugins-1.0.007.min.js"
