@@ -120,7 +120,7 @@ component output="false" singleton=true {
 			break;
 
 			case "date":
-				ArrayAppend( rules, { fieldName=arguments.fieldName, validator="date" } );
+				ArrayAppend( rules, { fieldName=arguments.fieldName, validator=field.dbtype } );
 			break;
 
 			case "string":

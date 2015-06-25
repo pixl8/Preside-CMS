@@ -1177,8 +1177,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
-			case "date":
-				return "datePicker";
 		}
 
 		switch( arguments.dbType ){
@@ -1186,6 +1184,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			case "longtext":
 			case "clob":
 				return "richeditor";
+			case "date":
+				return "datePicker";
+			case "datetime":
+				return "dateTimePicker";
 		}
 
 		if ( maxLength gte 200 ) {
