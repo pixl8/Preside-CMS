@@ -25518,3 +25518,6 @@ img.presidecms .editable-click:hover {
   padding-left: 0;
   padding-right: 0;
 }
+.presidecms.iframe .top-right-button-group {
+  top: 13px;
+}
