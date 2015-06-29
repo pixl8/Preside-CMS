@@ -25222,6 +25222,14 @@ img.presidecms .editable-click:hover {
   padding-top: 4px;
   padding-left: 0px;
 }
+.presidecms .preside-theme .footer {
+  text-align: center;
+  color: #999999;
+  background: url(../../../images/logos/preside-logo-watermark.png ) center bottom no-repeat;
+  padding-bottom: 55px;
+  opacity: 0.6;
+  margin: 20px;
+}
 .presidecms .preside-loading-sheen {
   position: absolute;
   top: 0;

@@ -6,6 +6,7 @@
 	sideBarNav       = renderView( 'admin/layout/sideBarNavigation' );
 	backToTopWidget  = renderView( 'admin/layout/backToTopWidget' );
 	notifications    = renderView( 'admin/general/notifications' );
+	footer           = renderViewlet( 'admin.general.footer' );
 
 	currentHandler = event.getCurrentHandler();
 	currentAction  = event.getCurrentAction();
@@ -82,7 +83,7 @@
 						</div>
 					</div>
 
-					<!--- #uiSettingsWidget# --->
+					#footer#
 				</div>
 			</div>
 			#backToTopWidget#
