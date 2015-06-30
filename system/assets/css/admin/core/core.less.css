@@ -19,6 +19,7 @@
   font-style: normal;
 }
 html.presidecms {
+  height: 100%;
   overflow-y: scroll;
   position: relative;
   -ms-text-size-adjust: 100%;
@@ -28,8 +29,12 @@ html.presidecms {
 html.presidecms.iframe {
   overflow-y: auto;
 }
-body {
+html.presidecms body {
   height: 100%;
+}
+html.presidecms .outer-container {
+  min-height: 100%;
+  position: relative;
 }
 .presidecms {
   font-family: 'Preside Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -25593,6 +25598,28 @@ img.presidecms .editable-click:hover {
   height: 32px;
   padding-top: 4px;
   padding-left: 0px;
+}
+.presidecms .preside-theme .main-container {
+  padding-bottom: 100px;
+}
+.presidecms .preside-theme .footer {
+  text-align: right;
+  color: #999999;
+  background: #ffffff url("../../../images/logos/preside-logo-watermark.png") right 20px no-repeat;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 75px;
+  padding: 20px 50px 10px 0;
+  margin: 0 10px 0 0;
+  z-index: 0;
+}
+.presidecms .preside-theme .sidebar {
+  z-index: 1;
+}
+.presidecms .preside-theme .breadcrumbs {
+  z-index: 2;
 }
 .presidecms .preside-loading-sheen {
   position: absolute;
