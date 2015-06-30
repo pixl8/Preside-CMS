@@ -4,7 +4,6 @@
 	siteAlerts       = renderViewlet( 'admin.layout.siteAlerts' );
 	breadcrumbs      = renderView( 'admin/layout/breadcrumbs' );
 	sideBarNav       = renderView( 'admin/layout/sideBarNavigation' );
-	backToTopWidget  = renderView( 'admin/layout/backToTopWidget' );
 	notifications    = renderView( 'admin/general/notifications' );
 	footer           = renderViewlet( 'admin.general.footer' );
 
@@ -52,41 +51,42 @@
 	</head>
 
 	<body class="preside-theme">
-		#navbar#
-		#siteAlerts#
+		<div class="outer-container">
+			#navbar#
+			#siteAlerts#
 
-		<div class="main-container" id="main-container">
-			<script type="text/javascript">
-				try{ace.settings.check('main-container' , 'fixed')}catch(e){}
-			</script>
+			<div class="main-container" id="main-container">
+				<script type="text/javascript">
+					try{ace.settings.check('main-container' , 'fixed')}catch(e){}
+				</script>
 
-			<div class="main-container-inner">
-				<a class="menu-toggler" id="menu-toggler" href="##">
-					<span class="menu-text"></span>
-				</a>
-				#breadcrumbs#
+				<div class="main-container-inner">
+					<a class="menu-toggler" id="menu-toggler" href="##">
+						<span class="menu-text"></span>
+					</a>
+					#breadcrumbs#
 
-				#sideBarNav#
-				<div class="main-content">
+					#sideBarNav#
+					<div class="main-content">
 
-					<div class="page-content">
-						#renderView( view="admin/general/pageTitle", args={
-							  title    = ( prc.pageTitle    ?: "" )
-							, subTitle = ( prc.pageSubTitle ?: "" )
-							, icon     = ( prc.pageIcon     ?: "" )
-						} )#
+						<div class="page-content">
+							#renderView( view="admin/general/pageTitle", args={
+								  title    = ( prc.pageTitle    ?: "" )
+								, subTitle = ( prc.pageSubTitle ?: "" )
+								, icon     = ( prc.pageIcon     ?: "" )
+							} )#
 
-						<div class="row">
-							<div class="col-xs-12">
-								#body#
+							<div class="row">
+								<div class="col-xs-12">
+									#body#
+								</div>
 							</div>
 						</div>
-					</div>
 
-					#footer#
+					</div>
 				</div>
 			</div>
-			#backToTopWidget#
+			#footer#
 		</div>
 
 		#notifications#

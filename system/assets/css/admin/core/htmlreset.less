@@ -1,4 +1,5 @@
 html.presidecms {
+    height                      : 100%;
     overflow-y                  : scroll;
     position                    : relative;
     -ms-text-size-adjust        : 100%;
@@ -8,11 +9,17 @@ html.presidecms {
     &.iframe {
         overflow-y : auto;
     }
+
+    body {
+        height : 100%;
+    }
+
+    .outer-container {
+        min-height : 100%;
+        position   : relative;
+    }
 }
 
-body {
-    height : 100%;
-}
 
 .presidecms {
     font-family : @default-font;
