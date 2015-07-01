@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="websitePermissionService" inject="websitePermissionService";
+	property name="websiteLoginService"      inject="websiteLoginService";
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="bCryptService"            inject="bCryptService";
@@ -127,6 +128,16 @@ component extends="preside.system.base.AdminHandler" {
 				, postAction = "websiteUserManager"
 			}
 		);
+	}
+
+	function impersonateUserAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.impersonate" );
+
+		if ( websiteLoginService.impersonate( userId=rc.id ?: "" ) ) {
+			setNextEvent( url=event.buildLink( page="homepage" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( "websiteUserManager.index" ) );
 	}
 
 // private utility
