@@ -802,6 +802,8 @@
 			var objectTitle   = translateResource( "preside-objects.#objectName#:title" );
 
 			prc.gridFields    = _getObjectFieldsForGrid( objectName );
+			prc.canAdd        = datamanagerService.isOperationAllowed( objectName, "add" );
+			prc.delete        = datamanagerService.isOperationAllowed( objectName, "delete" );
 			prc.pageTitle     = translateResource( uri="cms:datamanager.oneToManyListing.page.title"   , data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
 			prc.pageSubTitle  = translateResource( uri="cms:datamanager.oneToManyListing.page.subtitle", data=[ objectTitle, parentDetails.parentObjectTitle, parentDetails.parentRecordLabel ] );
 			prc.pageIcon      = "puzzle-piece";
