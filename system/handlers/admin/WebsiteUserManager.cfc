@@ -1,11 +1,11 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="bCryptService"            inject="bCryptService";
 
-	function prehandler( event, rc, prc ) output=false {
+	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "websiteUsers" ) ) {
@@ -18,11 +18,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function index( event, rc, prc ) output=false {
+	function index( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.navigate" );
 	}
 
-	function getUsersForAjaxDataTables( event, rc, prc ) output=false {
+	function getUsersForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.read" );
 
 		runEvent(
@@ -38,7 +38,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function addUser( event, rc, prc ) output=false {
+	function addUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.add" );
 
 		event.addAdminBreadCrumb(
@@ -46,7 +46,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, link  = event.buildAdminLink( linkTo="websiteUserManager.addUser" )
 		);
 	}
-	function addUserAction( event, rc, prc ) output=false {
+	function addUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.add" );
 
 		var object = "website_user";
@@ -77,7 +77,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function editUser( event, rc, prc ) output=false {
+	function editUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.edit" );
 
 		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
@@ -95,7 +95,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function editUserAction( event, rc, prc ) output=false {
+	function editUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="usermanager.edit" );
 
 		runEvent(
@@ -115,7 +115,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 	}
 
-	function deleteUserAction( event, rc, prc ) output=false {
+	function deleteUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.delete" );
 
 		runEvent(
@@ -130,7 +130,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // private utility
-	private void function _checkPermissions( required any event, required string key ) output=false {
+	private void function _checkPermissions( required any event, required string key ) {
 		if ( !hasCmsPermission( arguments.key ) ) {
 			event.adminAccessDenied();
 		}
