@@ -26,6 +26,9 @@ html.presidecms {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
+html.presidecms.login {
+  height: auto;
+}
 html.presidecms.iframe {
   overflow-y: auto;
 }
