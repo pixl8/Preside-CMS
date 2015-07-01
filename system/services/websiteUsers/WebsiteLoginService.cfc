@@ -3,7 +3,7 @@
  * \n
  * See also: :doc:`/devguides/websiteusers`
  */
-component output=false singleton=true autodoc=true displayName="Website login service" {
+component singleton=true autodoc=true displayName="Website login service" {
 
 // constructor
 	/**
@@ -15,7 +15,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @emailService.inject               emailService
 	 */
-	public any function init( required any sessionService, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) output=false {
+	public any function init( required any sessionService, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
 		_setSessionService( arguments.sessionService );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
@@ -41,7 +41,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @rememberExpiryInDays.hint When setting a remember me cookie, how long (in days) before the cookie should expire
 	 *
 	 */
-	public boolean function login( required string loginId, string password="", boolean rememberLogin=false, rememberExpiryInDays=90, boolean skipPasswordCheck=false ) output=false autodoc=true {
+	public boolean function login( required string loginId, string password="", boolean rememberLogin=false, rememberExpiryInDays=90, boolean skipPasswordCheck=false ) autodoc=true {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
@@ -64,13 +64,39 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	}
 
 	/**
+	 * Impersonates a login
+	 *
+	 * @userId.hint      ID of the user whom to impersonate
+	 * @adminUserId.hint ID of the admin user who is impersonating login
+	 */
+	public boolean function impersonate( required string userId ) {
+		if ( !Len( Trim( userId ) ) ) {
+			return false;
+		}
+
+		var userRecord = _getUserDao().selectData( id=arguments.userId );
+		for( var u in userRecord ) {
+			userRecord = u;
+
+			userRecord.session_authenticated = true;
+			userRecord.impersonated          = true;
+
+			_setUserSession( userRecord );
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Validates the supplied password against the a user (defaults to currently logged in user)
 	 *
 	 * @password.hint The user supplied password
 	 * @userId.hint   The id of the user who's password we are to validate. Defaults to the currently logged in user.
 	 *
 	 */
-	public boolean function validatePassword( required string password, string userId=getLoggedInUserId() ) output=false autodoc=true {
+	public boolean function validatePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
 		var userRecord = _getUserDao().selectData( id=arguments.userId, selectFields=[ "password" ] );
 
 		return userRecord.recordCount && _validatePassword( plainText=arguments.password, hashed=userRecord.password );
@@ -80,7 +106,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * Logs the currently logged in user out of their session
 	 *
 	 */
-	public void function logout() output=false autodoc=true {
+	public void function logout() autodoc=true {
 		recordLogout();
 
 		_getSessionService().deleteVar( name=_getSessionKey() );
@@ -100,7 +126,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 * @securityAlertCallback.hint A function that will be invoked should their be a security alert during auto login checking. Use this to alert the user that their login may have been compromised.
 	 */
-	public boolean function isLoggedIn( function securityAlertCallback=function(){} ) output=false autodoc=true {
+	public boolean function isLoggedIn( function securityAlertCallback=function(){} ) autodoc=true {
 		var userSessionExists = _getSessionService().exists( name=_getSessionKey() );
 
 		return userSessionExists || _autoLogin( argumentCollection = arguments );
@@ -113,15 +139,34 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * a login prompt when this method returns true.
 	 *
 	 */
-	public boolean function isAutoLoggedIn() output=false autodoc=true {
+	public boolean function isAutoLoggedIn() autodoc=true {
 		return _getSessionService().exists( name=_getSessionKey() ) && !getLoggedInUserDetails().session_authenticated;
+	}
+
+	/**
+	 * Returns whether or not the user making the current request is only "impersonated" by an admin user.
+	 * This method can then be used to hide sensitive information that even admin users impersonating a web
+	 * user should not be able to see.
+	 *
+	 * @autodoc true
+	 */
+	public boolean function isImpersonated() {
+		var sessionExists = _getSessionService().exists( name=_getSessionKey() );
+
+		if ( sessionExists ) {
+			var details = getLoggedInUserDetails();
+
+			return IsBoolean( details.impersonated ?: "" ) && details.impersonated;
+		}
+
+		return false;
 	}
 
 	/**
 	 * Returns the structure of user details belonging to the currently logged in user.
 	 * If no user is logged in, an empty structure will be returned.
 	 */
-	public struct function getLoggedInUserDetails() output=false autodoc=true {
+	public struct function getLoggedInUserDetails() autodoc=true {
 		var userDetails = _getSessionService().getVar( name=_getSessionKey(), default={} );
 
 		return IsStruct( userDetails ) ? userDetails : {};
@@ -130,7 +175,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	/**
 	 * Returns the id of the currently logged in user, or an empty string if no user is logged in
 	 */
-	public string function getLoggedInUserId() output=false autodoc=true {
+	public string function getLoggedInUserId() autodoc=true {
 		var userDetails = getLoggedInUserDetails();
 
 		return userDetails.id ?: "";
@@ -141,7 +186,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 * @loginId.hint The id of the user
 	 */
-	public boolean function sendWelcomeEmail( required string userId ) output=false autodoc=true {
+	public boolean function sendWelcomeEmail( required string userId ) autodoc=true {
 		var userRecord = _getUserDao().selectData( id=arguments.userId );
 
 		if ( userRecord.recordCount ) {
@@ -173,7 +218,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 * @loginId.hint Either the email address or login id of the user
 	 */
-	public boolean function sendPasswordResetInstructions( required string loginId ) output=false autodoc=true {
+	public boolean function sendPasswordResetInstructions( required string loginId ) autodoc=true {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.count() ) {
@@ -206,7 +251,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 *
 	 * @token.hint The token to validate
 	 */
-	public boolean function validateResetPasswordToken( required string token ) output=false autodoc=true {
+	public boolean function validateResetPasswordToken( required string token ) autodoc=true {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
 		return record.recordCount == 1;
@@ -218,7 +263,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @token.hint    The temporary reset password token to look the user up with
 	 * @password.hint The new password
 	 */
-	public boolean function resetPassword( required string token, required string password ) output=false autodoc=true {
+	public boolean function resetPassword( required string token, required string password ) autodoc=true {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
 		if ( record.recordCount ) {
@@ -238,7 +283,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @password.hint The new password
 	 * @userId.hint   ID of the user who's password we wish to change (defaults to currently logged in user id)
 	 */
-	public boolean function changePassword( required string password, string userId=getLoggedInUserId() ) output=false autodoc=true {
+	public boolean function changePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
 		var hashedPw = _getBCryptService().hashPw( arguments.password );
 
 		return _getUserDao().updateData(
@@ -253,7 +298,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @defaultValue.hint Value to use should there be no stored post login URL
 	 *
 	 */
-	public string function getPostLoginUrl( required string defaultValue ) output=false {
+	public string function getPostLoginUrl( required string defaultValue ) {
 		var sessionSavedValue = _getSessionService().getVar( "websitePostLoginUrl", "" );
 
 		if ( Len( Trim( sessionSavedValue ) ) ) {
@@ -271,7 +316,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * @postLoginUrl.hint URL to save
 	 *
 	 */
-	public void function setPostLoginUrl( required string postLoginUrl ) output=false {
+	public void function setPostLoginUrl( required string postLoginUrl ) {
 		_getSessionService().setVar( "websitePostLoginUrl", arguments.postLoginUrl );
 	}
 
@@ -279,7 +324,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	 * Clears the post login URL from storage
 	 *
 	 */
-	public boolean function clearPostLoginUrl() output=false {
+	public boolean function clearPostLoginUrl() {
 		return _getSessionService().deleteVar( "websitePostLoginUrl" );
 	}
 
@@ -347,7 +392,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	}
 
 // private helpers
-	private struct function _getUserByLoginId( required string loginId ) output=false {
+	private struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = arguments.loginId }
@@ -361,15 +406,15 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		return {};
 	}
 
-	private boolean function _validatePassword( required string plainText, required string hashed ) output=false {
+	private boolean function _validatePassword( required string plainText, required string hashed ) {
 		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
 	}
 
-	private void function _setUserSession( required struct data ) output=false {
+	private void function _setUserSession( required struct data ) {
 		_getSessionService().setVar( name=_getSessionKey(), value=arguments.data );
 	}
 
-	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) output=false {
+	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
 		var cookieValue = {
 			  loginId = arguments.loginId
 			, expiry  = arguments.expiry
@@ -391,11 +436,11 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		);
 	}
 
-	private void function _deleteRememberMeCookie() output=false {
+	private void function _deleteRememberMeCookie() {
 		_getCookieService().deleteVar( _getRememberMeCookieKey() );
 	}
 
-	private struct function _readRememberMeCookie() output=false {
+	private struct function _readRememberMeCookie() {
 		var cookieValue = _getCookieService().getVar( _getRememberMeCookieKey(), {} );
 
 		if ( IsStruct( cookieValue ) ) {
@@ -410,7 +455,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		return {};
 	}
 
-	private boolean function _autoLogin( required function securityAlertCallback ) output=false {
+	private boolean function _autoLogin( required function securityAlertCallback ) {
 		if ( StructKeyExists( request, "_presideWebsiteAutoLoginResult" ) ) {
 			return request._presideWebsiteAutoLoginResult;
 		}
@@ -435,7 +480,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 
 	}
 
-	private struct function _getUserRecordFromCookie( required struct cookieValue, required function securityAlertCallback ) output=false {
+	private struct function _getUserRecordFromCookie( required struct cookieValue, required function securityAlertCallback ) {
 		if ( StructCount( arguments.cookieValue ) ) {
 			var tokenRecord = _getUserLoginTokenDao().selectData(
 				  selectFields = [ "website_user_login_token.id", "website_user_login_token.token", "website_user.login_id" ]
@@ -456,7 +501,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		return {};
 	}
 
-	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) output=false {
+	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) {
 		arguments.cookieValue.token = _createNewLoginToken();
 
 		_getUserLoginTokenDao().updateData(
@@ -472,23 +517,23 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		);
 	}
 
-	private string function _createNewLoginTokenSeries() output=false {
+	private string function _createNewLoginTokenSeries() {
 		return _createRandomToken();
 	}
 
-	private string function _createNewLoginToken() output=false {
+	private string function _createNewLoginToken() {
 		return _createRandomToken();
 	}
 
-	private string function _createTemporaryResetToken() output=false {
+	private string function _createTemporaryResetToken() {
 		return _createRandomToken();
 	}
 
-	private string function _createTemporaryResetKey() output=false {
+	private string function _createTemporaryResetKey() {
 		return _createRandomToken();
 	}
 
-	private string function _createRandomToken() output=false {
+	private string function _createRandomToken() {
 		var chars    = ListToArray( Replace( CreateUUId(), "-", "", "all" ), "" );
 		var token = "";
 
@@ -507,7 +552,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		return token;
 	}
 
-	private date function _createTemporaryResetTokenExpiry() output=false {
+	private date function _createTemporaryResetTokenExpiry() {
 		var expiry = Val( _getSystemConfigurationService().getSetting( "website_users", "reset_password_token_expiry", 60 ) );
 
 		if ( !expiry ) {
@@ -517,7 +562,7 @@ component output=false singleton=true autodoc=true displayName="Website login se
 		}
 	}
 
-	private query function _getUserRecordByPasswordResetToken( required string token ) output=false {
+	private query function _getUserRecordByPasswordResetToken( required string token ) {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
@@ -543,66 +588,66 @@ component output=false singleton=true autodoc=true displayName="Website login se
 	}
 
 // private accessors
-	private any function _getSessionService() output=false {
+	private any function _getSessionService() {
 		return _sessionService;
 	}
-	private void function _setSessionService( required any sessionService ) output=false {
+	private void function _setSessionService( required any sessionService ) {
 		_sessionService = arguments.sessionService;
 	}
 
-	private any function _getCookieService() output=false {
+	private any function _getCookieService() {
 		return _cookieService;
 	}
-	private void function _setCookieService( required any cookieService ) output=false {
+	private void function _setCookieService( required any cookieService ) {
 		_cookieService = arguments.cookieService;
 	}
 
-	private any function _getUserDao() output=false {
+	private any function _getUserDao() {
 		return _userDao;
 	}
-	private void function _setUserDao( required any userDao ) output=false {
+	private void function _setUserDao( required any userDao ) {
 		_userDao = arguments.userDao;
 	}
 
-	private any function _getBCryptService() output=false {
+	private any function _getBCryptService() {
 		return _bCryptService;
 	}
-	private void function _setBCryptService( required any bCryptService ) output=false {
+	private void function _setBCryptService( required any bCryptService ) {
 		_bCryptService = arguments.bCryptService;
 	}
 
-	private string function _getSessionKey() output=false {
+	private string function _getSessionKey() {
 		return _sessionKey;
 	}
-	private void function _setSessionKey( required string sessionKey ) output=false {
+	private void function _setSessionKey( required string sessionKey ) {
 		_sessionKey = arguments.sessionKey;
 	}
 
-	private string function _getRememberMeCookieKey() output=false {
+	private string function _getRememberMeCookieKey() {
 		return _rememberMeCookieKey;
 	}
-	private void function _setRememberMeCookieKey( required string rememberMeCookieKey ) output=false {
+	private void function _setRememberMeCookieKey( required string rememberMeCookieKey ) {
 		_rememberMeCookieKey = arguments.rememberMeCookieKey;
 	}
 
-	private any function _getUserLoginTokenDao() output=false {
+	private any function _getUserLoginTokenDao() {
 		return _userLoginTokenDao;
 	}
-	private void function _setUserLoginTokenDao( required any userLoginTokenDao ) output=false {
+	private void function _setUserLoginTokenDao( required any userLoginTokenDao ) {
 		_userLoginTokenDao = arguments.userLoginTokenDao;
 	}
 
-	private any function _getSystemConfigurationService() output=false {
+	private any function _getSystemConfigurationService() {
 		return _systemConfigurationService;
 	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 
-	private any function _getEmailService() output=false {
+	private any function _getEmailService() {
 		return _emailService;
 	}
-	private void function _setEmailService( required any emailService ) output=false {
+	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
 	}
 }
