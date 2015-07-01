@@ -18,7 +18,7 @@
 </cfscript>
 
 <cfoutput><!DOCTYPE html>
-<html lang="en" class="presidecms">
+<html lang="en" class="presidecms login">
 	<head>
 		<meta charset="utf-8" />
 		<title>#htmlTitle#</title>
