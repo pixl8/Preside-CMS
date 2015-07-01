@@ -109,6 +109,22 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_oneToManyListingActions" access="private" returntype="string" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+		<cfargument name="args"  type="struct"  required="false" default="#StructNew()#" />
+
+		<cfscript>
+			var objectName = args.objectName ?: "";
+
+			args.canEdit   = datamanagerService.isOperationAllowed( objectName, "edit"   );
+			args.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" );
+
+			return renderView( view="/admin/datamanager/_oneToManyListingActions", args=args );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="getRecordHistoryForAjaxDataTables" access="public" returntype="void" output="false">
 		<cfargument name="event"           type="any"     required="true" />
 		<cfargument name="rc"              type="struct"  required="true" />
@@ -1017,7 +1033,11 @@
 				}
 
 				if ( Len( Trim( actionsView ) ) ) {
-					ArrayAppend( optionsCol, renderView( view=actionsView, args=record ) );
+					var actionsViewlet = Replace( ReReplace( actionsView, "^/", "" ), "/", ".", "all" );
+					var viewletArgs    = Duplicate( record );
+					viewletArgs.objectName = object;
+
+					ArrayAppend( optionsCol, renderViewlet( event=actionsViewlet, args=viewletArgs ) );
 				} else {
 					ArrayAppend( optionsCol, renderView( view="/admin/datamanager/_listingActions", args={
 						  viewRecordLink    = event.buildAdminLink( linkto="datamanager.viewRecord", queryString="id=#record.id#&object=#object#" )

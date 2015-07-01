@@ -12,7 +12,7 @@
 	objectDescription   = translateResource( uri="preside-objects.#objectName#:description", defaultValue="" );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
 
-	datatableSourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#objectName#&action=dataManager.getChildObjectRecordsForAjaxDataTables&useMultiActions=true&gridFields=#ArrayToList( gridFields )#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
+	datatableSourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#objectName#&action=dataManager.getChildObjectRecordsForAjaxDataTables&useMultiActions=#canDelete#&gridFields=#ArrayToList( gridFields )#&parentId=#parentId#&relationshipKey=#relationshipKey#" );
 </cfscript>
 
 <cfoutput>
