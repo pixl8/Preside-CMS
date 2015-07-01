@@ -358,6 +358,9 @@
 			var parentId        = rc.parentId ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			if ( !datamanagerService.isOperationAllowed( objectName, "delete"   ) ) {
+				event.adminAccessDenied();
+			}
 			rc.forceDelete = true;
 
 			runEvent(
@@ -446,7 +449,9 @@
 			var objectName = rc.object ?: "";
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			// todo check permissions
+			if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
+				event.adminAccessDenied();
+			}
 
 			runEvent(
 				  event          = "admin.DataManager._addOneToManyRecordAction"
@@ -814,6 +819,9 @@
 			var objectName = event.getValue( name="object", defaultValue="" );
 
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			if ( !datamanagerService.isOperationAllowed( objectName, "add"   ) ) {
+				event.adminAccessDenied();
+			}
 
 			var parentDetails = _getParentDetailsForOneToManyActions( event, rc, prc );
 			var objectTitle   = translateResource( "preside-objects.#objectName#:title.singular" );
@@ -840,6 +848,9 @@
 			var objectName      = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
+			if ( !datamanagerService.isOperationAllowed( object, "edit"   ) ) {
+				event.adminAccessDenied();
+			}
 
 			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
 			if ( not prc.record.recordCount ) {
@@ -873,6 +884,9 @@
 			rc[ relationshipKey ] = parentId;
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
+			if ( !datamanagerService.isOperationAllowed( object, "edit"   ) ) {
+				event.adminAccessDenied();
+			}
 
 			runEvent(
 				  event          = "admin.DataManager._editRecordAction"
