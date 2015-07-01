@@ -15,6 +15,12 @@
 			</a>
 		</cfif>
 
+		<cfif hasCmsPermission( "websiteUserManager.edit" )>
+			<a class="green" href="#event.buildAdminLink( linkTo="websiteUserManager.changeUserPassword", queryString="id=#args.id#")#" data-context-key="p">
+				<i class="fa fa-key bigger-130"></i>
+			</a>
+		</cfif>
+
 		<cfif hasCmsPermission( "websiteUserManager.impersonate" )>
 			<a class="grey confirmation-prompt" data-context-key="i" href="#event.buildAdminLink( linkTo="websiteUserManager.impersonateUserAction", queryString="id=#args.id#" )#" title="#translateResource( uri='cms:websiteUserManager.impersonateUser.prompt', data=[args.display_name] )#">
 				<i class="fa fa-user-md bigger-130"></i>
