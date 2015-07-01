@@ -11,7 +11,7 @@ For multi file uploads, this form will be rendered once for each file.
     <?xml version="1.0" encoding="UTF-8"?>
 
     <form>
-        <tab id="standard" sortorder="10">
+        <tab id="standard" sortorder="10" title="preside-objects.asset:standard.tab.title">
             <fieldset id="standard" sortorder="10">
                 <field sortorder="10" binding="asset.title" />
                 <field sortorder="20" binding="asset.author" control="textinput" />
