@@ -116,6 +116,48 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 	}
 
+	function changeUserPassword( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
+
+		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:websiteUserManager.changeUserPassword.page.title", data=[ prc.record.display_name ] )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager.changeUserPassword", queryString="id=#(rc.id ?: '')#" )
+		);
+	}
+
+	function changeUserPasswordAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
+
+		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		var formName         = "preside-objects.website_user.admin.change.password";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			websiteLoginService.changePassword( formData.password, prc.record.id );
+			messageBox.info( translateResource( uri="cms:websiteUserManager.userPassword.changed.confirmation", data=[ prc.record.display_name ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		var persist = formData;
+		persist.validationResult = validationResult;
+
+		setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager.changeUserPassword", queryString="id=#rc.id#" ), persistStruct=persist );
+	}
+
 	function deleteUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.delete" );
 
