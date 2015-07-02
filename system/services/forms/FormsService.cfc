@@ -347,7 +347,13 @@ component {
 		return renderedControl;
 	}
 
-	public any function validateForm( required string formName, required struct formData, boolean preProcessData=true, boolean ignoreMissing=false ) {
+	public any function validateForm(
+		  required string  formName
+		, required struct  formData
+		,          boolean preProcessData=true
+		,          boolean ignoreMissing=false
+		,          any     validationResult=_getValidationEngine().newValidationResult()
+	) {
 		var ruleset = _getValidationRulesetFromFormName( arguments.formName );
 		var data    = Duplicate( arguments.formData );
 
@@ -366,6 +372,7 @@ component {
 		return _getValidationEngine().validate(
 			  ruleset = ruleset
 			, data    = data
+			, result  = arguments.validationResult
 		);
 	}
 
@@ -377,10 +384,9 @@ component {
 		);
 	}
 
-	public any function preProcessForm( required string formName, required struct formData ) {
+	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult() ) {
 		var formFields       = listFields( arguments.formName );
 		var fieldValue       = "";
-		var validationResult = _getValidationEngine().newValidationResult();
 
 		for( var field in formFields ){
 			fieldValue = arguments.formData[ field ] ?: "";

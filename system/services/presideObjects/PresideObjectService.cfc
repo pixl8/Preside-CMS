@@ -1158,15 +1158,17 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		switch( arguments.relationship ){
 			case "many-to-one" :
 				switch( arguments.relatedTo ) {
-					case "asset": return "assetPicker";
-					case "link" : return "linkPicker";
-					default     : return "manyToOneSelect";
+					case "page"  : return "siteTreePagePicker";
+					case "asset" : return "assetPicker";
+					case "link"  : return "linkPicker";
+					default      : return "manyToOneSelect";
 				}
 			case "many-to-many":
 				switch( arguments.relatedTo ) {
-					case "asset": return "assetPicker";
-					case "link" : return "MultiLinkPicker";
-					default     : return "manyToManySelect";
+					case "page"  : return "siteTreePagePicker";
+					case "asset" : return "assetPicker";
+					case "link"  : return "MultiLinkPicker";
+					default      : return "manyToManySelect";
 				}
 			case "one-to-many":
 				return "oneToManyManager";
@@ -1177,8 +1179,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
-			case "date":
-				return "datePicker";
 		}
 
 		switch( arguments.dbType ){
@@ -1186,6 +1186,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			case "longtext":
 			case "clob":
 				return "richeditor";
+			case "date":
+				return "datePicker";
+			case "datetime":
+				return "dateTimePicker";
 		}
 
 		if ( maxLength gte 200 ) {

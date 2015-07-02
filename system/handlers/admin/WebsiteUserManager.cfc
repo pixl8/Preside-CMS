@@ -1,11 +1,12 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="websitePermissionService" inject="websitePermissionService";
+	property name="websiteLoginService"      inject="websiteLoginService";
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="bCryptService"            inject="bCryptService";
 
-	function prehandler( event, rc, prc ) output=false {
+	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "websiteUsers" ) ) {
@@ -18,11 +19,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function index( event, rc, prc ) output=false {
+	function index( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.navigate" );
 	}
 
-	function getUsersForAjaxDataTables( event, rc, prc ) output=false {
+	function getUsersForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.read" );
 
 		runEvent(
@@ -38,7 +39,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function addUser( event, rc, prc ) output=false {
+	function addUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.add" );
 
 		event.addAdminBreadCrumb(
@@ -46,7 +47,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, link  = event.buildAdminLink( linkTo="websiteUserManager.addUser" )
 		);
 	}
-	function addUserAction( event, rc, prc ) output=false {
+	function addUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.add" );
 
 		var object = "website_user";
@@ -77,7 +78,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	function editUser( event, rc, prc ) output=false {
+	function editUser( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.edit" );
 
 		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
@@ -95,7 +96,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
-	function editUserAction( event, rc, prc ) output=false {
+	function editUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="usermanager.edit" );
 
 		runEvent(
@@ -115,7 +116,49 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 	}
 
-	function deleteUserAction( event, rc, prc ) output=false {
+	function changeUserPassword( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
+
+		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:websiteUserManager.changeUserPassword.page.title", data=[ prc.record.display_name ] )
+			, link  = event.buildAdminLink( linkTo="websiteUserManager.changeUserPassword", queryString="id=#(rc.id ?: '')#" )
+		);
+	}
+
+	function changeUserPasswordAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.edit" );
+
+		prc.record = presideObjectService.selectData( objectName="website_user", filter={ id=rc.id ?: "" } );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		var formName         = "preside-objects.website_user.admin.change.password";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			websiteLoginService.changePassword( formData.password, prc.record.id );
+			messageBox.info( translateResource( uri="cms:websiteUserManager.userPassword.changed.confirmation", data=[ prc.record.display_name ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		var persist = formData;
+		persist.validationResult = validationResult;
+
+		setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager.changeUserPassword", queryString="id=#rc.id#" ), persistStruct=persist );
+	}
+
+	function deleteUserAction( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.delete" );
 
 		runEvent(
@@ -129,8 +172,18 @@ component extends="preside.system.base.AdminHandler" output=false {
 		);
 	}
 
+	function impersonateUserAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="websiteUserManager.impersonate" );
+
+		if ( websiteLoginService.impersonate( userId=rc.id ?: "" ) ) {
+			setNextEvent( url=event.buildLink( page="homepage" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( "websiteUserManager.index" ) );
+	}
+
 // private utility
-	private void function _checkPermissions( required any event, required string key ) output=false {
+	private void function _checkPermissions( required any event, required string key ) {
 		if ( !hasCmsPermission( arguments.key ) ) {
 			event.adminAccessDenied();
 		}

@@ -1,5 +1,7 @@
 <cfscript>
-	id              = args.id            ?: "";
+	id              = args.id                ?: "";
+	canEdit         = IsTrue( args.canEdit   ?: "" );
+	canDelete       = IsTrue( args.canDelete ?: "" );
 	object          = rc.object          ?: "";
 	parentId        = rc.parentId        ?: "";
 	relationshipKey = rc.relationshipKey ?: "";
@@ -11,8 +13,6 @@
 	editRecordLink    = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord", queryString="#commonQueryString#&id=#args.id#" )
 	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.prompt", data=[ objectTitleSingular, args.label ?: "" ] )
 
-	canEdit           = true; //datamanagerService.isOperationAllowed( object, "edit"   ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ object ] )
-	canDelete         = true; //datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
 </cfscript>
 <cfoutput>
 	<div class="action-buttons btn-group">

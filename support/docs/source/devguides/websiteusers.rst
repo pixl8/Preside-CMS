@@ -158,7 +158,12 @@ For example:
         // ... etc.
     }
 
+Login impersonation
+-------------------
 
+CMS administrative users, with sufficient privileges, are able to "impersonate" the login of website users through the admin GUI. Once they have done this, they are treated as a fully logged in user in the front end.
+
+If you wish to restrict these impersonated logins in any way, you can use the :code:`isImpersonated()` method of the :doc:`/reference/api/websiteloginservice` object to check to see whether or not the current login is merely an impersonated one.
 
 Permissions
 ###########

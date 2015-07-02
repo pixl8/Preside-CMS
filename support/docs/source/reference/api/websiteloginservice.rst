@@ -122,6 +122,24 @@ Arguments
 
 *This method does not accept any arguments.*
 
+.. _websiteloginservice-isimpersonated:
+
+IsImpersonated()
+~~~~~~~~~~~~~~~~
+
+.. code-block:: java
+
+    public boolean function isImpersonated( )
+
+Returns whether or not the user making the current request is only "impersonated" by an admin user.
+This method can then be used to hide sensitive information that even admin users impersonating a web
+user should not be able to see.
+
+Arguments
+.........
+
+*This method does not accept any arguments.*
+
 .. _websiteloginservice-getloggedinuserdetails:
 
 GetLoggedInUserDetails()

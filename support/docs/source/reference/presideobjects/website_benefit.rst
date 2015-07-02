@@ -29,6 +29,8 @@ Properties
     property name="priority"    type="numeric" dbtype="int"                      required=false default="method:calculatePriority";
     property name="description" type="string"  dbtype="varchar" maxLength="200"  required=false;
 
+    property name="combined_benefits" relationship="many-to-many" relatedTo="website_benefit" relatedVia="website_benefit_combined_benefits";
+
 
 Public API Methods
 ------------------

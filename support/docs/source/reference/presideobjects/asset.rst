@@ -29,9 +29,10 @@ Properties
     property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;
     property name="author"            type="string"  dbtype="varchar" maxLength=100     required=false;
     property name="size"              type="numeric" dbtype="int"                       required=true;
-    property name="asset_type"        type="string" dbtype="varchar" maxLength=10       required=true;
-    property name="raw_text_content"  type="string" dbtype="longtext";
-
+    property name="asset_type"        type="string"  dbtype="varchar" maxLength=10      required=true;
+    property name="raw_text_content"  type="string"  dbtype="longtext";
+    property name="width"             type="numeric" dbtype="int"                       required=false;
+    property name="height"            type="numeric" dbtype="int"                       required=false;
     property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false;
 
     property name="access_restriction"  type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset:access_restriction.option.inherit,preside-objects.asset:access_restriction.option.none,preside-objects.asset:access_restriction.option.full";
