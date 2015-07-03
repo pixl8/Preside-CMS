@@ -54,10 +54,7 @@ component output=false {
 				validationEngine.newProvider( obj );
 			}
 
-			ruleset = validationEngine.newRuleset( name="PresideObject.#objName#" );
-			ruleset.addRules(
-				rules = presideFieldRuleGenerator.generateRulesFromPresideObject( objName )
-			);
+			ruleset = validationEngine.newRuleset( name="PresideObject.#objName#", rules=presideFieldRuleGenerator.generateRulesFromPresideObject( objName ) );
 		}
 	}
 

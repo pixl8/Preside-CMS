@@ -1,6 +1,6 @@
 component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
 
-	function test01_newRuleset_shouldReturnANewlyInstantiatedRulesetObject(){
+	function test01_newRuleset_shouldReturnTheRulesetArray(){
 		var engine = _getEngine();
 		var ruleset = "";
 		var filePath = ListAppend( GetTempDirectory(), CreateUUId() );
@@ -13,7 +13,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		ruleset = engine.newRuleset( name="notFussed", rules = filePath );
 
-		super.assertEquals( expected, _rulesetToArrayOfStructs( ruleset.getRules() ) );
+		super.assertEquals( expected, ruleset );
 	}
 
 	function test02_listRulesets_shouldReturnEmptyArray_whenNoRulesetsAreRegistered(){
@@ -57,16 +57,17 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test06_validate_shouldRunValidationRulesetAgainstDataAndFindErrors(){
 		var engine = _getEngine();
-		var ruleset = engine.newRuleset( name="testRuleset" );
+		var rules  = [
+			  { fieldName="field1", validator="required", message="Not there" }
+			, { fieldName="field2", validator="validator1", params={justTesting=true}, serverCondition="IsDefined('${field2}')" }
+			, { fieldName="field3", validator="validator1", message="This should pass because of condition", serverCondition="${field2} eq 'I do not equal this'", params={justTesting=true} }
+			, { fieldName="field3", validator="required", message="Really not there" }
+		];
+		var ruleset = engine.newRuleset( name="testRuleset", rules=rules );
 		var result  = "";
 
 		// test setup
 		engine.newProvider( new tests.resources.ValidationProvider.SimpleProvider() );
-
-		ruleset.addRule( fieldName="field1", validator="required", message="Not there" );
-		ruleset.addRule( fieldName="field2", validator="validator1", params={justTesting=true}, serverCondition="IsDefined('${field2}')" );
-		ruleset.addRule( fieldName="field3", validator="validator1", message="This should pass because of condition", serverCondition="${field2} eq 'I do not equal this'", params={justTesting=true} );
-		ruleset.addRule( fieldName="field3", validator="required", message="Really not there" );
 
 		// run the method we are testing
 		result = engine.validate( ruleset="testRuleset", data={ field2="whatever" } );
@@ -84,10 +85,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test07_validate_shouldThrowInformativeError_whenConditionalRuleDoesNotEvaluateToABoolean(){
 		var engine = _getEngine();
-		var ruleset = engine.newRuleset( name="testRuleset" );
+		var ruleset = engine.newRuleset( name="testRuleset", rules=[ { fieldName="field1", validator="required", message="Not there", serverCondition="theSky = 'blue'" } ] );
 		var errorThrown = false;
-
-		ruleset.addRule( fieldName="field1", validator="required", message="Not there", serverCondition="theSky = 'blue'" );
 
 		try {
 			engine.validate( ruleset="testRuleset", data={} );
@@ -101,11 +100,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test08_validate_shouldThrowInformativeError_whenConditionalRuleThrowsAnError(){
 		var engine = _getEngine();
-		var ruleset = engine.newRuleset( name="testRuleset" );
+		var ruleset = engine.newRuleset( name="testRuleset", rules=[ { fieldName="field1", validator="required", message="Not there", serverCondition="${field7} eq blue" } ] );
 		var errorThrown = false;
 		var aStruct = {};
-
-		ruleset.addRule( fieldName="field1", validator="required", message="Not there", serverCondition="${field7} eq blue" );
 
 		try {
 			engine.validate( ruleset="testRuleset", data={} );
@@ -127,28 +124,32 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test09_getJQueryValidateJs_shouldReturnEmptyString_whenRulesetDoesNotExist(){
 		var engine  = _getEngine();
-		var ruleset = engine.newRuleset( name="testRuleset" );
+		var rules   = [
+			  { fieldName="field1", validator="required", message="Not there" }
+			, { fieldName="field2", validator="validator1", params={justTesting=true} }
+			, { fieldName="field3", validator="required", message="Really not there" }
+		];
+		var ruleset = engine.newRuleset( name="testRuleset", rules=rules );
 		var result  = "";
 
 		engine.newProvider( new tests.resources.ValidationProvider.SimpleProvider() );
-		ruleset.addRule( fieldName="field1", validator="required", message="Not there" );
-		ruleset.addRule( fieldName="field2", validator="validator1", params={justTesting=true} );
-		ruleset.addRule( fieldName="field3", validator="required", message="Really not there" );
 
 		super.assertEquals( "", engine.getJqueryValidateJs( ruleset="meh" ) );
 	}
 
 	function test10_getJQueryValidateJs_shouldReturnJsForGivenRuleset(){
 		var engine   = _getEngine();
-		var ruleset  = engine.newRuleset( name="testRuleset" );
+		var rules    = [
+			  { fieldName="field1", validator="required", message="Not there" }
+			, { fieldName="field1", validator="validator3", clientCondition="function( el ){ return ${field1}.val() === 'whatever'; }" }
+			, { fieldName="field2", validator="validator1", params={justTesting=true}, clientCondition="${field1}.val() === 'test'" }
+			, { fieldName="field3", validator="validator2", message="Really not there" }
+		];
+		var ruleset  = engine.newRuleset( name="testRuleset", rules=rules );
 		var result   = "";
 		var expected = "";
 
 		engine.newProvider( new tests.resources.ValidationProvider.SimpleProviderWithJsMethods() );
-		ruleset.addRule( fieldName="field1", validator="required", message="Not there" );
-		ruleset.addRule( fieldName="field1", validator="validator3", clientCondition="function( el ){ return ${field1}.val() === 'whatever'; }" );
-		ruleset.addRule( fieldName="field2", validator="validator1", params={justTesting=true}, clientCondition="${field1}.val() === 'test'" );
-		ruleset.addRule( fieldName="field3", validator="validator2", message="Really not there" );
 
 		expected =  '( function( $ ){ ';
 			expected &= 'var translateResource = ( i18n && i18n.translateResource ) ? i18n.translateResource : function(a){ return a }; ';
