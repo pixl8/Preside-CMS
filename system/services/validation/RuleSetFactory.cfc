@@ -1,30 +1,9 @@
-component output="false" {
+component {
 
-	variables._rules = [];
-
-	public any function init( any rules ){
-		if ( StructKeyExists( arguments, "rules" ) ) {
-			addRules( arguments.rules );
-		}
-
-		return this;
-	}
-
-	public array function getRules(){
-		return _getRules();
-	}
-
-	public void function addRule( required string fieldName, required string validator, struct params = {}, string message = "", string serverCondition = "", string clientCondition = "" ) {
-		var rules = _getRules();
-
-		ArrayAppend( rules, new Rule( argumentCollection = arguments ) );
-		_setRules( rules );
-	}
-
-	public void function addRules( required any rules ){
-		var rule = "";
+	public array function newRuleset( any rules ){
+		var rule        = "";
+		var rules       = [];
 		var parsedRules = Duplicate( arguments.rules );
-
 
 		if ( IsSimplevalue( parsedRules ) ) {
 			if ( FileExists( parsedRules ) ) {
@@ -46,7 +25,14 @@ component output="false" {
 
 		for( rule in parsedRules ){
 			try {
-				addRule( argumentCollection = rule );
+				rules.append( {
+					  fieldName       = rule.fieldName
+					, validator       = rule.validator
+					, params          = rule.params          ?: {}
+					, message         = rule.message         ?: ""
+					, serverCondition = rule.serverCondition ?: ""
+					, clientCondition = rule.clientCondition ?: ""
+				} );
 			} catch ( any e ) {
 				throw(
 					  type    = "RuleSet.badRule"
@@ -55,14 +41,7 @@ component output="false" {
 				);
 			}
 		}
-	}
 
-// GETTERS AND SETTERS
-	private array function _getRules(){
-		return _rules;
+		return rules;
 	}
-	private void function _setRules( required array rules ){
-		_rules = rules;
-	}
-
 }

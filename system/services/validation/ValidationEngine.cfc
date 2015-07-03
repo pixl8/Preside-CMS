@@ -4,6 +4,7 @@ component output="false" singleton=true {
 	public any function init() output=false {
 		_setRulesets( {} );
 		_setValidators( {} );
+		_setRulesetFactory( new RuleSetFactory() );
 		_loadCoreValidators();
 
 		return this;
@@ -11,7 +12,7 @@ component output="false" singleton=true {
 
 // PUBLIC API METHODS
 	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) outut=false {
-		var rules       = _getRuleset( arguments.ruleset ).getRules();
+		var rules       = _getRuleset( arguments.ruleset );
 		var validators  = _getValidators();
 		var validator   = _getValidators();
 		var providers   = "";
@@ -20,25 +21,25 @@ component output="false" singleton=true {
 		var fieldResult = "";
 
 		for( rule in rules ){
-			if ( arguments.ignoreMissing && !arguments.data.keyExists( rule.getFieldName() ) ) {
+			if ( arguments.ignoreMissing && !arguments.data.keyExists( rule.fieldName ) ) {
 				continue;
 			}
-			if ( not result.fieldHasError( rule.getFieldName() ) and _evaluateConditionalRule( rule, data ) ) {
-				provider = validators[ rule.getValidator() ];
+			if ( not result.fieldHasError( rule.fieldName ) and _evaluateConditionalRule( rule, data ) ) {
+				provider = validators[ rule.validator ];
 
 				fieldResult = provider.runValidator(
-					  name      = rule.getValidator()
-					, fieldName = rule.getFieldName()
-					, value     = StructKeyExists( arguments.data, rule.getFieldName() ) ? arguments.data[ rule.getFieldName() ] : ""
-					, params    = rule.getParams()
+					  name      = rule.validator
+					, fieldName = rule.fieldName
+					, value     = StructKeyExists( arguments.data, rule.fieldName ) ? arguments.data[ rule.fieldName ] : ""
+					, params    = rule.params
 					, data      = arguments.data
 				);
 
 				if ( not IsBoolean( fieldResult ) or not fieldResult ) {
 					result.addError(
-						  fieldName = rule.getFieldName()
-						, message   = ( Len( Trim( rule.getMessage() ) ) ? rule.getMessage() : provider.getDefaultMessage( name=rule.getValidator() ) )
-						, params    = provider.getValidatorParamValues( name=rule.getValidator(), params=rule.getParams() )
+						  fieldName = rule.fieldName
+						, message   = ( Len( Trim( rule.message ) ) ? rule.message : provider.getDefaultMessage( name=rule.validator ) )
+						, params    = provider.getValidatorParamValues( name=rule.validator, params=rule.params )
 					);
 				}
 			}
@@ -53,7 +54,7 @@ component output="false" singleton=true {
 		var rulesAndMessagesJs = "";
 
 		if ( _rulesetExists( arguments.ruleset ) ) {
-			rules = _getRuleset( arguments.ruleset ).getRules();
+			rules = _getRuleset( arguments.ruleset );
 			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules )
 
 			js = "( function( $ ){ ";
@@ -69,10 +70,10 @@ component output="false" singleton=true {
 		return js;
 	}
 
-	public RuleSet function newRuleset( required string name, any rules=[] ) output=false {
+	public array function newRuleset( required string name, any rules=[] ) output=false {
 		var rulesets = _getRulesets();
 
-		rulesets[ arguments.name ] = new RuleSet( rules = arguments.rules );
+		rulesets[ arguments.name ] = _getRuleSetFactory().newRuleset( rules = arguments.rules );
 
 		return rulesets[ arguments.name ];
 	}
@@ -117,7 +118,7 @@ component output="false" singleton=true {
 		}
 	}
 
-	private RuleSet function _getRuleset( required string rulesetName ) output=false {
+	private array function _getRuleset( required string rulesetName ) output=false {
 		var rulesets = _getRulesets();
 
 		return rulesets[ arguments.rulesetName ];
@@ -136,18 +137,18 @@ component output="false" singleton=true {
 		var registered  = {};
 
 		for( rule in arguments.rules ){
-			if ( StructKeyExists( registered, rule.getValidator() ) ) {
+			if ( StructKeyExists( registered, rule.validator ) ) {
 				continue;
 			}
 
-			provider   = validators[ rule.getValidator() ];
-			validatorJs = provider.getJsFunction( rule.getValidator() );
+			provider   = validators[ rule.validator ];
+			validatorJs = provider.getJsFunction( rule.validator );
 
 			if ( Len( Trim( validatorJs ) ) ) {
-				js &= '$.validator.addMethod( "#LCase( rule.getValidator() )#", #validatorJs#, "" ); ';
+				js &= '$.validator.addMethod( "#LCase( rule.validator )#", #validatorJs#, "" ); ';
 			}
 
-			registered[ rule.getValidator() ] = true;
+			registered[ rule.validator ] = true;
 		}
 
 		return Trim( js );
@@ -164,35 +165,35 @@ component output="false" singleton=true {
 		var message    = "";
 
 		for( rule in arguments.rules ){
-			if ( not StructKeyExists( jsRules, rule.getFieldName() ) ) {
-				jsRules[ rule.getFieldName() ] = "";
-				jsMessages[ rule.getFieldName() ] = "";
+			if ( not StructKeyExists( jsRules, rule.fieldName ) ) {
+				jsRules[ rule.fieldName ] = "";
+				jsMessages[ rule.fieldName ] = "";
 			}
-			params  = validators[ rule.getValidator() ].getValidatorParamValues( name=rule.getValidator(), params=rule.getParams() );
-			message = Len( Trim( rule.getMessage() ) ) ? rule.getMessage() : validators[ rule.getValidator() ].getDefaultMessage( name=rule.getValidator() );
+			params  = validators[ rule.validator ].getValidatorParamValues( name=rule.validator, params=rule.params );
+			message = Len( Trim( rule.message ) ) ? rule.message : validators[ rule.validator ].getDefaultMessage( name=rule.validator );
 
-			jsRules[ rule.getFieldName() ] = ListAppend( jsRules[ rule.getFieldName() ], ' "#LCase( rule.getValidator() )#" : { param : #_parseParamsForJQueryValidate( params, rule.getValidator() )#' );
-			if ( Len( Trim( rule.getClientCondition() ) ) ) {
-				jsRules[ rule.getFieldName() ] &= ", depends : " & _generateClientCondition( rule.getClientCondition() );
+			jsRules[ rule.fieldName ] = ListAppend( jsRules[ rule.fieldName ], ' "#LCase( rule.validator )#" : { param : #_parseParamsForJQueryValidate( params, rule.validator )#' );
+			if ( Len( Trim( rule.clientCondition ) ) ) {
+				jsRules[ rule.fieldName ] &= ", depends : " & _generateClientCondition( rule.clientCondition );
 			}
-			jsRules[ rule.getFieldName() ] &= ' }';
+			jsRules[ rule.fieldName ] &= ' }';
 
-			jsMessages[ rule.getFieldName() ] = ListAppend( jsMessages[ rule.getFieldName() ], ' "#LCase( rule.getValidator() )#" : translateResource( "#message#", { data : #SerializeJson( params )# } )' );
+			jsMessages[ rule.fieldName ] = ListAppend( jsMessages[ rule.fieldName ], ' "#LCase( rule.validator )#" : translateResource( "#message#", { data : #SerializeJson( params )# } )' );
 		}
 
 		for( rule in arguments.rules ){
-			if ( not ListFind( processed, rule.getFieldName() ) ) {
-				js.rules    = ListAppend( js.rules   , ' "#rule.getFieldName()#" : {#jsRules[ rule.getFieldName() ]# }' );
-				js.messages = ListAppend( js.messages, ' "#rule.getFieldName()#" : {#jsMessages[ rule.getFieldName() ]# }' );
-				processed   = ListAppend( processed, rule.getFieldName() );
+			if ( not ListFind( processed, rule.fieldName ) ) {
+				js.rules    = ListAppend( js.rules   , ' "#rule.fieldName#" : {#jsRules[ rule.fieldName ]# }' );
+				js.messages = ListAppend( js.messages, ' "#rule.fieldName#" : {#jsMessages[ rule.fieldName ]# }' );
+				processed   = ListAppend( processed, rule.fieldName );
 			}
 		}
 
 		return js;
 	}
 
-	private boolean function _evaluateConditionalRule( required Rule rule, required struct data ) output=false {
-		var condition = arguments.rule.getServerCondition();
+	private boolean function _evaluateConditionalRule( required struct rule, required struct data ) output=false {
+		var condition = arguments.rule.serverCondition;
 		var parsed    = "";
 		var result    = true;
 
@@ -204,7 +205,7 @@ component output="false" singleton=true {
 			} catch ( any e ) {
 				throw(
 					  type    = "ValidationEngine.badCondition"
-					, message = "The validator condition, [#condition#], for field, [#rule.getFieldName()#], caused an exception to be raised. See error detail for more information."
+					, message = "The validator condition, [#condition#], for field, [#rule.fieldName#], caused an exception to be raised. See error detail for more information."
 					, detail  = "Message: [#e.message#]. Detail: [#e.detail#]."
 				);
 			}
@@ -212,7 +213,7 @@ component output="false" singleton=true {
 			if ( not IsBoolean( result ) ) {
 				throw(
 					  type    = "ValidationEngine.badCondition"
-					, message = "The validator condition, [#condition#], for field, [#rule.getFieldName()#], did not evaulate to a boolean"
+					, message = "The validator condition, [#condition#], for field, [#rule.fieldName#], did not evaulate to a boolean"
 				);
 			}
 		}
@@ -256,5 +257,12 @@ component output="false" singleton=true {
 	}
 	private void function _setValidators( required struct validators ) output=false {
 		_validators = arguments.validators;
+	}
+
+	private any function _getRulesetFactory() {
+		return _rulesetFactory;
+	}
+	private void function _setRulesetFactory( required any rulesetFactory ) {
+		_rulesetFactory = arguments.rulesetFactory;
 	}
 }
