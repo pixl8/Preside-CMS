@@ -116,8 +116,10 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	public void function setActiveAdminSite( required string siteId ) output=false autodoc=true {
 		var site = _getSiteDao().selectData( id=arguments.siteId );
 
-		for( var s in site ) {
-			_getSessionStorage().setVar( "_activeSite", s ); // little query to struct hack
+		for( var s in site ) { // little query to struct hack
+			if ( _getPermissionService().hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ s.id ] ) ) {
+				_getSessionStorage().setVar( "_activeSite", s );
+			}
 		}
 	}
 
