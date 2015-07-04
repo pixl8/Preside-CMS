@@ -7,7 +7,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 // constructor
 	/**
-	 * @sessionService.inject             sessionService
+	 * @sessionStorage.inject             coldbox:plugin:sessionStorage
 	 * @cookieService.inject              cookieService
 	 * @userDao.inject                    presidecms:object:website_user
 	 * @userLoginTokenDao.inject          presidecms:object:website_user_login_token
@@ -15,8 +15,8 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @emailService.inject               emailService
 	 */
-	public any function init( required any sessionService, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
-		_setSessionService( arguments.sessionService );
+	public any function init( required any sessionStorage, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
+		_setSessionStorage( arguments.sessionStorage );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
 		_setUserLoginTokenDao( arguments.userLoginTokenDao );
@@ -109,7 +109,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	public void function logout() autodoc=true {
 		recordLogout();
 
-		_getSessionService().deleteVar( name=_getSessionKey() );
+		_getSessionStorage().deleteVar( name=_getSessionKey() );
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
 			_deleteRememberMeCookie();
@@ -127,7 +127,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @securityAlertCallback.hint A function that will be invoked should their be a security alert during auto login checking. Use this to alert the user that their login may have been compromised.
 	 */
 	public boolean function isLoggedIn( function securityAlertCallback=function(){} ) autodoc=true {
-		var userSessionExists = _getSessionService().exists( name=_getSessionKey() );
+		var userSessionExists = _getSessionStorage().exists( name=_getSessionKey() );
 
 		return userSessionExists || _autoLogin( argumentCollection = arguments );
 	}
@@ -140,7 +140,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 *
 	 */
 	public boolean function isAutoLoggedIn() autodoc=true {
-		return _getSessionService().exists( name=_getSessionKey() ) && !getLoggedInUserDetails().session_authenticated;
+		return _getSessionStorage().exists( name=_getSessionKey() ) && !getLoggedInUserDetails().session_authenticated;
 	}
 
 	/**
@@ -151,7 +151,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @autodoc true
 	 */
 	public boolean function isImpersonated() {
-		var sessionExists = _getSessionService().exists( name=_getSessionKey() );
+		var sessionExists = _getSessionStorage().exists( name=_getSessionKey() );
 
 		if ( sessionExists ) {
 			var details = getLoggedInUserDetails();
@@ -167,7 +167,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * If no user is logged in, an empty structure will be returned.
 	 */
 	public struct function getLoggedInUserDetails() autodoc=true {
-		var userDetails = _getSessionService().getVar( name=_getSessionKey(), default={} );
+		var userDetails = _getSessionStorage().getVar( name=_getSessionKey(), default={} );
 
 		return IsStruct( userDetails ) ? userDetails : {};
 	}
@@ -299,7 +299,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 *
 	 */
 	public string function getPostLoginUrl( required string defaultValue ) {
-		var sessionSavedValue = _getSessionService().getVar( "websitePostLoginUrl", "" );
+		var sessionSavedValue = _getSessionStorage().getVar( "websitePostLoginUrl", "" );
 
 		if ( Len( Trim( sessionSavedValue ) ) ) {
 			return sessionSavedValue;
@@ -317,7 +317,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 *
 	 */
 	public void function setPostLoginUrl( required string postLoginUrl ) {
-		_getSessionService().setVar( "websitePostLoginUrl", arguments.postLoginUrl );
+		_getSessionStorage().setVar( "websitePostLoginUrl", arguments.postLoginUrl );
 	}
 
 	/**
@@ -325,7 +325,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 *
 	 */
 	public boolean function clearPostLoginUrl() {
-		return _getSessionService().deleteVar( "websitePostLoginUrl" );
+		return _getSessionStorage().deleteVar( "websitePostLoginUrl" );
 	}
 
 	/**
@@ -411,7 +411,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	}
 
 	private void function _setUserSession( required struct data ) {
-		_getSessionService().setVar( name=_getSessionKey(), value=arguments.data );
+		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
 	}
 
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
@@ -588,11 +588,11 @@ component singleton=true autodoc=true displayName="Website login service" {
 	}
 
 // private accessors
-	private any function _getSessionService() {
-		return _sessionService;
+	private any function _getSessionStorage() {
+		return _sessionStorage;
 	}
-	private void function _setSessionService( required any sessionService ) {
-		_sessionService = arguments.sessionService;
+	private void function _setSessionStorage( required any sessionStorage ) {
+		_sessionStorage = arguments.sessionStorage;
 	}
 
 	private any function _getCookieService() {

@@ -219,7 +219,7 @@ component output=false {
 	private void function _invalidateSessionIfNotUsed() {
 		var sessionIsUsed        = false;
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
-		var keysToBeEmptyStructs = [ "presideStorage", "cbStorage", "cbox_flash_scope" ];
+		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
 
 		for( var key in session ) {
 			if ( ignoreKeys.findNoCase( key ) ) {

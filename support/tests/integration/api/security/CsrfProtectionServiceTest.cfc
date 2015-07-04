@@ -3,9 +3,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 // SETUP, etc
 	function setup() {
 		variables.tokenExpiryInSeconds = 5;
-		variables.sessionService       = new tests.resources.HelperObjects.TestSessionService();
+		variables.sessionStorage       = new tests.resources.HelperObjects.TestSessionStorage();
 		variables.csrfSvc              = new preside.system.services.security.CsrfProtectionService(
-			  sessionService       = sessionService
+			  sessionStorage       = sessionStorage
 			, tokenExpiryInSeconds = tokenExpiryInSeconds
 		);
 	}

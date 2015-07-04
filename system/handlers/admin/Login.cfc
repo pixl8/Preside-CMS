@@ -1,7 +1,7 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="loginService"      inject="loginService";
-	property name="sessionService"    inject="sessionService";
+	property name="sessionStorage"    inject="coldbox:plugin:sessionStorage";
 	property name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent";
 	property name="messageBox"        inject="coldbox:plugin:messageBox";
 
@@ -24,7 +24,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	public void function login( event, rc, prc ) output=false {
 		var user         = "";
 		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
-		var unsavedData  = sessionService.getVar( "_unsavedFormData", {} );
+		var unsavedData  = sessionStorage.getVar( "_unsavedFormData", {} );
 		var loggedIn     = loginService.logIn(
 			  loginId  = event.getValue( name="loginId" , defaultValue="" )
 			, password = event.getValue( name="password", defaultValue="" )
@@ -41,7 +41,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 			);
 
 			if ( Len( Trim( postLoginUrl ) ) ) {
-				sessionService.deleteVar( "_unsavedFormData", {} );
+				sessionStorage.deleteVar( "_unsavedFormData", {} );
 				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
 			} else {
 				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );

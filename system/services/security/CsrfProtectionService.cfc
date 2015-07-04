@@ -2,10 +2,10 @@ component output=false singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionService.inject SessionService
+	 * @sessionStorage.inject coldbox:plugin:sessionStorage
 	 */
-	public any function init( required any sessionService, numeric tokenExpiryInSeconds=1200 ) output=false {
-		_setSessionService( arguments.sessionService );
+	public any function init( required any sessionStorage, numeric tokenExpiryInSeconds=1200 ) output=false {
+		_setSessionStorage( arguments.sessionStorage );
 		_setTokenExpiryInSeconds( arguments.tokenExpiryInSeconds );
 
 		return this;
@@ -13,7 +13,6 @@ component output=false singleton=true {
 
 // PUBLIC API
 	public string function generateToken() output=false {
-		var sessionSvc = _getSessionService();
 		var token      = _getToken();
 
 		if ( StructIsEmpty( token ) or not validateToken( token.value ?: "" ) ) {
@@ -42,19 +41,19 @@ component output=false singleton=true {
 
 // PRIVATE HELPERS
 	private struct function _getToken() output=false {
-		return _getSessionService().getVar( "_csrfToken", {} );
+		return _getSessionStorage().getVar( "_csrfToken", {} );
 	}
 
 	private void function _setToken( required struct token ) output=false {
-		_getSessionService().setVar( "_csrfToken", arguments.token );
+		_getSessionStorage().setVar( "_csrfToken", arguments.token );
 	}
 
 // GETTERS AND SETTERS
-	private any function _getSessionService() output=false {
-		return _sessionService;
+	private any function _getSessionStorage() output=false {
+		return _sessionStorage;
 	}
-	private void function _setSessionService( required any sessionService ) output=false {
-		_sessionService = arguments.sessionService;
+	private void function _setSessionStorage( required any sessionStorage ) output=false {
+		_sessionStorage = arguments.sessionStorage;
 	}
 
 	private numeric function _getTokenExpiryInSeconds() output=false {
