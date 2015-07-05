@@ -32,4 +32,6 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// email obfuscation for link plugin
 	config.emailProtection = 'encode';
+
+	config.scayt_sLang = "en_GB";
 };
