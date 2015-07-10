@@ -80,6 +80,8 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                 );
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
+		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"               );
+		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
