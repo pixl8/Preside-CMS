@@ -100,11 +100,20 @@ component output="false" singleton=true {
 		return IsBoolean( sortable ) && sortable;
 	}
 
-	public boolean function getSortField( required string objectName ) output=false {
+	public string function getSortField( required string objectName ) output=false {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerSortField"
 			, defaultValue  = "sortorder"
+		);
+	}
+
+	public query function getRecordsForSorting( required string objectName ) {
+		var sortField = getSortField( arguments.objectName );
+		return _getPresideObjectService().selectData(
+			  objectName   = arguments.objectName
+			, selectFields = [ "id", "${labelfield} as label", sortField ]
+			, orderby      = sortField
 		);
 	}
 
