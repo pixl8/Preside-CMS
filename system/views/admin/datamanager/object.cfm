@@ -14,6 +14,7 @@
 
 	canAdd    = prc.canAdd    ?: false;
 	canDelete = prc.canDelete ?: false;
+	canSort   = prc.canSort   ?: false;
 </cfscript>
 
 <cfoutput>
@@ -23,6 +24,14 @@
 				<button class="btn btn-success btn-sm">
 					<i class="fa fa-plus"></i>
 					#addRecordTitle#
+				</button>
+			</a>
+		</cfif>
+		<cfif canSort>
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.sortRecords", queryString="object=#objectName#" )#" data-global-key="o">
+				<button class="btn btn-info btn-sm">
+					<i class="fa fa-sort-amount-asc"></i>
+					Sort records
 				</button>
 			</a>
 		</cfif>

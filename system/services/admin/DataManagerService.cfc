@@ -91,6 +91,23 @@ component output="false" singleton=true {
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}
 
+	public boolean function isSortable( required string objectName ) output=false {
+		var sortable = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSortable"
+		);
+
+		return IsBoolean( sortable ) && sortable;
+	}
+
+	public boolean function getSortField( required string objectName ) output=false {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSortField"
+			, defaultValue  = "sortorder"
+		);
+	}
+
 	public struct function getRecordsForGridListing(
 
 		  required string  objectName
