@@ -117,6 +117,18 @@ component output="false" singleton=true {
 		);
 	}
 
+	public void function saveSortedRecords( required string objectName, required array sortedIds ) {
+		var object    = _getPresideObjectService().getObject( arguments.objectName );
+		var sortField = getSortField( arguments.objectName );
+
+		for( var i=1; i <= arguments.sortedIds.len(); i++ ) {
+			object.updateData(
+				  id   = arguments.sortedIds[ i ]
+				, data = { "#sortField#" = i }
+			);
+		}
+	}
+
 	public struct function getRecordsForGridListing(
 
 		  required string  objectName
