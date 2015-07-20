@@ -56,6 +56,7 @@
 
 			prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
 			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
 			prc.gridFields = _getObjectFieldsForGrid( objectName );
 		</cfscript>
@@ -917,6 +918,67 @@
 			);
 		</cfscript>
 	</cffunction>
+
+	<cffunction name="sortRecords" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+
+		<cfscript>
+			var object           = rc.object  ?: "";
+			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
+
+			if ( ! datamanagerService.isSortable( object ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="edit", object=object );
+
+			prc.records = datamanagerService.getRecordsForSorting( objectName=object );
+
+			_addObjectNameBreadCrumb( event, object );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.sortRecords.breadcrumb.title" )
+				, link  = ""
+			);
+			prc.pageTitle = translateResource( uri="cms:datamanager.sortRecords.title", data=[ objectNamePlural ] );
+			prc.pageIcon  = "sort-amount-asc";
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="sortRecordsAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"     required="true" />
+		<cfargument name="rc"    type="struct"  required="true" />
+		<cfargument name="prc"   type="struct"  required="true" />
+
+		<cfscript>
+			var object           = rc.object  ?: "";
+			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var objectNamePlural = translateResource( uri="preside-objects.#object#:title", defaultValue=object );
+
+			if ( ! datamanagerService.isSortable( object ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.objectNotSortable.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
+			_checkPermission( argumentCollection=arguments, key="edit", object=object );
+
+			datamanagerService.saveSortedRecords(
+				  objectName = object
+				, sortedIds  = ListToArray( rc.ordered ?: "" )
+			);
+
+			messageBox.info( translateResource( uri="cms:datamanager.recordsSorted.confirmation", data=[ LCase( objectName ) ] ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+		</cfscript>
+	</cffunction>
+
 
 <!--- VIEWLETS --->
 	<cffunction name="versionNavigator" access="private" returntype="string" output="false">

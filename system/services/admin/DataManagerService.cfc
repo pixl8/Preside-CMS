@@ -96,6 +96,44 @@ component output="false" singleton=true {
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}
 
+	public boolean function isSortable( required string objectName ) output=false {
+		var sortable = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSortable"
+		);
+
+		return IsBoolean( sortable ) && sortable;
+	}
+
+	public string function getSortField( required string objectName ) output=false {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSortField"
+			, defaultValue  = "sortorder"
+		);
+	}
+
+	public query function getRecordsForSorting( required string objectName ) {
+		var sortField = getSortField( arguments.objectName );
+		return _getPresideObjectService().selectData(
+			  objectName   = arguments.objectName
+			, selectFields = [ "id", "${labelfield} as label", sortField ]
+			, orderby      = sortField
+		);
+	}
+
+	public void function saveSortedRecords( required string objectName, required array sortedIds ) {
+		var object    = _getPresideObjectService().getObject( arguments.objectName );
+		var sortField = getSortField( arguments.objectName );
+
+		for( var i=1; i <= arguments.sortedIds.len(); i++ ) {
+			object.updateData(
+				  id   = arguments.sortedIds[ i ]
+				, data = { "#sortField#" = i }
+			);
+		}
+	}
+
 	public struct function getRecordsForGridListing(
 
 		  required string  objectName
