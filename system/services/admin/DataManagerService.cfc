@@ -72,10 +72,15 @@ component output="false" singleton=true {
 	}
 
 	public array function listGridFields( required string objectName ) output=false {
+		var labelfield = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "labelfield"
+			, defaultValue  = "label"
+		);
 		var fields = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerGridFields"
-			, defaultValue  = "label,datecreated,datemodified"
+			, defaultValue  = "#labelfield#,datecreated,datemodified"
 		);
 
 		return ListToArray( fields );
@@ -188,7 +193,7 @@ component output="false" singleton=true {
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName
 		,          array   ids          = []
-		,          array   selectFields = [ "id", "label" ]
+		,          array   selectFields = []
 		,          array   savedFilters = []
 		,          string  searchQuery  = ""
 		,          numeric maxRows      = 1000
@@ -211,11 +216,11 @@ component output="false" singleton=true {
 
 			return result;
 		};
-		var labelField = _getPresideOBjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
-		    labelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
+		var labelField         = _getPresideOBjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
+		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 
-		args.selectFields.delete( "label" );
-		args.selectFields.append( labelField );
+		args.selectFields.delete( labelField );
+		args.selectFields.append( replacedLabelField );
 		args.selectFields.delete( "id" );
 		args.selectFields.append( "#arguments.objectName#.id" );
 
@@ -253,24 +258,26 @@ component output="false" singleton=true {
 
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
-		var sqlFields    = Duplicate( arguments.gridFields );
-		var field        = "";
-		var i            = "";
-		var props        = _getPresideObjectService().getObjectProperties( arguments.objectName );
-		var prop         = "";
-		var objName      = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
+		var sqlFields          = Duplicate( arguments.gridFields );
+		var field              = "";
+		var i                  = "";
+		var props              = _getPresideObjectService().getObjectProperties( arguments.objectName );
+		var prop               = "";
+		var objName            = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
+		var labelField         = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
+		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.id" );
-		if ( sqlFields.find( "label" ) ) {
-			sqlFields.delete( "label" );
-			sqlFields.append( "#objName#.${labelfield} as label" );
+		if ( sqlFields.find( labelField ) ) {
+			sqlFields.delete( labelField );
+			sqlFields.append( replacedLabelField );
 		}
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
 			field = sqlFields[i];
-			if ( field == "#objName#.id" || field == "#objName#.${labelfield} as label" ) {
+			if ( field == "#objName#.id" || field == replacedLabelField ) {
 				continue;
 			}
 			if ( not StructKeyExists( props, field ) ) {
