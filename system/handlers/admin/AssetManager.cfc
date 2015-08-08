@@ -631,15 +631,16 @@ component extends="preside.system.base.AdminHandler" {
 	function assetPickerUploader( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		var multiple       = rc.multiple ?: "";
+		var multiple       = rc.multiple     ?: "";
 		var allowedTypes   = rc.allowedTypes ?: "";
+		var maxFileSize    = rc.maxFileSize  ?: "";
 
 		if ( Len( Trim( allowedTypes ) ) ) {
 			var extensionList = "";
 			assetManagerService.expandTypeList( ListToArray( allowedTypes ) ).each( function( type ){
 				extensionList = ListAppend( extensionList, ".#type#" );
 			} );
-			event.includeData( { allowedExtensions : extensionList } );
+			event.includeData( { allowedExtensions : extensionList, maxFileSize = maxFileSize } );
 		}
 
 		if ( !IsBoolean( multiple ) || !multiple ) {
