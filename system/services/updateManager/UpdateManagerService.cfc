@@ -4,7 +4,7 @@
  * for your application.
  *
  */
-component output=false singleton=true autodoc=true displayName="Update manager service" {
+component singleton=true autodoc=true displayName="Update manager service" {
 
 // constructor
 	/**
@@ -19,7 +19,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		, required any    applicationReloadService
 		,          string presidePath="/preside"
 
-	) output=false {
+	) {
 		_setRepositoryUrl( arguments.repositoryUrl );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setApplicationReloadService( arguments.applicationReloadService );
@@ -30,7 +30,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 	}
 
 // public methods
-	public string function getCurrentVersion() output=false {
+	public string function getCurrentVersion() {
 		var versionFile = ListAppend( _getPresidePath(), "version.json", "/" );
 		var versionInfo = "";
 
@@ -47,7 +47,29 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		return versionInfo.version ?: "unknown";
 	}
 
-	public string function getLatestVersion() output=false {
+	public boolean function isGitClone() {
+		var gitDir = _getPresidePath() & "/.git/";
+
+		return getCurrentVersion() == "unknown" && DirectoryExists( gitDir );
+	}
+
+	public string function getGitBranch() {
+		var headFile = _getPresidePath() & "/.git/HEAD";
+
+		if ( FileExists( headFile ) ) {
+			try {
+				var head = FileRead( headFile );
+
+				return Trim( ReReplace( head, "^ref: refs\/heads\/", "" ) );
+			} catch( any e ){
+				"unknown";
+			}
+		}
+
+		return "unknown";
+	}
+
+	public string function getLatestVersion() {
 		var versions = listAvailableVersions();
 
 		if ( versions.len() ) {
@@ -61,7 +83,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		return "unknown";
 	}
 
-	public array function listAvailableVersions() output=false {
+	public array function listAvailableVersions() {
 		var s3Listing         = "";
 
 		try {
@@ -100,7 +122,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		return versions;
 	}
 
-	public array function listDownloadedVersions() output=false {
+	public array function listDownloadedVersions() {
 		var containerDirectory = _getVersionContainerDirectory();
 		var childDirectories   = DirectoryList( containerDirectory, false, "query" );
 		var versions           = [];
@@ -125,7 +147,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		return versions;
 	}
 
-	public boolean function versionIsDownloaded( required string version ) output=false {
+	public boolean function versionIsDownloaded( required string version ) {
 		var versions = listDownloadedVersions();
 		for( var v in versions ){
 			if ( v.version == arguments.version ) {
@@ -136,11 +158,11 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		return false;
 	}
 
-	public struct function listDownloadingVersions() output=false {
+	public struct function listDownloadingVersions() {
 		return _getActiveDownloads();
 	}
 
-	public void function downloadVersion( required string version ) output=false {
+	public void function downloadVersion( required string version ) {
 		if ( _getActiveDownloads().keyExists( arguments.version ) ) {
 			throw( type="UpdateManagerService.download.already.in.progress", message="Version [#arguments.version#] is already being downloaded" );
 		}
@@ -157,25 +179,25 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found in the [#_getSetting( 'branch', 'release' )#] branch" );
 	}
 
-	public void function clearDownload( required string version ) output=false {
+	public void function clearDownload( required string version ) {
 		var activeDownloads = listDownloadingVersions();
 
 		activeDownloads.delete( arguments.version );
 	}
 
-	public boolean function downloadIsActive( required string version, required string downloadId ) output=false {
+	public boolean function downloadIsActive( required string version, required string downloadId ) {
 		var activeDownloads = listDownloadingVersions();
 
 		return ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId;
 	}
 
-	public boolean function downloadIsComplete( required string version ) output=false {
+	public boolean function downloadIsComplete( required string version ) {
 		var activeDownloads = listDownloadingVersions();
 
 		return activeDownloads[ arguments.version ].complete ?: true;
 	}
 
-	public void function markDownloadAsErrored( required string version, required string downloadId, required struct error ) output=false {
+	public void function markDownloadAsErrored( required string version, required string downloadId, required struct error ) {
 		var activeDownloads = listDownloadingVersions();
 		if ( ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId ) {
 			activeDownloads[ arguments.version ].complete = true;
@@ -183,7 +205,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 			activeDownloads[ arguments.version ].error    = arguments.error;
 		}
 	}
-	public void function markDownloadAsComplete( required string version, required string downloadId ) output=false {
+	public void function markDownloadAsComplete( required string version, required string downloadId ) {
 		var activeDownloads = listDownloadingVersions();
 		if ( ( activeDownloads[ arguments.version ].id ?: "" ) == arguments.downloadId ) {
 			activeDownloads[ arguments.version ].complete = true;
@@ -191,7 +213,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	public boolean function installVersion( required string version ) output=false {
+	public boolean function installVersion( required string version ) {
 		var versions       = listDownloadedVersions();
 		var currentVersion = getCurrentVersion();
 
@@ -209,7 +231,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found locally" );
 	}
 
-	public boolean function deleteVersion( required string version ) output=false {
+	public boolean function deleteVersion( required string version ) {
 		if ( arguments.version == getCurrentVersion() ) {
 			throw( type="UpdateManagerService.cannot.delete.current.version", message="You cannot delete the currently installed version, [#arguments.version#] from the server" );
 		}
@@ -229,11 +251,11 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		throw( type="UpdateManagerService.unknown.version", message="Version [#arguments.version#] could not be found locally" );
 	}
 
-	public struct function getSettings() output=false {
+	public struct function getSettings() {
 		return _getSystemConfigurationService().getCategorySettings( category="updatemanager" );
 	}
 
-	public void function saveSettings( required struct settings ) output=false {
+	public void function saveSettings( required struct settings ) {
 		var cfgService = _getSystemConfigurationService();
 
 		for( var key in arguments.settings ) {
@@ -241,7 +263,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	public numeric function compareVersions( required string versionA, required string versionB ) output=false {
+	public numeric function compareVersions( required string versionA, required string versionB ) {
 		if ( versionA == versionB ) {
 			return 0;
 		}
@@ -265,7 +287,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 	}
 
 // private helpers
-	private xml function _fetchS3BucketListing() output=false {
+	private xml function _fetchS3BucketListing() {
 		return XmlParse( _getRepositoryUrl() );
 	}
 
@@ -281,7 +303,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	private string function _getRemoteBranchPath() output=false {
+	private string function _getRemoteBranchPath() {
 		var branch = _getSetting( setting="branch", default="release" );
 		var path   = "presidecms/";
 
@@ -293,16 +315,16 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		return path & "release/";
 	}
 
-	private string function _getSetting( required string setting, any default="" ) output=false {
+	private string function _getSetting( required string setting, any default="" ) {
 		return _getSystemConfigurationService().getSetting( category="updatemanager", setting=arguments.setting, default=arguments.default );
 	}
 
-	private string function _getVersionContainerDirectory() output=false {
+	private string function _getVersionContainerDirectory() {
 		var presideDirectory = _getPresidePath();
 		return presideDirectory & "/../";
 	}
 
-	private void function _downloadAndUnpackVersionAsynchronously( required string version, required string downloadUrl ) output=false {
+	private void function _downloadAndUnpackVersionAsynchronously( required string version, required string downloadUrl ) {
 		var tempPath        = getTempDirectory() & "/" & CreateUUId() & ".zip";
 		var downloadId      = CreateUUId();
 		var activeDownloads = _getActiveDownloads();
@@ -334,7 +356,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	private void function _updateMapping( required string newPath ) output=false {
+	private void function _updateMapping( required string newPath ) {
 		try {
 			admin action   = "updateMapping"
 			      password = _getSetting( "railo_admin_pw", "password" )
@@ -352,7 +374,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	private void function _runDowngradeScripts( required string newVersion, required string currentVersion ) output=false {
+	private void function _runDowngradeScripts( required string newVersion, required string currentVersion ) {
 		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
 		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( arguments.currentVersion );
 
@@ -361,7 +383,7 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	private void function _runUpgradeScripts( required string newVersion, required string currentVersion ) output=false {
+	private void function _runUpgradeScripts( required string newVersion, required string currentVersion ) {
 		var newVersionWithoutBuild     = _getVersionWithoutBuildNumber( arguments.newVersion );
 		var currentVersionWithoutBuild = _getVersionWithoutBuildNumber( arguments.currentVersion );
 
@@ -370,11 +392,11 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 		}
 	}
 
-	private string function _getVersionWithoutBuildNumber( required string version ) output=false {
+	private string function _getVersionWithoutBuildNumber( required string version ) {
 		return ListDeleteAt( arguments.version, ListLen( arguments.version, "." ), "." );
 	}
 
-	private string function _runMigrations( required string type, required string newVersion, required string currentVersion ) output=false {
+	private string function _runMigrations( required string type, required string newVersion, required string currentVersion ) {
 		var migrationType      = arguments.type == "upgrade" ? "upgrade" : "downgrade";
 		var parentDirectory    = "/preside/system/migrations/#migrationType#s";
 		var componentPath      = ReReplace( ListChangeDelims( parentDirectory, ".", "/" ), "^\.", "" );
@@ -406,38 +428,38 @@ component output=false singleton=true autodoc=true displayName="Update manager s
 	}
 
 // getters and setters
-	private string function _getRepositoryUrl() output=false {
+	private string function _getRepositoryUrl() {
 		return _repositoryUrl;
 	}
-	private void function _setRepositoryUrl( required string repositoryUrl ) output=false {
+	private void function _setRepositoryUrl( required string repositoryUrl ) {
 		_repositoryUrl = arguments.repositoryUrl;
 	}
 
-	private string function _getPresidePath() output=false {
+	private string function _getPresidePath() {
 		return _presidePath;
 	}
-	private void function _setPresidePath( required string presidePath ) output=false {
+	private void function _setPresidePath( required string presidePath ) {
 		_presidePath = arguments.presidePath;
 	}
 
-	private any function _getSystemConfigurationService() output=false {
+	private any function _getSystemConfigurationService() {
 		return _systemConfigurationService;
 	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
+	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
 		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 
-	private any function _getApplicationReloadService() output=false {
+	private any function _getApplicationReloadService() {
 		return _applicationReloadService;
 	}
-	private void function _setApplicationReloadService( required any applicationReloadService ) output=false {
+	private void function _setApplicationReloadService( required any applicationReloadService ) {
 		_applicationReloadService = arguments.applicationReloadService;
 	}
 
-	private struct function _getActiveDownloads() output=false {
+	private struct function _getActiveDownloads() {
 		return _activeDownloads;
 	}
-	private void function _setActiveDownloads( required struct activeDownloads ) output=false {
+	private void function _setActiveDownloads( required struct activeDownloads ) {
 		_activeDownloads = arguments.activeDownloads;
 	}
 

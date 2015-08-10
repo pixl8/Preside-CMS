@@ -21,6 +21,10 @@ component output=false {
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
 	}
 
+	public void function onRequestEnd() {
+		_invalidateSessionIfNotUsed();
+	}
+
 	public boolean function onRequest() output=true {
 		// ensure all rquests go through coldbox and requested templates cannot be included directly
 		return true;
@@ -210,5 +214,29 @@ component output=false {
 
 	private void function _maintenanceModeCheck() output=false {
 		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
+	}
+
+	private void function _invalidateSessionIfNotUsed() {
+		var sessionIsUsed        = false;
+		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
+		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
+
+		for( var key in session ) {
+			if ( ignoreKeys.findNoCase( key ) ) {
+				continue;
+			}
+
+			if ( keysToBeEmptyStructs.findNoCase( key ) && IsStruct( session[ key ] ) && session[ key ].isEmpty() ) {
+				continue;
+			}
+
+			sessionIsUsed = true;
+			break;
+		}
+
+		if ( !sessionIsUsed ) {
+			session.setMaxInactiveInterval(  javaCast( "long", 1 ) );
+			getPageContext().setHeader( "Set-Cookie", "" );
+		}
 	}
 }

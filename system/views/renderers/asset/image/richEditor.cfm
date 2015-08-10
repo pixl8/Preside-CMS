@@ -1,9 +1,19 @@
 <cfscript>
-	imgSrc     = event.buildLink( ( assetId=args.id ?: "" ), derivative=( args.derivative ?: "" ) );
-	altText    = HtmlEditFormat( Len( Trim( args.alt_text ?: '' ) ) ? args.alt_text : ( args.label ?: '' ) );
-	style      = ListFindNoCase( "left,right", args.alignment ?: "" ) ? "float:#LCase( args.alignment )#;" : "";
-	hasFigure  = Len( Trim( args.copyright ?: "" ) ) || Len( Trim( args.caption ?: "" ) );
-	hasLink    = Len( Trim( args.link ?: "" ) );
+	imgSrc        = event.buildLink( ( assetId=args.id ?: "" ), derivative=( args.derivative ?: "" ) );
+	altText       = HtmlEditFormat( Len( Trim( args.alt_text ?: '' ) ) ? args.alt_text : ( args.label ?: '' ) );
+	style         = ListFindNoCase( "left,right", args.alignment ?: "" ) ? "float:#LCase( args.alignment )#;" : "";
+	hasFigure     = Len( Trim( args.copyright ?: "" ) ) || Len( Trim( args.caption ?: "" ) );
+	hasLink       = Len( Trim( args.link ?: ""  ) ) ;
+
+	if( Len( Trim( args.link_asset ?: "" ) )){
+		args.link  = event.buildLink(  assetId=args.link_asset );
+		hasLink       = Len( Trim( args.link ?: ""  ) ) ;
+	}
+	if( Len( Trim( args.link_page ?: ""  ) )){
+		args.link  = event.buildLink(  page=args.link_page );
+		hasLink       = Len( Trim( args.link ?: ""  ) ) ;
+	}
+
 
 	if ( IsNumeric( args.spacing ?: "" ) ) {
 		style &= "margin:#Trim(args.spacing)#px;";
@@ -15,6 +25,7 @@
 			default       : style &= "margin-left:0;margin-right:0;"; break;
 		}
 	}
+
 </cfscript>
 
 <cfoutput>

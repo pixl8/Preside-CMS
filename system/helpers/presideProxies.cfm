@@ -47,6 +47,10 @@
 		<cfreturn getSingleton( "contentRendererService" ).renderField( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="renderLabel" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "contentRendererService" ).renderLabel( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderLink" access="public" returntype="any" output="false">
 		<cfargument name="id" type="string" required="true" />
 		<cfreturn getController().renderViewlet( event="renderers.link.default", args=arguments ) />

@@ -38,7 +38,7 @@
 					if ( Len( Trim( cgi.http_referer ) ) ) {
 						postLoginUrl = cgi.http_referer;
 						if ( event.getHttpMethod() eq "POST" ) {
-							getModel( "sessionService" ).setVar( "_unsavedFormData", Duplicate( form ) );
+							getPlugin( "sessionStorage" ).setVar( "_unsavedFormData", Duplicate( form ) );
 							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.saveddata.warning" ) );
 						} else {
 							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );

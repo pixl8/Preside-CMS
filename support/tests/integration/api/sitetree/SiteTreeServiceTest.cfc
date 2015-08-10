@@ -35,7 +35,7 @@
 			loginService = new preside.system.services.admin.loginService(
 				  logger               = logger
 				, presideObjectService = poService
-				, sessionService       = new preside.system.services.cfmlScopes.SessionService()
+				, sessionStorage       = new coldbox.system.plugins.SessionStorage()
 				, bCryptService        = _getBCrypt()
 				, systemUserList       = "sysadmin"
 				, emailService         = emailService

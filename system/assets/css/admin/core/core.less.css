@@ -14681,6 +14681,7 @@ fieldset[disabled] .presidecms .btn-light.active {
 }
 .presidecms textarea.form-control {
   padding: 5px 9px;
+  min-height: 170px;
 }
 .presidecms select {
   padding: 3px 4px;

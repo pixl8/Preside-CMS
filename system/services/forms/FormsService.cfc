@@ -487,13 +487,9 @@ component {
 	private boolean function _registerForm( required string formName, required struct formDefinition ) {
 		if ( _formDoesNotBelongToDisabledFeature( arguments.formDefinition ) ) {
 			var forms   = _getForms();
-			var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#" );
+			var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#", rules=_getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition ) );
 
 			forms[ formName ] = formDefinition;
-
-			ruleset.addRules(
-				rules = _getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition )
-			);
 
 			return true;
 		}

@@ -4,7 +4,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test01_isLoggedIn_shouldReturnFalse_ifNoUserSessionExistsAndNoRememberMeCookieExists() output=false {
 		var userService = _getUserService();
 
-		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
+		mockSessionStorage.$( "exists" ).$args( "website_user" ).$results( false );
 		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( false );
 
 		super.assertFalse( userService.isLoggedIn() );
@@ -13,7 +13,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test02_isLoggedIn_shouldReturnTrue_whenUserHasActiveSession() output=false {
 		var userService = _getUserService();
 
-		mockSessionService.$( "exists" ).$args( "website_user" ).$results( true );
+		mockSessionStorage.$( "exists" ).$args( "website_user" ).$results( true );
 
 		super.assert( userService.isLoggedIn() );
 	}
@@ -22,7 +22,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 		var testUserDetails = { id="some-id", loginid="l33t", emailaddress="myemail address" };
 
-		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
+		mockSessionStorage.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
 
 		super.assertEquals( testUserDetails, userService.getLoggedInUserDetails() );
 	}
@@ -31,7 +31,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 		var testUserDetails = { id="anotherid", loginid="l33t", emailaddress="myemail address" };
 
-		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
+		mockSessionStorage.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
 
 		super.assertEquals( testUserDetails.id, userService.getLoggedInUserId() );
 	}
@@ -40,7 +40,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 		var testUserDetails = {};
 
-		mockSessionService.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
+		mockSessionStorage.$( "getVar" ).$args( name="website_user", default={} ).$results( testUserDetails );
 
 		super.assertEquals( "", userService.getLoggedInUserId() );
 	}
@@ -48,12 +48,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test06_logout_shouldDestroyTheUserSession() output=false {
 		var userService = _getUserService();
 
-		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+		mockSessionStorage.$( "deleteVar" ).$args( name="website_user" ).$results( true );
 		mockCookieService.$( "exists", false );
 		userService.$( "recordLogout", true );
 		userService.logout();
 
-		var log = mockSessionService.$calllog().deleteVar;
+		var log = mockSessionStorage.$calllog().deleteVar;
 
 		super.assertEquals( 1, log.len() );
 	}
@@ -61,7 +61,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test06_01_logout_shouldRecordTheLogout() output=false {
 		var userService = _getUserService();
 
-		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+		mockSessionStorage.$( "deleteVar" ).$args( name="website_user" ).$results( true );
 		mockCookieService.$( "exists", false );
 		userService.$( "recordLogout", true );
 		userService.logout();
@@ -128,14 +128,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, useCache     = false
 		).$results( mockRecord );
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
-		mockSessionService.$( "setVar" );
+		mockSessionStorage.$( "setVar" );
 
 		super.assert( userService.login( loginId="dummy", password="whatever" ) );
 
-		var sessionServiceCallLog = mockSessionService.$callLog().setVar;
+		var sessionStorageCallLog = mockSessionStorage.$callLog().setVar;
 
-		super.assertEquals( 1, sessionServiceCallLog.len() );
-		super.assertEquals( expectedSetVarCall, sessionServiceCallLog[1] );
+		super.assertEquals( 1, sessionStorageCallLog.len() );
+		super.assertEquals( expectedSetVarCall, sessionStorageCallLog[1] );
 	}
 
 	function test11_login_shouldSetRememberMeCookieAndTokenRecord_whenRememberLoginIsPassedAsTrue() output=false {
@@ -157,7 +157,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( true );
 		userService.$( "_createNewLoginTokenSeries", testSeries );
 		userService.$( "_createNewLoginToken", testToken );
-		mockSessionService.$( "setVar" );
+		mockSessionStorage.$( "setVar" );
 		mockUserLoginTokenDao.$( "insertData", CreateUUId() );
 		mockCookieService.$( "setVar" );
 		mockBCryptService.$( "hashPw" ).$args( testToken ).$results( testTokenHashed );
@@ -195,7 +195,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		StructDelete( request, "_presideWebsiteAutoLoginResult" );
 
 		// mocking
-		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
+		mockSessionStorage.$( "exists" ).$args( "website_user" ).$results( false );
 		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookie );
 		mockUserLoginTokenDao.$( "selectData" ).$args(
@@ -205,7 +205,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserLoginTokenDao.$( "updateData", true );
 		mockBCryptService.$( "checkPw" ).$args( testCookie.token, testUserTokenRecord.token ).$results( true );
 		mockCookieService.$( "setVar" );
-		mockSessionService.$( "setVar" );
+		mockSessionStorage.$( "setVar" );
 		mockBCryptService.$( "hashPw" ).$args( newToken ).$results( "reHashedToken" );
 		mockUserDao.$( "selectData" ).$args(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
@@ -220,7 +220,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var updateDataCallLog = mockUserLoginTokenDao.$callLog().updateData;
 		var setCookieCallLog = mockCookieService.$callLog().setVar;
 		var hashTokenCallLog = mockBCryptService.$callLog().hashPw;
-		var setSessionCallLog = mockSessionService.$callLog().setVar;
+		var setSessionCallLog = mockSessionStorage.$callLog().setVar;
 
 		super.assertEquals( 1, updateDataCallLog.len() );
 		super.assertEquals( { id=testUserTokenRecord.id, data={ token="reHashedToken" } }, updateDataCallLog[1] );
@@ -255,7 +255,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		StructDelete( request, "_presideWebsiteAutoLoginResult" );
 
 		// mocking
-		mockSessionService.$( "exists" ).$args( "website_user" ).$results( false );
+		mockSessionStorage.$( "exists" ).$args( "website_user" ).$results( false );
 		mockCookieService.$( "exists" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookie );
 		mockUserLoginTokenDao.$( "selectData" ).$args(
@@ -288,7 +288,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var userService = _getUserService();
 		var testCookieValue = { loginId="joyce", expiry=60, series=CreateUUId(), token=CreateUUId() };
 
-		mockSessionService.$( "deleteVar" ).$args( name="website_user" ).$results( true );
+		mockSessionStorage.$( "deleteVar" ).$args( name="website_user" ).$results( true );
 		mockCookieService.$( "exists", true );
 		mockCookieService.$( "getVar" ).$args( "_presidecms-site-persist", {} ).$results( testCookieValue );
 		mockCookieService.$( "deleteVar" ).$args( "_presidecms-site-persist" ).$results( true );
@@ -297,7 +297,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		userService.logout();
 
-		super.assertEquals( 1, mockSessionService.$calllog().deleteVar.len() );
+		super.assertEquals( 1, mockSessionStorage.$calllog().deleteVar.len() );
 		super.assertEquals( 1, mockCookieService.$calllog().exists.len() );
 		super.assertEquals( 1, mockCookieService.$calllog().deleteVar.len() );
 		super.assertEquals( 1, mockUserLoginTokenDao.$calllog().deleteData.len() );
@@ -306,7 +306,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test15_isAutoLoggedIn_shouldReturnTrue_whenUserHasBeenAutoLoggedInWithCookie() output=false {
 		var userService = _getUserService();
 
-		mockSessionService.$( "exists", true );
+		mockSessionStorage.$( "exists", true );
 		userService.$( "getLoggedInUserDetails", {
 			  id                    = CreateUUId()
 			, login_id              = "hamster"
@@ -454,7 +454,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // private helpers
 	private any function _getUserService() output=false {
-		mockSessionService    = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.SessionService" );
+		mockSessionStorage    = getMockbox().createEmptyMock( "coldbox.system.plugins.SessionStorage" );
 		mockCookieService     = getMockbox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 		mockUserDao           = getMockbox().createStub();
 		mockUserLoginTokenDao = getMockbox().createStub();
@@ -463,7 +463,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockEmailService      = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
 
 		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
-			  sessionService             = mockSessionService
+			  sessionStorage             = mockSessionStorage
 			, cookieService              = mockCookieService
 			, userDao                    = mockUserDao
 			, userLoginTokenDao          = mockUserLoginTokenDao
