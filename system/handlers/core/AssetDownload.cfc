@@ -50,6 +50,8 @@ component output=false {
 
 			if ( type.serveAsAttachment ) {
 				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
+			} else {
+				header name="Content-Disposition" value="inline; filename=""#asset.title#.#type.extension#""";
 			}
 
 			header name="etag" value=etag;

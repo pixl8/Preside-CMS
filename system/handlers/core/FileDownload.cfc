@@ -32,6 +32,8 @@ component output=false {
 
 		if ( type.serveAsAttachment ) {
 			header name="Content-Disposition" value="attachment; filename=""#filename#""";
+		} else {
+			header name="Content-Disposition" value="inline; filename=""#filename#""";
 		}
 
 		announceInterception( "onDownloadFile", {
