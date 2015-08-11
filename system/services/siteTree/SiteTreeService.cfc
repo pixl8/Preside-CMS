@@ -65,7 +65,7 @@ component singleton=true {
 			args.filter       &= " and page._hierarchy_lineage like :_hierarchy_lineage";
 			args.filterParams._hierarchy_lineage = rootPage._hierarchy_child_selector;
 
-			if ( maxDepth >= 0 && !isNull( rootPage._hierarchy_depth ) ) {
+			if ( maxDepth >= 0 && !isNull( rootPage._hierarchy_depth ) && isNumeric( rootPage._hierarchy_depth ) ) {
 				maxDepth += rootPage._hierarchy_depth+1;
 			}
 		}

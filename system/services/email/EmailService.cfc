@@ -142,13 +142,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		}
 
 		m.addParam( name="X-Mailer", value="PresideCMS" );
-
-		try {
-			m.send();
-		} catch( any e ) {
-			// TODO: logging here
-			return false;
-		}
+		m.send();
 
 		return true;
 	}

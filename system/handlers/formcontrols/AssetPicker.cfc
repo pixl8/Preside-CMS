@@ -5,6 +5,7 @@ component output=false {
 
 	public string function index( event, rc, prc, args={} ) output=false {
 		var allowedTypes        = args.allowedTypes ?: "";
+		var maxFileSize         = args.maxFileSize  ?: "";
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( ListToArray( allowedTypes ) );
 
 		if ( Len( Trim( args.savedData.id ?: "" ) ) ) {
@@ -26,7 +27,7 @@ component output=false {
 		args.prefetchUrl = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="maxRows=100&allowedTypes=#allowedTypes#&prefetchCacheBuster=#prefetchCacheBuster#" );
 		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="q=%QUERY&allowedTypes=#allowedTypes#" );
 		args.browserUrl  = event.buildAdminLink( linkTo="assetmanager.assetPickerBrowser", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#" );
-		args.uploaderUrl = event.buildAdminLink( linkTo="assetmanager.assetPickerUploader", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#" );
+		args.uploaderUrl = event.buildAdminLink( linkTo="assetmanager.assetPickerUploader", querystring="allowedTypes=#allowedTypes#&multiple=#( args.multiple ? 'true' : 'false' )#&maxFileSize=#maxFileSize#" );
 
 		if ( !Len( Trim( args.placeholder ?: "" ) ) ) {
 			args.placeholder = translateResource(

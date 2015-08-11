@@ -57,6 +57,9 @@ component output=false singleton=true {
 		,          array  contextKeys   = []
 		,          string userId        = _getLoginService().getLoggedInUserId()
 	) output=false {
+		if ( !Len( Trim( arguments.userId ) ) ) {
+			return false;
+		}
 
 		if ( arguments.userId == _getLoginService().getLoggedInUserId() && _getLoginService().isSystemUser() ) {
 			return true;

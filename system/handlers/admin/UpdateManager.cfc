@@ -28,7 +28,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function index( event, rc, prc ) output=false {
 		prc.pageTitle               = translateResource( "cms:updateManager" );
 		prc.pageSubTitle            = translateResource( "cms:updateManager.subtitle" );
-		prc.currentVersion          = updateManagerService.getCurrentVersion();
+		prc.isGitClone              = updateManagerService.isGitClone();
+		prc.currentVersion          = prc.isGitClone ? updateManagerService.getGitBranch() : updateManagerService.getCurrentVersion();
 		prc.latestVersion           = updateManagerService.getLatestVersion();
 		prc.downloadedVersions      = updateManagerService.listDownloadedVersions();
 		prc.availableVersions       = updateManagerService.listAvailableVersions();

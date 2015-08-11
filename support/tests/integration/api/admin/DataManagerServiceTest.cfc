@@ -50,8 +50,13 @@ component extends="tests.resources.HelperObjects.PresideTestCase" output=false {
 	function test04_listGridFields_shouldReturnConfiguredGridFieldsForObject() output=false {
 		mockPoService.$( "getObjectAttribute" ).$args(
 			  objectName    = "object4"
+			, attributeName = "labelfield"
+			, defaultValue  = "label"
+		).$results( "testlabelfield" );
+		mockPoService.$( "getObjectAttribute" ).$args(
+			  objectName    = "object4"
 			, attributeName = "datamanagerGridFields"
-			, defaultValue  = "label,datecreated,datemodified"
+			, defaultValue  = "testlabelfield,datecreated,datemodified"
 		).$results( "field1,field2,field3" );
 
 		super.assertEquals( ["field1","field2","field3"], dataManagerService.listGridFields( "object4" ) );

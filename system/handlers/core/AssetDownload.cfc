@@ -42,15 +42,17 @@ component output=false {
 				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId );
 			}
 
-			if ( type.serveAsAttachment ) {
-				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
-			}
-
 			announceInterception( "onDownloadAsset", {
 				  assetId        = assetId
 				, derivativeName = derivativeName
 				, asset          = asset
 			} );
+
+			if ( type.serveAsAttachment ) {
+				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
+			} else {
+				header name="Content-Disposition" value="inline; filename=""#asset.title#.#type.extension#""";
+			}
 
 			header name="etag" value=etag;
 			header name="cache-control" value="max-age=31536000";

@@ -38,6 +38,20 @@ component singleton=true output="false" {
 		}
 	}
 
+	public string function renderLabel( required string objectName, required string recordId ) {
+		var record = _getPresideObjectService().selectData(
+			  objectName   = arguments.objectName
+			, filter       = { id=arguments.recordId }
+			, selectFields = [ "${labelfield} as label" ]
+		);
+
+		if ( record.recordCount ) {
+			return record.label;
+		}
+
+		return arguments.recordId;
+	}
+
 	public string function renderField(
 		  required string  object
 		, required string  property

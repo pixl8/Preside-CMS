@@ -2,21 +2,21 @@ component output="false" singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @sessionService.inject SessionService
+	 * @sessionStorage.inject coldbox:plugin:sessionStorage
 	 * @bCryptService.inject  BCryptService
 	 * @systemUserList.inject coldbox:setting:system_users
 	 * @userDao.inject        presidecms:object:security_user
 	 * @emailService.inject   emailService
 	 */
 	public any function init(
-		  required any    sessionService
+		  required any    sessionStorage
 		, required any    bCryptService
 		, required string systemUserList
 		, required any    userDao
 		, required any    emailService
 		,          string sessionKey = "admin_user"
 	) output=false {
-		_setSessionService( arguments.sessionService );
+		_setSessionStorage( arguments.sessionStorage );
 		_setBCryptService( arguments.bCryptService );
 		_setSystemUserList( arguments.systemUserList );
 		_setUserDao( arguments.userDao );
@@ -47,12 +47,12 @@ component output="false" singleton=true {
 	}
 
 	public boolean function isLoggedIn() output=false {
-		return _getSessionService().exists( name=_getSessionKey() );
+		return _getSessionStorage().exists( name=_getSessionKey() );
 	}
 
 	public struct function getLoggedInUserDetails() output=false {
 		if ( !StructKeyExists( request, "__presideCmsAminUserDetails" ) ) {
-			var userId = _getSessionService().getVar( name=_getSessionKey(), default="" );
+			var userId = _getSessionStorage().getVar( name=_getSessionKey(), default="" );
 
 			if ( Len( Trim( userId ) ) ) {
 				var userRecord = _getUserDao().selectData( id=userId );
@@ -74,7 +74,7 @@ component output="false" singleton=true {
 	}
 
 	public string function getLoggedInUserId() output=false {
-		return _getSessionService().getVar( name=_getSessionKey(), default="" );
+		return _getSessionStorage().getVar( name=_getSessionKey(), default="" );
 	}
 
 	public boolean function isSystemUser() output=false {
@@ -264,11 +264,11 @@ component output="false" singleton=true {
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) output=false {
 		request.delete( "__presideCmsAminUserDetails" );
-		_getSessionService().setVar( name=_getSessionKey(), value=arguments.usr.id );
+		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.usr.id );
 	}
 
 	private void function _destroyUserSession() output=false {
-		_getSessionService().deleteVar( name=_getSessionKey() );
+		_getSessionStorage().deleteVar( name=_getSessionKey() );
 	}
 
 	private query function _getUserByLoginId( required string loginId ) output=false {
@@ -344,11 +344,11 @@ component output="false" singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getSessionService() output=false {
-		return _sessionService;
+	private any function _getSessionStorage() output=false {
+		return _sessionStorage;
 	}
-	private void function _setSessionService( required any sessionService ) output=false {
-		_sessionService = arguments.sessionService;
+	private void function _setSessionStorage( required any sessionStorage ) output=false {
+		_sessionStorage = arguments.sessionStorage;
 	}
 
 	private any function _getBCryptService() output=false {
