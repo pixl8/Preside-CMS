@@ -11,16 +11,7 @@ component {
 // SEE https://en.wikipedia.org/wiki/Monotone_cubic_interpolation
 	private numeric function _monotonicCubicSplineInterpolation( required array inputMap, required array outputMap, required numeric input ) {
 		var mapped = _prepareMonotonicCubicSplineInterpolation( arguments.inputMap, arguments.outputMap );
-		var h      = "";
-		var h00    = "";
-		var h01    = "";
-		var h10    = "";
-		var h11    = "";
 		var i      = "";
-		var t      = "";
-		var t2     = "";
-		var t3     = "";
-		var y      = "";
 
 		for( i = arguments.inputMap.len() - 1; i >= 1; i-- ) {
 			if ( arguments.inputMap[i] <= arguments.input ) {
@@ -28,14 +19,14 @@ component {
 			}
 		}
 
-		h  = arguments.inputMap[i + 1] - arguments.inputMap[i];
-		t  = ( arguments.input - arguments.inputMap[i] ) / h;
-		t2 = t ^ 2;
-		t3 = t ^ 3;
-		h00 = 2 * t3 - 3 * t2 + 1;
-		h10 = t3 - 2 * t2 + t;
-		h01 = -2 * t3 + 3 * t2;
-		h11 = t3 - t2;
+		var h  = arguments.inputMap[i + 1] - arguments.inputMap[i];
+		var t  = ( arguments.input - arguments.inputMap[i] ) / h;
+		var t2 = t ^ 2;
+		var t3 = t ^ 3;
+		var h00 = 2 * t3 - 3 * t2 + 1;
+		var h10 = t3 - 2 * t2 + t;
+		var h01 = -2 * t3 + 3 * t2;
+		var h11 = t3 - t2;
 		return h00 * arguments.outputMap[i] + h10 * h * mapped[i] + h01 * arguments.outputMap[i + 1] + h11 * h * mapped[i + 1];
 	}
 
