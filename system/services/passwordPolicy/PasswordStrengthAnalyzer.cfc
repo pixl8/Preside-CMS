@@ -112,7 +112,7 @@ component {
 				sum++;
 
 				if( digits[i] > diffCharsCount || sum > diffCharsCount ) {
-					if (i == charsetsCount - 1) {
+					if (i == charsetsCount) {
 						finished = true;
 						break;
 					} else {
