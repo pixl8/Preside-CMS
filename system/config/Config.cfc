@@ -137,6 +137,7 @@ component output=false {
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
 			, "errorLogs"
@@ -159,6 +160,7 @@ component output=false {
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
+			, passwordPolicyManager  = [ "manage" ]
 			, websiteBenefitsManager = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
 			, websiteUserManager     = [ "navigate", "read", "add", "edit", "delete", "prioritize", "impersonate" ]
 			, devtools               = [ "console" ]
@@ -183,7 +185,7 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*" ];
+		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*" ];
 		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
 		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 
@@ -214,16 +216,17 @@ component output=false {
 		};
 
 		settings.features = {
-			  sitetree            = { enabled=true , siteTemplates=[ "*" ] }
-			, sites               = { enabled=true , siteTemplates=[ "*" ] }
-			, assetManager        = { enabled=true , siteTemplates=[ "*" ] }
-			, websiteUsers        = { enabled=true , siteTemplates=[ "*" ] }
-			, datamanager         = { enabled=true , siteTemplates=[ "*" ] }
-			, systemConfiguration = { enabled=true , siteTemplates=[ "*" ] }
-			, updateManager       = { enabled=true , siteTemplates=[ "*" ] }
-			, cmsUserManager      = { enabled=true , siteTemplates=[ "*" ] }
-			, errorLogs           = { enabled=true , siteTemplates=[ "*" ] }
-			, multilingual        = { enabled=false, siteTemplates=[ "*" ] }
+			  sitetree              = { enabled=true , siteTemplates=[ "*" ] }
+			, sites                 = { enabled=true , siteTemplates=[ "*" ] }
+			, assetManager          = { enabled=true , siteTemplates=[ "*" ] }
+			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ] }
+			, datamanager           = { enabled=true , siteTemplates=[ "*" ] }
+			, systemConfiguration   = { enabled=true , siteTemplates=[ "*" ] }
+			, updateManager         = { enabled=true , siteTemplates=[ "*" ] }
+			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ] }
+			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
+			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
+			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
 		};
 
 		settings.filters = {
