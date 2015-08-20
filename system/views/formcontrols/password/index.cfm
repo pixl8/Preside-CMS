@@ -17,8 +17,15 @@
 	} else {
 		value = "";
 	}
+
+	policyMessage = args.policyMessage ?: "";
 </cfscript>
 
 <cfoutput>
-	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#">
+	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="form-control">
+	<cfif Len( Trim( policyMessage ) )>
+		<div class="clearfix"></div>
+		<br>
+		<div class="alert alert-info">#policyMessage#</div>
+	</cfif>
 </cfoutput>
