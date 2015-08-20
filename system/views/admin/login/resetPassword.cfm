@@ -22,6 +22,12 @@
 								<p>#translateResource( 'cms:resetLogin.passwords.do.not.match.error' )#</p>
 							</div>
 						</cfcase>
+						<cfcase value="PASSWORD_NOT_STRONG_ENOUGH">
+							<div class="alert alert-block alert-danger">
+								<p>#translateResource( 'cms:resetLogin.password.not.strong.enough.error' )#</p>
+							</div>
+						</cfcase>
+
 						<cfcase value="UNKNOWN_ERROR">
 							<div class="alert alert-block alert-danger">
 								<p>#translateResource( 'cms:resetLogin.unknown.error' )#</p>

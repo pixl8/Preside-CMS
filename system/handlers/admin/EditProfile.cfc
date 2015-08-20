@@ -22,24 +22,22 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var formName = "preside-objects.security_user.admin.edit.profile";
 		var formData = event.getCollectionForForm( formName );
 
-		if ( Len( formData.password ?: "" ) ) {
-			formData.password = bCryptService.hashPw( formData.password ?: "" );
-			if ( bCryptService.checkPw( formData.confirm_password, formData.password ) ) {
-				formData.confirm_password = formData.password;
-			}
-		} else {
-			formData.delete( "password" );
-			formData.delete( "confirm_password" );
-		}
-
 		formData.id = userId;
 		var validationResult = validateForm( formName=formName, formData=formData );
 
-		if ( not validationResult.validated() ) {
+		if ( !validationResult.validated() ) {
 			messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 			var persist = formData;
 			persist.validationResult = validationResult;
-			setNextEvent( url=event.buildAdminLink( linkTo="editProfile", persistStruct=persist ) );
+
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ), persistStruct=persist );
+		}
+
+		if ( Len( formData.password ?: "" ) ) {
+			formData.password = bCryptService.hashPw( formData.password ?: "" );
+		} else {
+			formData.delete( "password" );
+			formData.delete( "confirm_password" );
 		}
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=true );

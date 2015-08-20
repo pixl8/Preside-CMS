@@ -1,17 +1,20 @@
 /**
  * A class that provides methods for dealing with all aspects of password policies
  *
- * @autodoc true
+ * @autodoc   true
+ * @singleton true
  */
 component {
 
 // CONSTRUCTOR
 	/**
-	 * @featureService.inject featureService
-	 * @policyDao.inject      presidecms:object:password_policy
+	 * @featureService.inject           featureService
+	 * @passwordStrengthAnalyzer.inject passwordStrengthAnalyzer
+	 * @policyDao.inject                presidecms:object:password_policy
 	 */
-	public any function init( required any featureService, required any policyDao ) {
+	public any function init( required any featureService, required any passwordStrengthAnalyzer, required any policyDao ) {
 		_setFeatureService( arguments.featureService );
+		_setPasswordStrengthAnalyzer( arguments.passwordStrengthAnalyzer );
 		_setPolicyDao( arguments.policyDao );
 
 		return this;
@@ -78,6 +81,45 @@ component {
 		}
 	}
 
+	public boolean function passwordMeetsPolicy( required string context, required string password ) {
+		var policy = getPolicy( arguments.context );
+
+		if ( policy.min_length > 0 && arguments.password.len() < policy.min_length ) {
+			return false;
+		}
+
+		if ( policy.min_uppercase > 0 ) {
+			var upperCaseChars = ReReplace( arguments.password, "[^A-Z]", "", "all" );
+			if ( upperCaseChars.len() < policy.min_uppercase ) {
+				return false;
+			}
+		}
+
+		if ( policy.min_numeric > 0 ) {
+			var numericChars = ReReplace( arguments.password, "[^0-9]", "", "all" );
+			if ( numericChars.len() < policy.min_numeric ) {
+				return false;
+			}
+		}
+
+		if ( policy.min_symbols > 0 ) {
+			var specialChars = ReReplace( arguments.password, "[0-9A-Za-z]", "", "all" );
+			if ( specialChars.len() < policy.min_symbols ) {
+				return false;
+			}
+		}
+
+		if ( policy.min_strength > 0 ) {
+			var strength = _getPasswordStrengthAnalyzer().calculatePasswordStrength( arguments.password );
+
+			if ( strength < policy.min_strength ) {
+				 return false;
+			}
+		}
+
+		return true;
+	}
+
 // GET SET
 	private any function _getFeatureService() {
 		return _featureService;
@@ -91,5 +133,12 @@ component {
 	}
 	private void function _setPolicyDao( required any policyDao ) {
 		_policyDao = arguments.policyDao;
+	}
+
+	private any function _getPasswordStrengthAnalyzer() {
+		return _passwordStrengthAnalyzer;
+	}
+	private void function _setPasswordStrengthAnalyzer( required any passwordStrengthAnalyzer ) {
+		_passwordStrengthAnalyzer = arguments.passwordStrengthAnalyzer;
 	}
 }
