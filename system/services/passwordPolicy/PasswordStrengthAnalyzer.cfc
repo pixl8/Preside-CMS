@@ -230,7 +230,7 @@ component {
 	}
 
 	private void function _setupSymbolClasses() {
-		variables._symbolClasses = DeSerializeJson( FileRead( "./symbolClasses.json" ) );
+		_symbolClasses = DeSerializeJson( FileRead( "./symbolClasses.json" ) );
 	}
 
 
