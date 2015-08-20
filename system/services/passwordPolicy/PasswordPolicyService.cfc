@@ -59,6 +59,25 @@ component {
 		};
 	}
 
+	public void function savePolicy(
+		  required string  context
+		,          numeric min_strength  = 0
+		,          numeric min_length    = 0
+		,          numeric min_uppercase = 0
+		,          numeric min_numeric   = 0
+		,          numeric min_symbols   = 0
+		,          string  message       = ""
+	) {
+		var dao    = _getPolicyDao();
+		var filter = { context=arguments.context }
+
+		if ( dao.dataExists( filter=filter ) ) {
+			dao.updateData( filter=filter, data=arguments );
+		} else {
+			dao.insertData( data=arguments );
+		}
+	}
+
 // GET SET
 	private any function _getFeatureService() {
 		return _featureService;

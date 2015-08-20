@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="passwordPolicyService" inject="passwordPolicyService";
+	property name="messagebox"            inject="coldbox:plugin:messagebox";
 
 // LIFECYCLE EVENTS
 	function preHandler( event, rc, prc ) {
@@ -39,8 +40,26 @@ component extends="preside.system.base.AdminHandler" {
 		event.setView( "/admin/passwordPolicyManager/index" );
 	}
 
-	function downloadIsComplete( event, rc, prc ) output=false {
-		event.renderData( data={ complete=updateManagerService.downloadIsComplete( rc.version ?: "" ) }, type="json" );
+	function editPolicyAction( event, rc, prc ) {
+		var policyContexts   = passwordPolicyService.listContexts();
+		var context          = rc.context ?: "";
+
+		if ( !policyContexts.findNoCase( context ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="passwordPolicyManager" ) );
+		}
+
+		var formName         = "preside-objects.password_policy.admin.edit";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			passwordPolicyService.savePolicy( argumentCollection=formData, context=context );
+			messagebox.info( translateResource( "cms:passwordpolicymanager.policy.saved.confirmation" ) );
+		} else {
+			messagebox.info( translateResource( "cms:passwordpolicymanager.policy.validation.failed.message" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkto="passwordPolicyManager", queryString="context=" & context ) );
 	}
 
 }
