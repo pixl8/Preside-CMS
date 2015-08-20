@@ -193,7 +193,7 @@ component {
 		return size;
 	}
 
-	private struct function _detectSymbolClasses( required string password ) {
+	private array function _detectSymbolClasses( required string password ) {
 		var matchedSymbolClasses = {};
 
 		for( var letter in ListToArray( arguments.password, '' ) ) {
@@ -211,7 +211,7 @@ component {
 			}
 		}
 
-		return matchedSymbolClasses;
+		return matchedSymbolClasses.keyArray();
 	}
 
 	private numeric function _getNumberOfDifferentCharacters( required string password ) {
