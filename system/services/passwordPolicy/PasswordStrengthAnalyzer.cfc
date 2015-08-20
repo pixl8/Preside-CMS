@@ -26,7 +26,7 @@ component {
 		var rulesBasedTimeInSeconds = -_getRulesBasedTimeInSeconds( arguments.password );
 		var rulesBasedScore         = rulesBasedTimeInSeconds >= 0 ? _calculateStrengthFromTime( rulesBasedTimeInSeconds ) : -1;
 
-		return rulesBasedScore == -1 ? bruteForceScore : ( rulesBasedScore < bruteForceScore ? rulesBasedScore : bruteForceScore );
+		return ( rulesBasedScore >=0 && rulesBasedScore < bruteForceScore ) ? rulesBasedScore : bruteForceScore;
 	}
 
 // PRIVATE UTILITY
