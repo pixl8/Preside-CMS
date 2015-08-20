@@ -5,6 +5,8 @@ component output=false {
 		if ( Len( Trim( args.passwordPolicyContext ?: "" ) ) ) {
 			args.passwordPolicy = passwordPolicyService.getPolicy( args.passwordPolicyContext );
 			args.policyMessage  = renderContent( renderer="richeditor", data=args.passwordPolicy.message ?: "" );
+
+			event.include( "/js/admin/specific/passwordscore/" );
 		}
 
 		return renderView( view="/formcontrols/password/index", args=args );

@@ -64,11 +64,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function strengthReport( event, rc, prc ) {
-		var score = passwordStrengthAnalyzer.calculatePasswordStrength( rc.password ?: "" );
+		var score     = passwordStrengthAnalyzer.calculatePasswordStrength( rc.password ?: "" );
 		var scoreName = passwordPolicyService.getStrengthNameForScore( score );
 
 		event.renderData( data={
 			  score       = score
+			, name        = scoreName
 			, title       = translateResource( "cms:password.strength.#scoreName#.title" )
 			, description = translateResource( "cms:password.strength.#scoreName#.description" )
 		}, type="json" );
