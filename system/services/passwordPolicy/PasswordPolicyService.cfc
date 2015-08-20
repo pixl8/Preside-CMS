@@ -32,6 +32,18 @@ component {
 		];
 	}
 
+	public string function getStrengthNameForScore( required numeric score ) {
+		var strengths = listStrengths();
+
+		for( var i=strengths.len(); i > 0; i-- ) {
+			if ( arguments.score >= strengths[ i ].minValue ) {
+				return strengths[ i ].name;
+			}
+		}
+
+		return strengths[ 1 ].name;
+	}
+
 	public array function listContexts() {
 		var contexts = [ "cms" ];
 

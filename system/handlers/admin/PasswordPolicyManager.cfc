@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="passwordPolicyService" inject="passwordPolicyService";
-	property name="messagebox"            inject="coldbox:plugin:messagebox";
+	property name="passwordPolicyService"    inject="passwordPolicyService";
+	property name="passwordStrengthAnalyzer" inject="passwordStrengthAnalyzer";
+	property name="messagebox"               inject="coldbox:plugin:messagebox";
 
 // LIFECYCLE EVENTS
 	function preHandler( event, rc, prc ) {
@@ -60,6 +61,17 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		setNextEvent( url=event.buildAdminLink( linkto="passwordPolicyManager", queryString="context=" & context ) );
+	}
+
+	function strengthReport( event, rc, prc ) {
+		var score = passwordStrengthAnalyzer.calculatePasswordStrength( rc.password ?: "" );
+		var scoreName = passwordPolicyService.getStrengthNameForScore( score );
+
+		event.renderData( data={
+			  score       = score
+			, title       = translateResource( "cms:password.strength.#scoreName#.title" )
+			, description = translateResource( "cms:password.strength.#scoreName#.description" )
+		}, type="json" );
 	}
 
 }
