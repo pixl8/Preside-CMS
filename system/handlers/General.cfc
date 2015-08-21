@@ -133,7 +133,7 @@ component output=false {
 		}
 
 		if ( anythingReloaded ) {
-			_autoRegisterPresideObjectValidators();
+			_autoRegisterSystemValidators();
 		}
 	}
 

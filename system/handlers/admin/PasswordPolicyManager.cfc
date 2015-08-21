@@ -64,15 +64,24 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function strengthReport( event, rc, prc ) {
-		var score     = passwordStrengthAnalyzer.calculatePasswordStrength( rc.password ?: "" );
-		var scoreName = passwordPolicyService.getStrengthNameForScore( score );
+		if ( !Len( Trim( rc.password ?: "" ) ) ) {
+			event.renderData( data={
+				  score       = 0
+				, name        = ""
+				, title       = ""
+				, description = ""
+			}, type="json" );
+		} else {
+			var score     = passwordStrengthAnalyzer.calculatePasswordStrength( rc.password ?: "" );
+			var scoreName = passwordPolicyService.getStrengthNameForScore( score );
 
-		event.renderData( data={
-			  score       = score
-			, name        = scoreName
-			, title       = translateResource( "cms:password.strength.#scoreName#.title" )
-			, description = translateResource( "cms:password.strength.#scoreName#.description" )
-		}, type="json" );
+			event.renderData( data={
+				  score       = score
+				, name        = scoreName
+				, title       = translateResource( "cms:password.strength.#scoreName#.title" )
+				, description = translateResource( "cms:password.strength.#scoreName#.description" )
+			}, type="json" );
+		}
 	}
 
 }
