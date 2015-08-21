@@ -3,9 +3,6 @@ component output=false {
 
 	private string function index( event, rc, prc, args={} ) {
 		if ( Len( Trim( args.passwordPolicyContext ?: "" ) ) ) {
-			args.passwordPolicy = passwordPolicyService.getPolicy( args.passwordPolicyContext );
-			args.policyMessage  = renderContent( renderer="richeditor", data=args.passwordPolicy.message ?: "" );
-
 			event.include( "/js/admin/specific/passwordscore/" )
 			     .include( "/css/admin/specific/passwordscore/" );
 		}

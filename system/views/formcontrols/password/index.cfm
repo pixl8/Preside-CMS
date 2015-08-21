@@ -18,15 +18,9 @@
 		value = "";
 	}
 
-	policyMessage         = args.policyMessage ?: "";
 	passwordPolicyContext = args.passwordPolicyContext ?: "";
 </cfscript>
 
 <cfoutput>
 	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif>>
-	<cfif Len( Trim( policyMessage ) )>
-		<div class="clearfix"></div>
-		<br>
-		<div class="alert alert-info">#policyMessage#</div>
-	</cfif>
 </cfoutput>
