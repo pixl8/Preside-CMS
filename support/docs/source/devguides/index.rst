@@ -13,6 +13,7 @@ Developer guides & recipes
    routing   
    permissioning
    websiteusers
+   passwordpolicies
    systemsettings
    emailtemplates
    notifications
