@@ -39,3 +39,28 @@ var buildAdminLink = ( function(){
 		return link;
 	};
 } )();
+
+var buildLink = ( function(){
+	var endpoint = "/";
+
+	return function( handler, action, options ){
+		var link = endpoint
+		  , option, delim="?";
+
+		if ( handler ) {
+			link += handler.replace( /\./g, "/" ) + "/";
+			if ( action ) {
+				link += action + "/";
+			}
+		}
+
+		if ( options ) {
+			for ( option in options ) {
+				link += ( delim + option + "=" + options[ option ] );
+				delim = "&";
+			}
+		}
+
+		return link;
+	};
+} )();

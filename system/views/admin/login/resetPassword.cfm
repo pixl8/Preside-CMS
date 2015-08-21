@@ -1,5 +1,10 @@
-<cfset token   = rc.token ?: "" />
-<cfset message = rc.message ?: "" />
+<cfscript>
+	token   = rc.token   ?: "";
+	message = rc.message ?: "";
+
+	event.include( "/js/admin/specific/passwordscore/" )
+	     .include( "/css/admin/specific/passwordscore/" );
+</cfscript>
 
 <cfoutput>
 	<div class="position-relative">
@@ -45,7 +50,7 @@
 						<fieldset>
 							<label class="block clearfix">
 								<span class="block input-icon input-icon-right">
-									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.placeholder' )#" name="password" />
+									<input type="password" class="form-control" placeholder="#translateResource( 'cms:resetLogin.password.placeholder' )#" name="password" data-password-policy-context="cms" />
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>

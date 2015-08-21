@@ -2,7 +2,7 @@
 
 	$.fn.passwordScoreChecker = function(){
 		var scoreTemplate   = '<div class="password-score"><div class="score-bar-container"><div class="score-bar"></div></div><div class="score-title"></div><div class="clearfix"></div></div>'
-		  , scoreCheckerUrl = buildAdminLink( "passwordpolicymanager", "strengthReport" )
+		  , scoreCheckerUrl = buildLink( "passwordStrengthReport" )
 		  , typingDelay     = 600
 
 		return this.each( function(){
