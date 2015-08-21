@@ -5,6 +5,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="bCryptService"            inject="bCryptService";
+	property name="passwordPolicyService"    inject="passwordPolicyService";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -124,6 +125,11 @@ component extends="preside.system.base.AdminHandler" {
 		if ( not prc.record.recordCount ) {
 			messageBox.error( translateResource( uri="cms:websiteUserManager.userNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
+		}
+
+		var passwordPolicy = passwordPolicyService.getPolicy( "website" );
+		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
+			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
 		}
 
 		event.addAdminBreadCrumb(
