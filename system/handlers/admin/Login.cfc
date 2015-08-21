@@ -135,6 +135,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 			} );
 		}
 
+		var passwordPolicy = passwordPolicyService.getPolicy( "cms" );
+		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
+			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
+		}
+
 		event.setView( "/admin/login/resetPassword" );
 	}
 

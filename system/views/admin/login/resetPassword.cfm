@@ -1,6 +1,7 @@
 <cfscript>
-	token   = rc.token   ?: "";
-	message = rc.message ?: "";
+	token         = rc.token          ?: "";
+	message       = rc.message        ?: "";
+	policyMessage = prc.policyMessage ?: "";
 
 	event.include( "/js/admin/specific/passwordscore/" )
 	     .include( "/css/admin/specific/passwordscore/" );
@@ -41,9 +42,6 @@
 					</cfswitch>
 
 					<div class="space-6"></div>
-					<p>
-						#translateResource( 'cms:resetLogin.prompt' )#
-					</p>
 
 					<form action="#event.buildAdminLink( 'login.resetPasswordAction' )#" method="post">
 						<input type="hidden" name="token" value="#token#" />
@@ -61,6 +59,16 @@
 									<i class="fa fa-lock"></i>
 								</span>
 							</label>
+
+							<cfif Len( Trim( policyMessage ) )>
+								<div class="alert alert-info">
+									<h4><i class="fa fa-fw fa-info-circle"></i> #translateResource( "cms:passwordpolicy.title" )#</h4>
+
+									#policyMessage#
+								</div>
+							</cfif>
+
+							<div class="space-6"></div>
 
 							<div class="row-fluid">
 								<button class="span10 offset2 btn btn-sm btn-danger">
