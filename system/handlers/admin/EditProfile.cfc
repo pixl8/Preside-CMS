@@ -1,8 +1,9 @@
 component output="false" extends="preside.system.base.AdminHandler" {
 
-	property name="userDao"       inject="presidecms:object:security_user";
-	property name="messageBox"    inject="coldbox:plugin:messageBox";
-	property name="bCryptService" inject="bCryptService";
+	property name="userDao"               inject="presidecms:object:security_user";
+	property name="messageBox"            inject="coldbox:plugin:messageBox";
+	property name="bCryptService"         inject="bCryptService";
+	property name="passwordPolicyService" inject="passwordPolicyService";
 
 	function index( event, rc, prc ) output=false {
 		prc.record = userDao.selectData( id=event.getAdminUserId() );
@@ -10,6 +11,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		prc.pageIcon  = "user";
 		prc.pageTitle = translateResource( uri="cms:editProfile.page.title" );
+
+		var passwordPolicy = passwordPolicyService.getPolicy( "cms" );
+		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
+			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
+		}
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:editProfile.page.title" )
