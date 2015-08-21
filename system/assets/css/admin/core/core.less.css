@@ -25806,22 +25806,33 @@ img.presidecms .editable-click:hover {
   margin-left: 0px;
   margin-right: 0px;
 }
-.presidecms .role-picker-checkbox {
+.presidecms .role-picker-checkbox,
+.presidecms .role-picker-radio {
   padding-bottom: 4px;
   padding-left: 0px;
   margin-bottom: 5px !important;
 }
-.presidecms .role-picker-checkbox .role-title {
+.presidecms .role-picker-checkbox .role-title,
+.presidecms .role-picker-radio .role-title {
   padding-left: 20px;
   font-weight: bold;
 }
-.presidecms .role-picker-checkbox .role-desc {
+.presidecms .role-picker-checkbox .role-desc,
+.presidecms .role-picker-radio .role-desc {
   padding-left: 72px;
 }
 .presidecms .role-picker-checkbox .role-title,
-.presidecms .role-picker-checkbox .role-desc {
+.presidecms .role-picker-radio .role-title,
+.presidecms .role-picker-checkbox .role-desc,
+.presidecms .role-picker-radio .role-desc {
   position: relative;
   top: -3px;
+}
+.presidecms .role-picker-radio .role-title {
+  padding-left: 8px;
+}
+.presidecms .role-picker-radio .role-desc {
+  padding-left: 30px;
 }
 .presidecms .tt-dropdown-menu {
   background-color: #ffffff;

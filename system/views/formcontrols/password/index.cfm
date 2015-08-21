@@ -17,8 +17,10 @@
 	} else {
 		value = "";
 	}
+
+	passwordPolicyContext = args.passwordPolicyContext ?: "";
 </cfscript>
 
 <cfoutput>
-	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#">
+	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif>>
 </cfoutput>

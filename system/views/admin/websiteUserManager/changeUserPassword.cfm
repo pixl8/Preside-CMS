@@ -6,11 +6,18 @@
 	formId               = "change-user-password-form";
 	changePasswordAction = event.buildAdminLink( linkTo="websiteUserManager.changeUserPasswordAction" );
 	cancelAction         = event.buildAdminLink( linkTo="websiteUserManager.index"                    );
+
+	hasRightHandCol      = Len( Trim( prc.policyMessage ?: "" ) );
 </cfscript>
 
 <cfoutput>
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#changePasswordAction#">
 		<input type="hidden" name="id" value="#user.id#" />
+
+		<cfif hasRightHandCol>
+			<div class="row">
+				<div class="col-md-9">
+		</cfif>
 
 		#renderForm(
 			  formName          = "preside-objects.website_user.admin.change.password"
@@ -18,6 +25,19 @@
 			, formId            = formId
 			, validationResult  = rc.validationResult ?: ""
 		)#
+
+		<cfif hasRightHandCol>
+				</div>
+
+				<div class="col-md-3">
+					<div class="alert alert-info">
+						<h4><i class="fa fa-fw fa-info-circle"></i> #translateResource( "cms:passwordpolicy.title" )#</h4>
+
+						#prc.policyMessage#
+					</div>
+				</div>
+			</div>
+		</cfif>
 
 		<div class="form-actions row">
 			<div class="col-md-offset-2">

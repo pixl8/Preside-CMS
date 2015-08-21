@@ -9,7 +9,7 @@ component output=false {
 	property name="adminLoginService"         inject="loginService";
 
 	public void function applicationStart( event, rc, prc ) output=false {
-		_autoRegisterPresideObjectValidators();
+		_autoRegisterSystemValidators();
 		prc._presideReloaded = true;
 		announceInterception( "onApplicationStart" );
 	}
@@ -40,12 +40,13 @@ component output=false {
 	}
 
 // private helpers
-	private void function _autoRegisterPresideObjectValidators() output=false {
+	private void function _autoRegisterSystemValidators() output=false {
 		var objects = presideObjectService.listObjects( includeGeneratedObjects=true );
 		var objName = "";
 		var obj     = "";
 		var ruleset = "";
 
+		validationEngine.newProvider( getModel( "passwordPolicyValidator" ) );
 		validationEngine.newProvider( getModel( "presideObjectValidators" ) );
 
 		for( objName in objects ) {
@@ -132,7 +133,7 @@ component output=false {
 		}
 
 		if ( anythingReloaded ) {
-			_autoRegisterPresideObjectValidators();
+			_autoRegisterSystemValidators();
 		}
 	}
 

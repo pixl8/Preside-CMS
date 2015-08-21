@@ -161,6 +161,11 @@ component output="false" singleton=true {
 			}
 		}
 
+		// password policies
+		if ( Len( Trim( field.passwordPolicyContext ?: "" ) ) ) {
+			ArrayAppend( rules, { fieldName=arguments.fieldName, validator="meetsPasswordPolicy", params={ passwordPolicyContext = field.passwordPolicyContext } } );
+		}
+
 		for( rule in rules ){
 			if ( not StructKeyExists( rule, "message" ) ) {
 				conventionBasedMessageKey =  poService.getResourceBundleUriRoot( arguments.objectName ) & "validation.#arguments.fieldName#.#rule.validator#.message";
