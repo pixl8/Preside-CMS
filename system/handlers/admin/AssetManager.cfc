@@ -784,7 +784,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function managePerms( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="folders.managePerms" );
+		_checkPermissions( argumentCollection=arguments, key="folders.manageContextPerms" );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:assetmanager.managePerms.breadcrumb.title" )
@@ -796,7 +796,7 @@ component extends="preside.system.base.AdminHandler" {
 		var folderId = rc.folder ?: "";
 		var folderRecord = prc.folder ?: QueryNew( 'label' );
 
-		_checkPermissions( argumentCollection=arguments, key="folders.managePerms" );
+		_checkPermissions( argumentCollection=arguments, key="folders.manageContextPerms" );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 			messageBox.info( translateResource( uri="cms:assetmanager.permsSaved.confirmation", data=[ folderRecord.label ] ) );
