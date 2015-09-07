@@ -8,6 +8,7 @@
 	extraClasses       = args.extraClasses     ?: "";
 	values             = args.values           ?: "";
 	labels             = args.labels           ?: args.values;
+	addMissingValues   = IsTrue( args.addMissingValues ?: "" );
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
@@ -18,6 +19,7 @@
 	}
 
 	value = HtmlEditFormat( value );
+	valueFound = false;
 </cfscript>
 
 <cfoutput>
@@ -33,9 +35,14 @@
 	        </cfif>
 	>
 		<cfloop array="#values#" index="i" item="selectValue">
-			<option value="#HtmlEditFormat( selectValue )#"<cfif ListFindNoCase( value, selectValue )> selected="selected"</cfif>>
+			<cfset selected   = ListFindNoCase( value, selectValue ) />
+			<cfset valueFound = valueFound || selected />
+			<option value="#HtmlEditFormat( selectValue )#"<cfif selected> selected="selected"</cfif>>
 				#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 			</option>
 		</cfloop>
+		<cfif value.len() && !valueFound && addMissingValues>
+			<option value="#value#" selected="selected">#value#</option>
+		</cfif>
 	</select>
 </cfoutput>
