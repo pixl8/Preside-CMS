@@ -1,12 +1,15 @@
 ( function( $ ){
 
-	var $typeLinkList        = $( ".link-type-list" ).first()
+	var $form                = $( "#link-picker-form" )
+	  , $typeLinkList        = $( ".link-type-list" ).first()
 	  , $linkTypeItems       = $( ".link-type-list" ).find( ".link-type" )
-	  , $linkTypeInput       = $( "#link-picker-form input[name=type]" )
+	  , $linkTypeInput       = $form.find( "input[name=type]" )
 	  , $links               = $typeLinkList.find( ".link-type-link" )
 	  , $toggleableFieldsets = $( "#tab-basic fieldset" ).not( "#fieldset-standard" )
-	  , $basicTabLink        = $( "#link-picker-form a[href='#tab-basic']" )
-	  , setActiveFieldset, deactivateFieldset, activateFieldset, initializeBehaviour, setupAnchors;
+	  , $basicTabLink        = $form.find( "a[href='#tab-basic']" )
+	  , $protocolField       = $form.find( "#protocol" ).length ? $form.find( "#protocol" ) : $form.find( "#external_protocol" )
+	  , $addressField        = $form.find( "input[name='address']" ).length ? $form.find( "input[name='address']" ) : $form.find( "input[name='external_address']" )
+	  , setActiveFieldset, deactivateFieldset, activateFieldset, initializeBehaviour, setupAnchors, autosetProtocol;
 
 	initializeBehaviour = function(){
 		$links.click( function(e){
@@ -17,6 +20,8 @@
 			setActiveFieldset();
 			$basicTabLink.click();
 		} );
+
+		$addressField.on( "change", autosetProtocol );
 
 		setActiveFieldset();
 	};
@@ -74,6 +79,19 @@
 		$fieldset.show();
 		$fieldset.find( "input,select,textarea" ).prop( 'disabled', false );
 	}
+
+	autosetProtocol = function(){
+		var addressValue = $addressField.val();
+		var regex        = /^[a-z]+\:\/\//;
+		var match        = addressValue.match( regex );
+
+		if ( match !== null && match.length === 1 ) {
+			var protocol = match[ 0 ];
+
+			$protocolField.data( 'uberSelect' ).select( protocol, protocol );
+			$addressField.val( addressValue.replace( regex, '' ) );
+		}
+	};
 
 	setupAnchors();
 	initializeBehaviour();

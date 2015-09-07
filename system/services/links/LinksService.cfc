@@ -58,7 +58,7 @@ component output=false {
 
 	private string function _buildUrlHref( required query link ) output=false {
 		var protocol = Len( Trim( link.external_protocol ) ) ? link.external_protocol : "http://";
-		var address  = ReReplace( link.external_address, "$(https?|ftp|news)\://", "" );
+		var address  = ReReplace( link.external_address, "^[a-z]\://", "" );
 
 		return protocol & address;
 	}
