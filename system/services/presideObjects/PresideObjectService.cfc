@@ -350,6 +350,8 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 		var interceptionArgs       = arguments;
 		    interceptionArgs.newId = newId;
+		    interceptionArgs.result = result;
+		    
 		_announceInterception( "postInsertObjectData", interceptionArgs );
 
 		return newId;
