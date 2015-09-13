@@ -35,25 +35,28 @@ component implements="coldbox.system.ioc.dsl.IDSLBuilder" output=false {
 	}
 
 	private array function _processDirectoriesDsl( string subDir=""  ) output=false {
+		var cb         = _getInjector().getInstance( dsl="coldbox" );
+		var extensions = cb.getSetting( name="activeExtensions", defaultValue=[]     );
+		var appMapping = cb.getSetting( name="appMapping"      , defaultValue="/app" );
+
 		if ( !ReFind( "^/", subDir ) ) {
 			subDir = "/" & subDir;
 		}
 
 		var directories = [ "/preside/system#subDir#" ];
-		var extensions  = _getInjector().getInstance( dsl="coldbox" ).getSetting( name="activeExtensions", defaultValue=[] );
 
 		for( var i=extensions.len(); i > 0; i-- ){
 			directories.append( extensions[i].directory & subDir );
 		}
 
-		directories.append( "/app#subDir#" );
+		directories.append( appMapping & subDir );
 
 		for( var i=extensions.len(); i > 0; i-- ){
 			for( var dir in _findSiteTemplateDirectories( extensions[i].directory, subDir ) ){
 				directories.append( dir );
 			}
 		}
-		for( var dir in _findSiteTemplateDirectories( "/app", subDir ) ){
+		for( var dir in _findSiteTemplateDirectories( appMapping, subDir ) ){
 			directories.append( dir );
 		}
 
