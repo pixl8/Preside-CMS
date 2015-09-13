@@ -92,15 +92,23 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private void function _setupMappings() {
-		var appRoot = _getApplicationRoot();
-
-		this.mappings[ "/preside" ] = ExpandPath( "/preside" );
-		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
-		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
-		this.mappings[ "/app"     ] = appRoot & "/application";
-		this.mappings[ "/assets"  ] = appRoot & "/assets";
-		this.mappings[ "/logs"    ] = appRoot & "/logs";
+	private void function _setupMappings(
+		  string coldboxMapping = "/coldbox"
+		, string stickerMapping = "/sticker"
+		, string appMapping     = "/app"
+		, string assetsMapping  = "/assets"
+		, string logsMapping    = "/logs"
+		, string coldboxPath    = ExpandPath( "/preside/system/externals/coldbox" )
+		, string stickerPath    = ExpandPath( "/preside/system/externals/sticker" )
+		, string appPath        = _getApplicationRoot() & "/application"
+		, string assetsPath     = _getApplicationRoot() & "/assets"
+		, string logsPath       = _getApplicationRoot() & "/logs"
+	) {
+		this.mappings[ arguments.coldboxMapping ] = arguments.coldboxPath;
+		this.mappings[ arguments.stickerMapping ] = arguments.stickerPath;
+		this.mappings[ arguments.appMapping     ] = arguments.appPath;
+		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
+		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
 	}
 
 	private void function _initEveryEverything() {
