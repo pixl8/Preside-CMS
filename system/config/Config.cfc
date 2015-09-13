@@ -1,6 +1,16 @@
 component output=false {
 
 	public void function configure() output=false {
+		settings = {};
+
+		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
+		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
+		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
+
+		settings.appMappingPath    = Replace( ReReplace( settings.appMapping   , "^/", "" ), "/", ".", "all" );
+		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
+		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
+
 		coldbox = {
 			  appName                   = "OpenPreside Website"
 			, handlersIndexAutoReload   = false
@@ -102,8 +112,6 @@ component output=false {
 			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
 		};
 
-
-		settings = {};
 		settings.eventName                   = "event";
 		settings.formControls                = {};
 		settings.widgets                     = {};
@@ -255,11 +263,11 @@ component output=false {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "/app/helpers" ) ) {
-			siteUdfs = DirectoryList( "/app/helpers", true, false, "*.cfm" );
+		if ( DirectoryExists( "#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "#settings.appMapping#/helpers", true, false, "*.cfm" );
 
 			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/app/helpers" ) );
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
 			}
 		}
 
@@ -274,23 +282,26 @@ component output=false {
 	}
 
 	private string function _discoverWireboxBinder() output=false {
-		if ( FileExists( "/app/config/WireBox.cfc" ) ) {
-			return "app.config.WireBox";
+		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
+			return "#settings.appMappingPath#.config.WireBox";
 		}
 
 		return 'preside.system.config.WireBox';
 	}
 
 	private string function _discoverCacheboxConfigurator() output=false {
-		if ( FileExists( "/app/config/Cachebox.cfc" ) ) {
-			return "app.config.Cachebox";
+		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
+			return "#settings.appMappingPath#.config.Cachebox";
 		}
 
 		return "preside.system.config.Cachebox";
 	}
 
 	private array function _loadExtensions() output=false {
-		return new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true );
+		return new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping          = settings.appMapping
+			, extensionsDirectory = "#settings.appMapping#/extensions"
+		).listExtensions( activeOnly=true );
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{
@@ -404,7 +415,7 @@ component output=false {
 	}
 
 	private string function _getCookieEncryptionKey() output=false {
-		var cookieKeyFile = "/app/config/.cookieEncryptionKey";
+		var cookieKeyFile = "#settings.appMapping#/config/.cookieEncryptionKey";
 		if ( FileExists( cookieKeyFile ) ) {
 			try {
 				return FileRead( cookieKeyFile );

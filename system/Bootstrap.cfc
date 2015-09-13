@@ -75,7 +75,10 @@ component {
 
 		} else {
 			thread name=CreateUUId() e=arguments.exception {
-				new preside.system.services.errors.ErrorLogService().raiseError( attributes.e );
+				new preside.system.services.errors.ErrorLogService(
+					  appMapping     = request._presideMappings.appMapping ?: "/app"
+					, appMappingPath = Replace( ReReplace( ( request._presideMappings.appMapping ?: "/app" ), "^/", "" ), "/", ".", "all" )
+				).raiseError( attributes.e );
 			}
 
 			content reset=true;
@@ -93,22 +96,30 @@ component {
 
 // PRIVATE HELPERS
 	private void function _setupMappings(
-		  string coldboxMapping = "/coldbox"
-		, string stickerMapping = "/sticker"
-		, string appMapping     = "/app"
+		  string appMapping     = "/app"
 		, string assetsMapping  = "/assets"
 		, string logsMapping    = "/logs"
-		, string coldboxPath    = ExpandPath( "/preside/system/externals/coldbox" )
-		, string stickerPath    = ExpandPath( "/preside/system/externals/sticker" )
 		, string appPath        = _getApplicationRoot() & "/application"
 		, string assetsPath     = _getApplicationRoot() & "/assets"
 		, string logsPath       = _getApplicationRoot() & "/logs"
 	) {
-		this.mappings[ arguments.coldboxMapping ] = arguments.coldboxPath;
-		this.mappings[ arguments.stickerMapping ] = arguments.stickerPath;
+		this.mappings[ "/preside" ] = ExpandPath( "/preside" );
+		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
+		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
+
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
+
+		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
+		variables.COLDBOX_APP_KEY       = arguments.appPath;
+		variables.COLDBOX_APP_MAPPING   = arguments.appMapping;
+
+		request._presideMappings = {
+			  appMapping     = arguments.appMapping
+			, assetsMapping  = arguments.assetsMapping
+			, logsMapping    = arguments.logsMapping
+		};
 	}
 
 	private void function _initEveryEverything() {
@@ -122,9 +133,9 @@ component {
 	private void function _initColdBox() {
 		var bootstrap = new preside.system.coldboxModifications.Bootstrap(
 			  COLDBOX_CONFIG_FILE   = _discoverConfigPath()
-			, COLDBOX_APP_ROOT_PATH = variables.COLDBOX_APP_ROOT_PATH ?: ExpandPath( "/app" )
-			, COLDBOX_APP_KEY       = variables.COLDBOX_APP_KEY       ?: ExpandPath( "/app" )
-			, COLDBOX_APP_MAPPING   = variables.COLDBOX_APP_MAPPING   ?: "/app"
+			, COLDBOX_APP_ROOT_PATH = variables.COLDBOX_APP_ROOT_PATH
+			, COLDBOX_APP_KEY       = variables.COLDBOX_APP_KEY
+			, COLDBOX_APP_MAPPING   = variables.COLDBOX_APP_MAPPING
 		);
 
 		bootstrap.loadColdbox();
@@ -141,7 +152,7 @@ component {
 	}
 
 	private void function _fetchInjectedSettings() {
-		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="/app/config" );
+		var settingsManager = new preside.system.services.configuration.InjectedConfigurationManager( app=this, configurationDirectory="#COLDBOX_APP_MAPPING#/config" );
 		var config          = settingsManager.getConfig();
 
 		application.injectedConfig = config;
@@ -175,12 +186,14 @@ component {
 			return variables.COLDBOX_CONFIG_FILE;
 		}
 
-		if ( FileExists( "/app/config/LocalConfig.cfc" ) ) {
-			return "app.config.LocalConfig";
+		var appMappingPath = Replace( ReReplace( COLDBOX_APP_MAPPING, "^/", "" ), "/", ".", "all" );
+
+		if ( FileExists( "#COLDBOX_APP_MAPPING#/config/LocalConfig.cfc" ) ) {
+			return "#appMappingPath#.config.LocalConfig";
 		}
 
-		if ( FileExists( "/app/config/Config.cfc" ) ) {
-			return "app.config.Config";
+		if ( FileExists( "#COLDBOX_APP_MAPPING#/config/Config.cfc" ) ) {
+			return "#appMappingPath#.config.Config";
 		}
 
 		return "preside.system.config.Config";

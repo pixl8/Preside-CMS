@@ -711,14 +711,14 @@
 				directories.append( extensions[i].directory & "/" & subDir );
 			}
 
-			directories.append( "/app/#subDir#" );
+			directories.append( "#_getAppMapping()#/#subDir#" );
 
 			if ( Len( Trim( site.template ?: "" ) ) ) {
 				for( var i=extensions.len(); i > 0; i-- ){
 					directories.append( extensions[i].directory & "/site-templates/#site.template#/" & subDir );
 				}
 
-				directories.append( "/app/site-templates/#site.template#/#subDir#" );
+				directories.append( "#_getAppMapping()#/site-templates/#site.template#/#subDir#" );
 			}
 
 			return directories;
@@ -736,13 +736,13 @@
 				ArrayAppend( directories, extensions[i].directory & "/" & subDir );
 			}
 
-			ArrayAppend( directories, "/app/#subDir#" );
+			ArrayAppend( directories, "#_getAppMapping()#/#subDir#" );
 			if ( Len( Trim( site.template ?: "" ) ) ) {
 				for( var i=extensions.len(); i > 0; i-- ){
 					directories.append( extensions[i].directory & "/site-templates/#site.template#/" & subDir );
 				}
 
-				directories.append( "/app/site-templates/#site.template#/#subDir#" );
+				directories.append( "#_getAppMapping()#/site-templates/#site.template#/#subDir#" );
 			}
 
 			return directories;
@@ -787,5 +787,9 @@
 
 			return mappings;
 		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getAppMapping" access="private" returntype="string" output="false">
+		<cfreturn controller.getSetting( name="appMapping", defaultValue="/app" ) />
 	</cffunction>
 </cfcomponent>

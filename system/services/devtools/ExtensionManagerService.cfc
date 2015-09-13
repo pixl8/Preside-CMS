@@ -1,15 +1,24 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
-	public any function init( string extensionsDirectory="/app/extensions" ) output=false {
+	/**
+	 * @appMapping.inject coldbox:setting:appMapping
+	 *
+	 */
+	public any function init(
+		  string appMapping          = "/app"
+		, string extensionsDirectory = "#arguments.appMapping#/extensions"
+	) {
 		_setExtensionsDirectory( arguments.extensionsDirectory );
+		_setAppMapping( arguments.appMapping );
+
 		_createExtensionsFileIfItDoesNotExist();
 
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public array function listExtensions( boolean activeOnly=false ) output=false {
+	public array function listExtensions( boolean activeOnly=false ) {
 		var extensionList     = _readExtensionsFromFile();
 		var presentExtensions = _listPresentExtensions();
 		var listed            = [];
@@ -54,7 +63,7 @@ component output=false singleton=true {
 		return extensionList;
 	}
 
-	public void function activateExtension( required string extensionName ) output=false {
+	public void function activateExtension( required string extensionName ) {
 		var extensions = _readExtensionsFromFile();
 
 		for( var ext in extensions ){
@@ -77,7 +86,7 @@ component output=false singleton=true {
 		throw( type="ExtensionManager.missingExtension", message="The extension, [#arguments.extensionName#], could not be found. Present extensions" );
 	}
 
-	public void function deactivateExtension( required string extensionName ) output=false {
+	public void function deactivateExtension( required string extensionName ) {
 		var extensions = _readExtensionsFromFile();
 
 		for( var ext in extensions ){
@@ -100,7 +109,7 @@ component output=false singleton=true {
 		throw( type="ExtensionManager.missingExtension", message="The extension, [#arguments.extensionName#], could not be found. Extensions present: #SerializeJson( untrackedExtensions )#" );
 	}
 
-	public void function uninstallExtension( required string extensionName ) output=false {
+	public void function uninstallExtension( required string extensionName ) {
 		var extensionList     = _readExtensionsFromFile();
 		var presentExtensions = _listPresentExtensions();
 
@@ -120,7 +129,7 @@ component output=false singleton=true {
 		}
 	}
 
-	public struct function getExtensionInfo( required string extensionNameOrDirectory ) output=false {
+	public struct function getExtensionInfo( required string extensionNameOrDirectory ) {
 		var manifestDir      = DirectoryExists( extensionNameOrDirectory ) ? extensionNameOrDirectory : _getExtensionsDirectory() & "/" & arguments.extensionNameOrDirectory;
 		var manifestFilePath = manifestDir & "/manifest.json";
 		var fileContent      = "";
@@ -155,7 +164,7 @@ component output=false singleton=true {
 		};
 	}
 
-	public void function installExtension( required string extensionDirectory ) output=false {
+	public void function installExtension( required string extensionDirectory ) {
 		var extensionInfo   = getExtensionInfo( arguments.extensionDirectory );
 		var destinationPath = _getExtensionsDirectory() & "/" & extensionInfo.id;
 		var extensionList   = _readExtensionsFromFile();
@@ -177,7 +186,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private array function _readExtensionsFromFile() output=false {
+	private array function _readExtensionsFromFile() {
 		var extensionsFile = _getExtensionsListFilePath();
 		var extensions     = "";
 
@@ -188,7 +197,7 @@ component output=false singleton=true {
 		return extensions;
 	}
 
-	private array function _listPresentExtensions() output=false {
+	private array function _listPresentExtensions() {
 		var dirs       = DirectoryList( _getExtensionsDirectory(), false, "query" );
 		var extensions = [];
 
@@ -201,7 +210,7 @@ component output=false singleton=true {
 		return extensions;
 	}
 
-	private void function _writeExtensionsToFile( required array extensions ) output=false {
+	private void function _writeExtensionsToFile( required array extensions ) {
 		var extensionsFile = _getExtensionsListFilePath();
 
 		lock name="extfileop-#extensionsFile#" type="exclusive" timeout="10" {
@@ -209,11 +218,11 @@ component output=false singleton=true {
 		}
 	}
 
-	private string function _getExtensionsListFilePath() output=false {
+	private string function _getExtensionsListFilePath() {
 		return _getExtensionsDirectory() & "/extensions.json";
 	}
 
-	private void function _createExtensionsFileIfItDoesNotExist() output=false {
+	private void function _createExtensionsFileIfItDoesNotExist() {
 		var extensionsDir = _getExtensionsDirectory();
 		var extensionsFile = _getExtensionsListFilePath();
 
@@ -229,7 +238,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _validateManifest( required any manifest, required string extensionNameOrDirectory ) output=false {
+	private void function _validateManifest( required any manifest, required string extensionNameOrDirectory ) {
 		var missingFields = [];
 		var requiredFields = [ "id", "title", "author", "version" ];
 
@@ -255,11 +264,18 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private string function _getExtensionsDirectory() output=false {
+	private string function _getExtensionsDirectory() {
 		return _extensionsDirectory;
 	}
-	private void function _setExtensionsDirectory( required string extensionsDirectory ) output=false {
+	private void function _setExtensionsDirectory( required string extensionsDirectory ) {
 		_extensionsDirectory = arguments.extensionsDirectory;
+	}
+
+	private string function _getAppMapping() {
+		return _appMapping;
+	}
+	private void function _setAppMapping( required string appMapping ) {
+		_appMapping = arguments.appMapping;
 	}
 }
 

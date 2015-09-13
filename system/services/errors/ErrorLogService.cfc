@@ -1,8 +1,15 @@
 component {
 
 // CONSTRUCTOR
-	public any function init( string logDirectory=ExpandPath( "/logs/rte-logs" ) ) {
+	public any function init(
+		  string logDirectory   = ExpandPath( "/logs/rte-logs" )
+		, string appMapping     = "/app"
+		, string appMappingPath = "app"
+	) {
 		_setLogDirectory( arguments.logDirectory );
+		_setAppMapping( arguments.appMapping );
+		_setAppMappingPath( arguments.appMappingPath );
+
 		return this;
 	}
 
@@ -59,11 +66,15 @@ component {
 
 // PRIVATE HELPERS
 	private void function _callErrorListeners( required struct error ) {
-		_callListener( "app.services.errors.ErrorHandler", arguments.error );
+		_callListener( "#_getAppMappingPath()#.services.errors.ErrorHandler", arguments.error );
 
-		var extensions = new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true );
+		var extensions = new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping          = _getAppMapping()
+			, extensionsDirectory = "#_getAppMapping()#/extensions"
+		).listExtensions( activeOnly=true );
+
 		for( var extension in extensions ) {
-			_callListener( "app.extensions.#extension.name#.services.errors.ErrorHandler", arguments.error );
+			_callListener( "#_getAppMappingPath()#.extensions.#extension.name#.services.errors.ErrorHandler", arguments.error );
 		}
 	}
 
@@ -107,6 +118,20 @@ component {
 		if ( !DirectoryExists( _logDirectory ) ) {
 			DirectoryCreate( _logDirectory, true );
 		}
+	}
+
+	private string function _getAppMapping() {
+		return _appMapping;
+	}
+	private void function _setAppMapping( required string appMapping ) {
+		_appMapping = arguments.appMapping;
+	}
+
+	private string function _getAppMappingPath() {
+		return _appMappingPath;
+	}
+	private void function _setAppMappingPath( required string appMappingPath ) {
+		_appMappingPath = arguments.appMappingPath;
 	}
 
 }
