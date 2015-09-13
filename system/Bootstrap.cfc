@@ -93,12 +93,14 @@ component {
 
 // PRIVATE HELPERS
 	private void function _setupMappings() {
+		var appRoot = _getApplicationRoot();
+
 		this.mappings[ "/preside" ] = ExpandPath( "/preside" );
-		this.mappings[ "/app"     ] = ExpandPath( "/application/" );
-		this.mappings[ "/assets"  ] = ExpandPath( "/assets/" );
-		this.mappings[ "/logs"    ] = ExpandPath( "/logs/" );
 		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
 		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
+		this.mappings[ "/app"     ] = appRoot & "/application";
+		this.mappings[ "/assets"  ] = appRoot & "/assets";
+		this.mappings[ "/logs"    ] = appRoot & "/logs";
 	}
 
 	private void function _initEveryEverything() {
@@ -249,5 +251,13 @@ component {
 			session.setMaxInactiveInterval(  javaCast( "long", 1 ) );
 			getPageContext().setHeader( "Set-Cookie", "" );
 		}
+	}
+
+	private string function _getApplicationRoot() {
+		var trace      = CallStackGet();
+		var appCfcPath = trace[ trace.len() ].template;
+		var dir        = GetDirectoryFromPath( appCfcPath );
+
+		return ReReplace( dir, "/$", "" );
 	}
 }
