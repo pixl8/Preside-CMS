@@ -2,9 +2,10 @@ component {
 
 // CONSTRUCTOR
 	public any function init(
-		  string logDirectory   = ExpandPath( "/logs/rte-logs" )
-		, string appMapping     = "/app"
+		  string appMapping     = "/app"
 		, string appMappingPath = "app"
+		, string logsMapping    = "/logs"
+		, string logDirectory   = ExpandPath( "#arguments.logsMapping#/rte-logs" )
 	) {
 		_setLogDirectory( arguments.logDirectory );
 		_setAppMapping( arguments.appMapping );

@@ -78,6 +78,8 @@ component {
 				new preside.system.services.errors.ErrorLogService(
 					  appMapping     = request._presideMappings.appMapping ?: "/app"
 					, appMappingPath = Replace( ReReplace( ( request._presideMappings.appMapping ?: "/app" ), "^/", "" ), "/", ".", "all" )
+					, logsMapping    = request._presideMappings.logsMapping ?: "/logs"
+					, logDirectory   = logsMapping & "/rte-logs"
 				).raiseError( attributes.e );
 			}
 
@@ -235,7 +237,12 @@ component {
 
 		if ( exceptionType == "presidecms.auto.schema.sync.disabled" ) {
 			thread name=CreateUUId() e=arguments.exception {
-				new preside.system.services.errors.ErrorLogService().raiseError( attributes.e );
+				new preside.system.services.errors.ErrorLogService(
+					  appMapping     = request._presideMappings.appMapping ?: "/app"
+					, appMappingPath = Replace( ReReplace( ( request._presideMappings.appMapping ?: "/app" ), "^/", "" ), "/", ".", "all" )
+					, logsMapping    = request._presideMappings.logsMapping ?: "/logs"
+					, logDirectory   = logsMapping & "/rte-logs"
+				).raiseError( attributes.e );
 			}
 
 			header statuscode=500;content reset=true;

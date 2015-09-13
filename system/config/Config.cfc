@@ -106,7 +106,7 @@ component output=false {
 			appenders = {
 				defaultLogAppender = {
 					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath='/logs', filename="coldbox.log" }
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
 				}
 			},
 			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
