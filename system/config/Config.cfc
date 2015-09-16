@@ -242,7 +242,7 @@ component output=false {
 			livePages = { filter = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or now() > page.embargo_date ) and ( page.expiry_date is null or now() < page.expiry_date )" }
 		};
 
-		settings.validationProviders = [ "presideObjectValidators" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
 
 		_loadConfigurationFromExtensions();
 
