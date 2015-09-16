@@ -1,1 +1,1 @@
-<cfoutput><span class="read-only">#( args.defaultValue ?: ( args.savedValue ?: "" ) )#</span></cfoutput>
+<cfoutput><span class="read-only">#( HTMLEditFormat( args.defaultValue ?: ( args.savedValue ?: "" ) ) )#</span></cfoutput>
