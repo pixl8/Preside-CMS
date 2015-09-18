@@ -59,6 +59,10 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !prc.notification.count() ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
 		}
+		if ( !notificationService.userHasAccessToTopic( event.getAdminUserId(), prc.notification.topic ) ) {
+			event.adminAccessDenied();
+		}
+
 		notificationService.markAsRead( [ rc.id ], event.getAdminUserId() );
 
 		prc.pageTitle    = translateResource( uri="cms:notifications.view.title" );
