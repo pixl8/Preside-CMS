@@ -15,6 +15,7 @@ component autodoc=true displayName="Notification Service" {
 	 * @configuredTopics.inject   coldbox:setting:notificationTopics
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @emailService.inject       emailService
+	 * @permissionService.inject  permissionService
 	 */
 	public any function init(
 		  required any   notificationDao
@@ -26,6 +27,7 @@ component autodoc=true displayName="Notification Service" {
 		, required array configuredTopics
 		, required any   interceptorService
 		, required any   emailService
+		, required any   permissionService
 	) {
 		_setNotificationDao( arguments.notificationDao );
 		_setConsumerDao( arguments.consumerDao );
@@ -36,6 +38,7 @@ component autodoc=true displayName="Notification Service" {
 		_setInterceptorService( arguments.interceptorService );
 		_setUserDao( arguments.userDao );
 		_setEmailService( arguments.emailService );
+		_setPermissionService( arguments.permissionService );
 
 		_setDefaultConfigurationForTopicsInDb();
 
@@ -233,8 +236,43 @@ component autodoc=true displayName="Notification Service" {
 	 * Returns array of configured topics
 	 *
 	 */
-	public array function listTopics() autodoc=true {
-		return _getConfiguredTopics();
+	public array function listTopics( string userId="" ) autodoc=true {
+		var topics = _getConfiguredTopics();
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			var permittedTopics = [];
+			for( var topic in topics ) {
+				if ( userHasAccessToTopic( arguments.userId, topic ) ) {
+					permittedTopics.append( topic );
+				}
+			}
+			return permittedTopics;
+		}
+
+		return topics;
+	}
+
+	/**
+	 * Returns whether or not the user has access to the given topic
+	 *
+	 * @userId.hint ID of the user who's permissions we wish to check
+	 * @topic.hint  ID of the topic to check
+	 */
+	public boolean function userHasAccessToTopic( required string userId, required string topic ) autodoc=true {
+		var topicGroups = listTopicUserGroups( arguments.topic );
+
+		if ( !topicGroups.len() ) {
+			return true;
+		}
+
+		var userGroups = _getPermissionService().listUserGroups( arguments.userId );
+		for( var topicGroup in topicGroups ) {
+			if ( userGroups.find( topicGroup ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -289,6 +327,20 @@ component autodoc=true displayName="Notification Service" {
 		for( var t in topic ) { return t; }
 
 		return {};
+	}
+
+	/**
+	 * Returns an array of user group IDs that the topic is configured to restrict access to
+	 *
+	 * @topic.hint ID of the topic
+	 */
+	public array function listTopicUserGroups( required string topic ) autodoc=true {
+		var groups = _getTopicDao().selectData( filter={ topic=arguments.topic }, selectFields=[ "available_to_groups.id" ], forcejoins="inner" );
+		if ( groups.recordCount ) {
+			return ValueArray( groups.id );
+		}
+
+		return [];
 	}
 
 	/**
@@ -537,5 +589,12 @@ component autodoc=true displayName="Notification Service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getPermissionService() {
+		return _permissionService;
+	}
+	private void function _setPermissionService( required any permissionService ) {
+		_permissionService = arguments.permissionService;
 	}
 }

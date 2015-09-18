@@ -83,7 +83,7 @@ component output=false singleton=true {
 			, selectFields = [ "security_group" ]
 		);
 
-		return ListToArray( ValueList( groups.security_group ) );
+		return ValueArray( groups.security_group );
 	}
 
 	public struct function getContextPermissions(

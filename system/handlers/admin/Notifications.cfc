@@ -111,7 +111,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		prc.subscriptions = notificationService.getUserSubscriptions( userId=event.getAdminUserId() );
-		prc.topics        = notificationService.listTopics();
+		prc.topics        = notificationService.listTopics( userId=event.getAdminUserId() );
 
 		var isTopicForm = Len( Trim( rc.topic ?: "" ) );
 		if ( isTopicForm ) {
