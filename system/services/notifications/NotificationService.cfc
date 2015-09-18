@@ -412,22 +412,24 @@ component autodoc=true displayName="Notification Service" {
 		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = subscriber; }
 
 		for( var userId in subscribers ){
-			var filter = { admin_notification=arguments.notificationId, security_user=userId };
-			transaction {
-				if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
-					interceptorArgs.subscription = subscribers[ userId ];
-					_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
+			if ( userHasAccessToTopic( userId, arguments.topic ) ) {
+				var filter = { admin_notification=arguments.notificationId, security_user=userId };
+				transaction {
+					if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
+						interceptorArgs.subscription = subscribers[ userId ];
+						_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
 
-					_getConsumerDao().insertData( data={
-						  admin_notification = arguments.notificationId
-						, security_user      = userId
-					} );
+						_getConsumerDao().insertData( data={
+							  admin_notification = arguments.notificationId
+							, security_user      = userId
+						} );
 
-					if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
-						sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
+						if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
+							sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
+						}
+
+						_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
 					}
-
-					_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
 				}
 			}
 		}
