@@ -15,6 +15,7 @@ component autodoc=true displayName="Notification Service" {
 	 * @configuredTopics.inject   coldbox:setting:notificationTopics
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @emailService.inject       emailService
+	 * @permissionService.inject  permissionService
 	 */
 	public any function init(
 		  required any   notificationDao
@@ -26,6 +27,7 @@ component autodoc=true displayName="Notification Service" {
 		, required array configuredTopics
 		, required any   interceptorService
 		, required any   emailService
+		, required any   permissionService
 	) {
 		_setNotificationDao( arguments.notificationDao );
 		_setConsumerDao( arguments.consumerDao );
@@ -36,6 +38,7 @@ component autodoc=true displayName="Notification Service" {
 		_setInterceptorService( arguments.interceptorService );
 		_setUserDao( arguments.userDao );
 		_setEmailService( arguments.emailService );
+		_setPermissionService( arguments.permissionService );
 
 		_setDefaultConfigurationForTopicsInDb();
 
@@ -233,8 +236,43 @@ component autodoc=true displayName="Notification Service" {
 	 * Returns array of configured topics
 	 *
 	 */
-	public array function listTopics() autodoc=true {
-		return _getConfiguredTopics();
+	public array function listTopics( string userId="" ) autodoc=true {
+		var topics = _getConfiguredTopics();
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			var permittedTopics = [];
+			for( var topic in topics ) {
+				if ( userHasAccessToTopic( arguments.userId, topic ) ) {
+					permittedTopics.append( topic );
+				}
+			}
+			return permittedTopics;
+		}
+
+		return topics;
+	}
+
+	/**
+	 * Returns whether or not the user has access to the given topic
+	 *
+	 * @userId.hint ID of the user who's permissions we wish to check
+	 * @topic.hint  ID of the topic to check
+	 */
+	public boolean function userHasAccessToTopic( required string userId, required string topic ) autodoc=true {
+		var topicGroups = listTopicUserGroups( arguments.topic );
+
+		if ( !topicGroups.len() ) {
+			return true;
+		}
+
+		var userGroups = _getPermissionService().listUserGroups( arguments.userId );
+		for( var topicGroup in topicGroups ) {
+			if ( userGroups.find( topicGroup ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -292,6 +330,20 @@ component autodoc=true displayName="Notification Service" {
 	}
 
 	/**
+	 * Returns an array of user group IDs that the topic is configured to restrict access to
+	 *
+	 * @topic.hint ID of the topic
+	 */
+	public array function listTopicUserGroups( required string topic ) autodoc=true {
+		var groups = _getTopicDao().selectData( filter={ topic=arguments.topic }, selectFields=[ "available_to_groups.id" ], forcejoins="inner" );
+		if ( groups.recordCount ) {
+			return ValueArray( groups.id );
+		}
+
+		return [];
+	}
+
+	/**
 	 * Saves configuration for a topic
 	 *
 	 * @topic.hint         ID of the topic
@@ -300,8 +352,9 @@ component autodoc=true displayName="Notification Service" {
 	 */
 	public boolean function saveGlobalTopicConfiguration( required string topic, required struct configuration ) autodoc=true {
 		return _getTopicDao().updateData(
-			  filter = { topic=arguments.topic }
-			, data   = arguments.configuration
+			  filter                  = { topic=arguments.topic }
+			, data                    = arguments.configuration
+			, updateManyToManyRecords = true
 		);
 	}
 
@@ -359,22 +412,24 @@ component autodoc=true displayName="Notification Service" {
 		for( var subscriber in subscribedToTopic ){ subscribers[ subscriber.security_user ] = subscriber; }
 
 		for( var userId in subscribers ){
-			var filter = { admin_notification=arguments.notificationId, security_user=userId };
-			transaction {
-				if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
-					interceptorArgs.subscription = subscribers[ userId ];
-					_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
+			if ( userHasAccessToTopic( userId, arguments.topic ) ) {
+				var filter = { admin_notification=arguments.notificationId, security_user=userId };
+				transaction {
+					if ( !_getConsumerDao().updateData( filter=filter, data={ read=false } ) ) {
+						interceptorArgs.subscription = subscribers[ userId ];
+						_announceInterception( "preCreateNotificationConsumer", interceptorArgs );
 
-					_getConsumerDao().insertData( data={
-						  admin_notification = arguments.notificationId
-						, security_user      = userId
-					} );
+						_getConsumerDao().insertData( data={
+							  admin_notification = arguments.notificationId
+							, security_user      = userId
+						} );
 
-					if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
-						sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
+						if ( IsBoolean( subscribers[ userId ].get_email_notifications ?: "" ) && subscribers[ userId ].get_email_notifications ) {
+							sendSubsciberNotificationEmail( recipient=userId, topic=arguments.topic, notificationId=arguments.notificationId, data=arguments.data );
+						}
+
+						_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
 					}
-
-					_announceInterception( "postCreateNotificationConsumer", interceptorArgs );
 				}
 			}
 		}
@@ -536,5 +591,12 @@ component autodoc=true displayName="Notification Service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getPermissionService() {
+		return _permissionService;
+	}
+	private void function _setPermissionService( required any permissionService ) {
+		_permissionService = arguments.permissionService;
 	}
 }
