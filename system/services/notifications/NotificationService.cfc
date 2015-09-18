@@ -300,8 +300,9 @@ component autodoc=true displayName="Notification Service" {
 	 */
 	public boolean function saveGlobalTopicConfiguration( required string topic, required struct configuration ) autodoc=true {
 		return _getTopicDao().updateData(
-			  filter = { topic=arguments.topic }
-			, data   = arguments.configuration
+			  filter                  = { topic=arguments.topic }
+			, data                    = arguments.configuration
+			, updateManyToManyRecords = true
 		);
 	}
 
