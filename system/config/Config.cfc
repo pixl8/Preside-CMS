@@ -54,6 +54,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"        );
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"          );
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"         );
+		interceptorSettings.customInterceptionPoints.append( "postRenderSiteTreePage"         );
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"          );
@@ -65,6 +66,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObjects"          );
 		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"         );
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"           );
+		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"          );
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"           );
