@@ -2,7 +2,9 @@ component extends="coldbox.system.Coldbox" output="false" {
 
 	public void function loadColdbox() output=false {
 		try {
-			lock name="PresideApplicationLoader" type="exclusive" timeout="1" throwontimeout=true {
+			var loadingLockName = "PresideApplicationLoader" & Hash( ExpandPath( "/" ) );
+
+			lock name=loadingLockName type="exclusive" timeout="1" throwontimeout=true {
 				_announceInterception( "prePresideReload" );
 				var appKey     = super.locateAppKey();
 				var controller = new Controller( COLDBOX_APP_ROOT_PATH, appKey );
