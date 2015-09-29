@@ -13,9 +13,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="known_as
 	property name="reset_password_key"              type="string"   dbtype="varchar" maxLength="60"  required=false;
 	property name="reset_password_token_expiry"     type="datetime" dbtype="datetime"                required=false;
 	property name="subscribed_to_all_notifications" type="boolean"  dbtype="boolean"                 required=false default=true;
-	property name="last_logged_in"                  type="datetime" dbtype="datetime"                required=false;
-	property name="last_logged_out"                 type="datetime" dbtype="datetime"                required=false;
-	property name="last_request_made"               type="datetime" dbtype="datetime"                required=false;
+	property name="last_logged_in"                  type="datetime" dbtype="datetime"                required=false ignoreChangesForVersioning=true;
+	property name="last_logged_out"                 type="datetime" dbtype="datetime"                required=false ignoreChangesForVersioning=true;
+	property name="last_request_made"               type="datetime" dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 
 	property name="groups" relationship="many-to-many" relatedTo="security_group";
 }
