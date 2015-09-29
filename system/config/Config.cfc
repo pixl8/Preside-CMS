@@ -46,7 +46,8 @@ component output=false {
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } },
+			{ class="preside.system.interceptors.RedirectsInterceptor"                , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -151,6 +152,7 @@ component output=false {
 			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
+			, "urlRedirects"
 			, "errorLogs"
 			, "maintenanceMode"
 		];
@@ -178,6 +180,7 @@ component output=false {
 			, systemConfiguration    = [ "manage" ]
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
+			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -196,7 +199,7 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*" ];
+		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
 		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
 		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 
