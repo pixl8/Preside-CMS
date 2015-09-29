@@ -1,21 +1,28 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
 	 * @widgetsService.inject       WidgetsService
 	 * @pageTypesService.inject     PageTypesService
 	 * @presideObjectService.inject PresideObjectService
+	 * @appMapping.inject           coldbox:setting:appMapping
 	 */
-	public any function init( required any widgetsService, required any pageTypesService, required any presideObjectService ) output=false {
+	public any function init(
+		  required any    widgetsService
+		, required any    pageTypesService
+		, required any    presideObjectService
+		, required string appMapping
+	) {
 		_setWidgetsService( arguments.widgetsService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setPresideObjectService( arguments.presideObjectService );
+		_setAppMapping( arguments.appMapping );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public array function scaffoldWidget( required string id, string name="",  string description="", string icon="fa-magic", string options="", string extension="", boolean createHandler=false ) output=false {
+	public array function scaffoldWidget( required string id, string name="",  string description="", string icon="fa-magic", string options="", string extension="", boolean createHandler=false ) {
 		var filesCreated = [];
 		var i18nProps    = StructNew( "linked" );
 
@@ -49,7 +56,7 @@ component output=false singleton=true {
 		return filesCreated;
 	}
 
-	public array function scaffoldPageType( required string id, string name="", string pluralName=arguments.name, string description="", string icon="page-o" string fields="", string extension="", boolean createHandler=false ) output=false {
+	public array function scaffoldPageType( required string id, string name="", string pluralName=arguments.name, string description="", string icon="page-o" string fields="", string extension="", boolean createHandler=false ) {
 		var filesCreated = [];
 		var i18nProps    = StructNew( "linked" );
 
@@ -82,7 +89,7 @@ component output=false singleton=true {
 		return filesCreated;
 	}
 
-	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="", string datamanagerGroup="" ) output=false {
+	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="", string datamanagerGroup="" ) {
 		var filesCreated   = [];
 		var i18nProps      = { title=arguments.pluralName, "title.singular"=arguments.name, description=arguments.description };
 		var i18nGroupProps = { title=arguments.datamanagerGroup, description=arguments.datamanagerGroup & " data manager group", iconclass="fa-square-o" };
@@ -106,12 +113,12 @@ component output=false singleton=true {
 		return filesCreated;
 	}
 
-	public string function scaffoldViewletHandler( required string handlerName, string subDir="", string extension="" ) output=false {
+	public string function scaffoldViewletHandler( required string handlerName, string subDir="", string extension="" ) {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
 		var viewPath = arguments.subDir & "/" & handlerName & "/index";
-		var fileContent = "component output=false {" & _nl()
-		                & "	private function index( event, rc, prc, args={} ) output=false {" & _nl()
+		var fileContent = "component {" & _nl()
+		                & "	private function index( event, rc, prc, args={} ) {" & _nl()
 		                & "		// TODO: create your handler logic here" & _nl()
 		                & "		return renderView( view='#viewPath#', args=args );" & _nl()
 		                & "	}" & _nl()
@@ -123,7 +130,7 @@ component output=false singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldView( required string viewName, string subDir="", string extension="", array args=[] ) output=false {
+	public string function scaffoldView( required string viewName, string subDir="", string extension="", array args=[] ) {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "views/" & arguments.subDir & "/" & arguments.viewName & ".cfm";
 		var fileContent = "<!---" & _nl()
@@ -141,7 +148,7 @@ component output=false singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldPageTypeView( required string viewName, string subDir="", string extension="", array args=[] ) output=false {
+	public string function scaffoldPageTypeView( required string viewName, string subDir="", string extension="", array args=[] ) {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "views/" & arguments.subDir & "/" & arguments.viewName & ".cfm";
 		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/pageTypeView.cfm.txt" );
@@ -161,7 +168,7 @@ component output=false singleton=true {
 
 
 
-	public string function scaffoldI18nPropertiesFile( required string bundleName, string subDir="", string extension="", struct properties={} ) output=false {
+	public string function scaffoldI18nPropertiesFile( required string bundleName, string subDir="", string extension="", struct properties={} ) {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "i18n/" & arguments.subDir & "/" & bundleName & ".properties";
 		var fileContent = "";
@@ -176,7 +183,7 @@ component output=false singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldSimpleForm( required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) output=false {
+	public string function scaffoldSimpleForm( required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
 		var fileContent = '<?xml version="1.0" encoding="UTF-8"?>' & _nl()
@@ -198,7 +205,7 @@ component output=false singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) output=false {
+	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) {
 		var root           = _getScaffoldRoot( arguments.extension );
 		var filePath       = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
 		var fileContent    = FileRead( "/preside/system/services/devtools/scaffoldingResources/pageTypeForm.xml.txt" );
@@ -217,7 +224,7 @@ component output=false singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false, string datamanagerGroup="" ) output=false {
+	public string function scaffoldPresideObjectCfc( required string objectName, string subDir="", string extension="", array properties=[], string name="", string description="", boolean createI18nFile=false, string datamanagerGroup="" ) {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "preside-objects/" & arguments.subDir & "/" & arguments.objectName & ".cfc";
 		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/object.cfc.txt" );
@@ -237,14 +244,14 @@ component output=false singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldTerminalCommand( required string name, required string helpText, string extension="" ) output=false {
+	public string function scaffoldTerminalCommand( required string name, required string helpText, string extension="" ) {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
-		var fileContent = 'component output=false hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
+		var fileContent = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
 		                & _nl()
 		                & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
 		                & _nl()
-		                & '	private any function index( event, rc, prc ) output=false {' & _nl()
+		                & '	private any function index( event, rc, prc ) {' & _nl()
 		                & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
 		                & '		var cliArgs = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];' & _nl()
 		                & _nl()
@@ -259,7 +266,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private void function _ensureDirectoryExists( required string dir ) output=false {
+	private void function _ensureDirectoryExists( required string dir ) {
 		var parentDir = "";
 		if ( not DirectoryExists( arguments.dir ) ) {
 			parentDir = ListDeleteAt( arguments.dir, ListLen( arguments.dir, "/" ), "/" );
@@ -268,35 +275,42 @@ component output=false singleton=true {
 		}
 	}
 
-	private string function _getScaffoldRoot( required string extension ) output=false {
-		return Len( Trim( arguments.extension ) ) ? "/app/extensions/#arguments.extension#/" : "/app/";
+	private string function _getScaffoldRoot( required string extension ) {
+		return Len( Trim( arguments.extension ) ) ? "#getAppMapping()#/extensions/#arguments.extension#/" : "#getAppMapping()#/";
 	}
 
-	private string function _nl() output=false {
+	private string function _nl() {
 		return Chr(13) & Chr(10);
 	}
 
 
 // GETTERS AND SETTERS
-	private any function _getWidgetsService() output=false {
+	private any function _getWidgetsService() {
 		return _widgetsService;
 	}
-	private void function _setWidgetsService( required any widgetsService ) output=false {
+	private void function _setWidgetsService( required any widgetsService ) {
 		_widgetsService = arguments.widgetsService;
 	}
 
-	private any function _getPageTypesService() output=false {
+	private any function _getPageTypesService() {
 		return _pageTypesService;
 	}
-	private void function _setPageTypesService( required any pageTypesService ) output=false {
+	private void function _setPageTypesService( required any pageTypesService ) {
 		_pageTypesService = arguments.pageTypesService;
 	}
 
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
+	}
+
+	private string function _getAppMapping() {
+		return _appMapping;
+	}
+	private void function _setAppMapping( required string appMapping ) {
+		_appMapping = arguments.appMapping;
 	}
 
 }

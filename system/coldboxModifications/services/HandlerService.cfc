@@ -1,6 +1,8 @@
 component extends="coldbox.system.web.services.HandlerService" output=false {
 
 	public void function registerHandlers() output=false {
+		var appMapping                   = controller.getSetting( "appMapping" );
+		var appMappingPath               = controller.getSetting( "appMappingPath" );
 		var handlersPath                 = controller.getSetting( "HandlersPath" );
 		var handlersExternalLocationPath = controller.getSetting( "HandlersExternalLocationPath" );
 		var handlersInvocationPath       = controller.getSetting("HandlersInvocationPath");
@@ -12,14 +14,14 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 		ArrayAppend( handlerMappings, { invocationPath=handlersInvocationPath, handlers=getHandlerListing( handlersPath, handlersInvocationPath ) } );
 		controller.setSetting( name="RegisteredHandlers", value=_listHandlerNames( handlerMappings[1].handlers ) );
 
-		_addSiteTemplateHandlerMappings( "/app/site-templates/", "app.site-templates", siteTemplateHandlerMappings );
+		_addSiteTemplateHandlerMappings( "#appMapping#/site-templates/", "#appMappingPath#.site-templates", siteTemplateHandlerMappings );
 
 		for( var ext in activeExtensions ) {
-			var extensionHandlersPath   = ExpandPath( "/app/extensions/#ext.name#/handlers" );
-			var extensionInvocationPath = "app.extensions.#ext.name#.handlers";
+			var extensionHandlersPath   = ExpandPath( "#appMapping#/extensions/#ext.name#/handlers" );
+			var extensionInvocationPath = "#appMappingPath#.extensions.#ext.name#.handlers";
 
 			ArrayAppend( handlerMappings, { invocationPath=extensionInvocationPath, handlers=getHandlerListing( extensionHandlersPath, extensionInvocationPath ) } );
-			_addSiteTemplateHandlerMappings( "/app/extensions/#ext.name#/site-templates/", "app.extensions.#ext.name#.site-templates", siteTemplateHandlerMappings );
+			_addSiteTemplateHandlerMappings( "#appMapping#/extensions/#ext.name#/site-templates/", "#appMappingPath#.extensions.#ext.name#.site-templates", siteTemplateHandlerMappings );
 		}
 
 		ArrayAppend( handlerMappings, { invocationPath=handlersExternalLocation, handlers=getHandlerListing( HandlersExternalLocationPath, handlersExternalLocation ) } );

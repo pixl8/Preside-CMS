@@ -1,6 +1,6 @@
- component extends="coldbox.system.ioc.config.Binder" output=false {
+ component extends="coldbox.system.ioc.config.Binder" {
 
-	public void function configure() output=false {
+	public void function configure() {
 		scopeRegistration( false );
 
 		_registerAopListener();
@@ -13,22 +13,25 @@
 	}
 
 // PRIVATE UTILITY
-	private void function _setupCustomDslProviders() output=false {
+	private void function _setupCustomDslProviders() {
 		mapDSL( "presidecms", "preside.system.coldboxModifications.PresideWireboxDsl" );
 		mapDSL( "delayedInjector", "preside.system.coldboxModifications.DelayedInjectorDsl" );
 	}
 
-	private void function _mapCommonSystemServices() output=false {
+	private void function _mapCommonSystemServices() {
 		mapDirectory( packagePath="preside.system.services", exclude="FileSystemStorageProvider|logger" );
 	}
 
-	private void function _mapSiteServices() output=false {
-		if ( DirectoryExists( "/app/services" ) ) {
-			mapDirectory( packagePath="app.services" );
+	private void function _mapSiteServices() {
+		var appMapping     = getColdbox().getSetting( name="appMapping"    , defaultValue="/app" );
+		var appMappingPath = getColdbox().getSetting( name="appMappingPath", defaultValue="app"  );
+
+		if ( DirectoryExists( "#appMapping#/services" ) ) {
+			mapDirectory( packagePath="#appMappingPath#.services" );
 		}
 	}
 
-	private void function _mapExtensionServices() output=false {
+	private void function _mapExtensionServices() {
 		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
 		for( var i=extensions.len(); i > 0; i-- ){
 			var servicesDir = ListAppend( extensions[i].directory, "services", "/" )
@@ -38,7 +41,7 @@
 		}
 	}
 
-	private void function _mapSpecificSystemServices() output=false {
+	private void function _mapSpecificSystemServices() {
 		var settings = getColdbox().getSettingStructure();
 
 		map( "baseService" ).to( "preside.system.base.Service" ).noAutoWire();
@@ -58,17 +61,19 @@
 			.initArg( name="rootUrl"       , value="" );
 	}
 
-	private void function _loadExtensionConfigurations() output=false {
-		var extensions  = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
+	private void function _loadExtensionConfigurations() {
+		var extensions     = getColdbox().getSetting( name="activeExtensions", defaultValue=[] );
+		var appMappingPath = getColdbox().getSetting( name="appMappingPath"  , defaultValue="app" );
+
 		for( var i=extensions.len(); i > 0; i-- ){
 			var wireboxConfigPath = ListAppend( extensions[i].directory, "config/Wirebox.cfc", "/" );
 			if ( FileExists( wireboxConfigPath ) ) {
-				CreateObject( "app.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
+				CreateObject( "#appMappingPath#.extensions.#ListLast( extensions[i].directory, '\/' )#.config.Wirebox" ).configure( binder=this );
 			}
 		}
 	}
 
-	private void function _registerAopListener() output=false {
+	private void function _registerAopListener() {
 		wirebox.listeners = [
 			{ class="coldbox.system.aop.Mixer",properties={} }
 		];

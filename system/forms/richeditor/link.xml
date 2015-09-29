@@ -12,7 +12,7 @@ This form is used for the add/edit link screen in the richeditor.
 		</fieldset>
 
 		<fieldset id="url" sortorder="20">
-			<field sortorder="10" name="protocol" control="select" required="true" label="cms:ckeditor.linkpicker.protocol.label" defaultValue="http://" values="http://,https://,ftp://,news://" />
+			<field sortorder="10" name="protocol" control="select" required="true" label="cms:ckeditor.linkpicker.protocol.label" defaultValue="http://" values="http://,https://,ftp://,news://" addMissingValues="true" />
 			<field sortorder="20" name="address" control="textinput" required="true" label="cms:ckeditor.linkpicker.address.label" placeholder="cms:ckeditor.linkpicker.address.placeholder" />
 		</fieldset>
 

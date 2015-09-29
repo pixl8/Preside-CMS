@@ -1005,7 +1005,7 @@
 			}
 		};
 
-		UberSelect.prototype.select = function( value ){
+		UberSelect.prototype.select = function( value, text ){
 			var item, uberSelect;
 
 			if ( !this.is_option_selected( { value:value } ) ) {
@@ -1014,13 +1014,15 @@
 
 				if ( item ) {
 					uberSelect.select_item( item );
-				} else if ( uberSelect.remote_url.length ) {
+				} else if ( uberSelect.remote_url && uberSelect.remote_url.length ) {
 					uberSelect.fetch_items_by_value( value, function( data ){
 						var _i=0; _len=data.length;
 						for( ; _i<_len; _i++ ){
 							uberSelect.select_item( data[_i] );
 						}
 					} );
+				} else if ( text && text.length ) {
+					uberSelect.select_item( { text:text, value:value } );
 				}
 			}
 		};

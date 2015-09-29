@@ -1,25 +1,19 @@
-component output=false {
-
-	property name="presideObjectService"      inject="presideObjectService";
-	property name="validationEngine"          inject="validationEngine";
-	property name="presideFieldRuleGenerator" inject="presideFieldRuleGenerator";
-	property name="formsService"              inject="formsService";
+component {
 	property name="applicationReloadService"  inject="applicationReloadService";
 	property name="websiteLoginService"       inject="websiteLoginService";
 	property name="adminLoginService"         inject="loginService";
 
-	public void function applicationStart( event, rc, prc ) output=false {
-		_autoRegisterPresideObjectValidators();
+	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
 		announceInterception( "onApplicationStart" );
 	}
 
-	public void function requestStart( event, rc, prc ) output=false {
+	public void function requestStart( event, rc, prc ) {
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
 	}
 
-	public void function notFound( event, rc, prc ) output=false {
+	public void function notFound( event, rc, prc ) {
 		var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="errors.notFound" );
 		var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
 
@@ -29,7 +23,7 @@ component output=false {
 		rc.body = renderViewlet( event=notFoundViewlet );
 	}
 
-	public void function accessDenied( event, rc, prc ) output=false {
+	public void function accessDenied( event, rc, prc ) {
 		var accessDeniedViewlet = getSetting( name="accessDeniedViewlet", defaultValue="errors.accessDenied" );
 		var accessDeniedLayout  = getSetting( name="accessDeniedLayout" , defaultValue="Main" );
 
@@ -40,25 +34,7 @@ component output=false {
 	}
 
 // private helpers
-	private void function _autoRegisterPresideObjectValidators() output=false {
-		var objects = presideObjectService.listObjects( includeGeneratedObjects=true );
-		var objName = "";
-		var obj     = "";
-		var ruleset = "";
-
-		validationEngine.newProvider( getModel( "presideObjectValidators" ) );
-
-		for( objName in objects ) {
-			obj = presideObjectService.getObject( objName );
-			if ( not IsSimpleValue( obj ) ) {
-				validationEngine.newProvider( obj );
-			}
-
-			ruleset = validationEngine.newRuleset( name="PresideObject.#objName#", rules=presideFieldRuleGenerator.generateRulesFromPresideObject( objName ) );
-		}
-	}
-
-	private void function _reloadChecks( event, rc, prc ) output=false {
+	private void function _reloadChecks( event, rc, prc ) {
 		var anythingReloaded = false;
 
 		if ( _requestIsExcludedFromReload( argumentCollection=arguments ) ) {
@@ -130,13 +106,9 @@ component output=false {
 				anythingReloaded = true;
 			}
 		}
-
-		if ( anythingReloaded ) {
-			_autoRegisterPresideObjectValidators();
-		}
 	}
 
-	private boolean function _requestIsExcludedFromReload( event, rc, prc ) output=false {
+	private boolean function _requestIsExcludedFromReload( event, rc, prc ) {
 		if ( prc._presideReloaded ?: false ) {
 			return true;
 		}

@@ -1,9 +1,10 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
-	property name="loginService"      inject="loginService";
-	property name="sessionStorage"    inject="coldbox:plugin:sessionStorage";
-	property name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent";
-	property name="messageBox"        inject="coldbox:plugin:messageBox";
+	property name="loginService"          inject="loginService";
+	property name="passwordPolicyService" inject="passwordPolicyService";
+	property name="sessionStorage"        inject="coldbox:plugin:sessionStorage";
+	property name="adminDefaultEvent"     inject="coldbox:setting:adminDefaultEvent";
+	property name="messageBox"            inject="coldbox:plugin:messageBox";
 
 	public void function preHandler( event, action, eventArguments ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -134,6 +135,11 @@ component extends="preside.system.base.AdminHandler" output=false {
 			} );
 		}
 
+		var passwordPolicy = passwordPolicyService.getPolicy( "cms" );
+		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
+			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
+		}
+
 		event.setView( "/admin/login/resetPassword" );
 	}
 
@@ -158,6 +164,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( pw != confirmation ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login.resetPassword" ), persistStruct={
 				  message = "PASSWORDS_DO_NOT_MATCH"
+				, token   = token
+			} );
+		}
+
+		if ( !passwordPolicyService.passwordMeetsPolicy( "cms", pw )  ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="login.resetPassword" ), persistStruct={
+				  message = "PASSWORD_NOT_STRONG_ENOUGH"
 				, token   = token
 			} );
 		}

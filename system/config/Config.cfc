@@ -1,6 +1,16 @@
 component output=false {
 
 	public void function configure() output=false {
+		settings = {};
+
+		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
+		settings.assetsMapping = request._presideMappings.assetsMapping ?: "/assets";
+		settings.logsMapping   = request._presideMappings.logsMapping   ?: "/logs";
+
+		settings.appMappingPath    = Replace( ReReplace( settings.appMapping   , "^/", "" ), "/", ".", "all" );
+		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
+		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
+
 		coldbox = {
 			  appName                   = "OpenPreside Website"
 			, handlersIndexAutoReload   = false
@@ -35,7 +45,9 @@ component output=false {
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } }
+			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
+			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } },
+			{ class="preside.system.interceptors.RedirectsInterceptor"                , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -54,6 +66,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"        );
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"          );
 		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"         );
+		interceptorSettings.customInterceptionPoints.append( "postRenderSiteTreePage"         );
 		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"           );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"          );
@@ -65,6 +78,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObjects"          );
 		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"         );
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"           );
+		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"          );
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"            );
 		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"           );
@@ -96,14 +110,12 @@ component output=false {
 			appenders = {
 				defaultLogAppender = {
 					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
-					, properties = { filePath='/logs', filename="coldbox.log" }
+					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
 				}
 			},
 			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
 		};
 
-
-		settings = {};
 		settings.eventName                   = "event";
 		settings.formControls                = {};
 		settings.widgets                     = {};
@@ -137,8 +149,10 @@ component output=false {
 
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
+			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
+			, "urlRedirects"
 			, "errorLogs"
 			, "maintenanceMode"
 		];
@@ -159,12 +173,14 @@ component output=false {
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
+			, passwordPolicyManager  = [ "manage" ]
 			, websiteBenefitsManager = [ "navigate", "read", "add", "edit", "delete", "prioritize" ]
 			, websiteUserManager     = [ "navigate", "read", "add", "edit", "delete", "prioritize", "impersonate" ]
 			, devtools               = [ "console" ]
 			, systemConfiguration    = [ "manage" ]
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
+			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -183,7 +199,7 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*" ];
+		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
 		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
 		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 
@@ -214,21 +230,24 @@ component output=false {
 		};
 
 		settings.features = {
-			  sitetree            = { enabled=true , siteTemplates=[ "*" ] }
-			, sites               = { enabled=true , siteTemplates=[ "*" ] }
-			, assetManager        = { enabled=true , siteTemplates=[ "*" ] }
-			, websiteUsers        = { enabled=true , siteTemplates=[ "*" ] }
-			, datamanager         = { enabled=true , siteTemplates=[ "*" ] }
-			, systemConfiguration = { enabled=true , siteTemplates=[ "*" ] }
-			, updateManager       = { enabled=true , siteTemplates=[ "*" ] }
-			, cmsUserManager      = { enabled=true , siteTemplates=[ "*" ] }
-			, errorLogs           = { enabled=true , siteTemplates=[ "*" ] }
-			, multilingual        = { enabled=false, siteTemplates=[ "*" ] }
+			  sitetree              = { enabled=true , siteTemplates=[ "*" ] }
+			, sites                 = { enabled=true , siteTemplates=[ "*" ] }
+			, assetManager          = { enabled=true , siteTemplates=[ "*" ] }
+			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ] }
+			, datamanager           = { enabled=true , siteTemplates=[ "*" ] }
+			, systemConfiguration   = { enabled=true , siteTemplates=[ "*" ] }
+			, updateManager         = { enabled=true , siteTemplates=[ "*" ] }
+			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ] }
+			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
+			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
+			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
 		};
 
 		settings.filters = {
 			livePages = { filter = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or now() > page.embargo_date ) and ( page.expiry_date is null or now() < page.expiry_date )" }
 		};
+
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
 
 		_loadConfigurationFromExtensions();
 
@@ -255,11 +274,11 @@ component output=false {
 			udfs[i] = _getMappedPathFromFull( udfs[i], "/preside/system/helpers/" );
 		}
 
-		if ( DirectoryExists( "/app/helpers" ) ) {
-			siteUdfs = DirectoryList( "/app/helpers", true, false, "*.cfm" );
+		if ( DirectoryExists( "#settings.appMapping#/helpers" ) ) {
+			siteUdfs = DirectoryList( "#settings.appMapping#/helpers", true, false, "*.cfm" );
 
 			for( udf in siteUdfs ){
-				ArrayAppend( udfs, _getMappedPathFromFull( udf, "/app/helpers" ) );
+				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
 			}
 		}
 
@@ -274,23 +293,26 @@ component output=false {
 	}
 
 	private string function _discoverWireboxBinder() output=false {
-		if ( FileExists( "/app/config/WireBox.cfc" ) ) {
-			return "app.config.WireBox";
+		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
+			return "#settings.appMappingPath#.config.WireBox";
 		}
 
 		return 'preside.system.config.WireBox';
 	}
 
 	private string function _discoverCacheboxConfigurator() output=false {
-		if ( FileExists( "/app/config/Cachebox.cfc" ) ) {
-			return "app.config.Cachebox";
+		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
+			return "#settings.appMappingPath#.config.Cachebox";
 		}
 
 		return "preside.system.config.Cachebox";
 	}
 
 	private array function _loadExtensions() output=false {
-		return new preside.system.services.devtools.ExtensionManagerService( "/app/extensions" ).listExtensions( activeOnly=true );
+		return new preside.system.services.devtools.ExtensionManagerService(
+			  appMapping          = settings.appMapping
+			, extensionsDirectory = "#settings.appMapping#/extensions"
+		).listExtensions( activeOnly=true );
 	}
 
 	private struct function _getConfiguredFileTypes() output=false{
@@ -404,7 +426,7 @@ component output=false {
 	}
 
 	private string function _getCookieEncryptionKey() output=false {
-		var cookieKeyFile = "/app/config/.cookieEncryptionKey";
+		var cookieKeyFile = "#settings.appMapping#/config/.cookieEncryptionKey";
 		if ( FileExists( cookieKeyFile ) ) {
 			try {
 				return FileRead( cookieKeyFile );

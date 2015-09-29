@@ -17,7 +17,7 @@ This form is used for the quick add link modal
 		</fieldset>
 
 		<fieldset id="url" sortorder="30">
-			<field sortorder="10" binding="link.external_protocol" control="select" values="http://,https://,ftp://,news://" />
+			<field sortorder="10" binding="link.external_protocol" control="select" values="http://,https://,ftp://,news://" addMissingValues="true" />
 			<field sortorder="20" binding="link.external_address" control="textinput" />
 		</fieldset>
 

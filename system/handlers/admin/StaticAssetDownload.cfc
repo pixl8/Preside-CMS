@@ -1,7 +1,8 @@
-component output=false {
-	property name="i18n" inject="coldbox:plugin:i18n";
+component {
+	property name="i18n"       inject="coldbox:plugin:i18n";
+	property name="appMapping" inject="coldbox:setting:appMapping";
 
-	function download( event, rc, prc ) output=false {
+	function download( event, rc, prc ) {
 		var staticAssetPath = _translatePath( rc.staticAssetPath ?: "" );
 		var assetFile       = ExpandPath( staticAssetPath );
 
@@ -23,9 +24,9 @@ component output=false {
 	}
 
 // PRIVATE HELPERS
-	private boolean function _fileExists( required string fullPath ) output=false {
+	private boolean function _fileExists( required string fullPath ) {
 		var rootAllowedDirectory = ExpandPath( "/preside/system/assets" );
-		var extensionsDirectory  = ExpandPath( "/app/extensions/" );
+		var extensionsDirectory  = ExpandPath( "#appMapping#/extensions/" );
 
 		if ( ( !fullPath.startsWith( rootAllowedDirectory ) && !fullPath.startsWith( extensionsDirectory ) ) || fullPath contains ".." ) {
 			return false;
@@ -34,17 +35,17 @@ component output=false {
 		return FileExists( arguments.fullPath );
 	}
 
-	private string function _getEtag( required string fullPath ) output=false {
+	private string function _getEtag( required string fullPath ) {
 		return Left( LCase( Hash( SerializeJson( GetFileInfo( arguments.fullPath ) ) ) ), 8 );
 	}
 
-	private string function _doBrowserEtagLookup( required string etag ) output=false {
+	private string function _doBrowserEtagLookup( required string etag ) {
 		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
 	}
 
-	private string function _getMimeType( assetFile ) output=false {
+	private string function _getMimeType( assetFile ) {
 		switch( ListLast( arguments.assetFile, "." ) ){
 			case "css": return "text/css";
 			case "js" : return "application/javascript";
@@ -61,7 +62,7 @@ component output=false {
 		return "application/octet-stream";
 	}
 
-	private void function _serveI18nBundle( event, rc, prc ) output=false {
+	private void function _serveI18nBundle( event, rc, prc ) {
 		var locale = getFwLocale();
 		var js     = i18n.getI18nJsForAdmin();
 		var etag   = Left( LCase( Hash( js ) ), 8 );
@@ -73,7 +74,7 @@ component output=false {
 		content reset=true type="application/javascript";WriteOutput(js);abort;
 	}
 
-	private string function _translatePath( required string path ) output=false {
-		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "/app/extensions/" );
+	private string function _translatePath( required string path ) {
+		return ReReplace( arguments.path, "^/preside/system/assets/extension/", "#appMapping#/extensions/" );
 	}
 }

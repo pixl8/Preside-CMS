@@ -1,6 +1,7 @@
 component output=false {
 
-	property name="websiteLoginService"  inject="websiteLoginService";
+	property name="websiteLoginService"   inject="websiteLoginService";
+	property name="passwordPolicyService" inject="passwordPolicyService";
 
 // core events
 	public void function attemptLogin( event, rc, prc ) output=false {
@@ -82,6 +83,13 @@ component output=false {
 			} );
 		}
 
+		if ( !passwordPolicyService.passwordMeetsPolicy( "website", pw ) ) {
+			setNextEvent( url=event.buildLink( page="reset_password" ), persistStruct={
+				  message = "PASSWORD_NOT_STRONG_ENOUGH"
+				, token   = token
+			} );
+		}
+
 		if ( websiteLoginService.resetPassword( token=token, password=pw ) ) {
 			setNextEvent( url=event.buildLink( page="login" ), persistStruct={
 				message = "PASSWORD_RESET"
@@ -129,6 +137,12 @@ component output=false {
 			setNextEvent( url=event.buildLink( page="forgotten_password" ), persistStruct={
 				message = "INVALID_RESET_TOKEN"
 			} );
+		}
+
+		var passwordPolicy = passwordPolicyService.getPolicy( "website" );
+
+		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
+			args.policyMessage = renderContent( "richeditor", passwordPolicy.message );
 		}
 
 		return renderView( view="/login/resetPassword", presideObject="reset_password", id=event.getCurrentPageId(), args=args );
