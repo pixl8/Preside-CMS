@@ -375,11 +375,12 @@ component singleton=true {
 		var loginSvc       = _getLoginService();
 		var homepage       = _getPobj().selectData(
 			  maxRows      = 1
-			, orderBy      = "_hierarchy_depth, _hierarchy_sort_order"
+			, orderBy      = "_hierarchy_sort_order"
 			, selectFields = arguments.selectFields
 			, filter       = {
-				  active  = true
-				, trashed = false
+				  _hierarchy_depth = 0
+				, active           = true
+				, trashed          = false
 			  }
 		);
 
