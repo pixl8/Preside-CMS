@@ -406,11 +406,9 @@ component output="false" singleton=true {
 			return true;
 		}
 
-		var prop      = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
-		var type      = prop.getAttribute( "type", "" );
-		var maxLength = Val( prop.getAttribute( "maxLength", "" ) );
+		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
-		return type eq "string" and maxLength and maxLength lt 4000; // 4000, really?
+		return prop.getAttribute( "type", "" ) == "string";
 	}
 
 // GETTERS AND SETTERS
