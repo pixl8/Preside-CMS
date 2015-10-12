@@ -6,6 +6,7 @@ component {
 	 * @adminLoginService.inject          provider:loginService
 	 * @websiteLoginService.inject        provider:websiteLoginService
 	 * @emailService.inject               provider:emailService
+	 * @errorLogService.inject            provider:errorLogService
 	 *
 	 */
 	public any function init(
@@ -14,12 +15,14 @@ component {
 		,  required any adminLoginService
 		,  required any websiteLoginService
 		,  required any emailService
+		,  required any errorLogService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
 		$adminLoginService          = arguments.adminLoginService;
 		$websiteLoginService        = arguments.websiteLoginService;
 		$emailService               = arguments.emailService;
+		$errorLogService            = arguments.errorLogService;
 
 		return this;
 	}
@@ -94,5 +97,14 @@ component {
 
 	public any function $sendEmail() {
 		return $getEmailService().send( argumentCollection=arguments );
+	}
+
+// ERROR LOGGING
+	public any function $getErrorLogService() {
+		return $errorLogService;
+	}
+
+	public any function $raiseError() {
+		return $getErrorLogService().raiseError( argumentCollection=arguments );
 	}
 }
