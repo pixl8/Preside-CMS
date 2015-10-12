@@ -266,6 +266,16 @@ component extends="preside.system.base.AdminHandler" {
 		prc.isMultilingual         = prc.pageIsMultilingual || prc.pageTypeIsMultilingual;
 		prc.canTranslate           = prc.isMultilingual && _checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId, throwOnError=false );
 
+		if ( _isManagedPage( prc.page.parent_page, prc.page.page_type ) ) {
+			prc.backToTreeTitle = translateResource( uri="cms:sitetree.back.to.managed.pages.link", data=[
+				translateResource( pageType.getName() )
+			] );
+			prc.backToTreeLink = event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#prc.page.parent_page#&pageType=#prc.page.page_type#" );
+		} else {
+			prc.backToTreeTitle = translateResource( "cms:sitetree.back.to.tree.link" );
+			prc.backToTreeLink = event.buildAdminLink( linkto="sitetree", querystring="selected=" & prc.page.id );
+		}
+
 		if ( prc.canTranslate ) {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
