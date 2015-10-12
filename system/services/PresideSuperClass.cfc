@@ -5,6 +5,7 @@ component {
 	 * @systemConfigurationService.inject provider:systemConfigurationService
 	 * @adminLoginService.inject          provider:loginService
 	 * @websiteLoginService.inject        provider:websiteLoginService
+	 * @emailService.inject               provider:emailService
 	 *
 	 */
 	public any function init(
@@ -12,11 +13,13 @@ component {
 		,  required any systemConfigurationService
 		,  required any adminLoginService
 		,  required any websiteLoginService
+		,  required any emailService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
 		$adminLoginService          = arguments.adminLoginService;
 		$websiteLoginService        = arguments.websiteLoginService;
+		$emailService               = arguments.emailService;
 
 		return this;
 	}
@@ -84,5 +87,12 @@ component {
 		return $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments );
 	}
 
+// EMAIL SERVICE
+	public any function $getEmailService() {
+		return $emailService;
+	}
 
+	public any function $sendEmail() {
+		return $getEmailService().send( argumentCollection=arguments );
+	}
 }
