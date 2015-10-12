@@ -134,11 +134,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="add", pageId=parentPageId );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.addPage.title" )
-			, link  = ""
-		);
-
 		prc.parentPage = siteTreeService.getPage(
 			  id              = parentPageId
 			, includeInactive = true
@@ -157,6 +152,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.mainFormName  = "preside-objects.page.add";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
+
+		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.addPage.title" )
+			, link  = ""
+		);
 	}
 
 	public void function addPageAction( event, rc, prc ) {
@@ -394,10 +395,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName ), pageId );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & pageId )
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = ""
@@ -514,10 +512,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( prc.pageTypeObjectName );
 		prc.versionedObjectName    = prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & pageId )
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = event.buildAdminLink( linkto="sitetree.translatePage", queryString="id=#pageId#&language=#languageId#" )
@@ -640,6 +635,7 @@ component extends="preside.system.base.AdminHandler" {
 			, selectFields = [ "id", "title" ]
 		);
 
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.reorderChildren.crumb", data=[ prc.page.title ] )
 			, link  = ""
@@ -674,6 +670,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.inheritedPermissionContext = _getPagePermissionContext( argumentCollection=arguments, includePageId=false );
 
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPagePermissions.crumb", data=[ prc.page.title ] )
 			, link  = ""
@@ -702,7 +699,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="viewversions", pageId=pageId );
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
-
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
 			, link  = ""
@@ -837,10 +834,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageIcon     = translateResource( "page-types.#pageType#:iconClass" );
 		prc.canAddChildren = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
 
-		event.addAdminBreadCrumb(
-			  title = prc.parentPage.title
-			, link  = event.buildAdminLink( linkTo="sitetree", queryString="selected=" & parentId )
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=parentId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
 			  title = prc.pageTitle
 			, link  = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=#parentId#&pageType=#pageType#" )
