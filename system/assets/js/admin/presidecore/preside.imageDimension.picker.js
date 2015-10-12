@@ -17,9 +17,9 @@
 			var dimensions = picker.calculateDimensions( picker.$originalInput.val() );
 
 			picker.$html = $( '<span class="image-dimensions-picker-wrapper">\
-			                      <input type="number" min="1" max="2000" class="image-dimensions-picker-input image-dimensions-picker-width"  value="' + dimensions.width  + '" title="' + i18n.translateResource( "cms:width"  ) + '" />\
+			                      <input type="number" class="image-dimensions-picker-input image-dimensions-picker-width"  value="' + dimensions.width  + '" title="' + i18n.translateResource( "cms:width"  ) + '" />\
 			                      <i class="fa fa-unlock image-dimensions-picker-maintain-ratio"></i>\
-			                      <input type="number" min="1" max="2000" class="image-dimensions-picker-input image-dimensions-picker-height" value="' + dimensions.height + '" title="' + i18n.translateResource( "cms:height" ) + '" />\
+			                      <input type="number" class="image-dimensions-picker-input image-dimensions-picker-height" value="' + dimensions.height + '" title="' + i18n.translateResource( "cms:height" ) + '" />\
 			                   </span>' );
 
 			picker.$originalInput.attr( "type", "hidden" );
