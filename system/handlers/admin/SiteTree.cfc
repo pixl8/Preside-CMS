@@ -271,10 +271,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-			, link  = ""
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 	}
 
 	public void function editPageAction( event, rc, prc ) {
@@ -997,5 +994,21 @@ component extends="preside.system.base.AdminHandler" {
 		var managedTypesForParent = pageTypesService.getPageType( parent.page_type ).getManagedChildTypes();
 
 		return managedTypesForParent.len() && ListFindNoCase( managedTypesForParent, arguments.pageType );
+	}
+
+	private void function _pageCrumbtrail( event, rc, prc, pageId, pageTitle ) {
+		var ancestors = sitetreeService.getAncestors( id=arguments.pageId, selectFields=[ "id", "title" ] );
+
+		for( var ancestor in ancestors ) {
+			event.addAdminBreadCrumb(
+				  title = ancestor.title
+				, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & ancestor.id )
+			);
+		}
+
+		event.addAdminBreadCrumb(
+			  title = arguments.pageTitle
+			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & arguments.pageId )
+		);
 	}
 }
