@@ -4,7 +4,9 @@ component {
 	 * @presideObjectService.inject       provider:presideObjectService
 	 * @systemConfigurationService.inject provider:systemConfigurationService
 	 * @adminLoginService.inject          provider:loginService
+	 * @adminPermissionService.inject     provider:permissionService
 	 * @websiteLoginService.inject        provider:websiteLoginService
+	 * @websitePermissionService.inject   provider:websitePermissionService
 	 * @emailService.inject               provider:emailService
 	 * @errorLogService.inject            provider:errorLogService
 	 * @featureService.inject             provider:featureService
@@ -15,7 +17,9 @@ component {
 		   required any presideObjectService
 		,  required any systemConfigurationService
 		,  required any adminLoginService
+		,  required any adminPermissionService
 		,  required any websiteLoginService
+		,  required any websitePermissionService
 		,  required any emailService
 		,  required any errorLogService
 		,  required any featureService
@@ -24,7 +28,9 @@ component {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
 		$adminLoginService          = arguments.adminLoginService;
+		$adminPermissionService     = arguments.adminPermissionService;
 		$websiteLoginService        = arguments.websiteLoginService;
+		$websitePermissionService   = arguments.websitePermissionService;
 		$emailService               = arguments.emailService;
 		$errorLogService            = arguments.errorLogService;
 		$featureService             = arguments.featureService;
@@ -64,6 +70,14 @@ component {
 		return $websiteLoginService;
 	}
 
+	public any function $getAdminPermissionService() {
+		return $adminPermissionService;
+	}
+
+	public any function $getWebsitePermissionService() {
+		return $websitePermissionService;
+	}
+
 	public any function $isAdminUserLoggedIn() {
 		return $getAdminLoginService().isLoggedIn( argumentCollection=arguments );
 	}
@@ -74,6 +88,10 @@ component {
 
 	public any function $getAdminLoggedInUserId() {
 		return $getAdminLoginService().getLoggedInUserId( argumentCollection=arguments );
+	}
+
+	public any function $hasAdminPermission() {
+		return $getAdminPermissionService().hasPermission( argumentCollection=arguments );
 	}
 
 	public any function $isWebsiteUserLoggedIn() {
@@ -92,8 +110,8 @@ component {
 		return $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments );
 	}
 
-	public any function $getWebsiteLoggedInUserId() {
-		return $getWebsiteLoginService().getLoggedInUserId( argumentCollection=arguments );
+	public any function $hasWebsitePermission() {
+		return $getWebsitePermissionService().hasPermission( argumentCollection=arguments );
 	}
 
 // EMAIL SERVICE
