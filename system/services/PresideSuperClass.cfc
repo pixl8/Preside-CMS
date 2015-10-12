@@ -8,6 +8,7 @@ component {
 	 * @emailService.inject               provider:emailService
 	 * @errorLogService.inject            provider:errorLogService
 	 * @featureService.inject             provider:featureService
+	 * @notificationService.inject        provider:notificationService
 	 *
 	 */
 	public any function init(
@@ -18,6 +19,7 @@ component {
 		,  required any emailService
 		,  required any errorLogService
 		,  required any featureService
+		,  required any notificationService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -26,6 +28,7 @@ component {
 		$emailService               = arguments.emailService;
 		$errorLogService            = arguments.errorLogService;
 		$featureService             = arguments.featureService;
+		$notificationService        = arguments.notificationService;
 
 		return this;
 	}
@@ -118,5 +121,14 @@ component {
 
 	public any function $isFeatureEnabled() {
 		return $getFeatureService().isFeatureEnabled( argumentCollection=arguments );
+	}
+
+// NOTIFICATIONS
+	public any function $getNotificationService() {
+		return $notificationService;
+	}
+
+	public any function $createNotification() {
+		return $getNotificationService().createNotification( argumentCollection=arguments );
 	}
 }
