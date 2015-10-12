@@ -29,6 +29,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
+		if ( ( rc.selected ?: "" ).len() ) {
+			prc.selectedAncestors = sitetreeService.getAncestors( id=rc.selected, selectFields=[ "id" ] );
+			prc.selectedAncestors = ValueArray( prc.selectedAncestors.id );
+			event.includeData( { selectedNode = rc.selected } );
+		}
 		prc.activeTree = siteTreeService.getTree( trash = false, format="nestedArray", maxDepth=0, selectFields=[
 			  "page.id"
 			, "page.parent_page"
@@ -110,6 +115,12 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 
+		if ( ( rc.selected ?: "" ).len() ) {
+			prc.selectedAncestors = sitetreeService.getAncestors( id=rc.selected, selectFields=[ "id" ] );
+			prc.selectedAncestors = ValueArray( prc.selectedAncestors.id );
+			event.includeData( { selectedPage = rc.selected } );
+		}
+
 		for( var node in tree ) {
 			node.append( additionalNodeArgs );
 			rendered &= renderView( view="/admin/sitetree/_node", args=node );
@@ -134,11 +145,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="add", pageId=parentPageId );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.addPage.title" )
-			, link  = ""
-		);
-
 		prc.parentPage = siteTreeService.getPage(
 			  id              = parentPageId
 			, includeInactive = true
@@ -157,6 +163,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.mainFormName  = "preside-objects.page.add";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
+
+		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:sitetree.addPage.title" )
+			, link  = ""
+		);
 	}
 
 	public void function addPageAction( event, rc, prc ) {
@@ -214,10 +226,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
-		} elseif ( _isManagedPage( parent, rc.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#parent#&pagetype=#rc.page_type#" ) );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#newId#" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#newId#" ) );
 		}
 	}
 
@@ -267,14 +277,21 @@ component extends="preside.system.base.AdminHandler" {
 		prc.isMultilingual         = prc.pageIsMultilingual || prc.pageTypeIsMultilingual;
 		prc.canTranslate           = prc.isMultilingual && _checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId, throwOnError=false );
 
+		if ( _isManagedPage( prc.page.parent_page, prc.page.page_type ) ) {
+			prc.backToTreeTitle = translateResource( uri="cms:sitetree.back.to.managed.pages.link", data=[
+				translateResource( pageType.getName() )
+			] );
+			prc.backToTreeLink = event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#prc.page.parent_page#&pageType=#prc.page.page_type#" );
+		} else {
+			prc.backToTreeTitle = translateResource( "cms:sitetree.back.to.tree.link" );
+			prc.backToTreeLink = event.buildAdminLink( linkto="sitetree", querystring="selected=" & prc.page.id );
+		}
+
 		if ( prc.canTranslate ) {
 			prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : pageType.getPresideObject() ), id );
 		}
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-			, link  = ""
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 	}
 
 	public void function editPageAction( event, rc, prc ) {
@@ -333,11 +350,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
 
-		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#page.parent_page#&pagetype=#page.page_type#" ) );
-		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
-		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
 	}
 
 	public void function translatePage( event, rc, prc ) {
@@ -400,10 +414,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName ), pageId );
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & pageId )
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = ""
@@ -520,10 +531,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTypeIsMultilingual = multilingualPresideObjectService.isMultilingual( prc.pageTypeObjectName );
 		prc.versionedObjectName    = prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:sitetree.editPage.crumb", data=[ prc.page.title ] )
-			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & pageId )
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = event.buildAdminLink( linkto="sitetree.translatePage", queryString="id=#pageId#&language=#languageId#" )
@@ -646,6 +654,7 @@ component extends="preside.system.base.AdminHandler" {
 			, selectFields = [ "id", "title" ]
 		);
 
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.reorderChildren.crumb", data=[ prc.page.title ] )
 			, link  = ""
@@ -680,6 +689,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.inheritedPermissionContext = _getPagePermissionContext( argumentCollection=arguments, includePageId=false );
 
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.editPagePermissions.crumb", data=[ prc.page.title ] )
 			, link  = ""
@@ -708,7 +718,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="viewversions", pageId=pageId );
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
-
+		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.pageHistory.crumb", data=[ prc.page.title ] )
 			, link  = ""
@@ -843,10 +853,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageIcon     = translateResource( "page-types.#pageType#:iconClass" );
 		prc.canAddChildren = _checkPermissions( argumentCollection=arguments, key="add", pageId=parentId, throwOnError=false );
 
-		event.addAdminBreadCrumb(
-			  title = prc.parentPage.title
-			, link  = event.buildAdminLink( linkTo="sitetree", queryString="selected=" & parentId )
-		);
+		_pageCrumbtrail( argumentCollection=arguments, pageId=parentId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
 			  title = prc.pageTitle
 			, link  = event.buildAdminLink( linkTo="sitetree.managedChildren", queryString="parent=#parentId#&pageType=#pageType#" )
@@ -1000,5 +1007,21 @@ component extends="preside.system.base.AdminHandler" {
 		var managedTypesForParent = pageTypesService.getPageType( parent.page_type ).getManagedChildTypes();
 
 		return managedTypesForParent.len() && ListFindNoCase( managedTypesForParent, arguments.pageType );
+	}
+
+	private void function _pageCrumbtrail( event, rc, prc, pageId, pageTitle ) {
+		var ancestors = sitetreeService.getAncestors( id=arguments.pageId, selectFields=[ "id", "title" ] );
+
+		for( var ancestor in ancestors ) {
+			event.addAdminBreadCrumb(
+				  title = ancestor.title
+				, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & ancestor.id )
+			);
+		}
+
+		event.addAdminBreadCrumb(
+			  title = arguments.pageTitle
+			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & arguments.pageId )
+		);
 	}
 }
