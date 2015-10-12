@@ -7,6 +7,7 @@ component {
 	 * @websiteLoginService.inject        provider:websiteLoginService
 	 * @emailService.inject               provider:emailService
 	 * @errorLogService.inject            provider:errorLogService
+	 * @featureService.inject             provider:featureService
 	 *
 	 */
 	public any function init(
@@ -16,6 +17,7 @@ component {
 		,  required any websiteLoginService
 		,  required any emailService
 		,  required any errorLogService
+		,  required any featureService
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -23,6 +25,7 @@ component {
 		$websiteLoginService        = arguments.websiteLoginService;
 		$emailService               = arguments.emailService;
 		$errorLogService            = arguments.errorLogService;
+		$featureService             = arguments.featureService;
 
 		return this;
 	}
@@ -106,5 +109,14 @@ component {
 
 	public any function $raiseError() {
 		return $getErrorLogService().raiseError( argumentCollection=arguments );
+	}
+
+// PRESIDE FEATURES
+	public any function $getFeatureService() {
+		return $featureService;
+	}
+
+	public any function $isFeatureEnabled() {
+		return $getFeatureService().isFeatureEnabled( argumentCollection=arguments );
 	}
 }
