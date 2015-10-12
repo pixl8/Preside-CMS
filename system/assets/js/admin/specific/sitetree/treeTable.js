@@ -3,6 +3,7 @@
 	$.fn.treeTable = function(){
 		var loadingRowTemplate = '<tr class="depth-{{depth}} ajax-loading" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-refresh fa-spin"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.message" ) + '</td></tr>'
 		  , errorRowTemplate   = '<tr class="depth-{{depth}} ajax-loading-error" data-parent="{{parent}}" data-depth="{{depth}}"><td colspan="5"><i class="fa fa-fw fa-exclamation-circle"></i> ' + i18n.translateResource( "cms:sitetree.ajax.loading.error.message" ) + '</td></tr>'
+		  , selectedNode       = ( cfrequest.selectedNode || "" )
 		  , openChildren, closeChildren, toggleRow, linkWasClicked, loadChildren, getChildren;
 
 		openChildren = function( $parent ){
@@ -53,15 +54,20 @@
 			};
 
 			ajaxCompleteHandler = function(){
+				var $children = calculateChildren( $parent );
+
 				$loadingRow.remove();
 				$parent.data( "childrenLoaded", true );
 				$parent.data( "childrenLoading", false );
-				$parent.data( "children", calculateChildren( $parent ) );
+				$parent.data( "children", $children );
 
-				getChildren( $parent ).attr( "tabindex", $parent.attr( "tabindex" ) );
+				$children.attr( "tabindex", $parent.attr( "tabindex" ) );
+				$children.filter( "[data-open-on-start]" ).each( function(){
+					openChildren( $( this ) );
+				} );
 			};
 
-			$.ajax( buildAjaxLink( 'sitetree.ajaxChildNodes', { parentId : $parent.data( "id" )  } ), {
+			$.ajax( buildAjaxLink( 'sitetree.ajaxChildNodes', { parentId : $parent.data( "id" ), selected : selectedNode  } ), {
 				  method   : "GET"
 				, cache    : false
 				, success  : ajaxSuccessHandler
