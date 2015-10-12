@@ -215,10 +215,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
-		} elseif ( _isManagedPage( parent, rc.page_type ) ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.managedChildren", querystring="parent=#parent#&pagetype=#rc.page_type#" ) );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#newId#" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#newId#" ) );
 		}
 	}
 
