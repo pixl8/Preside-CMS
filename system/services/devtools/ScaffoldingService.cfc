@@ -276,7 +276,7 @@ component singleton=true {
 	}
 
 	private string function _getScaffoldRoot( required string extension ) {
-		return Len( Trim( arguments.extension ) ) ? "#getAppMapping()#/extensions/#arguments.extension#/" : "#getAppMapping()#/";
+		return Len( Trim( arguments.extension ) ) ? "#_getAppMapping()#/extensions/#arguments.extension#/" : "#_getAppMapping()#/";
 	}
 
 	private string function _nl() {
