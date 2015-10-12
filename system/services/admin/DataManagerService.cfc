@@ -302,8 +302,8 @@ component output="false" singleton=true {
 		var props              = _getPresideObjectService().getObjectProperties( arguments.objectName );
 		var prop               = "";
 		var objName            = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
-		var labelField         = _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
-		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
+		var labelField         = _getPresideObjectService().getObjectAttribute( objName, "labelField", "label" );
+		var replacedLabelField = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.id" );
