@@ -55,9 +55,14 @@
 			var $form = $( this )
 			  , protectionListener;
 
-			protectionListener = function(){
+			protectionListener = function( e ){
+				var message;
+
 				if ( $form.data( "_isDirty" ) ) {
-					return i18n.translateResource( "cms:dirty.form.warning" );
+					message = i18n.translateResource( "cms:dirty.form.warning" );
+					e.returnValue = message;
+
+					return message;
 				}
 			};
 			window.addEventListener( "beforeunload", protectionListener, false );
