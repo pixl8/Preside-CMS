@@ -22,20 +22,21 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
 	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
 
-	property name="internal_search_access"           type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block" labels="preside-objects.page:internal_search_access.option.inherit,preside-objects.page:internal_search_access.option.allow,preside-objects.page:internal_search_access.option.deny";
-	property name="search_engine_access"             type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block"       labels="preside-objects.page:search_engine_access.option.inherit,preside-objects.page:search_engine_access.option.allow,preside-objects.page:search_engine_access.option.deny";
-	property name="author"                           type="string"  dbtype="varchar" maxLength="100"  required=false;
-	property name="browser_title"                    type="string"  dbtype="varchar" maxLength="100"  required=false;
-	property name="description"                      type="string"  dbtype="varchar" maxLength="255"  required=false;
-	property name="embargo_date"                     type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
-	property name="expiry_date"                      type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
-	property name="access_restriction"               type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|none|full|partial)"  control="select"          values="inherit,none,full,partial" labels="preside-objects.page:access_restriction.option.inherit,preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
-	property name="full_login_required"              type="boolean" dbtype="boolean"                  required=false default=false;
-	property name="exclude_from_navigation"          type="boolean" dbtype="boolean"                  required=false default=false;
-	property name="exclude_from_sub_navigation"      type="boolean" dbtype="boolean"                  required=false default=false;
-	property name="exclude_children_from_navigation" type="boolean" dbtype="boolean"                  required=false default=false;
-	property name="exclude_from_sitemap"             type="boolean" dbtype="boolean"                  required=false default=false;
-	property name="navigation_title"                 type="string"  dbtype="varchar" maxLength="200"  required=false;
+	property name="internal_search_access"                  type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block" labels="preside-objects.page:internal_search_access.option.inherit,preside-objects.page:internal_search_access.option.allow,preside-objects.page:internal_search_access.option.deny";
+	property name="search_engine_access"                    type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block"       labels="preside-objects.page:search_engine_access.option.inherit,preside-objects.page:search_engine_access.option.allow,preside-objects.page:search_engine_access.option.deny";
+	property name="author"                                  type="string"  dbtype="varchar" maxLength="100"  required=false;
+	property name="browser_title"                           type="string"  dbtype="varchar" maxLength="100"  required=false;
+	property name="description"                             type="string"  dbtype="varchar" maxLength="255"  required=false;
+	property name="embargo_date"                            type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
+	property name="expiry_date"                             type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
+	property name="access_restriction"                      type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|none|full|partial)"  control="select"          values="inherit,none,full,partial" labels="preside-objects.page:access_restriction.option.inherit,preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
+	property name="full_login_required"                     type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_navigation"                 type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_navigation_when_restricted" type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_sub_navigation"             type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_children_from_navigation"        type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="exclude_from_sitemap"                    type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="navigation_title"                        type="string"  dbtype="varchar" maxLength="200"  required=false;
 
 	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId";
 	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder";
