@@ -36,7 +36,7 @@
 	</path>
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
 
-	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel">
+	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel,builddocs">
 		<concat destfile="../../${build.label}">Built on ${start.TODAY}</concat>
 		<echo file="../../version.json">{ "version":"${preside.version}.${build.number}" }</echo>
 
@@ -231,6 +231,12 @@ Valid values are:
 		</propertyfile>
 
 		<property file="${build.number.file}" />
+	</target>
+
+	<target name="builddocs">
+		<exec executable="/bin/bash" failonerror="true">
+			<arg line="../docs/build.sh"/>
+		</exec>
 	</target>
 
 </project>
