@@ -126,6 +126,7 @@ component {
 		var title         = ListFirst( documentation, Chr(10) & Chr(13) );
 		var description   = ListRest( documentation, Chr(10) & Chr(13) );
 		var relativePath  = Replace( Replace( xmlFilePath, "\", "/", "all" ), ExpandPath( "/preside/system" ), "" );
+		var dotPath       = Replace( ReReplace( ReReplace( relativePath, "^/forms/", "" ), "\.xml$", "" ), "/", ".", "all" );
 		var source        = ReReplace( fileContent, "<!--##!autodoc(.*?)-->", "" );
 
 		source = ReReplace( source, "\n", "`$$$", "all" );
@@ -145,8 +146,14 @@ component {
 		var doc = CreateObject( "java", "java.lang.StringBuffer" );
 
 		doc.append( _mdMeta( title=title, id="form-" & returnStruct.filename ) & NEWLINE );
-		doc.append( "*#relativePath#*" & DOUBLELINE );
+
 		doc.append( description & DOUBLELINE );
+
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>File path</th><td>" & relativePath & "</td></tr>" );
+		doc.append( "<tr><th>Form ID</th><td>" & dotPath & "</td></tr>" );
+		doc.append( '</table></div>' & DOUBLELINE );
+
 		doc.append( "```xml" & NEWLINE );
 		doc.append( source & NEWLINE );
 		doc.append( "```" );
