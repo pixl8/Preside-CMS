@@ -1,0 +1,27 @@
+.breadcrumb {
+	list-style: none;
+	margin: $line-height 0;
+	padding: ($line-height / 2) 0;
+	@include clearfix();
+	> li {
+		display: block;
+		float: left;
+		+ li:before {
+			@extend .icon;
+			color: $black-hint;
+			content: unicode($mdicon-var-chevron-right);
+			display: inline-block;
+			line-height: $line-height;
+			margin-left: 0.4em;
+		}
+	}
+	> .active {
+		color: $black-text;
+		> a,
+		> .a {
+			color: $black-text;
+			cursor: text;
+			text-decoration: none;
+		}
+	}
+}

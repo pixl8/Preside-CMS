@@ -1,0 +1,16 @@
+.twitter-typeahead {
+	display : block !important;
+
+	.tt-menu {
+		margin-top : 24px;
+		width      : 100%;
+
+		.tt-suggestion {
+			padding : 3px;
+		}
+
+		.tt-cursor {
+			background-color : $palette-blue-light;
+		}
+	}
+}

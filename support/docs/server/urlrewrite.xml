@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN" "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
+<urlrewrite>
+    <rule>
+        <name>Add trailing slash to directories without a trailing slash</name>
+        <from>^(.*\/[^/\.]+)$</from>
+        <to type="permanent-redirect" last="true">$1/</to>
+    </rule>
+
+    <rule>
+        <note>
+            All request to *.html or ending in / will be rewritten to /index.cfm
+        </note>
+        <from>^(/((.*?)(\.html|/))?)$</from>
+        <to last="true">%{context-path}/index.cfm</to>
+    </rule>
+
+    <rule>
+        <note>
+            All assets requests to be served by the server too
+        </note>
+        <from>^/(assets|images)/.*$</from>
+        <to last="true">%{context-path}/index.cfm</to>
+    </rule>
+</urlrewrite>

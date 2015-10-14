@@ -1,0 +1,9 @@
+s3_id: <%= ENV['S3_ACCESS_KEY_ID'] %>
+s3_secret: <%= ENV['S3_SECRET_KEY'] %>
+s3_bucket: docs.presidecms.com
+site: builds/artifacts
+gzip:
+   - .html
+   - .css
+   - .js
+concurrency_level: 100
