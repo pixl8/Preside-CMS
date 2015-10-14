@@ -9,5 +9,5 @@ component accessors=true {
 
 	property name="editSourceLink"       default="https://github.com/pixl8/preside-docs/edit/master{path}";
 	property name="dashBuildNumber"      default="1.0.0";
-	property name="dashDownloadUrl"      default="http://docs.presidecms.org/dash/presidecms.tgz";
+	property name="dashDownloadUrl"      default="http://docs.presidecms.com/dash/presidecms.tgz";
 }
