@@ -126,7 +126,9 @@ component {
 	}
 
 	private void function _copyStaticAssets( required string buildDirectory ) {
-		DirectoryCopy( GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/assets", arguments.buildDirectory & "/assets", true );
+		DirectoryCopy( GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/assets", arguments.buildDirectory & "/assets", true, function( path ){
+			return !path.find( "node_modules" ) && !path.find( "/sass" ) && !path.find( "Gruntfile.js" ) && !path.find( "package.json" );
+		} );
 	}
 
 	private void function _copySiteImages( required string buildDirectory ) {
