@@ -1,0 +1,195 @@
+.tile {
+	background-color: $white;
+	display: block;
+	position: relative;
+	@include box-shadow(0 -1px 0 $black-bg, 0 0 2px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15));
+	@include clearfix();
+	&[href] {
+		color: $black-text;
+		&:focus,
+		&:hover {
+			color: $link-color;
+			text-decoration: none;
+		}
+	}
+	&.active {
+		margin-top: $line-height !important;
+		margin-bottom: $line-height !important;
+	}
+	.tile-wrap-animation & {
+		opacity: 0;
+		@include transform(translate(0, 100%));
+		@include transition(all 0.6s $timing);
+		-webkit-transition-property: opacity, -webkit-transform;
+		        transition-property: opacity, transform;
+	}
+	.tile-wrap-animation.isinview & {
+		opacity: 1;
+		@include transform(translate(0, 0) !important);
+	}
+	// no boxshadow
+		.no-boxshadow & {
+			border: 1px solid $black-bg;
+			+ .tile {
+				margin-top: -1px;
+			}
+		}
+}
+
+// colour
+	.tile-offwhite {
+		background-color: $white-bg;
+	}
+
+	@each $color in $palette-list {
+		$i: index($palette-list, $color);
+
+		.tile-#{$color} {
+			background-color: nth($palette-color, $i);
+			color: $white;
+			a {
+				color: nth($palette-color-light, $i);
+			}
+		}
+	}
+
+.tile-action {
+	@extend .card-action;
+	border-top: 0;
+	float: right;
+	@include user-select(none);
+	.no-touch &,
+	.touch .tile-collapse & {
+		display: none;
+	}
+	.no-touch .tile:hover &,
+	.tile-collapse.active & {
+		display: block;
+	}
+}
+
+.tile-action-show {
+	display: block !important;
+}
+
+.tile-active-show {
+	@include transition(height 0.15s linear);
+}
+
+.tile-collapse {
+	@include transition(margin 0.15s linear);
+	&.active {
+		margin-right: ($grid-gutter * -1 + 1);
+		margin-left: ($grid-gutter * -1 + 1);
+	}
+	.tile-wrap-animation & {
+		@include transition(all 0.6s $timing, margin 0.15s linear);
+		-webkit-transition-property: margin, opacity, -webkit-transform;
+		        transition-property: margin, opacity, transform;
+	}
+}
+
+.tile-collapse-full {
+	// 1056 - 1439
+		@media only screen and (min-width: ($grid-gutter * 4 + $screen-md)) and (max-width: ($screen-lg - 1)) {
+			&.active {
+				margin-right: ($grid-gutter * -4 + 1);
+				margin-left: ($grid-gutter * -4 + 1);
+			}
+		}
+	// 1504
+		@media only screen and (min-width: ($grid-gutter * 4 + $screen-lg)) {
+			&.active {
+				margin-right: ($grid-gutter * -4 + 1);
+				margin-left: ($grid-gutter * -4 + 1);
+			}
+		}
+}
+
+.tile-footer {
+	background-color: $white-bg;
+	border-top: 1px solid $black-bg;
+	position: relative;
+	@include clearfix();
+	&:first-child {
+		border-top: 0;
+	}
+	.nav {
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+}
+
+// colour
+	.tile-offwhite .tile-footer {
+		background-color: $white-bg-dark;
+	}
+
+	@each $color in $palette-list {
+		$i: index($palette-list, $color);
+
+		.tile-#{$color} .tile-footer {
+			background-color: nth($palette-color-dark-m, $i);
+			border-top-color: nth($palette-color-dark-m, $i);
+			.nav > li {
+				> a,
+				> .a {
+					color: $white;
+				}
+			}
+		}
+	}
+
+.tile-inner {
+	padding: ($line-height / 2) $grid-gutter;
+	position: relative;
+	.tile-action ~ &,
+	.tile-side ~ & {
+		overflow: hidden;
+	}
+}
+
+.tile-side {
+	@extend .card-inner-side;
+}
+
+.tile-side-container {
+	padding: 0 !important;
+}
+
+.tile-sub {
+	display: inline-block;
+	padding-right: $grid-gutter;
+	padding-left: $grid-gutter;
+	position: relative;
+	width: 100%;
+	&:before {
+		border-top: 1px solid $black-bg;
+		content: "";
+		display: block;
+		position: absolute;
+			top: 0;
+			left: 0;
+		width: 100%;
+	}
+}
+
+// colour
+	@each $color in $palette-list {
+		$i: index($palette-list, $color);
+
+		.tile-#{$color} .tile-sub:before {
+			border-top-color: nth($palette-color-dark-m, $i);
+		}
+	}
+
+.tile-toggle {
+	cursor: pointer;
+	@include clearfix();
+}
+
+.tile-wrap {
+	margin-top: $line-height;
+	margin-bottom: $line-height;
+	position: relative;
+}
