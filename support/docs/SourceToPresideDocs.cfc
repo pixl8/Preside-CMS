@@ -74,9 +74,11 @@ component {
 			doc.append( _parseHint( meta.hint ) & DOUBLELINE );
 		}
 
-		doc.append( "**Object name:**  " & ListLast( arguments.componentPath, "." ) & NEWLINE );
-		doc.append( "**Table name:**  " & "psys_" & ListLast( arguments.componentPath, "." ) & NEWLINE );
-		doc.append( "**Path:**  " & "/" & Replace( Replace( arguments.componentPath, "preside.system.", "" ), ".", "/", "all" ) & ".cfc" );
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>Object name</th><td>  " & ListLast( arguments.componentPath, "." )  & "</td></tr>" );
+		doc.append( "<tr><th>Table name</th><td>  " & "psys_" & ListLast( arguments.componentPath, "." )  & "</td></tr>" );
+		doc.append( "<tr><th>Path</th><td>  " & "/" & Replace( Replace( arguments.componentPath, "preside.system.", "" ), ".", "/", "all" ) & ".cfc" & "</td></tr>" );
+		doc.append( '</table></div>' );
 
 		doc.append( DOUBLELINE & _mdTitle( "Properties" ) & DOUBLELINE );
 		doc.append( "```luceescript" & NEWLINE );
