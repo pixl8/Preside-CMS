@@ -3,10 +3,10 @@
  *
  * Its purpose in the context of PresideCMS is for metadata and content extraction from uploaded documents.
  */
-component output=false singleton=true autodoc=true {
+component singleton=true autodoc=true displayName="Apache Tika Wrapper" {
 
 // CONSTRUCTOR
-	public any function init() output=false {
+	public any function init() {
 		_setTikaJarPath( "/preside/system/externals/tika/tika-app-1.2.jar" );
 
 		return this;
@@ -17,8 +17,9 @@ component output=false singleton=true autodoc=true {
 	 * This method returns any metadata as a cfml structure that Tika can extract from the passed file (path)
 	 *
 	 * @fileContent.hint Binary content of the file for which you want to extract meta data
+	 * @autodoc true
 	 */
-	public struct function getMetaData( required any fileContent ) output=false {
+	public struct function getMetaData( required any fileContent ) {
 		var result = _parse( fileContent = arguments.fileContent, includeText = false );
 
 		return result.metadata ?: {};
@@ -28,15 +29,16 @@ component output=false singleton=true autodoc=true {
 	 * This method returns raw text read from the document, useful for populating search engines, etc.
 	 *
 	 * @fileContent.hint Binary content of the file for which you want to extract meta data
+	 * @autodoc true
 	 */
-	public string function getText( required any fileContent ) output=false {
+	public string function getText( required any fileContent ) {
 		var result = _parse( fileContent = arguments.fileContent, includeMeta=false );
 
 		return result.text ?: "";
 	}
 
 // PRIVATE HELPERS
-	private struct function _parse( required any fileContent, boolean includeMeta=true, boolean includeText=true ) output=false {
+	private struct function _parse( required any fileContent, boolean includeMeta=true, boolean includeText=true ) {
 		var result  = {};
 		var is      = "";
 		var jarPath = _getTikaJarPath();
@@ -77,15 +79,15 @@ component output=false singleton=true autodoc=true {
 		return result;
 	}
 
-	private string function _removeNonUnicodeChars( required string potentiallyDirtyString ) output=false {
+	private string function _removeNonUnicodeChars( required string potentiallyDirtyString ) {
 		return ReReplace( arguments.potentiallyDirtyString, "[^\x20-\x7E]", "", "all" );
 	}
 
 // GETTERS AND SETTERS
-	private string function _getTikaJarPath() output=false {
+	private string function _getTikaJarPath() {
 		return _tikaJarPath;
 	}
-	private void function _setTikaJarPath( required string tikaJarPath ) output=false {
+	private void function _setTikaJarPath( required string tikaJarPath ) {
 		_tikaJarPath = arguments.tikaJarPath;
 	}
 

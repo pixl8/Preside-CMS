@@ -1,7 +1,6 @@
 /**
  * A class that provides methods for analyzing the strength of passwords
  *
- * @autodoc   true
  * @singleton true
  */
 component {

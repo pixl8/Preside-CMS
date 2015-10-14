@@ -1,7 +1,6 @@
 /**
  * A class that provides validators for PresideCMS's validation framework
  *
- * @autodoc            true
  * @singleton          true
  * @validationProvider true
  */
