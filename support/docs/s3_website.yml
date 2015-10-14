@@ -7,5 +7,3 @@ gzip:
    - .css
    - .js
 concurrency_level: 100
-# redirects:
-#   index.html: /
