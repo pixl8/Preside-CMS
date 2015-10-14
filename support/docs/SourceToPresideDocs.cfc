@@ -14,13 +14,13 @@ component {
 	 * @componentPath.hint Component path used to instantiate the component, e.g. "preside.system.presideobjects.PresideObjectService"
 	 *
 	 */
-	public void function createCFCDocumentation( required string componentPath, required string docsPath ) {
+	public void function createCFCDocumentation( required string componentPath, required string docsPath, string pagetype="service" ) {
 		var meta     = GetComponentMetaData( arguments.componentPath );
 		var doc      = CreateObject( "java", "java.lang.StringBuffer" );
 		var objName  = ListLast( arguments.componentPath, "." );
 		var pageName = LCase( objName );
 		var pageDir  = arguments.docsPath & "/" & pageName;
-		var pageFile = pageDir & "/object.md";
+		var pageFile = pageDir & "/#arguments.pagetype#.md";
 		var title    = meta.displayName ?: objName;
 
 		DirectoryCreate( pageDir );
@@ -28,7 +28,11 @@ component {
 		doc.append( _mdMeta( title=title, id="api-#pageName#" ) );
 
 		doc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
-		doc.append( "*Full path:* **#arguments.componentPath#**" );
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
+		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
+		doc.append( '</table></div>' );
+
 
 		if ( Len( Trim( meta.hint ?: "" ) ) ) {
 			doc.append( DOUBLELINE & _parseHint( meta.hint ) );
@@ -74,9 +78,11 @@ component {
 			doc.append( _parseHint( meta.hint ) & DOUBLELINE );
 		}
 
-		doc.append( "**Object name:**  " & ListLast( arguments.componentPath, "." ) & NEWLINE );
-		doc.append( "**Table name:**  " & "psys_" & ListLast( arguments.componentPath, "." ) & NEWLINE );
-		doc.append( "**Path:**  " & "/" & Replace( Replace( arguments.componentPath, "preside.system.", "" ), ".", "/", "all" ) & ".cfc" );
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>Object name</th><td>  " & ListLast( arguments.componentPath, "." )  & "</td></tr>" );
+		doc.append( "<tr><th>Table name</th><td>  " & "psys_" & ListLast( arguments.componentPath, "." )  & "</td></tr>" );
+		doc.append( "<tr><th>Path</th><td>  " & "/" & Replace( Replace( arguments.componentPath, "preside.system.", "" ), ".", "/", "all" ) & ".cfc" & "</td></tr>" );
+		doc.append( '</table></div>' );
 
 		doc.append( DOUBLELINE & _mdTitle( "Properties" ) & DOUBLELINE );
 		doc.append( "```luceescript" & NEWLINE );
@@ -124,6 +130,7 @@ component {
 		var title         = ListFirst( documentation, Chr(10) & Chr(13) );
 		var description   = ListRest( documentation, Chr(10) & Chr(13) );
 		var relativePath  = Replace( Replace( xmlFilePath, "\", "/", "all" ), ExpandPath( "/preside/system" ), "" );
+		var dotPath       = Replace( ReReplace( ReReplace( relativePath, "^/forms/", "" ), "\.xml$", "" ), "/", ".", "all" );
 		var source        = ReReplace( fileContent, "<!--##!autodoc(.*?)-->", "" );
 
 		source = ReReplace( source, "\n", "`$$$", "all" );
@@ -143,8 +150,14 @@ component {
 		var doc = CreateObject( "java", "java.lang.StringBuffer" );
 
 		doc.append( _mdMeta( title=title, id="form-" & returnStruct.filename ) & NEWLINE );
-		doc.append( "*#relativePath#*" & DOUBLELINE );
+
 		doc.append( description & DOUBLELINE );
+
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>File path</th><td>" & relativePath & "</td></tr>" );
+		doc.append( "<tr><th>Form ID</th><td>" & dotPath & "</td></tr>" );
+		doc.append( '</table></div>' & DOUBLELINE );
+
 		doc.append( "```xml" & NEWLINE );
 		doc.append( source & NEWLINE );
 		doc.append( "```" );
@@ -183,9 +196,9 @@ component {
 		var functionDoc        = CreateObject( "java", "java.lang.StringBuffer" );
 		var argumentsDoc       = _createArgumentsDoc( fun.parameters );
 		var argsRenderedInHint = false;
-		var functionTitle      = UCase( Left( fun.name, 1 ) ) & Right( fun.name, Len( fun.name )-1 );
+		var functionTitle      = fun.name & "()";
 		var functionDir        = arguments.docsDirectory & "/" & LCase( fun.name );
-		var functionFilePath   = functionDir & "/function.md";
+		var functionFilePath   = functionDir & "/method.md";
 		var functionPageId     = arguments.objectName & "-" & LCase( fun.name );
 
 		functionDoc.append( _mdMeta( title=functionTitle, id=functionPageId ) );
@@ -235,26 +248,39 @@ component {
 	}
 
 	private string function _createFunctionSignature( required struct fun ) {
-		var signature = "public #fun.returnType# function #fun.name#(";
-		var delim     = " ";
+		var signature     = "public #fun.returnType# function #fun.name#(";
+		var delim         = "  ";
+		var maxArgTypeLen = 0;
+		var maxArgNameLen = 0;
+		var maxRequiredLen = 0;
 
 		for( var arg in fun.parameters ) {
-			signature &= delim;
+			maxArgTypeLen = arg.type.len() > maxArgTypeLen ? arg.type.len() : maxArgTypeLen;
+			maxArgNameLen = arg.name.len() > maxArgNameLen ? arg.name.len() : maxArgNameLen;
+			if ( arg.required ) {
+				maxRequiredLen = 8;
+			}
+		}
+
+		for( var arg in fun.parameters ) {
+			signature &= NEWLINE & INDENT & delim;
 			if ( arg.required ) {
 				signature &= "required ";
+			} else if ( maxRequiredLen ) {
+				signature &= RepeatString( " ", maxRequiredLen+1 );
 			}
-			signature &= arg.type & " " & arg.name;
+
+			signature &= LJustify( arg.type, maxArgTypeLen ) & " " & LJustify( arg.name, maxArgNameLen );
 
 			var default = _parseArgumentDefault( arg );
-
 			if ( default != "*none*" ) {
-				signature &= '=' & default;
+				signature &= ' = ' & default;
 			}
 
 			delim = ", ";
 		}
 
-		signature &= " )";
+		signature &= NEWLINE & " )";
 
 		return signature;
 	}

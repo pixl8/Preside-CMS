@@ -4,7 +4,7 @@
  * status of features before proceeding to provide a page or perform some action
  *
  */
-component output=false singleton=true autodoc=true {
+component output=false singleton=true autodoc=true displayName="Feature service" {
 
 // CONSTRUCTOR
 	/**

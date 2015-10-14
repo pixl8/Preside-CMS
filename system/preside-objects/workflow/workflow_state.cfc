@@ -1,12 +1,10 @@
 /**
  * The workflow_state object saves the state and status of a single workflow item
  *
- * @displayName Workflow: State
- * @nolabel     true
- *
+ * @nolabel true
  */
 
-component extends="preside.system.base.SystemPresideObject" output=false {
+component extends="preside.system.base.SystemPresideObject" displayName="Workflow: State" {
 
 	property name="workflow"  type="string" dbtype="varchar" maxlength=50 required=true uniqueindexes="workflowstate|1";
 	property name="reference" type="string" dbtype="varchar" maxlength=50 required=true uniqueindexes="workflowstate|2";

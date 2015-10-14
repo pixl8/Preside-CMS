@@ -1,5 +1,5 @@
 /**
- * The email service takes care of sending emails through the PresideCMS's email templating system (see :doc:`/devguides/emailtemplates`).
+ * The email service takes care of sending emails through the PresideCMS's email templating system (see [[emailtemplating]]).
  *
  */
 component output=false singleton=true autodoc=true displayName="Email service" {

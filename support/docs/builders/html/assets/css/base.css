@@ -5867,6 +5867,7 @@ pre {
   padding: 12px 8px;
   word-break: break-all;
   word-wrap: break-word;
+  overflow-x: auto;
 }
 pre code {
   background-color: transparent;

@@ -83,21 +83,34 @@ component extends="builders.html.Builder" {
 	}
 
 	private void function _storePageInSqliteDb( required any page ) {
-		var data = {};
+		var dashPageType = "Guide";
 
 		switch( page.getPageType() ){
 			case "function":
-				data = { name=page.getTitle(), type="Function" };
+				dashPageType = "Function";
 			break;
-			case "tag":
-				data = { name="cf" & page.getSlug(), type="Tag" };
+			case "method":
+				dashPageType = "Method";
+			break;
+			case "service":
+				dashPageType = "Service";
+			break;
+			case "presideobject":
+				dashPageType = "Object";
+			break;
+			case "form":
+				dashPageType = "File";
 			break;
 			case "category":
-				data = { name=Replace( page.getTitle(), "'", "''", "all" ), type="Category" };
+				dashPageType = "Category";
 			break;
-			default:
-				data = { name=Replace( page.getTitle(), "'", "''", "all" ), type="Guide" };
 		}
+
+		var data = {
+			  name = Replace( page.getTitle(), "'", "''", "all" )
+			, type = dashPageType
+			, path = page.getId() & ".html"
+		};
 
 		data.path = page.getId() & ".html";
 

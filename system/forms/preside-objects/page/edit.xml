@@ -2,16 +2,9 @@
 <!--#!autodoc
 Sitetree Page: edit form
 
-This form is used as the base "edit page" form for Sitetree pages. See also :doc:`sitetreepageaddform`.
+This form is used as the base "edit page" form for Sitetree pages. See also [[form-sitetreepageaddform]].
 
-.. note::
-
-	When an edit page form is rendered, it gets mixed in with any forms that are defined for the
-	*page type* of the given page.
-
-	See :doc:`/devguides/formlayouts` for a guide on form layouts and mixing forms.
-
-	See :doc:`/devguides/pagetypes` for a guide to page types.
+>>> When an edit page form is rendered, it gets mixed in with any forms that are defined for the *page type* of the given page.
 -->
 <form>
 	<tab id="main" sortorder="10" title="preside-objects.page:editform.basictab.title" description="preside-objects.page:editform.basictab.description">

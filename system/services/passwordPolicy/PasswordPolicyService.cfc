@@ -1,13 +1,12 @@
 /**
  * A class that provides methods for dealing with all aspects of password policies
  *
- * @autodoc   true
- * @singleton true
+ * @singleton   true
  */
-component {
+component displayName="Password Policy Service" {
 
 // CONSTRUCTOR
-	/**
+/**
 	 * @featureService.inject           featureService
 	 * @passwordStrengthAnalyzer.inject passwordStrengthAnalyzer
 	 * @policyDao.inject                presidecms:object:password_policy

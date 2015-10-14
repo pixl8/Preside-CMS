@@ -40,6 +40,8 @@ pre {
 	padding: ($line-height / 2) ($grid-gutter / 2);
 	word-break: break-all;
 	word-wrap: break-word;
+	overflow-x: auto;
+
 	code {
 		background-color: transparent;
 		border-radius: 0;
