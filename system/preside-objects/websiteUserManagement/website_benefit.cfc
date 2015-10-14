@@ -1,5 +1,5 @@
 /**
- * Website benefits can be tagged against website users (see :doc:`website_user`).
+ * Website benefits can be tagged against website users (see [[presideobject-website_user]]).
  * Pages in the site tree, assets in the asset manager, and other custom access areas can then be
  * tagged with member benefits to control users' access to multiple areas and actions in the site through their benefits.
  *

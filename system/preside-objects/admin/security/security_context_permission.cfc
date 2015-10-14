@@ -1,7 +1,7 @@
 /**
  * A context permission records a grant or deny permission for a given user user group, permission key and context.
  *
- * See :doc:`/devguides/permissioning` for more information on permissioning.
+ * See [[cmspermissioning]] for more information on permissioning.
  *
  */
 component extends="preside.system.base.SystemPresideObject" displayname="Context permission" noLabel="true" output="false" {

@@ -1,10 +1,9 @@
 /**
  * A password policy for a given context includes simple rules around password requirements
  *
- * @displayname Password policy
  * @labelfield  context
  */
-component extends="preside.system.base.SystemPresideObject" {
+component extends="preside.system.base.SystemPresideObject" displayName="Password policy" {
 
 	property name="context"       type="string"  dbtype="varchar" required=true  maxlength="20" uniqueindexes="passwordpolicycontext";
 

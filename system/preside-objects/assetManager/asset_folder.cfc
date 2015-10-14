@@ -1,5 +1,5 @@
 /**
- * An asset folder is a hierarchy of named storage locations for assets (see :doc:`/reference/presideobjects/asset`)
+ * An asset folder is a hierarchy of named storage locations for assets (see [[presideobject-asset]])
  */
 component output="false" extends="preside.system.base.SystemPresideObject" displayName="Asset folder" {
 	property name="label" uniqueindexes="folderName|2";
