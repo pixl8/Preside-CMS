@@ -28,7 +28,11 @@ component {
 		doc.append( _mdMeta( title=title, id="api-#pageName#" ) );
 
 		doc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
-		doc.append( "*Full path:* **#arguments.componentPath#**" );
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
+		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
+		doc.append( '</table></div>' );
+
 
 		if ( Len( Trim( meta.hint ?: "" ) ) ) {
 			doc.append( DOUBLELINE & _parseHint( meta.hint ) );
