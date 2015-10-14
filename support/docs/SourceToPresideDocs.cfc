@@ -14,13 +14,13 @@ component {
 	 * @componentPath.hint Component path used to instantiate the component, e.g. "preside.system.presideobjects.PresideObjectService"
 	 *
 	 */
-	public void function createCFCDocumentation( required string componentPath, required string docsPath ) {
+	public void function createCFCDocumentation( required string componentPath, required string docsPath, string pagetype="service" ) {
 		var meta     = GetComponentMetaData( arguments.componentPath );
 		var doc      = CreateObject( "java", "java.lang.StringBuffer" );
 		var objName  = ListLast( arguments.componentPath, "." );
 		var pageName = LCase( objName );
 		var pageDir  = arguments.docsPath & "/" & pageName;
-		var pageFile = pageDir & "/object.md";
+		var pageFile = pageDir & "/#arguments.pagetype#.md";
 		var title    = meta.displayName ?: objName;
 
 		DirectoryCreate( pageDir );
