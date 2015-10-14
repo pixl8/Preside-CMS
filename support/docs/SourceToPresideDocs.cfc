@@ -235,26 +235,39 @@ component {
 	}
 
 	private string function _createFunctionSignature( required struct fun ) {
-		var signature = "public #fun.returnType# function #fun.name#(";
-		var delim     = " ";
+		var signature     = "public #fun.returnType# function #fun.name#(";
+		var delim         = "  ";
+		var maxArgTypeLen = 0;
+		var maxArgNameLen = 0;
+		var maxRequiredLen = 0;
 
 		for( var arg in fun.parameters ) {
-			signature &= delim;
+			maxArgTypeLen = arg.type.len() > maxArgTypeLen ? arg.type.len() : maxArgTypeLen;
+			maxArgNameLen = arg.name.len() > maxArgNameLen ? arg.name.len() : maxArgNameLen;
+			if ( arg.required ) {
+				maxRequiredLen = 8;
+			}
+		}
+
+		for( var arg in fun.parameters ) {
+			signature &= NEWLINE & INDENT & delim;
 			if ( arg.required ) {
 				signature &= "required ";
+			} else if ( maxRequiredLen ) {
+				signature &= RepeatString( " ", maxRequiredLen+1 );
 			}
-			signature &= arg.type & " " & arg.name;
+
+			signature &= LJustify( arg.type, maxArgTypeLen ) & " " & LJustify( arg.name, maxArgNameLen );
 
 			var default = _parseArgumentDefault( arg );
-
 			if ( default != "*none*" ) {
-				signature &= '=' & default;
+				signature &= ' = ' & default;
 			}
 
 			delim = ", ";
 		}
 
-		signature &= " )";
+		signature &= NEWLINE & " )";
 
 		return signature;
 	}
