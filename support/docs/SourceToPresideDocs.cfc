@@ -196,9 +196,9 @@ component {
 		var functionDoc        = CreateObject( "java", "java.lang.StringBuffer" );
 		var argumentsDoc       = _createArgumentsDoc( fun.parameters );
 		var argsRenderedInHint = false;
-		var functionTitle      = UCase( Left( fun.name, 1 ) ) & Right( fun.name, Len( fun.name )-1 );
+		var functionTitle      = fun.name & "()";
 		var functionDir        = arguments.docsDirectory & "/" & LCase( fun.name );
-		var functionFilePath   = functionDir & "/function.md";
+		var functionFilePath   = functionDir & "/method.md";
 		var functionPageId     = arguments.objectName & "-" & LCase( fun.name );
 
 		functionDoc.append( _mdMeta( title=functionTitle, id=functionPageId ) );

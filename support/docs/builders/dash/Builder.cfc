@@ -89,6 +89,9 @@ component extends="builders.html.Builder" {
 			case "function":
 				dashPageType = "Function";
 			break;
+			case "method":
+				dashPageType = "Method";
+			break;
 			case "service":
 				dashPageType = "Service";
 			break;
