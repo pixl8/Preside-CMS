@@ -1,7 +1,11 @@
 /**
- * @singleton true
+ * The system configuration service provides the API layer
+ * for interacting with PresideCMS' [[editablesystemsettings]].
+ *
+ * @singleton
+ * @autodoc
  */
-component {
+component displayName="System configuration service" {
 
 // CONSTRUCTOR
 	/**
@@ -21,6 +25,16 @@ component {
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Returns a setting that has been saved.
+	 * See [[editablesystemsettings]] for a full guide.
+	 *
+	 * @autodoc
+	 * @category.hint  Category name of the setting to get
+	 * @setting.hint   Name of the setting to get
+	 * @default.hint   A default value to return should no value be saved for the setting
+	 *
+	 */
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
 
@@ -37,6 +51,14 @@ component {
 		return injected[ "#arguments.category#.#arguments.setting#" ] ?: arguments.default;
 	}
 
+	/**
+	 * Returns all the saved settings for a given category.
+	 * See [[editablesystemsettings]] for a full guide.
+	 *
+	 * @autodoc
+	 * @category.hint The name of the category who's settings you wish to get
+	 *
+	 */
 	public struct function getCategorySettings( required string category ) {
 		_reloadCheck();
 
@@ -63,6 +85,16 @@ component {
 		return result;
 	}
 
+	/**
+	 * Saves the value of a setting.
+	 * See [[editablesystemsettings]] for a full guide.
+	 *
+	 * @autodoc
+	 * @category.hint  Category name of the setting to save
+	 * @setting.hint   Name of the setting to save
+	 * @value.hint     Value to save
+	 *
+	 */
 	public any function saveSetting( required string category, required string setting, required string value )  {
 		_reloadCheck();
 
