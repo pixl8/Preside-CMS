@@ -22,3 +22,4 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[adminlefthandmenu]]
 * [[workingwithuploadedfiles]]
 * [[multilingualcontent]]
+* [[presidesuperclass]]

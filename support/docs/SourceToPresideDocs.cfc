@@ -224,14 +224,13 @@ component {
 	}
 
 	private string function _createArgumentsDoc( required array args ) {
-		var argsDoc = _mdTitle( "Arguments", 2 ) & DOUBLELINE;
-
 		if ( !args.len() ) {
-			argsDoc &= "*This method does not accept any arguments.*";
-			return argsDoc;
+			return "";
 		}
 
+		var argsDoc = _mdTitle( "Arguments", 2 ) & DOUBLELINE;
 		var tableData = [];
+
 		for( var arg in args ) {
 			var def = _parseArgumentDefault( arg );
 			tableData.append({
@@ -280,7 +279,12 @@ component {
 			delim = ", ";
 		}
 
-		signature &= NEWLINE & " )";
+		if ( fun.parameters.len() ) {
+			signature &= NEWLINE;
+		}
+
+		signature &= ")";
+
 
 		return signature;
 	}
