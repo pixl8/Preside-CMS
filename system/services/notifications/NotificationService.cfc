@@ -1,5 +1,5 @@
 /**
- * The notifications service provides an API to the PresideCMS administrator notifications system
+ * The notifications service provides an API to the PresideCMS administrator [[notifications|notifications system]].
  *
  */
 component autodoc=true displayName="Notification Service" {

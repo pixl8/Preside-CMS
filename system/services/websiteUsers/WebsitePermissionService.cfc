@@ -1,4 +1,12 @@
-component singleton=true {
+/**
+ * Service that provides API methods for dealing with website user permissions.
+ * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
+ *
+ * @singleton
+ * @autodoc
+ *
+ */
+component displayName="Website permissions service" {
 
 // CONSTRUCTOR
 	/**
@@ -29,6 +37,19 @@ component singleton=true {
 	}
 
 // PUBLIC API METHODS
+
+	/**
+	 * Returns an array of permission keys that apply to the
+	 * given arguments.
+	 * \n
+	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
+	 *
+	 * @autodoc
+	 * @benefit.hint If supplied, the method will return permission keys that users with the supplied benefit have access to
+	 * @user.hint    If supplied, the method will return permission keys that the user has access to
+	 * @filter.hint  An array of filters with which to filter permission keys
+	 *
+	 */
 	public array function listPermissionKeys( string benefit="", string user="", array filter=[] ) {
 		if ( Len( Trim( arguments.benefit ) ) ) {
 			return _getBenefitPermissions( arguments.benefit );
@@ -43,6 +64,20 @@ component singleton=true {
 		return _getPermissions();
 	}
 
+	/**
+	 * Returns whether or not the user has permission to the given
+	 * set of keys.
+	 * \n
+	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
+	 *
+	 * @autodoc
+	 * @permissionKey.hint The permission key as defined in `Config.cfc`
+	 * @context.hint       Optional named context
+	 * @contextKeys.hint   Array of keys for the given context (required if context supplied)
+	 * @userId.hint        ID of the user who's permissions we wish to check
+	 * @userId.docdefault  ID of logged in user
+	 *
+	 */
 	public boolean function hasPermission(
 		  required string permissionKey
 		,          string context       = ""
@@ -63,6 +98,15 @@ component singleton=true {
 		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
 
+	/**
+	 * Returns an array of IDs of the supplied user's benefits
+	 * \n
+	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
+	 *
+	 * @autodoc
+	 * @userId  ID of the user who's benefits we wish to get
+	 *
+	 */
 	public array function listUserBenefits( required string userId ) {
 		var comboBenefits = _getComboBenefits();
 		var benefits      = _getUserDao().selectManyToManyData(
@@ -99,6 +143,16 @@ component singleton=true {
 		return userBenefits;
 	}
 
+	/**
+	 * Returns an array of permission keys that the user
+	 * has access to
+	 * \n
+	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
+	 *
+	 * @autodoc
+	 * @userId  ID of the user who's permissions we wish to get
+	 *
+	 */
 	public array function listUserPermissions( required string userId ) {
 		return _getUserPermissions( arguments.userId, false );
 	}

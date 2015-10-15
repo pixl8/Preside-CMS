@@ -1,7 +1,7 @@
 /**
  * The Feature Service provides an API to preside's configured features.
- * This allows other systems within PresideCMS to check the enabled statusof enabled
- * status of features before proceeding to provide a page or perform some action
+ * This allows other systems within PresideCMS to check the enabled status
+ * of features before proceeding to provide a page or perform some action.
  *
  */
 component output=false singleton=true autodoc=true displayName="Feature service" {

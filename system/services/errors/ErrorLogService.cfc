@@ -1,4 +1,10 @@
-component {
+/**
+ * Provides an API for error logging and managing error logs.
+ *
+ * @autodoc
+ * @singleton
+ */
+component displayName="Error Log Service" {
 
 // CONSTRUCTOR
 	public any function init(
@@ -15,6 +21,13 @@ component {
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Records an error in the PresideCMS internal error log
+	 *
+	 * @autodoc
+	 * @error.hint Structure of the error (this would normally be a caught error object)
+	 *
+	 */
 	public void function raiseError( required struct error ) {
 		var rendered = "";
 		var catch    = arguments.error;
@@ -29,6 +42,12 @@ component {
 		_callErrorListeners( arguments.error );
 	}
 
+	/**
+	 * Returns an array of all the errors logged in the system.
+	 * Each element in the array contains `date` and `filename` keys.
+	 *
+	 * @autodoc
+	 */
 	public array function listErrors() {
 		var files = DirectoryList( _getLogDirectory(), false, "query", "rte-*.html" );
 		var errors = [];
@@ -44,6 +63,13 @@ component {
 		return errors;
 	}
 
+	/**
+	 * Returns the plain text error report for a given log file
+	 *
+	 * @autodoc
+	 * @logfile.hint Log file name (as returned from listErrors)
+	 *
+	 */
 	public string function readError( required string logFile ) {
 		try {
 			return FileRead( _getLogDirectory() & "/" & arguments.logFile );
@@ -52,6 +78,13 @@ component {
 		}
 	}
 
+	/**
+	 * Deletes the error from the internal log
+	 *
+	 * @autodoc
+	 * @logfile.hint Log file name (as returned from listErrors)
+	 *
+	 */
 	public void function deleteError( required string logFile ) {
 		try {
 			return FileDelete( _getLogDirectory() & "/" & arguments.logFile );
@@ -59,6 +92,12 @@ component {
 		}
 	}
 
+	/**
+	 * Clears the internal error log completely
+	 *
+	 * @autodoc
+	 *
+	 */
 	public void function deleteAllErrors() {
 		listErrors().each( function( err ){
 			deleteError( err.filename );

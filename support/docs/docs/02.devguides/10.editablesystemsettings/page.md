@@ -59,9 +59,30 @@ function myHandler( event, rc, prc ) {
 } 
 ```
 
-### From withing your service layer
+### From within your service layer
 
-Settings can be injected into your service layer components using the PresideCMS custom WireBox DSL. For example:
+#### Preside Super Class
+
+The preferred method of retrieving settings through the service layer is through use of the [[presidesuperclass-$getpresidesetting]] and [[presidesuperclass-$getpresidecategorysettings]] methods that can be injected into your service as part of the [[api-presidesuperclass]] (see [[presidesuperclass]]). For example:
+
+```luceescript
+/**
+ * presideService
+ *
+ */
+component {
+    
+    public void function doSomething() {
+        var settings    = $getPresideCategorySettings( category="email" );
+        var emailServer = $getPresideSetting( category="email", setting="server", default="127.0.0.1" );
+    }
+
+}
+```
+
+#### Wirebox
+
+Settings can alternatively be injected into your service layer components using the PresideCMS custom WireBox DSL. For example:
 
 ```luceescript
 component {
@@ -73,7 +94,7 @@ component {
 
 >>>> If you inject settings this way into a singleton, any changes to the settings through the admin will not be reflected in your service object until it is reinstantiated (i.e. a full application reload). In this case, you may wish to use the method described below.
 
-You can also inject the `systemConfigurationService` object itself into your services and use its `getSetting()` method. This will mean that you can always get the latest setting stored in the database at runtime. For example:
+You can also inject the [[api-systemconfigurationservice]] object itself into your services and use its [[systemconfigurationservice-getsetting]] method directly. For example:
 
 ```luceescript
 component {

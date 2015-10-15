@@ -22,24 +22,26 @@ component {
 		var pageDir  = arguments.docsPath & "/" & pageName;
 		var pageFile = pageDir & "/#arguments.pagetype#.md";
 		var title    = meta.displayName ?: objName;
+		var singleton = IsBoolean( meta.singleton ?: "" ) && meta.singleton;
 
 		DirectoryCreate( pageDir );
 
 		doc.append( _mdMeta( title=title, id="api-#pageName#" ) );
 
 		doc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
-		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
-		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
-		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
-		doc.append( '</table></div>' );
-
 
 		if ( Len( Trim( meta.hint ?: "" ) ) ) {
 			doc.append( DOUBLELINE & _parseHint( meta.hint ) );
 		}
 
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
+		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
+		doc.append( "<tr><th>Singleton</th><td>" & ( singleton ? 'Yes' : 'No' ) & "</td></tr>" );
+		doc.append( '</table></div>' );
+
 		if ( ( meta.functions ?: [] ).len() ) {
-			doc.append( DOUBLELINE & _mdTitle( "Public API Methods", "3" ) );
+			doc.append( DOUBLELINE & _mdTitle( "Public API Methods", 2) );
 
 			for( var fun in meta.functions ){
 				if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
@@ -202,6 +204,7 @@ component {
 		var functionPageId     = arguments.objectName & "-" & LCase( fun.name );
 
 		functionDoc.append( _mdMeta( title=functionTitle, id=functionPageId ) );
+		functionDoc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
 		functionDoc.append( DOUBLELINE & "```luceescript" );
 		functionDoc.append( NEWLINE & _createFunctionSignature( fun ) );
 		functionDoc.append( NEWLINE & "```" );
@@ -224,14 +227,13 @@ component {
 	}
 
 	private string function _createArgumentsDoc( required array args ) {
-		var argsDoc = _mdTitle( "Arguments", 2 ) & DOUBLELINE;
-
 		if ( !args.len() ) {
-			argsDoc &= "*This method does not accept any arguments.*";
-			return argsDoc;
+			return "";
 		}
 
+		var argsDoc = _mdTitle( "Arguments", 2 ) & DOUBLELINE;
 		var tableData = [];
+
 		for( var arg in args ) {
 			var def = _parseArgumentDefault( arg );
 			tableData.append({
@@ -280,7 +282,12 @@ component {
 			delim = ", ";
 		}
 
-		signature &= NEWLINE & " )";
+		if ( fun.parameters.len() ) {
+			signature &= NEWLINE;
+		}
+
+		signature &= ")";
+
 
 		return signature;
 	}
