@@ -22,6 +22,7 @@ component {
 		var pageDir  = arguments.docsPath & "/" & pageName;
 		var pageFile = pageDir & "/#arguments.pagetype#.md";
 		var title    = meta.displayName ?: objName;
+		var singleton = IsBoolean( meta.singleton ?: "" ) && meta.singleton;
 
 		DirectoryCreate( pageDir );
 
@@ -36,6 +37,7 @@ component {
 		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
 		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
 		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
+		doc.append( "<tr><th>Singleton</th><td>" & ( singleton ? 'Yes' : 'No' ) & "</td></tr>" );
 		doc.append( '</table></div>' );
 
 		if ( ( meta.functions ?: [] ).len() ) {
