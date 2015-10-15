@@ -7,7 +7,7 @@ component accessors=true {
 	cwd     = GetDirectoryFromPath( GetCurrentTemplatePath() );
 	docsDir = ExpandPath( "/docs/" );
 
-	property name="editSourceLink"       default="https://github.com/pixl8/preside-docs/edit/master{path}";
+	property name="editSourceLink"       default="https://github.com/pixl8/Preside-CMS/blob/stable/support/docs{path}";
 	property name="dashBuildNumber"      default="1.0.0";
 	property name="dashDownloadUrl"      default="http://docs.presidecms.com/dash/presidecms.tgz";
 }
