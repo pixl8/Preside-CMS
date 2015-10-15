@@ -28,18 +28,18 @@ component {
 		doc.append( _mdMeta( title=title, id="api-#pageName#" ) );
 
 		doc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
-		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
-		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
-		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
-		doc.append( '</table></div>' );
-
 
 		if ( Len( Trim( meta.hint ?: "" ) ) ) {
 			doc.append( DOUBLELINE & _parseHint( meta.hint ) );
 		}
 
+		doc.append( '<div class="table-responsive"><table class="table table-condensed">' );
+		doc.append( "<tr><th>Full path</th><td>" & arguments.componentPath & "</td></tr>" );
+		doc.append( "<tr><th>Wirebox ref</th><td>" & objName & "</td></tr>" );
+		doc.append( '</table></div>' );
+
 		if ( ( meta.functions ?: [] ).len() ) {
-			doc.append( DOUBLELINE & _mdTitle( "Public API Methods", "3" ) );
+			doc.append( DOUBLELINE & _mdTitle( "Public API Methods", 2) );
 
 			for( var fun in meta.functions ){
 				if ( ( fun.access ?: "" ) == "public" && IsBoolean( fun.autodoc ?: "" ) && fun.autodoc ) {
@@ -202,6 +202,7 @@ component {
 		var functionPageId     = arguments.objectName & "-" & LCase( fun.name );
 
 		functionDoc.append( _mdMeta( title=functionTitle, id=functionPageId ) );
+		functionDoc.append( DOUBLELINE & _mdTitle( "Overview", 2 ) & DOUBLELINE );
 		functionDoc.append( DOUBLELINE & "```luceescript" );
 		functionDoc.append( NEWLINE & _createFunctionSignature( fun ) );
 		functionDoc.append( NEWLINE & "```" );
