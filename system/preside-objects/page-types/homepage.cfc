@@ -5,6 +5,5 @@
  * @pageTypeViewlet        page-types.homepage.index
  * @parentSystemPageType   none
  * @allowedParentPageTypes none
- * @displayName            Page type: Homepage
  */
-component extends="preside.system.base.SystemPresideObject" output=false {}
+component extends="preside.system.base.SystemPresideObject" displayName="Page type: Homepage" {}

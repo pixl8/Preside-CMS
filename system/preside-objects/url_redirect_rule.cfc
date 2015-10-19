@@ -1,8 +1,8 @@
 /**
- * @tablePrefix psys_
- *
+ * The URL Redirect rule object is used to store individual URL redirect rules. These rules
+ * can use regex, etc. and are used to setup dynamic and editorial redirects.
  */
-component {
+component extends="preside.system.base.SystemPresideObject" displayName="URL Redirect rule" {
 	property name="label" uniqueindexes="redirectUrlLabel";
 
 	property name="source_url_pattern" type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="sourceurl";

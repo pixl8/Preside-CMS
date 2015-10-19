@@ -11,6 +11,8 @@ component output=false {
 		settings.assetsMappingPath = Replace( ReReplace( settings.assetsMapping, "^/", "" ), "/", ".", "all" );
 		settings.logsMappingPath   = Replace( ReReplace( settings.logsMapping  , "^/", "" ), "/", ".", "all" );
 
+		settings.activeExtensions = _loadExtensions();
+
 		coldbox = {
 			  appName                   = "OpenPreside Website"
 			, handlersIndexAutoReload   = false
@@ -165,8 +167,6 @@ component output=false {
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
-		settings.activeExtensions = _loadExtensions();
-
 		settings.adminPermissions = {
 			  sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
@@ -279,6 +279,16 @@ component output=false {
 
 			for( udf in siteUdfs ){
 				ArrayAppend( udfs, _getMappedPathFromFull( udf, "#settings.appMapping#/helpers" ) );
+			}
+		}
+
+		for( var ext in settings.activeExtensions ){
+			var helperDir = ext.directory & "/helpers";
+			if ( DirectoryExists( helperDir ) ) {
+				var extUdfs   = DirectoryList( helperDir, true, false, "*.cfm" );
+				for( udf in extUdfs ){
+					ArrayAppend( udfs, _getMappedPathFromFull( udf, helperDir ) );
+				}
 			}
 		}
 

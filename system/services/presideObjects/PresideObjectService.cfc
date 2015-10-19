@@ -1,7 +1,7 @@
 /**
  * The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
  * \n
- * For a full developer guide on using Preside Objects and this service, see :doc:`/devguides/presideobjects`.
+ * For a full developer guide on using Preside Objects and this service, see [[presidedataobjects]].
  */
 
 component singleton=true autodoc=true displayName="Preside Object Service" {
@@ -63,20 +63,16 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	/**
 	 * Returns an 'auto service' object instance of the given Preside Object.
 	 * \n
-	 * See :ref:`preside-objects-auto-service-objects` for a full guide.
-	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 *
-	 * .. code-block:: java
+	 * ```luceescript
+	 * eventObject = presideObjectService.getObject( "event" );
+	 * eventId     = eventObject.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
 	 * \n
-	 *
-	 * \teventObject = presideObjectService.getObject( "event" );
-	 * \n
-	 * \teventId     = eventObject.insertData( data={ title="Christmas", startDate="2014-12-25", endDate="2015-01-06" } );
-	 * \tevent       = eventObject.selectData( id=eventId )
+	 * event       = eventObject.selectData( id=eventId )
+	 *```
 	 *
 	 * @objectName.hint The name of the object to get
 	 */
@@ -101,30 +97,29 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Examples
-	 * ........
+	 * ## Examples
 	 * \n
-	 * .. code-block:: java
+	 * ```luceescript
+	 * // select a record by ID
+	 * event = presideObjectService.selectData( objectName="event", id=rc.id );
 	 * \n
-	 * \t// select a record by ID
-	 * \tevent = presideObjectService.selectData( objectName="event", id=rc.id );
-	 * \n
-	 * \t// select records using a simple filter.
-	 * \t// notice the 'category.label as categoryName' field - this will
-	 * \t// be automatically selected from the related 'category' object
-	 * \tevents = presideObjectService.selectData(
+	 * // select records using a simple filter.
+	 * // notice the 'category.label as categoryName' field - this will
+	 * // be automatically selected from the related 'category' object
+	 * events = presideObjectService.selectData(
 	 * \t      objectName   = "event"
 	 * \t    , filter       = { category = rc.category }
 	 * \t    , selectFields = [ "event.name", "category.label as categoryName", "event.category" ]
 	 * \t    , orderby      = "event.name"
-	 * \t);
+	 * );
 	 * \n
-	 * \t// select records with a plain SQL filter with added SQL params
-	 * \tevents = presideObjectService.selectData(
+	 * // select records with a plain SQL filter with added SQL params
+	 * events = presideObjectService.selectData(
 	 * \t      objectName   = "event"
 	 * \t    , filter       = "category.label like :category.label"
 	 * \t    , filterParams = { "category.label" = "%#rc.search#%" }
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint         Name of the object from which to select data
 	 * @id.hint                 ID of a record to select
@@ -242,12 +237,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * Example:
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \tnewId = presideObjectService.insertData(
+	 * ```luceescript
+	 * newId = presideObjectService.insertData(
 	 * \t      objectName = "event"
 	 * \t    , data       = { name="Summer BBQ", startdate="2015-08-23", enddate="2015-08-23" }
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint              Name of the object in which to to insert a record
 	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
@@ -362,32 +357,30 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Examples
-	 * ........
+	 * ## Examples
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \t// update a single record
-	 * \tupdated = presideObjectService.updateData(
+	 * ```luceescript
+	 * // update a single record
+	 * updated = presideObjectService.updateData(
 	 * \t      objectName = "event"
 	 * \t    , id         = eventId
 	 * \t    , data       = { enddate = "2015-01-31" }
-	 * \t);
+	 * );
 	 * \n
-	 * \t// update multiple records
-	 * \tupdated = presideObjectService.updateData(
+	 * // update multiple records
+	 * updated = presideObjectService.updateData(
 	 * \t      objectName     = "event"
 	 * \t    , data           = { cancelled = true }
 	 * \t    , filter         = { category = rc.category }
-	 * \t);
+	 * );
 	 * \n
-	 * \t// update all records
-	 * \tupdated = presideObjectService.updateData(
+	 * // update all records
+	 * updated = presideObjectService.updateData(
 	 * \t      objectName     = "event"
 	 * \t    , data           = { cancelled = true }
 	 * \t    , forceUpdateAll = true
-	 * \t);
-	 *
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint              Name of the object who's records you want to update
 	 * @data.hint                    Structure of data containing new values. Keys should map to properties on the object.
@@ -544,31 +537,30 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Examples
-	 * ........
+	 * ## Examples
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \t// delete a single record
-	 * \tdeleted = presideObjectService.deleteData(
+	 * ```luceescript
+	 * // delete a single record
+	 * deleted = presideObjectService.deleteData(
 	 * \t      objectName = "event"
 	 * \t    , id         = rc.id
-	 * \t);
+	 * );
 	 * \n
-	 * \t// delete multiple records using a filter
-	 * \t// (note we are filtering on a column in a related object, "category")
-	 * \tdeleted = presideObjectService.deleteData(
+	 * // delete multiple records using a filter
+	 * // (note we are filtering on a column in a related object, "category")
+	 * deleted = presideObjectService.deleteData(
 	 * \t      objectName   = "event"
 	 * \t    , filter       = "category.label != :category.label"
 	 * \t    , filterParams = { "category.label" = "BBQs" }
-	 * \t);
+	 * );
 	 * \n
-	 * \t// delete all records
-	 * \t// (note we are filtering on a column in a related object, "category")
-	 * \tdeleted = presideObjectService.deleteData(
+	 * // delete all records
+	 * // (note we are filtering on a column in a related object, "category")
+	 * deleted = presideObjectService.deleteData(
 	 * \t      objectName     = "event"
 	 * \t    , forceDeleteAll = true
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint     Name of the object from who's database table records are to be deleted
 	 * @id.hint             ID of a record to delete
@@ -641,22 +633,19 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	/**
 	 * Returns true if records exist that match the supplied fillter, false otherwise.
 	 * \n
-	 * .. note::
-	 * \n
-	 * \tIn addition to the named arguments here, you can also supply any valid arguments
-	 * \tthat can be supplied to the :ref:`presideobjectservice-selectdata` method
+	 * >>> In addition to the named arguments here, you can also supply any valid arguments
+	 * that can be supplied to the [[presideobjectservice-selectdata]] method
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \teventsExist = presideObjectService.dataExists(
-	 * \t      objectName = "event"
-	 * \t    , filter     = { category = rc.category }
-	 * \t);
+	 * ```luceescript
+	 * eventsExist = presideObjectService.dataExists(
+	 * \t  objectName = "event"
+	 * \t, filter     = { category = rc.category }
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint Name of the object in which the records may or may not exist
 	 */
@@ -671,22 +660,19 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	/**
 	 * Selects records from many-to-many relationships
 	 * \n
-	 * .. note::
-	 * \n
-	 * \tYou can pass additional arguments to those specified below and they will all be passed to the :ref:`presideobjectservice-selectdata` method
+	 * >>> You can pass additional arguments to those specified below and they will all be passed to the [[presideobjectservice-selectdata]] method
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \ttags = presideObjectService.selectManyToManyData(
+	 * ```luceescript
+	 * tags = presideObjectService.selectManyToManyData(
 	 * \t      objectName   = "event"
 	 * \t    , propertyName = "tags"
 	 * \t    , orderby      = "tags.label"
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint   Name of the object that has the many-to-many property defined
 	 * @propertyName.hint Name of the many-to-many property
@@ -736,17 +722,16 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \tpresideObjectService.syncManyToManyData(
+	 * ```luceescript
+	 * presideObjectService.syncManyToManyData(
 	 * \t      sourceObject   = "event"
 	 * \t    , sourceProperty = "tags"
 	 * \t    , sourceId       = rc.eventId
 	 * \t    , targetIdList   = rc.tags // e.g. "635,1,52,24"
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @sourceObject.hint   The object that contains the many-to-many property
 	 * @sourceProperty.hint The name of the property that is defined as a many-to-many relationship
@@ -813,17 +798,16 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \trelatedData = presideObjectService.getDeNormalizedManyToManyData(
+	 * ```luceescript
+	 * relatedData = presideObjectService.getDeNormalizedManyToManyData(
 	 * \t    objectName = "event"
 	 * \t  , id         = rc.id
-	 * \t);
+	 * );
 	 * \n
-	 * \t// the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
+	 * // the relatedData struct above might look like { tags = "C3635F77-D569-4D31-A794CA9324BC3E70,3AA27F08-819F-4C78-A8C5A97C897DFDE6" }
+	 * ```
 	 *
 	 * @objectName.hint       Name of the object who's related data we wish to retrieve
 	 * @id.hint               ID of the record who's related data we wish to retrieve
@@ -896,10 +880,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * Performs a full database synchronisation with your Preside Data Objects. Creating new tables, fields and relationships as well
 	 * as modifying and retiring existing ones.
 	 * \n
-	 * See :ref:`preside-objects-keeping-in-sync-with-db`.
-	 * \n
-	 * .. note::
-	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+	 * >>> You are unlikely to need to call this method directly.
 	 */
 	public void function dbSync() autodoc=true {
 		_announceInterception( "preDbSyncObjects" );
@@ -915,8 +896,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	/**
 	 * Reloads all the object definitions by reading them all from file.
 	 * \n
-	 * .. note::
-	 * \t You are unlikely to need to call this method directly. See :doc:`/devguides/reloading`.
+	 * >>> You are unlikely to need to call this method directly.
 	 */
 	public void function reload() autodoc=true {
 		_getCache().clearAll();
@@ -982,16 +962,15 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \teventLabelField = presideObjectService.getObjectAttribute(
+	 * ```luceescript
+	 * eventLabelField = presideObjectService.getObjectAttribute(
 	 * \t      objectName    = "event"
 	 * \t    , attributeName = "labelField"
 	 * \t    , defaultValue  = "label"
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint    Name of the object who's attribute we wish to get
 	 * @attributeName.hint Name of the attribute who's value we wish to get
@@ -1009,17 +988,16 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * \n
 	 * ${arguments}
 	 * \n
-	 * Example
-	 * .......
+	 * ## Example
 	 * \n
-	 * .. code-block:: java
-	 * \n
-	 * \tmaxLength = presideObjectService.getObjectPropertyAttribute(
+	 * ```luceescript
+	 * maxLength = presideObjectService.getObjectPropertyAttribute(
 	 * \t      objectName    = "event"
 	 * \t    , propertyName  = "name"
 	 * \t    , attributeName = "maxLength"
 	 * \t    , defaultValue  = 200
-	 * \t);
+	 * );
+	 * ```
 	 *
 	 * @objectName.hint    Name of the object who's property attribute we wish to get
 	 * @objectName.hint    Name of the property who's attribute we wish to get

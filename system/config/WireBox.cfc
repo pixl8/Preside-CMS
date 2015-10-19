@@ -19,7 +19,9 @@
 	}
 
 	private void function _mapCommonSystemServices() {
-		mapDirectory( packagePath="preside.system.services", exclude="FileSystemStorageProvider|logger" );
+		mapDirectory( packagePath="preside.system.services", exclude="FileSystemStorageProvider|logger", influence=function( mapping, objectPath ) {
+			_injectPresideSuperClass( argumentCollection=arguments );
+		} );
 	}
 
 	private void function _mapSiteServices() {
@@ -27,7 +29,9 @@
 		var appMappingPath = getColdbox().getSetting( name="appMappingPath", defaultValue="app"  );
 
 		if ( DirectoryExists( "#appMapping#/services" ) ) {
-			mapDirectory( packagePath="#appMappingPath#.services" );
+			mapDirectory( packagePath="#appMappingPath#.services", influence=function( mapping, objectPath ) {
+				_injectPresideSuperClass( argumentCollection=arguments );
+			} );
 		}
 	}
 
@@ -36,7 +40,9 @@
 		for( var i=extensions.len(); i > 0; i-- ){
 			var servicesDir = ListAppend( extensions[i].directory, "services", "/" )
 			if ( DirectoryExists( servicesDir ) ) {
-				mapDirectory( packagePath=servicesDir );
+				mapDirectory( packagePath=servicesDir, influence=function( mapping, objectPath ) {
+					_injectPresideSuperClass( argumentCollection=arguments );
+				}  );
 			}
 		}
 	}
@@ -77,5 +83,23 @@
 		wirebox.listeners = [
 			{ class="coldbox.system.aop.Mixer",properties={} }
 		];
+	}
+
+	private void function _injectPresideSuperClass( required any mapping, required string objectPath ) {
+		if ( _wantsPresideInjection( getComponentMetaData( arguments.objectPath ) ) ) {
+			arguments.mapping.virtualInheritance( "presideSuperClass" );
+		}
+	}
+
+	private boolean function _wantsPresideInjection( required struct meta ) {
+		if ( arguments.meta.keyExists( "presideService" ) ) {
+			return true;
+		}
+
+		if ( arguments.meta.keyExists( "extends" ) && arguments.meta.extends.count() ) {
+			return _wantsPresideInjection( arguments.meta.extends );
+		}
+
+		return false;
 	}
 }

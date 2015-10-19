@@ -1,5 +1,5 @@
 /**
- * The notifications service provides an API to the PresideCMS administrator notifications system
+ * The notifications service provides an API to the PresideCMS administrator [[notifications|notifications system]].
  *
  */
 component autodoc=true displayName="Notification Service" {
@@ -56,11 +56,11 @@ component autodoc=true displayName="Notification Service" {
 	 */
 	public string function createNotification( required string topic, required string type, required struct data ) autodoc=true {
 		var topicConfig = getGlobalTopicConfiguration( arguments.topic );
+		var args        = Duplicate( arguments );
 
-		_announceInterception( "onCreateNotification", arguments );
+		_announceInterception( "onCreateNotification", args );
 
 		if ( IsBoolean( topicConfig.save_in_cms ?: "" ) && topicConfig.save_in_cms ) {
-			var args = Duplicate( arguments );
 			var data = {
 				  topic = arguments.topic
 				, type  = arguments.type
@@ -101,7 +101,7 @@ component autodoc=true displayName="Notification Service" {
 			sendGlobalNotificationEmail(
 				  recipient = topicConfig.send_to_email_address
 				, topic     = arguments.topic
-				, data      = { data=arguments.data }
+				, data      = args
 			);
 		}
 	}

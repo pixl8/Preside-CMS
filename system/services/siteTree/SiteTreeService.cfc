@@ -2,15 +2,25 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @loginService.inject         loginService
-	 * @pageTypesService.inject     pageTypesService
-	 * @siteService.inject          siteService
-	 * @i18nService.inject          coldbox:plugin:i18n
-	 * @coldboxController.inject    coldbox
-	 * @presideObjectService.inject presideObjectService
-	 * @versioningService.inject    versioningService
+	 * @loginService.inject             loginService
+	 * @pageTypesService.inject         pageTypesService
+	 * @siteService.inject              siteService
+	 * @i18nService.inject              coldbox:plugin:i18n
+	 * @coldboxController.inject        coldbox
+	 * @presideObjectService.inject     presideObjectService
+	 * @versioningService.inject        versioningService
+	 * @websitePermissionService.inject websitePermissionService
 	 */
-	public any function init( required any loginService, required any pageTypesService, required any siteService, required any presideObjectService, required any coldboxController, required any i18nService, required any versioningService ) {
+	public any function init(
+		  required any loginService
+		, required any pageTypesService
+		, required any siteService
+		, required any presideObjectService
+		, required any coldboxController
+		, required any i18nService
+		, required any versioningService
+		, required any websitePermissionService
+	) {
 		_setLoginService( arguments.loginService );
 		_setPageTypesService( arguments.pageTypesService );
 		_setSiteService( arguments.siteService );
@@ -18,6 +28,7 @@ component singleton=true {
 		_setColdboxController( arguments.coldboxController );
 		_setI18nService( arguments.i18nService );
 		_setVersioningService( arguments.versioningService );
+		_setWebsitePermissionService( arguments.websitePermissionService );
 
 		_ensureSystemPagesExistInTree();
 
@@ -375,11 +386,12 @@ component singleton=true {
 		var loginSvc       = _getLoginService();
 		var homepage       = _getPobj().selectData(
 			  maxRows      = 1
-			, orderBy      = "_hierarchy_depth, _hierarchy_sort_order"
+			, orderBy      = "_hierarchy_sort_order"
 			, selectFields = arguments.selectFields
 			, filter       = {
-				  active  = true
-				, trashed = false
+				  _hierarchy_depth = 0
+				, active           = true
+				, trashed          = false
 			  }
 		);
 
@@ -408,7 +420,7 @@ component singleton=true {
 		, boolean isSubMenu         = false
 	) {
 		var args = arguments;
-		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type" ]
+		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ]
 		for( var field in requiredSelectFields) {
 			if ( !args.selectFields.find( field ) && !args.selectFields.find( "page." & field ) ) {
 				args.selectFields.append( "page." & field );
@@ -437,6 +449,12 @@ component singleton=true {
 			);
 
 			for( var child in children ){
+				var excluded = IsBoolean( child.exclude_from_navigation_when_restricted ) && child.exclude_from_navigation_when_restricted && !userHasPageAccess( child.id );
+
+				if ( excluded ) {
+					continue;
+				}
+
 				var fetchChildren = arguments.currentDepth < maxDepth;
 				    fetchChildren = fetchChildren && !Val( child.exclude_children_from_navigation );
 				    fetchChildren = fetchChildren && ( expandAllSiblings || activeTree.find( child.id ) );
@@ -831,7 +849,7 @@ component singleton=true {
 	}
 
 	public struct function getAccessRestrictionRulesForPage( required string pageId ) {
-		var page = getPage( id=arguments.pageId, selectFields=[ "parent_page", "access_restriction", "full_login_required" ] );
+		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "full_login_required" ] );
 
 		if ( !page.recordCount ) {
 			return {
@@ -841,9 +859,7 @@ component singleton=true {
 		}
 		if ( !Len( Trim( page.access_restriction ?: "" ) ) || page.access_restriction == "inherit" ) {
 			if ( Len( Trim( page.parent_page ) ) ) {
-				if ( Len( Trim( page.parent_page ) ) ) {
-					return getAccessRestrictionRulesForPage( page.parent_page );
-				}
+				return getAccessRestrictionRulesForPage( page.parent_page );
 			} else {
 				return {
 					  access_restriction  = "none"
@@ -853,9 +869,24 @@ component singleton=true {
 		}
 
 		return {
-			  access_restriction  = page.access_restriction
-			, full_login_required = page.full_login_required
+			  access_restriction   = page.access_restriction
+			, full_login_required  = page.full_login_required
+			, access_defining_page = page.id
 		};
+	}
+
+	public boolean function userHasPageAccess( required string pageId ) {
+		var restrictionRules = getAccessRestrictionRulesForPage( arguments.pageId );
+
+		if ( [ "none", "partial" ].find( restrictionRules.access_restriction ) ) {
+			return true;
+		}
+
+		return _getWebsitePermissionService().hasPermission(
+			  permissionKey = "pages.access"
+			, context       = "page"
+			, contextKeys   = [ restrictionRules.access_defining_page ]
+		);
 	}
 
 	public numeric function getTrashCount() {
@@ -1092,5 +1123,12 @@ component singleton=true {
 	}
 	private void function _setVersioningService( required any versioningService ) {
 		_versioningService = arguments.versioningService;
+	}
+
+	private any function _getWebsitePermissionService() {
+		return _websitePermissionService;
+	}
+	private void function _setWebsitePermissionService( required any websitePermissionService ) {
+		_websitePermissionService = arguments.websitePermissionService;
 	}
 }

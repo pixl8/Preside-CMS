@@ -1,4 +1,12 @@
-component output="false" singleton=true {
+/**
+ * Service class to provide API methods related to
+ * CMS admin login and user sessions. See [[cmspermissioning]]
+ * for a full guide to CMS admin users.
+ *
+ * @singleton
+ * @autodoc
+ */
+component displayName="Admin login service" {
 
 // CONSTRUCTOR
 	/**
@@ -15,7 +23,7 @@ component output="false" singleton=true {
 		, required any    userDao
 		, required any    emailService
 		,          string sessionKey = "admin_user"
-	) output=false {
+	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setBCryptService( arguments.bCryptService );
 		_setSystemUserList( arguments.systemUserList );
@@ -27,7 +35,17 @@ component output="false" singleton=true {
 	}
 
 // PUBLIC METHODS
-	public boolean function login( required string loginId, required string password ) output=false {
+	/**
+	 * Attempts CMS admin login with login ID and password. Returns true on success,
+	 * false otherwise. See [[cmspermissioning]]
+	 * for a full guide to CMS admin users.
+	 *
+	 * @autodoc
+	 * @loginId.hint  User provided login ID / email address
+	 * @password.hint User provided password
+	 *
+	 */
+	public boolean function login( required string loginId, required string password ) {
 		var usr = _getUserByLoginId( arguments.loginId );
 		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
 
@@ -39,18 +57,44 @@ component output="false" singleton=true {
 		return success;
 	}
 
-	public void function logout() output=false {
+	/**
+	 * Logs the currently logged in user session
+	 * out of the CMS admin. See [[cmspermissioning]]
+	 * for a full guide to CMS admin users.
+	 *
+	 * @autodoc
+	 */
+	public void function logout() {
 		if ( isLoggedIn() ) {
 			recordLogout();
 			_destroyUserSession();
 		}
 	}
 
-	public boolean function isLoggedIn() output=false {
+	/**
+	 * Returns whether or not the current request
+	 * is for a user who is logged into the CMS admin.
+	 * See [[cmspermissioning]] for a full guide to CMS admin users.
+	 *
+	 * @autodoc
+	 */
+	public boolean function isLoggedIn() {
 		return _getSessionStorage().exists( name=_getSessionKey() );
 	}
 
-	public struct function getLoggedInUserDetails() output=false {
+	/**
+	 * Returns a structure of user details of the
+	 * currently logged in CMS admin user.
+	 * The structure will contain a key for every property in
+	 * the [[presideobject-security_user]] object.
+	 * If no user is logged in, an empty structure will be returned.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS admin users.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public struct function getLoggedInUserDetails() {
 		if ( !StructKeyExists( request, "__presideCmsAminUserDetails" ) ) {
 			var userId = _getSessionStorage().getVar( name=_getSessionKey(), default="" );
 
@@ -73,15 +117,30 @@ component output="false" singleton=true {
 		return request.__presideCmsAminUserDetails;
 	}
 
-	public string function getLoggedInUserId() output=false {
+	/**
+	 * Returns the id of the logged in CMS admin user. If no user
+	 * is logged in, returns an empty string.
+	 * See [[cmspermissioning]] for a full guide to CMS admin users.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public string function getLoggedInUserId() {
 		return _getSessionStorage().getVar( name=_getSessionKey(), default="" );
 	}
 
-	public boolean function isSystemUser() output=false {
+	/**
+	 * Returns whether or not the logged in user is a "System user".
+	 * See [[cmspermissioning]] for a full guide to CMS admin users.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function isSystemUser() {
 		return isLoggedIn() and ListFindNoCase( _getSystemUserList(), getLoggedInUserDetails().login_id );
 	}
 
-	public string function getSystemUserId() output=false {
+	public string function getSystemUserId() {
 		var systemUser = ListFirst( _getSystemUserList() );
 		var usr        = _getUserDao().selectData(
 			  selectFields = [ "id" ]
@@ -100,13 +159,13 @@ component output="false" singleton=true {
 		} );
 	}
 
-	public boolean function isUserDatabaseNotConfigured() output=false {
+	public boolean function isUserDatabaseNotConfigured() {
 		var user = _getUserDao().selectData( selectFields=[ "login_id", "password" ], maxRows=2 );
 
 		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.login_id == ListFirst( _getSystemUserList() );
 	}
 
-	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) output=false {
+	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) {
 		return _getUserDao().updateData( id=getSystemUserId(), data={
 			  email_address = arguments.emailAddress
 			, password      = _getBCryptService().hashPw( arguments.password )
@@ -116,9 +175,10 @@ component output="false" singleton=true {
 	/**
 	 * Sends password reset instructions to the supplied user. Returns true if successful, false otherwise.
 	 *
+	 * @autodoc
 	 * @loginId.hint Either the email address or login id of the user
 	 */
-	public boolean function sendPasswordResetInstructions( required string loginId ) output=false autodoc=true {
+	public boolean function sendPasswordResetInstructions( required string loginId ) {
 		var userRecord = _getUserByLoginId( arguments.loginId );
 
 		if ( userRecord.recordCount ) {
@@ -139,10 +199,11 @@ component output="false" singleton=true {
 	/**
 	 * Sends a welcome email to the given user with password reset instructions
 	 *
+	 * @autodoc
 	 * @userId.hint ID of the user to send the welcome email to
 	 * @welcomeMessage.hint User supplied welcome message
 	 */
-	public boolean function sendWelcomeEmail( required string userId, required string createdBy, string welcomeMessage="" ) output=false {
+	public boolean function sendWelcomeEmail( required string userId, required string createdBy, string welcomeMessage="" ) {
 		var userRecord = _getUserDao().selectData( id=arguments.userId );
 
 		if ( userRecord.recordCount ) {
@@ -171,9 +232,10 @@ component output="false" singleton=true {
 	 * Creates a login reset token for a user and return a struct with token details.
 	 * Struct keys are: resetToken, resetKey and resetExpiry
 	 *
+	 * @autodoc
 	 * @userId.hint ID of the user to create a reset token for
 	 */
-	public struct function createLoginResetToken( required string userId ) output=false {
+	public struct function createLoginResetToken( required string userId ) {
 		var resetToken       = _createTemporaryResetToken();
 		var resetKey         = _createTemporaryResetKey();
 		var hashedResetKey   = _getBCryptService().hashPw( resetKey );
@@ -196,9 +258,10 @@ component output="false" singleton=true {
 	 * Validates a password reset token that has been passed through the URL after
 	 * a user has followed 'reset password' link in instructional email.
 	 *
+	 * @autodoc
 	 * @token.hint The token to validate
 	 */
-	public boolean function validateResetPasswordToken( required string token ) output=false {
+	public boolean function validateResetPasswordToken( required string token ) {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
 		return record.recordCount == 1;
@@ -207,10 +270,11 @@ component output="false" singleton=true {
 	/**
 	 * Resets a password by looking up the supplied password reset token and encrypting the supplied password
 	 *
+	 * @autodoc
 	 * @token.hint    The temporary reset password token to look the user up with
 	 * @password.hint The new password
 	 */
-	public boolean function resetPassword( required string token, required string password ) output=false {
+	public boolean function resetPassword( required string token, required string password ) {
 		var record = _getUserRecordByPasswordResetToken( arguments.token );
 
 		if ( record.recordCount ) {
@@ -226,8 +290,10 @@ component output="false" singleton=true {
 
 	/**
 	 * Sets the last logged in date for the logged in user
+	 *
+	 * @autodoc
 	 */
-	public boolean function recordLogin() autodoc=true {
+	public boolean function recordLogin() {
 		var userId = getLoggedInUserId();
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
@@ -239,8 +305,9 @@ component output="false" singleton=true {
 	 * Sets the last logged out date for the logged in user. Note, must be
 	 * called before logging the user out
 	 *
+	 * @autodoc
 	 */
-	public boolean function recordLogout() autodoc=true {
+	public boolean function recordLogout() {
 		var userId = getLoggedInUserId();
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
@@ -252,8 +319,9 @@ component output="false" singleton=true {
 	 * Records the visit for the currently logged in user
 	 * Currently, all this does is to set the last request made datetime value
 	 *
+	 * @autodoc
 	 */
-	public boolean function recordVisit() autodoc=true {
+	public boolean function recordVisit() {
 		var userId = getLoggedInUserId();
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
@@ -262,16 +330,16 @@ component output="false" singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private void function _persistUserSession( required query usr ) output=false {
+	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.usr.id );
 	}
 
-	private void function _destroyUserSession() output=false {
+	private void function _destroyUserSession() {
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
 	}
 
-	private query function _getUserByLoginId( required string loginId ) output=false {
+	private query function _getUserByLoginId( required string loginId ) {
 		return _getUserDao().selectData(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
 			, filterParams = { login_id = arguments.loginId }
@@ -279,23 +347,23 @@ component output="false" singleton=true {
 		);
 	}
 
-	private string function _createNewLoginTokenSeries() output=false {
+	private string function _createNewLoginTokenSeries() {
 		return _createRandomToken();
 	}
 
-	private string function _createNewLoginToken() output=false {
+	private string function _createNewLoginToken() {
 		return _createRandomToken();
 	}
 
-	private string function _createTemporaryResetToken() output=false {
+	private string function _createTemporaryResetToken() {
 		return _createRandomToken();
 	}
 
-	private string function _createTemporaryResetKey() output=false {
+	private string function _createTemporaryResetKey() {
 		return _createRandomToken();
 	}
 
-	private string function _createRandomToken() output=false {
+	private string function _createRandomToken() {
 		var chars    = ListToArray( Replace( CreateUUId(), "-", "", "all" ), "" );
 		var token = "";
 
@@ -314,11 +382,11 @@ component output="false" singleton=true {
 		return token;
 	}
 
-	private date function _createTemporaryResetTokenExpiry() output=false {
+	private date function _createTemporaryResetTokenExpiry() {
 		return DateAdd( "n", 60, Now() );
 	}
 
-	private query function _getUserRecordByPasswordResetToken( required string token ) output=false {
+	private query function _getUserRecordByPasswordResetToken( required string token ) {
 		var t = ListFirst( arguments.token, "-" );
 		var k = ListLast( arguments.token, "-" );
 
@@ -344,45 +412,45 @@ component output="false" singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getSessionStorage() output=false {
+	private any function _getSessionStorage() {
 		return _sessionStorage;
 	}
-	private void function _setSessionStorage( required any sessionStorage ) output=false {
+	private void function _setSessionStorage( required any sessionStorage ) {
 		_sessionStorage = arguments.sessionStorage;
 	}
 
-	private any function _getBCryptService() output=false {
+	private any function _getBCryptService() {
 		return _bCryptService;
 	}
-	private void function _setBCryptService( required any bCryptService ) output=false {
+	private void function _setBCryptService( required any bCryptService ) {
 		_bCryptService = arguments.bCryptService;
 	}
 
-	private string function _getSessionKey() output=false {
+	private string function _getSessionKey() {
 		return _sessionKey;
 	}
-	private void function _setSessionKey( required string sessionKey ) output=false {
+	private void function _setSessionKey( required string sessionKey ) {
 		_sessionKey = arguments.sessionKey;
 	}
 
-	private any function _getUserDao() output=false {
+	private any function _getUserDao() {
 		return _userDao;
 	}
-	private void function _setUserDao( required any userDao ) output=false {
+	private void function _setUserDao( required any userDao ) {
 		_userDao = arguments.userDao;
 	}
 
-	private string function _getSystemUserList() output=false {
+	private string function _getSystemUserList() {
 		return _systemUserList;
 	}
-	private void function _setSystemUserList( required string systemUserList ) output=false {
+	private void function _setSystemUserList( required string systemUserList ) {
 		_systemUserList = arguments.systemUserList;
 	}
 
-	private any function _getEmailService() output=false {
+	private any function _getEmailService() {
 		return _emailService;
 	}
-	private void function _setEmailService( required any emailService ) output=false {
+	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
 	}
 

@@ -74,12 +74,16 @@ component {
 
 
 		} else {
-			thread name=CreateUUId() e=arguments.exception {
+			var appMapping     = request._presideMappings.appMapping ?: "/app";
+			var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
+			var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
+
+			thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
 				new preside.system.services.errors.ErrorLogService(
-					  appMapping     = request._presideMappings.appMapping ?: "/app"
-					, appMappingPath = Replace( ReReplace( ( request._presideMappings.appMapping ?: "/app" ), "^/", "" ), "/", ".", "all" )
-					, logsMapping    = request._presideMappings.logsMapping ?: "/logs"
-					, logDirectory   = logsMapping & "/rte-logs"
+					  appMapping     = attributes.appMapping
+					, appMappingPath = attributes.appMappingPath
+					, logsMapping    = attributes.logsMapping
+					, logDirectory   = attributes.logsMapping & "/rte-logs"
 				).raiseError( attributes.e );
 			}
 

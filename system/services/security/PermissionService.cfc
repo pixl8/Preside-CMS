@@ -1,4 +1,12 @@
-component output=false singleton=true {
+/**
+ * Service that provides API methods for dealing with CMS admin permissions.
+ * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+ *
+ * @singleton
+ * @autodoc
+ *
+ */
+component displayName="Admin permissions service" {
 
 // CONSTRUCTOR
 	/**
@@ -18,7 +26,7 @@ component output=false singleton=true {
 		, required any    groupDao
 		, required any    userDao
 		, required any    contextPermDao
-	) output=false {
+	) {
 		_setLoginService( arguments.loginService );
 		_setCacheProvider( arguments.cacheProvider )
 		_setGroupDao( arguments.groupDao );
@@ -31,11 +39,33 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public array function listRoles() output=false {
+	/**
+	 * Returns an array of admin user role names
+	 * that have been configured for the application.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public array function listRoles() {
 		return _getRoles().keyArray();
 	}
 
-	public array function listPermissionKeys( string role="", string group="", string user="", array filter=[] ) output=false {
+	/**
+	 * Returns an array of permission keys that apply to the
+	 * given arguments.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+	 *
+	 * @autodoc
+	 * @role.hint   If supplied, the method will return permission keys that the role has access to
+	 * @group.hint  If supplied, the method will return permission keys that the group has access to
+	 * @user.hint   If supplied, the method will return permission keys that the user has access to
+	 * @filter.hint An array of filters with which to filter permission keys
+	 *
+	 */
+	public array function listPermissionKeys( string role="", string group="", string user="", array filter=[] ) {
 		if ( Len( Trim( arguments.role ) ) ) {
 			return _getRolePermissions( arguments.role );
 
@@ -51,12 +81,26 @@ component output=false singleton=true {
 		return _getPermissions();
 	}
 
+	/**
+	 * Returns whether or not the user has permission to the given
+	 * set of keys.
+	 * \n
+	 * See [[cmspermissioning]] for a full guide to CMS users and permissions.
+	 *
+	 * @autodoc
+	 * @permissionKey.hint The permission key as defined in `Config.cfc`
+	 * @context.hint       Optional named context
+	 * @contextKeys.hint   Array of keys for the given context (required if context supplied)
+	 * @userId.hint        ID of the user who's permissions we wish to check
+	 * @userId.docdefault  ID of logged in user
+	 *
+	 */
 	public boolean function hasPermission(
 		  required string permissionKey
 		,          string context       = ""
 		,          array  contextKeys   = []
 		,          string userId        = _getLoginService().getLoggedInUserId()
-	) output=false {
+	) {
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			return false;
 		}
@@ -76,7 +120,14 @@ component output=false singleton=true {
 		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
 
-	public array function listUserGroups( required string userId ) output=false {
+	/**
+	 * Returns an array of user group IDs that the user is a member of
+	 *
+	 * @autodoc
+	 * @userId.hint ID of the user who's groups we wish to get
+	 *
+	 */
+	public array function listUserGroups( required string userId ) {
 		var groups = _getUserDao().selectManyToManyData(
 			  propertyName = "groups"
 			, id           = arguments.userId
@@ -91,7 +142,7 @@ component output=false singleton=true {
 		, required array   contextKeys
 		, required array   permissionKeys
 		,          boolean includeDefaults=false
-	) output=false {
+	) {
 		var expandedPermissionKeys = listPermissionKeys( filter=permissionKeys );
 		var contextPerms           = {};
 		var dbData                 = "";
@@ -136,7 +187,7 @@ component output=false singleton=true {
 		return contextPerms;
 	}
 
-	public boolean function syncContextPermissions( required string context, required string contextKey, required string permissionKey, required array grantedToGroups, required array deniedToGroups ) output=false {
+	public boolean function syncContextPermissions( required string context, required string contextKey, required string permissionKey, required array grantedToGroups, required array deniedToGroups ) {
 		transaction {
 			_getContextPermDao().deleteData(
 				filter = {
@@ -177,18 +228,18 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) output=false {
+	private void function _denormalizeAndSaveConfiguredRolesAndPermissions( required struct permissionsConfig, required struct rolesConfig ) {
 		_setPermissions( _expandPermissions( arguments.permissionsConfig ) );
 		_setRoles( _expandRoles( arguments.rolesConfig ) );
 	}
 
-	private array function _getRolePermissions( required string role ) output=false {
+	private array function _getRolePermissions( required string role ) {
 		var roles = _getRoles();
 
 		return roles[ arguments.role ] ?: [];
 	}
 
-	private array function _getGroupPermissions( required string group ) output=false {
+	private array function _getGroupPermissions( required string group ) {
 		var roles = _getGroupDao().selectData( id=arguments.group, selectFields=[ "roles" ] );
 		var perms = [];
 
@@ -206,7 +257,7 @@ component output=false singleton=true {
 		return perms;
 	}
 
-	private array function _getUserPermissions( required string user ) output=false {
+	private array function _getUserPermissions( required string user ) {
 		var perms = [];
 		var groups = listUserGroups( arguments.user );
 
@@ -221,7 +272,7 @@ component output=false singleton=true {
 		return perms;
 	}
 
-	private array function _filterPermissions( required array filter ) output=false {
+	private array function _filterPermissions( required array filter ) {
 		var filtered   = [];
 		var exclusions = [];
 		var allPerms   = _getPermissions();
@@ -295,7 +346,7 @@ component output=false singleton=true {
 		return;
 	}
 
-	private array function _expandPermissions( required struct permissions, string prefix="" ) output=false {
+	private array function _expandPermissions( required struct permissions, string prefix="" ) {
 		var expanded = [];
 
 		for( var perm in permissions ){
@@ -318,7 +369,7 @@ component output=false singleton=true {
 		return expanded;
 	}
 
-	private struct function _expandRoles( required struct roles ) output=false {
+	private struct function _expandRoles( required struct roles ) {
 		var expandedRoles = StructNew( "linked" );
 
 		for( var roleName in arguments.roles ){
@@ -335,7 +386,7 @@ component output=false singleton=true {
 		return expandedRoles;
 	}
 
-	private array function _expandWildCardPermissionKey( required string permissionKey ) output=false {
+	private array function _expandWildCardPermissionKey( required string permissionKey ) {
 		var regex       = "^" & Replace( _reEscape( arguments.permissionKey ), "\*", "(.*?)", "all" ) & "$";
 		var permissions = _getPermissions();
 
@@ -344,7 +395,7 @@ component output=false singleton=true {
 		} );
 	}
 
-	private string function _reEscape( required string stringToEscape ) output=false {
+	private string function _reEscape( required string stringToEscape ) {
 		var charsToEscape = [ "\", "$","{","}","(",")","<",">","[","]","^",".","*","+","?","##",":","&" ];
 		var escaped       = arguments.stringToEscape;
 
@@ -355,7 +406,7 @@ component output=false singleton=true {
 		return escaped;
 	}
 
-	private array function _getDefaultGroupsForPermission( required string permissionKey ) output=false {
+	private array function _getDefaultGroupsForPermission( required string permissionKey ) {
 		var roles         = _getRoles();
 		var rolesWithPerm = {};
 		var groups        = [];
@@ -385,52 +436,52 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private struct function _getRoles() output=false {
+	private struct function _getRoles() {
 		return _roles;
 	}
-	private void function _setRoles( required struct roles ) output=false {
+	private void function _setRoles( required struct roles ) {
 		_roles = arguments.roles;
 	}
 
-	private array function _getPermissions() output=false {
+	private array function _getPermissions() {
 		return _permissions;
 	}
-	private void function _setPermissions( required array permissions ) output=false {
+	private void function _setPermissions( required array permissions ) {
 		_permissions = arguments.permissions;
 	}
 
-	private any function _getLoginService() output=false {
+	private any function _getLoginService() {
 		return _loginService;
 	}
-	private void function _setLoginService( required any loginService ) output=false {
+	private void function _setLoginService( required any loginService ) {
 		_loginService = arguments.loginService;
 	}
 
-	private any function _getCacheProvider() output=false {
+	private any function _getCacheProvider() {
 		return _cacheProvider;
 	}
-	private void function _setCacheProvider( required any cacheProvider ) output=false {
+	private void function _setCacheProvider( required any cacheProvider ) {
 		_cacheProvider = arguments.cacheProvider;
 	}
 
-	private any function _getGroupDao() output=false {
+	private any function _getGroupDao() {
 		return _groupDao;
 	}
-	private void function _setGroupDao( required any groupDao ) output=false {
+	private void function _setGroupDao( required any groupDao ) {
 		_groupDao = arguments.groupDao;
 	}
 
-	private any function _getUserDao() output=false {
+	private any function _getUserDao() {
 		return _userDao;
 	}
-	private void function _setUserDao( required any userDao ) output=false {
+	private void function _setUserDao( required any userDao ) {
 		_userDao = arguments.userDao;
 	}
 
-	private any function _getContextPermDao() output=false {
+	private any function _getContextPermDao() {
 		return _contextPermDao;
 	}
-	private void function _setContextPermDao( required any contextPermDao ) output=false {
+	private void function _setContextPermDao( required any contextPermDao ) {
 		_contextPermDao = arguments.contextPermDao;
 	}
 }

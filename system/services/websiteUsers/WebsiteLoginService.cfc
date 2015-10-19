@@ -1,7 +1,7 @@
 /**
  * The website login manager object provides methods for member login, logout and session retrieval
  * \n
- * See also: :doc:`/devguides/websiteusers`
+ * See also: [[websiteusersandpermissioning]]
  */
 component singleton=true autodoc=true displayName="Website login service" {
 

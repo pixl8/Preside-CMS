@@ -3,11 +3,10 @@
  * languages that can be available to the Presides core
  * multilingual content system
  *
- * @displayName Multilingual language
- * @labelField  name
- *
+ * @labelField name
+ * @feature    multilingual
  */
-component extends="preside.system.base.SystemPresideObject" feature="multilingual" {
+component extends="preside.system.base.SystemPresideObject"  displayName="Multilingual language" {
 	property name="name"          type="string"  dbtype="varchar" maxlength=200 required=true uniqueindexes="language_name" control="textinput";
 	property name="iso_code"      type="string"  dbtype="varchar" maxlength=2   required=true uniqueindexes="iso_code";
 	property name="native_name"   type="string"  dbtype="varchar" maxlength=200 required=true control="textinput";
