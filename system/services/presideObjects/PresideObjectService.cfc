@@ -351,7 +351,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var interceptionArgs       = arguments;
 		    interceptionArgs.newId = newId;
 		    interceptionArgs.result = result;
-		    
+
 		_announceInterception( "postInsertObjectData", interceptionArgs );
 
 		return newId;
@@ -461,14 +461,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		preparedFilter = _prepareFilter(
-			  objectName        = arguments.objectName
-			, id                = arguments.id
-			, filter            = arguments.filter
-			, filterParams      = arguments.filterParams
-			, extraFilters      = arguments.extraFilters
-			, savedFilters      = arguments.savedFilters
-			, adapter           = adapter
-			, columnDefinitions = obj.properties
+			  adapter            = adapter
+			, columnDefinitions  = obj.properties
+			, argumentCollection = arguments
 		);
 
 		transaction {
