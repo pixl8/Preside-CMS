@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab>
+		<fieldset>
+			<field name="title" label="widgets.iframewidget:form.title.label" />
+			<field name="embed_code" label="widgets.iframewidget:form.embed_code.label" control="textarea" />
+		</fieldset>
+	</tab>
+</form>
