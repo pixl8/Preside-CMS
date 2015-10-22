@@ -25905,6 +25905,20 @@ img.presidecms .editable-click:hover {
 .presidecms.modal-backdrop {
   z-index: 1030;
 }
+.presidecms .page-type-list .page-type {
+  margin-bottom: 10px;
+}
+.presidecms .page-type-list .page-type-title {
+  text-align: center;
+}
+.presidecms .page-type-list .page-type-icon {
+  display: block !important;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.presidecms .page-type-list p {
+  text-align: center;
+}
 .full-screen-dialog {
   height: 100%;
 }

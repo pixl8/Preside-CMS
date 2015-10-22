@@ -1,17 +1,12 @@
 PresideCMS
 ==========
 
-PresideCMS is an open source CMS for the [Lucee Server](http://luc.ee) built on the [ColdBox MVC Framework](http://www.coldbox.org).
+[![Build Status](https://travis-ci.org/pixl8/Preside-CMS.svg?branch=stable "Stable")](https://travis-ci.org/pixl8/Preside-CMS) 
 
-[http://www.presidecms.com](http://www.presidecms.com)
+[![Slack Status](https://presidecms-slack.herokuapp.com/badge.svg)](https://presidecms-slack.herokuapp.com/)
 
-[![Build Status](https://travis-ci.org/pixl8/Preside-CMS.svg?branch=master "Master")](https://travis-ci.org/pixl8/Preside-CMS) 
-[![Build Status](https://travis-ci.org/pixl8/Preside-CMS.svg?branch=develop "Develop")](https://travis-ci.org/pixl8/Preside-CMS)
+PresideCMS is an open source CMS for the [Lucee Server](http://luc.ee) built on the [ColdBox MVC Framework](http://www.coldbox.org). It is developed and maintained by [Pixl8 Interactive](http://www.pixl8.co.uk).
 
-# Getting started
+[Website (http://www.presidecms.com)](http://www.presidecms.com)
 
-The quickest way to get started and take us for a spin is using CommandBox and our CommandBox commands. Head over to our commands repository for full instructions:
-
-[https://github.com/pixl8/Preside-CMS-CommandBox-Commands](https://github.com/pixl8/Preside-CMS-CommandBox-Commands).
-
-Further instructions and guides will be added to the [documentation](http://docs.presidecms.com) over time.
+[Documentation and quick start guide (http://docs.presidecms.com)](http://docs.presidecms.com)
