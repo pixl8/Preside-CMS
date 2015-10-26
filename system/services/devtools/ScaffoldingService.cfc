@@ -176,6 +176,16 @@ component singleton=true {
 		return filesCreated;
 	}
 
+	public array function scaffoldEmailTemplate(
+		  required string  id
+		, required string  extension
+	) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+
+		filesCreated.append( scaffoldEmailTemplateViewletHandler( id = arguments.id ) );
+
+		return filesCreated;
+	}
 
 	public string function scaffoldFormControlViewletHandler( required string formControl, required array contexts, string extension="" ) {
 		var root            = _getScaffoldRoot( arguments.extension );
@@ -243,6 +253,18 @@ component singleton=true {
 
 		return filePath;
 	}
+
+	public string function scaffoldEmailTemplateViewletHandler( required string id, string extension="" ) {
+		var root     = _getScaffoldRoot( arguments.extension );
+		var filePath = root & "handlers/emailTemplates/" & arguments.id & ".cfc";
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileCopy( "/preside/system/services/devtools/scaffoldingResources/emailtemplateHandler.cfc.txt", filePath );
+
+		return filePath;
+	}
+
+
 
 	public string function scaffoldView( required string viewName, string subDir="", string extension="", array args=[] ) {
 		var root     = _getScaffoldRoot( arguments.extension );

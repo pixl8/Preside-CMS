@@ -5,7 +5,7 @@ component hint="Create various preside system entities such as widgets and page 
 
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol" ];
+		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol", "emailtemplate" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -18,6 +18,7 @@ component hint="Create various preside system entities such as widgets and page 
 			               & "    [[b;white;]extension]       : Creates a new preside extension." & Chr(10)
 			               & "    [[b;white;]configform]      : Creates a new system config form." & Chr(10)
 			               & "    [[b;white;]formcontrol]     : Creates a new form control." & Chr(10)
+			               & "    [[b;white;]emailtemplate]   : Creates a new email template." & Chr(10)
 			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
 		}
 
@@ -278,6 +279,40 @@ component hint="Create various preside system entities such as widgets and page 
 		}
 
 		var msg = Chr(10) & "[[b;white;]Your system config form has been created!] The following files were created:" & Chr(10) & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
+
+		return msg;
+	}
+
+	private function emailTemplate( event, rc, prc ) {
+		var params           = jsonRpc2Plugin.getRequestParams();
+		var userInputPrompts = [];
+
+		if ( !StructKeyExists( params, "id" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Template ID: ", required=true, paramName="id" } );
+		}
+		if ( !StructKeyExists( params, "extension" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
+		}
+
+		if ( ArrayLen( userInputPrompts ) ) {
+			return {
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new email template wizard]" & Chr(10) & Chr(10)
+				, inputPrompt = userInputPrompts
+				, method      = "new"
+				, params      = params
+			};
+		}
+
+		try {
+			filesCreated = scaffoldingService.scaffoldEmailTemplate( argumentCollection = params );
+		} catch ( any e ) {
+			return Chr(10) & "[[b;red;]Error creating email template:] [[b;white;]#e.message#]" & Chr(10);
+		}
+
+		var msg = Chr(10) & "[[b;white;]Your email template has been created!] The following files were created:" & Chr(10) & Chr(10);
 		for( var file in filesCreated ) {
 			msg &= "    " & file & Chr(10);
 		}
