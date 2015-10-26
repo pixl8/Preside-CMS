@@ -79,10 +79,10 @@ component singleton=true {
 		for( var field in ListToArray( arguments.fields ) ) {
 			i18nProps[ "field.#field#.title" ] = field;
 		}
-		i18nProps[ "form.tab.title" ] = arguments.name;
-		i18nProps[ "form.tab.description" ] = "";
-		i18nProps[ "form.fieldset.title" ] = "";
-		i18nProps[ "form.fieldset.description" ] = "";
+		i18nProps[ "tab.#arguments.id#.title" ] = arguments.name;
+		i18nProps[ "tab.#arguments.id#.description" ] = "";
+		i18nProps[ "fieldset.#arguments.id#.title" ] = "";
+		i18nProps[ "fieldset.#arguments.id#.description" ] = "";
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="page-types", extension=arguments.extension, properties=i18nProps ) );
 
 
