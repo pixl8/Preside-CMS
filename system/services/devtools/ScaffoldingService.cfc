@@ -65,7 +65,7 @@ component singleton=true {
 		}
 
 		if ( arguments.createHandler ) {
-			filesCreated.append( scaffoldViewletHandler( handlerName=arguments.id, subDir="page-types", extension=arguments.extension ) );
+			filesCreated.append( scaffoldPageTypeViewletHandler( handlerName=arguments.id, subDir="page-types", extension=arguments.extension ) );
 		}
 
 		filesCreated.append( scaffoldPresideObjectCfc( objectName=arguments.id, subDir="page-types", extension=arguments.extension, properties=ListToArray( arguments.fields ) ) );
@@ -121,6 +121,28 @@ component singleton=true {
 		                & "	private function index( event, rc, prc, args={} ) {" & _nl()
 		                & "		// TODO: create your handler logic here" & _nl()
 		                & "		return renderView( view='#viewPath#', args=args );" & _nl()
+		                & "	}" & _nl()
+		                & "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public string function scaffoldPageTypeViewletHandler( required string handlerName, string subDir="", string extension="" ) {
+		var root     = _getScaffoldRoot( arguments.extension );
+		var filePath = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
+		var viewPath = arguments.subDir & "/" & handlerName & "/index";
+		var fileContent = "component {" & _nl()
+		                & "	private function index( event, rc, prc, args={} ) {" & _nl()
+		                & "		// TODO: create your handler logic here" & _nl()
+		                & "		return renderView(" & _nl()
+		                & "			  view          = '#viewPath#'"              & _nl()
+		                & "			, presideObject = '#arguments.handlerName#'" & _nl()
+		                & "			, id            = event.getCurrentPageId()"  & _nl()
+		                & "			, args          = args"                      & _nl()
+		                & "		);" & _nl()
 		                & "	}" & _nl()
 		                & "}" & _nl();
 
