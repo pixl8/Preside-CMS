@@ -43,12 +43,14 @@ component singleton=true {
 		i18nProps["iconclass"]=arguments.icon;
 
 		for( var option in ListToArray( arguments.options ) ) {
-			i18nProps[ "form.#option#.label" ] = option;
+			i18nProps[ "field.#option#.title" ] = option;
+			i18nProps[ "field.#option#.placeholder" ] = "";
+			i18nProps[ "field.#option#.help" ] = "";
 		}
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="widgets", extension=arguments.extension, properties=i18nProps ) );
 
 		if ( Len( Trim( arguments.options ) ) ) {
-			filesCreated.append( scaffoldSimpleForm( formName=arguments.id, subDir="widgets", extension=arguments.extension, fields=ListToArray( arguments.options ), labelPrefix="widgets.#arguments.id#:form." ) );
+			filesCreated.append( scaffoldSimpleForm( formName=arguments.id, subDir="widgets", extension=arguments.extension, fields=ListToArray( arguments.options ), i18nBaseUri="widgets.#arguments.id#:" ) );
 		}
 
 		_getWidgetsService().reload();
@@ -205,16 +207,16 @@ component singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldSimpleForm( required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) {
+	public string function scaffoldSimpleForm( required string formName, string subDir="", string extension="", array fields=[], string i18nBaseUri="" ) {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
 		var fileContent = '<?xml version="1.0" encoding="UTF-8"?>' & _nl()
-		                & '<form>' & _nl()
+		                & '<form i18nBaseUri="#arguments.i18nBaseUri#">' & _nl()
 		                & '	<tab>' & _nl()
 		                & '		<fieldset>' & _nl();
 
 		for( var field in arguments.fields ) {
-			fileContent &= '			<field name="#field#" label="#arguments.labelPrefix##field#.label" />' & _nl();
+			fileContent &= '			<field name="#field#" />' & _nl();
 		}
 
 		fileContent &= '		</fieldset>' & _nl()
@@ -227,7 +229,7 @@ component singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) {
+	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[] ) {
 		var root           = _getScaffoldRoot( arguments.extension );
 		var filePath       = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
 		var fileContent    = FileRead( "/preside/system/services/devtools/scaffoldingResources/pageTypeForm.xml.txt" );
