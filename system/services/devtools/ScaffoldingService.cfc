@@ -125,6 +125,32 @@ component singleton=true {
 		return filesCreated;
 	}
 
+	public array function scaffoldSystemConfigForm(
+		  required string id
+		, required string fields
+		, required string name
+		, required string description
+		, required string icon
+		, required string extension
+	) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var i18nProps    = StructNew( "linked" );
+
+		i18nProps[ "name" ]        = arguments.name;
+		i18nProps[ "description" ] = arguments.description;
+		i18nProps[ "iconclass" ]   = arguments.icon;
+		for( var field in ListToArray( arguments.fields ) ) {
+			i18nProps[ "field.#field#.title" ]       = field;
+			i18nProps[ "field.#field#.placeholder" ] = "";
+			i18nProps[ "field.#field#.help" ]        = "";
+		}
+
+		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="system-config", extension=arguments.extension, properties=i18nProps ) );
+		filesCreated.append( scaffoldSimpleForm( formName=arguments.id, subDir="system-config", extension=arguments.extension, fields=ListToArray( arguments.fields ), i18nBaseUri="system-config.#arguments.id#:" ) );
+
+		return filesCreated;
+	}
+
 	public string function scaffoldWidgetViewletHandler( required string handlerName, string subDir="", string extension="" ) {
 		var root            = _getScaffoldRoot( arguments.extension );
 		var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";

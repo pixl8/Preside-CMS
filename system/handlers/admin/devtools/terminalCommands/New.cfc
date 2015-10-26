@@ -1,11 +1,11 @@
-component output=false hint="Create various preside system entities such as widgets and page types" {
+component hint="Create various preside system entities such as widgets and page types" {
 
 	property name="jsonRpc2Plugin"     inject="coldbox:myPlugin:JsonRpc2";
 	property name="scaffoldingService" inject="scaffoldingService";
 
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension" ];
+		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -16,13 +16,14 @@ component output=false hint="Create various preside system entities such as widg
 			               & "    [[b;white;]pagetype]        : Creates files for a new page type." & Chr(10)
 			               & "    [[b;white;]object]          : Creates a new preside object." & Chr(10)
 			               & "    [[b;white;]extension]       : Creates a new preside extension." & Chr(10)
+			               & "    [[b;white;]configform]      : Creates a new system config form." & Chr(10)
 			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
 		}
 
 		return runEvent( event="admin.devtools.terminalCommands.new.#params[1]#", private=true, prePostExempt=true );
 	}
 
-	private function widget( event, rc, prc ) output=false {
+	private function widget( event, rc, prc ) {
 		var params               = jsonRpc2Plugin.getRequestParams();
 		var userInputPrompts     = [];
 
@@ -80,7 +81,7 @@ component output=false hint="Create various preside system entities such as widg
 		return msg;
 	}
 
-	private function pagetype( event, rc, prc ) output=false {
+	private function pagetype( event, rc, prc ) {
 		var params               = jsonRpc2Plugin.getRequestParams();
 		var userInputPrompts     = [];
 
@@ -138,7 +139,7 @@ component output=false hint="Create various preside system entities such as widg
 		return msg;
 	}
 
-	private function object( event, rc, prc ) output=false {
+	private function object( event, rc, prc ) {
 		var params               = jsonRpc2Plugin.getRequestParams();
 		var userInputPrompts     = [];
 
@@ -196,7 +197,7 @@ component output=false hint="Create various preside system entities such as widg
 		return msg;
 	}
 
-	private function extension( event, rc, prc ) output=false {
+	private function extension( event, rc, prc ) {
 		var params           = jsonRpc2Plugin.getRequestParams();
 		var userInputPrompts = [];
 
@@ -237,7 +238,53 @@ component output=false hint="Create various preside system entities such as widg
 		return msg;
 	}
 
-	private function terminalCommand( event, rc, prc ) output=false {
+	private function configform( event, rc, prc ) {
+		var params           = jsonRpc2Plugin.getRequestParams();
+		var userInputPrompts = [];
+
+		if ( !StructKeyExists( params, "id" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Form ID (category): ", required=true, paramName="id" } );
+		}
+		if ( !StructKeyExists( params, "fields" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Config fields, e.g. 'title,max_items,feed_url': ", required=true, paramName="fields"} );
+		}
+		if ( !StructKeyExists( params, "name" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Friendly name: ", required=true, paramName="name"} );
+		}
+		if ( !StructKeyExists( params, "description" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
+		}
+		if ( !StructKeyExists( params, "icon" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Icon class, we use font-awesome 4: ", required=false, default="fa-cogs", paramName="icon"} );
+		}
+		if ( !StructKeyExists( params, "extension" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
+		}
+
+		if ( ArrayLen( userInputPrompts ) ) {
+			return {
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new terminal command wizard]" & Chr(10) & Chr(10)
+				, inputPrompt = userInputPrompts
+				, method      = "new"
+				, params      = params
+			};
+		}
+
+		try {
+			filesCreated = scaffoldingService.scaffoldSystemConfigForm( argumentCollection = params );
+		} catch ( any e ) {
+			return Chr(10) & "[[b;red;]Error creating system config form:] [[b;white;]#e.message#]" & Chr(10);
+		}
+
+		var msg = Chr(10) & "[[b;white;]Your system config form has been created!] The following files were created:" & Chr(10) & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
+
+		return msg;
+	}
+
+	private function terminalCommand( event, rc, prc ) {
 		var params           = jsonRpc2Plugin.getRequestParams();
 		var userInputPrompts = [];
 
