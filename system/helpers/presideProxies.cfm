@@ -161,6 +161,10 @@
 		<cfreturn getSingleton( "featureService" ).isFeatureEnabled( argumentCollection=arguments ) />
 	</cffunction>
 
+	<cffunction name="isFeatureDefined" access="public" returntype="boolean" output="false">
+		<cfreturn getSingleton( "featureService" ).isFeatureDefined( argumentCollection=arguments ) />
+	</cffunction>
+
 <!--- errors --->
 	<cffunction name="logError" access="public" returntype="void" output="false">
 		<cfreturn getController().getWireBox().getInstance( "errorLogService" ).raiseError( argumentCollection=arguments ) />

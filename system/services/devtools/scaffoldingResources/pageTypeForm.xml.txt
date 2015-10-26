@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form>
+<form i18nBaseUri="page-types.${pagetype}:">
 	<!--
 		This page type form has been scaffolded by the Preside dev tools scaffolder
 
@@ -37,8 +37,8 @@
 		</fieldset>
 	</tab>
 
-	<tab id="${pagetype}" title="page-types.${pagetype}:form.tab.title" description="page-types.${pagetype}:form.tab.description">
-		<fieldset id="${pagetype}" title="page-types.${pagetype}:form.fieldset.title" description="page-types.${pagetype}:form.fieldset.description">
+	<tab id="${pagetype}">
+		<fieldset id="${pagetype}">
 			<!--
 				we have created this tab and fieldset for you to put in all your custom
 				fields for this page type. You may wish to move the fields to different tabs, remove them from the form

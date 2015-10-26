@@ -242,6 +242,10 @@ component output=false {
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
+			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ] }
+			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ] }
+			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ] }
+			, "devtools.extension"  = { enabled=false, siteTemplates=[ "*" ] }
 		};
 
 		settings.filters = {
@@ -262,6 +266,9 @@ component output=false {
 	public void function local() output=false {
 		settings.showErrors = true;
 		settings.autoSyncDb = true;
+
+		settings.features[ "devtools.new"       ].enabled=true;
+		settings.features[ "devtools.extension" ].enabled=true;
 	}
 
 // PRIVATE UTILITY

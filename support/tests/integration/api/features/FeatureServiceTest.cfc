@@ -32,6 +32,20 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assert( svc.isFeatureEnabled( feature="sites", siteTemplate="" ) ) ;
 	}
 
+	function test06_isFeatureDefined_shouldReturnFalse_whenFeatureIsNotDefinedAtAll() {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "" );
+		super.assertFalse( svc.isFeatureDefined( "somefeature" ) );
+	}
+
+	function test07_isFeatureDefined_shouldReturnTrue_whenFeatureIsDefined() {
+		var svc = _getService();
+
+		mockSiteService.$( "getActiveSiteTemplate", "" );
+		super.assert( svc.isFeatureDefined( "sitetree" ) );
+	}
+
 // PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestConfiguration() ) output=false {
 		mockSiteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
