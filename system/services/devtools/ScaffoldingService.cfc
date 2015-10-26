@@ -120,6 +120,7 @@ component singleton=true {
 		var filesCreated = [];
 
 		filesCreated.append( scaffoldExtensionManifestFile( argumentCollection=arguments ) );
+		filesCreated.append( scaffoldExtensionConfigFile( argumentCollection=arguments ) );
 
 		return filesCreated;
 	}
@@ -313,6 +314,17 @@ component singleton=true {
 		fileContent = Replace( fileContent, "${id}"         , arguments.id          );
 		fileContent = Replace( fileContent, "${title}"      , arguments.title       );
 		fileContent = Replace( fileContent, "${description}", arguments.description );
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public string function scaffoldExtensionConfigFile( required string id ) {
+		var root        = _getScaffoldRoot( "" );
+		var filePath    = root & "extensions/" & arguments.id & "/config/Config.cfc";
+		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/extension.Config.cfc.txt" );
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
