@@ -2,14 +2,14 @@ component acessors=true extends="preside.system.base.JsonRpc2Handler" {
 
 // terminal controller (all methods come through here)
 	function index( event, rc, prc ) {
-		var method      = jsonRpc2Plugin.getRequestMethod();
-		var targetEvent = "admin.devtools.terminalCommands.#method#.index";
+		var method        = jsonRpc2Plugin.getRequestMethod();
+		var targetEvent   = "admin.devtools.terminalCommands.#method#.index";
 
 		if ( method == "listMethods" && StructKeyExists( jsonRpc2Plugin.getRequestParams(), "systemcall" ) ) {
 			return _listMethods( argumentCollection = arguments );
 		}
 
-		if ( !getController().handlerExists( targetEvent ) ) {
+		if ( !_isMethodEnabled( method ) || !getController().handlerExists( targetEvent ) ) {
 			jsonRpc2Plugin.error( jsonRpc2Plugin.ERROR_CODES.METHOD_NOT_FOUND, "Method named [#method#] not found" );
 			return;
 		}
@@ -36,12 +36,22 @@ component acessors=true extends="preside.system.base.JsonRpc2Handler" {
 		for( var handler in handlers ){
 			try {
 				var handlerMeta = getComponentMetaData( handlerSvc.getRegisteredHandler( handler & ".index" ).getRunnable() );
+				var methodName  = LCase( ListLast( handlerMeta.name ?: "unknown", "." ) );
 
-				_methods[ LCase( ListLast( handlerMeta.name ?: "unknown", "." ) ) ] = handlerMeta.hint ?: "";
+				if ( _isMethodEnabled( methodName ) ) {
+					_methods[ methodName ] = handlerMeta.hint ?: "";
+				}
+
 			} catch ( any e ) {}
 		}
 
 		return _methods;
+	}
+
+	private function _isMethodEnabled( required string method ) {
+		var targetFeature = "devtools.#method#";
+
+		return !isFeatureDefined( targetFeature ) || isFeatureEnabled( targetFeature );
 	}
 
 

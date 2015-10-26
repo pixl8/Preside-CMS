@@ -4,14 +4,14 @@
  * of features before proceeding to provide a page or perform some action.
  *
  */
-component output=false singleton=true autodoc=true displayName="Feature service" {
+component singleton=true autodoc=true displayName="Feature service" {
 
 // CONSTRUCTOR
 	/**
 	 * @configuredFeatures.inject coldbox:setting:features
 	 *
 	 */
-	public any function init( required struct configuredFeatures ) output=false {
+	public any function init( required struct configuredFeatures ) {
 		_setConfiguredFeatures( arguments.configuredFeatures );
 		return this;
 	}
@@ -23,7 +23,7 @@ component output=false singleton=true autodoc=true displayName="Feature service"
 	 * @feature.hint      name of the feature to check
 	 * @siteTemplate.hint current active site template - can be used to check features that can be site template specific
 	 */
-	public boolean function isFeatureEnabled( required string feature, string siteTemplate ) output=false autodoc=true {
+	public boolean function isFeatureEnabled( required string feature, string siteTemplate ) autodoc=true {
 		var features           = _getConfiguredFeatures();
 		var isEnabled          = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
 
@@ -41,13 +41,26 @@ component output=false singleton=true autodoc=true displayName="Feature service"
 		return !IsArray( availableToTemplates ) || availableToTemplates.find( "*" ) || availableToTemplates.find( activeSiteTemplate );
 	}
 
+	/**
+	 * Returns whether or not the passed feature is defined at all
+	 *
+	 * @feature.hint name of the feature to check
+	 *
+	 */
+	public boolean function isFeatureDefined( required string feature ) {
+		var features = _getConfiguredFeatures();
+
+		return features.keyExists( arguments.feature );
+	}
+
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
-	private struct function _getConfiguredFeatures() output=false {
+	private struct function _getConfiguredFeatures() {
 		return _configuredFeatures;
 	}
-	private void function _setConfiguredFeatures( required struct configuredFeatures ) output=false {
+	private void function _setConfiguredFeatures( required struct configuredFeatures ) {
 		_configuredFeatures = arguments.configuredFeatures;
 	}
 }
