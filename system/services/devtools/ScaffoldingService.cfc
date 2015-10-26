@@ -23,7 +23,7 @@ component singleton=true {
 
 // PUBLIC API METHODS
 	public array function scaffoldWidget( required string id, string name="",  string description="", string icon="fa-magic", string options="", string extension="", boolean createHandler=false ) {
-		var filesCreated = [];
+		var filesCreated = _ensureExtensionExists( arguments.extension );
 		var i18nProps    = StructNew( "linked" );
 
 		if ( _getWidgetsService().widgetExists( arguments.id ) ) {
@@ -60,7 +60,7 @@ component singleton=true {
 	}
 
 	public array function scaffoldPageType( required string id, string name="", string pluralName=arguments.name, string description="", string icon="page-o" string fields="", string extension="", boolean createHandler=false ) {
-		var filesCreated = [];
+		var filesCreated = _ensureExtensionExists( arguments.extension );
 		var i18nProps    = StructNew( "linked" );
 
 		if ( _getPageTypesService().pageTypeExists( arguments.id ) ) {
@@ -93,7 +93,7 @@ component singleton=true {
 	}
 
 	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="", string datamanagerGroup="" ) {
-		var filesCreated   = [];
+		var filesCreated   = _ensureExtensionExists( arguments.extension );
 		var i18nProps      = { title=arguments.pluralName, "title.singular"=arguments.name, description=arguments.description };
 		var i18nGroupProps = { title=arguments.datamanagerGroup, description=arguments.datamanagerGroup & " data manager group", iconclass="fa-square-o" };
 		var root           = _getScaffoldRoot( arguments.extension );
@@ -332,25 +332,27 @@ component singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldTerminalCommand( required string name, required string helpText, string extension="" ) {
-		var root        = _getScaffoldRoot( arguments.extension );
-		var filePath    = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
-		var fileContent = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
-		                & _nl()
-		                & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
-		                & _nl()
-		                & '	private any function index( event, rc, prc ) {' & _nl()
-		                & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
-		                & '		var cliArgs = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];' & _nl()
-		                & _nl()
-		                & '		return "I am a scaffolded command, please finish me off!";' & _nl()
-		                & '	}' & _nl()
-		                & '}';
+	public array function scaffoldTerminalCommand( required string name, required string helpText, string extension="" ) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var root         = _getScaffoldRoot( arguments.extension );
+		var filePath     = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
+		var fileContent  = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
+		                 & _nl()
+		                 & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
+		                 & _nl()
+		                 & '	private any function index( event, rc, prc ) {' & _nl()
+		                 & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
+		                 & '		var cliArgs = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];' & _nl()
+		                 & _nl()
+		                 & '		return "I am a scaffolded command, please finish me off!";' & _nl()
+		                 & '	}' & _nl()
+		                 & '}';
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
 
-		return filePath;
+		filesCreated.append( filePath );
+		return filesCreated;
 	}
 
 // PRIVATE HELPERS
@@ -361,6 +363,19 @@ component singleton=true {
 			_ensureDirectoryExists( parentDir );
 			DirectoryCreate( arguments.dir );
 		}
+	}
+
+	private array function _ensureExtensionExists( required string extension ) {
+		if ( !Len( Trim( arguments.extension ) ) ) {
+			return [];
+		}
+
+		var extensionRoot = _getScaffoldRoot( arguments.extension );
+		if ( !DirectoryExists( extensionRoot ) ) {
+			return scaffoldExtension( arguments.extension, arguments.extension, "" );
+		}
+
+		return [];
 	}
 
 	private string function _getScaffoldRoot( required string extension ) {

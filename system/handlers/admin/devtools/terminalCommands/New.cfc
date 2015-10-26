@@ -271,7 +271,9 @@ component output=false hint="Create various preside system entities such as widg
 		}
 
 		var msg = Chr(10) & "[[b;white;]Your command has been created!] The following files were created:" & Chr(10) & Chr(10);
-			msg &= "    " & filesCreated & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
 
 		return msg;
 	}
