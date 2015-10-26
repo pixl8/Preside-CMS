@@ -141,6 +141,7 @@ component output=false {
 		settings.notificationTopics          = [];
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
+		settings.devConsoleToggleKeyCode     = 96;
 
 		settings.adminSideBarItems = [
 			  "sitetree"
