@@ -20,8 +20,9 @@
 	event.include( "i18n-resource-bundle" );
 
 	if ( hasCmsPermission( "devtools.console" ) ) {
-		event.include( "/js/admin/devtools/" );
-		event.include( "/css/admin/devtools/" );
+		event.include( "/js/admin/devtools/" )
+		     .include( "/css/admin/devtools/" )
+		     .includeData( { devConsoleToggleKeyCode=getSetting( "devConsoleToggleKeyCode" ) } );
 	}
 
 	ckEditorJs = renderView( "admin/layout/ckeditorjs" );
