@@ -1,7 +1,7 @@
-component output=false acessors=true extends="preside.system.base.JsonRpc2Handler" {
+component acessors=true extends="preside.system.base.JsonRpc2Handler" {
 
 // terminal controller (all methods come through here)
-	function index( event, rc, prc ) output=false {
+	function index( event, rc, prc ) {
 		var method      = jsonRpc2Plugin.getRequestMethod();
 		var targetEvent = "admin.devtools.terminalCommands.#method#.index";
 
@@ -23,7 +23,7 @@ component output=false acessors=true extends="preside.system.base.JsonRpc2Handle
 	}
 
 // helpers
-	private function _listMethods( event, rc, prc ) output=false {
+	private function _listMethods( event, rc, prc ) {
 		if ( !IsSimpleValue( _methods ?: "" ) ) {
 			return _methods;
 		}
