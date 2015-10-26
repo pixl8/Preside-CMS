@@ -5,7 +5,7 @@ component hint="Create various preside system entities such as widgets and page 
 
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform" ];
+		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -17,6 +17,7 @@ component hint="Create various preside system entities such as widgets and page 
 			               & "    [[b;white;]object]          : Creates a new preside object." & Chr(10)
 			               & "    [[b;white;]extension]       : Creates a new preside extension." & Chr(10)
 			               & "    [[b;white;]configform]      : Creates a new system config form." & Chr(10)
+			               & "    [[b;white;]formcontrol]     : Creates a new form control." & Chr(10)
 			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
 		}
 
@@ -263,7 +264,7 @@ component hint="Create various preside system entities such as widgets and page 
 
 		if ( ArrayLen( userInputPrompts ) ) {
 			return {
-				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new terminal command wizard]" & Chr(10) & Chr(10)
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new system config form wizard]" & Chr(10) & Chr(10)
 				, inputPrompt = userInputPrompts
 				, method      = "new"
 				, params      = params
@@ -277,6 +278,52 @@ component hint="Create various preside system entities such as widgets and page 
 		}
 
 		var msg = Chr(10) & "[[b;white;]Your system config form has been created!] The following files were created:" & Chr(10) & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
+
+		return msg;
+	}
+
+	private function formcontrol( event, rc, prc ) {
+		var params           = jsonRpc2Plugin.getRequestParams();
+		var userInputPrompts = [];
+
+		if ( !StructKeyExists( params, "id" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Form control ID: ", required=true, paramName="id" } );
+		}
+		if ( !StructKeyExists( params, "createHandler" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Create handler?", required=true, default="N", paramName="createHandler", validityRegex="^[YyNn]$" } );
+		}
+		if ( !StructKeyExists( params, "contexts" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Contexts (e.g. index,website):", required=false, default="index", paramName="contexts" } );
+		}
+		if ( !StructKeyExists( params, "extension" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
+		}
+
+
+		if ( ArrayLen( userInputPrompts ) ) {
+			return {
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new form control wizard]" & Chr(10) & Chr(10)
+				, inputPrompt = userInputPrompts
+				, method      = "new"
+				, params      = params
+			};
+		}
+
+		try {
+			filesCreated = scaffoldingService.scaffoldFormControl(
+				  id            = params.id
+				, contexts      = ListToArray( params.contexts )
+				, createHandler = ( params.createHandler == "y" ? true : false )
+				, extension     = params.extension
+			);
+		} catch ( any e ) {
+			return Chr(10) & "[[b;red;]Error creating form control:] [[b;white;]#e.message#]" & Chr(10);
+		}
+
+		var msg = Chr(10) & "[[b;white;]Your form control has been created!] The following files were created:" & Chr(10) & Chr(10);
 		for( var file in filesCreated ) {
 			msg &= "    " & file & Chr(10);
 		}

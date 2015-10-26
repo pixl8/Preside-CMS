@@ -151,6 +151,55 @@ component singleton=true {
 		return filesCreated;
 	}
 
+	public array function scaffoldFormControl(
+		  required string  id
+		, required boolean createHandler
+		, required array   contexts
+		, required string  extension
+	) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+
+		filesCreated.append( scaffoldFormControlViews(
+			  formControl = arguments.id
+			, contexts    = arguments.contexts
+			, extension   = arguments.extension
+		), true );
+
+		if ( arguments.createHandler ) {
+			filesCreated.append( scaffoldFormControlViewletHandler(
+				  formControl = arguments.id
+				, contexts    = arguments.contexts
+				, extension   = arguments.extension
+			) );
+		}
+
+		return filesCreated;
+	}
+
+
+	public string function scaffoldFormControlViewletHandler( required string formControl, required array contexts, string extension="" ) {
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/formcontrols/" & formControl & ".cfc";
+		var viewPath         =
+		var fileContent     = "component {" & _nl() & _nl();
+
+		for( var context in contexts ) {
+			var viewPath = "formcontrols/" & formControl & "/" & context;
+
+			fileContent &= "	private function #context#( event, rc, prc, args={} ) {" & _nl()
+			             & "		// TODO: create your handler logic here" & _nl()
+			             & "		return renderView( view='#viewPath#', args=args );" & _nl()
+			             & "	}" & _nl() & _nl()
+		}
+
+		fileContent &= "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
 	public string function scaffoldWidgetViewletHandler( required string handlerName, string subDir="", string extension="" ) {
 		var root            = _getScaffoldRoot( arguments.extension );
 		var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
@@ -211,6 +260,23 @@ component singleton=true {
 		FileWrite( filePath, fileContent );
 
 		return filePath;
+	}
+
+	public array function scaffoldFormControlViews( required string formControl, required array contexts, string extension="" ) {
+		var root                = _getScaffoldRoot( arguments.extension ) & "views/formcontrols/" & formControl & "/";
+		var formControlTemplate = FileRead( "/preside/system/services/devtools/scaffoldingResources/formcontrol.view.cfm.txt" );
+		var filesCreated        = [];
+
+		for( var context in contexts ) {
+			var filePath    = root & context & ".cfm";
+			var fileContent = Replace( formControlTemplate, "${id}", arguments.formControl, "all" );
+
+			_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+			FileWrite( filePath, fileContent );
+			filesCreated.append( filePath );
+		}
+
+		return filesCreated;
 	}
 
 	public string function scaffoldWidgetPlaceholderView( required string widgetId, string extension="", array args=[] ) {
