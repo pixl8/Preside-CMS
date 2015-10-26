@@ -149,8 +149,8 @@ component extends="coldbox.system.web.services.HandlerService" output=false {
 
 		for( var source in instance.handlerMappings ) {
 			for( var handler in  source.handlers ){
-				if ( !startWithLen || Left( handler, startWithLen ) == arguments.thatStartWith ) {
-					handlers[ handler ] = 0;
+				if ( !startWithLen || Left( handler.name, startWithLen ) == arguments.thatStartWith ) {
+					handlers[ handler.name ] = 0;
 				}
 			}
 		}
