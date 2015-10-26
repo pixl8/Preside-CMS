@@ -31,8 +31,9 @@ component singleton=true {
 		}
 
 		if ( arguments.createHandler ) {
-			filesCreated.append( scaffoldViewletHandler( handlerName=arguments.id, subDir="widgets", extension=arguments.extension ) );
+			filesCreated.append( scaffoldWidgetViewletHandler( handlerName=arguments.id, subDir="widgets", extension=arguments.extension ) );
 			filesCreated.append( scaffoldView( viewName="index", subDir="widgets/#arguments.id#", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
+			filesCreated.append( scaffoldWidgetPlaceholderView( widgetId=arguments.id, extension=arguments.extension, args=ListToArray( arguments.options ) ) );
 
 		} else {
 			filesCreated.append( scaffoldView( viewName=arguments.id, subDir="widgets", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
@@ -115,16 +116,21 @@ component singleton=true {
 		return filesCreated;
 	}
 
-	public string function scaffoldViewletHandler( required string handlerName, string subDir="", string extension="" ) {
-		var root     = _getScaffoldRoot( arguments.extension );
-		var filePath = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
-		var viewPath = arguments.subDir & "/" & handlerName & "/index";
-		var fileContent = "component {" & _nl()
-		                & "	private function index( event, rc, prc, args={} ) {" & _nl()
-		                & "		// TODO: create your handler logic here" & _nl()
-		                & "		return renderView( view='#viewPath#', args=args );" & _nl()
-		                & "	}" & _nl()
-		                & "}" & _nl();
+	public string function scaffoldWidgetViewletHandler( required string handlerName, string subDir="", string extension="" ) {
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
+		var viewPath        = arguments.subDir & "/" & handlerName & "/index";
+		var placeholderPath = arguments.subDir & "/" & handlerName & "/placeholder";
+		var fileContent     = "component {" & _nl()
+		                    & "	private function index( event, rc, prc, args={} ) {" & _nl()
+		                    & "		// TODO: create your handler logic here" & _nl()
+		                    & "		return renderView( view='#viewPath#', args=args );" & _nl()
+		                    & "	}" & _nl() & _nl()
+		                    & "	private function placeholder( event, rc, prc, args={} ) {" & _nl()
+		                    & "		// TODO: create your handler logic here" & _nl()
+		                    & "		return renderView( view='#placeholderPath#', args=args );" & _nl()
+		                    & "	}" & _nl()
+		                    & "}" & _nl();
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
@@ -165,6 +171,29 @@ component singleton=true {
 		for( var arg in args ) {
 			fileContent &= '<cfparam name="args.#arg#" default="" />' & _nl();
 		}
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public string function scaffoldWidgetPlaceholderView( required string widgetId, string extension="", array args=[] ) {
+		var root     = _getScaffoldRoot( arguments.extension );
+		var filePath = root & "views/widgets/#arguments.widgetId#/placeholder.cfm";
+		var fileContent = "<!---" & _nl()
+		                & "	This view file has been automatically created by the preside dev tools" & _nl()
+		                & "	scaffolder. The purpose of this file is to render the placeholder content" & _nl()
+		                & "	for the #arguments.widgetId# widget." & _nl()
+		                & "	Please fill with meaningful content and remove this comment" & _nl()
+		                & "--->" & _nl();
+
+		for( var arg in args ) {
+			fileContent &= '<cfparam name="args.#arg#" default="" />' & _nl();
+		}
+
+		fileContent &= _nl() & _nl();
+		fileContent &= "<cfoutput>##translateResource( uri='widgets.#arguments.widgetId#:title' )##</cfoutput>"
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
