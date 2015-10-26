@@ -5,7 +5,7 @@ component output=false hint="Create various preside system entities such as widg
 
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object" ];
+		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -15,6 +15,7 @@ component output=false hint="Create various preside system entities such as widg
 			               & "    [[b;white;]widget]          : Creates files for a new preside widget." & Chr(10)
 			               & "    [[b;white;]pagetype]        : Creates files for a new page type." & Chr(10)
 			               & "    [[b;white;]object]          : Creates a new preside object." & Chr(10)
+			               & "    [[b;white;]extension]       : Creates a new preside extension." & Chr(10)
 			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
 		}
 
@@ -188,6 +189,47 @@ component output=false hint="Create various preside system entities such as widg
 		}
 
 		var msg = Chr(10) & "[[b;white;]Your preside object, '#params.id#', has been scaffolded.] The following files were created:" & Chr(10) & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
+
+		return msg;
+	}
+
+	private function extension( event, rc, prc ) output=false {
+		var params           = jsonRpc2Plugin.getRequestParams();
+		var userInputPrompts = [];
+
+		if ( !StructKeyExists( params, "id" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Extension ID: ", required=true, paramName="id" } );
+		}
+		if ( !StructKeyExists( params, "title" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Title: ", required=false, paramName="title" } );
+		}
+		if ( !StructKeyExists( params, "description" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description" } );
+		}
+
+		if ( ArrayLen( userInputPrompts ) ) {
+			return {
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new extension command wizard]" & Chr(10) & Chr(10)
+				, inputPrompt = userInputPrompts
+				, method      = "new"
+				, params      = params
+			};
+		}
+
+		try {
+			filesCreated = scaffoldingService.scaffoldExtension(
+				  id          = params.id
+				, title       = params.title
+				, description = params.description
+			);
+		} catch ( any e ) {
+			return Chr(10) & "[[b;red;]Error creating extension:] [[b;white;]#e.message#]" & Chr(10);
+		}
+
+		var msg = Chr(10) & "[[b;white;]Your extension has been created!] The following files were created:" & Chr(10) & Chr(10);
 		for( var file in filesCreated ) {
 			msg &= "    " & file & Chr(10);
 		}

@@ -116,6 +116,14 @@ component singleton=true {
 		return filesCreated;
 	}
 
+	public array function scaffoldExtension( required string id, required string title, required string description ) {
+		var filesCreated = [];
+
+		filesCreated.append( scaffoldExtensionManifestFile( argumentCollection=arguments ) );
+
+		return filesCreated;
+	}
+
 	public string function scaffoldWidgetViewletHandler( required string handlerName, string subDir="", string extension="" ) {
 		var root            = _getScaffoldRoot( arguments.extension );
 		var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
@@ -290,6 +298,21 @@ component singleton=true {
 
 		fileContent = Replace( fileContent, "${properties}", props );
 		fileContent = Replace( fileContent, "${datamanagerGroup}", dmGroup );
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public string function scaffoldExtensionManifestFile( required string id, required string title, required string description ) {
+		var root        = _getScaffoldRoot( "" );
+		var filePath    = root & "extensions/" & arguments.id & "/manifest.json";
+		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/manifest.json.txt" );
+
+		fileContent = Replace( fileContent, "${id}"         , arguments.id          );
+		fileContent = Replace( fileContent, "${title}"      , arguments.title       );
+		fileContent = Replace( fileContent, "${description}", arguments.description );
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );

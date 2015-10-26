@@ -1,0 +1,6 @@
+{
+	  "id"        : "${id}"
+	, "title"     : "${title}"
+	, "author"    : "${description}"
+	, "version"   : "1.0.0"
+}
