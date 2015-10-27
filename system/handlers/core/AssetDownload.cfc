@@ -48,10 +48,11 @@ component output=false {
 				, asset          = asset
 			} );
 
+			var filename = _getFilenameForAsset( asset.title, type.extension );
 			if ( type.serveAsAttachment ) {
-				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
+				header name="Content-Disposition" value="attachment; filename=""#filename#""";
 			} else {
-				header name="Content-Disposition" value="inline; filename=""#asset.title#.#type.extension#""";
+				header name="Content-Disposition" value="inline; filename=""#filename#""";
 			}
 
 			header name="etag" value=etag;
@@ -94,6 +95,10 @@ component output=false {
 			announceInterception( "onReturnAsset304", { etag = arguments.etag } );
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
+	}
+
+	private string function _getFilenameForAsset( required string assetTitle, required string extension ) {
+		return ReReplace( arguments.assetTitle, "\.#arguments.extension#$", "" ) & "." & arguments.extension;
 	}
 
 	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
