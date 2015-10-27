@@ -2,21 +2,22 @@
 	menuItems = args.menuItems ?: [];
 
 	ulNestedClass           = args.ulNestedClass           ?: 'dropdown-menu'
+	liCurrentClass          = args.liCurrentClass          ?: 'active';
 	liHasChildrenClass      = args.liHasChildrenClass      ?: 'dropdown';
 	liHasChildrenAttributes = args.liHasChildrenAttributes ?: '';
-	aHasChildrenClass       = args.aHasChildrenClass       ?: 'dropdown-toggle';
-	aHasChildrenAttributes  = args.aHasChildrenAttributes  ?: 'role="button" data-toggle="dropdown" data-target="##"';
-	liCurrentClass          = args.liCurrentClass          ?: 'active';
 	aCurrentClass           = args.aCurrentClass           ?: 'active';
+	aHasChildrenClass       = args.aHasChildrenClass       ?: '';
+	aHasChildrenAttributes  = args.aHasChildrenAttributes  ?: '';
 </cfscript>
 
 
 
 <cfoutput>
 	<cfloop array="#menuItems#" index="i" item="item">
-		<li class="<cfif item.active>#liCurrentClass# </cfif><cfif item.children.len()>#liHasChildrenClass#</cfif>" #liHasChildrenAttributes#>
-			<a class="<cfif item.active>#aCurrentClass# </cfif><cfif item.children.len()>#aHasChildrenClass#</cfif>" href="#event.buildLink( page=item.id )#" #aHasChildrenAttributes#>#item.title#</a>
-			<cfif item.children.len()>
+		<cfset hasChildren = item.children.len() />
+		<li class="<cfif item.active>#liCurrentClass#</cfif><cfif hasChildren> #liHasChildrenClass#</cfif>" <cfif hasChildren>#liHasChildrenAttributes#</cfif>>
+			<a class="<cfif item.active>#aCurrentClass#</cfif><cfif hasChildren> #aHasChildrenClass#</cfif>" href="#event.buildLink( page=item.id )#" <cfif hasChildren>#aHasChildrenAttributes#</cfif>>#item.title#</a>
+			<cfif hasChildren>
 				<ul class="#ulNestedClass#" role="menu">
 					#renderView( view='/core/navigation/mainNavigation', args={
 						  menuItems               = item.children
