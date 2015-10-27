@@ -48,6 +48,10 @@ component output=false {
 				, asset          = asset
 			} );
 
+			if(listlast(asset.title,'.') eq type.extension){
+				asset.title = ListDeleteAt(asset.title, listlen(asset.title,'.') ,'.');
+			}
+
 			if ( type.serveAsAttachment ) {
 				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
 			} else {
