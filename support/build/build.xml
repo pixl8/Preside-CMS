@@ -22,6 +22,7 @@
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.zip">
 			<zipfileset dir="../../" prefix="presidecms-${preside.version}.${build.number}">
 				<exclude name="support/**"  />
+				<exclude name="system/assets/node_modules/**"  />
 				<exclude name=".travis.yml" />
 				<exclude name="build.sh"    />
 				<exclude name="test.sh"     />
