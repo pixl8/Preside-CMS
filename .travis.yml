@@ -1,16 +1,16 @@
 language: java
-sudo: required
+sudo: false
 env:
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
   - secure: jvsE21m7x0RdzxWGdbcxoxiCdXnUfhb654tkfbuK67DJ5/Suk3P1QfPSFpWpanuzm+X1kNzcrKnz84iTG+Me0m+ypd3eeHWL6e4qFyoYunpFxCxx0GPlto+bcZ8mARNt6HmTwTpsbwMpJxiP5c2DqTu85go5blaITmgpFlT/bkU=
   - secure: F6I7UIinztbSglyuvR1QxfNHmi3ZjsV9kqx0NeKm5zzAoYJWg5vF8/WMkn8NI80Q+89CRZwb56JPMedCLJndum6t7/NS1fpBW8/bP0FzRU+1/KvG0U99UiESnEAKcMGSgh5lq/74+sn0qApuTSVuSg9fsar/h3Gg5Xj0A+6Jias=
 before_install:
-- echo "deb http://downloads.ortussolutions.com/debs/noarch /" > commandbox.list
-- sudo mv commandbox.list /etc/apt/sources.list.d/commandbox.list
-- sudo apt-get update
+- mkdir /tmp/bin
+- export PATH=$PATH:/tmp/bin
 install:
-- sudo apt-get install -q -y --force-yes commandbox
+- curl --location 'https://www.ortussolutions.com/parent/download/commandbox/type/bin' -o /tmp/box.zip
+- unzip /tmp/box.zip -d /tmp/bin
 before_script:
 - mysql -e 'create database preside_test;'
 script:
