@@ -31,7 +31,7 @@ component {
 		return true;
 	}
 
-	private void function _checkDsn() {
+	private boolean function _checkDsn() {
 		var info = "";
 		var dsn = "preside_test_suite";
 
