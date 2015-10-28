@@ -19,7 +19,7 @@ script:
 notifications:
   email: false
   slack:
-    secure: E4SXeyDjcKHLEZI4zyzsHW+2CXg/h1RNAmASsJ0t60q5r19b6uHR8dDvgbR2OIVN7bNVzX5xOjPb4Km2+YYrPbSktFeb4UV7LatGcPoFO3XKQyn+5Q9D2gcQCcWfBgqX4i74kqqXCvnACrAg7ALRmQSkOZUNaK6YtUu+KCkrXQ8=
+    secure: GOg8gziksTpVHkAUPUlcMngYkz4Z1Ro9ou/dUzDS6yC2TTYX2lzfyhYonZElyT/01bnMB8liR+NUx7d+Q6ozt56OODLfKz/mpNsxWhaCFivcD+shN+TYhzKM8DTVRGFxZjTXhC7mxQiPLMl/CtcJtYhkTlYLvlx+V4DmD/TiPCQ=
 
 deploy:
   provider: s3
