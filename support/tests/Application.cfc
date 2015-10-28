@@ -1,23 +1,27 @@
-component output="false" {
+component {
 
 	this.name = "Preside Test Suite " & Hash( ExpandPath( '/' ) );
 
-	this.mappings['/tests']         = ExpandPath( "/" );
-	this.mappings['/app']           = ExpandPath( "/resources/testSite" );
-	this.mappings['/preside']       = ExpandPath( "/../../" );
-	this.mappings['/coldbox']       = ExpandPath( "/../../system/externals/coldbox" );
-	this.mappings['/mxunit' ]       = ExpandPath( "/../../system/externals/coldbox/system/testing/compat" );
-	this.mappings['/org/cfstatic']  = ExpandPath( "/../../system/externals/cfstatic/org/cfstatic" );
+	currentDir = GetDirectoryFromPath( GetCurrentTemplatePath() );
+
+	this.mappings['/tests']       = currentDir;
+	this.mappings['/integration'] = currentDir & "integration";
+	this.mappings['/resources']   = currentDir & "resources";
+	this.mappings['/testbox']     = currentDir & "testbox";
+	this.mappings['/mxunit' ]     = currentDir & "testbox/system/compat";
+	this.mappings['/app']         = currentDir & "resources/testSite";
+	this.mappings['/preside']     = currentDir & "../../";
+	this.mappings['/coldbox']     = currentDir & "../../system/externals/coldbox";
 
 	setting requesttimeout="6000";
+	_loadDsn();
 
-	function onApplicationStart() output=false {
-		_loadDsn();
-
+	function onApplicationStart() {
+		_checkDsn();
 		return true;
 	}
 
-	function onRequestStart() output=false {
+	function onRequestStart() {
 		if ( StructKeyExists( url, 'fwreinit' ) ) {
 			_loadDsn();
 		}
@@ -25,7 +29,7 @@ component output="false" {
 		return true;
 	}
 
-	private void function _loadDsn() output=false {
+	private void function _checkDsn() {
 		var info = "";
 		var dsn = "preside_test_suite";
 
@@ -53,5 +57,36 @@ component output="false" {
 		}
 
 		application.dsn = dsn;
+	}
+
+	private void function _loadDsn() {
+		var dbConfig = {
+			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306" )
+			, host     = _getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost" )
+			, database = _getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )
+			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "travis" )
+			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "" )
+		};
+
+		try {
+			this.datasources[ "preside_test_suite" ] = {
+				  type     : 'MySQL'
+				, port     : dbConfig.port
+				, host     : dbConfig.host
+				, database : dbConfig.database
+				, username : dbConfig.username
+				, password : dbConfig.password
+				, custom   : {
+					  characterEncoding : "UTF-8"
+					, useUnicode        : true
+				  }
+			};
+		} catch( any e ) {}
+	}
+
+	private string function _getEnvironmentVariable( required string variableName, string default="" ) {
+		var result = CreateObject("java", "java.lang.System").getenv().get( arguments.variableName );
+
+		return IsNull( result ) ? arguments.default : result;
 	}
 }

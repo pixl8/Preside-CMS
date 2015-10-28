@@ -30,11 +30,12 @@
         "coldbox-standalone-3":"http://integration.stg.ortussolutions.com/artifacts/ortussolutions/coldbox/3.8.2/coldbox-standalone-3.8.2.zip"
     },
     "devDependencies":{
-        
+        "testbox":"2.2.0"
     },
     "installPaths":{
         "sticker":"system/externals/sticker",
-        "coldbox-standalone-3":"system/externals/coldbox-standalone-3"
+        "coldbox-standalone-3":"system/externals/coldbox-standalone-3",
+        "testbox":"tests/testbox"
     },
     "ignore":[
         "support"
