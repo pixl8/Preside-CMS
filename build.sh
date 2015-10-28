@@ -23,14 +23,14 @@ echo "";
 echo "Installing dependencies via box.json...";
 echo "";
 
-# box install --force
+box install --force
 
 echo "";
 echo "Running tests (please be patient, expect this to take several minutes)...";
 echo "";
 
 
-# ./test.sh
+./test.sh
 
 if  [[ $TRAVIS_PULL_REQUEST == 'true' ]] ; then
 	echo "Finished. (not packaging up docs or source due to running in a pull request)."
