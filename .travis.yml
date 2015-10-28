@@ -1,18 +1,20 @@
 language: java
-
+sudo: required
 env:
-  matrix:
-  - PLATFORM=railo42 TARGET=test-ci
-  - PLATFORM=railo42 TARGET=build
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
   - secure: jvsE21m7x0RdzxWGdbcxoxiCdXnUfhb654tkfbuK67DJ5/Suk3P1QfPSFpWpanuzm+X1kNzcrKnz84iTG+Me0m+ypd3eeHWL6e4qFyoYunpFxCxx0GPlto+bcZ8mARNt6HmTwTpsbwMpJxiP5c2DqTu85go5blaITmgpFlT/bkU=
   - secure: F6I7UIinztbSglyuvR1QxfNHmi3ZjsV9kqx0NeKm5zzAoYJWg5vF8/WMkn8NI80Q+89CRZwb56JPMedCLJndum6t7/NS1fpBW8/bP0FzRU+1/KvG0U99UiESnEAKcMGSgh5lq/74+sn0qApuTSVuSg9fsar/h3Gg5Xj0A+6Jias=
+before_install:
+- echo "deb http://downloads.ortussolutions.com/debs/noarch /" > commandbox.list
+- sudo mv commandbox.list /etc/apt/sources.list.d/commandbox.list
+- sudo apt-get update
+install:
+- sudo apt-get install -q -y --force-yes commandbox
 before_script:
 - mysql -e 'create database preside_test;'
-
-install: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM install-ci-deps
-script: ant -f support/build/build.xml -Dsource=remote -Dwork.dir=$HOME/work -Dbuild.dir=$TRAVIS_BUILD_DIR -Dplatform=$PLATFORM -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG $TARGET
+script:
+- "./build.sh"
 
 notifications:
   email: false
@@ -30,5 +32,4 @@ deploy:
   skip_cleanup: true
   on:
     repo: pixl8/Preside-CMS
-    condition: "$TARGET = build"
     all_branches: true
