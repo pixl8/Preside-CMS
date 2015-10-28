@@ -17,7 +17,9 @@ component {
 	_loadDsn();
 
 	function onApplicationStart() {
-		_checkDsn();
+		if ( !_checkDsn() ) {
+			return false;
+		}
 		return true;
 	}
 
@@ -37,14 +39,31 @@ component {
 			dbinfo type="version" name="info" datasource="#dsn#";
 
 		} catch ( database e ) {
-			if ( cfcatch.message contains "datasource" and cfcatch.message contains "exist" ) {
+			var isCommandLineExecuted = cgi.server_protocol == "CLI/1.0";
+			var nl          = isCommandLineExecuted ? Chr( 13 ) & Chr( 10 ) : "<br>";
+			var errorDetail =  "Test datasource not setup. By default, the testsuite will look for a MySQL database with the following details: " & nl & nl;
+			    errorDetail &= "Host     : localhost"    & nl;
+			    errorDetail &= "Port     : 3306"         & nl;
+			    errorDetail &= "DB Name  : preside_test" & nl;
+			    errorDetail &= "User     : travis"       & nl;
+			    errorDetail &= "Password : (empty)"      & nl;
+
+			    errorDetail &= nl & "These defaults can be overwritten by setting the following environment variables: " & nl & nl;
+			    errorDetail &= "PRESIDETEST_DB_HOST"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_PORT"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_NAME"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_USER"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_PASSWORD" & nl;
+
+			if ( isCommandLineExecuted ) {
+				echo( errorDetail );
+				return false;
+			} else {
 				throw(
 					  type    = "presidetestsuite.nodsn"
 					, message = "No datasource has been created for the test suite."
-					, detail  = "Please create a MySql (version 5 or higher) datasource named 'preside_test_suite'. Note: USE AN EMPTY DATABASE FOR THIS."
+					, detail  = errorDetail
 				);
-			} else {
-				rethrow;
 			}
 		}
 
@@ -57,6 +76,8 @@ component {
 		}
 
 		application.dsn = dsn;
+
+		return true;
 	}
 
 	private void function _loadDsn() {
