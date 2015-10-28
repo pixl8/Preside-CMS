@@ -23,29 +23,29 @@ echo "";
 echo "Installing dependencies via box.json...";
 echo "";
 
-box install --force
+# box install --force
 
 echo "";
 echo "Running tests (please be patient, expect this to take several minutes)...";
 echo "";
 
-./test.sh
+
+# ./test.sh
 
 if  [[ $TRAVIS_PULL_REQUEST == 'true' ]] ; then
 	echo "Finished. (not packaging up docs or source due to running in a pull request)."
 	exit 0;
 fi
 
-if [[ $TRAVIS_BRANCH == 'stable' ]] ; then
+if [[ $TRAVIS_TAG == v* ]] ; then
 	./support/docs/build.sh
 
 	echo "";
 	echo "";
 else
-	echo "Skipping docs build, not on stable branch in a travis build. To build the docs yourself, run ./support/docs/build.sh"
+	echo "Skipping docs build, not on a release tag in a travis build. To build the docs yourself, run ./support/docs/build.sh"
 fi
-
-if [[ $TRAVIS_BRANCH == 'stable' ]] || [[ $TRAVIS_BRANCH == 'release-*' ]] ; then
+if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	echo "Packaging up as zip file...";
 	echo "";
 	echo "";
