@@ -279,8 +279,8 @@
 		<cfscript>
 			var guidanceService = _getGuidanceService();
 			var objects = {
-				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } ) }
-				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } ) }
+				  "obj_a" = { meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } ) } }
+				, "obj_b" = { meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } ) } }
 			};
 			var expectedObject = {
 				  instance = "auto_generated"
@@ -298,8 +298,8 @@
 						, sort_order = { name="sort_order", control="auto", type="numeric" , dbtype="int" , maxLength="0", generator="none", relationship="none", required=false }
 					  }
 					, relationships = {
-						  "fk_483dd89c3b27b3d2668fa0082762753e" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
-						, "fk_de0fc6ca5e6b26789756b428c05426ee" = { pk_table="pobj_obj_b", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_b", on_update="cascade", on_delete="cascade" }
+						  "fk_e6b193a815d27df2cdc8482ee9c045bf" = { pk_table="pobj_obj_a", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_a", on_update="cascade", on_delete="cascade" }
+						, "fk_4f17cab05b8b011a3794ef069d336264" = { pk_table="pobj_obj_b", fk_table="pobj_obj_a__join__obj_b", pk_column="id", fk_column="obj_b", on_update="cascade", on_delete="cascade" }
 					  }
 				  }
 			};

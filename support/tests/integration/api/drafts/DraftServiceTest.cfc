@@ -8,14 +8,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		_createDummyUsers();
 	}
 
-	function afterTests() {
-		_wipeData();
-	}
 
 	function setup() {
 		super.setup();
 
 		draftSvc = new preside.system.services.drafts.DraftService( dao = presideObjectService.getObject( "draft" ) );
+	}
+	function teardown() {
+		_wipeData();
 	}
 
 // TESTS
@@ -115,6 +115,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		records = _selectData( objectName="draft", filter={ key="thisisatestkey" }, useCache=false );
 		super.assertEquals( 2, records.recordCount, "test borked" );
+
 
 		draftSvc.discardDraft(
 			  owner   = testUsers[3].id

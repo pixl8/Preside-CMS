@@ -2,11 +2,12 @@
 
 	<cffunction name="beforeTests" access="public" returntype="any" output="false">
 		<cfscript>
+			_clearRecentPresideServiceFetch();
 			_emptyDatabase();
 			_dbSync();
 			_setupTestData();
 
-			sessionStorage  = new coldbox.system.plugins.SessionStorage();
+			sessionStorage  = new tests.resources.HelperObjects.TestSessionStorage();
 			mockEmailService = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
 			loginService = new preside.system.services.admin.loginService(
 				  logger          = _getTestLogger()

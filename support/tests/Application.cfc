@@ -1,23 +1,29 @@
-component output="false" {
+component {
 
 	this.name = "Preside Test Suite " & Hash( ExpandPath( '/' ) );
 
-	this.mappings['/tests']         = ExpandPath( "/" );
-	this.mappings['/app']           = ExpandPath( "/resources/testSite" );
-	this.mappings['/preside']       = ExpandPath( "/../../" );
-	this.mappings['/coldbox']       = ExpandPath( "/../../system/externals/coldbox" );
-	this.mappings['/mxunit' ]       = ExpandPath( "/../../system/externals/coldbox/system/testing/compat" );
-	this.mappings['/org/cfstatic']  = ExpandPath( "/../../system/externals/cfstatic/org/cfstatic" );
+	currentDir = GetDirectoryFromPath( GetCurrentTemplatePath() );
+
+	this.mappings['/tests']       = currentDir;
+	this.mappings['/integration'] = currentDir & "integration";
+	this.mappings['/resources']   = currentDir & "resources";
+	this.mappings['/testbox']     = currentDir & "testbox";
+	this.mappings['/mxunit' ]     = currentDir & "testbox/system/compat";
+	this.mappings['/app']         = currentDir & "resources/testSite";
+	this.mappings['/preside']     = currentDir & "../../";
+	this.mappings['/coldbox']     = currentDir & "../../system/externals/coldbox-standalone-3/coldbox";
 
 	setting requesttimeout="6000";
+	_loadDsn();
 
-	function onApplicationStart() output=false {
-		_loadDsn();
-
+	function onApplicationStart() {
+		if ( !_checkDsn() ) {
+			return false;
+		}
 		return true;
 	}
 
-	function onRequestStart() output=false {
+	function onRequestStart() {
 		if ( StructKeyExists( url, 'fwreinit' ) ) {
 			_loadDsn();
 		}
@@ -25,7 +31,7 @@ component output="false" {
 		return true;
 	}
 
-	private void function _loadDsn() output=false {
+	private boolean function _checkDsn() {
 		var info = "";
 		var dsn = "preside_test_suite";
 
@@ -33,14 +39,31 @@ component output="false" {
 			dbinfo type="version" name="info" datasource="#dsn#";
 
 		} catch ( database e ) {
-			if ( cfcatch.message contains "datasource" and cfcatch.message contains "exist" ) {
+			var isCommandLineExecuted = cgi.server_protocol == "CLI/1.0";
+			var nl          = isCommandLineExecuted ? Chr( 13 ) & Chr( 10 ) : "<br>";
+			var errorDetail =  "Test datasource not setup. By default, the testsuite will look for a MySQL database with the following details: " & nl & nl;
+			    errorDetail &= "Host     : localhost"    & nl;
+			    errorDetail &= "Port     : 3306"         & nl;
+			    errorDetail &= "DB Name  : preside_test" & nl;
+			    errorDetail &= "User     : travis"       & nl;
+			    errorDetail &= "Password : (empty)"      & nl;
+
+			    errorDetail &= nl & "These defaults can be overwritten by setting the following environment variables: " & nl & nl;
+			    errorDetail &= "PRESIDETEST_DB_HOST"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_PORT"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_NAME"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_USER"     & nl;
+			    errorDetail &= "PRESIDETEST_DB_PASSWORD" & nl;
+
+			if ( isCommandLineExecuted ) {
+				echo( errorDetail );
+				return false;
+			} else {
 				throw(
 					  type    = "presidetestsuite.nodsn"
 					, message = "No datasource has been created for the test suite."
-					, detail  = "Please create a MySql (version 5 or higher) datasource named 'preside_test_suite'. Note: USE AN EMPTY DATABASE FOR THIS."
+					, detail  = errorDetail
 				);
-			} else {
-				rethrow;
 			}
 		}
 
@@ -53,5 +76,38 @@ component output="false" {
 		}
 
 		application.dsn = dsn;
+
+		return true;
+	}
+
+	private void function _loadDsn() {
+		var dbConfig = {
+			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306" )
+			, host     = _getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost" )
+			, database = _getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )
+			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "travis" )
+			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "" )
+		};
+
+		try {
+			this.datasources[ "preside_test_suite" ] = {
+				  type     : 'MySQL'
+				, port     : dbConfig.port
+				, host     : dbConfig.host
+				, database : dbConfig.database
+				, username : dbConfig.username
+				, password : dbConfig.password
+				, custom   : {
+					  characterEncoding : "UTF-8"
+					, useUnicode        : true
+				  }
+			};
+		} catch( any e ) {}
+	}
+
+	private string function _getEnvironmentVariable( required string variableName, string default="" ) {
+		var result = CreateObject("java", "java.lang.System").getenv().get( arguments.variableName );
+
+		return IsNull( result ) ? arguments.default : result;
 	}
 }
