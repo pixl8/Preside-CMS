@@ -1,32 +1,34 @@
 <cfscript>
-	isCommandLineExecuted = cgi.server_protocol == "CLI/1.0";
+	processingdirective suppressWhiteSpace=true {
+		isCommandLineExecuted = cgi.server_protocol == "CLI/1.0";
 
-	function exitCode( required numeric code ) {
-		var exitcodeFile = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/.exitcode";
-		FileWrite( exitcodeFile, code );
-	}
-
-	try {
-		reporter = isCommandLineExecuted ? "text" : "simple";
-		testbox  = new testbox.system.TestBox( options={}, reporter=reporter, directory={
-			  recurse  = true
-			, mapping  = "integration"
-			, filter   = function( required path ){ return true; }
-
-		} );
-
-		echo( testbox.run() );
-
-		if ( isCommandLineExecuted ) {
-			resultObject = testbox.getResult();
-			errors       = resultObject.getTotalFail() + resultObject.getTotalError();
-			exitCode( errors ? 1 : 0 );
+		function exitCode( required numeric code ) {
+			var exitcodeFile = GetDirectoryFromPath( GetCurrentTemplatePath() ) & "/.exitcode";
+			FileWrite( exitcodeFile, code );
 		}
 
-	} catch ( any e ) {
-		echo( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
-		if ( isCommandLineExecuted ) {
-			exitCode( 1 );
+		try {
+			reporter = isCommandLineExecuted ? "text" : "simple";
+			testbox  = new testbox.system.TestBox( options={}, reporter=reporter, directory={
+				  recurse  = true
+				, mapping  = "integration"
+				, filter   = function( required path ){ return true; }
+
+			} );
+
+			echo( Trim( testbox.run() ) );
+
+			if ( isCommandLineExecuted ) {
+				resultObject = testbox.getResult();
+				errors       = resultObject.getTotalFail() + resultObject.getTotalError();
+				exitCode( errors ? 1 : 0 );
+			}
+
+		} catch ( any e ) {
+			echo( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
+			if ( isCommandLineExecuted ) {
+				exitCode( 1 );
+			}
 		}
 	}
 </cfscript>
