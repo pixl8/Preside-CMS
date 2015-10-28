@@ -110,7 +110,7 @@ component {
 		, string logsPath       = _getApplicationRoot() & "/logs"
 	) {
 		this.mappings[ "/preside" ] = ExpandPath( "/preside" );
-		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
+		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox-standalone-3/coldbox" );
 		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;

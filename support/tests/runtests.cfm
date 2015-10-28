@@ -17,8 +17,13 @@
 
 			results = Trim( testbox.run() );
 			if ( isCommandLineExecuted ) {
+				resultsDir       = "/preside/support/build/artifacts/testresults/";
 				testsResultsFile = "testresults_#DateTimeFormat( Now(), 'yyyy-mm-dd_HHNN' )#.html"
-				FileWrite( testsResultsFile, results );
+
+				if ( !DirectoryExists( resultsDir ) ) {
+					DirectoryCreate( resultsDir )
+				}
+				FileWrite( resultsDir & testsResultsFile, results );
 
 				resultObject = testbox.getResult();
 				errors       = resultObject.getTotalFail() + resultObject.getTotalError();
@@ -32,7 +37,7 @@
 
 				echo( "Tests complete in #NumberFormat( totalDuration )#ms. " );
 				if ( errors ) {
-					echo( "One or more tests failed or created an error. Please see testresults.html for further details." );
+					echo( "One or more tests failed or created an error. Please see #resultsDir##testsResultsFile# for further details." );
 				} else {
 					echo( "All tests passed!" );
 				}
@@ -42,7 +47,7 @@
 				echo( 'Total: #NumberFormat( totalSpecs )#. Pass: #NumberFormat( totalPass )#. Fail: #NumberFormat( totalFail )#. Error: #NumberFormat( totalError )#. Skipped: #NumberFormat( totalSkipped )#' );
 				echo( Chr( 13 ) & Chr( 10 ) );
 				echo( Chr( 13 ) & Chr( 10 ) );
-				echo( 'Full results have been written to /support/tests/' & testsResultsFile );
+				echo( 'Full results have been written to #resultsDir#' & testsResultsFile );
 
 				exitCode( errors ? 1 : 0 );
 			} else {
