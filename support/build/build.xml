@@ -4,7 +4,6 @@
 
 	<property file="build.properties" />
 
-	<property name="build.dir" value="" />
 	<property name="artifacts.dir" value="./artifacts" />
 	<property name="build.number.file" value="${artifacts.dir}/build.number" />
 
