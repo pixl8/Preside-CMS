@@ -849,12 +849,13 @@ component singleton=true {
 	}
 
 	public struct function getAccessRestrictionRulesForPage( required string pageId ) {
-		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "full_login_required" ] );
+		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "full_login_required", "grantaccess_to_all_logged_in_users" ] );
 
 		if ( !page.recordCount ) {
 			return {
-				  access_restriction  = "none"
-				, full_login_required = false
+				  access_restriction                 = "none"
+				, full_login_required                = false
+				, grantaccess_to_all_logged_in_users = false
 			};
 		}
 		if ( !Len( Trim( page.access_restriction ?: "" ) ) || page.access_restriction == "inherit" ) {
@@ -862,16 +863,18 @@ component singleton=true {
 				return getAccessRestrictionRulesForPage( page.parent_page );
 			} else {
 				return {
-					  access_restriction  = "none"
-					, full_login_required = false
+					  access_restriction                 = "none"
+					, full_login_required                = false
+					, grantaccess_to_all_logged_in_users = false
 				};
 			}
 		}
 
 		return {
-			  access_restriction   = page.access_restriction
-			, full_login_required  = page.full_login_required
-			, access_defining_page = page.id
+			  access_restriction                 = page.access_restriction
+			, full_login_required                = page.full_login_required
+			, grantaccess_to_all_logged_in_users = page.grantaccess_to_all_logged_in_users
+			, access_defining_page               = page.id
 		};
 	}
 
@@ -886,6 +889,7 @@ component singleton=true {
 			  permissionKey = "pages.access"
 			, context       = "page"
 			, contextKeys   = [ restrictionRules.access_defining_page ]
+			, forceGrantByDefault = IsBoolean( restrictionRules.grantaccess_to_all_logged_in_users ) && restrictionRules.grantaccess_to_all_logged_in_users
 		);
 	}
 

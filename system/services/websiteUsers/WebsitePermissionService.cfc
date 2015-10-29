@@ -71,18 +71,20 @@ component displayName="Website permissions service" {
 	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
 	 *
 	 * @autodoc
-	 * @permissionKey.hint The permission key as defined in `Config.cfc`
-	 * @context.hint       Optional named context
-	 * @contextKeys.hint   Array of keys for the given context (required if context supplied)
-	 * @userId.hint        ID of the user who's permissions we wish to check
-	 * @userId.docdefault  ID of logged in user
+	 * @permissionKey.hint       The permission key as defined in `Config.cfc`
+	 * @context.hint             Optional named context
+	 * @contextKeys.hint         Array of keys for the given context (required if context supplied)
+	 * @userId.hint              ID of the user who's permissions we wish to check
+	 * @userId.docdefault        ID of logged in user
+	 * @forceGrantByDefault.hint Whether or not to force a granted permission by default, unless a specific context permission overrides that grant
 	 *
 	 */
 	public boolean function hasPermission(
-		  required string permissionKey
-		,          string context       = ""
-		,          array  contextKeys   = []
-		,          string userId        = _getWebsiteLoginService().getLoggedInUserId()
+		  required string  permissionKey
+		,          string  context             = ""
+		,          array   contextKeys         = []
+		,          string  userId              = _getWebsiteLoginService().getLoggedInUserId()
+		,          boolean forceGrantByDefault = false
 	) {
 		if ( !Len( Trim( arguments.userId ) ) ) {
 			return false;
@@ -95,7 +97,7 @@ component displayName="Website permissions service" {
 			}
 		}
 
-		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
+		return arguments.forceGrantByDefault || listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
 	}
 
 	/**
@@ -125,11 +127,20 @@ component displayName="Website permissions service" {
 				if ( userBenefits.find( comboBenefit.id ) ) {
 					continue;
 				}
-				var hasComboBenefit = true;
+
+				var inclusive = IsBoolean( comboBenefit.combined_benefits_are_inclusive ) && comboBenefit.combined_benefits_are_inclusive;
+				var hasComboBenefit = !inclusive;
 				for( var benefitId in ListToArray( comboBenefit.combined_benefits ) ){
-					if ( !userBenefits.find( benefitId ) ) {
-						hasComboBenefit = false;
-						break;
+					if ( inclusive ) {
+						if ( userBenefits.find( benefitId ) ) {
+							hasComboBenefit = true;
+							break;
+						}
+					} else {
+						if ( !userBenefits.find( benefitId ) ) {
+							hasComboBenefit = false;
+							break;
+						}
 					}
 				}
 
@@ -495,7 +506,7 @@ component displayName="Website permissions service" {
 
 	private query function _getComboBenefits() {
 		return _getBenefitsDao().selectData(
-			  selectFields = [ "website_benefit.id", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
+			  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
 			, groupBy      = "website_benefit.id"
 			, forceJoins   = "inner"
 		);
