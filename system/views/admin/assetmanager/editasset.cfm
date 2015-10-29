@@ -15,17 +15,22 @@
 
 	saveBtnTitle = translateResource( "cms:assetManager.add.asset.form.save.button" );
 	cancelBtnTitle = translateResource( "cms:assetManager.add.asset.form.cancel.button" );
+
+	permissionContext = prc.permissionContext ?: [];
+	hasDeletePermission  = hasCmsPermission( permissionKey="assetmanager.assets.delete" , context="assetmanagerfolder", contextKeys=permissionContext );
+	hasDownloadPermission  = hasCmsPermission( permissionKey="assetmanager.assets.download" , context="assetmanagerfolder", contextKeys=permissionContext );
 </cfscript>
 
 <cfoutput>
 	<div class="top-right-button-group">
-
-		<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#assetId#")#" data-global-key="d" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.asset.link", data=[ asset.title ] ) )#">
-			<button class="btn btn-danger btn-sm">
-				<i class="fa fa-trash-o"></i>
-				#translateResource( uri="cms:assetmanager.delete.btn" )#
-			</button>
-		</a>
+		<cfif hasDeletePermission>
+			<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#assetId#")#" data-global-key="d" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.asset.link", data=[ asset.title ] ) )#">
+				<button class="btn btn-danger btn-sm">
+					<i class="fa fa-trash-o"></i>
+					#translateResource( uri="cms:assetmanager.delete.btn" )#
+				</button>
+			</a>
+		</cfif>
 
 		<a class="pull-right inline" data-global-key="a" id="upload-button">
 			<button class="btn btn-success btn-sm">
@@ -77,6 +82,8 @@
 						<cfloop query="versions">
 							<cfset version = QueryRowToStruct( versions, versions.currentRow ) />
 							<cfset version.isCurrentVersion = version.id == asset.active_version />
+							<cfset version.hasDownloadPermission = hasDownloadPermission>
+							<cfset version.hasDeletePermission = hasDeletePermission>
 							#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
 						</cfloop>
 					</div>
@@ -86,6 +93,8 @@
 					<cfset version.id               = "" />
 					<cfset version.isCurrentVersion = true />
 					<cfset version.version_number   = 1 />
+					<cfset version.hasDownloadPermission = hasDownloadPermission>
+					<cfset version.hasDeletePermission = hasDeletePermission>
 
 					#renderView( view="/admin/assetmanager/_assetVersionPreview", args=version )#
 				</cfif>
