@@ -40,6 +40,11 @@
         "presidecmseditor":"system/assets/ckeditor"
     },
     "ignore":[
-        "support"
+        ".git/*",
+        ".gitignore",
+        ".travis.yml",
+        ".twgit_features_subject",
+        "build.sh",
+        "test.sh"
     ]
 }
