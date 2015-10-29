@@ -378,21 +378,6 @@
 				}
 			}
 
-			page.access_providing_page = page.id;
-			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
-				for( var ancestor in page.ancestors ) {
-					if ( ( ancestor.access_restriction ?: "inherit" ) != "inherit" ) {
-						page.access_providing_page = ancestor.id;
-						page.access_restriction = ancestor.access_restriction;
-						page.full_login_required = ancestor.full_login_required;
-						break;
-					}
-				}
-			}
-			if ( ( page.access_restriction ?: "inherit" ) == "inherit" ) {
-				page.access_restriction = "none";
-			}
-
 			p[ "slug" ] = p._hierarchy_slug;
 			StructDelete( p, "_hierarchy_slug" );
 
@@ -443,25 +428,28 @@
 
 	<cffunction name="checkPageAccess" access="public" returntype="void" output="false">
 		<cfscript>
-			if ( getPageProperty( "access_restriction", "none" ) == "full" ){
-				var websiteLoginService = getModel( "websiteLoginService" );
-				var fullLoginRequired = getPageProperty( "full_login_required", false );
+			var sitetreeService     = getModel( "sitetreeService" );
+			var websiteLoginService = getModel( "websiteLoginService" );
+			var accessRules         = sitetreeService.getAccessRestrictionRulesForPage( getCurrentPageId() );
+
+			if ( accessRules.access_restriction == "full" ){
+				var fullLoginRequired = IsBoolean( accessRules.full_login_required ) && accessRules.full_login_required;
 				var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
 
 				if ( !loggedIn ) {
 					accessDenied( reason="LOGIN_REQUIRED" );
 				}
 
-				var accessProvidingPage = getPageProperty( "access_providing_page", getCurrentPageId() );
-				var hasPermission       = getModel( "websitePermissionService" ).hasPermission(
-					  permissionKey = "pages.access"
-					, context       = "page"
-					, contextKeys   = [ accessProvidingPage ]
+				hasPermission = getModel( "websitePermissionService" ).hasPermission(
+					  permissionKey       = "pages.access"
+					, context             = "page"
+					, contextKeys         = [ accessRules.access_defining_page ]
+					, forceGrantByDefault = IsBoolean( accessRules.grantaccess_to_all_logged_in_users ) && accessRules.grantaccess_to_all_logged_in_users
 				);
 
 				if ( !hasPermission ) {
 					accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
-				}
+			}
 			}
 		</cfscript>
 	</cffunction>
