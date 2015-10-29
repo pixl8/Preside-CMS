@@ -21,6 +21,7 @@
 						</label>
 					</th>
 					<th data-field="title">#translateResource( "preside-objects.asset:title.singular" )#</th>
+					<th data-width="200px" data-field="datemodified">#translateResource( "preside-objects.asset:field.datemodified.title" )#</th>
 					<th data-width="100px">#translateResource( "cms:assetmanager.browser.table.actions.header" )#</th>
 				</tr>
 			</thead>
