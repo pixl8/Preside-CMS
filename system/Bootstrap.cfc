@@ -126,6 +126,15 @@ component {
 			, assetsMapping  = arguments.assetsMapping
 			, logsMapping    = arguments.logsMapping
 		};
+
+		_setupCustomTagPath();
+	}
+
+	private void function _setupCustomTagPath() {
+		var thisDir = GetDirectoryFromPath( GetCurrentTemplatePath() );
+		var tagsDir = ReReplace( thisDir, "/$", "" ) & "/customtags";
+
+		this.customTagPaths = ListAppend( this.customTagPaths ?: "", tagsDir );
 	}
 
 	private void function _initEveryEverything() {
