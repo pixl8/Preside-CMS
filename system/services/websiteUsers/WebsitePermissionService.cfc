@@ -127,11 +127,20 @@ component displayName="Website permissions service" {
 				if ( userBenefits.find( comboBenefit.id ) ) {
 					continue;
 				}
-				var hasComboBenefit = true;
+
+				var inclusive = IsBoolean( comboBenefit.combined_benefits_are_inclusive ) && comboBenefit.combined_benefits_are_inclusive;
+				var hasComboBenefit = !inclusive;
 				for( var benefitId in ListToArray( comboBenefit.combined_benefits ) ){
-					if ( !userBenefits.find( benefitId ) ) {
-						hasComboBenefit = false;
-						break;
+					if ( inclusive ) {
+						if ( userBenefits.find( benefitId ) ) {
+							hasComboBenefit = true;
+							break;
+						}
+					} else {
+						if ( !userBenefits.find( benefitId ) ) {
+							hasComboBenefit = false;
+							break;
+						}
 					}
 				}
 
@@ -497,7 +506,7 @@ component displayName="Website permissions service" {
 
 	private query function _getComboBenefits() {
 		return _getBenefitsDao().selectData(
-			  selectFields = [ "website_benefit.id", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
+			  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits" ]
 			, groupBy      = "website_benefit.id"
 			, forceJoins   = "inner"
 		);
