@@ -290,7 +290,7 @@ component {
 
 		if ( !sessionIsUsed ) {
 			session.setMaxInactiveInterval(  javaCast( "long", 1 ) );
-			getPageContext().setHeader( "Set-Cookie", "" );
+			getPageContext().setHeader( "Set-Cookie", NullValue() );
 		}
 	}
 
