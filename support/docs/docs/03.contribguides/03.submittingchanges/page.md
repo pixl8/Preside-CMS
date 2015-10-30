@@ -13,4 +13,8 @@ The primary mechanism for submitting changes to the codebase is via [GitHub Pull
 ```
 3. Make your changes and commit to your local clone and push to your GitHub fork, remember to include the JIRA issue number in your commit messages.
 
-4. When you're ready, visit your branch in GitHub and make a [Pull Request]() from your new branch to the PresideCMS stable branch. (screenshots needed).
+4. When you're ready, visit your branch in GitHub and make a [Pull Request]() from your new branch to the PresideCMS stable branch.
+
+After a pull request has been made, it will be reviewed and we may ask you to make ammendments. At this point, all you need to do is make those changes in your new feature branch and push them back to your fork in GitHub - the changes will automatically make it into the Pull Request.
+
+When we're all happy with the request, we'll manually merge it into the primary repository ready for the upcoming release (see [[branchingmodel]]).
