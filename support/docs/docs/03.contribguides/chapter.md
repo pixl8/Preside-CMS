@@ -1,6 +1,13 @@
 ---
 id: contribguides
-title: Contributer guides
+title: Contributor guides
 ---
 
-This guide is for those who wish to maintain or contribute to PresideCMS. Here you will find guides for how to work with a local build of the project as well as guidelines for coding standards, etc.
+This guide is for those who wish to maintain or contribute to PresideCMS. As always, if you need more help than the docs can provide, please join our Slack team where we'll be happy to help you out:
+
+SLACKLINKNEEDED
+
+* [[buildfromsource]]
+* [[submittingchanges]]
+* [[runningtests]]
+* [[branchingmodel]]
