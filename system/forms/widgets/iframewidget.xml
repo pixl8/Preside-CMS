@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form>
+	<tab>
+		<fieldset>
+			<field name="url" 	   label="widgets.iframewidget:form.url.label" required="true" />
+			<field name="border"   label="widgets.iframewidget:form.border.label" control="yesNoSwitch" />
+			<field sortorder="60" name="width"    control="spinner" required="false" label="widgets.iframewidget:form.width.label" default="560" />
+			<field sortorder="60" name="height"    control="spinner" required="false" label="widgets.iframewidget:form.height.label" default="315" />
+		</fieldset>
+	</tab>
+</form>
