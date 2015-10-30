@@ -16,7 +16,7 @@ Once you have the repository cloned to your local machine and have pulled down t
 
 ## Keeping your fork up to date
 
-When you fork our repository in GitHub, you essentially have a "cut off" repository that is all your own. GitHub have an excellent guide on [how to keep your fork up to date with the master repository](), but here is our super quick guide:
+When you fork our repository in GitHub, you essentially have a "cut off" repository that is all your own. GitHub have an excellent guide on [working with forks](https://help.github.com/articles/working-with-forks/) that includes information on syncing with an upstream repository, but here is our super quick guide:
 
 ```
 # add the master repo as a git remote called 'upstream'
