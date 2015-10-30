@@ -331,7 +331,7 @@ component singleton=true {
 		var params      = "";
 
 		for( var arg in args ) {
-			params &= '<cfparam name="args.#arg#" editable="true" />' & _nl();
+			params &= '<cf_presideparam name="args.#arg#" editable="true" />' & _nl();
 		}
 
 		fileContent = ReplaceNoCase( fileContent, "${params}", params )
