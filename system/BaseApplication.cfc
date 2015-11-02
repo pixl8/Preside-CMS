@@ -12,4 +12,5 @@ component extends="Bootstrap" {
 	this.sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 );
 
 	_setupMappings();
+	_setupDefaultTagAttributes();
 }

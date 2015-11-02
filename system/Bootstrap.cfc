@@ -12,6 +12,7 @@ component {
 		this.sessionTimeout         = arguments.sessionTimeout;
 
 		_setupMappings( argumentCollection=arguments );
+		_setupDefaultTagAttributes();
 	}
 
 // APPLICATION LIFECYCLE EVENTS
@@ -291,5 +292,10 @@ component {
 		var dir        = GetDirectoryFromPath( appCfcPath );
 
 		return ReReplace( dir, "/$", "" );
+	}
+
+	private void function _setupDefaultTagAttributes() {
+		this.tag.function.bufferoutput = false;
+		this.tag.location.addToken     = false;
 	}
 }
