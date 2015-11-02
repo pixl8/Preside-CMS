@@ -13,8 +13,8 @@
 				, type             = "inner"
 			}];
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { obj_a  = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { obj_a  = { relationship="many-to-one", relatedTo="obj_a", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -41,8 +41,8 @@
 				, type             = "left"
 			}];
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { obj_a  = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { obj_a  = { relationship="many-to-one", relatedTo="obj_a", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -61,9 +61,9 @@
 			var guidanceService = _getGuidanceService();
 			var errorThrown     = false;
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -88,8 +88,8 @@
 			var guidanceService = _getGuidanceService();
 			var errorThrown     = false;
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { obj_a_col = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_a_secondary = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { obj_a_col = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_a_secondary = { relationship="many-to-one", relatedTo="obj_a", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -130,9 +130,9 @@
 			}];
 
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true } } }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -167,9 +167,9 @@
 			}];
 
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=false } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true } } }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=false } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -218,12 +218,12 @@
 			}];
 
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_d = { relationship="many-to-one", relatedTo="obj_d", required=true } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true } } ) }
-				, obj_d.meta = { tableName="pobj_obj_d", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_e = { relationship="many-to-one", relatedTo="obj_e", required=true } } ) }
-				, obj_e.meta = { tableName="pobj_obj_e", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_f.meta = { tableName="pobj_obj_f", properties = _getProperties( { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_d = { relationship="many-to-one", relatedTo="obj_d", required=true } } }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true } } }
+				, obj_d.meta = { tableName="pobj_obj_d", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_e = { relationship="many-to-one", relatedTo="obj_e", required=true } } }
+				, obj_e.meta = { tableName="pobj_obj_e", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_f.meta = { tableName="pobj_obj_f", properties = { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -258,9 +258,9 @@
 			}];
 
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=false } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = { obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=false } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -279,8 +279,8 @@
 		<cfscript>
 			var guidanceService = _getGuidanceService();
 			var objects = {
-				  "obj_a" = { meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } ) } }
-				, "obj_b" = { meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } ) } }
+				  "obj_a" = { meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } } }
+				, "obj_b" = { meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } } }
 			};
 			var expectedObject = {
 				  instance = "auto_generated"
@@ -333,8 +333,8 @@
 				, type             = "inner"
 			}];
 			var objects = {
-				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } ) }
-				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } ) }
+				  obj_a.meta = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", tablePrefix="pobj_", properties = { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" } } }
+				, obj_b.meta = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", tablePrefix="pobj_", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-many", relatedTo="obj_a", required=false } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -448,12 +448,12 @@
 			}];
 
 			var objects = {
-				  obj_a.meta = { tableName="pobj_obj_a", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_b.meta = { tableName="pobj_obj_b", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_d = { relationship="many-to-one", relatedTo="obj_d", required=true } } ) }
-				, obj_c.meta = { tableName="pobj_obj_c", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_b_again  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_fs  = { relationship="one-to-many", relatedTo="obj_f", required=false } } ) }
-				, obj_d.meta = { tableName="pobj_obj_d", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_e = { relationship="many-to-one", relatedTo="obj_e", required=true } } ) }
-				, obj_e.meta = { tableName="pobj_obj_e", properties = _getProperties( { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } ) }
-				, obj_f.meta = { tableName="pobj_obj_f", properties = _getProperties( { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true }, a_test = { relationship="many-to-one", relatedTo="obj_a", required=true } } ) }
+				  obj_a.meta = { tableName="pobj_obj_a", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_b.meta = { tableName="pobj_obj_b", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=true }, obj_d = { relationship="many-to-one", relatedTo="obj_d", required=true } } }
+				, obj_c.meta = { tableName="pobj_obj_c", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_b  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_b_again  = { relationship="many-to-one", relatedTo="obj_b", required=true }, obj_fs  = { relationship="one-to-many", relatedTo="obj_f", required=false } } }
+				, obj_d.meta = { tableName="pobj_obj_d", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 }, obj_e = { relationship="many-to-one", relatedTo="obj_e", required=true } } }
+				, obj_e.meta = { tableName="pobj_obj_e", properties = { id = { relationship="none", type="string", dbtype="varchar", maxLength=35 } } }
+				, obj_f.meta = { tableName="pobj_obj_f", properties = { obj_c  = { relationship="many-to-one", relatedTo="obj_c", required=true }, a_test = { relationship="many-to-one", relatedTo="obj_a", required=true } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -475,8 +475,8 @@
 		<cfscript>
 			var guidanceService = _getGuidanceService();
 			var objects = {
-				  obj_a.meta     = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", properties = _getProperties( { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" }, obj_bs = { relationship="one-to-many", relatedTo="obj_b", relationshipKey="obj_a", required=false } } ) }
-				, obj_b.meta     = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", properties = _getProperties( { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } ) }
+				  obj_a.meta     = { dsn="test", name="some.path.to.obj_a", tableName="pobj_obj_a", properties = { id = { type="numeric", relationship="none", dbtype="smallint", maxLength=0, label="some id" }, obj_bs = { relationship="one-to-many", relatedTo="obj_b", relationshipKey="obj_a", required=false } } }
+				, obj_b.meta     = { dsn="test", name="some.path.to.obj_b", tableName="pobj_obj_b", properties = { id = { type="string" , relationship="none", dbtype="varchar", maxLength=35, label="another id" }, obj_a = { relationship="many-to-one", relatedTo="obj_a", required=false } } }
 			};
 
 			guidanceService.setupRelationships( objects );
@@ -505,19 +505,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="_getProperties" access="private" returntype="struct" output="false">
-		<cfargument name="rawProps" type="struct" required="true" />
-
-		<cfscript>
-			var newProps = {};
-			for( var prop in rawProps ) {
-				newProps[ prop ] = new preside.system.services.presideObjects.Property( argumentCollection=rawProps[prop] );
-			}
-
-			return newProps;
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="_propertiesToStruct" access="private" returntype="struct" output="false">
 		<cfargument name="properties" type="struct" required="true" />
 
@@ -525,7 +512,7 @@
 			var newProps = {};
 
 			for( var key in arguments.properties ){
-				newProps[ key ] = arguments.properties[ key ].getMemento();
+				newProps[ key ] = arguments.properties[ key ];
 			}
 
 			return newProps;
