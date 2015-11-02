@@ -98,6 +98,10 @@ component output=false singleton=true {
 			}
 		}
 
+		for( objName in objects ) {
+			objects[ objName ].delete( "sql" );
+		}
+
 		var cleanupScripts = _getSchemaVersioningService().cleanupDbVersionTableEntries( versions, objects, dsns[1], _getAutoRunScripts() );
 
 		if ( !_getAutoRunScripts() ) {
