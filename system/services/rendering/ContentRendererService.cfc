@@ -399,7 +399,7 @@ component singleton=true output="false" {
 			  objectName   = arguments.objectName
 			, propertyName = fieldName
 		);
-		renderer = getRendererForField( fieldAttributes=field.getMemento() );
+		renderer = getRendererForField( fieldAttributes=field );
 
 		cache.set( cacheKey, renderer );
 
@@ -421,7 +421,7 @@ component singleton=true output="false" {
 			, propertyName = arguments.property
 		);
 
-		control = poService.getDefaultFormControlForPropertyAttributes( argumentCollection = field.getMemento() );
+		control = poService.getDefaultFormControlForPropertyAttributes( argumentCollection = field );
 
 		cache.set( cacheKey, control );
 

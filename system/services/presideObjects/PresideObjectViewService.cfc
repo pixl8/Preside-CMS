@@ -179,7 +179,7 @@ component output=false singleton=true {
 			return {};
 		}
 
-		var prop = poService.getObjectProperty( objName, propName ).getMemento();
+		var prop = poService.getObjectProperty( objName, propName );
 		prop._object = objName;
 
 		return prop;
