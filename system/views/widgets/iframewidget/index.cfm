@@ -1,9 +1,9 @@
-<cfparam name="args.url" 	default="" />
+<cfparam name="args.url"    default=""    />
 <cfparam name="args.width"  default="560" />
 <cfparam name="args.height" default="315" />
-<cfparam name="args.border" />
+<cfparam name="args.border"               />
 
-<cfif args.border EQ true >
+<cfif IsTrue(args.border)>
 	<cfset border = 1 />
 <cfelse>
 	<cfset border = 0 />
