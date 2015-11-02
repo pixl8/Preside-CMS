@@ -244,7 +244,7 @@ component output=false singleton=true {
 						property.onUpdate = "cascade";
 					}
 
-					keyName = "fk_#LCase( Hash( SerializeJson( property ) & objectName ) )#";
+					keyName = "fk_#LCase( Hash( LCase( SerializeJson( property ) & objectName ) ) )#";
 
 					if ( not StructKeyExists( object.meta, "relationships" ) ) {
 						object.meta.relationships = {};

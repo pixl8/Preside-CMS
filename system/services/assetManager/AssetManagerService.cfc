@@ -9,7 +9,7 @@ component {
 	 * @storageProvider.inject            assetStorageProvider
 	 * @temporaryStorageProvider.inject   tempStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
-	 * @tikaWrapper.inject                TikaWrapper
+	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
@@ -24,7 +24,7 @@ component {
 		  required any    storageProvider
 		, required any    temporaryStorageProvider
 		, required any    assetTransformer
-		, required any    tikaWrapper
+		, required any    documentMetadataService
 		, required any    systemConfigurationService
 		, required any    assetDao
 		, required any    assetVersionDao
@@ -44,7 +44,7 @@ component {
 		_setStorageProvider( arguments.storageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
-		_setTikaWrapper( arguments.tikaWrapper );
+		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
@@ -470,7 +470,7 @@ component {
 
 		for( var file in files ) {
 			if ( arguments.includeMeta ) {
-				details = _getTikaWrapper().getMetadata( storageProvider.getObject( file.path ) );
+				details = _getDocumentMetadataService().getMetadata( storageProvider.getObject( file.path ) );
 			}
 
 			StructAppend( details, file );
@@ -535,7 +535,7 @@ component {
 		}
 
 		if ( _autoExtractDocumentMeta() ) {
-			asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+			asset.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
 		if ( fileTypeInfo.groupName == "image" ) {
@@ -549,7 +549,7 @@ component {
 		var newId = _getAssetDao().insertData( data=asset );
 
 		if ( _autoExtractDocumentMeta() ) {
-			_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( arguments.fileBinary ) );
+			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
 		}
 
 		return newId;
@@ -580,7 +580,7 @@ component {
 		};
 
 		if ( _autoExtractDocumentMeta() ) {
-			assetVersion.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
 		_getStorageProvider().putObject( object = arguments.fileBinary, path = newFileName );
@@ -595,7 +595,7 @@ component {
 			_saveAssetMetaData(
 				  assetId   = arguments.assetId
 				, versionId = versionId
-				, metaData  = _getTikaWrapper().getMetaData( arguments.fileBinary )
+				, metaData  = _getDocumentMetadataService().getMetaData( arguments.fileBinary )
 			);
 		}
 
@@ -614,7 +614,7 @@ component {
 		if ( _autoExtractDocumentMeta() ) {
 			var fileBinary = getAssetBinary( arguments.assetId );
 			if ( !IsNull( fileBinary ) ) {
-				var rawText = _getTikaWrapper().getText( fileBinary );
+				var rawText = _getDocumentMetadataService().getText( fileBinary );
 				if ( Len( Trim( rawText ) ) ) {
 					_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );
 				}
@@ -1258,10 +1258,10 @@ component {
 		_assetMetaDao = arguments.assetMetaDao;
 	}
 
-	private any function _getTikaWrapper() {
-		return _tikaWrapper;
+	private any function _getDocumentMetadataService() {
+		return _documentMetadataService;
 	}
-	private void function _setTikaWrapper( required any tikaWrapper ) {
-		_tikaWrapper = arguments.tikaWrapper;
+	private void function _setDocumentMetadataService( required any documentMetadataService ) {
+		_documentMetadataService = arguments.documentMetadataService;
 	}
 }

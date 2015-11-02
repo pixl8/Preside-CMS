@@ -5,23 +5,23 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.setup();
 
 		testPerms = {
-			  cms          = [ "login" ]
-			, sitetree     = [ "navigate", "read", "add", "edit", "delete" ]
-			, assetmanager = {
-				  folders = [ "navigate", "read", "add", "edit", "delete" ]
-				, assets  = [ "navigate", "read", "add", "edit", "delete" ]
-				, blah    = {
-					  test = [ "meh", "doh", "blah" ]
-					, test2 = [ "tehee" ]
+			  "cms"          = [ "login" ]
+			, "sitetree"     = [ "navigate", "read", "add", "edit", "delete" ]
+			, "assetmanager" = {
+				  "folders" = [ "navigate", "read", "add", "edit", "delete" ]
+				, "assets"  = [ "navigate", "read", "add", "edit", "delete" ]
+				, "blah"    = {
+					  "test" = [ "meh", "doh", "blah" ]
+					, "test2" = [ "tehee" ]
 				}
 			 }
-			, groupmanager = [ "navigate", "read", "add", "edit", "delete" ]
+			, "groupmanager" = [ "navigate", "read", "add", "edit", "delete" ]
 		};
 
-		testRoles = {
-			  administrator = [ "*" ]
-			, tester        = [ "*.delete", "assetmanager.*.read", "sitetree.*", "!groupmanager.delete", "groupmanager.edit", "!*.add" ]
-			, user          = [ "cms.login", "assetmanager.blah.test.*", "sitetree.navigate" ]
+		"testRoles" = {
+			  "administrator" = [ "*" ]
+			, "tester"        = [ "*.delete", "assetmanager.*.read", "sitetree.*", "!groupmanager.delete", "groupmanager.edit", "!*.add" ]
+			, "user"          = [ "cms.login", "assetmanager.blah.test.*", "sitetree.navigate" ]
 		};
 	}
 
