@@ -11,9 +11,9 @@ component displayName="Multilingual Preside Object Service" {
 // CONSTRUCTOR
 	/**
 	 * @relationshipGuidance.inject       relationshipGuidance
-	 * @systemConfigurationService.inject provider:systemConfigurationService
-	 * @presideObjectService.inject       provider:presideObjectService
-	 * @languageDao.inject                provider:presidecms:object:multilingual_language
+	 * @systemConfigurationService.inject delayedInjector:systemConfigurationService
+	 * @presideObjectService.inject       delayedInjector:presideObjectService
+	 * @languageDao.inject                delayedInjector:presidecms:object:multilingual_language
 	 */
 	public any function init(
 		  required any relationshipGuidance
