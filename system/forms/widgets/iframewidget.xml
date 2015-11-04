@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="widgets.iframewidget:">
+	<tab>
+		<fieldset>
+			<field sortorder="10" name="url"      required="true" />
+			<field sortorder="20" name="border"   control="yesNoSwitch" />
+			<field sortorder="30" name="width"    control="spinner" required="false" default="560" />
+			<field sortorder="40" name="height"   control="spinner" required="false" default="315" />
+		</fieldset>
+	</tab>
+</form>
