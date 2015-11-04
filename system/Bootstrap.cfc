@@ -150,8 +150,10 @@ component {
 	}
 
 	private void function _clearExistingApplication() {
-		if ( application.keyExists( "cbBootstrap" ) ) {
-			application.clear();
+		application.clear();
+
+		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
+			getPageContext().getCFMLFactory().resetPageContext();
 		}
 	}
 
