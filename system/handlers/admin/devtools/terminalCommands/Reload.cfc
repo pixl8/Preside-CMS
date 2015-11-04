@@ -7,7 +7,7 @@ component output=false hint="Reload all or part of your preside application" {
 		var params       = jsonRpc2Plugin.getRequestParams();
 		var target       = "";
 		var validTargets = {
-			  all       = { reloadMethod="reloadAll"           , description="Reloads the entire application"                           , successMessage="Full application reloaded" }
+			  all       = { reloadMethod="reloadAll"           , description="Reloads the entire application"                           , successMessage="Application cleared, please refresh the page to complete the reload" }
 			, db        = { reloadMethod="dbSync"              , description="Synchronises the database with Preside Object definitions", successMessage="Database objects synchronized" }
 			, caches    = { reloadMethod="clearCaches"         , description="Flushes all caches"                                       , successMessage="Caches cleared" }
 			, forms     = { reloadMethod="reloadForms"         , description="Reloads the form definitions"                             , successMessage="Form definitions reloaded" }

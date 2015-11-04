@@ -21,7 +21,7 @@ component output="false" singleton=true {
 		var rule          = "";
 
 		for( field in fields ){
-			if ( !ListFindNoCase( "hidden,none", fields[field].getAttribute( "control", "" ) ) ) {
+			if ( !ListFindNoCase( "hidden,none", ( fields[field].control ?: "" ) ) ) {
 				fieldRules = getRulesForField(
 					  objectName      = arguments.objectName
 					, fieldName       = field
@@ -196,7 +196,7 @@ component output="false" singleton=true {
 				continue;
 			}
 
-			indexes = props[ propName ].getAttribute( name="uniqueindexes", defaultValue="" );
+			indexes = props[ propName ].uniqueindexes ?: "";
 			for( index in ListToArray( indexes ) ) {
 				if ( ListFirst( index, "|" ) eq indexName and Val( ListLast( index, "|" ) ) gt position ) {
 					return false;
@@ -216,7 +216,7 @@ component output="false" singleton=true {
 		var fields    = [];
 
 		for( propName in props ){
-			indexes = props[ propName ].getAttribute( name="uniqueindexes", defaultValue="" );
+			indexes = props[ propName ].uniqueindexes ?: "";
 			for( index in ListToArray( indexes ) ) {
 				if ( ListFirst( index, "|" ) eq indexName ) {
 					ArrayAppend( fields, propName );

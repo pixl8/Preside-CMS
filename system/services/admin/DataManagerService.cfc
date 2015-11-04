@@ -329,14 +329,14 @@ component output="false" singleton=true {
 
 			prop = props[ field ];
 
-			switch( prop.getAttribute( "relationship", "none" ) ) {
+			switch( prop.relationship ?: "none" ) {
 				case "one-to-many":
 				case "many-to-many":
 					sqlFields[i] = "'' as " & field;
 				break;
 
 				case "many-to-one":
-					sqlFields[i] = prop.getAttribute( "name", "" ) & ".${labelfield} as " & field;
+					sqlFields[i] = ( prop.name ?: "" ) & ".${labelfield} as " & field;
 				break;
 
 				default:
@@ -388,7 +388,7 @@ component output="false" singleton=true {
 		}
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=objName, propertyName=fieldName );
-		var relatedTo = prop.getAttribute( "relatedTo", "none" );
+		var relatedTo = prop.relatedTo ?: "none";
 
 		if(  Len( Trim( relatedTo ) ) and relatedTo neq "none" ) {
 			return arguments.field & "." & _getPresideObjectService().getObjectAttribute( relatedTo, "labelfield", "label" );
@@ -408,7 +408,7 @@ component output="false" singleton=true {
 
 		var prop = _getPresideObjectService().getObjectProperty( objectName=arguments.objectName, propertyName=arguments.field );
 
-		return prop.getAttribute( "type", "" ) == "string";
+		return ( prop.type ?: "" ) == "string";
 	}
 
 // GETTERS AND SETTERS

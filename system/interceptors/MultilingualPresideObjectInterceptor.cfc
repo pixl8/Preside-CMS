@@ -1,7 +1,7 @@
 component extends="coldbox.system.Interceptor" output=false {
 
-	property name="multilingualPresideObjectService" inject="provider:multilingualPresideObjectService";
-	property name="featureService"                   inject="provider:featureService";
+	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
+	property name="featureService"                   inject="delayedInjector:featureService";
 
 // PUBLIC
 	public void function configure() output=false {}

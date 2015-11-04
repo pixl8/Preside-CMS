@@ -296,7 +296,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_d9cb98cbee105d2f12a2e5d95ddc8954" = {
+				"fk_c3f5fa6fe828a7c89f411d93d5e0ce7c" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -304,7 +304,7 @@
 					, on_update = "cascade"
 					, on_delete = "error"
 				},
-				"fk_49a4f58c1d4c462097edcc767a510896" = {
+				"fk_6a2b9624ca18e99fd0b48df47187ed70" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -312,7 +312,7 @@
 					, on_update = "cascade"
 					, on_delete = "set null"
 				},
-				"fk_1a9d832f1f4e11ebb8c91e1d9f3ba7cf" = {
+				"fk_e8ad2c420c66dc63e413e0b99e7137e5" = {
 					  pk_table  = "ptest_object_b"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
@@ -338,7 +338,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_ee3f4433904938cc35f9b40bd2d6ad4b" = {
+				"fk_7b0efa45ba5b99ef2e95c33daa364812" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
@@ -346,7 +346,7 @@
 					, on_update = "cascade"
 					, on_delete = "set null"
 				},
-				"fk_10504c54fc61608e65732995c4c7b48b" = {
+				"fk_fe1fa86e7f112dd7c84afaeeac1da997" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
@@ -1335,7 +1335,7 @@
 
 			for( key in result ){
 				super.assert( StructKeyExists( expected, key ) );
-				super.assertEquals( expected[ key ], result[ key ].getMemento() );
+				super.assertEquals( expected[ key ], result[ key ] );
 			}
 		</cfscript>
 	</cffunction>
@@ -1360,7 +1360,7 @@
 
 			result = poService.getObjectProperty( objectName = "object_b", propertyName="object_d" );
 
-			super.assertEquals( expected, result.getMemento() );
+			super.assertEquals( expected, result );
 		</cfscript>
 	</cffunction>
 
@@ -1874,7 +1874,7 @@
 			super.assertEquals( expectedPropNames, actualPropNames )
 
 			for( key in mergedProperties ){
-				super.assertEquals( expectedMergedProperties[ key ], mergedProperties[ key ].getMemento() );
+				super.assertEquals( expectedMergedProperties[ key ], mergedProperties[ key ] );
 			}
 		</cfscript>
 	</cffunction>

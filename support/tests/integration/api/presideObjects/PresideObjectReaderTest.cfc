@@ -60,10 +60,10 @@
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  test_property         = { type="any" }
-				, related_prop          = { type="any",                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
-				, another_property      = { type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
-				, some_numeric_property = { type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
+				  test_property         = { name="test_property"        , type="any" }
+				, related_prop          = { name="related_prop"         , type="any",                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
+				, another_property      = { name="another_property"     , type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
+				, some_numeric_property = { name="some_numeric_property", type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
 			};
 
 			super.assertEquals( expectedResult, object.properties );
@@ -75,11 +75,11 @@
 			var targetObject = new tests.resources.presideObjectReader.object_with_properties_and_inheritance();
 			var object       = getReader().readObject( targetObject );
 			var expectedResult = {
-				  test_property         = { type="any", label="New label" }
-				, new_property          = { type="any", label="New property" }
-				, related_prop          = { type="any",                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
-				, another_property      = { type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
-				, some_numeric_property = { type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
+				  test_property         = { name="test_property"        , type="any", label="New label" }
+				, new_property          = { name="new_property"         , type="any", label="New property" }
+				, related_prop          = { name="related_prop"         , type="any",                                              control="objectpicker", maxLength="35", relatedto="someobject", relationship="many-to-one" }
+				, another_property      = { name="another_property"     , type="date"   , label="My property" , dbtype="datetime", control="datepicker", required="true" }
+				, some_numeric_property = { name="some_numeric_property", type="numeric", label="Numeric prop", dbtype="tinyint" , control="spinner"   , required="false", minValue="1", maxValue="10" }
 			};
 
 			super.assertEquals( expectedResult, object.properties );
@@ -177,7 +177,7 @@
 			var newProps = {};
 
 			for( var key in arguments.properties ){
-				newProps[ key ] = arguments.properties[ key ].getMemento();
+				newProps[ key ] = arguments.properties[ key ];
 			}
 
 			return newProps;

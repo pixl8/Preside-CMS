@@ -11,9 +11,9 @@ component displayName="Multilingual Preside Object Service" {
 // CONSTRUCTOR
 	/**
 	 * @relationshipGuidance.inject       relationshipGuidance
-	 * @systemConfigurationService.inject provider:systemConfigurationService
-	 * @presideObjectService.inject       provider:presideObjectService
-	 * @languageDao.inject                provider:presidecms:object:multilingual_language
+	 * @systemConfigurationService.inject delayedInjector:systemConfigurationService
+	 * @presideObjectService.inject       delayedInjector:presideObjectService
+	 * @languageDao.inject                delayedInjector:presidecms:object:multilingual_language
 	 */
 	public any function init(
 		  required any relationshipGuidance
@@ -133,7 +133,7 @@ component displayName="Multilingual Preside Object Service" {
 			extraLanguageIndexes = "," & extraLanguageIndexes;
 		}
 
-		translationProperties._translation_source_record = new preside.system.services.presideobjects.Property(
+		translationProperties._translation_source_record = {
 			  name          = "_translation_source_record"
 			, relationship  = "many-to-one"
 			, relatedto     = arguments.objectName
@@ -144,11 +144,11 @@ component displayName="Multilingual Preside Object Service" {
 			, onupdate      = "cascade"
 			, generator     = "none"
 			, control       = "none"
-		);
+		};
 		dbFieldList.append( "_translation_source_record" );
 		propertyNames.append( "_translation_source_record" );
 
-		translationProperties._translation_language = new preside.system.services.presideobjects.Property(
+		translationProperties._translation_language = {
 			  name          = "_translation_language"
 			, relationship  = "many-to-one"
 			, relatedto     = "multilingual_language"
@@ -159,11 +159,11 @@ component displayName="Multilingual Preside Object Service" {
 			, onupdate      = "cascade"
 			, generator     = "none"
 			, control       = "none"
-		);
+		};
 		dbFieldList.append( "_translation_language" );
 		propertyNames.append( "_translation_language" );
 
-		translationProperties._translation_active = new preside.system.services.presideobjects.Property(
+		translationProperties._translation_active = {
 			  name          = "_translation_active"
 			, required      = false
 			, default       = false
@@ -176,7 +176,7 @@ component displayName="Multilingual Preside Object Service" {
 			, generator     = "none"
 			, maxLength     = 0
 			, control       = "none"
-		);
+		};
 		dbFieldList.append( "_translation_active" );
 		propertyNames.append( "_translation_active" );
 
@@ -212,7 +212,7 @@ component displayName="Multilingual Preside Object Service" {
 	public void function decorateMultilingualObject( required string objectName, required struct object ) {
 		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
 
-		arguments.object.meta.properties._translations = new preside.system.services.presideobjects.Property(
+		arguments.object.meta.properties._translations = {
 			  name            = "_translations"
 			, relationship    = "one-to-many"
 			, relatedto       = _getTranslationObjectPrefix() & arguments.objectName
@@ -222,7 +222,7 @@ component displayName="Multilingual Preside Object Service" {
 			, indexes         = ""
 			, generator       = "none"
 			, control         = "none"
-		);
+		};
 	}
 
 	/**

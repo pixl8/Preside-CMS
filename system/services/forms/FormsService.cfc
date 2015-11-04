@@ -169,8 +169,8 @@ component {
 
 		for( var fieldName in fields ){
 			var field = fields[ fieldName ];
-			if ( field.getAttribute( "control", "" ) neq "none" ) {
-				ArrayAppend( formLayout.tabs[1].fieldsets[1].fields, field.getMemento() );
+			if ( ( field.control ?: "" ) != "none" ) {
+				ArrayAppend( formLayout.tabs[1].fieldsets[1].fields, field );
 
 				formLayout.tabs[1].fieldsets[1].fields[ ArrayLen( formLayout.tabs[1].fieldsets[1].fields ) ].sourceObject = arguments.objectName;
 			}
@@ -601,7 +601,7 @@ component {
 				);
 			}
 
-			property = _getPresideObjectService().getObjectProperty( boundObject, boundField ).getMemento();
+			property = _getPresideObjectService().getObjectProperty( boundObject, boundField );
 
 			StructAppend( field, property, false );
 			field.sourceObject = boundObject;
