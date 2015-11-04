@@ -142,8 +142,8 @@ Yes, you read that right, an "empty" CFC is an effective Preside Data Object. Th
 component {
     property name="id"           type="string" dbtype="varchar"   required=true maxLength="35" generator="UUID" pk=true;
     property name="label"        type="string" dbtype="varchar"   required=true maxLength="250";
-    property name="datecreated"  type="date"   dbtype="timestamp" required=true;
-    property name="datemodified" type="date"   dbtype="timestamp" required=true;
+    property name="datecreated"  type="date"   dbtype="datetime" required=true;
+    property name="datemodified" type="date"   dbtype="datetime" required=true;
 }
 ```
 
@@ -227,7 +227,7 @@ For raw CFML, prefix your value with `cfml:`, e.g. `cfml:CreateUUId()`. For meth
 ```luceescript
 component  {
     // ...
-    property name="event_start_date" type="date"   dbtype="timestamp"                 required=false default="cfml:Now()";
+    property name="event_start_date" type="date"   dbtype="date"                      required=false default="cfml:Now()";
     property name="slug"             type="string" dbtype="varchar"   maxlength="200" required=false default="method:calculateSlug";
 
     public string function calculateSlug( required struct data ) {
