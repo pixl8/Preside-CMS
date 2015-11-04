@@ -1,15 +1,19 @@
 component {
 
 	public void function setupApplication(
-		  string  id                = CreateUUId()
-		, string  name              = arguments.id & ExpandPath( "/" )
-		, boolean sessionManagement = true
-		, any     sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 )
+		  string  id                           = CreateUUId()
+		, string  name                         = arguments.id & ExpandPath( "/" )
+		, boolean sessionManagement            = true
+		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
+		, numeric applicationReloadTimeout     = 1200
+		, numeric applicationReloadLockTimeout = 60
 	)  {
-		this.PRESIDE_APPLICATION_ID = arguments.id;
-		this.name                   = arguments.name
-		this.sessionManagement      = arguments.sessionManagement;
-		this.sessionTimeout         = arguments.sessionTimeout;
+		this.PRESIDE_APPLICATION_ID                  = arguments.id;
+		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
+		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
+		this.name                                    = arguments.name
+		this.sessionManagement                       = arguments.sessionManagement;
+		this.sessionTimeout                          = arguments.sessionTimeout;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -22,11 +26,17 @@ component {
 		return true;
 	}
 
-	public boolean function onRequestStart( required string targetPage ) output=true {
+	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
 		_setupInjectedDatasource();
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
-		_reloadCheck();
+
+		if ( _reloadRequired() ) {
+			var targetPage = arguments.targetPage;
+			return _initEveryEverything( function(){
+				return application.cbBootstrap.onRequestStart( targetPage );
+			});
+		}
 
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
 	}
@@ -75,27 +85,7 @@ component {
 
 
 		} else {
-			var appMapping     = request._presideMappings.appMapping ?: "/app";
-			var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
-			var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
-
-			thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-				new preside.system.services.errors.ErrorLogService(
-					  appMapping     = attributes.appMapping
-					, appMappingPath = attributes.appMappingPath
-					, logsMapping    = attributes.logsMapping
-					, logDirectory   = attributes.logsMapping & "/rte-logs"
-				).raiseError( attributes.e );
-			}
-
-			content reset=true;
-			header statuscode=500;
-
-			if ( FileExists( ExpandPath( "/500.htm" ) ) ) {
-				Writeoutput( FileRead( ExpandPath( "/500.htm" ) ) );
-			} else {
-				Writeoutput( FileRead( "/preside/system/html/500.htm" ) );
-			}
+			_friendlyError( arguments.exception, 500 );
 
 			return;
 		}
@@ -129,12 +119,40 @@ component {
 		};
 	}
 
-	private void function _initEveryEverything() {
-		setting requesttimeout=1200;
+	private any function _initEveryEverything( any onSuccess ) {
+		var lockName       = "presideapplicationreload" & Hash( GetCurrentTemplatePath() );
+		var requestTimeout = this.PRESIDE_APPLICATION_RELOAD_TIMEOUT;
+		var lockTimeout    = this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT;
 
-		_fetchInjectedSettings();
-		_setupInjectedDatasource();
-		_initColdBox();
+		setting requesttimeout=requestTimeout;
+
+		try {
+			lock name=lockname type="exclusive" timeout=locktimeout {
+				if ( _reloadRequired() ) {
+					_clearExistingApplication();
+					_fetchInjectedSettings();
+					_setupInjectedDatasource();
+					_initColdBox();
+				}
+
+				if ( arguments.keyExists( "onSuccess" ) ) {
+					return arguments.onSuccess();
+				}
+			}
+		} catch( lock e ) {
+			if ( ( e.lockOperation ?: "" ) == "Timeout" ) {
+				_friendlyError( e, 503 );
+				abort;
+			} else {
+				rethrow;
+			}
+		}
+	}
+
+	private void function _clearExistingApplication() {
+		if ( application.keyExists( "cbBootstrap" ) ) {
+			application.clear();
+		}
 	}
 
 	private void function _initColdBox() {
@@ -150,12 +168,8 @@ component {
 		application.cbBootstrap = bootstrap;
 	}
 
-	private void function _reloadCheck() {
-		var reloadRequired = not StructKeyExists( application, "cbBootstrap" ) or application.cbBootStrap.isfwReinit();
-
-		if ( reloadRequired ) {
-			_initEveryEverything();
-		}
+	private boolean function _reloadRequired() {
+		return !application.keyExists( "cbBootstrap" ) || application.cbBootStrap.isfwReinit();
 	}
 
 	private void function _fetchInjectedSettings() {
@@ -294,8 +308,34 @@ component {
 		return ReReplace( dir, "/$", "" );
 	}
 
+	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
+		var appMapping     = request._presideMappings.appMapping ?: "/app";
+		var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
+		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
+
+		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
+			new preside.system.services.errors.ErrorLogService(
+				  appMapping     = attributes.appMapping
+				, appMappingPath = attributes.appMappingPath
+				, logsMapping    = attributes.logsMapping
+				, logDirectory   = attributes.logsMapping & "/rte-logs"
+			).raiseError( attributes.e );
+		}
+
+		content reset=true;
+		header statuscode=arguments.statusCode;
+
+		if ( FileExists( ExpandPath( "/#arguments.statusCode#.htm" ) ) ) {
+			Writeoutput( FileRead( ExpandPath( "/#arguments.statusCode#.htm" ) ) );
+		} else {
+			Writeoutput( FileRead( "/preside/system/html/#arguments.statusCode#.htm" ) );
+		}
+	}
+
 	private void function _setupDefaultTagAttributes() {
 		this.tag.function.bufferoutput = false;
 		this.tag.location.addToken     = false;
 	}
+
+
 }
