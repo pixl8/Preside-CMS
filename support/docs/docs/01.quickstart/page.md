@@ -1,4 +1,5 @@
 ---
+id: quickstart
 title: Quick start guide
 ---
 

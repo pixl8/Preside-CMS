@@ -86,23 +86,27 @@ Renders a top level menu item.
 #### Example
 
 ```lucee
-<cfset subMenuItems = [] />
-<cfif hasCmsPermission( "mynewsubfeature.access" )>
-    <cfset subMenuItems.append( {
-          link  = event.buildAdminLink( linkTo="mynewsubfeature" ) 
-        , title = event.translateResource( uri="mynewsubfeature.menu.title" )
-    } ) />
-</cfif>
-<cfif hasCmsPermission( "myothernewsubfeature.access" )>
-    <cfset subMenuItems.append( {
-          link  = event.buildAdminLink( linkTo="myothernewsubfeature" ) 
-        , title = event.translateResource( uri="myothernewsubfeature.menu.title" )
-    } ) />
-</cfif>
+<cfscript>
+    subMenuItems = [];
+
+    if ( hasCmsPermission( "mynewsubfeature.access" ) ) {
+        subMenuItems.append( {
+            link  = event.buildAdminLink( linkTo="mynewsubfeature" ) 
+            , title = translateResource( uri="mynewsubfeature:menu.title" )
+        } );
+    }
+
+    if ( hasCmsPermission( "myothernewsubfeature.access" ) ) {
+        subMenuItems.append( {
+              link  = event.buildAdminLink( linkTo="myothernewsubfeature" ) 
+            , title = translateResource( uri="myothernewsubfeature:menu.title" )
+        } );
+    }
+</cfscript>
 
 #renderView( view="/admin/layout/sidebar/_menuItem", args={
       active       = ReFindNoCase( "my(other)?newsubfeature$", event.getCurrentHandler() )
-    , title        = event.translateResource( uri="mynewfeature.menu.title" )
+    , title        = translateResource( uri="mynewfeature:menu.title" )
     , icon         = "fa-world-domination"
     , subMenuItems = subMenuItems
 } )#
@@ -136,7 +140,7 @@ Renders a sub menu item.
 <cfif hasCmsPermission( "mynewsubfeature.access" )>
     #renderView( view="/admin/layout/sidebar/_subMenuItem", args={
           link    = event.buildAdminLink( linkTo="mynewsubfeature" )
-        , title   = event.translateResource( uri="mynewsubfeature.menu.title" )
+        , title   = translateResource( uri="mynewsubfeature:menu.title" )
         , gotoKey = "f"
     } )#
 </cfif>
@@ -164,7 +168,7 @@ Finally, create the view for the side bar item:
     <cfoutput>
         #renderView( view="/admin/layout/sidebar/_menuItem", args={
               active       = ReFindNoCase( "mynewfeature$", event.getCurrentHandler() )
-            , title        = event.translateResource( uri="mynewfeature.menu.title" )
+            , title        = translateResource( uri="mynewfeature:menu.title" )
             , link         = event.buildAdminLink( linkTo="mynewfeature" )
             , icon         = "fa-world-domination"
             , subMenuItems = subMenuItems

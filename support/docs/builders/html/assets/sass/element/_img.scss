@@ -17,3 +17,14 @@
   content: "";
   box-shadow: 0 0 15px rgba(0,0,0,0.6);
 }
+
+.body img.no-border {
+  background-color: transparent;
+  position: static;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.body img.no-border:before {
+  content : none;
+}
