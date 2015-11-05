@@ -58,6 +58,21 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunctio name="getSystemPageID" access="public" returntype="string" output="false">
+		<cfscript>
+			var sitetreeSvc = getModel( "sitetreeService" );
+			var page        = sitetreeSvc.getPage(
+				  systemPage   = arguments.systemPage
+  				, selectFields = [ "id" ]
+			);
+
+			if ( not page.recordCount ) {
+				return "";
+			}
+			return page.id;
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="buildLink" access="public" returntype="string" output="false">
 		<cfscript>
 			var prc = getRequestContext().getCollection( private=true );
