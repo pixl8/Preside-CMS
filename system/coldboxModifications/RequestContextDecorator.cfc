@@ -58,7 +58,7 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunctio name="getSystemPageID" access="public" returntype="string" output="false">
+	<cffunction name="getSystemPageID" access="public" returntype="string" output="false">
 		<cfscript>
 			var sitetreeSvc = getModel( "sitetreeService" );
 			var page        = sitetreeSvc.getPage(
