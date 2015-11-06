@@ -306,7 +306,7 @@ component {
 		}
 
 		if ( !sessionIsUsed ) {
-			session.setMaxInactiveInterval(  javaCast( "long", 1 ) );
+			this.sessionTimeout = CreateTimeSpan( 0, 0, 0, 1 );
 			getPageContext().setHeader( "Set-Cookie", NullValue() );
 		}
 	}
