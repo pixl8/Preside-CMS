@@ -39,6 +39,19 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return siteUrl;
 	}
 
+	public string function getSystemPageId( required string systemPage ) {
+		var sitetreeSvc = getModel( "sitetreeService" );
+		var page        = sitetreeSvc.getPage(
+			  systemPage   = arguments.systemPage
+				, selectFields = [ "id" ]
+		);
+
+		if ( not page.recordCount ) {
+			return "";
+		}
+		return page.id;
+	}
+
 	public string function getSiteId() {
 		var site = getSite();
 
