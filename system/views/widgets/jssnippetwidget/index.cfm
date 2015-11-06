@@ -5,23 +5,20 @@
 
 <cfoutput>
 	<cfif !IsEmpty( args.source_url )>
-
 		<cfif IsTrue( args.async )>
-			<cfset method = "async" />
+			<cfset method = " async" />
 		<cfelseif IsTrue( args.defer )>
-			<cfset method = "defer" />
+			<cfset method = " defer" />
 		<cfelse>
 			<cfset method = "" />
 		</cfif>
 
-		<script type="text/javascript" src="#args.source_url#" #method#></script>
+		<script type="text/javascript" src="#args.source_url#"#method#></script>
 	</cfif>
 
 	<cfif !IsEmpty( args.inline_script )>
 		<script type="text/javascript">
 			#args.inline_script#
 		</script>
-
 	</cfif>
-
 </cfoutput>
