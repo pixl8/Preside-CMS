@@ -53,7 +53,8 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		prc.folder = assetManagerService.getFolder( id=rc.folder );
+		prc.folder        = assetManagerService.getFolder( id=rc.folder );
+		prc.isTrashFolder = prc.folder.recordCount && assetManagerService.getTrashFolderId() == rc.folder;
 
 		if ( prc.folder.recordCount ){
 			if ( prc.folder.id != assetManagerService.getRootFolderId() ) {
@@ -710,8 +711,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function getFolderTitleAndActions( event, rc, prc ) {
-
-		if ( Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
+		if ( !prc.isTrashFolder && Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
 			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
 			event.renderData(
 				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } )
