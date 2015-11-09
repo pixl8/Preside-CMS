@@ -159,11 +159,15 @@ component extends="preside.system.base.AdminHandler" {
 		var assetId          = rc.asset ?: "";
 		var asset            = assetManagerService.getAsset( assetId );
 		var parentFolder     = asset.recordCount ? asset.asset_folder : "";
+		var alreadyTrashed   = parentFolder == assetManagerService.getTrashFolderId();
 		var trashed          = "";
 
 		try {
-
-			trashed = assetManagerService.trashAsset( assetId );
+			if ( alreadyTrashed ) {
+				trashed = assetManagerService.permanentlyDeleteAsset( assetId );
+			} else {
+				trashed = assetManagerService.trashAsset( assetId );
+			}
 		} catch ( any e ) {
 			logError( e );
 			messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
@@ -171,7 +175,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( trashed ) {
-			messageBox.info( translateResource( uri="cms:assetmanager.trash.asset.success", data=[ asset.title ] ) );
+			if ( alreadyTrashed ) {
+				messageBox.info( translateResource( uri="cms:assetmanager.delete.asset.success", data=[ asset.original_title ] ) );
+			} else {
+				messageBox.info( translateResource( uri="cms:assetmanager.trash.asset.success", data=[ asset.title ] ) );
+			}
 		} else {
 			messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
 		}
@@ -200,12 +208,24 @@ component extends="preside.system.base.AdminHandler" {
 	function trashMultiAssetsAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
 		var parentFolder = "";
+		var trashFolder  = assetManagerService.getTrashFolderId();
+		var permanent    = false;
 
 		for( var assetId in ListToArray( rc.id ?: "" ) ) {
 			var asset = assetManagerService.getAsset( assetId );
 			parentFolder = asset.recordCount ? asset.asset_folder : "";
+
+			var alreadyTrashed = parentFolder == trashFolder;
+			if ( alreadyTrashed ) {
+				permanent = true;
+			}
+
 			try {
-				assetManagerService.trashAsset( assetId );
+				if ( alreadyTrashed ) {
+					assetManagerService.permanentlyDeleteAsset( assetId );
+				} else {
+					assetManagerService.trashAsset( assetId );
+				}
 			} catch ( any e ) {
 				logError( e );
 				messageBox.error( translateResource( "cms:assetmanager.trash.asset.unexpected.error" ) );
@@ -213,7 +233,12 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		messageBox.info( translateResource( uri="cms:assetmanager.trash.assets.success" ) );
+		if ( permanent ) {
+			messageBox.info( translateResource( uri="cms:assetmanager.delete.assets.success" ) );
+		} else {
+			messageBox.info( translateResource( uri="cms:assetmanager.trash.assets.success" ) );
+		}
+
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#parentFolder#" ) );
 	}
 

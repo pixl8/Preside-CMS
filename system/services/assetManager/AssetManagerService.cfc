@@ -746,6 +746,19 @@ component {
 		} );
 	}
 
+	public boolean function permanentlyDeleteAsset( required string id ) {
+		var assetDao    = _getAssetDao();
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title" ] );
+		var trashedPath = "";
+
+		if ( !asset.recordCount ) {
+			return false;
+		}
+
+		_getStorageProvider().deleteObject( asset.trashed_path, true );
+		return assetDao.deleteData( id=arguments.id );
+	}
+
 	public query function getAssetDerivative( required string assetId, required string derivativeName, string versionId="", array selectFields=[] ) {
 		var derivativeDao      = _getDerivativeDao();
 		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
