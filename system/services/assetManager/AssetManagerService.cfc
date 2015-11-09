@@ -994,6 +994,19 @@ component {
 		return "";
 	}
 
+	public string function getTrashFolderId() {
+		return _getTrashFolderId();
+	}
+
+	public string function getTrashCount() {
+		var result = _getAssetDao().selectData(
+			  selectFields = [ "Count(1) as asset_count" ]
+			, filter       = { asset_folder=_getTrashFolderId() }
+		);
+
+		return Val( result.asset_count ?: "" );
+	}
+
 // PRIVATE HELPERS
 	private void function _setupSystemFolders( required struct configuredFolders ) {
 		var dao         = _getFolderDao();

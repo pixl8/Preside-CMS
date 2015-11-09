@@ -72,7 +72,9 @@ component extends="preside.system.base.AdminHandler" {
 	function index( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
 
-		prc.folderTree   = assetManagerService.getFolderTree();
+		prc.folderTree    = assetManagerService.getFolderTree();
+		prc.trashFolderId = assetManagerService.getTrashFolderId();
+		prc.trashCount    = assetManagerService.getTrashCount();
 	}
 
 	function addAssets( event, rc, prc ) {

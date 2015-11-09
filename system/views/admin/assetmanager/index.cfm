@@ -3,10 +3,13 @@
 	folderTitle    = prc.folder.label ?: translateResource( "cms:assetmanager.root.folder" );
 	isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
 	folderTree     = prc.folderTree ?: [];
+	trashFolderId  = prc.trashFolderId ?: "";
+	trashCount     = Val( prc.trashCount ?: "" );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
 	prc.pageSubtitle = folderTitle;
+
 
 </cfscript>
 
@@ -24,6 +27,13 @@
 					<cfloop array="#folderTree#" index="node">
 						#renderView( view="/admin/assetmanager/_treeFolderNode", args=node )#
 					</cfloop>
+
+					<div class="tree-node tree-item" data-folder-id="#trashFolderId#">
+						<div class="tree-item-name node-name">
+							<i class="fa fa-fw fa-trash tree-node-icon red"></i>
+							<span class="folder-name">#translateResource( 'cms:assetmanager.trash.folder.name' )# (#trashCount#)</span>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
