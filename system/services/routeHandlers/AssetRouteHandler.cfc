@@ -18,16 +18,18 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public void function translate( required string path, required any event ) output=false {
-		var assetId      = UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) );
-		var versionId    = ListLen( assetId, "." ) > 1 ? ListRest( assetId, "." ) : "";
-		var isTempAsset  = Left( assetId, 1 ) eq "_";
-		var derivativeId = "";
-		var urlParam     = "";
+		var assetId        = UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) );
+		var versionId      = ListLen( assetId, "." ) > 1 ? ListRest( assetId, "." ) : "";
+		var isTempAsset    = Left( assetId, 1 ) == "_";
+		var isTrashedAsset = Left( assetId, 1 ) == "$";
+		var derivativeId   = "";
+		var urlParam       = "";
 
 		assetId = ListFirst( assetId, "." );
-		assetId = ReReplace( assetId, "^_", "" );
+		assetId = ReReplace( assetId, "^[_\$]", "" );
 
 		event.setValue( "assetId"  , assetId );
+		event.setValue( "isTrashed", isTrashedAsset );
 		event.setValue( "versionId", versionId );
 		event.setValue( _getEventName(), "core.AssetDownload." & ( isTempAsset ? "tempFile" : "asset" ) );
 
@@ -45,6 +47,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		var assetId    = buildArgs.assetId    ?: "";
 		var derivative = buildArgs.derivative ?: "";
 		var versionId  = buildArgs.versionId  ?: _getAssetManagerService().getCurrentVersionId( assetId );
+		var trashed    = IsBoolean( buildArgs.trashed ?: "" ) && buildArgs.trashed;
 		var link       = "/asset/" & UrlEncodedFormat( assetId );
 
 		if ( Len( Trim( versionId ) ) ) {
@@ -63,6 +66,10 @@ component implements="iRouteHandler" output=false singleton=true {
 
 		if ( buildArgs.isTemporaryAsset ?: false ) {
 			link = ReReplace( link, "^/asset/", "/asset/_" );
+		}
+
+		if ( trashed ) {
+			link = ReReplace( link, "^/asset/", "/asset/$" );
 		}
 
 		return event.getSiteUrl() & link;

@@ -303,16 +303,19 @@ component {
 
 	) {
 
-		var result       = { totalRecords = 0, records = "" };
-		var parentFolder = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
-		var args         = {
-			  startRow = arguments.startRow
-			, maxRows  = arguments.maxRows
-			, orderBy  = arguments.orderBy
+		var result        = { totalRecords = 0, records = "" };
+		var parentFolder  = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
+		var isTrashFolder = parentFolder == _getTrashFolderId();
+		var titleField    = isTrashFolder ? "original_title" : "title";
+		var args          = {
+			  startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
+			, orderBy      = arguments.orderBy
+			, selectFields = [ "id", "asset_folder", "#titleField# as title", "asset_type", "datemodified" ]
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = "asset_folder = :asset_folder and title like :q";
+			args.filter       = "asset_folder = :asset_folder and #titleField# like :q";
 			args.filterParams = { asset_folder=parentFolder, q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		} else {
 			args.filter = { asset_folder = parentFolder };
@@ -684,20 +687,21 @@ component {
 		);
 	}
 
-	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false ) {
+	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var assetBinary = "";
+		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
 			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
-			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] );
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProvider().getObject( asset.storage_path );
+			return _getStorageProvider().getObject( asset.storage_path, arguments.isTrashed );
 		}
 	}
 
-	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false ) output="false" {
-		var asset        = "";
-		var selectFields = [ "storage_path" ];
+	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
+		var asset            = "";
+		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
@@ -709,12 +713,12 @@ component {
 			);
 		} else {
 			asset = Len( Trim( arguments.versionId ) )
-				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields )
-				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields );
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path );
+			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path, arguments.isTrashed );
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );

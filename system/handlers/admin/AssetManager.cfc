@@ -677,6 +677,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function assetsForListingGrid( event, rc, prc ) {
+		if ( prc.isTrashFolder ) {
+			runEvent( event="admin.assetManager.trashedAssetsForListingGrid" );
+			return;
+		}
+
 		var result = assetManagerService.getAssetsForGridListing(
 			  startRow    = datatableHelper.getStartRow()
 			, maxRows     = datatableHelper.getMaxRows()
@@ -699,7 +704,45 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			checkboxCol.append( renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
-			renderedOptions.append( renderView( view="/admin/assetmanager/_assetGridActions", args=record ) );
+			if ( prc.isTrashFolder ) {
+				renderedOptions.append( renderView( view="/admin/assetmanager/_trashedAssetGridActions", args=record ) );
+			} else {
+				renderedOptions.append( renderView( view="/admin/assetmanager/_assetGridActions", args=record ) );
+			}
+		}
+
+		QueryAddColumn( records, "_options" , renderedOptions );
+		QueryAddColumn( records, "_checkbox", checkboxCol );
+		gridFields.prepend( "_checkbox" );
+		gridFields.append( "_options" );
+
+		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
+	}
+
+	function trashedAssetsForListingGrid( event, rc, prc ) {
+		var result = assetManagerService.getAssetsForGridListing(
+			  startRow    = datatableHelper.getStartRow()
+			, maxRows     = datatableHelper.getMaxRows()
+			, orderBy     = datatableHelper.getSortOrder()
+			, searchQuery = datatableHelper.getSearchQuery()
+			, folder      = rc.folder ?: ""
+		);
+		var gridFields = [ "title" ];
+		var renderedOptions = [];
+		var checkboxCol     = []
+
+		var records = Duplicate( result.records );
+
+		for( var record in records ){
+			for( var field in gridFields ){
+				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
+				if ( field == "title" ) {
+					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & records[ field ][ records.currentRow ];
+				}
+			}
+
+			checkboxCol.append( renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
+			renderedOptions.append( renderView( view="/admin/assetmanager/_trashedAssetGridActions", args=record ) );
 		}
 
 		QueryAddColumn( records, "_options" , renderedOptions );
