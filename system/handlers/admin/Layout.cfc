@@ -10,7 +10,7 @@ component {
 		return renderView( view="/admin/layout/siteAlerts", args=args );
 	}
 
-	private string function loginLocalePicker( event, rc, prc, args={} ) {
+	private string function localePicker( event, rc, prc, args={} ) {
 		args.locales = Duplicate( resourceBundleService.listLocales() );
 
 		if ( args.locales.len() ) {
@@ -44,7 +44,7 @@ component {
 				}
 			});
 
-			return renderView( view="/admin/layout/loginLocalPicker", args=args );
+			return renderView( view="/admin/layout/localePicker", args=args );
 		}
 
 		return "";
