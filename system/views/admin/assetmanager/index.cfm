@@ -5,6 +5,7 @@
 	folderTree     = prc.folderTree ?: [];
 	trashFolderId  = prc.trashFolderId ?: "";
 	trashCount     = Val( prc.trashCount ?: "" );
+	isTrashFolder  = folder == trashFolderId;
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -18,7 +19,9 @@
 	<div class="info-bar">#renderViewlet( event='admin.assetmanager.searchBox' )#</div>
 
 	<div class="top-right-button-group title-and-actions-container clearfix">
-		#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
+		<cfif !isTrashFolder>
+			#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
+		</cfif>
 	</div>
 	<div id="browse" class="row">
 		<div class="col-sm-5 col-md-4 col-lg-4">
@@ -28,7 +31,7 @@
 						#renderView( view="/admin/assetmanager/_treeFolderNode", args=node )#
 					</cfloop>
 
-					<div class="tree-node tree-item" data-folder-id="#trashFolderId#">
+					<div class="tree-node tree-item<cfif isTrashFolder> selected</cfif>" data-folder-id="#trashFolderId#">
 						<div class="tree-item-name node-name">
 							<i class="fa fa-fw fa-trash tree-node-icon red"></i>
 							<span class="folder-name">#translateResource( 'cms:assetmanager.trash.folder.name' )# (#trashCount#)</span>
