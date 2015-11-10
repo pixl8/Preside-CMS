@@ -10,8 +10,8 @@ component output=false singleton=true implements="preside.system.services.fileSt
 	}
 
 // PUBLIC API METHODS
-	public boolean function objectExists( required string path ){
-		return FileExists( _expandPath( arguments.path ) );
+	public boolean function objectExists( required string path, boolean trashed=false ){
+		return FileExists( _expandPath( arguments.path, arguments.trashed ) );
 	}
 
 	public query function listObjects( required string path ){
@@ -39,9 +39,9 @@ component output=false singleton=true implements="preside.system.services.fileSt
 		return objects;
 	}
 
-	public binary function getObject( required string path ){
+	public binary function getObject( required string path, boolean trashed=false ){
 		try {
-			return FileReadBinary( _expandPath( arguments.path ) );
+			return FileReadBinary( _expandPath( arguments.path, arguments.trashed ) );
 		} catch ( java.io.FileNotFoundException e ) {
 			throw(
 				  type    = "storageProvider.objectNotFound"
@@ -50,9 +50,9 @@ component output=false singleton=true implements="preside.system.services.fileSt
 		}
 	}
 
-	public struct function getObjectInfo( required string path ){
+	public struct function getObjectInfo( required string path, boolean trashed=false ){
 		try {
-			var info = GetFileInfo( _expandPath( arguments.path ) );
+			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed ) );
 
 			return {
 				  size         = info.size
@@ -89,9 +89,9 @@ component output=false singleton=true implements="preside.system.services.fileSt
 		}
 	}
 
-	public void function deleteObject( required string path ){
+	public void function deleteObject( required string path, boolean trashed=false ){
 		try {
-			FileDelete( _expandPath( arguments.path ) );
+			FileDelete( _expandPath( arguments.path, arguments.trashed ) );
 		} catch ( any e ) {
 			if ( e.message contains "does not exist" ) {
 				return;
@@ -118,7 +118,7 @@ component output=false singleton=true implements="preside.system.services.fileSt
 	}
 
 	public boolean function restoreObject( required string trashedPath, required string newPath ){
-		var fullTrashedPath   = _expandPath( arguments.trashedPath, _getTrashDirectory() );
+		var fullTrashedPath   = _expandPath( arguments.trashedPath, true );
 		var fullNewPath       = _expandPath( arguments.newPath );
 		var trashedFileExists = false;
 
@@ -139,16 +139,20 @@ component output=false singleton=true implements="preside.system.services.fileSt
 	}
 
 // PRIVATE HELPERS
-	private string function _expandPath( required string path, string rootDir=_getRootDirectory() ){
-		return arguments.rootDir & _cleanPath( arguments.path );
+	private string function _expandPath( required string path, boolean trashed=false ){
+		var relativePath = _cleanPath( arguments.path, arguments.trashed );
+
+		return ( arguments.trashed ? _getTrashDirectory() : _getRootDirectory() ) & relativePath;
 	}
 
-	private string function _cleanPath( required string path ){
+	private string function _cleanPath( required string path, boolean trashed=false ){
 		var cleaned = ListChangeDelims( arguments.path, "/", "\" );
 
 		cleaned = ReReplace( cleaned, "^/", "" );
 		cleaned = Trim( cleaned );
-		cleaned = LCase( cleaned );
+		if ( !arguments.trashed ) {
+			cleaned = LCase( cleaned );
+		}
 
 		return cleaned;
 	}

@@ -3,8 +3,8 @@
  */
 component extends="preside.system.base.SystemPresideObject" output=false displayName="Asset derivative" {
 
-	property name="asset"         relationship="many-to-one" required=true  uniqueindexes="derivative|1";
-	property name="asset_version" relationship="many-to-one" required=false uniqueindexes="derivative|2";
+	property name="asset"         relationship="many-to-one" required=true  uniqueindexes="derivative|1" ondelete="cascade";
+	property name="asset_version" relationship="many-to-one" required=false uniqueindexes="derivative|2" ondelete="cascade";
 
 	property name="label" maxLength=200 required=true uniqueindexes="derivative|3";
 
