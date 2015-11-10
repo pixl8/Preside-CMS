@@ -19,3 +19,14 @@ html.presidecms {
   text-indent: -999px;
   background: url(../../../../images/logos/preside-logo-for-login.png ) no-repeat center center;
 }
+.presidecms .login-layout .admin-locale-picker-container {
+  position: absolute;
+  top: 10px;
+  right: 0;
+}
+.presidecms .login-layout .admin-locale-picker-container .admin-locale-picker-link:hover {
+  text-decoration: none;
+}
+.presidecms .admin-locale-picker-container .locale-flag {
+  margin-right: 0.2em;
+}

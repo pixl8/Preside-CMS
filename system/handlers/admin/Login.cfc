@@ -1,18 +1,23 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="loginService"          inject="loginService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
 	property name="sessionStorage"        inject="coldbox:plugin:sessionStorage";
 	property name="adminDefaultEvent"     inject="coldbox:setting:adminDefaultEvent";
 	property name="messageBox"            inject="coldbox:plugin:messageBox";
+	property name="i18n"                  inject="coldbox:plugin:i18n";
 
-	public void function preHandler( event, action, eventArguments ) output=false {
+	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection = arguments );
 
 		event.setLayout( 'adminLogin' );
 	}
 
-	public void function index( event, rc, prc ) output=false {
+	public void function index( event, rc, prc ) {
+		if ( Len( Trim( rc.l ?: "" ) ) ) {
+			i18n.setFwLocale( Trim( rc.l ) );
+		}
+
 		if ( event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
 		}
@@ -22,7 +27,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public void function login( event, rc, prc ) output=false {
+	public void function login( event, rc, prc ) {
 		var user         = "";
 		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
 		var unsavedData  = sessionStorage.getVar( "_unsavedFormData", {} );
@@ -55,7 +60,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public void function firstTimeUserSetupAction( event, rc, prc ) output=false {
+	public void function firstTimeUserSetupAction( event, rc, prc ) {
 		var emailAddress         = rc.email_address ?: "";
 		var password             = rc.password ?: "";
 		var passwordConfirmation = rc.passwordConfirmation ?: "";
@@ -80,7 +85,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} );
 	}
 
-	public void function logout( event, rc, prc ) output=false {
+	public void function logout( event, rc, prc ) {
 		var user        = "";
 
 		if ( event.isAdminUser() ) {
@@ -104,7 +109,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		setNextEvent( url=event.buildAdminLink( linkto="login" ) );
 	}
 
-	public void function forgottenPassword( event, rc, prc ) output=false {
+	public void function forgottenPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
 		}
@@ -112,7 +117,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.setView( "/admin/login/forgottenPassword" );
 	}
 
-	public void function sendResetInstructions( event, rc, prc ) output=false {
+	public void function sendResetInstructions( event, rc, prc ) {
 		if ( loginService.sendPasswordResetInstructions( rc.loginId ?: "" ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login.forgottenPassword" ), persistStruct={
 				message = "PASSWORD_RESET_INSTRUCTIONS_SENT"
@@ -124,7 +129,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} );
 	}
 
-	public void function resetPassword( event, rc, prc ) output=false {
+	public void function resetPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
 		}
@@ -143,7 +148,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		event.setView( "/admin/login/resetPassword" );
 	}
 
-	public void function resetPasswordAction( event, rc, prc ) output=false {
+	public void function resetPasswordAction( event, rc, prc ) {
 		var pw           = rc.password             ?: "";
 		var confirmation = rc.passwordConfirmation ?: "";
 		var token        = rc.token                ?: "";

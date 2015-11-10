@@ -307,7 +307,15 @@ component {
 
 		if ( !sessionIsUsed ) {
 			this.sessionTimeout = CreateTimeSpan( 0, 0, 0, 1 );
+
+			var cookies = Duplicate( cookie );
 			getPageContext().setHeader( "Set-Cookie", NullValue() );
+
+			for( var cookieName in cookies ) {
+				if ( ![ "cfid", "cftoken", "jsessionid" ].findNoCase( cookieName ) ) {
+					cookie[ cookieName ] = cookies[ cookieName ];
+				}
+			}
 		}
 	}
 
