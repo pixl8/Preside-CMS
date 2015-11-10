@@ -280,8 +280,16 @@ component {
 		}
 
 		if ( !sessionIsUsed ) {
+			var cookies = Duplicate( cookie );
+
 			session.setMaxInactiveInterval(  javaCast( "long", 1 ) );
-			getPageContext().setHeader( "Set-Cookie", "" );
+			getPageContext().setHeader( "Set-Cookie", NullValue() );
+
+			for( var cookieName in cookies ) {
+				if ( ![ "cfid", "cftoken", "jsessionid" ].findNoCase( cookieName ) ) {
+					cookie[ cookieName ] = cookies[ cookieName ];
+				}
+			}
 		}
 	}
 
