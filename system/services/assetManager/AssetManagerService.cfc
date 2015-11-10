@@ -651,6 +651,39 @@ component {
 		return false;
 	}
 
+	public boolean function restoreAssets( required array assetIds, required string folderId ) {
+		var folder             = getFolder( arguments.folderId );
+		var restoredAssetCount = 0;
+
+		if ( folder.recordCount ) {
+			areAssetsAllowedInFolder(
+				  assetIds   = arguments.assetIds
+				, folderId   = arguments.folderId
+				, throwIfNot = true
+			);
+
+			for( var assetId in arguments.assetIds ) {
+				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path" ] );
+				if ( asset.recordCount ) {
+					var newPath = LCase( assetId & "." & asset.asset_type );
+
+					_getStorageProvider().restoreObject( asset.trashed_path, newPath );
+					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
+						  asset_folder   = arguments.folderId
+						, title          = asset.original_title
+						, storage_path   = newPath
+						, original_title = ""
+						, trashed_path   = ""
+					} );
+				}
+			}
+
+			return restoredAssetCount;
+		}
+
+		return false;
+	}
+
 	public struct function getAssetType( string filename="", string name=ListLast( arguments.fileName, "." ), boolean throwOnMissing=false ) {
 		var types = _getTypes();
 
@@ -709,7 +742,7 @@ component {
 				, versionId      = arguments.versionId
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
-				, selectFields   = selectFields
+				, selectFields   = [ "storage_path" ]
 			);
 		} else {
 			asset = Len( Trim( arguments.versionId ) )

@@ -245,22 +245,33 @@ component extends="preside.system.base.AdminHandler" {
 	function moveAssetsAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
 
-		var assetIds   = ListToArray( rc.assets ?: "" );
-		var folderId   = rc.toFolder   ?: "";
-		var fromFolder = rc.fromFolder ?: "";
-
+		var assetIds      = ListToArray( rc.assets ?: "" );
+		var folderId      = rc.toFolder   ?: "";
+		var fromFolder    = rc.fromFolder ?: "";
+		var trashFolderId = assetManagerService.getTrashFolderId();
+		var fromTrash     = fromFolder == trashFolderId;
 
 		if ( assetIds.len() ) {
 			if ( !Len( Trim( fromFolder ) ) ) {
 				var asset = assetmanagerService.getAsset( assetIds[1] );
 				fromFolder = asset.asset_folder ?: "";
+				fromTrash  = fromFolder == trashFolderId;
 			}
 			var success = true;
 			try {
-				assetManagerService.moveAssets(
-					  assetIds = assetIds
-					, folderId = folderId
-				);
+				if ( fromTrash ) {
+					assetManagerService.restoreAssets(
+						  assetIds  = assetIds
+						, folderId  = folderId
+						, fromTrash = fromTrash
+					);
+				} else {
+					assetManagerService.moveAssets(
+						  assetIds  = assetIds
+						, folderId  = folderId
+						, fromTrash = fromTrash
+					);
+				}
 			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
 				success = false;
 			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
@@ -272,7 +283,12 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );
+		if ( fromTrash ) {
+			messagebox.info( translateResource( "cms:assetmanager.assets.restored.confirmation" ) );
+		} else {
+			messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );
+		}
+
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 	}
 
