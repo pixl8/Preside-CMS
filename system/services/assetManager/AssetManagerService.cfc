@@ -933,6 +933,8 @@ component {
 			]
 		);
 
+		var versionImageDimension =  _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+
 		if ( versionToMakeActive.recordCount ) {
 			return _getAssetDao().updateData( id=arguments.assetId, data={
 				  active_version   = arguments.versionId
@@ -942,6 +944,8 @@ component {
 				, raw_text_content = versionToMakeActive.raw_text_content
 				, created_by       = versionToMakeActive.created_by
 				, updated_by       = versionToMakeActive.updated_by
+				, width            = versionImageDimension.width  ?: ""
+				, height           = versionImageDimension.height ?: ""
 			} );
 		}
 
