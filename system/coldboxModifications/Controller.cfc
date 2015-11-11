@@ -87,10 +87,25 @@ component extends="coldbox.system.web.Controller" output=false {
 		if ( not viewExists( view ) ) {
 			view = ListAppend( view, defaultAction, "/" );
 		}
-		return getPlugin( "Renderer" ).renderView(
-			  view = view
-			, args = arguments.args
-		);
+
+		try {
+			return getPlugin( "Renderer" ).renderView(
+				  view = view
+				, args = arguments.args
+			);
+		} catch ( "missinginclude" e ) {
+			var cache             = getCacheBox().getCache( "ViewletExistsCache" );
+			var missingCheckedKey = "doublecheckmissing" & arguments.event;
+			var checkedAlready    = cache.get( missingCheckedKey );
+
+			if ( IsNull( checkedAlready ) ) {
+				cache.clearAll();
+				cache.set( missingCheckedKey, true );
+				return renderViewlet( argumentCollection=arguments );
+			}
+
+			rethrow;
+		}
 	}
 
 	public any function getRequestContext() output=false {
