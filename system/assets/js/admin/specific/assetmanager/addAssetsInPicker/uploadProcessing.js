@@ -71,7 +71,7 @@
 
 	setDefaultFormValuesForSubsequentForms = function(){
 		var currentFormValues = getActiveForm().serializeObject()
-		  , excludeFields     = /label|description|fileid/i
+		  , excludeFields     = /title|description|fileid/i
 		  , key, i, $field;
 
 
