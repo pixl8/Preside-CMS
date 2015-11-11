@@ -8,7 +8,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function handlerExists( required string event ) output=false {
-		var cache      = getCacheBox().getCache( "default" );
+		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
 		var handlerSvc = "";
 		var handler    = "";
 		var action     = ListLast( arguments.event, "." );
@@ -43,7 +43,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function viewExists( required string view ) output=false {
-		var cache      = getCacheBox().getCache( "default" );
+		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
 		var cacheKey   = "view exists: " & arguments.view;
 		var exists     = cache.get( cacheKey );
 		var targetView = "";
