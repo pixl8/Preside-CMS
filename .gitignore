@@ -1,3 +1,4 @@
 /version.json
 jmimemagic.log
 .twgit*
+.zanata-cache
