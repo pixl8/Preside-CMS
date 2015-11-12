@@ -10,8 +10,6 @@
 	aHasChildrenAttributes  = args.aHasChildrenAttributes  ?: '';
 </cfscript>
 
-
-
 <cfoutput>
 	<cfloop array="#menuItems#" index="i" item="item">
 		<cfset hasChildren = item.children.len() />
