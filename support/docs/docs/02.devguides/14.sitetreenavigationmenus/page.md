@@ -15,7 +15,7 @@ The purpose of the main navigation viewlet is to render the menu that normally a
 <nav role="navigation">
     <ul class="nav navbar-nav">
         <li class="hiddex-sm home-nav"><a href="/"><span class="fa fa-home"></span></a></li>
-        
+
         #renderViewlet( event="core.navigation.mainNavigation", args={ depth=2 } )#
     </ul>
 </nav>
@@ -65,6 +65,41 @@ You can pass the following arguments to the viewlet through the `args` structure
         <tbody>
             <tr><td>`rootPage`</td> <td>ID of the page who's children make up the top level of the menu. This defaults to the site's homepage.</td></tr>
             <tr><td>`depth`</td>    <td>Number of nested dropdown levels to drill into. Default is 1, i.e. just render the immediate children of the root page and have no drop downs</td></tr>
+
+            <tr>
+                <td>`ulNestedClass`</td>
+                <td>You can change the sub menu UL class using this variable. Default:'dropdown-menu'</td>
+            </tr>
+
+            <tr>
+                <td>`liCurrentClass`</td>
+                <td>You can change the class of the current active li using this variable. Default:'active'</td>
+            </tr>
+
+            <tr>
+                <td>`liHasChildrenClass`</td>
+                <td>You can change the sub menu li class using this variable. Default:'dropdown'</td>
+            </tr>
+
+            <tr>
+                <td>`liHasChildrenAttributes`</td>
+                <td>You can configure the addtional attributes for the li using this variable. Default:none</td>
+            </tr>
+
+             <tr>
+                <td>`aCurrentClass`</td>
+                <td>You can change the class of the current active link using this variable. Default:'active'</td>
+            </tr>
+
+            <tr>
+                <td>`aHasChildrenClass`</td>
+                <td>You can change the sub menu achor link class using this variable. Default:none</td>
+            </tr>
+
+            <tr>
+                <td>`aHasChildrenAttributes`</td>
+                <td>You can configure the additional attributes for sub menu achor link using this variable. Default:none</td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -90,19 +125,19 @@ You might find yourself in a position where the HTML markup provided by the core
                 "id"       : "F9923DE1-9B2D-4544-A4E7F8E198888000",
                 "title"    : "Our team",
                 "active"   : false,
-                "children" : []      
+                "children" : []
             },
             {
                 "id"       : "F9923DE1-9B2D-4544-A4E7F8E198888FF8",
                 "title"    : "Our offices",
                 "active"   : false,
-                "children" : []      
+                "children" : []
             },
             {
                 "id"       : "F9923DE1-9B2D-4544-A4E7F8E1988887FE",
                 "title"    : "Our ethos",
                 "active"   : false,
-                "children" : []      
+                "children" : []
             }
         ]
     },
@@ -216,7 +251,7 @@ The view looks like this:
 
 ### Request context helper methods
 
-There are two helper methods available to you in the request context, `event.getBreadCrumbs()` and `event.addBreadCrumb( title, link )`. 
+There are two helper methods available to you in the request context, `event.getBreadCrumbs()` and `event.addBreadCrumb( title, link )`.
 
 The `getBreadCrumbs()` method returns an array of the breadcrumbs that have been registered for the request. Each breadcrumb is a structure containing `title` and `link` keys.
 
