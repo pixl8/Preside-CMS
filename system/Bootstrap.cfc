@@ -129,6 +129,9 @@ component {
 		try {
 			lock name=lockname type="exclusive" timeout=locktimeout {
 				if ( _reloadRequired() ) {
+					_announceInterception( "prePresideReload" );
+
+
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
 
 					_clearExistingApplication();
@@ -136,6 +139,7 @@ component {
 					_setupInjectedDatasource();
 					_initColdBox();
 
+					_announceInterception( "postPresideReload" );
 					log file="application" text="Application start up complete";
 				}
 			}
@@ -347,5 +351,12 @@ component {
 		this.tag.location.addToken     = false;
 	}
 
+	private void function _announceInterception() {
+		var controller = _getColdboxController();
+
+		if ( !IsNull( controller ) ) {
+			controller.getInterceptorService().processState( argumentCollection=arguments );
+		}
+	}
 
 }
