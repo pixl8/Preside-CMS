@@ -43,6 +43,7 @@ component output=false {
 		};
 
 		interceptors = [
+			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
@@ -115,7 +116,7 @@ component output=false {
 					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
 				}
 			},
-			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' }
 		};
 
 		settings.eventName                   = "event";
