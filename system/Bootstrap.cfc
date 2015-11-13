@@ -6,7 +6,7 @@ component {
 		, boolean sessionManagement            = true
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
-		, numeric applicationReloadLockTimeout = 60
+		, numeric applicationReloadLockTimeout = 1
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -20,12 +20,6 @@ component {
 	}
 
 // APPLICATION LIFECYCLE EVENTS
-	public boolean function onApplicationStart() {
-		_initEveryEverything();
-
-		return true;
-	}
-
 	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
 		_setupInjectedDatasource();
