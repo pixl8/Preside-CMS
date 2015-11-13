@@ -26,10 +26,7 @@ component {
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
-			var targetPage = arguments.targetPage;
-			return _initEveryEverything( function(){
-				return application.cbBootstrap.onRequestStart( targetPage );
-			});
+			_initEveryEverything();
 		}
 
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
@@ -122,7 +119,7 @@ component {
 		this.customTagPaths = ListAppend( this.customTagPaths ?: "", tagsDir );
 	}
 
-	private any function _initEveryEverything( any onSuccess ) {
+	private any function _initEveryEverything() {
 		var lockName       = "presideapplicationreload" & Hash( GetCurrentTemplatePath() );
 		var requestTimeout = this.PRESIDE_APPLICATION_RELOAD_TIMEOUT;
 		var lockTimeout    = this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT;
@@ -132,14 +129,15 @@ component {
 		try {
 			lock name=lockname type="exclusive" timeout=locktimeout {
 				if ( _reloadRequired() ) {
+					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
+					sleep( 10000 );
+
 					_clearExistingApplication();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
 					_initColdBox();
-				}
 
-				if ( arguments.keyExists( "onSuccess" ) ) {
-					return arguments.onSuccess();
+					log file="application" text="Application start up complete";
 				}
 			}
 		} catch( lock e ) {
