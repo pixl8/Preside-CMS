@@ -6,7 +6,7 @@ component {
 		, boolean sessionManagement            = true
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
-		, numeric applicationReloadLockTimeout = 60
+		, numeric applicationReloadLockTimeout = 15
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -20,22 +20,13 @@ component {
 	}
 
 // APPLICATION LIFECYCLE EVENTS
-	public boolean function onApplicationStart() {
-		_initEveryEverything();
-
-		return true;
-	}
-
 	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
 		_setupInjectedDatasource();
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
-			var targetPage = arguments.targetPage;
-			return _initEveryEverything( function(){
-				return application.cbBootstrap.onRequestStart( targetPage );
-			});
+			_initEveryEverything();
 		}
 
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
@@ -128,7 +119,7 @@ component {
 		this.customTagPaths = ListAppend( this.customTagPaths ?: "", tagsDir );
 	}
 
-	private any function _initEveryEverything( any onSuccess ) {
+	private any function _initEveryEverything() {
 		var lockName       = "presideapplicationreload" & Hash( GetCurrentTemplatePath() );
 		var requestTimeout = this.PRESIDE_APPLICATION_RELOAD_TIMEOUT;
 		var lockTimeout    = this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT;
@@ -138,14 +129,18 @@ component {
 		try {
 			lock name=lockname type="exclusive" timeout=locktimeout {
 				if ( _reloadRequired() ) {
+					_announceInterception( "prePresideReload" );
+
+
+					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
+
 					_clearExistingApplication();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
 					_initColdBox();
-				}
 
-				if ( arguments.keyExists( "onSuccess" ) ) {
-					return arguments.onSuccess();
+					_announceInterception( "postPresideReload" );
+					log file="application" text="Application start up complete";
 				}
 			}
 		} catch( lock e ) {
@@ -356,5 +351,12 @@ component {
 		this.tag.location.addToken     = false;
 	}
 
+	private void function _announceInterception() {
+		var controller = _getColdboxController();
+
+		if ( !IsNull( controller ) ) {
+			controller.getInterceptorService().processState( argumentCollection=arguments );
+		}
+	}
 
 }

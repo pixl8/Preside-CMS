@@ -11,7 +11,7 @@ component extends="Bootstrap" {
 	this.sessionManagement = true;
 	this.sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 );
 
-	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 60;
+	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 15;
 	this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = 1200;
 
 	_setupMappings();

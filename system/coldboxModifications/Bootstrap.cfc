@@ -1,7 +1,6 @@
 component extends="coldbox.system.Coldbox" output="false" {
 
 	public void function loadColdbox() output=false {
-		_announceInterception( "prePresideReload" );
 		var appKey     = super.locateAppKey();
 		var controller = new Controller( COLDBOX_APP_ROOT_PATH, appKey );
 
@@ -13,7 +12,6 @@ component extends="coldbox.system.Coldbox" output="false" {
 
 		StructDelete( application, appKey );
 		application[ appKey ] = controller;
-		_announceInterception( "postPresideReload" );
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
@@ -302,14 +300,5 @@ component extends="coldbox.system.Coldbox" output="false" {
 	}
 	public string function getCOLDBOX_APP_MAPPING() output=false {
 		return variables.COLDBOX_APP_MAPPING;
-	}
-
-
-	private void function _announceInterception() output=false {
-		var controller = getController();
-
-		if ( !IsNull( controller ) ) {
-			controller.getInterceptorService().processState( argumentCollection=arguments );
-		}
 	}
 }
