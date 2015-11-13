@@ -130,7 +130,6 @@ component {
 			lock name=lockname type="exclusive" timeout=locktimeout {
 				if ( _reloadRequired() ) {
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
-					sleep( 10000 );
 
 					_clearExistingApplication();
 					_fetchInjectedSettings();
