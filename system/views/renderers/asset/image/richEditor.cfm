@@ -15,14 +15,15 @@
 	}
 
 
-	if ( IsNumeric( args.spacing ?: "" ) ) {
-		style &= "margin:#Trim(args.spacing)#px;";
+	if ( IsNumeric( args.spacing_top ?: "" ) || IsNumeric( args.spacing_right ) || IsNumeric( args.spacing_bottom) || IsNumeric( args.spacing_left ) ) {
+
+		style &= "margin:#Trim(args.spacing_top)#px #Trim(args.spacing_right)#px #Trim(args.spacing_bottom)#px #Trim(args.spacing_left)#px;";
 
 		switch( args.alignment ?: "" ) {
-			case "left"   : style &= "margin-left:0;"; break;
-			case "right"  : style &= "margin-right:0;"; break;
-			case "center" : style &= "margin:0 auto; display:block;text-align:center"; break;
-			default       : style &= "margin-left:0;margin-right:0;"; break;
+			case "left"   : style &= "float:left;"; break;
+			case "right"  : style &= "float:right;"; break;
+			case "center" : style = "margin:#Trim(args.spacing_top)# auto #Trim(args.spacing_bottom)# auto; display:block;text-align:center"; break;
+			default       : style &= ""; break;
 		}
 	}
 
