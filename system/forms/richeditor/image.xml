@@ -18,9 +18,9 @@ This form is used for the add/edit image screen in the richeditor.
 	<tab id="spacing" sortorder="20" title="cms:ckeditor.imagepicker.spacing.tab">
 		<fieldset id="spacing" sortorder="20">
 			<field sortorder="60" name="spacing_top"     control="spinner" required="false" label="cms:ckeditor.imagepicker.spacing_top.label"    default="5" />
-			<field sortorder="60" name="spacing_right"   control="spinner" required="false" label="cms:ckeditor.imagepicker.spacing_left.label"   default="5" />
+			<field sortorder="60" name="spacing_right"   control="spinner" required="false" label="cms:ckeditor.imagepicker.spacing_right.label"  default="5" />
 			<field sortorder="60" name="spacing_bottom"  control="spinner" required="false" label="cms:ckeditor.imagepicker.spacing_bottom.label" default="5" />
-			<field sortorder="60" name="spacing_left"    control="spinner" required="false" label="cms:ckeditor.imagepicker.spacing_right.label"  default="5" />
+			<field sortorder="60" name="spacing_left"    control="spinner" required="false" label="cms:ckeditor.imagepicker.spacing_left.label"   default="5" />
 		</fieldset>
 	</tab>
 
