@@ -257,6 +257,10 @@ component displayName="Multilingual Preside Object Service" {
 					 arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				}
 
+				if ( !$isAdminUserLoggedIn() ) {
+					 arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_active = 1";
+				}
+
 				arguments.preparedFilter.params.append( { name="_translation_language", type="varchar", value=arguments.language } );
 			}
 		}
