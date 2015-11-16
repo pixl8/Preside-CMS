@@ -20,9 +20,7 @@
 		style &= "margin:#Trim(args.spacing_top)#px #Trim(args.spacing_right)#px #Trim(args.spacing_bottom)#px #Trim(args.spacing_left)#px;";
 
 		switch( args.alignment ?: "" ) {
-			case "left"   : style &= "float:left;"; break;
-			case "right"  : style &= "float:right;"; break;
-			case "center" : style = "margin:#Trim(args.spacing_top)# auto #Trim(args.spacing_bottom)# auto; display:block;text-align:center"; break;
+			case "center" : style = "margin:#Trim(args.spacing_top)#px auto #Trim(args.spacing_bottom)#px auto; display:block;text-align:center"; break;
 			default       : style &= ""; break;
 		}
 	}
