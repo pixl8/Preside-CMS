@@ -15,16 +15,18 @@
 	}
 
 
-	if ( IsNumeric( args.spacing_top ?: "" ) || IsNumeric( args.spacing_right ) || IsNumeric( args.spacing_bottom) || IsNumeric( args.spacing_left ) ) {
+	spacing = {
+		  top    = Val( args.spacing_top    ?: ( args.spacing ?: 0 ) )
+		, right  = Val( args.spacing_right  ?: ( args.spacing ?: 0 ) )
+		, bottom = Val( args.spacing_bottom ?: ( args.spacing ?: 0 ) )
+		, left   = Val( args.spacing_left   ?: ( args.spacing ?: 0 ) )
+	};
 
-		style &= "margin:#Trim(args.spacing_top)#px #Trim(args.spacing_right)#px #Trim(args.spacing_bottom)#px #Trim(args.spacing_left)#px;";
-
-		switch( args.alignment ?: "" ) {
-			case "center" : style = "margin:#Trim(args.spacing_top)#px auto #Trim(args.spacing_bottom)#px auto; display:block;text-align:center"; break;
-			default       : style &= ""; break;
-		}
+	if ( args.alignment == "center" ) {
+		style = "margin:#Trim(spacing.top)#px auto #Trim(spacing.bottom)#px auto; display:block;text-align:center";
+	} else {
+		style &= "margin:#Trim(spacing.top)#px #Trim(spacing.right)#px #Trim(spacing.bottom)#px #Trim(spacing.left)#px;";
 	}
-
 </cfscript>
 
 <cfoutput>
