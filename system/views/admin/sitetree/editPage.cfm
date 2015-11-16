@@ -39,7 +39,6 @@
 
 	<div class="top-right-button-group">
 		<div class="pull-right">
-			<a href="#backToTreeLink#"><i class="fa fa-fw fa-reply"></i> #backToTreeTitle#</a>
 			<button data-toggle="dropdown" class="btn btn-sm inline">
 				<span class="fa fa-caret-down"></span>
 				<i class="fa fa-fw fa-cog"></i>&nbsp; #translateResource( uri="cms:sitetree.editpage.options.dropdown.btn" )#
@@ -122,6 +121,10 @@
 				</ul>
 			</div>
 		</cfif>
+
+		<div class="pull-right">
+			<a href="#backToTreeLink#"><i class="fa fa-fw fa-reply"></i> #backToTreeTitle#</a>
+		</div>
 	</div>
 
 	<cfif Len( Trim( editPagePrompt ) )>
