@@ -2,6 +2,7 @@ component extends="coldbox.system.Interceptor" output=false {
 
 	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
 	property name="featureService"                   inject="delayedInjector:featureService";
+	property name="loginService"                     inject="delayedInjector:loginService";
 
 // PUBLIC
 	public void function configure() output=false {}
@@ -38,6 +39,7 @@ component extends="coldbox.system.Interceptor" output=false {
 			if ( language.len() ){
 				interceptData.cacheKey = interceptData.cacheKey ?: "";
 				interceptData.cacheKey &= "_" & language;
+				interceptData.cacheKey &= "_" & loginService.isLoggedIn();
 			}
 		}
 	}
