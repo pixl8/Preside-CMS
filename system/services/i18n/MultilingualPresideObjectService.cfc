@@ -3,28 +3,18 @@
  * translations of standard preside objects possible in a transparent way. Note: You are
  * unlikely to need to deal with this API directly.
  *
- * @singleton   true
- * @autodoc     true
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
  */
 component displayName="Multilingual Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
 	 * @relationshipGuidance.inject       relationshipGuidance
-	 * @systemConfigurationService.inject delayedInjector:systemConfigurationService
-	 * @presideObjectService.inject       delayedInjector:presideObjectService
-	 * @languageDao.inject                delayedInjector:presidecms:object:multilingual_language
 	 */
-	public any function init(
-		  required any relationshipGuidance
-		, required any systemConfigurationService
-		, required any presideObjectService
-		, required any languageDao
-	) {
+	public any function init( required any relationshipGuidance ) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
-		_setSystemConfigurationService( arguments.systemConfigurationService );
-		_setPresideObjectService( arguments.presideObjectService );
-		_setLanguageDao( arguments.languageDao );
 		_setMultiLingualObjectReference( {} );
 
 		return this;
@@ -281,7 +271,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * @autoDoc             true
 	 */
 	public array function listLanguages( boolean includeDefault=true ) {
-		var settings        = _getSystemConfigurationService().getCategorySettings( "multilingual" );
+		var settings        = $getPresideCategorySettings( "multilingual" );
 		var defaultLanguage = settings.default_language ?: "";
 		var languageIds     = ListToArray( settings.additional_languages ?: "" );
 		var languages       = [];
@@ -316,7 +306,7 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
 		var languages = listLanguages( includeDefault=false );
-		var dbRecords = _getPresideObjectService().selectData(
+		var dbRecords = $getPresideObjectService().selectData(
 			  objectName   = _getTranslationObjectPrefix() & objectName
 			, selectFields = [ "_translation_language", "_translation_active" ]
 			, filter       = { _translation_source_record = arguments.recordId }
@@ -378,7 +368,7 @@ component displayName="Multilingual Preside Object Service" {
 	public query function selectTranslation( required string objectName, required string id, required string languageId, array selectFields=[], string version="", boolean useCache=true ) {
 		var translationObjectName = getTranslationObjectName( arguments.objectName );
 		var filter                = { _translation_source_record=arguments.id, _translation_language=arguments.languageId };
-		var presideObjectService  = _getPresideObjectService();
+		var presideObjectService  = $getPresideObjectService();
 		var args                  = {
 			  objectName   = translationObjectName
 			, filter       = filter
@@ -426,7 +416,7 @@ component displayName="Multilingual Preside Object Service" {
 
 			if ( existingTranslation.recordCount ) {
 				returnValue = existingTranslation.id;
-				_getPresideObjectService().updateData(
+				$getPresideObjectService().updateData(
 					  objectName              = translationObjectName
 					, id                      = existingTranslation.id
 					, data                    = arguments.data
@@ -437,7 +427,7 @@ component displayName="Multilingual Preside Object Service" {
 				    newRecordData._translation_source_record = arguments.id;
 				    newRecordData._translation_language      = arguments.languageId;
 
-				returnValue = _getPresideObjectService().insertData(
+				returnValue = $getPresideObjectService().insertData(
 					  objectName              = translationObjectName
 					, data                    = newRecordData
 					, insertManyToManyRecords = true
@@ -527,6 +517,10 @@ component displayName="Multilingual Preside Object Service" {
 		return "_translation_";
 	}
 
+	private any function _getLanguageDao() {
+		return $getPresideObject( "multilingual_language" );
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getMultiLingualObjectReference() {
 		return _multiLingualObjectReference;
@@ -541,26 +535,4 @@ component displayName="Multilingual Preside Object Service" {
 	private void function _setRelationshipGuidance( required any relationshipGuidance ) {
 		_relationshipGuidance = arguments.relationshipGuidance;
 	}
-
-	private any function _getSystemConfigurationService() {
-		return _systemConfigurationService;
-	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
-		_systemConfigurationService = arguments.systemConfigurationService;
-	}
-
-	private any function _getPresideObjectService() {
-		return _presideObjectService;
-	}
-	private void function _setPresideObjectService( required any presideObjectService ) {
-		_presideObjectService = arguments.presideObjectService;
-	}
-
-	private any function _getLanguageDao() {
-		return _languageDao;
-	}
-	private void function _setLanguageDao( required any languageDao ) {
-		_languageDao = arguments.languageDao;
-	}
-
 }
