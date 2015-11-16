@@ -3,19 +3,20 @@
  * For now, just a simple front to a datastore for storing state
  * with a status and owner.
  *
+ * @singleton
  */
-component output=false singleton=true {
+component {
 
 // CONSTRUCTOR
 	/**
-	 * @stateDao.inject presidecms:object:workflow_state
-	 * @sessionStorage.inject coldbox:plugin:SessionStorage
+	 * @stateDao.inject      presidecms:object:workflow_state
+	 * @cookieService.inject cookieService
 	 *
 	 */
-	public any function init( required any stateDao, required any sessionStorage ) output=false {
+	public any function init( required any stateDao, required any cookieService ) {
 		_setStateDao( arguments.stateDao );
-		_setSessionStorage( arguments.sessionStorage );
-		_setSessionKey( "presideworkflowsession" );
+		_setCookieService( arguments.cookieService );
+		_setCookieKey( "presideworkflowsession" );
 
 		return this;
 	}
@@ -26,11 +27,11 @@ component output=false singleton=true {
 		, required string status
 		,          string workflow   = ""
 		,          string reference  = ""
-		,          string owner      = _getSessionBasedOwner()
+		,          string owner      = _getCookieBasedOwner()
 		,          string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 		,          date   expires
 
-	) output=false {
+	) {
 		var serializedState = SerializeJson( arguments.state );
 
 		if ( Len( Trim( arguments.id ) ) ) {
@@ -57,11 +58,11 @@ component output=false singleton=true {
 		, required string status
 		,          string workflow   = ""
 		,          string reference  = ""
-		,          string owner      = _getSessionBasedOwner()
+		,          string owner      = _getCookieBasedOwner()
 		,          string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
 		,          date   expires
 
-	) output=false {
+	) {
 		var existingWf = getState( argumentCollection=arguments );
 		var newState   = existingWf.state ?: {};
 
@@ -73,9 +74,9 @@ component output=false singleton=true {
 	public struct function getState(
 		  string workflow   = ""
 		, string reference  = ""
-		, string owner      = _getSessionBasedOwner()
+		, string owner      = _getCookieBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
-	) output=false {
+	) {
 		if ( Len( Trim( arguments.id  ) ) ) {
 			var record = _getStateDao().selectData( id=arguments.id );
 
@@ -96,9 +97,9 @@ component output=false singleton=true {
 	public boolean function complete(
 		  string workflow   = ""
 		, string reference  = ""
-		, string owner      = _getSessionBasedOwner()
+		, string owner      = _getCookieBasedOwner()
 		, string id         = _getRecordIdByWorkflowNameReferenceAndOwner( arguments.workflow, arguments.reference, arguments.owner )
-	) output=false {
+	) {
 		if ( Len( Trim( arguments.id ) ) ) {
 			return _getStateDao().deleteData( id=arguments.id );
 		}
@@ -106,7 +107,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private string function _getRecordIdByWorkflowNameReferenceAndOwner( required string workflow, required string reference, required string owner ) output=false {
+	private string function _getRecordIdByWorkflowNameReferenceAndOwner( required string workflow, required string reference, required string owner ) {
 		if ( Len( Trim( arguments.workflow ) ) && Len( Trim( arguments.reference ) ) && Len( Trim( arguments.owner ) ) ) {
 			var record = _getStateDao().selectData(
 				  selectFields = [ "id", "expires" ]
@@ -118,10 +119,10 @@ component output=false singleton=true {
 				return "";
 			}
 
-			if ( !record.recordCount && owner != _getSessionBasedOwner() ) {
+			if ( !record.recordCount && owner != _getCookieBasedOwner() ) {
 				record = _getStateDao().selectData(
 					  selectFields = [ "id" ]
-					, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=_getSessionBasedOwner() }
+					, filter       = { workflow=arguments.workflow, reference=arguments.reference, owner=_getCookieBasedOwner() }
 				);
 
 				if ( record.recordCount ) {
@@ -135,42 +136,42 @@ component output=false singleton=true {
 		return "";
 	}
 
-	private string function _getSessionBasedOwner() output=false {
-		var ss = _getSessionStorage();
-		var sessionKey = _getSessionKey();
-		var owner = ss.getVar( sessionKey, "" );
+	private string function _getCookieBasedOwner() {
+		var cookieService = _getCookieService();
+		var cookieKey     = _getCookieKey();
+		var owner         = cookieService.getVar( cookieKey, "" );
 
 		if ( !Len( Trim( owner ) ) ) {
 			var owner = CreateUUId();
-			ss.setVar( sessionKey, owner );
+			cookieService.setVar( cookieKey, owner );
 		}
 
 		return owner;
 	}
 
-	private boolean function _hasStateExpired( required any expires ) output=false {
+	private boolean function _hasStateExpired( required any expires ) {
 		return IsDate( arguments.expires ) && Now() > expires;
 	}
 
 // GETTERS AND SETTERS
-	private any function _getStateDao() output=false {
+	private any function _getStateDao() {
 		return _stateDao;
 	}
-	private void function _setStateDao( required any stateDao ) output=false {
+	private void function _setStateDao( required any stateDao ) {
 		_stateDao = arguments.stateDao;
 	}
 
-	private any function _getSessionStorage() output=false {
+	private any function _getCookieService() {
 		return _sessionStorage;
 	}
-	private void function _setSessionStorage( required any sessionStorage ) output=false {
-		_sessionStorage = arguments.sessionStorage;
+	private void function _setCookieService( required any cookieService ) {
+		_sessionStorage = arguments.cookieService;
 	}
 
-	private string function _getSessionKey() output=false {
-		return _sessionKey;
+	private string function _getCookieKey() {
+		return _cookieKey;
 	}
-	private void function _setSessionKey( required string sessionKey ) output=false {
-		_sessionKey = arguments.sessionKey;
+	private void function _setCookieKey( required string cookieKey ) {
+		_cookieKey = arguments.cookieKey;
 	}
 }
