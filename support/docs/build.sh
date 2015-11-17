@@ -13,7 +13,7 @@ if [ -f .exitcode ]; then
 fi
 
 echo "Building complete"
-if [[ $TRAVIS_BRANCH == 'stable' ]] ; then
+if [[ $TRAVIS_TAG == v* ]] ; then
   echo "Zipping up docs for offline download..."
   cd builds/html
   zip -q -r presidecms-docs.zip *
