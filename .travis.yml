@@ -1,4 +1,6 @@
 language: java
+rvm:
+- 1.9.3
 sudo: false
 env:
   global:
@@ -11,6 +13,7 @@ before_install:
 install:
 - curl --location 'https://www.ortussolutions.com/parent/download/commandbox/type/bin' -o /tmp/box.zip
 - unzip /tmp/box.zip -d /tmp/bin
+- gem install s3_website
 before_script:
 - mysql -e 'create database preside_test;'
 script:
