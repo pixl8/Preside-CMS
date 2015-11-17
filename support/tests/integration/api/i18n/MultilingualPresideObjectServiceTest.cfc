@@ -21,7 +21,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 
 		var languagesCombined = ListToArray( mockSettings.additional_languages );
 		languagesCombined.prepend( mockSettings.default_language );
-		mockSystemConfigurationService.$( "getCategorySettings" ).$args( "multilingual" ).$results( mockSettings );
+		svc.$( "$getPresideCategorySettings" ).$args( "multilingual" ).$results( mockSettings );
 		mockLanguageDao.$( "selectData" ).$args( filter={ id=languagesCombined } ).$results( mockDbData );
 
 		super.assertEquals( expectedResult, svc.listLanguages() );
@@ -45,7 +45,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		];
 
 		var languagesCombined = ListToArray( mockSettings.additional_languages );
-		mockSystemConfigurationService.$( "getCategorySettings" ).$args( "multilingual" ).$results( mockSettings );
+		svc.$( "$getPresideCategorySettings" ).$args( "multilingual" ).$results( mockSettings );
 		mockLanguageDao.$( "selectData" ).$args( filter={ id=languagesCombined } ).$results( mockDbData );
 
 		super.assertEquals( expectedResult, svc.listLanguages( includeDefault=false ) );
@@ -259,11 +259,13 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		mockPresideObjectService       = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
 		mockLanguageDao                = getMockbox().createStub();
 
-		return getMockbox().createMock( object=new preside.system.services.i18n.MultilingualPresideObjectService(
-			  relationshipGuidance       = mockRelationshipGuidance
-			, systemConfigurationService = mockSystemConfigurationService
-			, presideObjectService       = mockPresideObjectService
-			, languageDao                = mockLanguageDao
+		var svc = getMockbox().createMock( object=new preside.system.services.i18n.MultilingualPresideObjectService(
+			 relationshipGuidance       = mockRelationshipGuidance
 		) );
+
+		svc.$( "$getPresideObject" ).$args( "multilingual_language" ).$results( mockLanguageDao );
+		svc.$( "$getPresideObjectService", mockPresideObjectService );
+
+		return svc;
 	}
 }
