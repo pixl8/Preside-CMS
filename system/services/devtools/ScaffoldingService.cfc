@@ -23,7 +23,7 @@ component singleton=true {
 
 // PUBLIC API METHODS
 	public array function scaffoldWidget( required string id, string name="",  string description="", string icon="fa-magic", string options="", string extension="", boolean createHandler=false ) {
-		var filesCreated = [];
+		var filesCreated = _ensureExtensionExists( arguments.extension );
 		var i18nProps    = StructNew( "linked" );
 
 		if ( _getWidgetsService().widgetExists( arguments.id ) ) {
@@ -31,8 +31,9 @@ component singleton=true {
 		}
 
 		if ( arguments.createHandler ) {
-			filesCreated.append( scaffoldViewletHandler( handlerName=arguments.id, subDir="widgets", extension=arguments.extension ) );
+			filesCreated.append( scaffoldWidgetViewletHandler( handlerName=arguments.id, subDir="widgets", extension=arguments.extension ) );
 			filesCreated.append( scaffoldView( viewName="index", subDir="widgets/#arguments.id#", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
+			filesCreated.append( scaffoldWidgetPlaceholderView( widgetId=arguments.id, extension=arguments.extension, args=ListToArray( arguments.options ) ) );
 
 		} else {
 			filesCreated.append( scaffoldView( viewName=arguments.id, subDir="widgets", extension=arguments.extension, args=ListToArray( arguments.options ) ) );
@@ -43,12 +44,14 @@ component singleton=true {
 		i18nProps["iconclass"]=arguments.icon;
 
 		for( var option in ListToArray( arguments.options ) ) {
-			i18nProps[ "form.#option#.label" ] = option;
+			i18nProps[ "field.#option#.title" ] = option;
+			i18nProps[ "field.#option#.placeholder" ] = "";
+			i18nProps[ "field.#option#.help" ] = "";
 		}
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="widgets", extension=arguments.extension, properties=i18nProps ) );
 
 		if ( Len( Trim( arguments.options ) ) ) {
-			filesCreated.append( scaffoldSimpleForm( formName=arguments.id, subDir="widgets", extension=arguments.extension, fields=ListToArray( arguments.options ), labelPrefix="widgets.#arguments.id#:form." ) );
+			filesCreated.append( scaffoldSimpleForm( formName=arguments.id, subDir="widgets", extension=arguments.extension, fields=ListToArray( arguments.options ), i18nBaseUri="widgets.#arguments.id#:" ) );
 		}
 
 		_getWidgetsService().reload();
@@ -57,7 +60,7 @@ component singleton=true {
 	}
 
 	public array function scaffoldPageType( required string id, string name="", string pluralName=arguments.name, string description="", string icon="page-o" string fields="", string extension="", boolean createHandler=false ) {
-		var filesCreated = [];
+		var filesCreated = _ensureExtensionExists( arguments.extension );
 		var i18nProps    = StructNew( "linked" );
 
 		if ( _getPageTypesService().pageTypeExists( arguments.id ) ) {
@@ -65,7 +68,7 @@ component singleton=true {
 		}
 
 		if ( arguments.createHandler ) {
-			filesCreated.append( scaffoldViewletHandler( handlerName=arguments.id, subDir="page-types", extension=arguments.extension ) );
+			filesCreated.append( scaffoldPageTypeViewletHandler( handlerName=arguments.id, subDir="page-types", extension=arguments.extension ) );
 		}
 
 		filesCreated.append( scaffoldPresideObjectCfc( objectName=arguments.id, subDir="page-types", extension=arguments.extension, properties=ListToArray( arguments.fields ) ) );
@@ -79,10 +82,10 @@ component singleton=true {
 		for( var field in ListToArray( arguments.fields ) ) {
 			i18nProps[ "field.#field#.title" ] = field;
 		}
-		i18nProps[ "form.tab.title" ] = arguments.name;
-		i18nProps[ "form.tab.description" ] = "";
-		i18nProps[ "form.fieldset.title" ] = "";
-		i18nProps[ "form.fieldset.description" ] = "";
+		i18nProps[ "tab.#arguments.id#.title" ] = arguments.name;
+		i18nProps[ "tab.#arguments.id#.description" ] = "";
+		i18nProps[ "fieldset.#arguments.id#.title" ] = "";
+		i18nProps[ "fieldset.#arguments.id#.description" ] = "";
 		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="page-types", extension=arguments.extension, properties=i18nProps ) );
 
 
@@ -90,7 +93,7 @@ component singleton=true {
 	}
 
 	public array function scaffoldPresideObject( required string objectName, string name="", string pluralName=arguments.name, string description="", string extension="", string properties="", string datamanagerGroup="" ) {
-		var filesCreated   = [];
+		var filesCreated   = _ensureExtensionExists( arguments.extension );
 		var i18nProps      = { title=arguments.pluralName, "title.singular"=arguments.name, description=arguments.description };
 		var i18nGroupProps = { title=arguments.datamanagerGroup, description=arguments.datamanagerGroup & " data manager group", iconclass="fa-square-o" };
 		var root           = _getScaffoldRoot( arguments.extension );
@@ -113,14 +116,135 @@ component singleton=true {
 		return filesCreated;
 	}
 
-	public string function scaffoldViewletHandler( required string handlerName, string subDir="", string extension="" ) {
+	public array function scaffoldExtension( required string id, required string title, required string description ) {
+		var filesCreated = [];
+
+		filesCreated.append( scaffoldExtensionManifestFile( argumentCollection=arguments ) );
+		filesCreated.append( scaffoldExtensionConfigFile( argumentCollection=arguments ) );
+
+		return filesCreated;
+	}
+
+	public array function scaffoldSystemConfigForm(
+		  required string id
+		, required string fields
+		, required string name
+		, required string description
+		, required string icon
+		, required string extension
+	) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var i18nProps    = StructNew( "linked" );
+
+		i18nProps[ "name" ]        = arguments.name;
+		i18nProps[ "description" ] = arguments.description;
+		i18nProps[ "iconclass" ]   = arguments.icon;
+		for( var field in ListToArray( arguments.fields ) ) {
+			i18nProps[ "field.#field#.title" ]       = field;
+			i18nProps[ "field.#field#.placeholder" ] = "";
+			i18nProps[ "field.#field#.help" ]        = "";
+		}
+
+		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.id, subDir="system-config", extension=arguments.extension, properties=i18nProps ) );
+		filesCreated.append( scaffoldSimpleForm( formName=arguments.id, subDir="system-config", extension=arguments.extension, fields=ListToArray( arguments.fields ), i18nBaseUri="system-config.#arguments.id#:" ) );
+
+		return filesCreated;
+	}
+
+	public array function scaffoldFormControl(
+		  required string  id
+		, required boolean createHandler
+		, required array   contexts
+		, required string  extension
+	) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+
+		filesCreated.append( scaffoldFormControlViews(
+			  formControl = arguments.id
+			, contexts    = arguments.contexts
+			, extension   = arguments.extension
+		), true );
+
+		if ( arguments.createHandler ) {
+			filesCreated.append( scaffoldFormControlViewletHandler(
+				  formControl = arguments.id
+				, contexts    = arguments.contexts
+				, extension   = arguments.extension
+			) );
+		}
+
+		return filesCreated;
+	}
+
+	public array function scaffoldEmailTemplate(
+		  required string  id
+		, required string  extension
+	) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+
+		filesCreated.append( scaffoldEmailTemplateViewletHandler( id = arguments.id ) );
+
+		return filesCreated;
+	}
+
+	public string function scaffoldFormControlViewletHandler( required string formControl, required array contexts, string extension="" ) {
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/formcontrols/" & formControl & ".cfc";
+		var viewPath         =
+		var fileContent     = "component {" & _nl() & _nl();
+
+		for( var context in contexts ) {
+			var viewPath = "formcontrols/" & formControl & "/" & context;
+
+			fileContent &= "	private function #context#( event, rc, prc, args={} ) {" & _nl()
+			             & "		// TODO: create your handler logic here" & _nl()
+			             & "		return renderView( view='#viewPath#', args=args );" & _nl()
+			             & "	}" & _nl() & _nl()
+		}
+
+		fileContent &= "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public string function scaffoldWidgetViewletHandler( required string handlerName, string subDir="", string extension="" ) {
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
+		var viewPath        = arguments.subDir & "/" & handlerName & "/index";
+		var placeholderPath = arguments.subDir & "/" & handlerName & "/placeholder";
+		var fileContent     = "component {" & _nl()
+		                    & "	private function index( event, rc, prc, args={} ) {" & _nl()
+		                    & "		// TODO: create your handler logic here" & _nl()
+		                    & "		return renderView( view='#viewPath#', args=args );" & _nl()
+		                    & "	}" & _nl() & _nl()
+		                    & "	private function placeholder( event, rc, prc, args={} ) {" & _nl()
+		                    & "		// TODO: create your handler logic here" & _nl()
+		                    & "		return renderView( view='#placeholderPath#', args=args );" & _nl()
+		                    & "	}" & _nl()
+		                    & "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public string function scaffoldPageTypeViewletHandler( required string handlerName, string subDir="", string extension="" ) {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "handlers/" & arguments.subDir & "/" & handlerName & ".cfc";
 		var viewPath = arguments.subDir & "/" & handlerName & "/index";
 		var fileContent = "component {" & _nl()
 		                & "	private function index( event, rc, prc, args={} ) {" & _nl()
 		                & "		// TODO: create your handler logic here" & _nl()
-		                & "		return renderView( view='#viewPath#', args=args );" & _nl()
+		                & "		return renderView(" & _nl()
+		                & "			  view          = '#viewPath#'"              & _nl()
+		                & "			, presideObject = '#arguments.handlerName#'" & _nl()
+		                & "			, id            = event.getCurrentPageId()"  & _nl()
+		                & "			, args          = args"                      & _nl()
+		                & "		);" & _nl()
 		                & "	}" & _nl()
 		                & "}" & _nl();
 
@@ -129,6 +253,18 @@ component singleton=true {
 
 		return filePath;
 	}
+
+	public string function scaffoldEmailTemplateViewletHandler( required string id, string extension="" ) {
+		var root     = _getScaffoldRoot( arguments.extension );
+		var filePath = root & "handlers/emailTemplates/" & arguments.id & ".cfc";
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileCopy( "/preside/system/services/devtools/scaffoldingResources/emailtemplateHandler.cfc.txt", filePath );
+
+		return filePath;
+	}
+
+
 
 	public string function scaffoldView( required string viewName, string subDir="", string extension="", array args=[] ) {
 		var root     = _getScaffoldRoot( arguments.extension );
@@ -148,6 +284,46 @@ component singleton=true {
 		return filePath;
 	}
 
+	public array function scaffoldFormControlViews( required string formControl, required array contexts, string extension="" ) {
+		var root                = _getScaffoldRoot( arguments.extension ) & "views/formcontrols/" & formControl & "/";
+		var formControlTemplate = FileRead( "/preside/system/services/devtools/scaffoldingResources/formcontrol.view.cfm.txt" );
+		var filesCreated        = [];
+
+		for( var context in contexts ) {
+			var filePath    = root & context & ".cfm";
+			var fileContent = Replace( formControlTemplate, "${id}", arguments.formControl, "all" );
+
+			_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+			FileWrite( filePath, fileContent );
+			filesCreated.append( filePath );
+		}
+
+		return filesCreated;
+	}
+
+	public string function scaffoldWidgetPlaceholderView( required string widgetId, string extension="", array args=[] ) {
+		var root     = _getScaffoldRoot( arguments.extension );
+		var filePath = root & "views/widgets/#arguments.widgetId#/placeholder.cfm";
+		var fileContent = "<!---" & _nl()
+		                & "	This view file has been automatically created by the preside dev tools" & _nl()
+		                & "	scaffolder. The purpose of this file is to render the placeholder content" & _nl()
+		                & "	for the #arguments.widgetId# widget." & _nl()
+		                & "	Please fill with meaningful content and remove this comment" & _nl()
+		                & "--->" & _nl();
+
+		for( var arg in args ) {
+			fileContent &= '<cfparam name="args.#arg#" default="" />' & _nl();
+		}
+
+		fileContent &= _nl() & _nl();
+		fileContent &= "<cfoutput>##translateResource( uri='widgets.#arguments.widgetId#:title' )##</cfoutput>"
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
 	public string function scaffoldPageTypeView( required string viewName, string subDir="", string extension="", array args=[] ) {
 		var root        = _getScaffoldRoot( arguments.extension );
 		var filePath    = root & "views/" & arguments.subDir & "/" & arguments.viewName & ".cfm";
@@ -155,7 +331,7 @@ component singleton=true {
 		var params      = "";
 
 		for( var arg in args ) {
-			params &= '<cfparam name="args.#arg#" editable="true" />' & _nl();
+			params &= '<cf_presideparam name="args.#arg#" editable="true" />' & _nl();
 		}
 
 		fileContent = ReplaceNoCase( fileContent, "${params}", params )
@@ -183,16 +359,16 @@ component singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldSimpleForm( required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) {
+	public string function scaffoldSimpleForm( required string formName, string subDir="", string extension="", array fields=[], string i18nBaseUri="" ) {
 		var root     = _getScaffoldRoot( arguments.extension );
 		var filePath = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
 		var fileContent = '<?xml version="1.0" encoding="UTF-8"?>' & _nl()
-		                & '<form>' & _nl()
+		                & '<form i18nBaseUri="#arguments.i18nBaseUri#">' & _nl()
 		                & '	<tab>' & _nl()
 		                & '		<fieldset>' & _nl();
 
 		for( var field in arguments.fields ) {
-			fileContent &= '			<field name="#field#" label="#arguments.labelPrefix##field#.label" />' & _nl();
+			fileContent &= '			<field name="#field#" />' & _nl();
 		}
 
 		fileContent &= '		</fieldset>' & _nl()
@@ -205,7 +381,7 @@ component singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[], string labelPrefix="" ) {
+	public string function scaffoldPageTypeForm( required string pagetype, required string formName, string subDir="", string extension="", array fields=[] ) {
 		var root           = _getScaffoldRoot( arguments.extension );
 		var filePath       = root & "forms/" & arguments.subDir & "/" & arguments.formName & ".xml";
 		var fileContent    = FileRead( "/preside/system/services/devtools/scaffoldingResources/pageTypeForm.xml.txt" );
@@ -244,25 +420,53 @@ component singleton=true {
 		return filePath;
 	}
 
-	public string function scaffoldTerminalCommand( required string name, required string helpText, string extension="" ) {
-		var root        = _getScaffoldRoot( arguments.extension );
-		var filePath    = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
-		var fileContent = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
-		                & _nl()
-		                & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
-		                & _nl()
-		                & '	private any function index( event, rc, prc ) {' & _nl()
-		                & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
-		                & '		var cliArgs = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];' & _nl()
-		                & _nl()
-		                & '		return "I am a scaffolded command, please finish me off!";' & _nl()
-		                & '	}' & _nl()
-		                & '}';
+	public string function scaffoldExtensionManifestFile( required string id, required string title, required string description ) {
+		var root        = _getScaffoldRoot( "" );
+		var filePath    = root & "extensions/" & arguments.id & "/manifest.json";
+		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/manifest.json.txt" );
+
+		fileContent = Replace( fileContent, "${id}"         , arguments.id          );
+		fileContent = Replace( fileContent, "${title}"      , arguments.title       );
+		fileContent = Replace( fileContent, "${description}", arguments.description );
 
 		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
 		FileWrite( filePath, fileContent );
 
 		return filePath;
+	}
+
+	public string function scaffoldExtensionConfigFile( required string id ) {
+		var root        = _getScaffoldRoot( "" );
+		var filePath    = root & "extensions/" & arguments.id & "/config/Config.cfc";
+		var fileContent = FileRead( "/preside/system/services/devtools/scaffoldingResources/extension.Config.cfc.txt" );
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		return filePath;
+	}
+
+	public array function scaffoldTerminalCommand( required string name, required string helpText, string extension="" ) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var root         = _getScaffoldRoot( arguments.extension );
+		var filePath     = root & "handlers/admin/devtools/terminalCommands/#arguments.name#.cfc";
+		var fileContent  = 'component hint="#HtmlEditFormat( arguments.helpText )#" {' & _nl()
+		                 & _nl()
+		                 & '	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";' & _nl()
+		                 & _nl()
+		                 & '	private any function index( event, rc, prc ) {' & _nl()
+		                 & '		var params  = jsonRpc2Plugin.getRequestParams();' & _nl()
+		                 & '		var cliArgs = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];' & _nl()
+		                 & _nl()
+		                 & '		return "I am a scaffolded command, please finish me off!";' & _nl()
+		                 & '	}' & _nl()
+		                 & '}';
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		filesCreated.append( filePath );
+		return filesCreated;
 	}
 
 // PRIVATE HELPERS
@@ -273,6 +477,19 @@ component singleton=true {
 			_ensureDirectoryExists( parentDir );
 			DirectoryCreate( arguments.dir );
 		}
+	}
+
+	private array function _ensureExtensionExists( required string extension ) {
+		if ( !Len( Trim( arguments.extension ) ) ) {
+			return [];
+		}
+
+		var extensionRoot = _getScaffoldRoot( arguments.extension );
+		if ( !DirectoryExists( extensionRoot ) ) {
+			return scaffoldExtension( arguments.extension, arguments.extension, "" );
+		}
+
+		return [];
 	}
 
 	private string function _getScaffoldRoot( required string extension ) {

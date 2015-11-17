@@ -17,14 +17,14 @@ PresideCMS provides a feature that allows you to autowire your data model to you
 
 In the expample above, the `/views/events/preview.cfm` view will get rendered for each *event* record that matches the supplied filter, `{ event_category = rc.category }`. Each rendered view will be passed the database fields that it needs as individual arguments.
 
-In order for the `renderView()` function to know what fields to select for your view, the view itself must declare what fields it requires. It does this using the `<cfparam>` tag. Using our "event preview" example from above, our view file might look something like this:
+In order for the `renderView()` function to know what fields to select for your view, the view itself must declare what fields it requires. It does this using the `<cf_presideparam>` custom tag. Using our "event preview" example from above, our view file might look something like this:
 
 ```lucee
-<cfparam name="args.label"                                  /><!-- I need the 'label' field -->
-<cfparam name="args.teaser"                                 /><!-- I need the 'teaser' field -->
-<cfparam name="args.image"                                  /><!-- I need the 'image' field -->
-<cfparam name="args.event_type_id" field="event_type"       /><!-- I need the 'event_type' field, but aliased to 'event_type_id' -->
-<cfparam name="args.event_type"    field="event_type.label" /><!-- I need the 'label' field from the relatated object, event_type, aliased to 'event_type' -->
+<cf_presideparam name="args.label"                                  /><!-- I need the 'label' field -->
+<cf_presideparam name="args.teaser"                                 /><!-- I need the 'teaser' field -->
+<cf_presideparam name="args.image"                                  /><!-- I need the 'image' field -->
+<cf_presideparam name="args.event_type_id" field="event_type"       /><!-- I need the 'event_type' field, but aliased to 'event_type_id' -->
+<cf_presideparam name="args.event_type"    field="event_type.label" /><!-- I need the 'label' field from the relatated object, event_type, aliased to 'event_type' -->
 
 <cfparam name="_counter" type="numeric" /><!-- current row in the recordset being rendered -->
 <cfparam name="_records" type="numeric" /><!-- total records in the recordset being rendered -->
@@ -44,6 +44,9 @@ In order for the `renderView()` function to know what fields to select for your 
     </div>
 </cfoutput>
 ```
+
+>>> We introduced the `<cf_presideparam` custom tag in **PresideCMS 10.2.4**. Prior to this, we used the `<cfparam` tag for this feature. The 
+`<cfparam` tag approach will continue to work in version 10 but we may decide to drop this support in future versions. This change is due to an unforeseen incompatibility with Adobe ColdFusion.
 
 Given the examples above, the SQL you would expect to be automatically generated and executed for you would look something like this:
 
@@ -86,12 +89,12 @@ rendered = renderView(
 
 ## Declaring fields for your view
 
-As seen in the examples above, the `<cfparam>` tag is used by your view to specify what fields it needs to render. Any variable that is declared that starts with "args." will be considered a field on your preside object by default.
+As seen in the examples above, the `<cf_presideparam>` tag is used by your view to specify what fields it needs to render. Any variable that is declared that starts with "args." will be considered a field on your preside object by default.
 
 If we are rendering a view for a **news**  object, the following param will lead to `news.headline` being retrieved from the database:
 
 ```lucee
-<cfparam name="args.headline" />
+<cf_presideparam name="args.headline" />
 ```
 
 
@@ -100,14 +103,14 @@ If we are rendering a view for a **news**  object, the following param will lead
 You may find that you need to have a different variable name to the field that you need to select from the data object. To achieve this, you can use the `field` attribute to specify the name of the field:
 
 ```lucee
-<cfparam name="args.headline" field="news.label" />
+<cf_presideparam name="args.headline" field="news.label" />
 ```
 
 You can use the same technique to do aggregate fields and any other SQL select goodness that you want:
 
 ```lucee
-<cfparam name="args.headline"      field="news.label" />
-<cfparam name="args.comment_count" field="Count( comments.id )" />
+<cf_presideparam name="args.headline"      field="news.label" />
+<cf_presideparam name="args.comment_count" field="Count( comments.id )" />
 ```
 
 ### Getting fields from other objects
@@ -115,8 +118,8 @@ You can use the same technique to do aggregate fields and any other SQL select g
 For one to many style relationships, where your object is the many side, you can easily select fields from the related object using the `field` attribute shown above. Simply prefix the column name with the name of the foreign key field on your object. For example, if our **news** object has a single **news_category** field that is a foreign key to a category lookup, we could get the title of the category with:
 
 ```lucee
-<cfparam name="args.headline" field="news.label" />
-<cfparam name="args.category" field="news_category.label" />
+<cf_presideparam name="args.headline" field="news.label" />
+<cf_presideparam name="args.category" field="news_category.label" />
 ```
 
 ### Front end editing
@@ -124,7 +127,7 @@ For one to many style relationships, where your object is the many side, you can
 If you would like a field to be editable in the front end website, you can set the `editable` attribute to **true**:
 
 ```lucee
-<cfparam name="args.label" editable="true" />
+<cf_presideparam name="args.label" editable="true" />
 ```
 
 ### Accepting arguments that do not come from the database
@@ -138,9 +141,18 @@ Your view may need some variables that do not come from the database. For exampl
 To allow this to work, you can specify `field="false"`, so:
 
 ```lucee
-<cfparam name="args.headline"     field="news.label" />
-<cfparam name="args.category"     field="news_category.label" />
-<cfparam name="args.showComments" field="false" type="boolean" />
+<cf_presideparam name="args.headline" field="news.label" />
+<cf_presideparam name="args.category" field="news_category.label" />
+<cfparam name="args.showComments"     field="false" type="boolean" />
+```
+
+This looks as though it should not be necessary because we are using the `<cfparam` tag to state that we expect the `args.showComments` variable to be available. However, the `cfparam` tag is still supported here for backward compatibility with versions of PresideCMS prior to **10.2.4**. As an alternative approach, one can use something like:
+
+```lucee
+<cf_presideparam name="args.headline" field="news.label" />
+<cf_presideparam name="args.category" field="news_category.label" />
+
+<cfset showComments = IsTrue( args.showComments ?: "" ) />
 ```
 
 ### Defining renderers
@@ -148,7 +160,7 @@ To allow this to work, you can specify `field="false"`, so:
 Each of the fields fetch from the database for your view will be pre-rendered using the default renderer for that field. So fields that use a richeditor will have their Widgets and embedded assets all ready rendered for you. To specify a different renderer, or to specify renderers on calculated fields, do:
 
 ```lucee
-<cfparam name="args.comment_count" field="Count( comments.id )" renderer="myNumberFormatter" />
+<cf_presideparam name="args.comment_count" field="Count( comments.id )" renderer="myNumberFormatter" />
 ```
 
 

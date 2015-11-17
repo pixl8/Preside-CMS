@@ -8,16 +8,16 @@
 component displayName="Preside Super Class" {
 
 	/**
-	 * @presideObjectService.inject       provider:presideObjectService
-	 * @systemConfigurationService.inject provider:systemConfigurationService
-	 * @adminLoginService.inject          provider:loginService
-	 * @adminPermissionService.inject     provider:permissionService
-	 * @websiteLoginService.inject        provider:websiteLoginService
-	 * @websitePermissionService.inject   provider:websitePermissionService
-	 * @emailService.inject               provider:emailService
-	 * @errorLogService.inject            provider:errorLogService
-	 * @featureService.inject             provider:featureService
-	 * @notificationService.inject        provider:notificationService
+	 * @presideObjectService.inject       delayedInjector:presideObjectService
+	 * @systemConfigurationService.inject delayedInjector:systemConfigurationService
+	 * @adminLoginService.inject          delayedInjector:loginService
+	 * @adminPermissionService.inject     delayedInjector:permissionService
+	 * @websiteLoginService.inject        delayedInjector:websiteLoginService
+	 * @websitePermissionService.inject   delayedInjector:websitePermissionService
+	 * @emailService.inject               delayedInjector:emailService
+	 * @errorLogService.inject            delayedInjector:errorLogService
+	 * @featureService.inject             delayedInjector:featureService
+	 * @notificationService.inject        delayedInjector:notificationService
 	 *
 	 */
 	public any function init(

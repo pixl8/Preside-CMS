@@ -97,12 +97,12 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		var svc               = _getService();
 		var dummyProps        = StructNew( "linked" );
 
-		dummyProps.prop1 = _dummyObjectProperty( name="prop1", multilingual=true );
-		dummyProps.prop2 = _dummyObjectProperty( name="prop2", multilingual=false );
-		dummyProps.prop3 = _dummyObjectProperty( name="prop3" );
-		dummyProps.prop4 = _dummyObjectProperty( name="prop4" );
-		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
-		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
+		dummyProps.prop1 = { name="prop1", multilingual=true };
+		dummyProps.prop2 = { name="prop2", multilingual=false };
+		dummyProps.prop3 = { name="prop3" };
+		dummyProps.prop4 = { name="prop4" };
+		dummyProps.prop5 = { name="prop5", multilingual=true };
+		dummyProps.prop6 = { name="prop6", multilingual=true };
 
 		var dummyObject = { meta={ name="app.preside-objects.myobject", tableName="test_table_name", multilingual=true, properties=dummyProps } };
 		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
@@ -114,12 +114,12 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		var svc        = _getService();
 		var dummyProps = StructNew( "linked" );
 
-		dummyProps.prop1 = _dummyObjectProperty( name="prop1", multilingual=true );
-		dummyProps.prop2 = _dummyObjectProperty( name="prop2", multilingual=false );
-		dummyProps.prop3 = _dummyObjectProperty( name="prop3" );
-		dummyProps.prop4 = _dummyObjectProperty( name="prop4" );
-		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
-		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
+		dummyProps.prop1 = { name="prop1", multilingual=true };
+		dummyProps.prop2 = { name="prop2", multilingual=false };
+		dummyProps.prop3 = { name="prop3" };
+		dummyProps.prop4 = { name="prop4" };
+		dummyProps.prop5 = { name="prop5", multilingual=true };
+		dummyProps.prop6 = { name="prop6", multilingual=true };
 
 		var dummyObject = { meta={ name="app.preside-objects.myobject", multilingual=true, properties=dummyProps } };
 		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
@@ -154,7 +154,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, onupdate      = "cascade"
 			, generator     = "none"
 			, control       = "none"
-		}, actualProperties._translation_source_record.getMemento() );
+		}, actualProperties._translation_source_record );
 
 		super.assertEquals( {
 			  name          = "_translation_language"
@@ -167,7 +167,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, onupdate      = "cascade"
 			, generator     = "none"
 			, control       = "none"
-		}, actualProperties._translation_language.getMemento() );
+		}, actualProperties._translation_language );
 
 		super.assertEquals( {
 			  name          = "_translation_active"
@@ -182,19 +182,19 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, generator     = "none"
 			, control       = "none"
 			, maxLength     = 0
-		}, actualProperties._translation_active.getMemento() );
+		}, actualProperties._translation_active );
 	}
 
 	function test09_createTranslationObject_shouldModifyDbFieldListBasedOnAdditionalFieldsAndMultilingualFields(){
 		var svc        = _getService();
 		var dummyProps = StructNew( "linked" );
 
-		dummyProps.prop1 = _dummyObjectProperty( name="prop1", multilingual=true );
-		dummyProps.prop2 = _dummyObjectProperty( name="prop2", multilingual=false );
-		dummyProps.prop3 = _dummyObjectProperty( name="prop3" );
-		dummyProps.prop4 = _dummyObjectProperty( name="prop4" );
-		dummyProps.prop5 = _dummyObjectProperty( name="prop5", multilingual=true );
-		dummyProps.prop6 = _dummyObjectProperty( name="prop6", multilingual=true );
+		dummyProps.prop1 = { name="prop1", multilingual=true };
+		dummyProps.prop2 = { name="prop2", multilingual=false };
+		dummyProps.prop3 = { name="prop3" };
+		dummyProps.prop4 = { name="prop4" };
+		dummyProps.prop5 = { name="prop5", multilingual=true };
+		dummyProps.prop6 = { name="prop6", multilingual=true };
 
 		var dummyObject = { meta={ name="app.preside-objects.myobject", multilingual=true, properties=dummyProps, dbFieldList="prop1,prop2,prop4,prop6" } };
 		var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
@@ -227,7 +227,7 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, indexes         = ""
 			, generator       = "none"
 			, control         = "none"
-		}, dummyObject.meta.properties._translations.getMemento() );
+		}, dummyObject.meta.properties._translations );
 	}
 
 	function test12_getTranslationObjectName_shouldReturnTheGivenObjectNamePrefixedWithTheTranslationObjectPrefix() {
@@ -265,9 +265,5 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 			, presideObjectService       = mockPresideObjectService
 			, languageDao                = mockLanguageDao
 		) );
-	}
-
-	private any function _dummyObjectProperty() {
-		return new preside.system.services.presideObjects.property( argumentCollection=arguments );
 	}
 }

@@ -5,6 +5,7 @@ window.presideTerminal = ( function( $ ){
 	  , collectedUserInput   = {}
 	  , inputCollectedMethod = ""
       , inputCollectedParams = {}
+      , terminalToggleKey    = parseInt( typeof cfrequest.devConsoleToggleKeyCode === "undefined" ? 96 : cfrequest.devConsoleToggleKeyCode )
       , availableCommands    = { help : "Displays this help message", clear : "Clears the console", exit : "Quits the console" }
 	  , $terminal, terminal, interpreter, config, isEnabled, disableTerminal, toggleTerminal, initTerminal, isInitialized, responseProcessor, resetPrompt, ajaxError, setupPromptStack, processPromptInput, setNextPrompt, sendCollectedUserInput, sendCommand, popPromptFromStack, echoHelp, escapePrompt;
 
@@ -27,7 +28,7 @@ window.presideTerminal = ( function( $ ){
 				, exit                 : false
 				, processRPCResponse   : responseProcessor
 				, historySize          : 20
-				, keypress             : function( e ){ if( e.which == 96 ){ return false; } }
+				, keypress             : function( e ){ if( e.which === terminalToggleKey ){ return false; } }
 				, onClear              : function( terminal ){ terminal.echo( '[[b;white;]:: Welcome to Preside developer console! Type "help" for commands.\n\n]' ); }
 			};
 

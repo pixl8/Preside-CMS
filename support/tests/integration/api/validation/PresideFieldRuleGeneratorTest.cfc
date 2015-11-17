@@ -98,9 +98,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var rules     = "";
 
 		mockPresideObjectService.$( "getObjectProperties", {
-			  field1    = new preside.system.services.presideObjects.Property( name="field1", uniqueIndexes="index1|2" )
-			, field2    = new preside.system.services.presideObjects.Property( name="field2", uniqueIndexes="index1|2,index3|2" )
-			, someField = new preside.system.services.presideObjects.Property( name="someField", uniqueIndexes="index1|3,index2,index3|1" )
+			  field1    = { name="field1", uniqueIndexes="index1|2" }
+			, field2    = { name="field2", uniqueIndexes="index1|2,index3|2" }
+			, someField = { name="someField", uniqueIndexes="index1|3,index2,index3|1" }
 		} );
 
 		rules = generator.getRulesForField( objectName="test", fieldName="somefield", fieldAttributes={

@@ -13,6 +13,7 @@ component extends="preside.system.base.SystemPresideObject" output="false" displ
 	property name="description" type="string"  dbtype="varchar" maxLength="200"  required=false;
 
 	property name="combined_benefits" relationship="many-to-many" relatedTo="website_benefit" relatedVia="website_benefit_combined_benefits";
+	property name="combined_benefits_are_inclusive" type="boolean" dbtype="boolean" required=false default=false;
 
 	public numeric function calculatePriority( required struct data ) output=false {
 		if ( !IsNumeric( data.priority ?: "" ) ) {

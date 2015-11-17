@@ -8,7 +8,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function handlerExists( required string event ) output=false {
-		var cache      = getCacheBox().getCache( "default" );
+		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
 		var handlerSvc = "";
 		var handler    = "";
 		var action     = ListLast( arguments.event, "." );
@@ -43,7 +43,7 @@ component extends="coldbox.system.web.Controller" output=false {
 	}
 
 	public boolean function viewExists( required string view ) output=false {
-		var cache      = getCacheBox().getCache( "default" );
+		var cache      = getCacheBox().getCache( "ViewletExistsCache" );
 		var cacheKey   = "view exists: " & arguments.view;
 		var exists     = cache.get( cacheKey );
 		var targetView = "";
@@ -87,10 +87,25 @@ component extends="coldbox.system.web.Controller" output=false {
 		if ( not viewExists( view ) ) {
 			view = ListAppend( view, defaultAction, "/" );
 		}
-		return getPlugin( "Renderer" ).renderView(
-			  view = view
-			, args = arguments.args
-		);
+
+		try {
+			return getPlugin( "Renderer" ).renderView(
+				  view = view
+				, args = arguments.args
+			);
+		} catch ( "missinginclude" e ) {
+			var cache             = getCacheBox().getCache( "ViewletExistsCache" );
+			var missingCheckedKey = "doublecheckmissing" & arguments.event;
+			var checkedAlready    = cache.get( missingCheckedKey );
+
+			if ( IsNull( checkedAlready ) ) {
+				cache.clearAll();
+				cache.set( missingCheckedKey, true );
+				return renderViewlet( argumentCollection=arguments );
+			}
+
+			rethrow;
+		}
 	}
 
 	public any function getRequestContext() output=false {

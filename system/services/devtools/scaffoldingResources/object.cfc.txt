@@ -12,6 +12,6 @@
  * You should remove this comment once you are done with it.
  */
 
-component output=false ${datamanagerGroup} {
+component ${datamanagerGroup} {
 ${properties}
 }

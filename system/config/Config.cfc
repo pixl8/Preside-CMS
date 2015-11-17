@@ -43,6 +43,7 @@ component output=false {
 		};
 
 		interceptors = [
+			{ class="preside.system.interceptors.ApplicationReloadInterceptor"        , properties={} },
 			{ class="preside.system.interceptors.CsrfProtectionInterceptor"           , properties={} },
 			{ class="preside.system.interceptors.PageTypesPresideObjectInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
@@ -115,7 +116,7 @@ component output=false {
 					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
 				}
 			},
-			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='ERROR' }
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' }
 		};
 
 		settings.eventName                   = "event";
@@ -141,6 +142,7 @@ component output=false {
 		settings.notificationTopics          = [];
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
+		settings.devConsoleToggleKeyCode     = 96;
 
 		settings.adminSideBarItems = [
 			  "sitetree"
@@ -241,6 +243,10 @@ component output=false {
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
+			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ] }
+			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ] }
+			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ] }
+			, "devtools.extension"  = { enabled=false, siteTemplates=[ "*" ] }
 		};
 
 		settings.filters = {
@@ -261,6 +267,9 @@ component output=false {
 	public void function local() output=false {
 		settings.showErrors = true;
 		settings.autoSyncDb = true;
+
+		settings.features[ "devtools.new"       ].enabled=true;
+		settings.features[ "devtools.extension" ].enabled=true;
 	}
 
 // PRIVATE UTILITY

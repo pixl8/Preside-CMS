@@ -4,10 +4,11 @@
 
 ( function( $ ){
 
-	var $searchBox     = $( '#nav-search-input' )
-	  , $sidebar       = $( '#sidebar' )
-	  , $mainContainer = $( '#main-container' )
-	  , gotoMode       = false
+	var $searchBox          = $( '#nav-search-input' )
+	  , $sidebar            = $( '#sidebar' )
+	  , $mainContainer      = $( '#main-container' )
+	  , gotoMode            = false
+	  , devConsoleToggleKey = parseInt( typeof cfrequest.devConsoleToggleKeyCode === "undefined" ? 96 : cfrequest.devConsoleToggleKeyCode )
 	  , processArrows
 	  , toggleGotoMode
 	  , gotoAccessKeyLink
@@ -44,7 +45,7 @@
 		         .keydown( 'down'   , function( e ){ if( !userIsTyping() ) { processArrows( e, 'down'  ) } } )
 		         .keydown( 'left'   , function( e ){ if( !userIsTyping() ) { processArrows( e, 'left'  ) } } )
 		         .keydown( 'right'  , function( e ){ if( !userIsTyping() ) { processArrows( e, 'right' ) } } )
-		         .keypress( function( e ){ if ( e.which === 96 ){ toggleTerminal(e) } } ) // cannot use jquery hotkeys for ` key mapping due to browser / keyboard inconsistencies
+		         .keypress( function( e ){ if ( e.which === devConsoleToggleKey ){ toggleTerminal(e) } } ) // cannot use jquery hotkeys for ` key mapping due to browser / keyboard inconsistencies
 		         .keydown( genericKeyHandler );
 	};
 

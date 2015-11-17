@@ -2,6 +2,7 @@
 
 	<cffunction name="beforeTests" access="public" returntype="any" output="false">
 		<cfscript>
+			_clearRecentPresideServiceFetch()
 			_emptyDatabase();
 			_dbSync();
 			_wipeTestData();

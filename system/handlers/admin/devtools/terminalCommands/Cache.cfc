@@ -1,4 +1,4 @@
-component output=false hint="Create various preside system entities such as widgets and page types" {
+component hint="Interact with and report on system caches" {
 
 	property name="jsonRpc2Plugin" inject="coldbox:myPlugin:JsonRpc2";
 	property name="cachebox"       inject="cachebox";
@@ -19,7 +19,7 @@ component output=false hint="Create various preside system entities such as widg
 		return runEvent( event="admin.devtools.terminalCommands.cache.#params[1]#", private=true, prePostExempt=true );
 	}
 
-	private function stats( event, rc, prc ) output=false {
+	private function stats( event, rc, prc ) {
 		var params           = jsonRpc2Plugin.getRequestParams();
 		var cacheName        = params[ 2 ] ?: "";
 		var cachesToShow     = cacheName.listToArray( Trim( cacheName ) );
@@ -99,7 +99,7 @@ component output=false hint="Create various preside system entities such as widg
 		return statsOutput;
 	}
 
-	private function resetstats( event, rc, prc ) output=false {
+	private function resetstats( event, rc, prc ) {
 		var params        = jsonRpc2Plugin.getRequestParams();
 		var cacheName     = params[ 2 ] ?: "";
 		var cachesToClear = cacheName.listToArray( Trim( cacheName ) );

@@ -48,6 +48,9 @@
 							</li>
 						</ul>
 					</li>
+					<li>
+						#renderViewlet( event='admin.Layout.localePicker' )#
+					</li>
 					<cfif Len( Trim( settingsMenu ) )>
 						<li>
 							<a data-toggle="dropdown" href="##" class="dropdown-toggle">

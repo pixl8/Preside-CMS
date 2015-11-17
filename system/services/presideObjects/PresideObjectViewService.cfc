@@ -78,7 +78,7 @@ component output=false singleton=true {
 	private struct function _parseFieldsFromViewFile( required string objectName, required string filePath ) output=false {
 		var fields          = { selectFields=[], fieldOptions={} };
 		var fileContent     = FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "";
-		var regexes         = [ '<' & 'cfparam\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)".*?;' ];
+		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)".*?;' ];
 		var fieldRegex      = 'field\s*=\s*"(.*?)"';
 		var rendererRegex   = 'renderer\s*=\s*"(.*?)"';
 		var editableRegex   = 'editable\s*=\s*(true|"true")'
@@ -179,7 +179,7 @@ component output=false singleton=true {
 			return {};
 		}
 
-		var prop = poService.getObjectProperty( objName, propName ).getMemento();
+		var prop = poService.getObjectProperty( objName, propName );
 		prop._object = objName;
 
 		return prop;

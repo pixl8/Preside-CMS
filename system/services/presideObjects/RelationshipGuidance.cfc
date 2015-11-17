@@ -237,14 +237,14 @@ component output=false singleton=true {
 						);
 					}
 
-					if ( not property.attributeExists( "onDelete" ) ){
-						property.setAttribute( "onDelete", ( property.required ? "error" : "set null" ) );
+					if ( !property.keyExists( "onDelete" ) ){
+						property.onDelete = ( property.required ? "error" : "set null" );
 					}
-					if ( not property.attributeExists( "onUpdate" ) ){
-						property.setAttribute( "onUpdate", "cascade" );
+					if ( !property.keyExists( "onUpdate" ) ){
+						property.onUpdate = "cascade";
 					}
 
-					keyName = "fk_#LCase( Hash( SerializeJson( property.getMemento() ) & objectName ) )#";
+					keyName = "fk_#LCase( Hash( LCase( SerializeJson( property ) & objectName ) ) )#";
 
 					if ( not StructKeyExists( object.meta, "relationships" ) ) {
 						object.meta.relationships = {};
@@ -290,9 +290,9 @@ component output=false singleton=true {
 						, alias    = _calculateOneToManyAlias( property.relatedTo, objects[ property.relatedTo ], objectName, propertyName )
 					} );
 
-					property.setAttribute( "type"     , objects[ property.relatedto ].meta.properties.id.type      );
-					property.setAttribute( "dbType"   , objects[ property.relatedto ].meta.properties.id.dbType    );
-					property.setAttribute( "maxLength", objects[ property.relatedto ].meta.properties.id.maxLength );
+					property.type      = objects[ property.relatedto ].meta.properties.id.type;
+					property.dbType    = objects[ property.relatedto ].meta.properties.id.dbType;
+					property.maxLength = objects[ property.relatedto ].meta.properties.id.maxLength;
 				} else if ( property.relationship == "one-to-many" ) {
 					if ( not StructKeyExists( objects, property.relatedto ) ) {
 						throw(
@@ -502,8 +502,12 @@ component output=false singleton=true {
 
 	private string function _calculateOneToManyAlias( required string oneObjectName, required struct oneObject, required string manyObjectName, required string fkName ) output=false {
 		for ( var propertyName in oneObject.meta.properties ) {
-			var property = oneObject.meta.properties[ propertyName ];
-			if ( property.getAttribute( "relationship" ) == "one-to-many" && property.getAttribute( "relatedTo" ) == manyObjectName && property.getAttribute( "relationshipKey", oneObjectName ) == fkName ) {
+			var property        = oneObject.meta.properties[ propertyName ];
+			var relationship    = property.relationship    ?: "";
+			var relatedTo       = property.relatedTo       ?: "";
+			var relationshipKey = property.relationshipKey ?: arguments.oneObjectName;
+
+			if ( relationship == "one-to-many" && relatedTo == manyObjectName && relationshipKey == fkName ) {
 				return propertyName;
 			}
 		}

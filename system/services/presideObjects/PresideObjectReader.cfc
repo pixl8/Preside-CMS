@@ -78,9 +78,10 @@ component output=false singleton=true {
 		_fixOrderOfProperties( meta );
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
-		meta.properties  = _convertPropertiesToBeans( meta.properties );
 		meta.tableName   = LCase( meta.tablePrefix & meta.tableName );
 		meta.indexes     = _discoverIndexes( meta.properties, componentName );
+
+		_ensureAllPropertiesHaveName( meta.properties );
 	}
 
 	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) output=false {
@@ -99,9 +100,9 @@ component output=false singleton=true {
 			, tablePrefix = sourceObject.tablePrefix
 			, versioned   = ( ( sourceObject.versioned ?: false ) || ( targetObject.versioned ?: false ) )
 			, properties  = {
-				  "#sourcePropertyName#" = new Property( name=sourcePropertyName, control="auto", type=sourceObject.properties.id.type, dbtype=sourceObject.properties.id.dbtype, maxLength=sourceObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" )
-				, "#targetPropertyName#" = new Property( name=targetPropertyName, control="auto", type=targetObject.properties.id.type, dbtype=targetObject.properties.id.dbtype, maxLength=targetObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" )
-				, "sort_order"           = new Property( name="sort_order"      , control="auto", type="numeric"                      , dbtype="int"                            , maxLength=0                                   , generator="none", relationship="none"                           , required=false )
+				  "#sourcePropertyName#" = { name=sourcePropertyName, control="auto", type=sourceObject.properties.id.type, dbtype=sourceObject.properties.id.dbtype, maxLength=sourceObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objAName, required=true, onDelete="cascade" }
+				, "#targetPropertyName#" = { name=targetPropertyName, control="auto", type=targetObject.properties.id.type, dbtype=targetObject.properties.id.dbtype, maxLength=targetObject.properties.id.maxLength, generator="none", relationship="many-to-one", relatedTo=objBName, required=true, onDelete="cascade" }
+				, "sort_order"           = { name="sort_order"      , control="auto", type="numeric"                      , dbtype="int"                            , maxLength=0                                   , generator="none", relationship="none"                           , required=false }
 			  }
 		};
 
@@ -191,8 +192,6 @@ component output=false singleton=true {
 		var prop = Duplicate( arguments.property );
 
 		StructAppend( prop, inheritedProperty, false );
-
-		StructDelete( prop, "name" );
 
 		return prop;
 	}
@@ -320,21 +319,6 @@ component output=false singleton=true {
 		return indexes;
 	}
 
-	private struct function _convertPropertiesToBeans( required struct properties ) output=false {
-		var newProperties = StructNew( "linked" );
-		var propName      = "";
-		var propAttribs   = "";
-
-		for( propName in arguments.properties ){
-			propAttribs = Duplicate( arguments.properties[ propName ] );
-			propAttribs.name = propName;
-
-			newProperties[ propName ] = new Property( argumentCollection = propAttribs );
-		}
-
-		return newProperties;
-	}
-
 	private void function _fixOrderOfProperties( required struct meta ) output=false {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 		param name="arguments.meta.properties"    default=StructNew();
@@ -406,6 +390,12 @@ component output=false singleton=true {
 
 	private any function _announceInterception() output=false {
 		return _getInterceptorService().processState( argumentCollection=arguments );
+	}
+
+	private void function _ensureAllPropertiesHaveName( required struct properties ) {
+		for( var propName in arguments.properties ) {
+			arguments.properties[ propName ].name = propName;
+		}
 	}
 
 // GETTERS AND SETTERS

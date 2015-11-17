@@ -9,7 +9,7 @@ component {
 	 * @storageProvider.inject            assetStorageProvider
 	 * @temporaryStorageProvider.inject   tempStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
-	 * @tikaWrapper.inject                TikaWrapper
+	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
@@ -24,7 +24,7 @@ component {
 		  required any    storageProvider
 		, required any    temporaryStorageProvider
 		, required any    assetTransformer
-		, required any    tikaWrapper
+		, required any    documentMetadataService
 		, required any    systemConfigurationService
 		, required any    assetDao
 		, required any    assetVersionDao
@@ -44,7 +44,7 @@ component {
 		_setStorageProvider( arguments.storageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
-		_setTikaWrapper( arguments.tikaWrapper );
+		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
@@ -303,16 +303,19 @@ component {
 
 	) {
 
-		var result       = { totalRecords = 0, records = "" };
-		var parentFolder = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
-		var args         = {
-			  startRow = arguments.startRow
-			, maxRows  = arguments.maxRows
-			, orderBy  = arguments.orderBy
+		var result        = { totalRecords = 0, records = "" };
+		var parentFolder  = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
+		var isTrashFolder = parentFolder == _getTrashFolderId();
+		var titleField    = isTrashFolder ? "original_title" : "title";
+		var args          = {
+			  startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
+			, orderBy      = arguments.orderBy
+			, selectFields = [ "id", "asset_folder", "#titleField# as title", "asset_type", "datemodified" ]
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = "asset_folder = :asset_folder and title like :q";
+			args.filter       = "asset_folder = :asset_folder and #titleField# like :q";
 			args.filterParams = { asset_folder=parentFolder, q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
 		} else {
 			args.filter = { asset_folder = parentFolder };
@@ -470,7 +473,7 @@ component {
 
 		for( var file in files ) {
 			if ( arguments.includeMeta ) {
-				details = _getTikaWrapper().getMetadata( storageProvider.getObject( file.path ) );
+				details = _getDocumentMetadataService().getMetadata( storageProvider.getObject( file.path ) );
 			}
 
 			StructAppend( details, file );
@@ -535,7 +538,7 @@ component {
 		}
 
 		if ( _autoExtractDocumentMeta() ) {
-			asset.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+			asset.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
 		if ( fileTypeInfo.groupName == "image" ) {
@@ -549,7 +552,7 @@ component {
 		var newId = _getAssetDao().insertData( data=asset );
 
 		if ( _autoExtractDocumentMeta() ) {
-			_saveAssetMetaData( assetId=newId, metaData=_getTikaWrapper().getMetaData( arguments.fileBinary ) );
+			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
 		}
 
 		return newId;
@@ -580,7 +583,7 @@ component {
 		};
 
 		if ( _autoExtractDocumentMeta() ) {
-			assetVersion.raw_text_content = _getTikaWrapper().getText( arguments.fileBinary );
+			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
 		_getStorageProvider().putObject( object = arguments.fileBinary, path = newFileName );
@@ -595,7 +598,7 @@ component {
 			_saveAssetMetaData(
 				  assetId   = arguments.assetId
 				, versionId = versionId
-				, metaData  = _getTikaWrapper().getMetaData( arguments.fileBinary )
+				, metaData  = _getDocumentMetadataService().getMetaData( arguments.fileBinary )
 			);
 		}
 
@@ -614,7 +617,7 @@ component {
 		if ( _autoExtractDocumentMeta() ) {
 			var fileBinary = getAssetBinary( arguments.assetId );
 			if ( !IsNull( fileBinary ) ) {
-				var rawText = _getTikaWrapper().getText( fileBinary );
+				var rawText = _getDocumentMetadataService().getText( fileBinary );
 				if ( Len( Trim( rawText ) ) ) {
 					_getAssetDao().updateData( id=arguments.assetId, data={ raw_text_content=rawText } );
 				}
@@ -643,6 +646,39 @@ component {
 				  filter = { id = arguments.assetIds }
 				, data   = { asset_folder = arguments.folderId }
 			);
+		}
+
+		return false;
+	}
+
+	public boolean function restoreAssets( required array assetIds, required string folderId ) {
+		var folder             = getFolder( arguments.folderId );
+		var restoredAssetCount = 0;
+
+		if ( folder.recordCount ) {
+			areAssetsAllowedInFolder(
+				  assetIds   = arguments.assetIds
+				, folderId   = arguments.folderId
+				, throwIfNot = true
+			);
+
+			for( var assetId in arguments.assetIds ) {
+				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path" ] );
+				if ( asset.recordCount ) {
+					var newPath = LCase( assetId & "." & asset.asset_type );
+
+					_getStorageProvider().restoreObject( asset.trashed_path, newPath );
+					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
+						  asset_folder   = arguments.folderId
+						, title          = asset.original_title
+						, storage_path   = newPath
+						, original_title = ""
+						, trashed_path   = ""
+					} );
+				}
+			}
+
+			return restoredAssetCount;
 		}
 
 		return false;
@@ -684,20 +720,21 @@ component {
 		);
 	}
 
-	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false ) {
+	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var assetBinary = "";
+		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
 			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
-			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] );
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProvider().getObject( asset.storage_path );
+			return _getStorageProvider().getObject( asset.storage_path, arguments.isTrashed );
 		}
 	}
 
-	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false ) output="false" {
-		var asset        = "";
-		var selectFields = [ "storage_path" ];
+	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
+		var asset            = "";
+		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
@@ -705,16 +742,16 @@ component {
 				, versionId      = arguments.versionId
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
-				, selectFields   = selectFields
+				, selectFields   = [ "storage_path" ]
 			);
 		} else {
 			asset = Len( Trim( arguments.versionId ) )
-				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields )
-				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=selectFields );
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path );
+			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path, arguments.isTrashed );
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
@@ -740,6 +777,19 @@ component {
 			, original_title = asset.title
 			, asset_folder   = _getTrashFolderId()
 		} );
+	}
+
+	public boolean function permanentlyDeleteAsset( required string id ) {
+		var assetDao    = _getAssetDao();
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title" ] );
+		var trashedPath = "";
+
+		if ( !asset.recordCount ) {
+			return false;
+		}
+
+		_getStorageProvider().deleteObject( asset.trashed_path, true );
+		return assetDao.deleteData( id=arguments.id );
 	}
 
 	public query function getAssetDerivative( required string assetId, required string derivativeName, string versionId="", array selectFields=[] ) {
@@ -933,6 +983,8 @@ component {
 			]
 		);
 
+		var versionImageDimension =  _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
+
 		if ( versionToMakeActive.recordCount ) {
 			return _getAssetDao().updateData( id=arguments.assetId, data={
 				  active_version   = arguments.versionId
@@ -942,6 +994,8 @@ component {
 				, raw_text_content = versionToMakeActive.raw_text_content
 				, created_by       = versionToMakeActive.created_by
 				, updated_by       = versionToMakeActive.updated_by
+				, width            = versionImageDimension.width  ?: ""
+				, height           = versionImageDimension.height ?: ""
 			} );
 		}
 
@@ -992,6 +1046,19 @@ component {
 		}
 
 		return "";
+	}
+
+	public string function getTrashFolderId() {
+		return _getTrashFolderId();
+	}
+
+	public string function getTrashCount() {
+		var result = _getAssetDao().selectData(
+			  selectFields = [ "Count(1) as asset_count" ]
+			, filter       = { asset_folder=_getTrashFolderId() }
+		);
+
+		return Val( result.asset_count ?: "" );
 	}
 
 // PRIVATE HELPERS
@@ -1258,10 +1325,10 @@ component {
 		_assetMetaDao = arguments.assetMetaDao;
 	}
 
-	private any function _getTikaWrapper() {
-		return _tikaWrapper;
+	private any function _getDocumentMetadataService() {
+		return _documentMetadataService;
 	}
-	private void function _setTikaWrapper( required any tikaWrapper ) {
-		_tikaWrapper = arguments.tikaWrapper;
+	private void function _setDocumentMetadataService( required any documentMetadataService ) {
+		_documentMetadataService = arguments.documentMetadataService;
 	}
 }

@@ -1,31 +1,33 @@
 component {
 
 	public void function setupApplication(
-		  string  id                = CreateUUId()
-		, string  name              = arguments.id & ExpandPath( "/" )
-		, boolean sessionManagement = true
-		, any     sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 )
+		  string  id                           = CreateUUId()
+		, string  name                         = arguments.id & ExpandPath( "/" )
+		, boolean sessionManagement            = true
+		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
+		, numeric applicationReloadTimeout     = 1200
+		, numeric applicationReloadLockTimeout = 15
 	)  {
-		this.PRESIDE_APPLICATION_ID = arguments.id;
-		this.name                   = arguments.name
-		this.sessionManagement      = arguments.sessionManagement;
-		this.sessionTimeout         = arguments.sessionTimeout;
+		this.PRESIDE_APPLICATION_ID                  = arguments.id;
+		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
+		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
+		this.name                                    = arguments.name
+		this.sessionManagement                       = arguments.sessionManagement;
+		this.sessionTimeout                          = arguments.sessionTimeout;
 
 		_setupMappings( argumentCollection=arguments );
+		_setupDefaultTagAttributes();
 	}
 
 // APPLICATION LIFECYCLE EVENTS
-	public boolean function onApplicationStart() {
-		_initEveryEverything();
-
-		return true;
-	}
-
-	public boolean function onRequestStart( required string targetPage ) output=true {
+	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
 		_setupInjectedDatasource();
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
-		_reloadCheck();
+
+		if ( _reloadRequired() ) {
+			_initEveryEverything();
+		}
 
 		return application.cbBootstrap.onRequestStart( arguments.targetPage );
 	}
@@ -74,27 +76,7 @@ component {
 
 
 		} else {
-			var appMapping     = request._presideMappings.appMapping ?: "/app";
-			var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
-			var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
-
-			thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
-				new preside.system.services.errors.ErrorLogService(
-					  appMapping     = attributes.appMapping
-					, appMappingPath = attributes.appMappingPath
-					, logsMapping    = attributes.logsMapping
-					, logDirectory   = attributes.logsMapping & "/rte-logs"
-				).raiseError( attributes.e );
-			}
-
-			content reset=true;
-			header statuscode=500;
-
-			if ( FileExists( ExpandPath( "/500.htm" ) ) ) {
-				Writeoutput( FileRead( ExpandPath( "/500.htm" ) ) );
-			} else {
-				Writeoutput( FileRead( "/preside/system/html/500.htm" ) );
-			}
+			_friendlyError( arguments.exception, 500 );
 
 			return;
 		}
@@ -110,7 +92,7 @@ component {
 		, string logsPath       = _getApplicationRoot() & "/logs"
 	) {
 		this.mappings[ "/preside" ] = ExpandPath( "/preside" );
-		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox" );
+		this.mappings[ "/coldbox" ] = ExpandPath( "/preside/system/externals/coldbox-standalone-3.8.2/coldbox" );
 		this.mappings[ "/sticker" ] = ExpandPath( "/preside/system/externals/sticker" );
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
@@ -126,14 +108,57 @@ component {
 			, assetsMapping  = arguments.assetsMapping
 			, logsMapping    = arguments.logsMapping
 		};
+
+		_setupCustomTagPath();
 	}
 
-	private void function _initEveryEverything() {
-		setting requesttimeout=1200;
+	private void function _setupCustomTagPath() {
+		var thisDir = GetDirectoryFromPath( GetCurrentTemplatePath() );
+		var tagsDir = ReReplace( thisDir, "/$", "" ) & "/customtags";
 
-		_fetchInjectedSettings();
-		_setupInjectedDatasource();
-		_initColdBox();
+		this.customTagPaths = ListAppend( this.customTagPaths ?: "", tagsDir );
+	}
+
+	private any function _initEveryEverything() {
+		var lockName       = "presideapplicationreload" & Hash( GetCurrentTemplatePath() );
+		var requestTimeout = this.PRESIDE_APPLICATION_RELOAD_TIMEOUT;
+		var lockTimeout    = this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT;
+
+		setting requesttimeout=requestTimeout;
+
+		try {
+			lock name=lockname type="exclusive" timeout=locktimeout {
+				if ( _reloadRequired() ) {
+					_announceInterception( "prePresideReload" );
+
+
+					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
+
+					_clearExistingApplication();
+					_fetchInjectedSettings();
+					_setupInjectedDatasource();
+					_initColdBox();
+
+					_announceInterception( "postPresideReload" );
+					log file="application" text="Application start up complete";
+				}
+			}
+		} catch( lock e ) {
+			if ( ( e.lockOperation ?: "" ) == "Timeout" ) {
+				_friendlyError( e, 503 );
+				abort;
+			} else {
+				rethrow;
+			}
+		}
+	}
+
+	private void function _clearExistingApplication() {
+		application.clear();
+
+		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
+			getPageContext().getCFMLFactory().resetPageContext();
+		}
 	}
 
 	private void function _initColdBox() {
@@ -149,12 +174,8 @@ component {
 		application.cbBootstrap = bootstrap;
 	}
 
-	private void function _reloadCheck() {
-		var reloadRequired = not StructKeyExists( application, "cbBootstrap" ) or application.cbBootStrap.isfwReinit();
-
-		if ( reloadRequired ) {
-			_initEveryEverything();
-		}
+	private boolean function _reloadRequired() {
+		return !application.keyExists( "cbBootstrap" ) || application.cbBootStrap.isfwReinit();
 	}
 
 	private void function _fetchInjectedSettings() {
@@ -280,8 +301,16 @@ component {
 		}
 
 		if ( !sessionIsUsed ) {
-			session.setMaxInactiveInterval(  javaCast( "long", 1 ) );
-			getPageContext().setHeader( "Set-Cookie", "" );
+			this.sessionTimeout = CreateTimeSpan( 0, 0, 0, 1 );
+
+			var cookies = Duplicate( cookie );
+			getPageContext().setHeader( "Set-Cookie", NullValue() );
+
+			for( var cookieName in cookies ) {
+				if ( ![ "cfid", "cftoken", "jsessionid" ].findNoCase( cookieName ) ) {
+					cookie[ cookieName ] = cookies[ cookieName ];
+				}
+			}
 		}
 	}
 
@@ -292,4 +321,42 @@ component {
 
 		return ReReplace( dir, "/$", "" );
 	}
+
+	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
+		var appMapping     = request._presideMappings.appMapping ?: "/app";
+		var appMappingPath = Replace( ReReplace( appMapping, "^/", "" ), "/", ".", "all" );
+		var logsMapping    = request._presideMappings.logsMapping ?: "/logs";
+
+		thread name=CreateUUId() e=arguments.exception appMapping=appMapping appMappingPath=appMappingPath logsMapping=logsMapping {
+			new preside.system.services.errors.ErrorLogService(
+				  appMapping     = attributes.appMapping
+				, appMappingPath = attributes.appMappingPath
+				, logsMapping    = attributes.logsMapping
+				, logDirectory   = attributes.logsMapping & "/rte-logs"
+			).raiseError( attributes.e );
+		}
+
+		content reset=true;
+		header statuscode=arguments.statusCode;
+
+		if ( FileExists( ExpandPath( "/#arguments.statusCode#.htm" ) ) ) {
+			Writeoutput( FileRead( ExpandPath( "/#arguments.statusCode#.htm" ) ) );
+		} else {
+			Writeoutput( FileRead( "/preside/system/html/#arguments.statusCode#.htm" ) );
+		}
+	}
+
+	private void function _setupDefaultTagAttributes() {
+		this.tag.function.bufferoutput = false;
+		this.tag.location.addToken     = false;
+	}
+
+	private void function _announceInterception() {
+		var controller = _getColdboxController();
+
+		if ( !IsNull( controller ) ) {
+			controller.getInterceptorService().processState( argumentCollection=arguments );
+		}
+	}
+
 }

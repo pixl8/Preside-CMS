@@ -10,6 +10,7 @@ component output=false {
 		var assetId         = rc.assetId      ?: "";
 		var versionId       = rc.versionId    ?: "";
 		var derivativeName  = rc.derivativeId ?: "";
+		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
 		var asset           = "";
 		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
 
@@ -32,14 +33,14 @@ component output=false {
 		if ( asset.recordCount ) {
 			var assetBinary = "";
 			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
-			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true );
+			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
 
 			_doBrowserEtagLookup( etag );
 
 			if ( Len( Trim( derivativeName ) ) ) {
 				assetBinary = assetManagerService.getAssetDerivativeBinary( assetId=assetId, versionId=versionId, derivativeName=derivativeName );
 			} else {
-				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId );
+				assetBinary = assetManagerService.getAssetBinary( id=assetId, versionId=versionId, isTrashed=isTrashed );
 			}
 
 			announceInterception( "onDownloadAsset", {
@@ -48,10 +49,11 @@ component output=false {
 				, asset          = asset
 			} );
 
+			var filename = _getFilenameForAsset( asset.title, type.extension );
 			if ( type.serveAsAttachment ) {
-				header name="Content-Disposition" value="attachment; filename=""#asset.title#.#type.extension#""";
+				header name="Content-Disposition" value="attachment; filename=""#filename#""";
 			} else {
-				header name="Content-Disposition" value="inline; filename=""#asset.title#.#type.extension#""";
+				header name="Content-Disposition" value="inline; filename=""#filename#""";
 			}
 
 			header name="etag" value=etag;
@@ -94,6 +96,10 @@ component output=false {
 			announceInterception( "onReturnAsset304", { etag = arguments.etag } );
 			content reset=true;header statuscode=304 statustext="Not Modified";abort;
 		}
+	}
+
+	private string function _getFilenameForAsset( required string assetTitle, required string extension ) {
+		return ReReplace( arguments.assetTitle, "\.#arguments.extension#$", "" ) & "." & arguments.extension;
 	}
 
 	private void function _checkDownloadPermissions( event, rc, prc ) output=false {

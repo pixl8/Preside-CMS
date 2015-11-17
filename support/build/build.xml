@@ -4,30 +4,8 @@
 
 	<property file="build.properties" />
 
-	<property name="test.project" value="preside-ci" />
-	<property name="work.dir" value="/tmp/work" />
-	<property name="build.dir" value="" />
-	<property name="server.name" value="localhost"/>
-	<property name="server.port" value="8888"/>
-	<property name="stop.port" value="8887"/>
-	<property name="output.dir" value="./results"/>
-	<property name="download.dir" value="./downloads"/>
 	<property name="artifacts.dir" value="./artifacts" />
 	<property name="build.number.file" value="${artifacts.dir}/build.number" />
-
-	<property name="railo42.remote.url" value="http://cfml-ci.s3.amazonaws.com/railo-express-4.2.1.000-nojre.tar.gz" />
-
-	<property name="source" value="remote" />
-
-	<property name="railo42.helper" value="railo" />
-
-	<macrodef name="propertycopy">
-		<attribute name="name"/>
-		<attribute name="from"/>
-		<sequential>
-			<property name="@{name}" value="${@{from}}"/>
-		</sequential>
-	</macrodef>
 
 	<path id="cp">
 		<fileset dir="lib">
@@ -36,14 +14,18 @@
 	</path>
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="cp" />
 
-	<target name="build" depends="setupartifactsdir,setupoutputdir,install-preside-deps,setupreleaselabel,builddocs">
+	<target name="build" depends="setupartifactsdir,setupreleaselabel">
 		<concat destfile="../../${build.label}">Built on ${start.TODAY}</concat>
 		<echo file="../../version.json">{ "version":"${preside.version}.${build.number}" }</echo>
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.zip">
 			<zipfileset dir="../../" prefix="presidecms-${preside.version}.${build.number}">
-				<exclude name="support/**"/>
-				<exclude name=".travis.yml"/>
+				<exclude name="support/**"  />
+				<exclude name="system/assets/node_modules/**"  />
+				<exclude name=".travis.yml" />
+				<exclude name="build.sh"    />
+				<exclude name="test.sh"     />
+				<exclude name=".twgit*"     />
 			</zipfileset>
 		</zip>
 
@@ -52,136 +34,8 @@
 		<delete file="../../${build.label}" failonerror="false" />
 	</target>
 
-	<target name="install-preside-deps" depends="clean-preside-deps,installcoldbox,installsticker,installckeditor,installtika">
-	</target>
-
-	<target name="clean-preside-deps">
-		<delete dir="${coldbox.installdir}" failonerror="false" />
-		<delete dir="${sticker.installdir}" failonerror="false" />
-		<delete dir="${ckeditor.installdir}" failonerror="false" />
-		<delete dir="${tika.installdir}" failonerror="false" />
-	</target>
-
-	<target name="install-ci-deps" depends="setupTestRunnerEnvironment">
-		<exec executable="/bin/bash" failonerror="true">
-			<env key="WORK_DIR" value="${work.dir}" />
-			<env key="BUILD_DIR" value="${build.dir}" />
-			<env key="PLATFORM_URL" value="${platform.url}" />
-			<env key="SERVER_PORT" value="${server.port}" />
-			<env key="STOP_PORT" value="${stop.port}" />
-			<arg line="scripts/ci-helper-${platform.helper}.sh install ${test.project}"/>
-		</exec>
-	</target>
-
-	<target name="setup-railo-settings">
-		<mkdir dir="${work.dir}/railo" />
-		<mkdir dir="${work.dir}/railo/webapps" />
-		<mkdir dir="${work.dir}/railo/webapps/ROOT" />
-		<mkdir dir="${work.dir}/railo/webapps/ROOT/WEB-INF" />
-		<mkdir dir="${work.dir}/railo/webapps/ROOT/WEB-INF/railo" />
-		<copy file="railo-web.xml.cfm" todir="${work.dir}/railo/webapps/ROOT/WEB-INF/railo" />
-	</target>
-
-	<target name="start-server" depends="setup-railo-settings">
-		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
-			<env key="WORK_DIR" value="${work.dir}" />
-			<env key="BUILD_DIR" value="${build.dir}" />
-			<env key="SERVER_PORT" value="${server.port}" />
-			<arg line="scripts/ci-helper-${platform.helper}.sh start"/>
-		</exec>
-	</target>
-
-	<target name="stop-server">
-		<exec executable="/bin/bash" spawn="false" failonerror="true" outputproperty="output.log">
-			<env key="WORK_DIR" value="${work.dir}" />
-			<env key="BUILD_DIR" value="${build.dir}" />
-			<env key="SERVER_PORT" value="${server.port}" />
-			<arg line="scripts/ci-helper-${platform.helper}.sh stop"/>
-		</exec>
-	</target>
-
-	<target name="test-ci" depends="setupTestRunnerEnvironment,setupoutputdir,installcoldbox,installsticker,installtika,start-server,test,stop-server">
-		<property file="${output.dir}/testbox.properties" />
-		<fail if="testbox.failed" message="At least one test failure!" />
-	</target>
-
-	<target name="setupoutputdir">
-		<delete dir="${output.dir}"/>
-		<mkdir dir="${output.dir}"/>
-	</target>
 	<target name="setupartifactsdir">
-		<delete dir="${artifacts.dir}"/>
 		<mkdir dir="${artifacts.dir}"/>
-	</target>
-
-	<target name="test">
-		<get dest="${output.dir}/results.txt" src="http://${server.name}:${server.port}/${test.project}/support/build/test-suite-runner.cfm" verbose="true" />
-    	<concat><path path="${output.dir}/output.txt" /></concat>
-	</target>
-
-	<target name="setupTestRunnerEnvironment">
-		<fail unless="platform" message="Platform is not set" />
-		<fail unless="${platform}.${source}.url">Unkown platform ${platform} for source ${source}.
-
-Valid values are:
- railo42
-		</fail>
-		<propertycopy name="platform.url" from="${platform}.${source}.url" />
-		<propertycopy name="platform.helper" from="${platform}.helper" />
-	</target>
-
-	<target name="installcoldbox">
-		<mkdir dir="${download.dir}" />
-		<if>
-			<available file="${download.dir}/${coldbox.tmp.file}" />
-			<then></then>
-			<else>
-				<get src="${coldbox.zip}" dest="${download.dir}/${coldbox.tmp.file}" />
-			</else>
-		</if>
-		<unzip src="${download.dir}/${coldbox.tmp.file}" dest="${coldbox.installdir}">
-			<mapper>
-        		<globmapper from="${coldbox.zipsubdir}/*" to="*"/>
-    		</mapper>
-    	</unzip>
-    	<copy file="testboxpatch/UnitRunner.cfc" todir="${coldbox.installdir}/system/testing/runners" />
-	</target>
-
-	<target name="installsticker">
-		<mkdir dir="${download.dir}" />
-		<if>
-			<available file="${download.dir}/${sticker.tmp.file}" />
-			<then></then>
-			<else>
-				<get src="${sticker.zip}" dest="${download.dir}/${sticker.tmp.file}" />
-			</else>
-		</if>
-		<unzip src="${download.dir}/${sticker.tmp.file}" dest="${sticker.installdir}">
-			<mapper>
-        		<globmapper from="${sticker.zipsubdir}/*" to="*"/>
-    		</mapper>
-    	</unzip>
-	</target>
-
-	<target name="installckeditor">
-		<mkdir dir="${download.dir}" />
-		<if>
-			<available file="${download.dir}/${ckeditor.tmp.file}" />
-			<then></then>
-			<else>
-				<get src="${ckeditor.zip}" dest="${download.dir}/${ckeditor.tmp.file}" />
-			</else>
-		</if>
-		<unzip src="${download.dir}/${ckeditor.tmp.file}" dest="${ckeditor.installdir}">
-			<mapper>
-				<globmapper from="${ckeditor.zipsubdir}/*" to="*"/>
-			</mapper>
-		</unzip>
-	</target>
-
-	<target name="installtika">
-		<mkdir dir="${tika.installdir}" />
-		<get src="${tika.src}" dest="${tika.installdir}" />
 	</target>
 
 	<target name="setupreleaselabel" depends="incrementBuildNumber">
@@ -225,18 +79,11 @@ Valid values are:
 		<propertyfile file="${build.number.file}" comment="Build Number for ANT. Edit not!">
 			<entry key="build.number"
 					type="int"
-			     	operation="+"
+					operation="+"
 					pattern="00000"
-			     	default="1" />
+					default="1" />
 		</propertyfile>
 
 		<property file="${build.number.file}" />
 	</target>
-
-	<target name="builddocs">
-		<exec executable="/bin/bash" failonerror="true">
-			<arg line="../docs/build.sh"/>
-		</exec>
-	</target>
-
 </project>

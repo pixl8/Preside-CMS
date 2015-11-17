@@ -3,28 +3,18 @@
  * translations of standard preside objects possible in a transparent way. Note: You are
  * unlikely to need to deal with this API directly.
  *
- * @singleton   true
- * @autodoc     true
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
  */
 component displayName="Multilingual Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
 	 * @relationshipGuidance.inject       relationshipGuidance
-	 * @systemConfigurationService.inject provider:systemConfigurationService
-	 * @presideObjectService.inject       provider:presideObjectService
-	 * @languageDao.inject                provider:presidecms:object:multilingual_language
 	 */
-	public any function init(
-		  required any relationshipGuidance
-		, required any systemConfigurationService
-		, required any presideObjectService
-		, required any languageDao
-	) {
+	public any function init( required any relationshipGuidance ) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
-		_setSystemConfigurationService( arguments.systemConfigurationService );
-		_setPresideObjectService( arguments.presideObjectService );
-		_setLanguageDao( arguments.languageDao );
 		_setMultiLingualObjectReference( {} );
 
 		return this;
@@ -133,7 +123,7 @@ component displayName="Multilingual Preside Object Service" {
 			extraLanguageIndexes = "," & extraLanguageIndexes;
 		}
 
-		translationProperties._translation_source_record = new preside.system.services.presideobjects.Property(
+		translationProperties._translation_source_record = {
 			  name          = "_translation_source_record"
 			, relationship  = "many-to-one"
 			, relatedto     = arguments.objectName
@@ -144,11 +134,11 @@ component displayName="Multilingual Preside Object Service" {
 			, onupdate      = "cascade"
 			, generator     = "none"
 			, control       = "none"
-		);
+		};
 		dbFieldList.append( "_translation_source_record" );
 		propertyNames.append( "_translation_source_record" );
 
-		translationProperties._translation_language = new preside.system.services.presideobjects.Property(
+		translationProperties._translation_language = {
 			  name          = "_translation_language"
 			, relationship  = "many-to-one"
 			, relatedto     = "multilingual_language"
@@ -159,11 +149,11 @@ component displayName="Multilingual Preside Object Service" {
 			, onupdate      = "cascade"
 			, generator     = "none"
 			, control       = "none"
-		);
+		};
 		dbFieldList.append( "_translation_language" );
 		propertyNames.append( "_translation_language" );
 
-		translationProperties._translation_active = new preside.system.services.presideobjects.Property(
+		translationProperties._translation_active = {
 			  name          = "_translation_active"
 			, required      = false
 			, default       = false
@@ -176,7 +166,7 @@ component displayName="Multilingual Preside Object Service" {
 			, generator     = "none"
 			, maxLength     = 0
 			, control       = "none"
-		);
+		};
 		dbFieldList.append( "_translation_active" );
 		propertyNames.append( "_translation_active" );
 
@@ -212,7 +202,7 @@ component displayName="Multilingual Preside Object Service" {
 	public void function decorateMultilingualObject( required string objectName, required struct object ) {
 		arguments.object.meta.properties = arguments.object.meta.properties ?: {};
 
-		arguments.object.meta.properties._translations = new preside.system.services.presideobjects.Property(
+		arguments.object.meta.properties._translations = {
 			  name            = "_translations"
 			, relationship    = "one-to-many"
 			, relatedto       = _getTranslationObjectPrefix() & arguments.objectName
@@ -222,7 +212,7 @@ component displayName="Multilingual Preside Object Service" {
 			, indexes         = ""
 			, generator       = "none"
 			, control         = "none"
-		);
+		};
 	}
 
 	/**
@@ -267,6 +257,10 @@ component displayName="Multilingual Preside Object Service" {
 					 arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				}
 
+				if ( !$isAdminUserLoggedIn() ) {
+					 arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_active = 1";
+				}
+
 				arguments.preparedFilter.params.append( { name="_translation_language", type="varchar", value=arguments.language } );
 			}
 		}
@@ -281,7 +275,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * @autoDoc             true
 	 */
 	public array function listLanguages( boolean includeDefault=true ) {
-		var settings        = _getSystemConfigurationService().getCategorySettings( "multilingual" );
+		var settings        = $getPresideCategorySettings( "multilingual" );
 		var defaultLanguage = settings.default_language ?: "";
 		var languageIds     = ListToArray( settings.additional_languages ?: "" );
 		var languages       = [];
@@ -316,7 +310,7 @@ component displayName="Multilingual Preside Object Service" {
 	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
 		var languages = listLanguages( includeDefault=false );
-		var dbRecords = _getPresideObjectService().selectData(
+		var dbRecords = $getPresideObjectService().selectData(
 			  objectName   = _getTranslationObjectPrefix() & objectName
 			, selectFields = [ "_translation_language", "_translation_active" ]
 			, filter       = { _translation_source_record = arguments.recordId }
@@ -378,7 +372,7 @@ component displayName="Multilingual Preside Object Service" {
 	public query function selectTranslation( required string objectName, required string id, required string languageId, array selectFields=[], string version="", boolean useCache=true ) {
 		var translationObjectName = getTranslationObjectName( arguments.objectName );
 		var filter                = { _translation_source_record=arguments.id, _translation_language=arguments.languageId };
-		var presideObjectService  = _getPresideObjectService();
+		var presideObjectService  = $getPresideObjectService();
 		var args                  = {
 			  objectName   = translationObjectName
 			, filter       = filter
@@ -426,7 +420,7 @@ component displayName="Multilingual Preside Object Service" {
 
 			if ( existingTranslation.recordCount ) {
 				returnValue = existingTranslation.id;
-				_getPresideObjectService().updateData(
+				$getPresideObjectService().updateData(
 					  objectName              = translationObjectName
 					, id                      = existingTranslation.id
 					, data                    = arguments.data
@@ -437,7 +431,7 @@ component displayName="Multilingual Preside Object Service" {
 				    newRecordData._translation_source_record = arguments.id;
 				    newRecordData._translation_language      = arguments.languageId;
 
-				returnValue = _getPresideObjectService().insertData(
+				returnValue = $getPresideObjectService().insertData(
 					  objectName              = translationObjectName
 					, data                    = newRecordData
 					, insertManyToManyRecords = true
@@ -527,6 +521,10 @@ component displayName="Multilingual Preside Object Service" {
 		return "_translation_";
 	}
 
+	private any function _getLanguageDao() {
+		return $getPresideObject( "multilingual_language" );
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getMultiLingualObjectReference() {
 		return _multiLingualObjectReference;
@@ -541,26 +539,4 @@ component displayName="Multilingual Preside Object Service" {
 	private void function _setRelationshipGuidance( required any relationshipGuidance ) {
 		_relationshipGuidance = arguments.relationshipGuidance;
 	}
-
-	private any function _getSystemConfigurationService() {
-		return _systemConfigurationService;
-	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
-		_systemConfigurationService = arguments.systemConfigurationService;
-	}
-
-	private any function _getPresideObjectService() {
-		return _presideObjectService;
-	}
-	private void function _setPresideObjectService( required any presideObjectService ) {
-		_presideObjectService = arguments.presideObjectService;
-	}
-
-	private any function _getLanguageDao() {
-		return _languageDao;
-	}
-	private void function _setLanguageDao( required any languageDao ) {
-		_languageDao = arguments.languageDao;
-	}
-
 }

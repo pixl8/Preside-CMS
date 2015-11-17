@@ -1,7 +1,7 @@
 component extends="coldbox.system.Interceptor" {
 
-	property name="presideObjectService"          inject="provider:presideObjectService";
-	property name="presideFieldRuleGenerator"     inject="provider:presideFieldRuleGenerator";
+	property name="presideObjectService"          inject="delayedInjector:presideObjectService";
+	property name="presideFieldRuleGenerator"     inject="delayedInjector:presideFieldRuleGenerator";
 	property name="configuredValidationProviders" inject="coldbox:setting:validationProviders";
 
 // PUBLIC

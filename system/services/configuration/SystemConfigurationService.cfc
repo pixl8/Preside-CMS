@@ -12,7 +12,7 @@ component displayName="System configuration service" {
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @dao.inject                     presidecms:object:system_config
 	 * @injectedConfig.inject          coldbox:setting:injectedConfig
-	 * @formsService.inject            provider:formsService
+	 * @formsService.inject            delayedInjector:formsService
 	 */
 	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig, required any formsService ) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );

@@ -1,6 +1,6 @@
 component extends="coldbox.system.Interceptor" output=false {
 
-	property name="urlRedirectsService" inject="provider:urlRedirectsService";
+	property name="urlRedirectsService" inject="delayedInjector:urlRedirectsService";
 
 	public void function configure() output=false {
 		super.configure( argumentCollection = arguments );

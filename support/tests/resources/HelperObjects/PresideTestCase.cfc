@@ -140,6 +140,10 @@
 		<cfreturn ( request[ '_mostRecentPresideObjectFetch' ] ?: _getPresideObjectService() ).dbSync( argumentCollection = arguments ) />
 	</cffunction>
 
+	<cffunction name="_clearRecentPresideServiceFetch" access="private" returntype="void" output="false">
+		<cfset StructDelete( request, "_mostRecentPresideObjectFetch" ) />
+	</cffunction>
+
 	<cffunction name="_bCryptPassword" access="private" returntype="string" output="false">
 		<cfargument name="pw" type="string" required="true" />
 
