@@ -28,6 +28,10 @@
 	local.titleSuffix = local.site.browser_title_suffix ?: "";
 
 	local.title = Trim( local.titlePrefix & " " & local.title & " " & local.titleSuffix );
+
+	if ( !event.canPageBeCached() ) {
+		event.preventPageCache();
+	}
 </cfscript>
 
 <cfoutput>
