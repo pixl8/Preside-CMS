@@ -29,7 +29,7 @@
 
 	local.title = Trim( local.titlePrefix & " " & local.title & " " & local.titleSuffix );
 
-	if ( !event.allowPageToBeCached() ) {
+	if ( !event.canPageBeCached() ) {
 		header name="cache-control" value="no-cache, no-store";
 		header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
 	}

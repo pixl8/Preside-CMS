@@ -411,7 +411,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return prc.pageAccessRules;
 	}
 
-	public boolean function allowPageToBeCached() {
+	public boolean function canPageBeCached() {
 		var accessRules = getPageAccessRules();
 
 		return ( accessRules.access_restriction ?: "none" ) == "none";
