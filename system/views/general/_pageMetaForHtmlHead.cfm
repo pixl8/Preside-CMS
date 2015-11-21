@@ -28,6 +28,11 @@
 	local.titleSuffix = local.site.browser_title_suffix ?: "";
 
 	local.title = Trim( local.titlePrefix & " " & local.title & " " & local.titleSuffix );
+
+	if ( !event.allowPageToBeCached() ) {
+		header name="cache-control" value="no-cache, no-store";
+		header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
+	}
 </cfscript>
 
 <cfoutput>

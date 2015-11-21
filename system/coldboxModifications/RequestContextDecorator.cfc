@@ -377,9 +377,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 	}
 
 	public void function checkPageAccess() {
-		var sitetreeService     = getModel( "sitetreeService" );
 		var websiteLoginService = getModel( "websiteLoginService" );
-		var accessRules         = sitetreeService.getAccessRestrictionRulesForPage( getCurrentPageId() );
+		var accessRules         = getPageAccessRules();
 
 		if ( accessRules.access_restriction == "full" ){
 			var fullLoginRequired = IsBoolean( accessRules.full_login_required ) && accessRules.full_login_required;
@@ -400,6 +399,22 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 				accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 			}
 		}
+	}
+
+	public struct function getPageAccessRules() {
+		var prc = getRequestContext().getCollection( private = true );
+
+		if ( !prc.keyExists( "pageAccessRules" ) ) {
+			prc.pageAccessRules = getModel( "sitetreeService" ).getAccessRestrictionRulesForPage( getCurrentPageId() );
+		}
+
+		return prc.pageAccessRules;
+	}
+
+	public boolean function allowPageToBeCached() {
+		var accessRules = getPageAccessRules();
+
+		return ( accessRules.access_restriction ?: "none" ) == "none";
 	}
 
 	public any function getPageProperty(
