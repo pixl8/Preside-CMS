@@ -411,6 +411,11 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return prc.pageAccessRules;
 	}
 
+	public void function preventPageCache() {
+		header name="cache-control" value="no-cache, no-store";
+		header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
+	}
+
 	public boolean function canPageBeCached() {
 		var accessRules = getPageAccessRules();
 
