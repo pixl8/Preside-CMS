@@ -113,7 +113,7 @@ component extends="preside.system.base.AdminHandler" {
 
 				event.renderData( type="json", data={
 					  success = true
-					, title   = ( rc.label ?: "" )
+					, title   = ( rc.title ?: "" )
 					, id      = assetId
 				} );
 			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
@@ -561,7 +561,7 @@ component extends="preside.system.base.AdminHandler" {
 				, denyUsers     = ListToArray( rc.deny_access_to_users     ?: "" )
 			);
 
-			messagebox.info( translateResource( uri="cms:assetmanager.asset.edit.success", data=[ formData.label ?: "" ] ) );
+			messagebox.info( translateResource( uri="cms:assetmanager.asset.edit.success", data=[ formData.title ?: "" ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 		} else {
 			messagebox.error( translateResource( "cms:assetmanager.asset.edit.unexpected.error" ) );
