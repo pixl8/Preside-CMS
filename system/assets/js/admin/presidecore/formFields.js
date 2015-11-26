@@ -53,4 +53,11 @@
         sideBySide:true
 	});
 
+	$('.timepicker').datetimepicker({
+
+        format: 'HH:mm',
+
+        sideBySide:true
+	});
+
 } )( presideJQuery );
