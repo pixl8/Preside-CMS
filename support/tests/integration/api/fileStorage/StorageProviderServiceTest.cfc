@@ -23,6 +23,27 @@ component extends="testbox.system.BaseSpec"{
 
 			} );
 		} );
+
+		describe( "getProvider", function(){
+			it( "should return an instance of the configured class for the given provider", function(){
+				var service      = _getService();
+				var mockProvider = getMockBox().createStub();
+
+				mockProvider.id = CreateUUId();
+
+				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider" ).$results( mockProvider );
+
+				expect( service.getProvider( "s3" ) ).toBe( mockProvider );
+			} );
+
+			it( "should throw a suitable error when the provider does not exist", function(){
+				var service = _getService();
+
+				expect( function(){
+					service.getProvider( CreateUUId() );
+				} ).toThrow( type="presidecms.storage.provider.not.found" );
+			} );
+		} );
 	}
 
 /************************************ HELPERS ************************************************/
