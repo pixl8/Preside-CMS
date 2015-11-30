@@ -7,6 +7,11 @@
 </cfscript>
 
 <cfoutput>
+	<p class="alert alert-warning">
+		<i class="fa fa-exclamation-triangle fa-fw"></i>
+		#translateResource( "cms:assetmanager.location.change.warning" )#
+	</p>
+
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#formAction#">
 		<input name="id" type="hidden" value="#locationId#">
 
