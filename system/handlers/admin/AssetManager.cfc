@@ -7,6 +7,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="contentRendererService"   inject="contentRendererService";
 	property name="imageManipulationService" inject="imageManipulationService";
 	property name="errorLogService"          inject="errorLogService";
+	property name="storageProviderService"   inject="storageProviderService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="datatableHelper"          inject="coldbox:myplugin:JQueryDatatablesHelpers";
 
@@ -913,6 +914,29 @@ component extends="preside.system.base.AdminHandler" {
 		args.remoteUrl   = event.buildAdminLink( linkTo="assetmanager.ajaxSearchAssets", querystring="q=%QUERY" );
 
 		return renderView( view="/admin/assetmanager/_searchBox", args=args );
+	}
+
+	private string function storageProviderPicker( event, rc, prc, args={} ) {
+		var providers = storageProviderService.listProviders();
+		args.providers = [];
+
+		for( var provider in providers ) {
+			args.providers.append({
+				  id          = provider
+				, title       = translateResource( "storage-providers.#provider#:title" )
+				, description = translateResource( "storage-providers.#provider#:description" )
+				, description = translateResource( "storage-providers.#provider#:description" )
+				, iconClass   = translateResource( "storage-providers.#provider#:iconClass" )
+			});
+		}
+
+		args.providers.sort( function( a, b ){
+			return a.title < b.title ? -1 : 1;
+		} );
+
+		event.include( "/css/admin/specific/sitetree/" );
+
+		return renderView( view="/admin/assetmanager/_storageProviderPicker", args=args );
 	}
 
 // PRIVATE HELPERS
