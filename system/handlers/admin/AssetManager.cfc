@@ -1014,6 +1014,52 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( uri="cms:assetManager.editlocation.page.subtitle", data=[ prc.location.name ] );
 	}
 
+	function editLocationAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		var locationId = rc.id ?: "";
+		var location   = storagelocationService.getLocation( locationId );
+
+		if ( location.isEmpty() ) {
+			messageBox.error( translateResource( uri="cms:assetmanager.location.not.found" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );
+		}
+
+		var provider         = location.storageProvider;
+		var generalFormName  = "preside-objects.asset_storage_location.admin.edit";
+		var generalFormData  = event.getCollectionForForm( generalFormName );
+		var providerFormName = "storage-providers.#provider#";
+		var providerFormData = event.getCollectionForForm( providerFormName );
+		var completeFormName = formsService.getMergedFormName( generalFormName, providerFormName );
+		var completeFormData = event.getCollectionForForm( completeFormName );
+		var validationResult = validateForm( completeFormName, completeFormData );
+
+		storageProviderService.validateProvider(
+			  id               = provider
+			, configuration    = providerFormData
+			, validationResult = validationResult
+		);
+
+		if ( !validationResult.validated() ) {
+			var persist = completeFormData;
+			persist.validationResult = validationResult;
+
+			messageBox.error( translateResource( uri="cms:assetmanager.location.not.valid" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editLocation", queryString="id=" & locationId ), persistStruct=persist );
+		}
+
+		var locationArgs = {
+			  id            = locationId
+			, configuration = providerFormData
+		}
+		locationArgs.append( generalFormData );
+
+		storageLocationService.updateLocation( argumentCollection = locationArgs );
+
+		messageBox.info( translateResource( uri="cms:assetmanager.location.saved", data=[ generalFormData.name ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );
+	}
+
 // PRIVATE VIEWLETS
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( [] );
