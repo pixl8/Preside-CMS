@@ -8,6 +8,6 @@
  */
 component extends="preside.system.base.SystemPresideObject" displayName="Asset storage location" {
 	property name="name"            type="string" dbtype="varchar"  maxlength=200 required=true uniqueindexes="name";
-	property name="storageProvider" type="string" dbtype="varchar"  maxlength=100 required=true;
+	property name="storageProvider" type="string" dbtype="varchar"  maxlength=100 required=true renderer="assetStorageProvider";
 	property name="configuration"   type="string" dbtype="longtext";
 }

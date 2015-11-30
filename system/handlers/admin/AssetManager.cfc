@@ -907,6 +907,22 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:assetManager.managelocations.page.subtitle" );
 	}
 
+	function getStorageLocationsForAjaxDataTables( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object          = "asset_storage_location"
+				, useMultiActions = false
+				, gridFields      = "name,storageProvider,datemodified"
+				, actionsView     = "admin.assetmanager.locationGridActions"
+			}
+		);
+	}
+
 	function addLocation( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
 
@@ -999,6 +1015,10 @@ component extends="preside.system.base.AdminHandler" {
 		event.include( "/css/admin/specific/sitetree/" );
 
 		return renderView( view="/admin/assetmanager/_storageProviderPicker", args=args );
+	}
+
+	private string function locationGridActions( event, rc, prc, args={} ) {
+		return renderView( view="/admin/assetmanager/_locationGridActions", args=args );
 	}
 
 // PRIVATE HELPERS
