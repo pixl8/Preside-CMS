@@ -934,25 +934,35 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
 
 		var provider         = rc.provider ?: "filesystem";
-		var formName         = formsService.getMergedFormName( "preside-objects.asset_storage_location.admin.add", "storage-providers.#provider#" );
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
+		var generalFormName  = "preside-objects.asset_storage_location.admin.add";
+		var generalFormData  = event.getCollectionForForm( generalFormName );
+		var providerFormName = "storage-providers.#provider#";
+		var providerFormData = event.getCollectionForForm( providerFormName );
+		var completeFormName = formsService.getMergedFormName( generalFormName, providerFormName );
+		var completeFormData = event.getCollectionForForm( completeFormName );
+		var validationResult = validateForm( completeFormName, completeFormData );
+
+		storageProviderService.validateProvider(
+			  id               = provider
+			, configuration    = providerFormData
+			, validationResult = validationResult
+		);
 
 		if ( !validationResult.validated() ) {
-			var persist = formData;
+			var persist = completeFormData;
 			persist.validationResult = validationResult;
 
 			messageBox.error( translateResource( uri="cms:assetmanager.location.not.valid" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.addlocation", queryString="provider=" & provider ), persistStruct=persist );
 		}
 
-		var locationArgs           = event.getCollectionForForm( "preside-objects.asset_storage_location.admin.add" );
-
-		locationArgs.storageProvider = provider;
-		locationArgs.configuration   = event.getCollectionForForm( "storage-providers.#provider#" );
-
+		var locationArgs = {
+			  storageProvider = provider
+			, configuration   = providerFormData
+		}
+		locationArgs.append( generalFormData );
 		var id = storageLocationService.addLocation( argumentCollection = locationArgs );
-		var editLink = '<a href="#event.buildAdminLink( linkTo='assetmanager.editLocation', querystring='id=#id#' )#">#( formData.name ?: '' )#</a>';
+		var editLink = '<a href="#event.buildAdminLink( linkTo='assetmanager.editLocation', querystring='id=#id#' )#">#( completeFormData.name ?: '' )#</a>';
 
 		messageBox.info( translateResource( uri="cms:assetmanager.location.added", data=[ editLink ] ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );

@@ -10,6 +10,31 @@ component output=false singleton=true implements="preside.system.services.fileSt
 	}
 
 // PUBLIC API METHODS
+	public any function validate( required struct configuration, required any validationResult ) {
+		var rootDirectory  = arguments.configuration.rootDirectory  ?: "";
+		var trashDirectory = arguments.configuration.trashDirectory ?: "";
+
+		try {
+			_ensureDirectoryExists( rootDirectory );
+		} catch( any e ) {
+			arguments.validationResult.addError(
+				  fieldName = "rootDirectory"
+				, message   = "storage-providers.filesystem:error.creating.directory"
+				, params    = [ rootDirectory, e.message ?: "" ]
+			);
+		}
+
+		try {
+			_ensureDirectoryExists( trashDirectory );
+		} catch( any e ) {
+			arguments.validationResult.addError(
+				  fieldName = "trashDirectory"
+				, message   = "storage-providers.filesystem:error.creating.directory"
+				, params    = [ trashDirectory, e.message ?: "" ]
+			);
+		}
+	}
+
 	public boolean function objectExists( required string path, boolean trashed=false ){
 		return FileExists( _expandPath( arguments.path, arguments.trashed ) );
 	}
@@ -80,7 +105,7 @@ component output=false singleton=true implements="preside.system.services.fileSt
 			);
 		}
 
-		_ensureDirectoryExist( GetDirectoryFromPath( fullPath ) );
+		_ensureDirectoryExists( GetDirectoryFromPath( fullPath ) );
 
 		if ( IsBinary( arguments.object ) ) {
 			FileWrite( fullPath, arguments.object );
@@ -157,11 +182,10 @@ component output=false singleton=true implements="preside.system.services.fileSt
 		return cleaned;
 	}
 
-	private void function _ensureDirectoryExist( required string dir ){
-		var parentDir = "";
-		if ( not DirectoryExists( arguments.dir ) ) {
-			parentDir = ListDeleteAt( arguments.dir, ListLen( arguments.dir, "/" ), "/" );
-			_ensureDirectoryExist( parentDir );
+	private void function _ensureDirectoryExists( required string dir ){
+		if ( arguments.dir.len() && !DirectoryExists( arguments.dir ) ) {
+			var parentDir = ListDeleteAt( arguments.dir, ListLen( arguments.dir, "/" ), "/" );
+			_ensureDirectoryExists( parentDir );
 			DirectoryCreate( arguments.dir );
 		}
 	}
@@ -176,7 +200,7 @@ component output=false singleton=true implements="preside.system.services.fileSt
 		if ( Right( _rootDirectory, 1 ) NEQ "/" ) {
 			_rootDirectory &= "/";
 		}
-		_ensureDirectoryExist( _rootDirectory );
+		_ensureDirectoryExists( _rootDirectory );
 	}
 
 	private string function _getTrashDirectory(){
@@ -189,7 +213,7 @@ component output=false singleton=true implements="preside.system.services.fileSt
 			_trashDirectory &= "/";
 		}
 
-		_ensureDirectoryExist( _trashDirectory );
+		_ensureDirectoryExists( _trashDirectory );
 	}
 
 	private string function _getRootUrl(){
