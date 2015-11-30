@@ -23,6 +23,22 @@ component {
 		return $getPresideObject( "asset_storage_location" ).insertData( data );
 	}
 
+	public struct function getLocation( required string id ) {
+		if ( Len( Trim( arguments.id ) ) ) {
+			var location = $getPresideObject( "asset_storage_location" ).selectData( id=arguments.id );
+			for( var l in location ) {
+				try {
+					l.append( DeSerializeJson( l.configuration ?: "" ) );
+					l.delete( "configuration" );
+				} catch( any e ) {}
+
+				return l;
+			}
+		}
+
+		return {};
+	}
+
 
 // PRIVATE HELPERS
 

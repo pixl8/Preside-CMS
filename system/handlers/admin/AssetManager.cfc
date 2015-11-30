@@ -984,6 +984,36 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );
 	}
 
+	function editLocation( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		prc.locationId = rc.id ?: "";
+		prc.location   = storageLocationService.getLocation( prc.locationId );
+
+		if ( prc.location.isEmpty() ) {
+			messageBox.info( translateResource( uri="cms:assetmanager.location.not.found" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );
+		}
+
+		var provider = prc.location.storageProvider ?: "filesystem";
+		prc.providerTitle    = translateResource( "storage-providers.#provider#:title" );
+		prc.formName         = formsService.getMergedFormName( "preside-objects.asset_storage_location.admin.edit", "storage-providers.#provider#" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:assetManager.managelocations.breadcrumb.title" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.managelocations" )
+		);
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:assetManager.editlocation.breadcrumb.title" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.editlocation", queryString="id=#prc.locationId#" )
+		);
+
+		prc.pageIcon     = "picture-o";
+		prc.pageTitle    = translateResource( uri="cms:assetManager.editlocation.page.title"   , data=[ prc.providerTitle ] );
+		prc.pageSubTitle = translateResource( uri="cms:assetManager.editlocation.page.subtitle", data=[ prc.location.name ] );
+	}
+
 // PRIVATE VIEWLETS
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( [] );
