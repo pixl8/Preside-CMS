@@ -893,6 +893,18 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managePerms", queryString="folder=#folderId#" ) );
 	}
 
+	function manageLocations( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:assetManager.managelocations.breadcrumb.title" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.managelocations" )
+		);
+		prc.pageIcon     = "picture-o";
+		prc.pageTitle    = translateResource( "cms:assetManager.managelocations.page.title"    );
+		prc.pageSubTitle = translateResource( "cms:assetManager.managelocations.page.subtitle" );
+	}
+
 // PRIVATE VIEWLETS
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( [] );

@@ -161,6 +161,9 @@ component output=false {
 			, "maintenanceMode"
 		];
 
+		settings.storageProviders = {
+			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
+		};
 		settings.assetManager = {
 			  maxFileSize       = "5"
 			, types             = _getConfiguredFileTypes()
@@ -193,9 +196,10 @@ component output=false {
 				, link           = [ "read", "add", "edit", "delete", "viewversions" ]
 			}
 			, assetmanager           = {
-				  general = [ "navigate" ]
-				, folders = [ "add", "edit", "delete", "manageContextPerms" ]
-				, assets  = [ "upload", "edit", "delete", "download", "pick" ]
+				  general          = [ "navigate" ]
+				, folders          = [ "add", "edit", "delete", "manageContextPerms" ]
+				, assets           = [ "upload", "edit", "delete", "download", "pick" ]
+				, storagelocations = [ "manage" ]
 			 }
 		};
 

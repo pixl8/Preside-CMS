@@ -1,11 +1,12 @@
 <cfscript>
-	folder         = rc.folder ?: "";
-	folderTitle    = prc.folder.label ?: translateResource( "cms:assetmanager.root.folder" );
-	isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
-	folderTree     = prc.folderTree ?: [];
-	trashFolderId  = prc.trashFolderId ?: "";
-	trashCount     = Val( prc.trashCount ?: "" );
-	isTrashFolder  = folder == trashFolderId;
+	folder             = rc.folder ?: "";
+	folderTitle        = prc.folder.label ?: translateResource( "cms:assetmanager.root.folder" );
+	isSystemFolder     = IsTrue( prc.folder.is_system_folder ?: "" );
+	folderTree         = prc.folderTree ?: [];
+	trashFolderId      = prc.trashFolderId ?: "";
+	trashCount         = Val( prc.trashCount ?: "" );
+	isTrashFolder      = folder == trashFolderId;
+	canManageLocations = hasCmsPermission( "assetmanager.storagelocations.manage" );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -19,6 +20,16 @@
 	<div class="info-bar">#renderViewlet( event='admin.assetmanager.searchBox' )#</div>
 
 	<div class="top-right-button-group title-and-actions-container clearfix">
+		<cfif canManageLocations>
+			<div class="pull-right">
+				<a class="inline" href="#event.buildAdminLink( linkTo="assetmanager.managelocations" )#">
+					<button class="btn btn-default btn-sm">
+						<i class="fa fa-cogs"></i>
+						#translateResource( "cms:assetmanager.manage.locations.button" )#
+					</button>
+				</a>
+			</div>
+		</cfif>
 		<cfif !isTrashFolder>
 			#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
 		</cfif>
