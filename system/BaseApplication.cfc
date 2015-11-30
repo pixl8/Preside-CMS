@@ -10,6 +10,7 @@ component extends="Bootstrap" {
 	this.name              = ExpandPath( "/" );
 	this.sessionManagement = true;
 	this.sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 );
+	this.scriptProtect     = "none";
 
 	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 15;
 	this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = 1200;

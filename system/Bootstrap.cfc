@@ -7,6 +7,7 @@ component {
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 15
+		, string  scriptProtect                = "none"
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -14,6 +15,7 @@ component {
 		this.name                                    = arguments.name
 		this.sessionManagement                       = arguments.sessionManagement;
 		this.sessionTimeout                          = arguments.sessionTimeout;
+		this.scriptProtect                           = arguments.scriptProtect;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
