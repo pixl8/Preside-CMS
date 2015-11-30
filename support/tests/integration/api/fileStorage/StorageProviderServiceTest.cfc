@@ -56,6 +56,30 @@ component extends="testbox.system.BaseSpec"{
 				} ).toThrow( type="presidecms.storage.provider.not.found" );
 			} );
 		} );
+
+		describe( "validateProvider", function(){
+			it( "should proxy to the given provider's class validate() method", function(){
+				var service          = _getService();
+				var mockProvider     = getMockBox().createStub();
+				var validationResult = getMockBox().createStub();
+				var providerId       = "test";
+				var configuration    = { test="this", isatest=true }
+
+				service.$( "getProvider" ).$args( id=providerId, configuration=configuration ).$results( mockProvider );
+				mockProvider.$( "validate" );
+				validationResult.id = CreateUUId();
+
+				service.validateProvider(
+					  id               = providerId
+					, configuration    = configuration
+					, validationResult = validationResult
+				);
+
+				var callLog = mockProvider.$callLog().validate;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1] ).toBe( { validationResult=validationResult } );
+			} );
+		} );
 	}
 
 /************************************ HELPERS ************************************************/

@@ -33,6 +33,16 @@ component {
 		throw( type="presidecms.storage.provider.not.found", message="The storage provider, [#arguments.id#], is not registered with the Storage Provider Service" );
 	}
 
+	public any function validateProvider(
+		  required string id
+		, required struct configuration
+		, required any validationResult
+	) {
+		var provider = getProvider( id=arguments.id, configuration=arguments.configuration );
+
+		return provider.validate( validationResult=arguments.validationResult );
+	}
+
 // PRIVATE HELPERS
 	private any function _createObject( required string cfcPath, required struct constructorArgs ) {
 		return CreateObject( "component", arguments.cfcPath ).init( argumentCollection=constructorArgs );
