@@ -906,6 +906,29 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:assetManager.managelocations.page.subtitle" );
 	}
 
+	function addLocation( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		var provider = rc.provider ?: "filesystem";
+
+		prc.providerTitle    = translateResource( "storage-providers.#provider#:title" );
+		prc.formName         = formsService.getMergedFormName( "preside-objects.asset_storage_location.admin.add", "storage-providers.#provider#" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:assetManager.managelocations.breadcrumb.title" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.managelocations" )
+		);
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:assetManager.addlocation.breadcrumb.title" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.addlocation", queryString="provider=#provider#" )
+		);
+
+		prc.pageIcon     = "picture-o";
+		prc.pageTitle    = translateResource( uri="cms:assetManager.addlocation.page.title"   , data=[ prc.providerTitle ] );
+		prc.pageSubTitle = translateResource( uri="cms:assetManager.addlocation.page.subtitle", data=[ prc.providerTitle ] );
+	}
+
 // PRIVATE VIEWLETS
 	private string function searchBox( event, rc, prc, args={} ) {
 		var prefetchCacheBuster = assetManagerService.getPrefetchCachebusterForAjaxSelect( [] );
