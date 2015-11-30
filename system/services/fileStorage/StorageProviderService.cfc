@@ -20,13 +20,14 @@ component {
 		return _getConfiguredProviders().keyArray();
 	}
 
-	public any function getProvider( required string id, struct configuration={} ) {
+	public any function getProvider( required string id, struct configuration={}, boolean skipConstructor=false ) {
 		var providers = _getConfiguredProviders();
 
 		if ( providers.keyExists( arguments.id ) ) {
 			return _createObject(
 				  cfcPath         = providers[ arguments.id ].class
 				, constructorArgs = arguments.configuration
+				, skipConstructor = arguments.skipConstructor
 			);
 		}
 
@@ -38,14 +39,16 @@ component {
 		, required struct configuration
 		, required any validationResult
 	) {
-		var provider = getProvider( id=arguments.id, configuration=arguments.configuration );
+		var provider = getProvider( id=arguments.id, configuration=arguments.configuration, skipConstructor=true );
 
-		return provider.validate( validationResult=arguments.validationResult );
+		return provider.validate( validationResult=arguments.validationResult, configuration=arguments.configuration );
 	}
 
 // PRIVATE HELPERS
-	private any function _createObject( required string cfcPath, required struct constructorArgs ) {
-		return CreateObject( "component", arguments.cfcPath ).init( argumentCollection=constructorArgs );
+	private any function _createObject( required string cfcPath, required struct constructorArgs, required boolean skipConstructor ) {
+		var instance = CreateObject( "component", arguments.cfcPath );
+
+		return arguments.skipConstructor ? instance : instance.init( argumentCollection=constructorArgs )
 	}
 
 // GETTERS AND SETTERS

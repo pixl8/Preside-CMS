@@ -31,7 +31,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockProvider.id = CreateUUId();
 
-				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs={} ).$results( mockProvider );
+				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs={}, skipConstructor=false ).$results( mockProvider );
 
 				expect( service.getProvider( "s3" ) ).toBe( mockProvider );
 			} );
@@ -43,9 +43,21 @@ component extends="testbox.system.BaseSpec"{
 
 				mockProvider.id = CreateUUId();
 
-				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs=configuration ).$results( mockProvider );
+				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs=configuration, skipConstructor=false ).$results( mockProvider );
 
 				expect( service.getProvider( "s3", configuration ) ).toBe( mockProvider );
+			} );
+
+			it( "should skip invoking constructor when asked to do so", function(){
+				var service      = _getService();
+				var mockProvider = getMockBox().createStub();
+				var configuration = { test="this", isatest=true }
+
+				mockProvider.id = CreateUUId();
+
+				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs={}, skipConstructor=true ).$results( mockProvider );
+
+				expect( service.getProvider( id="s3", skipConstructor=true ) ).toBe( mockProvider );
 			} );
 
 			it( "should throw a suitable error when the provider does not exist", function(){
@@ -63,9 +75,14 @@ component extends="testbox.system.BaseSpec"{
 				var mockProvider     = getMockBox().createStub();
 				var validationResult = getMockBox().createStub();
 				var providerId       = "test";
-				var configuration    = { test="this", isatest=true }
+				var configuration    = { test="this", isATest=true }
 
-				service.$( "getProvider" ).$args( id=providerId, configuration=configuration ).$results( mockProvider );
+				service.$( "getProvider" ).$args(
+					  id              = providerId
+					, configuration   = configuration
+					, skipConstructor = true
+				).$results( mockProvider );
+
 				mockProvider.$( "validate" );
 				validationResult.id = CreateUUId();
 
@@ -77,7 +94,7 @@ component extends="testbox.system.BaseSpec"{
 
 				var callLog = mockProvider.$callLog().validate;
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[1] ).toBe( { validationResult=validationResult } );
+				expect( callLog[1] ).toBe( { validationResult=validationResult, configuration=configuration } );
 			} );
 		} );
 	}
