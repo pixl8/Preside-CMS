@@ -12,7 +12,8 @@ component output="false" extends="preside.system.base.SystemPresideObject" displ
 	property name="system_folder_key"    type="string"  dbtype="varchar" maxLength=200 required=false indexes="systemfolderkey";
 	property name="hidden"               type="boolean" dbtype="boolean"               required=false default=false;
 
-	property name="parent_folder" relationship="many-to-one" relatedTo="asset_folder" required="false" uniqueindexes="folderName|1";
+	property name="parent_folder"    relationship="many-to-one" relatedTo="asset_folder"           required="false" uniqueindexes="folderName|1";
+	property name="storage_location" relationship="many-to-one" relatedTo="asset_storage_location" required="false";
 
 	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId";
 	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required="false" generator="loggedInUserId";
