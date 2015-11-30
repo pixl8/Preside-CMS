@@ -2,6 +2,8 @@ component {
 	property name="applicationReloadService"  inject="applicationReloadService";
 	property name="websiteLoginService"       inject="websiteLoginService";
 	property name="adminLoginService"         inject="loginService";
+	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
+	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
@@ -9,6 +11,7 @@ component {
 	}
 
 	public void function requestStart( event, rc, prc ) {
+		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
 	}
@@ -34,6 +37,20 @@ component {
 	}
 
 // private helpers
+	private void function _xssProtect( event, rc, prc ) {
+		if ( IsTrue( antiSamySettings.enabled ?: "" ) ) {
+			if ( IsFalse( antiSamySettings.bypassForAdministrators ?: "" ) || !event.isAdminUser() ) {
+				var policy = antiSamySettings.policy ?: "myspace";
+
+				for( var key in rc ){
+					if( IsSimpleValue( rc[ key ] ) ) {
+						rc[ key ] = antiSamyService.clean( rc[ key ], policy );
+					}
+				}
+			}
+		}
+	}
+
 	private void function _reloadChecks( event, rc, prc ) {
 		var anythingReloaded = false;
 
