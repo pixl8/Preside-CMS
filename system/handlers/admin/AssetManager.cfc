@@ -8,6 +8,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="imageManipulationService" inject="imageManipulationService";
 	property name="errorLogService"          inject="errorLogService";
 	property name="storageProviderService"   inject="storageProviderService";
+	property name="storageLocationService"   inject="storageLocationService";
 	property name="messageBox"               inject="coldbox:plugin:messageBox";
 	property name="datatableHelper"          inject="coldbox:myplugin:JQueryDatatablesHelpers";
 
@@ -927,6 +928,34 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageIcon     = "picture-o";
 		prc.pageTitle    = translateResource( uri="cms:assetManager.addlocation.page.title"   , data=[ prc.providerTitle ] );
 		prc.pageSubTitle = translateResource( uri="cms:assetManager.addlocation.page.subtitle", data=[ prc.providerTitle ] );
+	}
+
+	function addLocationAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		var provider         = rc.provider ?: "filesystem";
+		var formName         = formsService.getMergedFormName( "preside-objects.asset_storage_location.admin.add", "storage-providers.#provider#" );
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( !validationResult.validated() ) {
+			var persist = formData;
+			persist.validationResult = validationResult;
+
+			messageBox.error( translateResource( uri="cms:assetmanager.location.not.valid" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.addlocation", queryString="provider=" & provider ), persistStruct=persist );
+		}
+
+		var locationArgs           = event.getCollectionForForm( "preside-objects.asset_storage_location.admin.add" );
+
+		locationArgs.storageProvider = provider;
+		locationArgs.configuration   = event.getCollectionForForm( "storage-providers.#provider#" );
+
+		var id = storageLocationService.addLocation( argumentCollection = locationArgs );
+		var editLink = '<a href="#event.buildAdminLink( linkTo='assetmanager.editLocation', querystring='id=#id#' )#">#( formData.name ?: '' )#</a>';
+
+		messageBox.info( translateResource( uri="cms:assetmanager.location.added", data=[ editLink ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );
 	}
 
 // PRIVATE VIEWLETS

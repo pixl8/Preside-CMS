@@ -1,4 +1,8 @@
-component output=false {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
