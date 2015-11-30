@@ -19,7 +19,7 @@ public void function configure() {
     // turn off antisamy (don't do this!)
     settings.antiSamy.enabled = false;     
 
-    // use the "tinymce" AntiSamy policy
+    // use the "tinymce" AntiSamy policy (default is myspace)
     settings.antiSamy.policy  = "tinymce"; 
 
     // do not bypass antisamy, even when logged in user is admin
