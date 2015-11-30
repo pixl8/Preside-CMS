@@ -20,19 +20,22 @@ component {
 		return _getConfiguredProviders().keyArray();
 	}
 
-	public any function getProvider( required string id ) {
+	public any function getProvider( required string id, struct configuration={} ) {
 		var providers = _getConfiguredProviders();
 
 		if ( providers.keyExists( arguments.id ) ) {
-			return _createObject( cfcPath=providers[ arguments.id ].class );
+			return _createObject(
+				  cfcPath         = providers[ arguments.id ].class
+				, constructorArgs = arguments.configuration
+			);
 		}
 
 		throw( type="presidecms.storage.provider.not.found", message="The storage provider, [#arguments.id#], is not registered with the Storage Provider Service" );
 	}
 
 // PRIVATE HELPERS
-	private any function _createObject( required string cfcPath ) {
-		return CreateObject( "component", arguments.cfcPath ).init();
+	private any function _createObject( required string cfcPath, required struct constructorArgs ) {
+		return CreateObject( "component", arguments.cfcPath ).init( argumentCollection=constructorArgs );
 	}
 
 // GETTERS AND SETTERS

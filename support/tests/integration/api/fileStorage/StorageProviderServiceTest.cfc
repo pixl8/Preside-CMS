@@ -31,9 +31,21 @@ component extends="testbox.system.BaseSpec"{
 
 				mockProvider.id = CreateUUId();
 
-				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider" ).$results( mockProvider );
+				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs={} ).$results( mockProvider );
 
 				expect( service.getProvider( "s3" ) ).toBe( mockProvider );
+			} );
+
+			it( "should pass any configuration options to the class constructor", function(){
+				var service      = _getService();
+				var mockProvider = getMockBox().createStub();
+				var configuration = { test="this", isatest=true }
+
+				mockProvider.id = CreateUUId();
+
+				service.$( "_createObject" ).$args( cfcPath="preside.system.fileStorage.S3StorageProvider", constructorArgs=configuration ).$results( mockProvider );
+
+				expect( service.getProvider( "s3", configuration ) ).toBe( mockProvider );
 			} );
 
 			it( "should throw a suitable error when the provider does not exist", function(){
