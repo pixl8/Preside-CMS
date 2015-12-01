@@ -255,6 +255,12 @@ component output=false {
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
 
+		settings.antiSamy = {
+			  enabled                 = true
+			, policy                  = "myspace"
+			, bypassForAdministrators = true
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
