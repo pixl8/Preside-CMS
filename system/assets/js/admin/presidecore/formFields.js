@@ -53,4 +53,19 @@
         sideBySide:true
 	});
 
+
+	$('#derivativePicker').change(function(){
+		var setWidth     = $('.image-dimensions-picker-width');
+		var setHeight    = $('.image-dimensions-picker-height');
+		var setDimension = $('#dimensions');
+		var key          = $('#derivativePicker_chosen .chosen-hidden-field').val();
+		var width        = $(this).find('option[value='+ key +']').attr('data-width');
+		var height       = $(this).find('option[value='+ key +']').attr('data-height');
+
+		setWidth.val( width );
+		setHeight.val( height );
+		setDimension.val( width+'x'+height);
+
+	});
+
 } )( presideJQuery );

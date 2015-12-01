@@ -936,6 +936,29 @@ component {
 		return settings;
 	}
 
+	public any function listEditorDerivates(){
+		var derivatives = _getConfiguredDerivatives();
+		var publicDerivatives = structNew();
+		var value = [];
+		var dimension = [];
+
+		for( var derivative in derivatives ) {
+
+			if ( derivatives[ derivative ].keyExists( "inEditor" ) ) {
+
+				var inEditor = derivatives[derivative].inEditor ?: false;
+
+				if( inEditor ){
+
+				    publicDerivatives.value     = value.append( derivative );
+				    publicDerivatives.dimension = dimension.append( _getPreconfiguredDerivativeTransformations( derivative ) );
+				}
+			}
+		}
+
+		return publicDerivatives;
+	}
+
 	public boolean function isDerivativePubliclyAccessible( required string derivative ) {
 		var derivatives = _getConfiguredDerivatives();
 

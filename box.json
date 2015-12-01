@@ -16,7 +16,9 @@
     "description":"",
     "instructions":"https://docs.presidecms.com/quickstart.html",
     "changelog":"https://www.presidecms.com/release-notes.html",
-    "keywords":"CMS,ColdBox,FOSS",
+    "keywords":"CMS,
+    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    ColdBox,
+    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    \r\n    FOSS",
     "private":false,
     "projectURL":"https://www.presidecms.com",
     "license":[
@@ -26,7 +28,7 @@
         }
     ],
     "dependencies":{
-        "sticker":"github:pixl8/sticker#v1.0.2",
+        "sticker":"1.0.2",
         "coldbox-standalone-3.8.2":"http://integration.stg.ortussolutions.com/artifacts/ortussolutions/coldbox/3.8.2/coldbox-standalone-3.8.2.zip",
         "presidecmseditor":"github:pixl8/Preside-Editor"
     },
@@ -34,9 +36,9 @@
         "testbox":"2.2.0"
     },
     "installPaths":{
-        "sticker":"system/externals/sticker",
+        "sticker":"system\\externals\\sticker",
         "coldbox-standalone-3.8.2":"system/externals/coldbox-standalone-3.8.2",
-        "testbox":"support/tests/testbox",
+        "testbox":"support\\tests\\testbox",
         "presidecmseditor":"system/assets/ckeditor"
     },
     "ignore":[
