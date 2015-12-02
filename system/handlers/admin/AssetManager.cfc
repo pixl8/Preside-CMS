@@ -432,6 +432,41 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	function setFolderLocationAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		var folderId          = ( rc.folder ?: "" );
+		var formName          = "preside-objects.asset_folder.admin.setlocation"
+		var formData          = event.getCollectionForForm( formName );
+		var validationResult  = "";
+
+		formData.id            = folderId;
+		formData.updated_by    = event.getAdminUserId();
+
+		validationResult = validateForm(
+			  formName = formName
+			, formData = formData
+		);
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:assetmanager.edit.folder.validation.error" ) );
+			persist = formData;
+			persist.validationResult = validationResult;
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.setfolderlocation", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=persist );
+		}
+
+		try {
+			assetManagerService.setFolderLocation( id=folderId, data=formData );
+		} catch ( any e ) {
+			logError( e );
+			messageBox.error( translateResource( "cms:assetmanager.edit.folder.unexpected.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.setfolderlocation", querystring="folder=#parentFolder#&id=#folderId#" ), persistStruct=formData );
+		}
+
+		messageBox.info( translateResource( uri="cms:assetmanager.folder.location.set.confirmation", data=[ formData.label ?: '' ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
+	}
+
 	function trashFolderAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.delete" );
 

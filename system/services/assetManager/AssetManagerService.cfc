@@ -79,6 +79,10 @@ component {
 		);
 	}
 
+	public boolean function setFolderLocation( required string id, required struct data ) {
+		return editFolder( argumentCollection=arguments );
+	}
+
 	public query function getFolder( required string id, boolean includeHidden=false ) {
 		var filter = { id=arguments.id };
 		var extra  = [];
