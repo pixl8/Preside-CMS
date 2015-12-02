@@ -413,6 +413,25 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=#folderId#" ) );
 	}
 
+	function setFolderLocation( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="storagelocations.manage" );
+
+		prc.record = prc.folder ?: QueryNew('');
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:assetmanager.folderNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+
+		prc.pageIcon     = "picture-o";
+		prc.pageTitle    = translateResource( uri="cms:assetManager.set.folder.location.title", data=[ prc.record.label ] );
+		prc.pageSubTitle = translateResource( uri="cms:assetManager.set.folder.location.subtitle", data=[ prc.record.label ] );
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:assetManager.set.folder.crumbtrail.title" )
+			, link  = event.buildAdminLink( linkTo="assetmanager.setFolderLocation", queryString="folder=#( rc.folder ?: '' )#" )
+		);
+	}
+
 	function trashFolderAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.delete" );
 
