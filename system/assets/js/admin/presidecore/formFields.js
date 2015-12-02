@@ -1,5 +1,6 @@
 ( function( $ ){
 
+	var ulrPrefix = $(".auto-slug").attr("data-ulrPrefix");
 	$(".object-picker").presideObjectPicker();
 	$(".asset-picker").uberAssetSelect();
 	$(".image-dimension-picker").imageDimensionPicker();
@@ -7,12 +8,54 @@
 	$(".auto-slug").each( function(){
 		var $this = $(this)
 		  , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
+		 
+		 if($this.val() != ''){
+		 	URLslug($this.val(),ulrPrefix);
+		 }
 
 		$basedOn.keyup( function(e){
 			var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
-
 			$this.val( slug );
+			URLslug(slug,ulrPrefix);
 		} );
+		$this.keyup( function(e){
+			var slug = $this.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
+			$this.val( slug );
+			URLslug(slug,ulrPrefix);
+		} );
+	});
+
+	function URLslug(slug,prefix){
+		$(".auto-slug").nextAll("span").first().text('');
+		
+		if(slug == 'msg'){
+			$(".auto-slug").after("<span style='color:red;'>"+prefix+"</span>");
+			$(".auto-slug").attr('disabled', true);
+		} else if (slug != ''){
+			$(".auto-slug").attr('disabled', false);
+			$(".auto-slug").after("<span><b>URL slug</b>: http://"+prefix + slug+".html</span>");
+		}
+	}
+
+	$("#parent_page").change(function(){
+		
+		var parentPage = $(".result-container>span.parent~span.title").html();
+		var prefix = $(".auto-slug").attr("data-ulrPrefix").split('/')[0];
+		var slug = $(".auto-slug").val();
+		var pageId = $("input[name='id']").val();
+		var parentId = $("input[name='parent_page']").val();
+		$.ajax( buildAjaxLink( 'sitetree.ajaxSlugURL', { title : parentPage, page:pageId,parent:parentId  } ), {
+			  method   : "GET"
+			, cache    : false
+			, success:function(data){
+				if (data.match(/\/$/) != null) {
+					ulrPrefix = prefix + data;
+					URLslug(slug,ulrPrefix);
+				} else {
+					URLslug('msg',data);
+				}
+			}
+		});
 	});
 
 	$( 'textarea[class*=autosize]' ).autosize( {append: "\n"} );

@@ -147,6 +147,50 @@ component singleton=true {
 		return _getPObj().selectData( argumentCollection = args );
 	}
 
+	public any function getSlug(string  title 
+		, boolean includeTrash = false
+		, array   selectFields = []
+		, boolean useCache     = true
+		, numeric version      = 0) {
+
+
+		var args = { filter="", filterParams={}, useCache=arguments.useCache };
+
+		args.filter  = "page.title = '#arguments.title#'";
+
+		if ( ArrayLen( arguments.selectFields ) ) {
+			args.selectFields = arguments.selectFields;
+		}
+
+		if ( not arguments.includeTrash ) {
+			args.filter &= " and page.trashed = 0";
+		}
+		if ( arguments.version ) {
+			args.fromVersionTable = true
+			args.specificVersion  = arguments.version
+		}
+		
+		return _getPObj().selectData( argumentCollection = args );
+	}
+
+	public any function validateParent(required string id) {
+
+		existingPage = getPage( id = arguments.id, includeTrash = true, useCache = false );
+		
+		message = "valid";
+		
+		if ( arguments.parent_page eq arguments.id ) {
+			message = "A page in the site tree can not be set as the parent of itself";
+		}
+		
+		newParent = getPage( id = arguments.parent_page, useCache = false );
+
+		if ( newParent._hierarchy_lineage contains "/#existingPage._hierarchy_id#/" ) {
+			message = "A page in the site tree can not be the parent of one of its ancestors"
+		}
+		return message;
+	}
+
 	public query function getPagesForAjaxSelect(
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
