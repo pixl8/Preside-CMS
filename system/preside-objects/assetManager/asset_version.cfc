@@ -8,7 +8,7 @@
  */
 component extends="preside.system.base.SystemPresideObject" labelfield="title" output=false displayName="Asset" {
 
-	property name="asset"             relationship="many-to-one" relatedTo="asset"      required=true  uniqueindexes="assetversion|1";
+	property name="asset"             relationship="many-to-one" relatedTo="asset"      required=true  uniqueindexes="assetversion|1" ondelete="cascade";
 	property name="version_number"    type="numeric" dbtype="int"                       required=true  uniqueindexes="assetversion|2";
 
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true  uniqueindexes="assetversionpath";
