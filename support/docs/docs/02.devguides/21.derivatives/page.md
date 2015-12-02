@@ -53,5 +53,16 @@ You can pass the following arguments to the derivatives:
     </table>
 </div>
 
+### i18n Settings
+
+You can chanage the name/label of derivatives via i18n/derivatives.properties using this format: derivativeName.title = Desired Name
+
+
+```luceescript
+
+adminThumbnail.title=Admin thumbnail
+icon.title=Icon thumbnail
+
+```
 
 >>> This feature was first introduced in PresideCMS v10.3.7. The details below do not apply for older versions of the software.
