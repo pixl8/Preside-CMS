@@ -6,10 +6,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @storageProvider.inject            assetStorageProvider
+	 * @defaultStorageProvider.inject     assetStorageProvider
 	 * @temporaryStorageProvider.inject   tempStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
 	 * @documentMetadataService.inject    DocumentMetadataService
+	 * @systemConfigurationService.inject systemConfigurationService
+	 * @storageLocationService.inject     storageLocationService
+	 * @storageProviderService.inject     storageProviderService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
@@ -21,11 +24,13 @@ component {
 	 * @assetMetaDao.inject               presidecms:object:asset_meta
 	 */
 	public any function init(
-		  required any    storageProvider
+		  required any    defaultStorageProvider
 		, required any    temporaryStorageProvider
 		, required any    assetTransformer
 		, required any    documentMetadataService
 		, required any    systemConfigurationService
+		, required any    storageLocationService
+		, required any    storageProviderService
 		, required any    assetDao
 		, required any    assetVersionDao
 		, required any    folderDao
@@ -41,11 +46,13 @@ component {
 
 		_setupSystemFolders( arguments.configuredFolders );
 
-		_setStorageProvider( arguments.storageProvider );
+		_setDefaultStorageProvider( arguments.defaultStorageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setStorageLocationService( arguments.storageLocationService );
+		_setStorageProviderService( arguments.storageProviderService );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
@@ -532,7 +539,7 @@ component {
 			, throwIfNot = true
 		);
 
-		_getStorageProvider().putObject(
+		_getStorageProviderForFolder( asset.asset_folder ).putObject(
 			  object = arguments.fileBinary
 			, path   = newFileName
 		);
@@ -563,7 +570,7 @@ component {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "asset_folder" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -590,7 +597,7 @@ component {
 			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
-		_getStorageProvider().putObject( object = arguments.fileBinary, path = newFileName );
+		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject( object = arguments.fileBinary, path = newFileName );
 
 		versionId = _getAssetVersionDao().insertData( data=assetVersion );
 
@@ -671,7 +678,7 @@ component {
 				if ( asset.recordCount ) {
 					var newPath = LCase( assetId & "." & asset.asset_type );
 
-					_getStorageProvider().restoreObject( asset.trashed_path, newPath );
+					_getStorageProviderForFolder( arguments.folderId ).restoreObject( asset.trashed_path, newPath );
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
 						, title          = asset.original_title
@@ -728,17 +735,17 @@ component {
 		var assetBinary = "";
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
-			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProvider().getObject( asset.storage_path, arguments.isTrashed );
+			return _getStorageProviderForFolder( asset.asset_folder ).getObject( asset.storage_path, arguments.isTrashed );
 		}
 	}
 
 	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var asset            = "";
-		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
+		var storagePathField = arguments.isTrashed ? "asset.trashed_path as storage_path" : "asset.storage_path";
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
@@ -746,16 +753,16 @@ component {
 				, versionId      = arguments.versionId
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
-				, selectFields   = [ "storage_path" ]
+				, selectFields   = [ "asset_derivative.storage_path", "asset.asset_folder" ]
 			);
 		} else {
 			asset = Len( Trim( arguments.versionId ) )
-				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
-				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset.asset_folder" ] );
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path, arguments.isTrashed );
+			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo( asset.storage_path, arguments.isTrashed );
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
@@ -766,14 +773,14 @@ component {
 
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
 			return false;
 		}
 
-		trashedPath = _getStorageProvider().softDeleteObject( asset.storage_path );
+		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( asset.storage_path );
 
 		return assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
@@ -785,14 +792,14 @@ component {
 
 	public boolean function permanentlyDeleteAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title", "asset_folder" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
 			return false;
 		}
 
-		_getStorageProvider().deleteObject( asset.trashed_path, true );
+		_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
 		return assetDao.deleteData( id=arguments.id );
 	}
 
@@ -833,10 +840,11 @@ component {
 			  assetId        = arguments.assetId
 			, derivativeName = arguments.derivativeName
 			, versionId      = arguments.versionId
+			, selectFields   = [ "asset_derivative.storage_path", "asset.asset_folder" ]
 		);
 
 		if ( derivative.recordCount ) {
-			return _getStorageProvider().getObject( derivative.storage_path );
+			return _getStorageProviderForFolder( derivative.asset_folder ).getObject( derivative.storage_path );
 		}
 	}
 
@@ -871,8 +879,8 @@ component {
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "storage_path" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path" ] );
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder" ] );
 
 		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var fileext         = ListLast( asset.storage_path, "." );
@@ -896,7 +904,7 @@ component {
 		}
 		var assetType = getAssetType( filename=storagePath, throwOnMissing=true );
 
-		_getStorageProvider().putObject( assetBinary, storagePath );
+		_getStorageProviderForFolder( asset.asset_folder ).putObject( assetBinary, storagePath );
 
 		return _getDerivativeDao().insertData( {
 			  asset_type    = assetType.typeName
@@ -1230,12 +1238,43 @@ component {
 		}
 	}
 
-// GETTERS AND SETTERS
-	private any function _getStorageProvider() {
-		return _storageProvider;
+	private any function _getStorageProviderForFolder( required string folderId ) {
+		var location = _getStorageLocationForFolder( arguments.folderId );
+
+		if ( location.isEmpty() ) {
+			return _getDefaultStorageProvider();
+		}
+
+		return _getStorageProviderService().getProvider(
+			  id            = location.storageProvider
+			, configuration = location.configuration
+		);
 	}
-	private void function _setStorageProvider( required any storageProvider ) {
-		_storageProvider = arguments.storageProvider;
+
+	private struct function _getStorageLocationForFolder( required string folderId ){
+		var folder = _getFolderDao().selectData(
+			  id           = arguments.folderId
+			, selectFields = [ "parent_folder", "storage_location" ]
+		);
+
+		if ( folder.recordCount ) {
+			if ( folder.storage_location.len() ) {
+				return _getStorageLocationService().getLocation( folder.storage_location );
+			}
+			if ( folder.parent_folder.len() ) {
+				return _getStorageLocationForFolder( folder.parent_folder );
+			}
+		}
+
+		return {};
+	}
+
+// GETTERS AND SETTERS
+	private any function _getDefaultStorageProvider() {
+		return _defaultStorageProvider;
+	}
+	private void function _setDefaultStorageProvider( required any defaultStorageProvider ) {
+		_defaultStorageProvider = arguments.defaultStorageProvider;
 	}
 
 	private any function _getTemporaryStorageProvider() {
@@ -1334,5 +1373,19 @@ component {
 	}
 	private void function _setDocumentMetadataService( required any documentMetadataService ) {
 		_documentMetadataService = arguments.documentMetadataService;
+	}
+
+	private any function _getStorageLocationService() {
+		return _storageLocationService;
+	}
+	private void function _setStorageLocationService( required any storageLocationService ) {
+		_storageLocationService = arguments.storageLocationService;
+	}
+
+	private any function _getStorageProviderService() {
+		return _storageProviderService;
+	}
+	private void function _setStorageProviderService( required any storageProviderService ) {
+		_storageProviderService = arguments.storageProviderService;
 	}
 }

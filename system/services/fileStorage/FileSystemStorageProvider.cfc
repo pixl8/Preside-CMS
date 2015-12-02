@@ -1,7 +1,7 @@
 component output=false singleton=true implements="preside.system.services.fileStorage.StorageProvider" {
 
 // CONSTRUCTOR
-	public any function init( required string rootDirectory, required string trashDirectory, required string rootUrl ){
+	public any function init( required string rootDirectory, required string trashDirectory, string rootUrl="" ){
 		_setRootDirectory( arguments.rootDirectory );
 		_setTrashDirectory( arguments.trashDirectory );
 		_setRootUrl( arguments.rootUrl );

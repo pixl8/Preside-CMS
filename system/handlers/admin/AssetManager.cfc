@@ -1044,6 +1044,10 @@ component extends="preside.system.base.AdminHandler" {
 		prc.locationId = rc.id ?: "";
 		prc.location   = storageLocationService.getLocation( prc.locationId );
 
+		if ( IsStruct( prc.location.configuration ?: "" ) ) {
+			prc.location.append( prc.location.configuration );
+		}
+
 		if ( prc.location.isEmpty() ) {
 			messageBox.info( translateResource( uri="cms:assetmanager.location.not.found" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.managelocations" ) );

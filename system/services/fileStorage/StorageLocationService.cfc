@@ -41,8 +41,7 @@ component {
 			var location = $getPresideObject( "asset_storage_location" ).selectData( id=arguments.id );
 			for( var l in location ) {
 				try {
-					l.append( DeSerializeJson( l.configuration ?: "" ) );
-					l.delete( "configuration" );
+					l.configuration = DeSerializeJson( l.configuration ?: "" );
 				} catch( any e ) {}
 
 				return l;
