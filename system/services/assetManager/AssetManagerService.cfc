@@ -800,6 +800,8 @@ component {
 		}
 
 		_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
+		_deleteAssociatedFiles( arguments.id, asset.asset_folder );
+
 		return assetDao.deleteData( id=arguments.id );
 	}
 
@@ -1015,11 +1017,13 @@ component {
 	}
 
 	public boolean function deleteAssetVersion( required string assetId, required string versionId ) {
-		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version" ] );
+		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version", "asset_folder" ] );
 
 		if ( !asset.recordCount || asset.active_version == arguments.versionId ) {
 			return false;
 		}
+
+		_deleteAssociatedFiles( arguments.assetId, asset.asset_folder, arguments.versionId );
 
 		return _getAssetVersionDao().deleteData(
 			filter = { id=arguments.versionId, asset=arguments.assetId }
@@ -1267,6 +1271,27 @@ component {
 		}
 
 		return {};
+	}
+
+	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="" ) {
+		var versionFilter    = { asset = arguments.assetId };
+		var derivativeFilter = { asset = arguments.assetId };
+
+		if ( arguments.versionId.len() ) {
+			versionFilter.id               = arguments.versionId;
+			derivativeFilter.asset_version = arguments.versionId;
+		}
+
+		var versions        = _getAssetVersionDao().selectData( filter=versionFilter   , selectfields=[ "storage_path" ] );
+		var derivatives     = _getDerivativeDao().selectData( filter=derivativeFilter, selectfields=[ "storage_path" ] );
+		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
+
+		for( var version in versions ) {
+			storageProvider.deleteObject( version.storage_path );
+		}
+		for( var derivative in derivatives ) {
+			storageProvider.deleteObject( derivative.storage_path );
+		}
 	}
 
 // GETTERS AND SETTERS
