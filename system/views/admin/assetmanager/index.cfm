@@ -55,6 +55,6 @@
 		</div>
 	</div>
 
-	#renderView( '/admin/assetmanager/_moveAssetsForm' )#
+	#renderView( '/admin/assetmanager/_moveOrRestoreAssetsForm' )#
 </cfoutput>
 

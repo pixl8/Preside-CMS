@@ -834,15 +834,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function getFolderTitleAndActions( event, rc, prc ) {
+		var data = { title="", multiActions="" };
+
 		if ( !prc.isTrashFolder && Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
 			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
-			event.renderData(
-				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } )
-				, type = "html"
-			);
-		} else {
-			event.renderData( data="", type="html" );
+
+			data.title = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } );
 		}
+		data.multiActions = renderView( view="admin/assetmanager/_listingTableMultiActions" );
+
+		event.renderData( data=data, type="json" );
 	}
 
 	public void function pickerForEditorDialog( event, rc, prc ) {
