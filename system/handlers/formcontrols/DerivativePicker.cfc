@@ -4,9 +4,13 @@ component output=false {
 
 	public string function index( event, rc, prc, args={} ) output=false {
 
-		var derivatives = assetManagerService.listEditorDerivates();
-		args.labels = [];
-		args.values = [];
+		var derivatives = assetManagerService.listEditorDerivatives();
+		args.labels     = [ translateResource( "derivatives:none.title" ) ];
+		args.values     = [ "none" ];
+
+		if ( !derivatives.len() ) {
+		    return "";
+		}
 
 		for( var derivative in derivatives ) {
 		    args.values.append( derivative );

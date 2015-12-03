@@ -230,7 +230,7 @@ component singleton=true output="false" {
 				args.delete( "placeholder" );
 				args.delete( "derivative" );
 
-				if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
+				if( Len( Trim( derivative ) ) ){
 					args.delete( "width" );
 					args.delete( "height" );
 					args.delete( "quality" );

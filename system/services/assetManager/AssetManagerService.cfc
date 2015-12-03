@@ -936,20 +936,15 @@ component {
 		return settings;
 	}
 
-	public any function listEditorDerivates(){
+	public any function listEditorDerivatives(){
 		var derivatives = _getConfiguredDerivatives();
-		var publicDerivatives = ["none"];
+		var publicDerivatives = [];
 
 		for( var derivative in derivatives ) {
-
 			if ( derivatives[ derivative ].keyExists( "inEditor" ) ) {
-
-
 				if( IsBoolean( derivatives[ derivative ].inEditor ?: "" ) && derivatives[ derivative ].inEditor ){
-
 				    publicDerivatives.append( derivative );
-
-				}
+			   	}
 			}
 		}
 
