@@ -762,7 +762,7 @@ component {
 		var assetBinary = "";
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
 			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
 
 		if ( asset.recordCount ) {
@@ -772,7 +772,7 @@ component {
 
 	public string function getAssetEtag( required string id, string derivativeName="", string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var asset            = "";
-		var storagePathField = arguments.isTrashed ? "asset.trashed_path as storage_path" : "asset.storage_path";
+		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 
 		if ( Len( Trim( arguments.derivativeName ) ) ) {
 			asset = getAssetDerivative(
@@ -784,8 +784,8 @@ component {
 			);
 		} else {
 			asset = Len( Trim( arguments.versionId ) )
-				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
-				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset.asset_folder" ] );
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset.#storagePathField#", "asset.asset_folder" ] );
 		}
 
 		if ( asset.recordCount ) {
@@ -800,7 +800,7 @@ component {
 
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder", "active_version" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
@@ -808,6 +808,13 @@ component {
 		}
 
 		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( asset.storage_path );
+		if( asset.active_version.len() ) {
+			_getAssetVersionDao().updateData(
+				  id   = asset.active_version
+				, data = { is_trashed=true, trashed_path = trashedPath }
+			);
+		}
+
 		_deleteAssociatedFiles(
 			  assetId    = arguments.id
 			, folderId   = asset.asset_folder
@@ -1348,6 +1355,11 @@ component {
 		if ( arguments.versionId.len() ) {
 			versionFilter.id               = arguments.versionId;
 			derivativeFilter.asset_version = arguments.versionId;
+		}
+
+		if ( arguments.softDelete ) {
+			versionFilter.is_trashed = false;
+			derivativeFilter.is_trashed = false;
 		}
 
 		var versions        = assetVersionDao.selectData( filter=versionFilter   , selectfields=[ "id", "storage_path" ] );
