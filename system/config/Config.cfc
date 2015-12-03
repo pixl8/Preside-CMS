@@ -226,9 +226,6 @@ component output=false {
 			, toolbars    = _getCkEditorToolbarConfig()
 		};
 
-		// settings.ckeditor.linkStyles.append(  "button" );
-        // settings.ckeditor.linkStyles.append(  "anotherstyle" );
-
 		settings.static = {
 			  rootUrl        = ""
 			, siteAssetsPath = "/assets"
@@ -405,7 +402,6 @@ component output=false {
 
 		derivatives.adminthumbnail = {
 			  permissions = "inherit"
-			, inEditor    = true
 			, transformations = [
 				  { method="pdfPreview" , args={ page=1                }, inputfiletype="pdf", outputfiletype="jpg" }
 				, { method="shrinkToFit", args={ width=200, height=200 } }
@@ -414,13 +410,11 @@ component output=false {
 
 		derivatives.icon = {
 			  permissions = "inherit"
-			, inEditor    = true
 			, transformations = [ { method="shrinkToFit", args={ width=32, height=32 } } ]
 		};
 
 		derivatives.pickericon = {
 			  permissions = "inherit"
-			, inEditor    = true
 			, transformations = [ { method="shrinkToFit", args={ width=48, height=32 } } ]
 		};
 

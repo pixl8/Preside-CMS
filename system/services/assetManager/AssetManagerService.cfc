@@ -938,20 +938,17 @@ component {
 
 	public any function listEditorDerivates(){
 		var derivatives = _getConfiguredDerivatives();
-		var publicDerivatives = structNew();
-		var value = [];
-		var dimension = [];
+		var publicDerivatives = ["none"];
 
 		for( var derivative in derivatives ) {
 
 			if ( derivatives[ derivative ].keyExists( "inEditor" ) ) {
 
-				var inEditor = derivatives[derivative].inEditor ?: false;
 
-				if( inEditor ){
+				if( IsBoolean( derivatives[ derivative ].inEditor ?: "" ) && derivatives[ derivative ].inEditor ){
 
-				    publicDerivatives.value     = value.append( derivative );
-				    publicDerivatives.dimension = dimension.append( _getPreconfiguredDerivativeTransformations( derivative ) );
+				    publicDerivatives.append( derivative );
+
 				}
 			}
 		}

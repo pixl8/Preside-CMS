@@ -5,30 +5,15 @@ component output=false {
 	public string function index( event, rc, prc, args={} ) output=false {
 
 		var derivatives = assetManagerService.listEditorDerivates();
-		var args.labels = [];
-		var args.values = [];
-		var args.width  = [];
-		var args.height = [];
+		args.labels = [];
+		args.values = [];
 
-		for( var derivative in derivatives.value ) {
+		for( var derivative in derivatives ) {
 		    args.values.append( derivative );
 			args.labels.append( translateResource( uri="derivatives:#derivative#.title", defaultValue="derivatives:#derivative#.title" ) );
 		}
 
-		for( var transformation in derivatives.dimension ) {
-
-			for( var dimension in transformation ){
-
-				if ( dimension.args.keyExists( "width" ) ) {
-
-					args.height.append( dimension.args.height );
-			    	args.width.append( dimension.args.width );
-				}
-			}
-
-		}
-
-		return renderView( view="formcontrols/selectDerivatives/index", args=args );
+		return renderView( view="formcontrols/select/index", args=args );
 
 	}
 }
