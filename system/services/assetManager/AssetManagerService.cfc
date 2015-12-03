@@ -439,7 +439,7 @@ component {
 	}
 
 	public boolean function folderHasContent( required string id ) {
-		return _getAssetDao().dataExists( filter={ asset_folder=arguments.id } ) || _getFolderDao().dataExists( filter={ parent_folder=arguments.id } );
+		return _getAssetDao().dataExists( filter={ asset_folder=arguments.id, is_trashed=false } ) || _getFolderDao().dataExists( filter={ parent_folder=arguments.id, is_trashed=false } );
 	}
 
 	public boolean function trashFolder( required string id ) {
