@@ -77,10 +77,9 @@
 	};
 
 	setupMultiActionButtons = function(){
-		var $form              = $( '#multi-action-form' )
-		  , $hiddenActionField = $form.find( '[name=multiAction]' );
+		$( "body" ).on( "click", "#multi-action-buttons button", function( e ){
+			var $hiddenActionField = $( this ).closest( "form" ).find( '[name=multiAction]' );
 
-		$( "#multi-action-buttons button" ).click( function( e ){
 			$hiddenActionField.val( $( this ).attr( 'name' ) );
 		} );
 	};
