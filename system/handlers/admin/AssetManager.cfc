@@ -276,6 +276,34 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 	}
 
+	function restoreAssetsAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.edit" );
+
+		var assetIds      = ListToArray( rc.assets ?: "" );
+		var folderId      = rc.toFolder   ?: "";
+
+		if ( assetIds.len() ) {
+			var success = true;
+			try {
+				assetManagerService.restoreAssets(
+					  assetIds  = assetIds
+					, folderId  = folderId
+				);
+			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
+				success = false;
+			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
+				success = false;
+			}
+			if ( !success ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
+			}
+		}
+
+		messagebox.info( translateResource( "cms:assetmanager.assets.restored.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=trash" ) );
+	}
+
 	function addFolder( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="folders.add" );
 	}

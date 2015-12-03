@@ -700,14 +700,15 @@ component {
 			);
 
 			for( var assetId in arguments.assetIds ) {
-				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path" ] );
+				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path", "asset_folder" ] );
 				if ( asset.recordCount ) {
 					var newPath = LCase( assetId & "." & asset.asset_type );
 
-					_getStorageProviderForFolder( arguments.folderId ).restoreObject( asset.trashed_path, newPath );
+					_getStorageProviderForFolder( asset.asset_folder ).restoreObject( asset.trashed_path, newPath );
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
 						, title          = asset.original_title
+						, is_trashed     = false
 						, storage_path   = newPath
 						, original_title = ""
 						, trashed_path   = ""
