@@ -53,12 +53,14 @@
         sideBySide:true
 	});
 
+
+	var width       = $('.image-dimensions-picker-width');
+	var height      = $('.image-dimensions-picker-height');
+	var derivative  = $('#derivative_chosen .chosen-hidden-field').val();
+
 	$('#derivative').change(function(){
-		var width       = $('.image-dimensions-picker-width');
-		var height      = $('.image-dimensions-picker-height');
+
 		var derivative  = $('#derivative_chosen .chosen-hidden-field').val();
-		var dimension   = $('#dimensions');
-		var quality     = $('#quality');
 
 		if( derivative === "none" ){
 			width.prop('disabled', false);
@@ -69,5 +71,10 @@
 			height.prop('disabled', 'disabled');
 		}
 	});
+
+	if( derivative != "none" ){
+		width.prop('disabled', 'disabled');
+		height.prop('disabled', 'disabled');
+	}
 
 } )( presideJQuery );
