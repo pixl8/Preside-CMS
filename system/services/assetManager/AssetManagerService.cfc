@@ -341,15 +341,22 @@ component {
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = "asset_folder = :asset_folder and #titleField# like :q and is_trashed = :is_trashed";
+			args.filter       = "#titleField# like :q and is_trashed = :is_trashed";
 			args.filterParams = {
-				  asset_folder = parentFolder
-				, is_trashed   = arguments.trashed
+				  is_trashed   = arguments.trashed
 				, q            = { type="varchar", value="%" & arguments.searchQuery & "%" }
 			};
+			if ( !arguments.trashed ) {
+				args.filter = "asset_folder = :asset_folder and " & args.filter;
+				args.filterParams.asset_folder = parentFolder;
+			}
 		} else {
-			args.filter = { asset_folder = parentFolder, is_trashed = arguments.trashed };
+			args.filter = { is_trashed = arguments.trashed };
+			if ( !arguments.trashed ) {
+				args.filter.asset_folder = parentFolder;
+			}
 		}
+
 
 		result.records = _getAssetDao().selectData( argumentCollection = args );
 

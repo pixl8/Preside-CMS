@@ -55,6 +55,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
+		prc.isTrashFolder = rc.folder == "trash";
 		prc.folder        = assetManagerService.getFolder( id=rc.folder );
 
 		if ( prc.folder.recordCount ){
@@ -755,7 +756,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function assetsForListingGrid( event, rc, prc ) {
-		if ( IsTrue( rc.trash ?: "" ) ) {
+		if ( prc.isTrashFolder ) {
 			runEvent( event="admin.assetManager.trashedAssetsForListingGrid" );
 			return;
 		}
@@ -803,8 +804,9 @@ component extends="preside.system.base.AdminHandler" {
 			, maxRows     = datatableHelper.getMaxRows()
 			, orderBy     = datatableHelper.getSortOrder()
 			, searchQuery = datatableHelper.getSearchQuery()
-			, folder      = rc.folder ?: ""
+			, trashed     = true
 		);
+
 		var gridFields = [ "title", "datemodified" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
@@ -832,7 +834,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function getFolderTitleAndActions( event, rc, prc ) {
-		if ( IsFalse( rc.trash ?: "" ) && Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
+		if ( !prc.isTrashFolder && Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
 			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
 			event.renderData(
 				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } )

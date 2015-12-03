@@ -3,9 +3,8 @@
 	folderTitle        = prc.folder.label ?: translateResource( "cms:assetmanager.root.folder" );
 	isSystemFolder     = IsTrue( prc.folder.is_system_folder ?: "" );
 	folderTree         = prc.folderTree ?: [];
-	trashFolderId      = prc.trashFolderId ?: "";
 	trashCount         = Val( prc.trashCount ?: "" );
-	isTrashFolder      = folder == trashFolderId;
+	isTrashFolder      = folder == "trash";
 	canManageLocations = hasCmsPermission( "assetmanager.storagelocations.manage" );
 
 	prc.pageIcon     = "picture-o";
@@ -42,7 +41,7 @@
 						#renderView( view="/admin/assetmanager/_treeFolderNode", args=node )#
 					</cfloop>
 
-					<div class="tree-node tree-item<cfif isTrashFolder> selected</cfif>" data-folder-id="#trashFolderId#">
+					<div class="tree-node tree-item<cfif isTrashFolder> selected</cfif>" data-folder-id="trash">
 						<div class="tree-item-name node-name">
 							<i class="fa fa-fw fa-trash tree-node-icon red"></i>
 							<span class="folder-name">#translateResource( 'cms:assetmanager.trash.folder.name' )# (#trashCount#)</span>
