@@ -808,6 +808,11 @@ component {
 		}
 
 		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( asset.storage_path );
+		_deleteAssociatedFiles(
+			  assetId    = arguments.id
+			, folderId   = asset.asset_folder
+			, softDelete = true
+		);
 
 		return assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
@@ -1333,24 +1338,37 @@ component {
 		return {};
 	}
 
-	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="" ) {
+	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="", boolean softDelete=false ) {
 		var versionFilter    = { asset = arguments.assetId };
 		var derivativeFilter = { asset = arguments.assetId };
+		var assetVersionDao  = _getAssetVersionDao();
+		var derivativeDao    = _getDerivativeDao();
+		var trashedPath      = "";
 
 		if ( arguments.versionId.len() ) {
 			versionFilter.id               = arguments.versionId;
 			derivativeFilter.asset_version = arguments.versionId;
 		}
 
-		var versions        = _getAssetVersionDao().selectData( filter=versionFilter   , selectfields=[ "storage_path" ] );
-		var derivatives     = _getDerivativeDao().selectData( filter=derivativeFilter, selectfields=[ "storage_path" ] );
+		var versions        = assetVersionDao.selectData( filter=versionFilter   , selectfields=[ "id", "storage_path" ] );
+		var derivatives     = derivativeDao.selectData( filter=derivativeFilter, selectfields=[ "id", "storage_path" ] );
 		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
 
 		for( var version in versions ) {
-			storageProvider.deleteObject( version.storage_path );
+			if ( arguments.softDelete ) {
+				trashedPath = storageProvider.softDeleteObject( version.storage_path );
+				assetVersionDao.updateData( id=version.id, data={ is_trashed=true, trashed_path=trashedPath } );
+			} else {
+				storageProvider.deleteObject( version.storage_path );
+			}
 		}
 		for( var derivative in derivatives ) {
-			storageProvider.deleteObject( derivative.storage_path );
+			if ( arguments.softDelete ) {
+				trashedPath = storageProvider.softDeleteObject( derivative.storage_path );
+				derivativeDao.updateData( id=derivative.id, data={ is_trashed=true, trashed_path=trashedPath } );
+			} else {
+				storageProvider.deleteObject( derivative.storage_path );
+			}
 		}
 	}
 

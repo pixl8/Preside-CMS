@@ -16,6 +16,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="asset_type"        type="string"  dbtype="varchar" maxLength=10      required=true;
 	property name="raw_text_content"  type="string"  dbtype="longtext";
 
+	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
+	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;
+
 	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId";
 	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId";
 
