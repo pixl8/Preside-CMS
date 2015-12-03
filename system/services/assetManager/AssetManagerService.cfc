@@ -700,11 +700,22 @@ component {
 			);
 
 			for( var assetId in arguments.assetIds ) {
-				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path", "asset_folder" ] );
+				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path", "asset_folder", "active_version" ] );
 				if ( asset.recordCount ) {
-					var newPath = LCase( assetId & "." & asset.asset_type );
+					var newPath = "/uploaded/" & LCase( assetId & "." & asset.asset_type );
+					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
 
-					_getStorageProviderForFolder( asset.asset_folder ).restoreObject( asset.trashed_path, newPath );
+					storageProvider.restoreObject( asset.trashed_path, newPath );
+					if ( Len( Trim( asset.active_version ) ) ) {
+						_getAssetVersionDao().updateData( id=asset.active_version, data={
+							  is_trashed     = false
+							, storage_path   = newPath
+							, trashed_path   = ""
+						} );
+					}
+
+					_restoreAssociatedFiles( assetId, storageProvider );
+
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
 						, title          = asset.original_title
@@ -713,6 +724,8 @@ component {
 						, original_title = ""
 						, trashed_path   = ""
 					} );
+
+
 				}
 			}
 
@@ -1381,6 +1394,22 @@ component {
 			} else {
 				storageProvider.deleteObject( derivative.storage_path );
 			}
+		}
+	}
+
+	private void function _restoreAssociatedFiles( required string assetId, required any storageProvider ) {
+		var assetVersionDao  = _getAssetVersionDao();
+		var derivativeDao    = _getDerivativeDao();
+		var versions         = assetVersionDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }   , selectfields=[ "id", "storage_path", "trashed_path" ] );
+		var derivatives      = derivativeDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }, selectfields=[ "id", "storage_path", "trashed_path" ] );
+
+		for( var version in versions ) {
+			storageProvider.restoreObject( version.trashed_path, version.storage_path );
+			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="" } );
+		}
+		for( var derivative in derivatives ) {
+			storageProvider.restoreObject( derivative.trashed_path, derivative.storage_path );
+			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="" } );
 		}
 	}
 
