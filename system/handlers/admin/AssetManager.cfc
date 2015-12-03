@@ -56,7 +56,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		prc.folder        = assetManagerService.getFolder( id=rc.folder );
-		prc.isTrashFolder = prc.folder.recordCount && assetManagerService.getTrashFolderId() == rc.folder;
 
 		if ( prc.folder.recordCount ){
 			if ( prc.folder.id != assetManagerService.getRootFolderId() ) {
@@ -76,7 +75,6 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="general.navigate" );
 
 		prc.folderTree    = assetManagerService.getFolderTree();
-		prc.trashFolderId = assetManagerService.getTrashFolderId();
 		prc.trashCount    = assetManagerService.getTrashCount();
 	}
 
@@ -161,7 +159,7 @@ component extends="preside.system.base.AdminHandler" {
 		var assetId          = rc.asset ?: "";
 		var asset            = assetManagerService.getAsset( assetId );
 		var parentFolder     = asset.recordCount ? asset.asset_folder : "";
-		var alreadyTrashed   = parentFolder == assetManagerService.getTrashFolderId();
+		var alreadyTrashed   = IsTrue( asset.is_trashed );
 		var trashed          = "";
 
 		try {
@@ -210,14 +208,13 @@ component extends="preside.system.base.AdminHandler" {
 	function trashMultiAssetsAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
 		var parentFolder = "";
-		var trashFolder  = assetManagerService.getTrashFolderId();
 		var permanent    = false;
 
 		for( var assetId in ListToArray( rc.id ?: "" ) ) {
 			var asset = assetManagerService.getAsset( assetId );
 			parentFolder = asset.recordCount ? asset.asset_folder : "";
 
-			var alreadyTrashed = parentFolder == trashFolder;
+			var alreadyTrashed = IsTrue( asset.is_trashed );
 			if ( alreadyTrashed ) {
 				permanent = true;
 			}
@@ -250,30 +247,18 @@ component extends="preside.system.base.AdminHandler" {
 		var assetIds      = ListToArray( rc.assets ?: "" );
 		var folderId      = rc.toFolder   ?: "";
 		var fromFolder    = rc.fromFolder ?: "";
-		var trashFolderId = assetManagerService.getTrashFolderId();
-		var fromTrash     = fromFolder == trashFolderId;
 
 		if ( assetIds.len() ) {
 			if ( !Len( Trim( fromFolder ) ) ) {
 				var asset = assetmanagerService.getAsset( assetIds[1] );
 				fromFolder = asset.asset_folder ?: "";
-				fromTrash  = fromFolder == trashFolderId;
 			}
 			var success = true;
 			try {
-				if ( fromTrash ) {
-					assetManagerService.restoreAssets(
-						  assetIds  = assetIds
-						, folderId  = folderId
-						, fromTrash = fromTrash
-					);
-				} else {
-					assetManagerService.moveAssets(
-						  assetIds  = assetIds
-						, folderId  = folderId
-						, fromTrash = fromTrash
-					);
-				}
+				assetManagerService.moveAssets(
+					  assetIds  = assetIds
+					, folderId  = folderId
+				);
 			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
 				success = false;
 			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
@@ -285,11 +270,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 		}
 
-		if ( fromTrash ) {
-			messagebox.info( translateResource( "cms:assetmanager.assets.restored.confirmation" ) );
-		} else {
-			messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );
-		}
+		messagebox.info( translateResource( "cms:assetmanager.assets.moved.confirmation" ) );
 
 		setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 	}
@@ -774,7 +755,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function assetsForListingGrid( event, rc, prc ) {
-		if ( prc.isTrashFolder ) {
+		if ( IsTrue( rc.trash ?: "" ) ) {
 			runEvent( event="admin.assetManager.trashedAssetsForListingGrid" );
 			return;
 		}
@@ -801,7 +782,7 @@ component extends="preside.system.base.AdminHandler" {
 			}
 
 			checkboxCol.append( renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
-			if ( prc.isTrashFolder ) {
+			if ( IsTrue( rc.isTrashFolder ?: "" ) ) {
 				renderedOptions.append( renderView( view="/admin/assetmanager/_trashedAssetGridActions", args=record ) );
 			} else {
 				renderedOptions.append( renderView( view="/admin/assetmanager/_assetGridActions", args=record ) );
@@ -851,7 +832,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	function getFolderTitleAndActions( event, rc, prc ) {
-		if ( !prc.isTrashFolder && Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
+		if ( IsFalse( rc.trash ?: "" ) && Len( Trim( rc.folder ?: "" ) ) && prc.folder.recordCount ) {
 			var isSystemFolder = IsTrue( prc.folder.is_system_folder ?: "" );
 			event.renderData(
 				  data = renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=rc.folder, folderTitle=prc.folder.label, isSystemFolder=isSystemFolder } )

@@ -44,6 +44,7 @@ component {
  		_setAssetVersionDao( arguments.assetVersionDao );
 		_setFolderDao( arguments.folderDao );
 
+		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
 
 		_setDefaultStorageProvider( arguments.defaultStorageProvider );
@@ -239,8 +240,11 @@ component {
 	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
-			, filter       = { parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId() }
 			, orderBy      = "label"
+			, filter       = {
+				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
+				, is_trashed    = false
+			  }
 		);
 
 		if ( !StructKeyExists( arguments, "finalQuery" ) ) {
@@ -257,10 +261,18 @@ component {
 	}
 
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
-		var tree    = [];
+		var tree   = [];
+		var filter = { is_trashed = false };
+
+		if ( Len( Trim( arguments.parentFolder ) ) ) {
+			filter.parent_folder = arguments.parentFolder;
+		} else {
+			filter.id = getRootFolderId();
+		}
+
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "Count( asset.id ) as asset_count" ]
-			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
+			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder" ]
+			, filter       = filter
 			, extraFilters = [ _getExcludeHiddenFilter() ]
 			, groupBy      = "asset_folder.id"
 			, orderBy      = "label"
@@ -274,7 +286,10 @@ component {
 			folder.permissionContext = arguments.permissionContext;
 			folder.permissionContext.prepend( folder.id );
 
-			folder.append( { children=getFolderTree( folder.id, folder.access_restriction, folder.permissionContext ) } );
+			folder.append({
+				  children    = getFolderTree( folder.id, folder.access_restriction, folder.permissionContext )
+				, asset_count = getAssetCount( folder.id )
+			} );
 
 			tree.append( folder );
 		}
@@ -311,13 +326,13 @@ component {
 		, string  orderBy     = ""
 		, string  searchQuery = ""
 		, string  folder      = ""
+		, boolean trashed     = false
 
 	) {
 
 		var result        = { totalRecords = 0, records = "" };
 		var parentFolder  = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
-		var isTrashFolder = parentFolder == _getTrashFolderId();
-		var titleField    = isTrashFolder ? "original_title" : "title";
+		var titleField    = arguments.trashed ? "original_title" : "title";
 		var args          = {
 			  startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows
@@ -326,10 +341,14 @@ component {
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = "asset_folder = :asset_folder and #titleField# like :q";
-			args.filterParams = { asset_folder=parentFolder, q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
+			args.filter       = "asset_folder = :asset_folder and #titleField# like :q and is_trashed = :is_trashed";
+			args.filterParams = {
+				  asset_folder = parentFolder
+				, is_trashed   = arguments.trashed
+				, q            = { type="varchar", value="%" & arguments.searchQuery & "%" }
+			};
 		} else {
-			args.filter = { asset_folder = parentFolder };
+			args.filter = { asset_folder = parentFolder, is_trashed = arguments.trashed };
 		}
 
 		result.records = _getAssetDao().selectData( argumentCollection = args );
@@ -349,8 +368,8 @@ component {
 
 	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
 		var assetDao    = _getAssetDao();
-		var filter      = "( asset.asset_folder != :asset_folder )";
-		var params      = { asset_folder = _getTrashFolderId() };
+		var filter      = "( asset.is_trashed = :is_trashed )";
+		var params      = { is_trashed = false };
 		var types       = _getTypes();
 		var records     = "";
 		var result      = [];
@@ -393,8 +412,8 @@ component {
 	}
 
 	public string function getPrefetchCachebusterForAjaxSelect( array allowedTypes=[] ) {
-		var filter  = "( asset.asset_folder != :asset_folder )";
-		var params  = { asset_folder = _getTrashFolderId() };
+		var filter  = "( asset.is_trashed = :is_trashed )";
+		var params  = { is_trashed = false };
 		var records = "";
 
 		if ( arguments.allowedTypes.len() ) {
@@ -435,7 +454,7 @@ component {
 		}
 
 		return _getFolderDao().updateData( id = arguments.id, data = {
-			  parent_folder  = _getTrashFolderId()
+			  is_trashed     = true
 			, label          = CreateUUId()
 			, original_label = folder.label
 		} );
@@ -786,7 +805,7 @@ component {
 			  trashed_path   = trashedPath
 			, title          = CreateUUId()
 			, original_title = asset.title
-			, asset_folder   = _getTrashFolderId()
+			, is_trashed     = true
 		} );
 	}
 
@@ -1064,35 +1083,68 @@ component {
 		return "";
 	}
 
-	public string function getTrashFolderId() {
-		return _getTrashFolderId();
-	}
-
-	public string function getTrashCount() {
+	public numeric function getTrashCount() {
 		var result = _getAssetDao().selectData(
 			  selectFields = [ "Count(1) as asset_count" ]
-			, filter       = { asset_folder=_getTrashFolderId() }
+			, filter       = { is_trashed=true }
+		);
+
+		return Val( result.asset_count ?: "" );
+	}
+
+	public numeric function getAssetCount( required string folderId ) {
+		var result = _getAssetDao().selectData(
+			  selectFields = [ "Count(1) as asset_count" ]
+			, filter       = { is_trashed=false, asset_folder=arguments.folderId }
 		);
 
 		return Val( result.asset_count ?: "" );
 	}
 
 // PRIVATE HELPERS
+	private void function _migrateFromLegacyRecycleBinApproach() {
+		var folderDao   = _getFolderDao();
+		var trashFolder = folderDao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
+
+		if ( trashFolder.recordCount ) {
+			var assetDao = _getAssetDao();
+
+			assetDao.updateData(
+				  filter = { asset_folder = trashFolder.id }
+				, data   = { is_trashed = true }
+			);
+
+			assetDao.updateData(
+				  filter = "is_trashed IS NULL"
+				, data   = { is_trashed = false }
+			);
+
+			folderDao.updateData(
+				  filter = { parent_folder = trashFolder.id }
+				, data   = { is_trashed = true }
+			);
+
+			folderDao.updateData(
+				  filter = "is_trashed IS NULL"
+				, data   = { is_trashed = false }
+			);
+
+			folderDao.updateData(
+				  id     = trashFolder.id
+				, data   = { is_trashed = true, label="$legacy_recycle_bin" }
+			);
+		}
+	}
+
 	private void function _setupSystemFolders( required struct configuredFolders ) {
 		var dao         = _getFolderDao();
 		var rootFolder  = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$root" } );
-		var trashFolder = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
+
 
 		if ( rootFolder.recordCount ) {
 			_setRootFolderId( rootFolder.id );
 		} else {
 			_setRootFolderId( dao.insertData( data={ label="$root" } ) );
-		}
-
-		if ( trashFolder.recordCount ) {
-			_setTrashFolderId( trashFolder.id );
-		} else {
-			_setTrashFolderId( dao.insertData( data={ label="$recycle_bin" } ) );
 		}
 
 		for( var folderId in arguments.configuredFolders ){
@@ -1328,13 +1380,6 @@ component {
 	}
 	private void function _setRootFolderId( required string rootFolderId ) {
 		_rootFolderId = arguments.rootFolderId;
-	}
-
-	private string function _getTrashFolderId() {
-		return _trashFolderId;
-	}
-	private void function _setTrashFolderId( required string trashFolderId ) {
-		_trashFolderId = arguments.trashFolderId;
 	}
 
 	private any function _getGroups() {
