@@ -16,7 +16,7 @@
 
 		<cfif isTrash>
 			<button class="btn btn-info" disabled="disabled" data-global-key="m" data-toggle="move-assets-dialog" data-target="restore-assets-form" data-dialog-title="#translateResource( 'cms:assetmanager.restore.multi.assets.dialog.title' )#">
-				<i class="fa fa-folder bigger-110"></i>
+				<i class="fa fa-magic bigger-110"></i>
 				#translateResource( "cms:assetmanager.browser.restoreMulti.btn" )#
 			</button>
 		<cfelse>
