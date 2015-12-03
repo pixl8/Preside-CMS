@@ -1,61 +1,73 @@
 ( function( $ ){
-
-	var ulrPrefix = $(".auto-slug").attr("data-ulrPrefix");
 	$(".object-picker").presideObjectPicker();
 	$(".asset-picker").uberAssetSelect();
 	$(".image-dimension-picker").imageDimensionPicker();
 
-	$(".auto-slug").each( function(){
+	$(".auto-slug , .slug-preview").each( function(){
+		
 		var $this = $(this)
 		  , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
 		 
-		 if($this.val() != ''){
-		 	URLslug($this.val(),ulrPrefix);
-		 }
+		var ulrPrefix = $this.attr("data-ulrPrefix");
+		
+		if($this.val() != ''){
+			getURLPrefixAndSlug();
+		}
 
 		$basedOn.keyup( function(e){
 			var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
 			$this.val( slug );
 			URLslug(slug,ulrPrefix);
 		} );
+
 		$this.keyup( function(e){
 			var slug = $this.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
 			$this.val( slug );
 			URLslug(slug,ulrPrefix);
 		} );
-	});
 
-	function URLslug(slug,prefix){
-		$(".auto-slug").nextAll("span").first().text('');
-		
-		if(slug == 'msg'){
-			$(".auto-slug").after("<span style='color:red;'>"+prefix+"</span>");
-			$(".auto-slug").attr('disabled', true);
-		} else if (slug != ''){
-			$(".auto-slug").attr('disabled', false);
-			$(".auto-slug").after("<span><b>URL slug</b>: http://"+prefix + slug+".html</span>");
-		}
-	}
-
-	$("#parent_page").change(function(){
-		
-		var parentPage = $(".result-container>span.parent~span.title").html();
-		var prefix = $(".auto-slug").attr("data-ulrPrefix").split('/')[0];
-		var slug = $(".auto-slug").val();
-		var pageId = $("input[name='id']").val();
-		var parentId = $("input[name='parent_page']").val();
-		$.ajax( buildAjaxLink( 'sitetree.ajaxSlugURL', { title : parentPage, page:pageId,parent:parentId  } ), {
-			  method   : "GET"
-			, cache    : false
-			, success:function(data){
-				if (data.match(/\/$/) != null) {
-					ulrPrefix = prefix + data;
-					URLslug(slug,ulrPrefix);
-				} else {
-					URLslug('msg',data);
-				}
-			}
+		$this.parents("form:first").find("select").change(function(){
+			getURLPrefixAndSlug();
 		});
+
+		function URLslug(slug,prefix){
+			$this.nextAll("span").first().text('');
+		
+			if(slug == 'msg'){
+				$this.after("<span style='color:red;'>"+prefix+"</span>");
+				if(prefix != ''){
+					$this.attr('disabled', true);
+				}	
+			} else if (slug != ''){
+				$this.attr('disabled', false);
+				$this.after("<span><b>URL slug</b>: "+window.location.protocol+"//"+prefix + slug+".html</span>");
+			}
+		}
+
+		function getURLPrefixAndSlug(){
+			setTimeout(function() {
+			
+			var parentPage = $(".result-container>span.parent~span.title").html();
+			var slug = $this.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
+			var pageId = $("input[name='id']").val();
+			var parentId = $("input[name='parent_page']").val();
+			
+				$.ajax( buildAjaxLink( 'sitetree.ajaxSlugURL', { title : parentPage, page:pageId,parent:parentId  } ), {
+					  method   : "GET"
+					, cache    : false
+					, success:function(data){
+						
+						if (data.match(/\/$/) != null) {
+							ulrPrefix = location.host + data;
+							URLslug(slug,ulrPrefix);
+						} else {
+							URLslug('msg',data);
+						}
+					}
+				});
+			}, 1000);
+		}
+
 	});
 
 	$( 'textarea[class*=autosize]' ).autosize( {append: "\n"} );

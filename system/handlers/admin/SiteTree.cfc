@@ -148,13 +148,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.parentPage = siteTreeService.getPage(
 			  id              = parentPageId
 			, includeInactive = true
-			, selectFields    = [ "title" ]
-		);
-
-		prc.parentPage = siteTreeService.getPage(
-			  id              = parentPageId
-			, includeInactive = true
-			, selectFields    = [ "title" ,"_hierarchy_slug" ]
+			, selectFields    = [ "title","_hierarchy_slug" ]
 		);
 
 		if ( not prc.parentPage.recordCount ) {
@@ -264,8 +258,15 @@ component extends="preside.system.base.AdminHandler" {
 		var version          = Val ( rc.version    ?: "" );
 		var pageType         = "";
 
+	
+		prc.parentPageId = siteTreeService.getPage(
+			  id              = pageId
+			, includeInactive = true
+			, selectFields    = ["parent_page"]
+		);
+		
 		prc.parentPage = siteTreeService.getPage(
-			  id              = parentPageId
+			  id              = prc.parentPageId.parent_page
 			, includeInactive = true
 			, selectFields    = [ "title" ,"_hierarchy_slug" ]
 		);
