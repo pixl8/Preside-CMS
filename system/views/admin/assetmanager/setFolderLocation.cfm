@@ -12,7 +12,7 @@
 	</p>
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#postFormAction#">
-		<input type="hidden" name="form" value="#formId#" />
+		<input type="hidden" name="folder" value="#folderId#" />
 
 		#renderForm(
 			  formName          = "preside-objects.asset_folder.admin.setlocation"
