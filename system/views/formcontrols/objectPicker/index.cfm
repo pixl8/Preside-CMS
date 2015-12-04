@@ -2,6 +2,7 @@
 	object              = args.object           ?: "";
 	inputName           = args.name             ?: "";
 	inputId             = args.id               ?: "";
+	inputClass          = args.class            ?: "";
 	placeholder         = args.placeholder      ?: "";
 	placeholder         = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue        = args.defaultValue     ?: "";
@@ -59,7 +60,7 @@
 	<cfif Len( Trim( selectedTemplate ) ) >
 		<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	</cfif>
-	<select class="object-picker #extraClasses#"
+	<select class="#inputClass# object-picker #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"

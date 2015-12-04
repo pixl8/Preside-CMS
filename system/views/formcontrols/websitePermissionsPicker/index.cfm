@@ -1,6 +1,7 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
+	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
 	permissions  = args.permissions  ?: ArrayNew(1);
 
@@ -14,7 +15,7 @@
 	<cfloop array="#permissions#" index="perm">
 		<div class="checkbox role-picker-checkbox">
 			<label>
-				<input class="ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#perm.id#" type="checkbox" class="ace" value="#perm.id#"<cfif ListFindNoCase( value, perm.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
+				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#perm.id#" type="checkbox" value="#perm.id#"<cfif ListFindNoCase( value, perm.id )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
 				<span class="lbl">
 					<span class="role-title bigger">#perm.title#</span><br />
 					<span class="role-desc">#perm.description#</span>
