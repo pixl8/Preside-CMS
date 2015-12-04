@@ -181,16 +181,17 @@ component {
 		var restrictions = getFolderRestrictions( arguments.folderId );
 		var assets       = _getAssetDao().selectData(
 			  filter       = { id = arguments.assetIds }
-			, selectFields = [ "asset_type", "size" ]
+			, selectFields = [ "asset_type", "size", "asset_folder" ]
 		);
 
 		for( var asset in assets ) {
 			var allowed = isAssetAllowedInFolder(
-				  type         = asset.asset_type
-				, size         = asset.size
-				, folderId     = arguments.folderId
-				, throwIfNot   = arguments.throwIfNot
-				, restrictions = restrictions
+				  type            = asset.asset_type
+				, size            = asset.size
+				, currentFolderId = asset.asset_folder
+				, folderId        = arguments.folderId
+				, throwIfNot      = arguments.throwIfNot
+				, restrictions    = restrictions
 			);
 
 			if ( !allowed ) {
@@ -205,6 +206,7 @@ component {
 		  required string  type
 		, required string  size
 		, required string  folderId
+		,          string  currentFolderId = ""
 		,          boolean throwIfNot   = false
 		,          struct  restrictions = getFolderRestrictions( arguments.folderId )
 	) {
@@ -232,6 +234,22 @@ component {
 			}
 
 			return false;
+		}
+
+		if ( Len( Trim( arguments.currentFolderId ) ) ) {
+			var currentLocation = _getStorageLocationForFolder( arguments.currentFolderId );
+			var newLocation     = _getStorageLocationForFolder( arguments.folderId );
+
+			if ( ( currentLocation.id ?: "" ) != ( newLocation.Id ?: "" ) ) {
+				if ( arguments.throwIfNot ) {
+					throw(
+						  type    = "PresideCMS.AssetManager.folder.in.different.location"
+						, message = "Cannot move file to asset folder due to folder location ([#( newLocation.name ?: 'default' )#]) being different from the source folder location ([#( currentLocation.name ?: 'default' )#])"
+					);
+				}
+
+				return false;
+			}
 		}
 
 		return true;

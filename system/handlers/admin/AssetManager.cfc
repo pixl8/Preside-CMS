@@ -261,12 +261,17 @@ component extends="preside.system.base.AdminHandler" {
 					, folderId  = folderId
 				);
 			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
 				success = false;
 			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
+				success = false;
+			} catch( "PresideCMS.AssetManager.folder.in.different.location" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
 			}
+
 			if ( !success ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 			}
 		}
@@ -290,12 +295,16 @@ component extends="preside.system.base.AdminHandler" {
 					, folderId  = folderId
 				);
 			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
 				success = false;
 			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
+				success = false;
+			} catch( "PresideCMS.AssetManager.folder.in.different.location" e ) {
+				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
 			}
 			if ( !success ) {
-				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.to.folder.error" ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="assetManager", queryString="folder=" & fromFolder ) );
 			}
 		}
