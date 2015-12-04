@@ -1,6 +1,7 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
+	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 
@@ -16,7 +17,7 @@
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="form-control datetimepicker" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
+		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control datetimepicker" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
 		<i class="fa fa-calendar"></i>
 	</span>
 </cfoutput>
