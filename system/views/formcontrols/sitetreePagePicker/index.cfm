@@ -1,6 +1,7 @@
 <cfscript>
 	inputName          = args.name         ?: "";
 	inputId            = args.id           ?: "";
+	inputClass         = args.class        ?: "";
 	placeholder        = args.placeholder  ?: "";
 	defaultValue       = args.defaultValue ?: "";
 	remoteUrl          = args.remoteUrl    ?: "";
@@ -22,7 +23,7 @@
 <cfoutput>
 	<script type="text/mustache" id="#resultTemplateId#">#resultTemplate#</script>
 	<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
-	<select class="object-picker sitetree-page-picker"
+	<select class="#inputClass# object-picker sitetree-page-picker"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
