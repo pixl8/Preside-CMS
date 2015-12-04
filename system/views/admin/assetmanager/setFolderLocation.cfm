@@ -6,6 +6,17 @@
 </cfscript>
 
 <cfoutput>
+	<div class="top-right-button-group title-and-actions-container clearfix">
+		<div class="pull-right">
+			<a class="inline" href="#event.buildAdminLink( linkTo="assetmanager.managelocations" )#">
+				<button class="btn btn-default btn-sm">
+					<i class="fa fa-cogs"></i>
+					#translateResource( "cms:assetmanager.manage.locations.button" )#
+				</button>
+			</a>
+		</div>
+	</div>
+
 	<p class="alert alert-warning">
 		<i class="fa fa-fw fa-exclamation-triangle"></i>
 		#translateResource( 'cms:assetmanager.set.location.warning' )#

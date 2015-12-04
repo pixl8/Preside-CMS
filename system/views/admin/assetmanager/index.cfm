@@ -5,7 +5,6 @@
 	folderTree         = prc.folderTree ?: [];
 	trashCount         = Val( prc.trashCount ?: "" );
 	isTrashFolder      = folder == "trash";
-	canManageLocations = hasCmsPermission( "assetmanager.storagelocations.manage" );
 
 	prc.pageIcon     = "picture-o";
 	prc.pageTitle    = translateResource( "cms:assetManager" );
@@ -19,16 +18,6 @@
 	<div class="info-bar">#renderViewlet( event='admin.assetmanager.searchBox' )#</div>
 
 	<div class="top-right-button-group title-and-actions-container clearfix">
-		<cfif canManageLocations>
-			<div class="pull-right">
-				<a class="inline" href="#event.buildAdminLink( linkTo="assetmanager.managelocations" )#">
-					<button class="btn btn-default btn-sm">
-						<i class="fa fa-cogs"></i>
-						#translateResource( "cms:assetmanager.manage.locations.button" )#
-					</button>
-				</a>
-			</div>
-		</cfif>
 		<cfif !isTrashFolder>
 			#renderView( view="admin/assetmanager/_folderTitleAndActions", args={ folderId=folder, folderTitle=folderTitle, isSystemFolder=isSystemFolder } )#
 		</cfif>
