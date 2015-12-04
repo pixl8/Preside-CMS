@@ -289,7 +289,7 @@ component {
 		}
 
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder" ]
+			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "storage_location.name as storage_location" ]
 			, filter       = filter
 			, extraFilters = [ _getExcludeHiddenFilter() ]
 			, groupBy      = "asset_folder.id"
