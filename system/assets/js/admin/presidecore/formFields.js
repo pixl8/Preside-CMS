@@ -45,27 +45,25 @@
 		}
 
 		function getURLPrefixAndSlug(){
-			setTimeout(function() {
 			
 			var parentPage = $(".result-container>span.parent~span.title").html();
 			var slug = $this.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).toLowerCase();
 			var pageId = $("input[name='id']").val();
 			var parentId = $("input[name='parent_page']").val();
 			
-				$.ajax( buildAjaxLink( 'sitetree.ajaxSlugURL', { title : parentPage, page:pageId,parent:parentId  } ), {
-					  method   : "GET"
-					, cache    : false
-					, success:function(data){
-						
-						if (data.match(/\/$/) != null) {
-							ulrPrefix = location.host + data;
-							URLslug(slug,ulrPrefix);
-						} else {
-							URLslug('msg',data);
-						}
+			$.ajax( buildAjaxLink( 'sitetree.ajaxSlugURL', { title : parentPage, page:pageId,parent:parentId  } ), {
+				  method   : "GET"
+				, cache    : false
+				, success:function(data){
+					
+					if (data.match(/\/$/) != null) {
+						ulrPrefix = location.host + data;
+						URLslug(slug,ulrPrefix);
+					} else {
+						URLslug('msg',data);
 					}
-				});
-			}, 1000);
+				}
+			});
 		}
 
 	});
