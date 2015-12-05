@@ -148,8 +148,9 @@ component extends="preside.system.base.AdminHandler" {
 		prc.parentPage = siteTreeService.getPage(
 			  id              = parentPageId
 			, includeInactive = true
-			, selectFields    = [ "title" ]
+			, selectFields    = [ "title","_hierarchy_slug" ]
 		);
+
 		if ( not prc.parentPage.recordCount ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
 			setNextEvent( url = event.buildAdminLink( linkTo="sitetree" ) );
@@ -231,11 +232,44 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function ajaxSlugURL( event, rc, prc ) {
+		
+		formData.id = rc.page;
+		formData.parent_page = rc.parent;
+
+		getValidateMessage = siteTreeService.validateParent( argumentCollection = formData );
+		
+		if(getValidateMessage neq "valid"){
+			event.renderData( data=getValidateMessage );
+		} else {
+			prc.slugPerPage = siteTreeService.getSlug(
+			  title              = rc.title
+			, includeInactive = true
+			, selectFields    = ["_hierarchy_slug" ]
+			);
+			event.renderData( data=prc.slugPerPage._hierarchy_slug );
+		}
+	}
+
 	public void function editPage( event, rc, prc ) {
 		var pageId           = rc.id               ?: "";
+		var parentPageId 	 = rc.parentPageId 	   ?: "";
 		var validationResult = rc.validationResult ?: "";
 		var version          = Val ( rc.version    ?: "" );
 		var pageType         = "";
+
+	
+		prc.parentPageId = siteTreeService.getPage(
+			  id              = pageId
+			, includeInactive = true
+			, selectFields    = ["parent_page"]
+		);
+		
+		prc.parentPage = siteTreeService.getPage(
+			  id              = prc.parentPageId.parent_page
+			, includeInactive = true
+			, selectFields    = [ "title" ,"_hierarchy_slug" ]
+		);
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
