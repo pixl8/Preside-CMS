@@ -9,7 +9,6 @@ component accessors=true displayName="Preside REST Response" {
 	property name="mimeType"     type="string"  default="application/json";
 	property name="statusCode"   type="numeric" default=200;
 	property name="headers"      type="struct";
-	property name="responseType" type="any"     default="json";
 
 	/**
 	 * Returns all response properties as a simple CFML struct
@@ -22,7 +21,6 @@ component accessors=true displayName="Preside REST Response" {
 			, mimeType     = getMimeType()
 			, statusCode   = getStatusCode()
 			, headers      = getHeaders()
-			, responseType = getResponseType()
 		};
 	}
 
@@ -54,6 +52,44 @@ component accessors=true displayName="Preside REST Response" {
 
 		setHeaders( existingHeaders );
 
+		return this;
+	}
+
+	/**
+	 * Sets the data of the response. This data will later be converted into
+	 * whichever response format is specified for the request (json by default)
+	 *
+	 * @data.hint the data to set
+	 * @autodoc true
+	 *
+	 */
+	public any function representationOf( required any data ) {
+		setData( arguments.data );
+
+		return this;
+	}
+
+	/**
+	 * Sets the data of the response to NULL which instructs the response processor
+	 * to return an empty body
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public any function noData() {
+		setData( NullValue() );
+		return this;
+	}
+
+	/**
+	 * Sets the mime type of the response and returns
+	 * reference to self so that methods can be chained
+	 *
+	 * @mimetype.hint mime type of the response, e.g. 'application/json'
+	 * @autodoc true
+	 */
+	public any function withMimeType( required string mimeType ) {
+		setMimeType( arguments.mimeType );
 		return this;
 	}
 

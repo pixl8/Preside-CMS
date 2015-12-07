@@ -15,7 +15,6 @@ component extends="testbox.system.BaseSpec"{
 					, mimeType     = "application/json"
 					, statusCode   = 200
 					, headers      = NullValue()
-					, responseType = "json"
 				} );
 
 			} );
@@ -68,6 +67,56 @@ component extends="testbox.system.BaseSpec"{
 				expect( result ).toBe( restResponse );
 			} );
 
+		} );
+
+		describe( "representationOf()", function(){
+
+			it( "should set the data of the response to the passed value", function(){
+				var someResponse = { "lovely" = "response", test = CreateUUId() };
+
+				restResponse.representationOf( someResponse );
+
+				expect( restResponse.getMemento().data ).toBe( someResponse );
+			} );
+
+			it( "should return a reference to itself so that methods can be chained", function(){
+				var result = restResponse.representationOf( { test=true } );
+
+				expect( result ).toBe( restResponse );
+			} );
+
+		} );
+
+		describe( "noData()", function(){
+
+			it( "should set the response data to NULL", function(){
+				restResponse.setData( "sjfljksldfj" );
+
+				restResponse.noData();
+
+				expect( restResponse.getData() ).toBeNull();
+			} );
+
+			it( "should return a reference to itself so that methods can be chained", function(){
+				var result = restResponse.noData();
+
+				expect( result ).toBe( restResponse );
+			} );
+
+		} );
+
+		describe( "withMimeType", function(){
+			it( "should result in mime type being set to the provided mime type", function(){
+				restResponse.withMimeType( "text/plain" );
+
+				expect( restResponse.getMemento().mimeType ).toBe( "text/plain" );
+			} );
+
+			it( "should return a reference to itself so that methods can be chained", function(){
+				var result = restResponse.withMimeType( "duumy/type" );
+
+				expect( result ).toBe( restResponse );
+			} );
 		} );
 
 	}
