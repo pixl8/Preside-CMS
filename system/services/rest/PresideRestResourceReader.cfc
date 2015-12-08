@@ -1,6 +1,6 @@
 /**
  * Object that performs parsing of REST resource handlers.
- * The metadata gleaned from the a resource can then be used
+ * The metadata gleaned from the resource can then be used
  * to map incoming requests to appropriate resource handlers.
  *
  * @autodoc true
