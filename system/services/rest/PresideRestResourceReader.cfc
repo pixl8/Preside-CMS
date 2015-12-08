@@ -9,10 +9,67 @@
 component displayName="Preside REST Resource Reader" {
 
 	/**
+	 * Scans passed directories for resources and returns
+	 * a prepared array of resource metadata that the
+	 * platform can use to route REST requests
+	 *
+	 * @directories.hint array of mapped directory paths
+	 * @autodoc true
+	 */
+	public array function readResourceDirectories( required array directories ) {
+		var resources = [];
+
+		for( var dir in arguments.directories ) {
+			var fullRootDir      = ExpandPath( dir );
+			var dirCfcPathRoot   = Replace( ReReplace( ReReplace( dir, "^/", "" ), "/$", "" ), "/", ".", "all" ) & ".";
+			var resourceHandlers = DirectoryList( fullRootDir, false, "path", "*.cfc" );
+
+			for( var resourceHandler in resourceHandlers ) {
+				var mappedPath = Replace( resourcehandler, fullRootDir, "" );
+				mappedPath = ReReplace( mappedPath, "\.cfc$", "" );
+				mappedPath = ReReplace( mappedPath, "[/\\]", ".", "all" );
+				mappedPath = ReReplace( mappedPath, "^\.", "" );
+				mappedPath = dirCfcPathRoot & mappedPath;
+
+				if ( isValidResource( mappedPath ) ) {
+					var resourceHandlerResources = readResource( mappedPath );
+					for( var newResource in resourceHandlerResources ) {
+						var found = false;
+						for( var existingResource in resources ) {
+							if ( existingResource.uriPattern == newResource.uriPattern ) {
+								existingResource.handler = newResource.handler;
+								existingResource.verbs.append( newResource.verbs );
+
+								found = true;
+								break;
+							}
+						}
+
+						if ( !found ) {
+							resources.append( newResource );
+						}
+					}
+				}
+
+			}
+		}
+
+		resources.sort( function( a, b ){
+			var aUri = Replace( a.uriPattern, "(.*?)", "", "all" );
+			var bUri = Replace( b.uriPattern, "(.*?)", "", "all" );
+
+			return aUri.len() > bUri.len() ? -1 : 1;
+		} )
+
+		return resources;
+	}
+
+	/**
 	 * Returns whether or not the passed CFC path
 	 * represents a valid resource CFC
 	 *
 	 * @cfcPath.hint Mapped component path to CFC to test the validity of
+	 * @autodoc true
 	 */
 	public boolean function isValidResource( required string cfcPath ) {
 		var tester = function( meta ){
@@ -34,6 +91,7 @@ component displayName="Preside REST Resource Reader" {
 	 * for the given resource CFC (path)
 	 *
 	 * @cfcPath.hint Mapped component path to CFC to extract data of
+	 * @autodoc true
 	 */
 	public array function readResource( required string cfcPath ) {
 		var readMeta = { verbs={} };
@@ -62,10 +120,14 @@ component displayName="Preside REST Resource Reader" {
 		var resources = [];
 		var uris      = ListToArray( readMeta.restUri ?: "" );
 		var verbs     = [];
+		var handler   = ListLast( arguments.cfcPath, "." );
 
 		for( var uri in uris ) {
 			var resource = readUri( uri );
-			resource.verbs = readMeta.verbs;
+
+			resource.verbs   = readMeta.verbs;
+			resource.handler = handler;
+
 			resources.append( resource );
 		}
 
@@ -77,6 +139,7 @@ component displayName="Preside REST Resource Reader" {
 	 * of regex pattern and named arguments
 	 *
 	 * @uri.hint The URI to parse
+	 * @autodoc true
 	 */
 	public struct function readUri( required string uri ) {
 		var tokens    = [];

@@ -74,7 +74,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( resource.len() ).toBe( 2 );
 
 				for( var i=1; i<=2; i++ ) {
-					expect( resource[1].verbs ?: "" ).toBe( {
+					expect( resource[i].verbs ?: "" ).toBe( {
 						  "get"    = "get"
 						, "put"    = "putDatatest"
 						, "delete" = "delete"
@@ -82,6 +82,41 @@ component extends="testbox.system.BaseSpec"{
 					} );
 				}
 			} );
+
+			it( "should identify the component name in each resource result", function(){
+				var resource = resourceReader.readResource( "resources.rest.TestResource" );
+
+				expect( resource.len() ).toBe( 2 );
+
+				for( var i=1; i<=2; i++ ) {
+					expect( resource[i].handler ?: "" ).toBe( "TestResource" );
+				}
+			} );
+		} );
+
+		describe( "readResourceDirectories()", function(){
+			it( "should return a resource array compiled from all the .cfc resource files in the passed array of directories", function(){
+				var resources = resourceReader.readResourceDirectories( [ "/resources/rest/dir1", "/resources/rest/dir2" ] );
+
+				expect( resources ).toBe( [{
+					  handler    = "AnotherResource"
+					, tokens     = [ "pattern", "here" ]
+					, uriPattern = "/another/matching/(.*?)/(.*?)"
+					, verbs      = { post="post" }
+				},{
+					  handler    = "ResourceX"
+					, tokens     = [ "pattern", "id" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+				},{
+					  handler    = "ResourceX"
+					, tokens     = [ "pattern" ]
+					, uriPattern = "/test/(.*?)"
+					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+				}] );
+			} );
+
+
 		} );
 
 	}
