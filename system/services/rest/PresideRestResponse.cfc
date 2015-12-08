@@ -52,6 +52,20 @@ component accessors=true displayName="Preside REST Response" {
 	}
 
 	/**
+	 * Adds an individual header to the headers in the response
+	 *
+	 * @name.hint  the name of the header
+	 * @value.hint the value of the header
+	 * @autodoc
+	 */
+	public any function setHeader( required string name, required string value ) {
+		variables.headers = variables.headers ?: {};
+		variables.headers[ arguments.name ] = arguments.value;
+
+		return;
+	}
+
+	/**
 	 * Sets the data of the response. This data will later be converted into
 	 * whichever response format is specified for the request (json by default)
 	 *
