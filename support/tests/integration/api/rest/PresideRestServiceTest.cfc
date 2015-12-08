@@ -2,12 +2,12 @@ component extends="testbox.system.BaseSpec"{
 
 	function run(){
 
-		describe( "getResourceForRestPath()", function(){
+		describe( "getResourceForUri()", function(){
 
 			it( "should find first regex match for a passed URI", function(){
 				var restService = getService();
 
-				expect( restService.getResourceForRestPath( "/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
+				expect( restService.getResourceForUri( "/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
 					  handler    = "ResourceX"
 					, tokens     = [ "pattern", "id" ]
 					, uriPattern = "/test/(.*?)/(.*?)/"
@@ -18,7 +18,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should return an empty struct when no resource is found", function(){
 				var restService = getService();
 
-				expect( restService.getResourceForRestPath( "/whatever/this/is/#CreateUUId()#/" ) ).toBe( {} );
+				expect( restService.getResourceForUri( "/whatever/this/is/#CreateUUId()#/" ) ).toBe( {} );
 			} );
 
 		} );
@@ -37,12 +37,56 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "processRequest", function(){
+
+			it( "it should call the matched coldbox handler for the given request and passed verb", function(){
+				var uri             = "/some/uri/23";
+				var restService     = getService();
+				var resourceHandler = {
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+				};
+				var verb = "put";
+				var mockTokens = {
+					  completelyMocked = true
+					, tokens           = "test"
+				};
+				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+
+				mockResponse.id = CreateUUId();
+
+				restService.$( "createRestResponse", mockResponse );
+				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
+				restService.$( "extractTokensFromUri"   ).$args(
+					  uriPattern = resourceHandler.uriPattern
+					, tokens     = resourceHandler.tokens
+					, uri        = uri
+				).$results( mockTokens );
+
+				mockController.$( "runEvent" );
+
+				restService.processRequest( uri=uri, verb=verb );
+
+				var callLog = mockController.$callLog().runEvent;
+
+				expect( callLog.len() ).toBe( 1 );
+
+
+				expect( callLog[1].event ).toBe( "rest-resources.myResource.putDataTest" );
+				expect( callLog[1].prePostExempt ).toBe( false );
+				expect( callLog[1].private ).toBe( true  );
+				expect( callLog[1].eventArguments ).toBe( { response=mockResponse, args=mockTokens } );
+			} );
+		} );
+
 	}
 
 	private any function getService( ) {
 		variables.mockController = createStub();
 		return createMock( object=new preside.system.services.rest.PresideRestService(
-			  coldboxController   = mockController
+			  controller          = mockController
 			, resourceDirectories = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
 		) );
 	}
