@@ -25,21 +25,22 @@ component {
 		var response = createRestResponse();
 
 		if ( resource.count() ) {
-			var tokens = extractTokensFromUri(
+			var args = extractTokensFromUri(
 				  uriPattern = resource.uriPattern
 				, tokens     = resource.tokens
 				, uri        = arguments.uri
 			);
+			args.response = response;
 
 			_getController().runEvent(
-				  event = "rest-resources.#resource.handler#.#resource.verbs[ arguments.verb ]#"
-				, prePostExempt = false
-				, private       = true
-				, eventArguments = { args=tokens, response=response }
+				  event          = "rest-resources.#resource.handler#.#resource.verbs[ arguments.verb ]#"
+				, prePostExempt  = false
+				, private        = true
+				, eventArguments = args
 			);
 		}
 
-		return;
+		return response;
 	}
 
 	public struct function getResourceForUri( required string restPath ) {
@@ -68,7 +69,7 @@ component {
 		return extracted;
 	}
 
-	public any function getRestResponse() {
+	public any function createRestResponse() {
 		return new PresideRestResponse();
 	}
 

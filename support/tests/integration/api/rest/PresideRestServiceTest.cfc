@@ -54,6 +54,8 @@ component extends="testbox.system.BaseSpec"{
 					, tokens           = "test"
 				};
 				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var expectedArgs = { response=mockResponse };
+				expectedArgs.append( mockTokens );
 
 				mockResponse.id = CreateUUId();
 
@@ -77,7 +79,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog[1].event ).toBe( "rest-resources.myResource.putDataTest" );
 				expect( callLog[1].prePostExempt ).toBe( false );
 				expect( callLog[1].private ).toBe( true  );
-				expect( callLog[1].eventArguments ).toBe( { response=mockResponse, args=mockTokens } );
+				expect( callLog[1].eventArguments ).toBe( expectedArgs );
 			} );
 		} );
 
