@@ -7,7 +7,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should find first regex match for a passed URI", function(){
 				var restService = getService();
 
-				expect( restService.getResourceForUri( "/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
+				expect( restService.getResourceForUri( "/api1/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
 					  handler    = "ResourceX"
 					, tokens     = [ "pattern", "id" ]
 					, uriPattern = "/test/(.*?)/(.*?)/"

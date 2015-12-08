@@ -14,7 +14,7 @@ component {
 	 *
 	 */
 	public any function init( required array resourceDirectories, required any controller ) {
-		_setResources( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
+		_setApis( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
 		_setController( arguments.controller );
 
 		return this;
@@ -44,11 +44,25 @@ component {
 	}
 
 	public struct function getResourceForUri( required string restPath ) {
-		for( var resource in _getResources() ) {
-			if ( ReFindNoCase( resource.uriPattern, arguments.restPath ) ) {
-				return resource;
+		var apis = _getApis();
+
+		for( var apiPath in _getApiList() ) {
+			if ( arguments.restPath.startsWith( apiPath ) ) {
+				var apiResources = apis[ apiPath ];
+				var resourcePath = arguments.restPath.replace( apiPath, "" );
+
+				for( var resource in apiResources ) {
+					if ( ReFindNoCase( resource.uriPattern, resourcePath ) ) {
+						return resource;
+					}
+				}
+
+
+				break;
 			}
 		}
+
+
 		return {};
 	}
 
@@ -73,13 +87,26 @@ component {
 		return new PresideRestResponse();
 	}
 
+// PRIVATE HELPERS
+	private array function _getApiList() {
+		if ( !variables.keyExists( "_apiList" ) ) {
+			_apiList = _getApis().keyArray();
+			_apiList.sort( function( a, b ){
+				return a.len() > b.len() ? -1 : 1;
+			} );
+		}
+
+		return _apiList;
+	}
+
 // GETTERS AND SETTERS
-	private array function _getResources() {
-		return _resources;
+	private struct function _getApis() {
+		return _apis;
 	}
-	private void function _setResources( required array resources ) {
-		_resources = arguments.resources;
+	private void function _setApis( required struct apis ) {
+		_apis = arguments.apis;
 	}
+
 
 	private any function _getController() {
 		return _controller;
