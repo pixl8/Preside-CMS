@@ -31,8 +31,8 @@ component accessors=true displayName="Preside REST Response" {
 	 * @statuscode.hint Numeric status code to set on the response
 	 * @autodoc true
 	 */
-	public any function withStatus( required numeric statusCode ) {
-		setStatusCode( arguments.statusCode );
+	public any function setStatus( required numeric statusCode ) {
+		variables.statusCode = arguments.statusCode;
 
 		return this;
 	}
@@ -44,13 +44,9 @@ component accessors=true displayName="Preside REST Response" {
 	 * @headers.hint Structure containing headers where struct keys are header names and values are corresponding header values
 	 * @autodoc true
 	 */
-	public any function withHeaders( required struct headers ) {
-		var existingHeaders = getHeaders();
-
-		existingHeaders = existingHeaders ?: {};
-		existingHeaders.append( arguments.headers )
-
-		setHeaders( existingHeaders );
+	public any function setHeaders( required struct headers ) {
+		variables.headers = variables.headers ?: {};
+		variables.headers.append( arguments.headers )
 
 		return this;
 	}
@@ -63,8 +59,8 @@ component accessors=true displayName="Preside REST Response" {
 	 * @autodoc true
 	 *
 	 */
-	public any function representationOf( required any data ) {
-		setData( arguments.data );
+	public any function setData( required any data ) {
+		variables.data = arguments.data;
 
 		return this;
 	}
@@ -77,7 +73,8 @@ component accessors=true displayName="Preside REST Response" {
 	 *
 	 */
 	public any function noData() {
-		setData( NullValue() );
+		variables.data = NullValue();
+
 		return this;
 	}
 
@@ -88,8 +85,9 @@ component accessors=true displayName="Preside REST Response" {
 	 * @mimetype.hint mime type of the response, e.g. 'application/json'
 	 * @autodoc true
 	 */
-	public any function withMimeType( required string mimeType ) {
-		setMimeType( arguments.mimeType );
+	public any function setMimeType( required string mimeType ) {
+		variables.mimeType = arguments.mimeType;
+
 		return this;
 	}
 

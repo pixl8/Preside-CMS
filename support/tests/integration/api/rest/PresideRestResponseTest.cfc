@@ -21,28 +21,28 @@ component extends="testbox.system.BaseSpec"{
 
 		} );
 
-		describe( "withStatus", function(){
+		describe( "setStatus", function(){
 
 			it( "should result in status code being set to the provided status", function(){
-				restResponse.withStatus( 301 );
+				restResponse.setStatus( 301 );
 
 				expect( restResponse.getMemento().statusCode ).toBe( 301 );
 			} );
 
 			it( "should return a reference to itself so that methods can be chained", function(){
-				var result = restResponse.withStatus( 404 );
+				var result = restResponse.setStatus( 404 );
 
 				expect( result ).toBe( restResponse );
 			} );
 
 		} );
 
-		describe( "withHeaders", function(){
+		describe( "setHeaders", function(){
 
 			it( "should result in headers struct being set to the headers", function(){
 				var testHeaders = { "X-Rest-Stuff" = CreateUUId(), "X-Test-Stuff" = true };
 
-				restResponse.withHeaders( testHeaders );
+				restResponse.setHeaders( testHeaders );
 
 				expect( restResponse.getMemento().headers ).toBe( testHeaders );
 			} );
@@ -54,33 +54,33 @@ component extends="testbox.system.BaseSpec"{
 
 				expected.append( testHeaders2 );
 
-				restResponse.withHeaders( testHeaders );
-				restResponse.withHeaders( testHeaders2 );
+				restResponse.setHeaders( testHeaders );
+				restResponse.setHeaders( testHeaders2 );
 
 				expect( restResponse.getHeaders() ).toBe( expected );
 
 			} );
 
 			it( "should return a reference to itself so that methods can be chained", function(){
-				var result = restResponse.withHeaders( { test=true } );
+				var result = restResponse.setHeaders( { test=true } );
 
 				expect( result ).toBe( restResponse );
 			} );
 
 		} );
 
-		describe( "representationOf()", function(){
+		describe( "setData()", function(){
 
 			it( "should set the data of the response to the passed value", function(){
 				var someResponse = { "lovely" = "response", test = CreateUUId() };
 
-				restResponse.representationOf( someResponse );
+				restResponse.setData( someResponse );
 
 				expect( restResponse.getMemento().data ).toBe( someResponse );
 			} );
 
 			it( "should return a reference to itself so that methods can be chained", function(){
-				var result = restResponse.representationOf( { test=true } );
+				var result = restResponse.setData( { test=true } );
 
 				expect( result ).toBe( restResponse );
 			} );
@@ -105,15 +105,15 @@ component extends="testbox.system.BaseSpec"{
 
 		} );
 
-		describe( "withMimeType", function(){
+		describe( "setMimeType", function(){
 			it( "should result in mime type being set to the provided mime type", function(){
-				restResponse.withMimeType( "text/plain" );
+				restResponse.setMimeType( "text/plain" );
 
 				expect( restResponse.getMemento().mimeType ).toBe( "text/plain" );
 			} );
 
 			it( "should return a reference to itself so that methods can be chained", function(){
-				var result = restResponse.withMimeType( "duumy/type" );
+				var result = restResponse.setMimeType( "duumy/type" );
 
 				expect( result ).toBe( restResponse );
 			} );
