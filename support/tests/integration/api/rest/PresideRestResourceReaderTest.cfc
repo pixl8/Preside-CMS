@@ -95,25 +95,40 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "readResourceDirectories()", function(){
-			it( "should return a resource array compiled from all the .cfc resource files in the passed array of directories", function(){
+			it( "should return a resource arryas grouped into API endpoints from all the .cfc resource files in the passed array of directories", function(){
 				var resources = resourceReader.readResourceDirectories( [ "/resources/rest/dir1", "/resources/rest/dir2" ] );
 
-				expect( resources ).toBe( [{
-					  handler    = "AnotherResource"
-					, tokens     = [ "pattern", "here" ]
-					, uriPattern = "/another/matching/(.*?)/(.*?)"
-					, verbs      = { post="post" }
-				},{
-					  handler    = "ResourceX"
-					, tokens     = [ "pattern", "id" ]
-					, uriPattern = "/test/(.*?)/(.*?)/"
-					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
-				},{
-					  handler    = "ResourceX"
-					, tokens     = [ "pattern" ]
-					, uriPattern = "/test/(.*?)"
-					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
-				}] );
+				expect( resources ).toBe( {
+					"/" = [{
+						  handler    = "RootApiResource"
+						, tokens     = []
+						, uriPattern = "/root/match/"
+						, verbs      = { post="post" }
+					}],
+					"/api1" = [{
+						  handler    = "ResourceX"
+						, tokens     = [ "pattern", "id" ]
+						, uriPattern = "/test/(.*?)/(.*?)/"
+						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+					},{
+						  handler    = "ResourceX"
+						, tokens     = [ "pattern" ]
+						, uriPattern = "/test/(.*?)"
+						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+					}],
+					"/api1/subapi" = [{
+						  handler    = "TestResource"
+						, tokens     = []
+						, uriPattern = "/my/pattern"
+						, verbs      = { get="get" }
+					}],
+					"/api2" = [{
+						  handler    = "AnotherResource"
+						, tokens     = [ "pattern", "here" ]
+						, uriPattern = "/another/matching/(.*?)/(.*?)"
+						, verbs      = { post="post" }
+					}]
+				});
 			} );
 
 

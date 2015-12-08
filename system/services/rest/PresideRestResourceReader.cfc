@@ -10,32 +10,41 @@ component displayName="Preside REST Resource Reader" {
 
 	/**
 	 * Scans passed directories for resources and returns
-	 * a prepared array of resource metadata that the
+	 * prepared arrays of resource metadata, grouped by API, that the
 	 * platform can use to route REST requests
 	 *
 	 * @directories.hint array of mapped directory paths
 	 * @autodoc true
 	 */
-	public array function readResourceDirectories( required array directories ) {
-		var resources = [];
+	public struct function readResourceDirectories( required array directories ) {
+		var apis      = {};
 
 		for( var dir in arguments.directories ) {
 			var fullRootDir      = ExpandPath( dir );
 			var dirCfcPathRoot   = Replace( ReReplace( ReReplace( dir, "^/", "" ), "/$", "" ), "/", ".", "all" ) & ".";
-			var resourceHandlers = DirectoryList( fullRootDir, false, "path", "*.cfc" );
+			var resourceHandlers = DirectoryList( fullRootDir, true, "path", "*.cfc" );
 
 			for( var resourceHandler in resourceHandlers ) {
 				var mappedPath = Replace( resourcehandler, fullRootDir, "" );
+				var apiPath    = ListDeleteAt( mappedPath, ListLen( mappedPath, "/\" ), "/\" );
+
+				if ( !Len( Trim( apiPath ) ) ) {
+					apiPath = "/";
+				}
+
 				mappedPath = ReReplace( mappedPath, "\.cfc$", "" );
 				mappedPath = ReReplace( mappedPath, "[/\\]", ".", "all" );
 				mappedPath = ReReplace( mappedPath, "^\.", "" );
 				mappedPath = dirCfcPathRoot & mappedPath;
 
+
 				if ( isValidResource( mappedPath ) ) {
+					apis[ apiPath ] = apis[ apiPath ] ?: [];
+
 					var resourceHandlerResources = readResource( mappedPath );
 					for( var newResource in resourceHandlerResources ) {
 						var found = false;
-						for( var existingResource in resources ) {
+						for( var existingResource in apis[ apiPath ] ) {
 							if ( existingResource.uriPattern == newResource.uriPattern ) {
 								existingResource.handler = newResource.handler;
 								existingResource.verbs.append( newResource.verbs );
@@ -46,7 +55,7 @@ component displayName="Preside REST Resource Reader" {
 						}
 
 						if ( !found ) {
-							resources.append( newResource );
+							apis[ apiPath ].append( newResource );
 						}
 					}
 				}
@@ -54,14 +63,16 @@ component displayName="Preside REST Resource Reader" {
 			}
 		}
 
-		resources.sort( function( a, b ){
-			var aUri = Replace( a.uriPattern, "(.*?)", "", "all" );
-			var bUri = Replace( b.uriPattern, "(.*?)", "", "all" );
+		for( var api in apis ) {
+			apis[ api ].sort( function( a, b ){
+				var aUri = Replace( a.uriPattern, "(.*?)", "", "all" );
+				var bUri = Replace( b.uriPattern, "(.*?)", "", "all" );
 
-			return aUri.len() > bUri.len() ? -1 : 1;
-		} )
+				return aUri.len() > bUri.len() ? -1 : 1;
+			} )
+		}
 
-		return resources;
+		return apis;
 	}
 
 	/**
