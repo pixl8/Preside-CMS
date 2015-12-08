@@ -23,6 +23,20 @@ component extends="testbox.system.BaseSpec"{
 
 		} );
 
+		describe( "extractTokensFromUri", function(){
+			it( "should extract tokens from a resource URI from the actual incoming URI as a struct", function(){
+				var restService = getService();
+				var id     = CreateUUId();
+				var object = "myObject";
+
+				expect( restService.extractTokensFromUri(
+					  uriPattern = "/object/(.*?)/(.*?)/"
+					, tokens     = [ "object", "id" ]
+					, uri        = "/object/#object#/#id#/"
+				) ).toBe( { object=object, id=id } );
+			} );
+		} );
+
 	}
 
 	private any function getService( ) {

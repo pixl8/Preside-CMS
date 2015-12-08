@@ -26,6 +26,23 @@ component {
 		return {};
 	}
 
+	public struct function extractTokensFromUri(
+		  required string uriPattern
+		, required array  tokens
+		, required string uri
+	) {
+		var findResult = ReFindNoCase( arguments.uriPattern, arguments.uri, 0, true );
+		var extracted  = {};
+
+		for( var i=1; i<=arguments.tokens.len(); i++ ) {
+			if ( findResult.pos[i+1] ?: 0 ) {
+				extracted[ arguments.tokens[ i ] ] = Mid( arguments.uri, findResult.pos[i+1], findResult.len[i+1] );
+			}
+		}
+
+		return extracted;
+	}
+
 // GETTERS AND SETTERS
 	private array function _getResources() {
 		return _resources;
