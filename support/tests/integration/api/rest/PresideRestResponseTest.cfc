@@ -15,6 +15,7 @@ component extends="testbox.system.BaseSpec"{
 					  data         = NullValue()
 					, mimeType     = "application/json"
 					, statusCode   = 200
+					, statusText   = ""
 					, headers      = NullValue()
 				} );
 
@@ -24,11 +25,19 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "setStatus", function(){
 
-			it( "should result in status code being set to the provided status", function(){
+			it( "should result in status code being set to the provided status code", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
 				restResponse.setStatus( 301 );
 
 				expect( restResponse.getMemento().statusCode ).toBe( 301 );
+			} );
+
+			it( "should set the provided status text", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+				restResponse.setStatus( text="Everything is awesome" );
+
+				expect( restResponse.getMemento().statusText ).toBe( "Everything is awesome" );
+
 			} );
 
 			it( "should return a reference to itself so that methods can be chained", function(){
@@ -146,6 +155,24 @@ component extends="testbox.system.BaseSpec"{
 				var result = restResponse.setMimeType( "duumy/type" );
 
 				expect( result ).toBe( restResponse );
+			} );
+		} );
+
+		describe( "setError", function(){
+			it( "should result in a default set of error status codes and headers when no arguments passed", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.setData( "test" );
+				restResponse.setError();
+
+				expect( restResponse.getData() ).toBeNull();
+				expect( restResponse.getStatusCode() ).toBe( 500 );
+				expect( restResponse.getStatusText() ).toBe( "Unspecified error" );
+
+				var headers = restResponse.getHeaders();
+				expect( headers[ "X-REST-ERROR-MESSAGE" ] ?: "" ).toBe( "An unhandled exception occurred within the REST API" );
+
+
 			} );
 		} );
 

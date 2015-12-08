@@ -8,6 +8,7 @@ component accessors=true displayName="Preside REST Response" {
 	property name="data"         type="any";
 	property name="mimeType"     type="string"  default="application/json";
 	property name="statusCode"   type="numeric" default=200;
+	property name="statusText"   type="string"  default="";
 	property name="headers"      type="struct";
 
 	/**
@@ -20,19 +21,28 @@ component accessors=true displayName="Preside REST Response" {
 			  data         = getData()
 			, mimeType     = getMimeType()
 			, statusCode   = getStatusCode()
+			, statusText   = getStatusText()
 			, headers      = getHeaders()
 		};
 	}
 
 	/**
-	 * Sets the numeric status code of the response and returns
+	 * Sets the status of the response and returns
 	 * reference to self so that methods can be chained
+	 * allows setting of both code and text for the response.
 	 *
-	 * @statuscode.hint Numeric status code to set on the response
+	 * @code.hint Numeric status code to set on the response
+	 * @text.hint Free text status message to return with the response
 	 * @autodoc true
 	 */
-	public any function setStatus( required numeric statusCode ) {
-		variables.statusCode = arguments.statusCode;
+	public any function setStatus( numeric code, string text ) {
+		if ( arguments.keyExists( "code" ) ) {
+			variables.statusCode = arguments.code;
+		}
+
+		if ( arguments.keyExists( "text" ) ) {
+			variables.statusText = arguments.text;
+		}
 
 		return this;
 	}
@@ -105,4 +115,25 @@ component accessors=true displayName="Preside REST Response" {
 		return this;
 	}
 
+	/**
+	 * Sets data, statuses and headers based on common arguments
+	 * for errors
+	 *
+	 * @autodoc true
+	 */
+	public any function setError(
+		  string  type      = "Unspecified error"
+		, numeric errorCode = 500
+		, string  message   = "An unhandled exception occurred within the REST API"
+		, string  detail    = ""
+	) {
+		noData().setStatus( arguments.errorCode, arguments.type );
+
+		if ( arguments.message.len() ) {
+			setHeader( "X-REST-ERROR-MESSAGE", arguments.message );
+		}
+		if ( arguments.detail.len() ) {
+			setHeader( "X-REST-ERROR-DETAIL", arguments.detail );
+		}
+	}
 }
