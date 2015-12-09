@@ -1,6 +1,7 @@
 <cfscript>
 	inputName          = args.name             ?: "";
 	inputId            = args.id               ?: "";
+	inputClass         = args.class            ?: "";
 	placeholder        = args.placeholder      ?: "";
 	defaultValue       = args.defaultValue     ?: "";
 	multiple           = args.multiple         ?: false;
@@ -23,7 +24,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="object-picker #extraClasses#"
+	<select class="#inputClass# object-picker #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
