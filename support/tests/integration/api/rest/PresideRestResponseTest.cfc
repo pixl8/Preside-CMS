@@ -174,6 +174,38 @@ component extends="testbox.system.BaseSpec"{
 
 
 			} );
+
+			it( "should use the supplied error code as the response status code", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.setError( errorCode=451 );
+
+				expect( restResponse.getStatusCode() ).toBe( 451 );
+			} );
+
+			it( "should use the supplied error type as the status text", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.setError( type="Verb not supported" );
+
+				expect( restResponse.getStatusText() ).toBe( "Verb not supported" );
+			} );
+
+			it( "should use set X-REST-ERROR-MESSAGE header for error message", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.setError( message="Verb not supported" );
+
+				expect( restResponse.getHeaders()[ "X-REST-ERROR-MESSAGE"] ).toBe( "Verb not supported" );
+			} );
+
+			it( "should use set X-REST-ERROR-DETAIL header for error detail", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.setError( detail="Verb not supported" );
+
+				expect( restResponse.getHeaders()[ "X-REST-ERROR-DETAIL"] ).toBe( "Verb not supported" );
+			} );
 		} );
 
 	}
