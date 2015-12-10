@@ -46,13 +46,13 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "readResource", function(){
 			it( "should return an array of structs for each URI pattern defined in the resource", function(){
-				var resource = resourceReader.readResource( "resources.rest.TestResource" );
+				var resource = resourceReader.readResource( "resources.rest.TestResource", "/v2" );
 
 				expect( resource.len() ).toBe( 2 );
 			} );
 
 			it( "should convert URI patterns into regex representations", function(){
-				var resource = resourceReader.readResource( "resources.rest.TestResource" );
+				var resource = resourceReader.readResource( "resources.rest.TestResource", "/v2" );
 
 				expect( resource.len() ).toBe( 2 );
 				expect( resource[1].uriPattern ).toBe( "/test/(.*?)" );
@@ -60,7 +60,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should extract out named arguments to a resource URI into its own array", function(){
-				var resource = resourceReader.readResource( "resources.rest.TestResource" );
+				var resource = resourceReader.readResource( "resources.rest.TestResource", "/v2" );
 
 				expect( resource.len() ).toBe( 2 );
 				expect( resource[1].tokens ).toBe( [ "pattern" ] );
@@ -69,7 +69,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should map http verbs to functions defined in the cfc", function(){
-				var resource = resourceReader.readResource( "resources.rest.TestResource" );
+				var resource = resourceReader.readResource( "resources.rest.TestResource", "/v2" );
 
 				expect( resource.len() ).toBe( 2 );
 
@@ -83,13 +83,13 @@ component extends="testbox.system.BaseSpec"{
 				}
 			} );
 
-			it( "should identify the component name in each resource result", function(){
-				var resource = resourceReader.readResource( "resources.rest.TestResource" );
+			it( "should identify the relative handler name in each resource result prepended with the API path", function(){
+				var resource = resourceReader.readResource( "resources.rest.TestResource", "/api/v2" );
 
 				expect( resource.len() ).toBe( 2 );
 
 				for( var i=1; i<=2; i++ ) {
-					expect( resource[i].handler ?: "" ).toBe( "TestResource" );
+					expect( resource[i].handler ?: "" ).toBe( "api.v2.TestResource" );
 				}
 			} );
 		} );
@@ -106,24 +106,24 @@ component extends="testbox.system.BaseSpec"{
 						, verbs      = { post="post" }
 					}],
 					"/api1" = [{
-						  handler    = "ResourceX"
+						  handler    = "api1.ResourceX"
 						, tokens     = [ "pattern", "id" ]
 						, uriPattern = "/test/(.*?)/(.*?)/"
 						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 					},{
-						  handler    = "ResourceX"
+						  handler    = "api1.ResourceX"
 						, tokens     = [ "pattern" ]
 						, uriPattern = "/test/(.*?)"
 						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 					}],
 					"/api1/subapi" = [{
-						  handler    = "TestResource"
+						  handler    = "api1.subapi.TestResource"
 						, tokens     = []
 						, uriPattern = "/my/pattern"
 						, verbs      = { get="get" }
 					}],
 					"/api2" = [{
-						  handler    = "AnotherResource"
+						  handler    = "api2.AnotherResource"
 						, tokens     = [ "pattern", "here" ]
 						, uriPattern = "/another/matching/(.*?)/(.*?)"
 						, verbs      = { post="post" }

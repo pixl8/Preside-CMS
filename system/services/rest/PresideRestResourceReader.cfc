@@ -41,7 +41,7 @@ component displayName="Preside REST Resource Reader" {
 				if ( isValidResource( mappedPath ) ) {
 					apis[ apiPath ] = apis[ apiPath ] ?: [];
 
-					var resourceHandlerResources = readResource( mappedPath );
+					var resourceHandlerResources = readResource( mappedPath, apiPath );
 					for( var newResource in resourceHandlerResources ) {
 						var found = false;
 						for( var existingResource in apis[ apiPath ] ) {
@@ -102,9 +102,10 @@ component displayName="Preside REST Resource Reader" {
 	 * for the given resource CFC (path)
 	 *
 	 * @cfcPath.hint Mapped component path to CFC to extract data of
+	 * @api.hint     Name of the API to which the resource belongs (e.g. "/myapi/v2")
 	 * @autodoc true
 	 */
-	public array function readResource( required string cfcPath ) {
+	public array function readResource( required string cfcPath, required string api ) {
 		var readMeta = { verbs={} };
 		var verbs    = [ "get", "post", "put", "delete", "head", "options" ];
 		var reader = function( meta ){
@@ -132,6 +133,10 @@ component displayName="Preside REST Resource Reader" {
 		var uris      = ListToArray( readMeta.restUri ?: "" );
 		var verbs     = [];
 		var handler   = ListLast( arguments.cfcPath, "." );
+
+		if ( arguments.api.len() && arguments.api != "/" ) {
+			handler = Replace( ReReplace( arguments.api, "^/", "" ), "/", ".", "all" ) & "." & handler;
+		}
 
 		for( var uri in uris ) {
 			var resource = readUri( uri );
