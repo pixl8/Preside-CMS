@@ -22,26 +22,27 @@ component {
 
 	public void function onRestRequest( required string uri, required any requestContext ) {
 		var response = createRestResponse();
+		var verb     = arguments.requestContext.getHttpMethod();
 
-		processRequest(
-			  uri            = arguments.uri
-			, requestContext = arguments.requestContext
-			, response       = response
-		);
+		_announceInterception( "onRestRequest", { uri=uri, verb=verb, response=response } );
+
+		if ( !response.isFinished() ) {
+			processRequest(
+				  uri            = arguments.uri
+				, verb           = verb
+				, requestContext = arguments.requestContext
+				, response       = response
+			);
+		}
+
 		processResponse(
 			  response       = response
 			, requestContext = arguments.requestContext
 		);
 	}
 
-	public void function processRequest( required string uri, required any requestContext, required any response ) {
-		var verb     = arguments.requestContext.getHttpMethod();
+	public void function processRequest( required string uri, required string verb, required any requestContext, required any response ) {
 		var resource = getResourceForUri( arguments.uri );
-
-		_announceInterception( "onProcessRestRequest", { uri=uri, verb=verb, response=response, resource=resource } );
-		if ( response.isFinished() ) {
-			return;
-		}
 
 		if ( !resource.count() ) {
 			response.setError(

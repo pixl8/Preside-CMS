@@ -218,44 +218,31 @@ component extends="testbox.system.BaseSpec"{
 				} );
 			} );
 
-			it( "should announce a onProcessRestRequest interception point as the first announcement", function(){
-				var uri             = "/some/uri/23";
-				var restService     = getService();
-				var resourceHandler = {
-					  handler    = "myResource"
-					, tokens     = [ "whatever", "thisisjust", "atest" ]
-					, uriPattern = "/test/(.*?)/(.*?)/"
-					, verbs      = { post="post", get="get", delete="delete" }
-				};
-				var verb = "put";
+			it( "should announce a onRestRequest interception point as the first announcement", function(){
+				var uri                = "/some/uri/23";
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var mockTokens = {
-					  completelyMocked = true
-					, tokens           = "test"
-				};
-				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				mockResponse.id = CreateUUId();
-				mockResponse.$( "isFinished", false );
+				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var verb               = "DELETE";
 
+				restService.$( "processRequest"  );
 				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
-				restService.$( "getResourceForUri", resourceHandler );
-				restService.$( "extractTokensFromUri", mockTokens   );
 				mockRequestContext.$( "getHttpMethod", verb );
-				mockResponse.$( "setError" );
+				mockResponse.$( "isFinished", false );
 
 				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
 
 				var log = restService.$callLog()._announceInterception;
 				expect( log.len() > 0 ).toBe( true );
-				expect( log[1] ).toBe([ "onProcessRestRequest", { uri=uri, verb=verb, response=mockResponse, resource=resourceHandler } ]);
+				expect( log[1] ).toBe([ "onRestRequest", { uri=uri, verb=verb, response=mockResponse } ]);
 			} );
 
 		} );
 
 		describe( "processResponse()", function(){
 			it( "should call renderData on the request context", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
