@@ -142,23 +142,68 @@ component extends="testbox.system.BaseSpec"{
 					  completelyMocked = true
 					, tokens           = "test"
 				};
-				var response = new preside.system.services.rest.PresideRestResponse();
+				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				mockResponse.$( "setError" );
+				mockResponse.id = CreateUUId();
+
+				restService.$( "processResponse" );
+				restService.$( "createRestResponse", mockResponse );
+				restService.$( "getResourceForUri" ).$args( uri ).$results( {} );
+
+				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+
+				var log = mockResponse.$callLog().setError;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  errorCode = 404
+					, type      = "REST API Resource not found"
+					, message   = "The requested resource, [/some/uri/23], did not match any resources in the Preside REST API"
+				} );
+
+			} );
+
+			it( "should set error on the response when resource handler exists, but not for the current HTTP VERB in use", function(){
+				var uri             = "/some/uri/23";
+				var restService     = getService();
+				var resourceHandler = {
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete" }
+				};
+				var verb = "put";
+				var mockRequestContext = getMockRequestContext();
+				var mockTokens = {
+					  completelyMocked = true
+					, tokens           = "test"
+				};
+				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var expectedArgs = { response=mockResponse };
+				expectedArgs.append( mockTokens );
 
 				mockResponse.id = CreateUUId();
 
 				restService.$( "processResponse" );
-				restService.$( "createRestResponse", response );
-				restService.$( "getResourceForUri" ).$args( uri ).$results( {} );
+				restService.$( "createRestResponse", mockResponse );
+				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
+				restService.$( "extractTokensFromUri"   ).$args(
+					  uriPattern = resourceHandler.uriPattern
+					, tokens     = resourceHandler.tokens
+					, uri        = uri
+				).$results( mockTokens );
+				mockRequestContext.$( "getHttpMethod", verb );
+				mockResponse.$( "setError" );
+				mockController.$( "runEvent" );
+
 				restService.processRequest( uri=uri, requestContext=mockRequestContext );
 
-				expect( response.getStatusCode() ).toBe( 404 );
-				expect( response.getStatusText() ).toBe( "REST API Resource not found" );
-				expect( response.getMimeType() ).toBe( "text/plain" );
-				expect( response.getRenderer() ).toBe( "plain" );
-				expect( response.getData() ).toBeNull();
-				expect( response.getHeaders() ).toBe( { "X-REST-ERROR-MESSAGE"="The requested resource, [/some/uri/23], did not match any resources in the Preside REST API" } );
-
-
+				var log = mockResponse.$callLog().setError;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  errorCode = 405
+					, type      = "REST API Method not supported"
+					, message   = "The requested resource, [/some/uri/23], does not support the [#verb#] method"
+				} );
 			} );
 
 		} );

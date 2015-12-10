@@ -23,28 +23,39 @@ component {
 	public void function processRequest( required string uri, required any requestContext ) {
 		var response = createRestResponse();
 		var resource = getResourceForUri( arguments.uri );
+		var verb     = arguments.requestContext.getHttpMethod();
 
-		if ( resource.count() ) {
-			var args = extractTokensFromUri(
-				  uriPattern = resource.uriPattern
-				, tokens     = resource.tokens
-				, uri        = arguments.uri
-			);
-			args.response = response;
-
-			_getController().runEvent(
-				  event          = "rest-apis.#resource.handler#.#resource.verbs[ arguments.requestContext.getHttpMethod() ]#"
-				, prePostExempt  = false
-				, private        = true
-				, eventArguments = args
-			);
-		} else {
+		if ( !resource.count() ) {
 			response.setError(
 				  errorCode = 404
 				, type      = "REST API Resource not found"
 				, message   = "The requested resource, [#arguments.uri#], did not match any resources in the Preside REST API"
 			);
+			return;
 		}
+
+		if ( !resource.verbs.keyExists( verb ) ) {
+			response.setError(
+				  errorCode = 405
+				, type      = "REST API Method not supported"
+				, message   = "The requested resource, [#arguments.uri#], does not support the [#UCase( verb )#] method"
+			);
+			return;
+		}
+
+		var args = extractTokensFromUri(
+			  uriPattern = resource.uriPattern
+			, tokens     = resource.tokens
+			, uri        = arguments.uri
+		);
+		args.response = response;
+
+		_getController().runEvent(
+			  event          = "rest-apis.#resource.handler#.#resource.verbs[ verb ]#"
+			, prePostExempt  = false
+			, private        = true
+			, eventArguments = args
+		);
 
 		processResponse( response=response, requestContext=requestContext );
 	}
