@@ -8,7 +8,7 @@ component extends="testbox.system.BaseSpec"{
 				var restService = getService();
 
 				expect( restService.getResourceForUri( "/api1/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
-					  handler    = "ResourceX"
+					  handler    = "api1.ResourceX"
 					, tokens     = [ "pattern", "id" ]
 					, uriPattern = "/test/(.*?)/(.*?)/"
 					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
@@ -39,7 +39,7 @@ component extends="testbox.system.BaseSpec"{
 
 		describe( "processRequest", function(){
 
-			it( "it should call the matched coldbox handler for the given request and passed verb", function(){
+			it( "it should call the matched coldbox handler for the given request and http method", function(){
 				var uri             = "/some/uri/23";
 				var restService     = getService();
 				var resourceHandler = {
@@ -49,6 +49,7 @@ component extends="testbox.system.BaseSpec"{
 					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 				};
 				var verb = "put";
+				var mockRequestContext = createStub();
 				var mockTokens = {
 					  completelyMocked = true
 					, tokens           = "test"
@@ -66,10 +67,11 @@ component extends="testbox.system.BaseSpec"{
 					, tokens     = resourceHandler.tokens
 					, uri        = uri
 				).$results( mockTokens );
+				mockRequestContext.$( "getHttpMethod", verb );
 
 				mockController.$( "runEvent" );
 
-				restService.processRequest( uri=uri, verb=verb );
+				restService.processRequest( uri=uri, requestContext=mockRequestContext );
 
 				var callLog = mockController.$callLog().runEvent;
 

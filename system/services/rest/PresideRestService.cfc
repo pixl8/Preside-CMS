@@ -20,7 +20,7 @@ component {
 		return this;
 	}
 
-	public any function processRequest( required string uri, required string verb ) {
+	public void function processRequest( required string uri, required any requestContext ) {
 		var resource = getResourceForUri( arguments.uri );
 		var response = createRestResponse();
 
@@ -33,14 +33,12 @@ component {
 			args.response = response;
 
 			_getController().runEvent(
-				  event          = "rest-resources.#resource.handler#.#resource.verbs[ arguments.verb ]#"
+				  event          = "rest-resources.#resource.handler#.#resource.verbs[ arguments.requestContext.getHttpMethod() ]#"
 				, prePostExempt  = false
 				, private        = true
 				, eventArguments = args
 			);
 		}
-
-		return response;
 	}
 
 	public struct function getResourceForUri( required string restPath ) {
