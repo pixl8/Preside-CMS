@@ -34,7 +34,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should replace named tokens with regex pattern for resulting uriPattern", function(){
 				var parsedUri = resourceReader.readUri( "/some/{token}/another/{token-x}" );
 
-				expect( parsedUri.uriPattern ).toBe( "/some/(.*?)/another/(.*?)" );
+				expect( parsedUri.uriPattern ).toBe( "^/some/(.*?)/another/(.*?)$" );
 			} );
 
 			it( "should extract out each named token into an array of token names", function(){
@@ -55,8 +55,8 @@ component extends="testbox.system.BaseSpec"{
 				var resource = resourceReader.readResource( "resources.rest.TestResource", "/v2" );
 
 				expect( resource.len() ).toBe( 2 );
-				expect( resource[1].uriPattern ).toBe( "/test/(.*?)" );
-				expect( resource[2].uriPattern ).toBe( "/test/(.*?)/(.*?)/" );
+				expect( resource[1].uriPattern ).toBe( "^/test/(.*?)$" );
+				expect( resource[2].uriPattern ).toBe( "^/test/(.*?)/(.*?)/$" );
 			} );
 
 			it( "should extract out named arguments to a resource URI into its own array", function(){
@@ -102,30 +102,30 @@ component extends="testbox.system.BaseSpec"{
 					"/" = [{
 						  handler    = "RootApiResource"
 						, tokens     = []
-						, uriPattern = "/root/match/"
+						, uriPattern = "^/root/match/$"
 						, verbs      = { post="post" }
 					}],
 					"/api1" = [{
 						  handler    = "api1.ResourceX"
 						, tokens     = [ "pattern", "id" ]
-						, uriPattern = "/test/(.*?)/(.*?)/"
+						, uriPattern = "^/test/(.*?)/(.*?)/$"
 						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 					},{
 						  handler    = "api1.ResourceX"
 						, tokens     = [ "pattern" ]
-						, uriPattern = "/test/(.*?)"
+						, uriPattern = "^/test/(.*?)$"
 						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 					}],
 					"/api1/subapi" = [{
 						  handler    = "api1.subapi.TestResource"
 						, tokens     = []
-						, uriPattern = "/my/pattern"
+						, uriPattern = "^/my/pattern$"
 						, verbs      = { get="get" }
 					}],
 					"/api2" = [{
 						  handler    = "api2.AnotherResource"
 						, tokens     = [ "pattern", "here" ]
-						, uriPattern = "/another/matching/(.*?)/(.*?)"
+						, uriPattern = "^/another/matching/(.*?)/(.*?)$"
 						, verbs      = { post="post" }
 					}]
 				});

@@ -174,7 +174,7 @@ component displayName="Preside REST Resource Reader" {
 
 
 		return {
-			  uriPattern = ReReplace( arguments.uri, "\{.*?}", "(.*?)", "all" )
+			  uriPattern = "^" & ReReplace( arguments.uri, "\{.*?}", "(.*?)", "all" ) & "$"
 			, tokens     = tokens
 		};
 	}

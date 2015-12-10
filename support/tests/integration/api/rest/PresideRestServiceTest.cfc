@@ -10,7 +10,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( restService.getResourceForUri( "/api1/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
 					  handler    = "api1.ResourceX"
 					, tokens     = [ "pattern", "id" ]
-					, uriPattern = "/test/(.*?)/(.*?)/"
+					, uriPattern = "^/test/(.*?)/(.*?)/$"
 					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 				} );
 			} );
