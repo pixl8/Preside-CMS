@@ -18,6 +18,7 @@ component extends="testbox.system.BaseSpec"{
 					, statusCode   = 200
 					, statusText   = ""
 					, headers      = NullValue()
+					, finished     = false
 				} );
 
 			} );
@@ -239,6 +240,39 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( restResponse.getHeaders()[ "X-REST-ERROR-DETAIL"] ).toBe( "Verb not supported" );
 			} );
+		} );
+
+		describe( "finish", function(){
+			it( "should set the finished flag on the response", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.finish();
+
+				expect( restResponse.getFinished() ).toBe( true );
+			} );
+
+			it( "should return a reference to itself so that methods can be chained", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+				var result = restResponse.finish();
+
+				expect( result ).toBe( restResponse );
+			} );
+		} );
+
+		describe( "isFinished", function(){
+			it( "should return false when response is not finished", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				expect( restResponse.isFinished() ).toBe( false );
+			} );
+			it( "should return true when response is finished", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.finish();
+
+				expect( restResponse.isFinished() ).toBe( true );
+			} );
+
 		} );
 
 	}
