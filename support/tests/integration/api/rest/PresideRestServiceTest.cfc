@@ -2,6 +2,14 @@ component extends="testbox.system.BaseSpec"{
 
 	function run(){
 
+		describe( "getApiForUri()", function(){
+			it( "should find the most detailed API match for the given URI", function(){
+				var restService = getService();
+
+				expect( restService.getApiForUri( "/api1/subapi/my/pattern/" ) ).toBe( "/api1/subapi" );
+			} );
+		} );
+
 		describe( "getResourceForUri()", function(){
 
 			it( "should find first regex match for a passed URI", function(){

@@ -76,25 +76,28 @@ component {
 	}
 
 	public struct function getResourceForUri( required string restPath ) {
-		var apis = _getApis();
+		var apiPath      = getApiForUri( arguments.restPath );
+		var apis         = _getApis();
+		var apiResources = apis[ apiPath ] ?: [];
+		var resourcePath = arguments.restPath.replace( apiPath, "" );
 
-		for( var apiPath in _getApiList() ) {
-			if ( arguments.restPath.startsWith( apiPath ) ) {
-				var apiResources = apis[ apiPath ];
-				var resourcePath = arguments.restPath.replace( apiPath, "" );
-
-				for( var resource in apiResources ) {
-					if ( ReFindNoCase( resource.uriPattern, resourcePath ) ) {
-						return resource;
-					}
-				}
-
-				break;
+		for( var resource in apiResources ) {
+			if ( ReFindNoCase( resource.uriPattern, resourcePath ) ) {
+				return resource;
 			}
 		}
 
-
 		return {};
+	}
+
+	public string function getApiForUri( required string restPath ) {
+		for( var apiPath in _getApiList() ) {
+			if ( arguments.restPath.startsWith( apiPath ) ) {
+				return apiPath;
+			}
+		}
+
+		return "lsadfjld";
 	}
 
 	public struct function extractTokensFromUri(

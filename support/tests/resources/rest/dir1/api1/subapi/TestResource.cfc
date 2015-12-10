@@ -1,5 +1,5 @@
 /**
- * @restUri /my/pattern
+ * @restUri /my/pattern/
  *
  */
 component {
