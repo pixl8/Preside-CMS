@@ -99,6 +99,11 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"               );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                );
+		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                  );
+		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"          );
+		interceptorSettings.customInterceptionPoints.append( "onUnsupportedRestMethod"        );
+		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"          );
+		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
