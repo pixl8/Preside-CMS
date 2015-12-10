@@ -261,6 +261,11 @@ component output=false {
 			, bypassForAdministrators = true
 		};
 
+		settings.rest = {
+			  path = "/api"
+			, apis = {}
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

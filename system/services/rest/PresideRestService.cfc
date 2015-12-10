@@ -9,7 +9,7 @@
 component {
 
 	/**
-	 * @resourceDirectories.inject presidecms:directories:handlers/rest-resources
+	 * @resourceDirectories.inject presidecms:directories:handlers/rest-apis
 	 * @controller.inject          coldbox
 	 *
 	 */
@@ -33,7 +33,7 @@ component {
 			args.response = response;
 
 			_getController().runEvent(
-				  event          = "rest-resources.#resource.handler#.#resource.verbs[ arguments.requestContext.getHttpMethod() ]#"
+				  event          = "rest-apis.#resource.handler#.#resource.verbs[ arguments.requestContext.getHttpMethod() ]#"
 				, prePostExempt  = false
 				, private        = true
 				, eventArguments = args
@@ -47,7 +47,7 @@ component {
 		var headers = response.getHeaders() ?: {};
 
 		for( var headerName in headers ) {
-			requestContext.setHttpHeader( headerName, headers[ headerName ] );
+			requestContext.setHttpHeader( name=headerName, value=headers[ headerName ] );
 		}
 
 		requestContext.renderData(

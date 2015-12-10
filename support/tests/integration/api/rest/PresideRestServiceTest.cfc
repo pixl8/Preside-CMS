@@ -79,7 +79,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog.len() ).toBe( 1 );
 
 
-				expect( callLog[1].event ).toBe( "rest-resources.myResource.putDataTest" );
+				expect( callLog[1].event ).toBe( "rest-apis.myResource.putDataTest" );
 				expect( callLog[1].prePostExempt ).toBe( false );
 				expect( callLog[1].private ).toBe( true  );
 				expect( callLog[1].eventArguments ).toBe( expectedArgs );
@@ -240,9 +240,9 @@ component extends="testbox.system.BaseSpec"{
 					return LCase( SerializeJson( a ) ) > LCase( SerializeJson( b ) ) ? 1 : -1;
 				} );
 				expect( callLog ).toBe( [
-					  [ "X-Another-Header", "another value" ]
-					, [ "X-good-stuff"    , "yes"           ]
-					, [ "X-My-Header"     , "my value"      ]
+					  { name="X-Another-Header", value="another value" }
+					, { name="X-good-stuff"    , value="yes"           }
+					, { name="X-My-Header"     , value="my value"      }
 				] );
 			} );
 		} );
