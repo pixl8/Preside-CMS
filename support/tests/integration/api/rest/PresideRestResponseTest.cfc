@@ -14,7 +14,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( memento ).toBe( {
 					  data         = NullValue()
 					, mimeType     = "application/json"
-					, type         = "json"
+					, renderer     = "json"
 					, statusCode   = 200
 					, statusText   = ""
 					, headers      = NullValue()
@@ -159,17 +159,17 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "setType", function(){
-			it( "should result in type being set to the provided type", function(){
+		describe( "setRenderer", function(){
+			it( "should result in renderer being set to the provided renderer", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
-				restResponse.setType( "plain" );
+				restResponse.setRenderer( "plain" );
 
-				expect( restResponse.getMemento().type ).toBe( "plain" );
+				expect( restResponse.getMemento().renderer ).toBe( "plain" );
 			} );
 
 			it( "should return a reference to itself so that methods can be chained", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
-				var result = restResponse.setType( "duumytype" );
+				var result = restResponse.setRenderer( "duumytype" );
 
 				expect( result ).toBe( restResponse );
 			} );

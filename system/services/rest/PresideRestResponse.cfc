@@ -7,7 +7,7 @@ component accessors=true displayName="Preside REST Response" {
 
 	property name="data"         type="any";
 	property name="mimeType"     type="string"  default="application/json";
-	property name="type"         type="string"  default="json";
+	property name="renderer"     type="string"  default="json";
 	property name="statusCode"   type="numeric" default=200;
 	property name="statusText"   type="string"  default="";
 	property name="headers"      type="struct";
@@ -21,7 +21,7 @@ component accessors=true displayName="Preside REST Response" {
 		return {
 			  data         = getData()
 			, mimeType     = getMimeType()
-			, type         = getType()
+			, renderer     = getRenderer()
 			, statusCode   = getStatusCode()
 			, statusText   = getStatusText()
 			, headers      = getHeaders()
@@ -118,16 +118,14 @@ component accessors=true displayName="Preside REST Response" {
 	}
 
 	/**
-	 * Sets the response type of the response and returns
+	 * Sets the renderer of the response and returns
 	 * reference to self so that methods can be chained.
-	 * Response type can be used when rendering the response
-	 * to determine how to render the supplied data
 	 *
-	 * @type.hint type of the response, e.g. 'json'
+	 * @renderer.hint renderer for the response, e.g. 'json'
 	 * @autodoc true
 	 */
-	public any function setType( required string type ) {
-		variables.type = arguments.type;
+	public any function setRenderer( required string renderer ) {
+		variables.renderer = arguments.renderer;
 
 		return this;
 	}
