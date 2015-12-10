@@ -6,12 +6,14 @@ component  {
 
 // constructor
 	/**
-	 * @eventName.inject coldbox:setting:eventName
-	 * @restPath.inject  coldbox:setting:rest.path
+	 * @eventName.inject           coldbox:setting:eventName
+	 * @restPath.inject            coldbox:setting:rest.path
+	 * @presideRestService.inject  delayedInjector:presideRestService
 	 */
-	public any function init( required string eventName, required string restPath ) {
+	public any function init( required string eventName, required string restPath, required any presideRestService ) {
 		_setEventName( arguments.eventName );
 		_setRestPath( arguments.restPath );
+		_setPresideRestService( arguments.presideRestService );
 
 		return this;
 	}
@@ -20,7 +22,7 @@ component  {
 	public boolean function match( required string path, required any event ) {
 		var restPath = _getRestPath();
 
-		return ReFindNoCase( "^" & restPath, arguments.path );
+		return ReFindNoCase( "^" & restPath, arguments.path ) && _getPresideRestService().getApiForUri( Replace( arguments.path, restPath, "" ) ).len();
 	}
 
 	public void function translate( required string path, required any event ) {
@@ -58,5 +60,12 @@ component  {
 	}
 	private void function _setRestPath( required string restPath ) {
 		_restPath = arguments.restPath;
+	}
+
+	private any function _getPresideRestService() {
+		return _presideRestService;
+	}
+	private void function _setPresideRestService( required any presideRestService ) {
+		_presideRestService = arguments.presideRestService;
 	}
 }

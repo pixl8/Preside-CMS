@@ -97,7 +97,7 @@ component {
 			}
 		}
 
-		return "lsadfjld";
+		return "";
 	}
 
 	public struct function extractTokensFromUri(
