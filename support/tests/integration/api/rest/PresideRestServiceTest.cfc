@@ -49,7 +49,7 @@ component extends="testbox.system.BaseSpec"{
 					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
 				};
 				var verb = "put";
-				var mockRequestContext = createStub();
+				var mockRequestContext = getMockRequestContext();
 				var mockTokens = {
 					  completelyMocked = true
 					, tokens           = "test"
@@ -83,6 +83,125 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog[1].private ).toBe( true  );
 				expect( callLog[1].eventArguments ).toBe( expectedArgs );
 			} );
+
+		} );
+
+		describe( "processResponse()", function(){
+			it( "should call renderData on the request context", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				restService.processResponse( response, mockRequestContext );
+
+				expect( mockRequestContext.$callLog().renderData.len() ).toBe( 1 );
+
+			} );
+
+			it( "should pass the response renderer to the 'type' argument in renderData", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setRenderer( "jsonp" );
+				restService.processResponse( response, mockRequestContext );
+
+				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
+				expect( renderDataArgs.keyExists( "type" ) ).toBeTrue();
+				expect( renderDataArgs.type ).toBe( "jsonp" );
+			} );
+
+			it( "should pass the response mime type to the 'contenttype' argument in renderData", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setMimeType( "text/plain" );
+				restService.processResponse( response, mockRequestContext );
+
+				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
+				expect( renderDataArgs.keyExists( "contentType" ) ).toBeTrue();
+				expect( renderDataArgs.contentType ).toBe( "text/plain" );
+			} );
+
+			it( "should pass the response status code to the 'statusCode' argument in renderData", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setStatusCode( 451 );
+				restService.processResponse( response, mockRequestContext );
+
+				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
+				expect( renderDataArgs.keyExists( "statusCode" ) ).toBeTrue();
+				expect( renderDataArgs.statusCode ).toBe( 451 );
+			} );
+
+			it( "should pass the response status text to the 'statusText' argument in renderData", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setStatusText( "This content has been censored and cannot therefor be shown" );
+				restService.processResponse( response, mockRequestContext );
+
+				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
+				expect( renderDataArgs.keyExists( "statusText" ) ).toBeTrue();
+				expect( renderDataArgs.statusText ).toBe( "This content has been censored and cannot therefor be shown" );
+			} );
+
+			it( "should pass the response data to the 'data' argument in renderData", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setData( { test="data" } );
+				restService.processResponse( response, mockRequestContext );
+
+				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
+				expect( renderDataArgs.keyExists( "data" ) ).toBeTrue();
+				expect( renderDataArgs.data ).toBe( { test="data" } );
+			} );
+
+			it( "should pass an empty string to the renderData 'data' argument, when the data in the response object is NULL", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.noData();
+				restService.processResponse( response, mockRequestContext );
+
+				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
+				expect( renderDataArgs.keyExists( "data" ) ).toBeTrue();
+				expect( renderDataArgs.data ).toBe( "" );
+			} );
+
+			it( "should call setHttpHeader() on the request context for each header set in the response", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setHeaders({
+					  "X-My-Header"      = "my value"
+					, "X-Another-Header" = "another value"
+					, "X-good-stuff"     = "yes"
+				});
+
+				restService.processResponse( response, mockRequestContext );
+
+				var callLog = mockRequestContext.$callLog().setHttpHeader;
+
+				expect( callLog.len() ).toBe( 3 );
+
+				callLog.sort( function( a, b ) {
+					return LCase( SerializeJson( a ) ) > LCase( SerializeJson( b ) ) ? 1 : -1;
+				} );
+				expect( callLog ).toBe( [
+					  [ "X-Another-Header", "another value" ]
+					, [ "X-good-stuff"    , "yes"           ]
+					, [ "X-My-Header"     , "my value"      ]
+				] );
+			} );
 		} );
 
 	}
@@ -93,6 +212,16 @@ component extends="testbox.system.BaseSpec"{
 			  controller          = mockController
 			, resourceDirectories = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
 		) );
+	}
+
+	private any function getMockRequestContext() {
+		var rc = createStub();
+
+		rc.$( "getHttpMethod", "get" );
+		rc.$( "setHttpHeader", rc );
+		rc.$( "renderData", rc );
+
+		return rc;
 	}
 
 }

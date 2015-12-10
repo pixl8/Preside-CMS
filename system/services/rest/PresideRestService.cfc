@@ -41,6 +41,22 @@ component {
 		}
 	}
 
+	public void function processResponse( required any response, required any requestContext ) {
+		var headers = response.getHeaders() ?: {};
+
+		for( var headerName in headers ) {
+			requestContext.setHttpHeader( headerName, headers[ headerName ] );
+		}
+
+		requestContext.renderData(
+			  type        = response.getRenderer()
+			, data        = response.getData() ?: ""
+			, contentType = response.getMimeType()
+			, statusCode  = response.getStatusCode()
+			, statusText  = response.getStatusText()
+		);
+	}
+
 	public struct function getResourceForUri( required string restPath ) {
 		var apis = _getApis();
 
@@ -54,7 +70,6 @@ component {
 						return resource;
 					}
 				}
-
 
 				break;
 			}
