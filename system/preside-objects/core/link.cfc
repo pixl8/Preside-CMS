@@ -12,11 +12,12 @@ component extends="preside.system.base.SystemPresideObject" labelfield="internal
 	property name="target"         type="string" dbtype="varchar" maxlength="20"  required=false format="regex:_(blank|self|parent|top)";
 	property name="text"           type="string" dbtype="varchar" maxlength="400" required=false;
 
-	property name="external_protocol" type="string" dbtype="varchar" maxlength="10"  required=false default="http://" format="regex:(https?|ftp|news)\://";
-	property name="external_address"  type="string" dbtype="varchar" maxlength="255" required=false;
-	property name="email_address"     type="string" dbtype="varchar" maxlength="255" required=false;
-	property name="email_subject"     type="string" dbtype="varchar" maxlength="100" required=false;
-	property name="email_body"        type="string" dbtype="varchar" maxlength="255" required=false;
+	property name="external_protocol" type="string"  dbtype="varchar" maxlength="10"  required=false default="http://" format="regex:(https?|ftp|news)\://";
+	property name="external_address"  type="string"  dbtype="varchar" maxlength="255" required=false;
+	property name="email_address"     type="string"  dbtype="varchar" maxlength="255" required=false;
+	property name="email_subject"     type="string"  dbtype="varchar" maxlength="100" required=false;
+	property name="email_body"        type="string"  dbtype="varchar" maxlength="255" required=false;
+	property name="email_anti_spam"   type="boolean" dbtype="boolean"                 required=false default=true;
 
 	property name="page"  relationship="many-to-one" relatedto="page"  required=false;
 	property name="asset" relationship="many-to-one" relatedto="asset" required=false;
