@@ -60,6 +60,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockResponse.id = CreateUUId();
 
+				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
 				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
 				restService.$( "extractTokensFromUri"   ).$args(
@@ -82,6 +83,48 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog[1].prePostExempt ).toBe( false );
 				expect( callLog[1].private ).toBe( true  );
 				expect( callLog[1].eventArguments ).toBe( expectedArgs );
+			} );
+
+		it( "it should call processResponse to render the result", function(){
+				var uri             = "/some/uri/23";
+				var restService     = getService();
+				var resourceHandler = {
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+				};
+				var verb = "put";
+				var mockRequestContext = getMockRequestContext();
+				var mockTokens = {
+					  completelyMocked = true
+					, tokens           = "test"
+				};
+				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var expectedArgs = { response=mockResponse };
+				expectedArgs.append( mockTokens );
+
+				mockResponse.id = CreateUUId();
+
+				restService.$( "processResponse" );
+				restService.$( "createRestResponse", mockResponse );
+				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
+				restService.$( "extractTokensFromUri"   ).$args(
+					  uriPattern = resourceHandler.uriPattern
+					, tokens     = resourceHandler.tokens
+					, uri        = uri
+				).$results( mockTokens );
+				mockRequestContext.$( "getHttpMethod", verb );
+
+				mockController.$( "runEvent" );
+
+				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+
+				var callLog = restService.$callLog().processResponse;
+
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1].response ).toBe( mockResponse );
+				expect( callLog[1].requestContext.getInstanceIdForComparison() ).toBe( mockRequestContext.getInstanceIdForComparison() );
 			} );
 
 		} );
@@ -215,11 +258,12 @@ component extends="testbox.system.BaseSpec"{
 	}
 
 	private any function getMockRequestContext() {
-		var rc = createStub();
+		var rc = createEmptyMock( "coldbox.system.web.context.RequestContext" );
 
 		rc.$( "getHttpMethod", "get" );
 		rc.$( "setHttpHeader", rc );
 		rc.$( "renderData", rc );
+		rc.$( "getInstanceIdForComparison", CreateUUId() );
 
 		return rc;
 	}

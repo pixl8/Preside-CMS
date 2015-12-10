@@ -39,6 +39,8 @@ component {
 				, eventArguments = args
 			);
 		}
+
+		processResponse( response=response, requestContext=requestContext );
 	}
 
 	public void function processResponse( required any response, required any requestContext ) {
