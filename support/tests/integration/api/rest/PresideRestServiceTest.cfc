@@ -85,7 +85,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog[1].eventArguments ).toBe( expectedArgs );
 			} );
 
-		it( "it should call processResponse to render the result", function(){
+			it( "it should call processResponse to render the result", function(){
 				var uri             = "/some/uri/23";
 				var restService     = getService();
 				var resourceHandler = {
@@ -125,6 +125,40 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog.len() ).toBe( 1 );
 				expect( callLog[1].response ).toBe( mockResponse );
 				expect( callLog[1].requestContext.getInstanceIdForComparison() ).toBe( mockRequestContext.getInstanceIdForComparison() );
+			} );
+
+			it( "should set error on the response when no resource handler exists for the request", function(){
+				var uri             = "/some/uri/23";
+				var restService     = getService();
+				var resourceHandler = {
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+				};
+				var verb = "put";
+				var mockRequestContext = getMockRequestContext();
+				var mockTokens = {
+					  completelyMocked = true
+					, tokens           = "test"
+				};
+				var response = new preside.system.services.rest.PresideRestResponse();
+
+				mockResponse.id = CreateUUId();
+
+				restService.$( "processResponse" );
+				restService.$( "createRestResponse", response );
+				restService.$( "getResourceForUri" ).$args( uri ).$results( {} );
+				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+
+				expect( response.getStatusCode() ).toBe( 404 );
+				expect( response.getStatusText() ).toBe( "REST API Resource not found" );
+				expect( response.getMimeType() ).toBe( "text/plain" );
+				expect( response.getRenderer() ).toBe( "plain" );
+				expect( response.getData() ).toBeNull();
+				expect( response.getHeaders() ).toBe( { "X-REST-ERROR-MESSAGE"="The requested resource, [/some/uri/23], did not match any resources in the Preside REST API" } );
+
+
 			} );
 
 		} );

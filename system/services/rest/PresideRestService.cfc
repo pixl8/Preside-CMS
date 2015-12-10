@@ -21,8 +21,8 @@ component {
 	}
 
 	public void function processRequest( required string uri, required any requestContext ) {
-		var resource = getResourceForUri( arguments.uri );
 		var response = createRestResponse();
+		var resource = getResourceForUri( arguments.uri );
 
 		if ( resource.count() ) {
 			var args = extractTokensFromUri(
@@ -37,6 +37,12 @@ component {
 				, prePostExempt  = false
 				, private        = true
 				, eventArguments = args
+			);
+		} else {
+			response.setError(
+				  errorCode = 404
+				, type      = "REST API Resource not found"
+				, message   = "The requested resource, [#arguments.uri#], did not match any resources in the Preside REST API"
 			);
 		}
 
