@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name        ?: "";
 	inputId      = args.id          ?: "";
-	inputClass   = args.class       ?: "";
 	placeholder  = args.placeholder ?: "";
 
 	if ( Len( Trim( placeholder ) ) ) {
@@ -23,5 +22,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="#inputClass# form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif>>
+	<input type="password" id="#inputId#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#" value="#value#" class="form-control"<cfif Len( Trim( passwordPolicyContext ) )> data-password-policy-context="#passwordPolicyContext#"</cfif>>
 </cfoutput>

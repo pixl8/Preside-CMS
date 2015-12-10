@@ -6,7 +6,7 @@ component {
 
 // CONSTRUCTOR
 	public any function init() {
-		_setLibPath( ExpandPath( "/preside/system/services/security/antisamylib" ) );
+		_setLibPath( ExpandPath( "/coldbox/system/plugins/AntiSamy-lib" ) );
 		_setupPolicyFiles();
 		_setupAntiSamy();
 
