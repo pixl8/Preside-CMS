@@ -204,6 +204,7 @@
 		emailRegex = /^mailto:([^?]+)(?:\?(.+))?$/,
 		emailSubjectRegex = /subject=([^;?:@&=$,\/]*)/,
 		emailBodyRegex = /body=([^;?:@&=$,\/]*)/,
+		emailAntiSpamRegex = /emailantispam=(\d)/,
 		anchorRegex = /^#(.*)$/,
 		urlRegex = /^((?:[a-z]+):\/\/)?(.*)$/,
 		presideLinkRegex = /^{{link:(.*?):link}}$/,
@@ -471,14 +472,16 @@
 				}
 				// Protected email link as encoded string.
 				else if ( ( emailMatch = href.match( emailRegex ) ) ) {
-					var subjectMatch = href.match( emailSubjectRegex ),
-						bodyMatch = href.match( emailBodyRegex );
+					var subjectMatch  = href.match( emailSubjectRegex  ),
+						bodyMatch     = href.match( emailBodyRegex     ),
+						anitSpamMatch = href.match( emailAntiSpamRegex );
 
 					retval.type = 'email';
 
 					retval.emailaddress = emailMatch[ 1 ];
-					subjectMatch && ( retval.emailsubject = decodeURIComponent( subjectMatch[ 1 ] ) );
-					bodyMatch && ( retval.emailbody = decodeURIComponent( bodyMatch[ 1 ] ) );
+					subjectMatch  && ( retval.emailsubject  = decodeURIComponent( subjectMatch[ 1 ]  ) );
+					bodyMatch     && ( retval.emailbody     = decodeURIComponent( bodyMatch[ 1 ]     ) );
+					anitSpamMatch && ( retval.emailantispam = decodeURIComponent( anitSpamMatch[ 1 ] ) );
 				}
 				else if ( href && ( urlMatch = href.match( presideLinkRegex ) ) ) {
 					retval.type = 'sitetreelink'
@@ -566,16 +569,19 @@
 					switch ( emailProtection ) {
 						case '':
 						case 'encode':
-							var subject = encodeURIComponent( data.emailsubject || '' ),
-								body = encodeURIComponent( data.emailbody || '' ),
-								argList = [];
+							var subject         = encodeURIComponent( data.emailsubject || '' ),
+								body            = encodeURIComponent( data.emailbody    || '' ),
+								antiSpam        = "0",
+								disableAntiSpam = encodeURIComponent( typeof data.emailantispam === "string" && data.emailantispam === "1" ),
+								argList         = [];
 
 							// Build the e-mail parameters first.
-							subject && argList.push( 'subject=' + subject );
-							body && argList.push( 'body=' + body );
+							subject  && argList.push( 'subject=' + subject );
+							body     && argList.push( 'body=' + body );
+							antiSpam && argList.push( 'emailantispam=' + ( disableAntiSpam == "true" ? "1" : "0" ) );
 							argList = argList.length ? '?' + argList.join( '&' ) : '';
 
-							if ( emailProtection == 'encode' ) {
+							if ( emailProtection == 'encode' && disableAntiSpam == "false" ) {
 								linkHref = [
 									'javascript:void(location.href=\'mailto:\'+',
 									protectEmailAddressAsEncodedString( address )
@@ -584,8 +590,9 @@
 								argList && linkHref.push( '+\'', escapeSingleQuote( argList ), '\'' );
 
 								linkHref.push( ')' );
-							} else
+							} else {
 								linkHref = [ 'mailto:', address, argList ];
+							}
 
 							break;
 						default:
@@ -675,8 +682,7 @@
 				// Update text view when user changes protocol (#4612).
 				if ( href == textView || data.type == 'email' && textView.indexOf( '@' ) != -1 ) {
 					// Short mailto link text view (#5736).
-					element.setHtml( data.type == 'email' ?
-						data.email.address : attributes.set[ 'data-cke-saved-href' ] );
+					element.setHtml( data.type == 'email' ? data.emailaddress : attributes.set[ 'data-cke-saved-href' ] );
 
 					// We changed the content, so need to select it again.
 					selection.selectElement( element );
