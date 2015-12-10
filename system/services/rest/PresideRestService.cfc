@@ -82,27 +82,32 @@ component {
 		, required any    response
 		, required any    requestContext
 	) {
-		var args = extractTokensFromUri(
-			  uriPattern = arguments.resource.uriPattern
-			, tokens     = arguments.resource.tokens
-			, uri        = arguments.uri
-		);
+		try {
+			var args = extractTokensFromUri(
+				  uriPattern = arguments.resource.uriPattern
+				, tokens     = arguments.resource.tokens
+				, uri        = arguments.uri
+			);
 
-		args.response = arguments.response;
+			args.response = arguments.response;
 
-		_announceInterception( "preInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
-		if ( arguments.response.isFinished() ) {
-			return;
+			_announceInterception( "preInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
+			if ( arguments.response.isFinished() ) {
+				return;
+			}
+
+			_getController().runEvent(
+				  event          = "rest-apis.#arguments.resource.handler#.#arguments.resource.verbs[ arguments.verb ]#"
+				, prePostExempt  = false
+				, private        = true
+				, eventArguments = args
+			);
+
+			_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
+		} catch( any e ) {
+			arguments.response.setError( argumentCollection=e );
+			_announceInterception( "onRestError", arguments );
 		}
-
-		_getController().runEvent(
-			  event          = "rest-apis.#arguments.resource.handler#.#arguments.resource.verbs[ arguments.verb ]#"
-			, prePostExempt  = false
-			, private        = true
-			, eventArguments = args
-		);
-
-		_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
 	}
 
 	public void function processResponse( required any response, required any requestContext ) {
@@ -180,7 +185,14 @@ component {
 	}
 
 	private void function _announceInterception( required string state, struct interceptData={} ) {
-		_getInterceptorService().processState( argumentCollection=arguments );
+		try {
+			_getInterceptorService().processState( argumentCollection=arguments );
+		} catch( any e ) {
+			if ( IsObject( arguments.interceptData.response ?: "" ) ) {
+				arguments.interceptData.response.setError( argumentCollection=e );
+				_announceInterception( "onRestError", arguments.interceptData );
+			}
+		}
 	}
 
 	private any function _getInterceptorService() {
