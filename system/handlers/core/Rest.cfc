@@ -2,8 +2,8 @@ component {
 
 	property name="presideRestService" inject="presideRestService";
 
-	public function processRequest( event, rc, prc ) {
-		presideRestService.processRequest(
+	public function request( event, rc, prc ) {
+		presideRestService.onRestRequest(
 			  uri            = rc.restUri ?: ""
 			, requestContext = event
 		);

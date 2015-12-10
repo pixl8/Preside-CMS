@@ -20,43 +20,88 @@ component {
 		return this;
 	}
 
-	public void function processRequest( required string uri, required any requestContext ) {
+	public void function onRestRequest( required string uri, required any requestContext ) {
 		var response = createRestResponse();
-		var resource = getResourceForUri( arguments.uri );
+
+		processRequest(
+			  uri            = arguments.uri
+			, requestContext = arguments.requestContext
+			, response       = response
+		);
+		processResponse(
+			  response       = response
+			, requestContext = arguments.requestContext
+		);
+	}
+
+	public void function processRequest( required string uri, required any requestContext, required any response ) {
 		var verb     = arguments.requestContext.getHttpMethod();
+		var resource = getResourceForUri( arguments.uri );
 
-		if ( resource.count() ) {
-			if ( resource.verbs.keyExists( verb ) ) {
-				var args = extractTokensFromUri(
-					  uriPattern = resource.uriPattern
-					, tokens     = resource.tokens
-					, uri        = arguments.uri
-				);
+		_announceInterception( "onProcessRestRequest", { uri=uri, verb=verb, response=response, resource=resource } );
+		if ( response.isFinished() ) {
+			return;
+		}
 
-				args.response = response;
-
-				_getController().runEvent(
-					  event          = "rest-apis.#resource.handler#.#resource.verbs[ verb ]#"
-					, prePostExempt  = false
-					, private        = true
-					, eventArguments = args
-				);
-			} else {
-				response.setError(
-					  errorCode = 405
-					, type      = "REST API Method not supported"
-					, message   = "The requested resource, [#arguments.uri#], does not support the [#UCase( verb )#] method"
-				);
-			}
-		} else {
+		if ( !resource.count() ) {
 			response.setError(
 				  errorCode = 404
 				, type      = "REST API Resource not found"
 				, message   = "The requested resource, [#arguments.uri#], did not match any resources in the Preside REST API"
 			);
+
+			_announceInterception( "onMissingRestResource", { uri=uri, verb=verb, response=response } );
+			return;
 		}
 
-		processResponse( response=response, requestContext=requestContext );
+		if ( !resource.verbs.keyExists( verb ) ) {
+			response.setError(
+				  errorCode = 405
+				, type      = "REST API Method not supported"
+				, message   = "The requested resource, [#arguments.uri#], does not support the [#UCase( verb )#] method"
+			);
+
+			_announceInterception( "onUnsupportedRestMethod", { uri=uri, verb=verb, response=response } );
+			return;
+		}
+
+		invokeRestResourceHandler(
+			  resource       = resource
+			, uri            = uri
+			, verb           = verb
+			, response       = response
+			, requestContext = requestContext
+		);
+	}
+
+	public void function invokeRestResourceHandler(
+		  required struct resource
+		, required string uri
+		, required string verb
+		, required any    response
+		, required any    requestContext
+	) {
+		var args = extractTokensFromUri(
+			  uriPattern = arguments.resource.uriPattern
+			, tokens     = arguments.resource.tokens
+			, uri        = arguments.uri
+		);
+
+		args.response = arguments.response;
+
+		_announceInterception( "preInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
+		if ( arguments.response.isFinished() ) {
+			return;
+		}
+
+		_getController().runEvent(
+			  event          = "rest-apis.#arguments.resource.handler#.#arguments.resource.verbs[ arguments.verb ]#"
+			, prePostExempt  = false
+			, private        = true
+			, eventArguments = args
+		);
+
+		_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
 	}
 
 	public void function processResponse( required any response, required any requestContext ) {
@@ -131,6 +176,14 @@ component {
 		}
 
 		return _apiList;
+	}
+
+	private void function _announceInterception( required string state, struct interceptData={} ) {
+		_getInterceptorService().processState( argumentCollection=arguments );
+	}
+
+	private any function _getInterceptorService() {
+		return _getController().getInterceptorService();
 	}
 
 // GETTERS AND SETTERS

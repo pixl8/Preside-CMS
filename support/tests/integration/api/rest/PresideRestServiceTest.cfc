@@ -45,7 +45,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "processRequest", function(){
+		describe( "onRestRequest", function(){
 
 			it( "it should call the matched coldbox handler for the given request and http method", function(){
 				var uri             = "/some/uri/23";
@@ -67,6 +67,7 @@ component extends="testbox.system.BaseSpec"{
 				expectedArgs.append( mockTokens );
 
 				mockResponse.id = CreateUUId();
+				mockResponse.$( "isFinished", false );
 
 				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
@@ -80,7 +81,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockController.$( "runEvent" );
 
-				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
 
 				var callLog = mockController.$callLog().runEvent;
 
@@ -113,6 +114,7 @@ component extends="testbox.system.BaseSpec"{
 				expectedArgs.append( mockTokens );
 
 				mockResponse.id = CreateUUId();
+				mockResponse.$( "isFinished", false );
 
 				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
@@ -126,7 +128,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockController.$( "runEvent" );
 
-				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
 
 				var callLog = restService.$callLog().processResponse;
 
@@ -153,12 +155,13 @@ component extends="testbox.system.BaseSpec"{
 				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
 				mockResponse.$( "setError" );
 				mockResponse.id = CreateUUId();
+				mockResponse.$( "isFinished", false );
 
 				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
 				restService.$( "getResourceForUri" ).$args( uri ).$results( {} );
 
-				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
 
 				var log = mockResponse.$callLog().setError;
 				expect( log.len() ).toBe( 1 );
@@ -190,6 +193,7 @@ component extends="testbox.system.BaseSpec"{
 				expectedArgs.append( mockTokens );
 
 				mockResponse.id = CreateUUId();
+				mockResponse.$( "isFinished", false );
 
 				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
@@ -203,7 +207,7 @@ component extends="testbox.system.BaseSpec"{
 				mockResponse.$( "setError" );
 				mockController.$( "runEvent" );
 
-				restService.processRequest( uri=uri, requestContext=mockRequestContext );
+				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
 
 				var log = mockResponse.$callLog().setError;
 				expect( log.len() ).toBe( 1 );
@@ -212,6 +216,39 @@ component extends="testbox.system.BaseSpec"{
 					, type      = "REST API Method not supported"
 					, message   = "The requested resource, [/some/uri/23], does not support the [#verb#] method"
 				} );
+			} );
+
+			it( "should announce a onProcessRestRequest interception point as the first announcement", function(){
+				var uri             = "/some/uri/23";
+				var restService     = getService();
+				var resourceHandler = {
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete" }
+				};
+				var verb = "put";
+				var mockRequestContext = getMockRequestContext();
+				var mockTokens = {
+					  completelyMocked = true
+					, tokens           = "test"
+				};
+				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				mockResponse.id = CreateUUId();
+				mockResponse.$( "isFinished", false );
+
+				restService.$( "processResponse" );
+				restService.$( "createRestResponse", mockResponse );
+				restService.$( "getResourceForUri", resourceHandler );
+				restService.$( "extractTokensFromUri", mockTokens   );
+				mockRequestContext.$( "getHttpMethod", verb );
+				mockResponse.$( "setError" );
+
+				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
+
+				var log = restService.$callLog()._announceInterception;
+				expect( log.len() > 0 ).toBe( true );
+				expect( log[1] ).toBe([ "onProcessRestRequest", { uri=uri, verb=verb, response=mockResponse, resource=resourceHandler } ]);
 			} );
 
 		} );
@@ -338,10 +375,14 @@ component extends="testbox.system.BaseSpec"{
 
 	private any function getService( ) {
 		variables.mockController = createStub();
-		return createMock( object=new preside.system.services.rest.PresideRestService(
+		var restService = createMock( object=new preside.system.services.rest.PresideRestService(
 			  controller          = mockController
 			, resourceDirectories = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
 		) );
+
+		restService.$( "_announceInterception" );
+
+		return restService;
 	}
 
 	private any function getMockRequestContext() {

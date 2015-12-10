@@ -30,7 +30,7 @@ component  {
 		var uri      = Replace( arguments.path, restPath, "" );
 
 		event.setValue( "restUri", uri );
-		event.setValue( _getEventName(), "core.rest.processRequest" );
+		event.setValue( _getEventName(), "core.rest.request" );
 	}
 
 	public boolean function reverseMatch( required struct buildArgs, required any event ) {

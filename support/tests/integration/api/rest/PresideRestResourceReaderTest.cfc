@@ -119,7 +119,7 @@ component extends="testbox.system.BaseSpec"{
 					"/api1/subapi" = [{
 						  handler    = "api1.subapi.TestResource"
 						, tokens     = []
-						, uriPattern = "^/my/pattern$"
+						, uriPattern = "^/my/pattern/$"
 						, verbs      = { get="get" }
 					}],
 					"/api2" = [{
