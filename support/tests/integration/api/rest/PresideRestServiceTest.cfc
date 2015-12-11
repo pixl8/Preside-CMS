@@ -310,7 +310,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should pass the response renderer to the 'type' argument in renderData", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -323,7 +323,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should pass the response mime type to the 'contenttype' argument in renderData", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -336,7 +336,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should pass the response status code to the 'statusCode' argument in renderData", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -349,7 +349,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should pass the response status text to the 'statusText' argument in renderData", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -362,7 +362,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should pass the response data to the 'data' argument in renderData", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -375,7 +375,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should pass an empty string to the renderData 'data' argument, when the data in the response object is NULL", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -388,7 +388,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should call setHttpHeader() on the request context for each header set in the response", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -415,7 +415,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should set noData() on the response when the verb is HEAD", function(){
-				var restService        =  getService();
+				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
@@ -428,6 +428,30 @@ component extends="testbox.system.BaseSpec"{
 				);
 
 				expect( response.getData() ).toBeNull();
+			} );
+
+			it( "should set a 304 response when ETag matches supplied If-None-Match header", function(){
+				var restService        = getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+				var etag               = LCase( Hash( Now() ) );
+
+				response.setData( { test="data" } );
+				response.setHeader( "etag", etag );
+
+				restService.$( "setEtag", etag );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="If-None-Match" ).$results( etag );
+				restService.processResponse(
+					  response       = response
+					, requestContext = mockRequestContext
+					, uri            = "/some/uri"
+					, verb           = "HEAD"
+				);
+
+				expect( response.getData() ).toBeNull();
+				expect( response.getRenderer() ).toBe( "plain" );
+				expect( response.getStatusCode() ).toBe( 304 );
+				expect( response.getStatusText() ).toBe( "Not modified" );
 			} );
 		} );
 
@@ -515,6 +539,7 @@ component extends="testbox.system.BaseSpec"{
 
 		rc.$( "getHttpMethod", "get" );
 		rc.$( "setHttpHeader", rc );
+		rc.$( "getHttpHeader", "" );
 		rc.$( "renderData", rc );
 		rc.$( "getInstanceIdForComparison", CreateUUId() );
 

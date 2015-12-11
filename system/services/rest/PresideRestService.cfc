@@ -129,10 +129,7 @@ component {
 	}
 
 	public void function processResponse( required any response, required any requestContext, required string uri, required string verb ) {
-		if ( [ "HEAD", "GET" ].findNoCase( arguments.verb ) ) {
-			setEtag( response );
-		}
-
+		_dealWithEtags( arguments.response, arguments.requestContext, arguments.verb );
 
 		var headers = response.getHeaders() ?: {};
 		for( var headerName in headers ) {
@@ -215,12 +212,14 @@ component {
 		return "";
 	}
 
-	public void function setEtag( required any response ) {
+	public string function setEtag( required any response ) {
 		var etag = getEtag( arguments.response );
 
 		if ( Len( Trim( etag ) ) ) {
 			response.setHeader( "ETag", etag );
 		}
+
+		return etag;
 	}
 
 // PRIVATE HELPERS
@@ -255,6 +254,20 @@ component {
 
 	private any function _getInterceptorService() {
 		return _getController().getInterceptorService();
+	}
+
+	private void function _dealWithEtags( required any response, required any requestContext, required string verb ) {
+		if ( [ "HEAD", "GET" ].findNoCase( arguments.verb ) ) {
+			var etag = setEtag( response );
+
+			if ( Len( Trim( etag ) ) ) {
+				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match" );
+				if ( ifNoneMatchHeader == etag  ) {
+					response.noData();
+					response.setStatus( 304, "Not modified" );
+				}
+			}
+		}
 	}
 
 // GETTERS AND SETTERS
