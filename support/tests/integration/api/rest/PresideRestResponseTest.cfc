@@ -193,20 +193,21 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "setError", function(){
-			it( "should result in a default set of error status codes and headers when no arguments passed", function(){
+			it( "should result in a default set of error status codes when no arguments passed", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
 
-				restResponse.setData( "test" );
 				restResponse.setError();
 
-				expect( restResponse.getData() ).toBeNull();
+				expect( restResponse.getRenderer() ).toBe( "json" );
+				expect( restResponse.getMimeType() ).toBe( "application/json" );
 				expect( restResponse.getStatusCode() ).toBe( 500 );
-				expect( restResponse.getStatusText() ).toBe( "Unspecified error" );
-
-				var headers = restResponse.getHeaders();
-				expect( headers[ "X-REST-ERROR-MESSAGE" ] ?: "" ).toBe( "An unhandled exception occurred within the REST API" );
-
-
+				expect( restResponse.getStatusText() ).toBe( "Server error" );
+				expect( restResponse.getData() ).toBe({
+					  type   = "rest.server.error"
+					, title  = "Server error"
+					, status = 500
+					, detail = "An unhandled exception occurred within the REST API"
+				});
 			} );
 
 			it( "should use the supplied error code as the response status code", function(){
@@ -215,30 +216,53 @@ component extends="testbox.system.BaseSpec"{
 				restResponse.setError( errorCode=451 );
 
 				expect( restResponse.getStatusCode() ).toBe( 451 );
+				expect( restResponse.getData().status ?: "" ).toBe( 451 );
 			} );
 
-			it( "should use the supplied error type as the status text", function(){
+			it( "should use the supplied title as the status text", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
 
-				restResponse.setError( type="Verb not supported" );
+				restResponse.setError( title="Verb not supported" );
 
 				expect( restResponse.getStatusText() ).toBe( "Verb not supported" );
+				expect( restResponse.getData().title ?: "" ).toBe( "Verb not supported" );
 			} );
 
-			it( "should use set X-REST-ERROR-MESSAGE header for error message", function(){
+			it( "should use the supplied type in the response data", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
 
-				restResponse.setError( message="Verb not supported" );
+				restResponse.setError( type="some.type.here" );
 
-				expect( restResponse.getHeaders()[ "X-REST-ERROR-MESSAGE"] ).toBe( "Verb not supported" );
+				expect( restResponse.getData().type ?: "" ).toBe( "some.type.here" );
 			} );
 
-			it( "should use set X-REST-ERROR-DETAIL header for error detail", function(){
+			it( "should use the supplied message in the response data's 'detail' field", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
 
-				restResponse.setError( detail="Verb not supported" );
+				restResponse.setError( message="An error occurred, it was bad and stuff" );
 
-				expect( restResponse.getHeaders()[ "X-REST-ERROR-DETAIL"] ).toBe( "Verb not supported" );
+				expect( restResponse.getData().detail ?: "" ).toBe( "An error occurred, it was bad and stuff" );
+			} );
+
+			it( "should use the supplied detail in the response data's 'extra-detail' field", function(){
+				var restResponse = new preside.system.services.rest.PresideRestResponse();
+
+				restResponse.setError( detail="Some really detailed stuff here" );
+
+				expect( restResponse.getData()[ "extra-detail" ] ?: "" ).toBe( "Some really detailed stuff here" );
+			} );
+
+			it( "should append the supplied additionalInfo struct to the response data struct", function(){
+				var restResponse   = new preside.system.services.rest.PresideRestResponse();
+				var additionalInfo = { someKey="test", anArray=[ "one", 2, "three" ], astruct={ "test" = true } };
+
+				restResponse.setError( additionalInfo=additionalInfo );
+
+				var data = restResponse.getData();
+
+				for( var key in additionalInfo ) {
+					expect( data[ key ] ?: "" ).toBe( additionalInfo[ key ] );
+				}
 			} );
 		} );
 

@@ -2,8 +2,9 @@
  * An object to provide the PresideCMS REST platform's
  * business logic.
  *
- * @autodoc true
+ * @autodoc
  * @singleton
+ * @presideService
  *
  */
 component {
@@ -47,7 +48,8 @@ component {
 		if ( !resource.count() ) {
 			response.setError(
 				  errorCode = 404
-				, type      = "REST API Resource not found"
+				, title     = "REST API Resource not found"
+				, type      = "rest.resource.not.found"
 				, message   = "The requested resource, [#arguments.uri#], did not match any resources in the Preside REST API"
 			);
 
@@ -58,7 +60,8 @@ component {
 		if ( !resource.verbs.keyExists( verb ) ) {
 			response.setError(
 				  errorCode = 405
-				, type      = "REST API Method not supported"
+				, title     = "REST API Method not supported"
+				, type      = "rest.method.unsupported"
 				, message   = "The requested resource, [#arguments.uri#], does not support the [#UCase( verb )#] method"
 			);
 
@@ -105,7 +108,13 @@ component {
 
 			_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
 		} catch( any e ) {
-			arguments.response.setError( argumentCollection=e );
+			$raiseError( e );
+			arguments.response.setError(
+				  argumentCollection = e
+				, errorCode          = 500
+				, title              = "Unhandled #e.type# exception"
+				, type               = "rest.server.error"
+			);
 			_announceInterception( "onRestError", arguments );
 		}
 	}
@@ -188,8 +197,15 @@ component {
 		try {
 			_getInterceptorService().processState( argumentCollection=arguments );
 		} catch( any e ) {
+			$raiseError( e );
+
 			if ( IsObject( arguments.interceptData.response ?: "" ) ) {
-				arguments.interceptData.response.setError( argumentCollection=e );
+				arguments.interceptData.response.setError(
+					  argumentCollection = e
+					, errorCode          = 500
+					, title              = "Unhandled #e.type# exception"
+					, type               = "rest.server.error"
+				);
 				_announceInterception( "onRestError", arguments.interceptData );
 			}
 		}

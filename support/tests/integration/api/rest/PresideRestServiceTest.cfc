@@ -167,7 +167,8 @@ component extends="testbox.system.BaseSpec"{
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  errorCode = 404
-					, type      = "REST API Resource not found"
+					, title     = "REST API Resource not found"
+					, type      = "rest.resource.not.found"
 					, message   = "The requested resource, [/some/uri/23], did not match any resources in the Preside REST API"
 				} );
 
@@ -213,7 +214,8 @@ component extends="testbox.system.BaseSpec"{
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  errorCode = 405
-					, type      = "REST API Method not supported"
+					, title     = "REST API Method not supported"
+					, type      = "rest.method.unsupported"
 					, message   = "The requested resource, [/some/uri/23], does not support the [#verb#] method"
 				} );
 			} );

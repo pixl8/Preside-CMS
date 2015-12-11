@@ -141,19 +141,30 @@ component accessors=true displayName="Preside REST Response" {
 	 * @autodoc true
 	 */
 	public any function setError(
-		  string  type      = "Unspecified error"
-		, numeric errorCode = 500
-		, string  message   = "An unhandled exception occurred within the REST API"
-		, string  detail    = ""
+		  string  type           = "rest.server.error"
+		, string  title          = "Server error"
+		, numeric errorCode      = 500
+		, string  message        = "An unhandled exception occurred within the REST API"
+		, string  detail         = ""
+		, struct  additionalInfo = {}
 	) {
-		noData().setStatus( arguments.errorCode, arguments.type );
+		var data = {
+			  type   = arguments.type
+			, status = arguments.errorCode
+			, title  = arguments.title
+			, detail = arguments.message
+		};
 
-		if ( arguments.message.len() ) {
-			setHeader( "X-REST-ERROR-MESSAGE", arguments.message );
+		if ( Len( Trim( arguments.detail ) ) ) {
+			data[ "extra-detail" ] = arguments.detail;
 		}
-		if ( arguments.detail.len() ) {
-			setHeader( "X-REST-ERROR-DETAIL", arguments.detail );
-		}
+
+		data.append( arguments.additionalInfo );
+
+		setData( data );
+		setStatus( arguments.errorCode, arguments.title );
+		setRenderer( "json" );
+		setMimeType( "application/json" );
 	}
 
 	/**
