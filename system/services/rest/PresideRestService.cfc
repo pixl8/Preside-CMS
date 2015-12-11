@@ -57,7 +57,7 @@ component {
 			return;
 		}
 
-		if ( !resource.verbs.keyExists( verb ) ) {
+		if ( !resource.verbs.keyExists( verb ) && !( verb == "HEAD" && resource.verbs.keyExists( "GET" ) ) ) {
 			response.setError(
 				  errorCode = 405
 				, title     = "REST API Method not supported"
@@ -86,7 +86,8 @@ component {
 		, required any    requestContext
 	) {
 		try {
-			var args = extractTokensFromUri(
+			var coldboxEvent = "rest-apis.#arguments.resource.handler#.";
+			var args         = extractTokensFromUri(
 				  uriPattern = arguments.resource.uriPattern
 				, tokens     = arguments.resource.tokens
 				, uri        = arguments.uri
@@ -99,14 +100,24 @@ component {
 				return;
 			}
 
+			if ( arguments.verb == "HEAD" && !arguments.resource.verbs.keyExists( "HEAD" ) ) {
+				coldboxEvent &= arguments.resource.verbs.GET;
+			} else {
+				coldboxEvent &= arguments.resource.verbs[ arguments.verb ];
+			}
+
 			_getController().runEvent(
-				  event          = "rest-apis.#arguments.resource.handler#.#arguments.resource.verbs[ arguments.verb ]#"
+				  event          = coldboxEvent
 				, prePostExempt  = false
 				, private        = true
 				, eventArguments = args
 			);
 
 			_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
+
+			if ( arguments.verb == "HEAD" ) {
+				arguments.response.noData();
+			}
 		} catch( any e ) {
 			$raiseError( e );
 			arguments.response.setError(

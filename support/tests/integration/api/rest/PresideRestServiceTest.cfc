@@ -243,6 +243,87 @@ component extends="testbox.system.BaseSpec"{
 
 		} );
 
+		describe( "processRequest", function(){
+			it( "should not set error when verb is HEAD and no explicit HEAD handler exists for the resource", function(){
+				var restService        = getService();
+				var dummyUri           = "/some/test/uri/";
+				var dummyResource      = { verbs={ "GET"="someGetMethod" } };
+				var mockRequestContext = getMockRequestContext();
+				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+
+				restService.$( "invokeRestResourceHandler" );
+				restService.$( "getResourceForUri" ).$args( dummyUri ).$results( dummyResource );
+				mockResponse.$( "setError" );
+
+				restService.processRequest(
+					  uri            = dummyUri
+					, verb           = "HEAD"
+					, requestContext = mockRequestContext
+					, response       = mockResponse
+				);
+
+				var callLog = mockResponse.$callLog().setError;
+
+				expect( callLog.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "invokeRestResourceHandler", function(){
+			it( "should call the GET method of a resource when verb is HEAD and no specific HEAD method exists", function(){
+				var restService        = getService();
+				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod" } };
+				var uri                = "/some/uri/"
+				var verb               = "HEAD";
+				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var mockRequestContext = getMockRequestContext();
+
+				restService.$( "extractTokensFromUri", {} );
+				mockResponse.$( "isFinished", false );
+				mockResponse.$( "setError" );
+				mockController.$( "runEvent" );
+
+				restService.invokeRestResourceHandler(
+					  resource       = resource
+					, uri            = uri
+					, verb           = verb
+					, response       = mockResponse
+					, requestContext = mockRequestContext
+				);
+
+				var callLog = mockController.$callLog().runEvent;
+
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1].event ).toBe( "rest-apis.somehandler.testGetMethod" );
+			} );
+
+			it( "should set noData() on the response when the verb is HEAD", function(){
+				var restService        = getService();
+				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod" } };
+				var uri                = "/some/uri/"
+				var verb               = "HEAD";
+				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var mockRequestContext = getMockRequestContext();
+
+				restService.$( "extractTokensFromUri", {} );
+				mockResponse.$( "isFinished", false );
+				mockResponse.$( "setError" );
+				mockResponse.$( "noData" );
+				mockController.$( "runEvent" );
+
+				restService.invokeRestResourceHandler(
+					  resource       = resource
+					, uri            = uri
+					, verb           = verb
+					, response       = mockResponse
+					, requestContext = mockRequestContext
+				);
+
+				var callLog = mockResponse.$callLog().noData;
+
+				expect( callLog.len() ).toBe( 1 );
+			} );
+		} );
+
 		describe( "processResponse()", function(){
 			it( "should call renderData on the request context", function(){
 				var restService        = getService();
@@ -388,6 +469,7 @@ component extends="testbox.system.BaseSpec"{
 		) );
 
 		restService.$( "_announceInterception" );
+		restService.$( "$raiseError" );
 
 		return restService;
 	}
