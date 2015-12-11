@@ -143,14 +143,6 @@ component extends="testbox.system.BaseSpec"{
 				expect( restResponse.getRenderer() ).toBe( "plain" );
 			} );
 
-			it( "should set the mime type to 'text/plain'", function(){
-				var restResponse = new preside.system.services.rest.PresideRestResponse();
-
-				restResponse.noData();
-
-				expect( restResponse.getMimeType() ).toBe( "text/plain" );
-			} );
-
 			it( "should return a reference to itself so that methods can be chained", function(){
 				var restResponse = new preside.system.services.rest.PresideRestResponse();
 				var result = restResponse.noData();
