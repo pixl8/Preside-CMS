@@ -295,33 +295,6 @@ component extends="testbox.system.BaseSpec"{
 				expect( callLog.len() ).toBe( 1 );
 				expect( callLog[1].event ).toBe( "rest-apis.somehandler.testGetMethod" );
 			} );
-
-			it( "should set noData() on the response when the verb is HEAD", function(){
-				var restService        = getService();
-				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod" } };
-				var uri                = "/some/uri/"
-				var verb               = "HEAD";
-				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				var mockRequestContext = getMockRequestContext();
-
-				restService.$( "extractTokensFromUri", {} );
-				mockResponse.$( "isFinished", false );
-				mockResponse.$( "setError" );
-				mockResponse.$( "noData" );
-				mockController.$( "runEvent" );
-
-				restService.invokeRestResourceHandler(
-					  resource       = resource
-					, uri            = uri
-					, verb           = verb
-					, response       = mockResponse
-					, requestContext = mockRequestContext
-				);
-
-				var callLog = mockResponse.$callLog().noData;
-
-				expect( callLog.len() ).toBe( 1 );
-			} );
 		} );
 
 		describe( "processResponse()", function(){
@@ -330,7 +303,7 @@ component extends="testbox.system.BaseSpec"{
 				var mockRequestContext = getMockRequestContext();
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				expect( mockRequestContext.$callLog().renderData.len() ).toBe( 1 );
 
@@ -342,7 +315,7 @@ component extends="testbox.system.BaseSpec"{
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
 				response.setRenderer( "jsonp" );
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "type" ) ).toBeTrue();
@@ -355,7 +328,7 @@ component extends="testbox.system.BaseSpec"{
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
 				response.setMimeType( "text/plain" );
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "contentType" ) ).toBeTrue();
@@ -368,7 +341,7 @@ component extends="testbox.system.BaseSpec"{
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
 				response.setStatusCode( 451 );
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "statusCode" ) ).toBeTrue();
@@ -381,7 +354,7 @@ component extends="testbox.system.BaseSpec"{
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
 				response.setStatusText( "This content has been censored and cannot therefor be shown" );
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "statusText" ) ).toBeTrue();
@@ -394,7 +367,7 @@ component extends="testbox.system.BaseSpec"{
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
 				response.setData( { test="data" } );
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "data" ) ).toBeTrue();
@@ -407,7 +380,7 @@ component extends="testbox.system.BaseSpec"{
 				var response           = new preside.system.services.rest.PresideRestResponse();
 
 				response.noData();
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "data" ) ).toBeTrue();
@@ -425,7 +398,7 @@ component extends="testbox.system.BaseSpec"{
 					, "X-good-stuff"     = "yes"
 				});
 
-				restService.processResponse( response, mockRequestContext );
+				restService.processResponse( response, mockRequestContext, "/test", "GET" );
 
 				var callLog = mockRequestContext.$callLog().setHttpHeader;
 
@@ -439,6 +412,22 @@ component extends="testbox.system.BaseSpec"{
 					, { name="X-good-stuff"    , value="yes"           }
 					, { name="X-My-Header"     , value="my value"      }
 				] );
+			} );
+
+			it( "should set noData() on the response when the verb is HEAD", function(){
+				var restService        =  getService();
+				var mockRequestContext = getMockRequestContext();
+				var response           = new preside.system.services.rest.PresideRestResponse();
+
+				response.setData( { test="data" } );
+				restService.processResponse(
+					  response       = response
+					, requestContext = mockRequestContext
+					, uri            = "/some/uri"
+					, verb           = "HEAD"
+				);
+
+				expect( response.getData() ).toBeNull();
 			} );
 		} );
 

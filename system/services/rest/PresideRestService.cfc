@@ -39,6 +39,8 @@ component {
 		processResponse(
 			  response       = response
 			, requestContext = arguments.requestContext
+			, uri            = arguments.uri
+			, verb           = verb
 		);
 	}
 
@@ -130,11 +132,15 @@ component {
 		}
 	}
 
-	public void function processResponse( required any response, required any requestContext ) {
+	public void function processResponse( required any response, required any requestContext, required string uri, required string verb ) {
 		var headers = response.getHeaders() ?: {};
 
 		for( var headerName in headers ) {
 			requestContext.setHttpHeader( name=headerName, value=headers[ headerName ] );
+		}
+
+		if ( arguments.verb == "HEAD" ) {
+			response.noData();
 		}
 
 		requestContext.renderData(
