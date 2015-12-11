@@ -23,7 +23,7 @@ component {
 
 	public void function onRestRequest( required string uri, required any requestContext ) {
 		var response = createRestResponse();
-		var verb     = arguments.requestContext.getHttpMethod();
+		var verb     = getVerb( arguments.requestContext );
 
 		_announceInterception( "onRestRequest", { uri=uri, verb=verb, response=response } );
 
@@ -179,6 +179,13 @@ component {
 
 	public any function createRestResponse() {
 		return new PresideRestResponse();
+	}
+
+	public any function getVerb( required any requestContext ) {
+		return arguments.requestContext.getHttpHeader(
+			  header  = "X-HTTP-Method-Override"
+			, default = arguments.requestContext.getHttpMethod()
+		);
 	}
 
 // PRIVATE HELPERS

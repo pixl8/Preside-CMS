@@ -77,7 +77,7 @@ component extends="testbox.system.BaseSpec"{
 					, tokens     = resourceHandler.tokens
 					, uri        = uri
 				).$results( mockTokens );
-				mockRequestContext.$( "getHttpMethod", verb );
+				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
 
 				mockController.$( "runEvent" );
 
@@ -124,7 +124,7 @@ component extends="testbox.system.BaseSpec"{
 					, tokens     = resourceHandler.tokens
 					, uri        = uri
 				).$results( mockTokens );
-				mockRequestContext.$( "getHttpMethod", verb );
+				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
 
 				mockController.$( "runEvent" );
 
@@ -158,6 +158,7 @@ component extends="testbox.system.BaseSpec"{
 				mockResponse.$( "isFinished", false );
 
 				restService.$( "processResponse" );
+				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
 				restService.$( "createRestResponse", mockResponse );
 				restService.$( "getResourceForUri" ).$args( uri ).$results( {} );
 
@@ -204,7 +205,7 @@ component extends="testbox.system.BaseSpec"{
 					, tokens     = resourceHandler.tokens
 					, uri        = uri
 				).$results( mockTokens );
-				mockRequestContext.$( "getHttpMethod", verb );
+				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
 				mockResponse.$( "setError" );
 				mockController.$( "runEvent" );
 
@@ -230,7 +231,7 @@ component extends="testbox.system.BaseSpec"{
 				restService.$( "processRequest"  );
 				restService.$( "processResponse" );
 				restService.$( "createRestResponse", mockResponse );
-				mockRequestContext.$( "getHttpMethod", verb );
+				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
 				mockResponse.$( "isFinished", false );
 
 				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
@@ -357,6 +358,23 @@ component extends="testbox.system.BaseSpec"{
 					, { name="X-good-stuff"    , value="yes"           }
 					, { name="X-My-Header"     , value="my value"      }
 				] );
+			} );
+		} );
+
+		describe( "getVerb()", function(){
+			it( "should return value of X-HTTP-Method-Override header when supplied and use HTTP method used in the request otherwise", function(){
+				var restService        = getService();
+				var mockRequestContext = getMockRequestContext();
+				var mockHttpMethod     = CreateUUId();
+				var mockHttpHeader     = CreateUUId();
+
+				mockRequestContext.$( "getHttpMethod", mockHttpMethod );
+				mockRequestContext.$( "getHttpHeader" ).$args(
+					  header  = "X-HTTP-Method-Override"
+					, default = mockHttpMethod
+				).$results( mockHttpHeader );
+
+				expect( restService.getVerb( mockRequestContext )  ).toBe( mockHttpHeader );
 			} );
 		} );
 
