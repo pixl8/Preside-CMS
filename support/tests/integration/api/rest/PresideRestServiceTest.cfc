@@ -431,6 +431,53 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "getEtag", function(){
+			it( "should calculate etag based on an MD5 hash of the serialized data", function(){
+				var restService  = getService();
+				var response     = new preside.system.services.rest.PresideRestResponse();
+				var data         = { this="is some test data", which="is", very=true };
+				var expectedEtag = LCase( Hash( Serialize( data ) ) );
+
+				response.setData( data );
+
+				expect( restService.getEtag( response ) ).toBe( expectedEtag );
+			} );
+
+			it( "should return an empty string when there is no data in the response", function(){
+				var restService  = getService();
+				var response     = new preside.system.services.rest.PresideRestResponse();
+
+				response.noData();
+
+				expect( restService.getEtag( response ) ).toBe( "" );
+			} );
+		} );
+
+		describe( "setEtag", function(){
+			it( "should set ETAG in the response when there is data", function(){
+				var restService  = getService();
+				var response     = new preside.system.services.rest.PresideRestResponse();
+				var dummyEtag    = LCase( Hash( Now() ) );
+
+				restService.$( "getEtag" ).$args( response ).$results( dummyEtag );
+				restService.setEtag( response );
+
+				var headers = response.getHeaders();
+				expect( headers.etag ?: "" ).toBe( dummyEtag );
+			} );
+
+			it( "should not set ETAG in the response when the etag is empty", function(){
+				var restService  = getService();
+				var response     = new preside.system.services.rest.PresideRestResponse();
+
+				restService.$( "getEtag" ).$args( response ).$results( "" );
+				restService.setEtag( response );
+
+				var headers = response.getHeaders() ?: {};
+				expect( headers.keyExists( "etag" ) ).toBeFalse();
+			} );
+		} );
+
 		describe( "getVerb()", function(){
 			it( "should return value of X-HTTP-Method-Override header when supplied and use HTTP method used in the request otherwise", function(){
 				var restService        = getService();

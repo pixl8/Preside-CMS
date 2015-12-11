@@ -116,10 +116,6 @@ component {
 			);
 
 			_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
-
-			if ( arguments.verb == "HEAD" ) {
-				arguments.response.noData();
-			}
 		} catch( any e ) {
 			$raiseError( e );
 			arguments.response.setError(
@@ -133,8 +129,12 @@ component {
 	}
 
 	public void function processResponse( required any response, required any requestContext, required string uri, required string verb ) {
-		var headers = response.getHeaders() ?: {};
+		if ( [ "HEAD", "GET" ].findNoCase( arguments.verb ) ) {
+			setEtag( response );
+		}
 
+
+		var headers = response.getHeaders() ?: {};
 		for( var headerName in headers ) {
 			requestContext.setHttpHeader( name=headerName, value=headers[ headerName ] );
 		}
@@ -203,6 +203,24 @@ component {
 			  header  = "X-HTTP-Method-Override"
 			, default = arguments.requestContext.getHttpMethod()
 		);
+	}
+
+	public string function getEtag( required any response ) {
+		var data = response.getData();
+
+		if ( !IsNull( data ) ) {
+			return LCase( Hash( Serialize( response.getData() ) ) );
+		}
+
+		return "";
+	}
+
+	public void function setEtag( required any response ) {
+		var etag = getEtag( arguments.response );
+
+		if ( Len( Trim( etag ) ) ) {
+			response.setHeader( "ETag", etag );
+		}
 	}
 
 // PRIVATE HELPERS
