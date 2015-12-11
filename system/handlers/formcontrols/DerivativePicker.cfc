@@ -4,9 +4,10 @@ component output=false {
 
 	public string function index( event, rc, prc, args={} ) output=false {
 
-		var derivatives = assetManagerService.listEditorDerivatives();
-		args.labels     = [ translateResource( "derivatives:none.title" ) ];
-		args.values     = [ "none" ];
+		var derivatives   = assetManagerService.listEditorDerivatives();
+		args.labels       = [ translateResource( "derivatives:none.title" ) ];
+		args.values       = [ "none" ];
+		args.extraClasses = "derivative-select-option";
 
 		if ( !derivatives.len() ) {
 		    return "";

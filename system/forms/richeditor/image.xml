@@ -13,6 +13,7 @@ This form is used for the add/edit image screen in the richeditor.
 	    </fieldset>
 
 		<fieldset id="resize" sortorder="20" title="cms:ckeditor.imagepicker.resize.fieldset">
+
 			<field sortorder="10" name="derivative" control="derivativePicker" required="false" label="cms:ckeditor.imagepicker.derivative.label" />
 
 			<field sortorder="20" name="dimensions"  control="imagedimensions" required="true"  label="cms:ckeditor.imagepicker.dimensions.label" />
