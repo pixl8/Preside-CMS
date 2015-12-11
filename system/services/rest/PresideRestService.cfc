@@ -261,7 +261,7 @@ component {
 			var etag = setEtag( response );
 
 			if ( Len( Trim( etag ) ) ) {
-				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match" );
+				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match", default="" );
 				if ( ifNoneMatchHeader == etag  ) {
 					response.noData();
 					response.setStatus( 304, "Not modified" );

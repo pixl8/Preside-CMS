@@ -440,7 +440,7 @@ component extends="testbox.system.BaseSpec"{
 				response.setHeader( "etag", etag );
 
 				restService.$( "setEtag", etag );
-				mockRequestContext.$( "getHttpHeader" ).$args( header="If-None-Match" ).$results( etag );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="If-None-Match", default="" ).$results( etag );
 				restService.processResponse(
 					  response       = response
 					, requestContext = mockRequestContext
