@@ -67,14 +67,14 @@
 
             	$widthField.prop('disabled', false);
             	$heightField.prop('disabled', false);
-            	$qualityField.removeClass( 'uberSelect' ).prop( "disabled", false ).data("uberSelect").search_field_disabled();
+            	$qualityField.prop( "disabled", false ).data("uberSelect").search_field_disabled();
 
             }else{
 
             	$widthField.prop('disabled', true);
             	$heightField.prop('disabled', true);
             	$qualityField.prop( "disabled", true );
-            	$qualityField.addClass( 'uberSelect' ).data("uberSelect").search_field_disabled();
+            	$qualityField.data("uberSelect").search_field_disabled();
             }
     	});
 
@@ -83,7 +83,7 @@
     		$widthField.prop('disabled', true);
             $heightField.prop('disabled', true);
             $qualityField.prop( "disabled", true );
-            $qualityField.addClass( 'uberSelect' ).data("uberSelect").search_field_disabled();
+            $qualityField.data("uberSelect").search_field_disabled();
 
     	}
     });
