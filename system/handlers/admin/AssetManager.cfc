@@ -730,7 +730,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified" ];
+		var gridFields = [ "title", "datemodified","id" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -741,6 +741,9 @@ component extends="preside.system.base.AdminHandler" {
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
 					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & records[ field ][ records.currentRow ];
+				}
+				if ( field == "id" ) {
+					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="pickericon" );
 				}
 			}
 
@@ -756,7 +759,6 @@ component extends="preside.system.base.AdminHandler" {
 		QueryAddColumn( records, "_checkbox", checkboxCol );
 		gridFields.prepend( "_checkbox" );
 		gridFields.append( "_options" );
-
 		event.renderData( type="json", data=datatableHelper.queryToResult( records, gridFields, result.totalRecords ) );
 	}
 
@@ -768,7 +770,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified" ];
+		var gridFields = [ "title", "datemodified","id" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -779,6 +781,9 @@ component extends="preside.system.base.AdminHandler" {
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
 					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & records[ field ][ records.currentRow ];
+				}
+				if ( field == "id" ) {
+					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="pickericon" );
 				}
 			}
 
