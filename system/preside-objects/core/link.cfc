@@ -21,4 +21,5 @@ component extends="preside.system.base.SystemPresideObject" labelfield="internal
 	property name="page"  relationship="many-to-one" relatedto="page"  required=false;
 	property name="asset" relationship="many-to-one" relatedto="asset" required=false;
 	property name="image" relationship="many-to-one" relatedto="asset" required=false allowedTypes="image";
+
 }

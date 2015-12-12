@@ -936,6 +936,21 @@ component {
 		return settings;
 	}
 
+	public any function listEditorDerivatives(){
+		var derivatives = _getConfiguredDerivatives();
+		var publicDerivatives = [];
+
+		for( var derivative in derivatives ) {
+			if ( derivatives[ derivative ].keyExists( "inEditor" ) ) {
+				if( IsBoolean( derivatives[ derivative ].inEditor ?: "" ) && derivatives[ derivative ].inEditor ){
+				    publicDerivatives.append( derivative );
+			   	}
+			}
+		}
+
+		return publicDerivatives;
+	}
+
 	public boolean function isDerivativePubliclyAccessible( required string derivative ) {
 		var derivatives = _getConfiguredDerivatives();
 
