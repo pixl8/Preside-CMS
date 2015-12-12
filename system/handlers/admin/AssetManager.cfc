@@ -730,7 +730,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified","id" ];
+		var gridFields = [ "title", "datemodified" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -740,10 +740,7 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & records[ field ][ records.currentRow ];
-				}
-				if ( field == "id" ) {
-					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="pickericon" );
+					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> " & records[ field ][ records.currentRow ];
 				}
 			}
 
@@ -770,7 +767,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = datatableHelper.getSearchQuery()
 			, folder      = rc.folder ?: ""
 		);
-		var gridFields = [ "title", "datemodified","id" ];
+		var gridFields = [ "title", "datemodified" ];
 		var renderedOptions = [];
 		var checkboxCol     = []
 
@@ -780,10 +777,7 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="icon" ) & " " & records[ field ][ records.currentRow ];
-				}
-				if ( field == "id" ) {
-					records[ field ][ records.currentRow ] = renderAsset( assetId=record.id, context="pickericon" );
+					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> " & records[ field ][ records.currentRow ];
 				}
 			}
 
