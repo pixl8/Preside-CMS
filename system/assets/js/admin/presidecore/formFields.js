@@ -53,28 +53,41 @@
         sideBySide:true
 	});
 
+    $(".derivative-select-option").each( function(){
+    	var $derivativeField   = $( this )
+    	  , $parentForm        = $derivativeField.closest( "form" )
+    	  , $dimensionField    = $parentForm.find( "[name=dimension]" )
+    	  , $widthField        = $parentForm.find( ".image-dimensions-picker-width" )
+    	  , $heightField       = $parentForm.find( ".image-dimensions-picker-height" )
+    	  , $qualityField      = $parentForm.find( "#quality" )
+    	  , $choosenDerivative = $parentForm.find( "[name=derivative]" );
 
-	var width       = $('.image-dimensions-picker-width');
-	var height      = $('.image-dimensions-picker-height');
-	var derivative  = $('#derivative_chosen .chosen-hidden-field').val();
+    	$derivativeField.change( function(){
+            if( $choosenDerivative.val() === "none"){
 
-	$('#derivative').change(function(){
+            	$widthField.prop('disabled', false);
+            	$heightField.prop('disabled', false);
+            	$qualityField.prop( "disabled", false ).data("uberSelect").search_field_disabled();
 
-		var derivative  = $('#derivative_chosen .chosen-hidden-field').val();
+            }else{
 
-		if( derivative === "none" ){
-			width.prop('disabled', false);
-			height.prop('disabled', false);
+            	$widthField.prop('disabled', true);
+            	$heightField.prop('disabled', true);
+            	$qualityField.prop( "disabled", true );
+            	$qualityField.data("uberSelect").search_field_disabled();
+            }
+    	});
 
-		}else{
-			width.prop('disabled', 'disabled');
-			height.prop('disabled', 'disabled');
-		}
-	});
+    	if( $choosenDerivative.val() != "none" ){
 
-	if( derivative != "none" ){
-		width.prop('disabled', 'disabled');
-		height.prop('disabled', 'disabled');
-	}
+    		$widthField.prop('disabled', true);
+            $heightField.prop('disabled', true);
+            $qualityField.prop( "disabled", true );
+            $qualityField.data("uberSelect").search_field_disabled();
+
+    	}
+    });
+
+
 
 } )( presideJQuery );
