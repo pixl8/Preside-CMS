@@ -266,6 +266,29 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( callLog.len() ).toBe( 0 );
 			} );
+
+			it( "should not set error when verb is OPTIONS and no explicit OPTIONS handler exists for the resource", function(){
+				var restService        = getService();
+				var dummyUri           = "/some/test/uri/";
+				var dummyResource      = { verbs={ "GET"="someGetMethod", "POST"="somePostMethod" } };
+				var mockRequestContext = getMockRequestContext();
+				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+
+				restService.$( "invokeRestResourceHandler" );
+				restService.$( "getResourceForUri" ).$args( dummyUri ).$results( dummyResource );
+				mockResponse.$( "setError" );
+
+				restService.processRequest(
+					  uri            = dummyUri
+					, verb           = "OPTIONS"
+					, requestContext = mockRequestContext
+					, response       = mockResponse
+				);
+
+				var callLog = mockResponse.$callLog().setError;
+
+				expect( callLog.len() ).toBe( 0 );
+			} );
 		} );
 
 		describe( "invokeRestResourceHandler", function(){

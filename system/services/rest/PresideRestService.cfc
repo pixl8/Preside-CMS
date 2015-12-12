@@ -59,7 +59,7 @@ component {
 			return;
 		}
 
-		if ( !resource.verbs.keyExists( verb ) && !( verb == "HEAD" && resource.verbs.keyExists( "GET" ) ) ) {
+		if ( !_verbCanBeHandledByResource( verb, resource ) ) {
 			response.setError(
 				  errorCode = 405
 				, title     = "REST API Method not supported"
@@ -268,6 +268,22 @@ component {
 				}
 			}
 		}
+	}
+
+	private boolean function _verbCanBeHandledByResource( required string verb, required struct resource ) {
+		if ( resource.verbs.keyExists( verb ) ) {
+			return true;
+		}
+
+		if ( verb == "OPTIONS" ) {
+			return true;
+		}
+
+		if ( verb == "HEAD" && resource.verbs.keyExists( "GET" ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 // GETTERS AND SETTERS
