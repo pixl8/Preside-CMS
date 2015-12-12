@@ -8,6 +8,10 @@
   margin-right: 0.5em;
   display: inline-block;
 }
+.presidecms .asset-listing-table tbody tr td .asset-preview {
+  width: 60px;
+  display: inline-block;
+}
 .presidecms .asset-listing-table tbody tr:first-child td {
   border-top: none;
 }
