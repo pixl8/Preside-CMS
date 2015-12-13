@@ -147,18 +147,40 @@ component {
 		var originHeader         = requestContext.getHttpHeader( header="Origin", default="" );
 		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", default="" );
 		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", default="" );
-		var accessAllowed        = originHeader.len()
-		                        && requestMethodHeader.len()
-		                        && isCorsRequestAllowed( origin=originHeader, uri=uri )
-		                        && _verbCanBeHandledByResource( requestMethodHeader, resource );
 
-		if ( accessAllowed ) {
+		if ( !Len( Trim( originHeader ) ) || !Len( Trim( requestMethodHeader ) ) ) {
+			response.setError(
+				  type      = "rest.options.missing." & ( Len( Trim( originHeader ) ) ? "request.method" : "origin" )
+				, title     = "Bad Request"
+				, errorCode = 400
+				, message   = "Insufficient information. " & ( Len( Trim( originHeader ) ) ? "Access-Control-Request-Method" : "Origin" ) & " request header needed."
+			);
+			return;
+		}
+
+		var isOriginAllowed     = isCorsRequestAllowed( origin=originHeader, uri=uri );
+		var isHttpMethodAllowed = _verbCanBeHandledByResource( requestMethodHeader, resource );
+
+		if ( isOriginAllowed && isHttpMethodAllowed ) {
 			response.noData().setStatus( 200, "OK" );
 			response.setHeader( "Access-Control-Allow-Origin" , originHeader );
 			response.setHeader( "Access-Control-Allow-Methods", requestMethodHeader );
 			response.setHeader( "Access-Control-Allow-Headers", requestHeadersHeader );
 		} else {
-			response.noData().setStatus( 403, "Forbidden" ).finish();
+			var message = "";
+
+			if ( isOriginAllowed ) {
+				message = "This CORS request is not allowed. The resource at [#arguments.uri#] does not support the [#requestMethodHeader#] method."
+			} else {
+				message = "This CORS request is not allowed. Either CORS is disabled for this resource, or the Origin [#originHeader#] has not been whitelisted."
+			}
+
+			response.setError(
+				  type      = "rest.cors.forbidden"
+				, title     = "Forbidden"
+				, errorCode = 403
+				, message   = message
+			);
 		}
 	}
 

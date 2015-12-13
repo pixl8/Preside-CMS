@@ -372,7 +372,7 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "processOptionsRequest()", function(){
-			it( "should set an empty body on the response object", function(){
+			it( "should set a 400 error when 'Origin' request header is missing", function(){
 				var restService        = getService();
 				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod", PUT="put", DELETE="delete" } };
 				var response           = new preside.system.services.rest.PresideRestResponse();
@@ -383,10 +383,18 @@ component extends="testbox.system.BaseSpec"{
 
 				restService.processOptionsRequest( resource=resource, response=response, requestContext=mockRequestContext, uri=uri );
 
-				expect( response.getData() ).toBeNull();
+				expect( response.getStatusCode() ).toBe( 400 );
+				expect( response.getStatusText() ).toBe( "Bad request" );
+				expect( response.getRenderer() ).toBe( "json" );
+				expect( response.getData() ).toBe( {
+					  type   = "rest.options.missing.origin"
+					, status = 400
+					, title  = "Bad request"
+					, detail = "Insufficient information. Origin request header needed."
+				} );
 			} );
 
-			it( "should set a 'plain' renderer on the response object", function(){
+			it( "should set a 400 error when 'Access-Control-Request-Method' request header is missing", function(){
 				var restService        = getService();
 				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod", PUT="put", DELETE="delete" } };
 				var response           = new preside.system.services.rest.PresideRestResponse();
@@ -394,6 +402,53 @@ component extends="testbox.system.BaseSpec"{
 				var uri                = "/some/test/304958/"
 
 				response.setData( { test=true } );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Origin", default="" ).$results( "https://mysite.com" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Method", default="" ).$results( "" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Headers", default="" ).$results( "" );
+
+				restService.processOptionsRequest( resource=resource, response=response, requestContext=mockRequestContext, uri=uri );
+
+				expect( response.getStatusCode() ).toBe( 400 );
+				expect( response.getStatusText() ).toBe( "Bad request" );
+				expect( response.getRenderer() ).toBe( "json" );
+				expect( response.getData() ).toBe( {
+					  type   = "rest.options.missing.request.method"
+					, status = 400
+					, title  = "Bad request"
+					, detail = "Insufficient information. Access-Control-Request-Method request header needed."
+				} );
+			} );
+
+			it( "should set an empty body on the response object when access control request is valid", function(){
+				var restService        = getService();
+				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod", PUT="put", DELETE="delete" } };
+				var response           = new preside.system.services.rest.PresideRestResponse();
+				var mockRequestContext = getMockRequestContext();
+				var uri                = "/some/test/304958/"
+
+				response.setData( { test=true } );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Origin", default="" ).$results( "https://mysite.com" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Method", default="" ).$results( "PUT" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Headers", default="" ).$results( "" );
+				restService.$( "isCorsRequestAllowed", true );
+
+				restService.processOptionsRequest( resource=resource, response=response, requestContext=mockRequestContext, uri=uri );
+
+				expect( response.getData() ).toBeNull();
+			} );
+
+			it( "should set a 'plain' renderer on the response object when access control request is valid", function(){
+				var restService        = getService();
+				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod", PUT="put", DELETE="delete" } };
+				var response           = new preside.system.services.rest.PresideRestResponse();
+				var mockRequestContext = getMockRequestContext();
+				var uri                = "/some/test/304958/"
+
+				response.setData( { test=true } );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Origin", default="" ).$results( "https://mysite.com" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Method", default="" ).$results( "PUT" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Headers", default="" ).$results( "" );
+				restService.$( "isCorsRequestAllowed", true );
 
 				restService.processOptionsRequest( resource=resource, response=response, requestContext=mockRequestContext, uri=uri );
 
@@ -582,6 +637,9 @@ component extends="testbox.system.BaseSpec"{
 				var mockRequestContext = getMockRequestContext();
 				var uri                = "/some/test/304958/";
 
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Origin", default="" ).$results( "http://mysite.com" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Method", default="" ).$results( "DELETE" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Headers", default="" ).$results( "" );
 				restService.$( "isCorsRequestAllowed", false );
 
 				restService.processOptionsRequest(
@@ -593,6 +651,43 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( response.getStatusCode() ).toBe( 403 );
 				expect( response.getStatusText() ).toBe( "Forbidden" );
+				expect( response.getRenderer() ).toBe( "json" );
+				expect( response.getData() ).toBe( {
+					  type   = "rest.cors.forbidden"
+					, status = 403
+					, title  = "Forbidden"
+					, detail = "This CORS request is not allowed. Either CORS is disabled for this resource, or the Origin [http://mysite.com] has not been whitelisted."
+				} );
+			} );
+
+			it( "should set a 403 Forbidden status when CORS requests allowed, but request method is not allowed", function(){
+				var restService        = getService();
+				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod", PUT="put", DELETE="delete" } };
+				var response           = new preside.system.services.rest.PresideRestResponse();
+				var mockRequestContext = getMockRequestContext();
+				var uri                = "/some/test/304958/";
+
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Origin", default="" ).$results( "http://mysite.com" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Method", default="" ).$results( "POST" );
+				mockRequestContext.$( "getHttpHeader" ).$args( header="Access-Control-Request-Headers", default="" ).$results( "" );
+				restService.$( "isCorsRequestAllowed", true );
+
+				restService.processOptionsRequest(
+					  resource       = resource
+					, response       = response
+					, requestContext = mockRequestContext
+					, uri            = uri
+				);
+
+				expect( response.getStatusCode() ).toBe( 403 );
+				expect( response.getStatusText() ).toBe( "Forbidden" );
+				expect( response.getRenderer() ).toBe( "json" );
+				expect( response.getData() ).toBe( {
+					  type   = "rest.cors.forbidden"
+					, status = 403
+					, title  = "Forbidden"
+					, detail = "This CORS request is not allowed. The resource at [/some/test/304958/] does not support the [POST] method."
+				} );
 			} );
 		} );
 
