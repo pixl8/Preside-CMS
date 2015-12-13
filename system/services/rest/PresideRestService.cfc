@@ -71,13 +71,22 @@ component {
 			return;
 		}
 
-		invokeRestResourceHandler(
-			  resource       = resource
-			, uri            = uri
-			, verb           = verb
-			, response       = response
-			, requestContext = requestContext
-		);
+		if ( verb == "OPTIONS" && !resource.verbs.keyExists( "OPTIONS" ) ) {
+			processOptionsRequest(
+				  resource       = resource
+				, response       = response
+				, requestContext = requestContext
+				, uri            = uri
+			);
+		} else {
+			invokeRestResourceHandler(
+				  resource       = resource
+				, uri            = uri
+				, verb           = verb
+				, response       = response
+				, requestContext = requestContext
+			);
+		}
 	}
 
 	public void function invokeRestResourceHandler(
@@ -126,6 +135,35 @@ component {
 			);
 			_announceInterception( "onRestError", arguments );
 		}
+	}
+
+	public void function processOptionsRequest(
+		  required struct resource
+		, required any    response
+		, required any    requestContext
+		, required string uri
+	) {
+
+		var originHeader         = requestContext.getHttpHeader( header="Origin", default="" );
+		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", default="" );
+		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", default="" );
+		var accessAllowed        = originHeader.len()
+		                        && requestMethodHeader.len()
+		                        && isCorsRequestAllowed( origin=originHeader, uri=uri )
+		                        && _verbCanBeHandledByResource( requestMethodHeader, resource );
+
+		if ( accessAllowed ) {
+			response.noData().setStatus( 200, "OK" );
+			response.setHeader( "Access-Control-Allow-Origin" , originHeader );
+			response.setHeader( "Access-Control-Allow-Methods", requestMethodHeader );
+			response.setHeader( "Access-Control-Allow-Headers", requestHeadersHeader );
+		} else {
+			response.noData().setStatus( 403, "Forbidden" ).finish();
+		}
+	}
+
+	public boolean function isCorsRequestAllowed() {
+		return true;// TO BE IMPLEMENTED WHEN NEEDED!
 	}
 
 	public void function processResponse( required any response, required any requestContext, required string uri, required string verb ) {
