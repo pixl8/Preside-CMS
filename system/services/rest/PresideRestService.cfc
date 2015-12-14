@@ -23,99 +23,90 @@ component {
 	}
 
 	public void function onRestRequest( required string uri, required any requestContext ) {
-		var response = createRestResponse();
-		var verb     = getVerb( arguments.requestContext );
+		var restResponse = createRestResponse();
+		var restRequest  = createRestRequest( arguments.uri, arguments.requestContext );
 
-		_announceInterception( "onRestRequest", { uri=uri, verb=verb, response=response } );
+		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse, restRequest=restRequest } );
 
-		if ( !response.isFinished() ) {
+		if ( !restRequest.getFinished() ) {
 			processRequest(
-				  uri            = arguments.uri
-				, verb           = verb
+				  restRequest    = restRequest
+				, restResponse   = restResponse
 				, requestContext = arguments.requestContext
-				, response       = response
 			);
 		}
 
 		processResponse(
-			  response       = response
+			  restRequest    = restRequest
+			, restResponse   = restResponse
 			, requestContext = arguments.requestContext
-			, uri            = arguments.uri
-			, verb           = verb
 		);
 	}
 
-	public void function processRequest( required string uri, required string verb, required any requestContext, required any response ) {
-		var resource = getResourceForUri( arguments.uri );
-
-		if ( !resource.count() ) {
-			response.setError(
+	public void function processRequest( required any restRequest, required any restResponse, required any requestContext ) {
+		if ( !restRequest.getResource().count() ) {
+			restResponse.setError(
 				  errorCode = 404
 				, title     = "REST API Resource not found"
 				, type      = "rest.resource.not.found"
-				, message   = "The requested resource, [#arguments.uri#], did not match any resources in the Preside REST API"
+				, message   = "The requested resource, [#restRequest.getUri()#], did not match any resources in the Preside REST API"
 			);
 
-			_announceInterception( "onMissingRestResource", { uri=uri, verb=verb, response=response } );
+			_announceInterception( "onMissingRestResource", { restRequest=restRequest, restResponse=restResponse } );
 			return;
 		}
 
-		if ( !_verbCanBeHandledByResource( verb, resource ) ) {
-			response.setError(
+		if ( !_verbCanBeHandledByResource( restRequest.getVerb(), restRequest.getResource() ) ) {
+			restResponse.setError(
 				  errorCode = 405
 				, title     = "REST API Method not supported"
 				, type      = "rest.method.unsupported"
-				, message   = "The requested resource, [#arguments.uri#], does not support the [#UCase( verb )#] method"
+				, message   = "The requested resource, [#restRequest.getUri()#], does not support the [#UCase( restRequest.getVerb() )#] method"
 			);
 
-			_announceInterception( "onUnsupportedRestMethod", { uri=uri, verb=verb, response=response } );
+			_announceInterception( "onUnsupportedRestMethod", { restRequest=restRequest, restResponse=restResponse } );
 			return;
 		}
 
-		if ( verb == "OPTIONS" && !resource.verbs.keyExists( "OPTIONS" ) ) {
+		if ( restRequest.getVerb() == "OPTIONS" && !restRequest.getResource().verbs.keyExists( "OPTIONS" ) ) {
 			processOptionsRequest(
-				  resource       = resource
-				, response       = response
+				  restRequest    = restRequest
+				, restResponse   = restResponse
 				, requestContext = requestContext
-				, uri            = uri
 			);
 		} else {
 			invokeRestResourceHandler(
-				  resource       = resource
-				, uri            = uri
-				, verb           = verb
-				, response       = response
+				  restRequest    = restRequest
+				, restResponse   = restResponse
 				, requestContext = requestContext
 			);
 		}
 	}
 
 	public void function invokeRestResourceHandler(
-		  required struct resource
-		, required string uri
-		, required string verb
-		, required any    response
-		, required any    requestContext
+		  required any restRequest
+		, required any restResponse
+		, required any requestContext
 	) {
 		try {
-			var coldboxEvent = "rest-apis.#arguments.resource.handler#.";
-			var args         = extractTokensFromUri(
-				  uriPattern = arguments.resource.uriPattern
-				, tokens     = arguments.resource.tokens
-				, uri        = arguments.uri
-			);
+			var coldboxEvent = "rest-apis.#restRequest.getResource().handler#.";
+			var args         = Duplicate( requestContext.getCollection() );
+			var verb         = restRequest.getVerb();
+			var resource     = restRequest.getResource();
 
-			args.response = arguments.response;
+			args.append( extractTokensFromUri( restRequest ) );
+			args.restResponse = arguments.restResponse;
+			args.restRequest  = arguments.restRequest;
 
-			_announceInterception( "preInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
-			if ( arguments.response.isFinished() ) {
+			_announceInterception( "preInvokeRestResource", { restRequest=restRequest, restResponse=restResponse, args=args } );
+			if ( arguments.restRequest.getFinished() ) {
 				return;
 			}
 
-			if ( arguments.verb == "HEAD" && !arguments.resource.verbs.keyExists( "HEAD" ) ) {
-				coldboxEvent &= arguments.resource.verbs.GET;
+			if ( verb == "HEAD" && !resource.verbs.keyExists( "HEAD" ) ) {
+				coldboxEvent &= resource.verbs.GET;
 			} else {
-				coldboxEvent &= arguments.resource.verbs[ arguments.verb ];
+				coldboxEvent &= resource.verbs[ verb ];
 			}
 
 			_getController().runEvent(
@@ -125,10 +116,10 @@ component {
 				, eventArguments = args
 			);
 
-			_announceInterception( "postInvokeRestResource", { uri=arguments.uri, verb=arguments.verb, response=arguments.response, args=args } );
+			_announceInterception( "postInvokeRestResource", { restRequest=restRequest, restResponse=restResponse, args=args } );
 		} catch( any e ) {
 			$raiseError( e );
-			arguments.response.setError(
+			restResponse.setError(
 				  argumentCollection = e
 				, errorCode          = 500
 				, title              = "Unhandled #e.type# exception"
@@ -139,18 +130,16 @@ component {
 	}
 
 	public void function processOptionsRequest(
-		  required struct resource
-		, required any    response
-		, required any    requestContext
-		, required string uri
+		  required any restRequest
+		, required any restResponse
+		, required any requestContext
 	) {
-
 		var originHeader         = requestContext.getHttpHeader( header="Origin", default="" );
 		var requestMethodHeader  = requestContext.getHttpHeader( header="Access-Control-Request-Method", default="" );
 		var requestHeadersHeader = requestContext.getHttpHeader( header="Access-Control-Request-Headers", default="" );
 
 		if ( !Len( Trim( originHeader ) ) || !Len( Trim( requestMethodHeader ) ) ) {
-			response.setError(
+			restResponse.setError(
 				  type      = "rest.options.missing." & ( Len( Trim( originHeader ) ) ? "request.method" : "origin" )
 				, title     = "Bad Request"
 				, errorCode = 400
@@ -159,24 +148,24 @@ component {
 			return;
 		}
 
-		var isOriginAllowed     = isCorsRequestAllowed( origin=originHeader, uri=uri );
-		var isHttpMethodAllowed = _verbCanBeHandledByResource( requestMethodHeader, resource );
+		var isOriginAllowed     = isCorsRequestAllowed( origin=originHeader, api=restRequest.getApi() );
+		var isHttpMethodAllowed = _verbCanBeHandledByResource( requestMethodHeader, restRequest.getResource() );
 
 		if ( isOriginAllowed && isHttpMethodAllowed ) {
-			response.noData().setStatus( 200, "OK" );
-			response.setHeader( "Access-Control-Allow-Origin" , originHeader );
-			response.setHeader( "Access-Control-Allow-Methods", requestMethodHeader );
-			response.setHeader( "Access-Control-Allow-Headers", requestHeadersHeader );
+			restResponse.noData().setStatus( 200, "OK" );
+			restResponse.setHeader( "Access-Control-Allow-Origin" , originHeader );
+			restResponse.setHeader( "Access-Control-Allow-Methods", requestMethodHeader );
+			restResponse.setHeader( "Access-Control-Allow-Headers", requestHeadersHeader );
 		} else {
 			var message = "";
 
 			if ( isOriginAllowed ) {
-				message = "This CORS request is not allowed. The resource at [#arguments.uri#] does not support the [#requestMethodHeader#] method."
+				message = "This CORS request is not allowed. The resource at [#restRequest.getUri()#] does not support the [#requestMethodHeader#] method."
 			} else {
 				message = "This CORS request is not allowed. Either CORS is disabled for this resource, or the Origin [#originHeader#] has not been whitelisted."
 			}
 
-			response.setError(
+			restResponse.setError(
 				  type      = "rest.cors.forbidden"
 				, title     = "Forbidden"
 				, errorCode = 403
@@ -185,42 +174,39 @@ component {
 		}
 	}
 
-	public boolean function isCorsRequestAllowed( required string uri ) {
-		var api           = getApiForUri( arguments.uri );
+	public boolean function isCorsRequestAllowed( required string api ) {
 		var isCorsEnabled = _getConfigurationWrapper().getSetting( name="corsEnabled", api=api );
 
 		return IsBoolean( isCorsEnabled ) && isCorsEnabled;
 	}
 
-	public void function processResponse( required any response, required any requestContext, required string uri, required string verb ) {
-		_dealWithEtags( arguments.response, arguments.requestContext, arguments.verb );
+	public void function processResponse( required any restRequest, required any restResponse, required any requestContext ) {
+		_dealWithEtags( arguments.restRequest, arguments.restResponse, arguments.requestContext );
 
-		var headers = response.getHeaders() ?: {};
+		var headers = restResponse.getHeaders() ?: {};
 		for( var headerName in headers ) {
 			requestContext.setHttpHeader( name=headerName, value=headers[ headerName ] );
 		}
 
-		if ( arguments.verb == "HEAD" ) {
-			response.noData();
+		if ( restRequest.getVerb() == "HEAD" ) {
+			restResponse.noData();
 		}
 
 		requestContext.renderData(
-			  type        = response.getRenderer()
-			, data        = response.getData() ?: ""
-			, contentType = response.getMimeType()
-			, statusCode  = response.getStatusCode()
-			, statusText  = response.getStatusText()
+			  type        = restResponse.getRenderer()
+			, data        = restResponse.getData() ?: ""
+			, contentType = restResponse.getMimeType()
+			, statusCode  = restResponse.getStatusCode()
+			, statusText  = restResponse.getStatusText()
 		);
 	}
 
-	public struct function getResourceForUri( required string restPath ) {
-		var apiPath      = getApiForUri( arguments.restPath );
+	public struct function getResourceForUri( required string api, required string resourcePath ) {
 		var apis         = _getApis();
-		var apiResources = apis[ apiPath ] ?: [];
-		var resourcePath = arguments.restPath.replace( apiPath, "" );
+		var apiResources = apis[ api ] ?: [];
 
 		for( var resource in apiResources ) {
-			if ( ReFindNoCase( resource.uriPattern, resourcePath ) ) {
+			if ( ReFindNoCase( resource.uriPattern, arguments.resourcePath ) ) {
 				return resource;
 			}
 		}
@@ -238,17 +224,14 @@ component {
 		return "";
 	}
 
-	public struct function extractTokensFromUri(
-		  required string uriPattern
-		, required array  tokens
-		, required string uri
-	) {
-		var findResult = ReFindNoCase( arguments.uriPattern, arguments.uri, 0, true );
+	public struct function extractTokensFromUri( required any restRequest ) {
+		var resource   = restRequest.getResource();
+		var findResult = ReFindNoCase( resource.uriPattern, restRequest.getUri(), 0, true );
 		var extracted  = {};
 
-		for( var i=1; i<=arguments.tokens.len(); i++ ) {
+		for( var i=1; i<=resource.tokens.len(); i++ ) {
 			if ( findResult.pos[i+1] ?: 0 ) {
-				extracted[ arguments.tokens[ i ] ] = Mid( arguments.uri, findResult.pos[i+1], findResult.len[i+1] );
+				extracted[ resource.tokens[ i ] ] = Mid( restRequest.getUri(), findResult.pos[i+1], findResult.len[i+1] );
 			}
 		}
 
@@ -259,6 +242,20 @@ component {
 		return new PresideRestResponse();
 	}
 
+	public any function createRestRequest( required string uri, required any requestContext ) {
+		var api          = getApiForUri( restPath=arguments.uri );
+		var resourcePath = api == "/" ? arguments.uri : ReplaceNoCase( arguments.uri, api, "" );
+		var resource     = getResourceForUri( api=api, resourcePath=resourcePath );
+		var verb         = getVerb( arguments.requestContext );
+
+		return new PresideRestRequest(
+			  api      = api
+			, verb     = verb
+			, uri      = resourcePath
+			, resource = resource
+		);
+	}
+
 	public any function getVerb( required any requestContext ) {
 		return arguments.requestContext.getHttpHeader(
 			  header  = "X-HTTP-Method-Override"
@@ -266,21 +263,21 @@ component {
 		);
 	}
 
-	public string function getEtag( required any response ) {
-		var data = response.getData();
+	public string function getEtag( required any restResponse ) {
+		var data = restResponse.getData();
 
 		if ( !IsNull( data ) ) {
-			return LCase( Hash( Serialize( response.getData() ) ) );
+			return LCase( Hash( Serialize( restResponse.getData() ) ) );
 		}
 
 		return "";
 	}
 
-	public string function setEtag( required any response ) {
-		var etag = getEtag( arguments.response );
+	public string function setEtag( required any restResponse ) {
+		var etag = getEtag( arguments.restResponse );
 
 		if ( Len( Trim( etag ) ) ) {
-			response.setHeader( "ETag", etag );
+			restResponse.setHeader( "ETag", etag );
 		}
 
 		return etag;
@@ -304,8 +301,8 @@ component {
 		} catch( any e ) {
 			$raiseError( e );
 
-			if ( IsObject( arguments.interceptData.response ?: "" ) ) {
-				arguments.interceptData.response.setError(
+			if ( IsObject( arguments.interceptData.restResponse ?: "" ) ) {
+				arguments.interceptData.restResponse.setError(
 					  argumentCollection = e
 					, errorCode          = 500
 					, title              = "Unhandled #e.type# exception"
@@ -320,15 +317,15 @@ component {
 		return _getController().getInterceptorService();
 	}
 
-	private void function _dealWithEtags( required any response, required any requestContext, required string verb ) {
-		if ( [ "HEAD", "GET" ].findNoCase( arguments.verb ) ) {
-			var etag = setEtag( response );
+	private void function _dealWithEtags( required any restRequest, required any restResponse, required any requestContext ) {
+		if ( [ "HEAD", "GET" ].findNoCase( restRequest.getVerb() ) ) {
+			var etag = setEtag( restResponse );
 
 			if ( Len( Trim( etag ) ) ) {
 				var ifNoneMatchHeader = requestContext.getHttpHeader( header="If-None-Match", default="" );
 				if ( ifNoneMatchHeader == etag  ) {
-					response.noData();
-					response.setStatus( 304, "Not modified" );
+					restResponse.noData();
+					restResponse.setStatus( 304, "Not modified" );
 				}
 			}
 		}

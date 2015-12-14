@@ -15,7 +15,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should find first regex match for a passed URI", function(){
 				var restService = getService();
 
-				expect( restService.getResourceForUri( "/api1/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
+				expect( restService.getResourceForUri( api="/api1", resourcePath="/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
 					  handler    = "api1.ResourceX"
 					, tokens     = [ "pattern", "id" ]
 					, uriPattern = "^/test/(.*?)/(.*?)/$"
@@ -26,7 +26,7 @@ component extends="testbox.system.BaseSpec"{
 			it( "should return an empty struct when no resource is found", function(){
 				var restService = getService();
 
-				expect( restService.getResourceForUri( "/whatever/this/is/#CreateUUId()#/" ) ).toBe( {} );
+				expect( restService.getResourceForUri( api="/whatever", resourcePath="/this/is/#CreateUUId()#/" ) ).toBe( {} );
 			} );
 
 		} );
@@ -34,137 +34,110 @@ component extends="testbox.system.BaseSpec"{
 		describe( "extractTokensFromUri", function(){
 			it( "should extract tokens from a resource URI from the actual incoming URI as a struct", function(){
 				var restService = getService();
-				var id     = CreateUUId();
-				var object = "myObject";
+				var id          = CreateUUId();
+				var object      = "myObject";
+				var restRequest = getRestRequest( uri="/object/#object#/#id#/", resource={ uriPattern="/object/(.*?)/(.*?)/", tokens=[ "object", "id" ] } );
 
-				expect( restService.extractTokensFromUri(
-					  uriPattern = "/object/(.*?)/(.*?)/"
-					, tokens     = [ "object", "id" ]
-					, uri        = "/object/#object#/#id#/"
-				) ).toBe( { object=object, id=id } );
+				var tokens = restService.extractTokensFromUri( restRequest );
+				expect( tokens ).toBe( { object=object, id=id } );
 			} );
 		} );
 
 		describe( "onRestRequest", function(){
 
-			it( "it should call the matched coldbox handler for the given request and http method", function(){
-				var uri             = "/some/uri/23";
-				var restService     = getService();
-				var resourceHandler = {
-					  handler    = "myResource"
-					, tokens     = [ "whatever", "thisisjust", "atest" ]
-					, uriPattern = "/test/(.*?)/(.*?)/"
-					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
-				};
-				var verb = "put";
+			it( "should announce an onRestRequest interception point", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest();
 				var mockRequestContext = getMockRequestContext();
-				var mockTokens = {
-					  completelyMocked = true
-					, tokens           = "test"
-				};
-				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				var expectedArgs = { response=mockResponse };
-				expectedArgs.append( mockTokens );
 
-				mockResponse.id = CreateUUId();
-				mockResponse.$( "isFinished", false );
+				restService.$( "createRestResponse", restResponse );
+				restService.$( "createRestRequest" , restRequest  );
+				restService.$( "processRequest"     );
+				restService.$( "processResponse"    );
 
+				restService.onRestRequest( "/blah", mockRequestContext );
+
+				var log = restService.$callLog()._announceInterception;
+				expect( log.len() > 0 ).toBe( true );
+				expect( log[1] ).toBe([ "onRestRequest", { restRequest=restRequest, restResponse=restResponse } ]);
+			} );
+
+			it( "it should call processRequest to handle the request", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest();
+				var mockRequestContext = getMockRequestContext();
+
+				restService.$( "createRestResponse", restResponse );
+				restService.$( "createRestRequest" , restRequest  );
+				restService.$( "processRequest"  );
 				restService.$( "processResponse" );
-				restService.$( "createRestResponse", mockResponse );
-				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
-				restService.$( "extractTokensFromUri"   ).$args(
-					  uriPattern = resourceHandler.uriPattern
-					, tokens     = resourceHandler.tokens
-					, uri        = uri
-				).$results( mockTokens );
-				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
 
-				mockController.$( "runEvent" );
+				restService.onRestRequest( "/blah", mockRequestContext );
 
-				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
-
-				var callLog = mockController.$callLog().runEvent;
+				var callLog = restService.$callLog().processRequest;
 
 				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1].restRequest ).toBe( restRequest );
+				expect( callLog[1].restResponse ).toBe( restResponse );
+				expect( callLog[1].requestContext.getInstanceIdForComparison() ).toBe( mockRequestContext.getInstanceIdForComparison() );
+			} );
 
+			it( "should not call processRequest when request is marked as finished (e.g. by an interceptor)", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( finished=true );
+				var mockRequestContext = getMockRequestContext();
 
-				expect( callLog[1].event ).toBe( "rest-apis.myResource.putDataTest" );
-				expect( callLog[1].prePostExempt ).toBe( false );
-				expect( callLog[1].private ).toBe( true  );
-				expect( callLog[1].eventArguments ).toBe( expectedArgs );
+				restService.$( "createRestResponse", restResponse );
+				restService.$( "createRestRequest" , restRequest  );
+				restService.$( "processRequest"  );
+				restService.$( "processResponse" );
+
+				restService.onRestRequest( "/blah", mockRequestContext );
+
+				var callLog = restService.$callLog().processRequest;
+
+				expect( callLog.len() ).toBe( 0 );
 			} );
 
 			it( "it should call processResponse to render the result", function(){
-				var uri             = "/some/uri/23";
-				var restService     = getService();
-				var resourceHandler = {
-					  handler    = "myResource"
-					, tokens     = [ "whatever", "thisisjust", "atest" ]
-					, uriPattern = "/test/(.*?)/(.*?)/"
-					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
-				};
-				var verb = "put";
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest();
 				var mockRequestContext = getMockRequestContext();
-				var mockTokens = {
-					  completelyMocked = true
-					, tokens           = "test"
-				};
-				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				var expectedArgs = { response=mockResponse };
-				expectedArgs.append( mockTokens );
 
-				mockResponse.id = CreateUUId();
-				mockResponse.$( "isFinished", false );
+				restService.$( "createRestResponse", restResponse );
+				restService.$( "createRestRequest" , restRequest  );
+				restService.$( "processRequest"     );
+				restService.$( "processResponse"    );
 
-				restService.$( "processResponse" );
-				restService.$( "createRestResponse", mockResponse );
-				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
-				restService.$( "extractTokensFromUri"   ).$args(
-					  uriPattern = resourceHandler.uriPattern
-					, tokens     = resourceHandler.tokens
-					, uri        = uri
-				).$results( mockTokens );
-				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
-
-				mockController.$( "runEvent" );
-
-				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
+				restService.onRestRequest( "/blah", mockRequestContext );
 
 				var callLog = restService.$callLog().processResponse;
 
 				expect( callLog.len() ).toBe( 1 );
-				expect( callLog[1].response ).toBe( mockResponse );
+				expect( callLog[1].restRequest ).toBe( restRequest );
+				expect( callLog[1].restResponse ).toBe( restResponse );
 				expect( callLog[1].requestContext.getInstanceIdForComparison() ).toBe( mockRequestContext.getInstanceIdForComparison() );
 			} );
 
+
+		} );
+
+		describe( "processRequest", function(){
 			it( "should set error on the response when no resource handler exists for the request", function(){
-				var uri             = "/some/uri/23";
-				var restService     = getService();
-				var resourceHandler = {
-					  handler    = "myResource"
-					, tokens     = [ "whatever", "thisisjust", "atest" ]
-					, uriPattern = "/test/(.*?)/(.*?)/"
-					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
-				};
-				var verb = "put";
+				var restService        = getService();
+				var restRequest        = getRestRequest( resource={}, uri="/some/uri/23" );
+				var restResponse       = CreateMock( object=getRestResponse() );
 				var mockRequestContext = getMockRequestContext();
-				var mockTokens = {
-					  completelyMocked = true
-					, tokens           = "test"
-				};
-				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				mockResponse.$( "setError" );
-				mockResponse.id = CreateUUId();
-				mockResponse.$( "isFinished", false );
 
-				restService.$( "processResponse" );
-				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
-				restService.$( "createRestResponse", mockResponse );
-				restService.$( "getResourceForUri" ).$args( uri ).$results( {} );
+				restResponse.$( "setError" );
 
-				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
+				restService.processRequest( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext );
 
-				var log = mockResponse.$callLog().setError;
+				var log = restResponse.$callLog().setError;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  errorCode = 404
@@ -176,90 +149,49 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should set error on the response when resource handler exists, but not for the current HTTP VERB in use", function(){
-				var uri             = "/some/uri/23";
-				var restService     = getService();
-				var resourceHandler = {
+				var restService        = getService();
+				var restResponse       = CreateMock( object=getRestResponse() );
+				var mockRequestContext = getMockRequestContext();
+				var restRequest        = getRestRequest( resource={
 					  handler    = "myResource"
 					, tokens     = [ "whatever", "thisisjust", "atest" ]
 					, uriPattern = "/test/(.*?)/(.*?)/"
 					, verbs      = { post="post", get="get", delete="delete" }
-				};
-				var verb = "put";
-				var mockRequestContext = getMockRequestContext();
-				var mockTokens = {
-					  completelyMocked = true
-					, tokens           = "test"
-				};
-				var mockResponse = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				var expectedArgs = { response=mockResponse };
-				expectedArgs.append( mockTokens );
+				}, uri="/some/uri/23", verb="PUT" );
 
-				mockResponse.id = CreateUUId();
-				mockResponse.$( "isFinished", false );
+				restResponse.$( "setError" );
 
-				restService.$( "processResponse" );
-				restService.$( "createRestResponse", mockResponse );
-				restService.$( "getResourceForUri" ).$args( uri ).$results( resourceHandler );
-				restService.$( "extractTokensFromUri"   ).$args(
-					  uriPattern = resourceHandler.uriPattern
-					, tokens     = resourceHandler.tokens
-					, uri        = uri
-				).$results( mockTokens );
-				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
-				mockResponse.$( "setError" );
-				mockController.$( "runEvent" );
+				restService.processRequest( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext );
 
-				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
-
-				var log = mockResponse.$callLog().setError;
+				var log = restResponse.$callLog().setError;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( {
 					  errorCode = 405
 					, title     = "REST API Method not supported"
 					, type      = "rest.method.unsupported"
-					, message   = "The requested resource, [/some/uri/23], does not support the [#verb#] method"
+					, message   = "The requested resource, [/some/uri/23], does not support the [PUT] method"
 				} );
 			} );
 
-			it( "should announce a onRestRequest interception point as the first announcement", function(){
-				var uri                = "/some/uri/23";
-				var restService        = getService();
-				var mockRequestContext = getMockRequestContext();
-				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
-				var verb               = "DELETE";
-
-				restService.$( "processRequest"  );
-				restService.$( "processResponse" );
-				restService.$( "createRestResponse", mockResponse );
-				restService.$( "getVerb" ).$args( mockRequestContext ).$results( verb );
-				mockResponse.$( "isFinished", false );
-
-				restService.onRestRequest( uri=uri, requestContext=mockRequestContext );
-
-				var log = restService.$callLog()._announceInterception;
-				expect( log.len() > 0 ).toBe( true );
-				expect( log[1] ).toBe([ "onRestRequest", { uri=uri, verb=verb, response=mockResponse } ]);
-			} );
-
-		} );
-
-		describe( "processRequest", function(){
 			it( "should not set error when verb is HEAD and no explicit HEAD handler exists for the resource", function(){
 				var restService        = getService();
-				var dummyUri           = "/some/test/uri/";
-				var dummyResource      = { verbs={ "GET"="someGetMethod" } };
 				var mockRequestContext = getMockRequestContext();
 				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var restRequest        = getRestRequest( resource={
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete" }
+				}, uri="/some/uri/23", verb="HEAD" );
 
 				restService.$( "invokeRestResourceHandler" );
-				restService.$( "getResourceForUri" ).$args( dummyUri ).$results( dummyResource );
+
 				mockResponse.$( "setError" );
 
 				restService.processRequest(
-					  uri            = dummyUri
-					, verb           = "HEAD"
+					  restRequest    = restRequest
+					, restResponse   = mockResponse
 					, requestContext = mockRequestContext
-					, response       = mockResponse
 				);
 
 				var callLog = mockResponse.$callLog().setError;
@@ -269,21 +201,24 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should not set error when verb is OPTIONS and no explicit OPTIONS handler exists for the resource", function(){
 				var restService        = getService();
-				var dummyUri           = "/some/test/uri/";
-				var dummyResource      = { verbs={ "GET"="someGetMethod", "POST"="somePostMethod" } };
 				var mockRequestContext = getMockRequestContext();
 				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var restRequest        = getRestRequest( resource={
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete" }
+				}, uri="/some/uri/23", verb="OPTIONS" );
 
 				restService.$( "invokeRestResourceHandler" );
 				restService.$( "processOptionsRequest" );
-				restService.$( "getResourceForUri" ).$args( dummyUri ).$results( dummyResource );
+
 				mockResponse.$( "setError" );
 
 				restService.processRequest(
-					  uri            = dummyUri
-					, verb           = "OPTIONS"
+					  restRequest    = restRequest
+					, restResponse   = mockResponse
 					, requestContext = mockRequestContext
-					, response       = mockResponse
 				);
 
 				var callLog = mockResponse.$callLog().setError;
@@ -293,21 +228,24 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should process OPTIONS requests with using the processOptionsRequest method if no specific OPTIONS method supplied by the resource", function(){
 				var restService        = getService();
-				var dummyUri           = "/some/test/uri/";
-				var dummyResource      = { verbs={ "GET"="someGetMethod", "POST"="somePostMethod" } };
 				var mockRequestContext = getMockRequestContext();
 				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var restRequest        = getRestRequest( resource={
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete" }
+				}, uri="/some/uri/23", verb="OPTIONS" );
 
 				restService.$( "invokeRestResourceHandler" );
 				restService.$( "processOptionsRequest" );
-				restService.$( "getResourceForUri" ).$args( dummyUri ).$results( dummyResource );
+
 				mockResponse.$( "setError" );
 
 				restService.processRequest(
-					  uri            = dummyUri
-					, verb           = "OPTIONS"
+					  restRequest    = restRequest
+					, restResponse   = mockResponse
 					, requestContext = mockRequestContext
-					, response       = mockResponse
 				);
 
 				var callLog = restService.$callLog();
@@ -318,23 +256,27 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should process OPTIONS requests using the supplied OPTIONS method of the resource when defined in the resource", function(){
 				var restService        = getService();
-				var dummyUri           = "/some/test/uri/";
-				var dummyResource      = { verbs={ "GET"="someGetMethod", "POST"="somePostMethod", "OPTIONS"="someOptionsMethod" } };
 				var mockRequestContext = getMockRequestContext();
 				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var restRequest        = getRestRequest( resource={
+					  handler    = "myResource"
+					, tokens     = [ "whatever", "thisisjust", "atest" ]
+					, uriPattern = "/test/(.*?)/(.*?)/"
+					, verbs      = { post="post", get="get", delete="delete", options="options" }
+				}, uri="/some/uri/23", verb="OPTIONS" );
 
 				restService.$( "invokeRestResourceHandler" );
 				restService.$( "processOptionsRequest" );
-				restService.$( "getResourceForUri" ).$args( dummyUri ).$results( dummyResource );
+
 				mockResponse.$( "setError" );
 
 				restService.processRequest(
-					  uri            = dummyUri
-					, verb           = "OPTIONS"
+					  restRequest    = restRequest
+					, restResponse   = mockResponse
 					, requestContext = mockRequestContext
-					, response       = mockResponse
 				);
 
+				var callLog = restService.$callLog();
 				var callLog = restService.$callLog();
 
 				expect( callLog.processOptionsRequest.len() ).toBe( 0 );
@@ -343,26 +285,62 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "invokeRestResourceHandler", function(){
+			it( "it should call the matched coldbox handler for the given request and http method", function(){
+				var restService        = getService();
+				var restResponse       = CreateMock( object=getRestResponse() );
+				var mockRequestContext = getMockRequestContext();
+				var mockTokens         = { test=CreateUUId(), random=true };
+				var rc                 = { anotherTest=true };
+				var restRequest        = getRestRequest( resource={
+					  uriPattern="blah"
+					, tokens=["blah"]
+					, verbs={ PUT="putDataTest" }
+					, handler="myResource"
+				}, uri="/some/uri/23", verb="PUT" );
+				var expectedArgs = Duplicate( mockTokens );
+
+				expectedArgs.append( rc );
+				expectedArgs.restRequest = restRequest;
+				expectedArgs.restResponse = restResponse;
+
+				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
+				mockController.$( "runEvent" );
+				mockRequestContext.$( "getCollection", rc );
+
+				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
+
+				var callLog = mockController.$callLog().runEvent;
+
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1].event ).toBe( "rest-apis.myResource.putDataTest" );
+				expect( callLog[1].prePostExempt ).toBe( false );
+				expect( callLog[1].private ).toBe( true  );
+				expect( callLog[1].eventArguments ).toBe( expectedArgs );
+			} );
+
 			it( "should call the GET method of a resource when verb is HEAD and no specific HEAD method exists", function(){
 				var restService        = getService();
-				var resource           = { uriPattern="/some/uri/", handler="somehandler", tokens=[], verbs={ GET="testGetMethod" } };
-				var uri                = "/some/uri/"
-				var verb               = "HEAD";
-				var mockResponse       = createEmptyMock( "preside.system.services.rest.PresideRestResponse" );
+				var restResponse       = CreateMock( object=getRestResponse() );
 				var mockRequestContext = getMockRequestContext();
+				var mockTokens         = { test=CreateUUId(), random=true };
+				var rc                 = { anotherTest=true };
+				var restRequest        = getRestRequest( resource={
+					  uriPattern="blah"
+					, tokens=["blah"]
+					, verbs={ GET="testGetMethod" }
+					, handler="somehandler"
+				}, uri="/some/uri/23", verb="HEAD" );
+				var expectedArgs = Duplicate( mockTokens );
 
-				restService.$( "extractTokensFromUri", {} );
-				mockResponse.$( "isFinished", false );
-				mockResponse.$( "setError" );
+				expectedArgs.append( rc );
+				expectedArgs.restRequest = restRequest;
+				expectedArgs.restResponse = restResponse;
+
+				restService.$( "extractTokensFromUri"   ).$args( restRequest ).$results( mockTokens );
 				mockController.$( "runEvent" );
+				mockRequestContext.$( "getCollection", rc );
 
-				restService.invokeRestResourceHandler(
-					  resource       = resource
-					, uri            = uri
-					, verb           = verb
-					, response       = mockResponse
-					, requestContext = mockRequestContext
-				);
+				restService.invokeRestResourceHandler( restRequest=restRequest, restResponse=restResponse, requestContext=mockRequestContext  );
 
 				var callLog = mockController.$callLog().runEvent;
 
@@ -956,6 +934,29 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "createRestRequest()", function(){
+			it( "should return a REST request object prepopulated with information about the request", function(){
+				var restService        = getService();
+				var api                = "/some";
+				var uri                = "/some/test/uri/" & CreateUUId() & "/";
+				var resourcePath       = Replace( uri, api, "" );
+				var verb               = "OPTIONS";
+				var resource           = { test=CreateUUId() };
+				var mockRequestContext = getMockRequestContext();
+
+				restService.$( "getVerb", verb );
+				restService.$( "getApiForUri" ).$args( restPath=uri ).$results( api );
+				restService.$( "getResourceForUri" ).$args( api=api, resourcePath=resourcePath ).$results( resource );
+
+				var restRequest = restService.createRestRequest( uri, mockRequestContext );
+
+				expect( restRequest.getApi() ).toBe( api );
+				expect( restRequest.getUri() ).toBe( Replace( uri, api, "" ) );
+				expect( restRequest.getResource() ).toBe( resource );
+				expect( restRequest.getVerb() ).toBe( verb );
+			} );
+		} );
+
 	}
 
 	private any function getService( ) {
@@ -981,9 +982,18 @@ component extends="testbox.system.BaseSpec"{
 		rc.$( "setHttpHeader", rc );
 		rc.$( "getHttpHeader", "" );
 		rc.$( "renderData", rc );
+		rc.$( "getCollection", {} );
 		rc.$( "getInstanceIdForComparison", CreateUUId() );
 
 		return rc;
+	}
+
+	private any function getRestRequest() {
+		return new preside.system.services.rest.PresideRestRequest( argumentCollection=arguments );
+	}
+
+	private any function getRestResponse() {
+		return new preside.system.services.rest.PresideRestResponse( argumentCollection=arguments );
 	}
 
 }

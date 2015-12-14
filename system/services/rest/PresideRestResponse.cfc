@@ -1,5 +1,5 @@
 /**
- * Object to represent a REST response. Used in REST requests (see [[preside-rest-platform]]).
+ * Object to represent a REST response. Used in REST requests (see [[restframework]]).
  *
  * @autodoc true
  */
@@ -11,7 +11,6 @@ component accessors=true displayName="Preside REST Response" {
 	property name="statusCode"   type="numeric" default=200;
 	property name="statusText"   type="string"  default="";
 	property name="headers"      type="struct";
-	property name="finished"     type="boolean" default=false;
 
 	/**
 	 * Returns all response properties as a simple CFML struct
@@ -26,7 +25,6 @@ component accessors=true displayName="Preside REST Response" {
 			, statusCode   = getStatusCode()
 			, statusText   = getStatusText()
 			, headers      = getHeaders()
-			, finished     = getFinished()
 		};
 	}
 
@@ -164,26 +162,5 @@ component accessors=true displayName="Preside REST Response" {
 		setStatus( arguments.errorCode, arguments.title );
 		setRenderer( "json" );
 		setMimeType( "application/json" );
-	}
-
-	/**
-	 * Flags the response as finished so that no further processing should
-	 * be made by handling code.
-	 *
-	 * @autodoc true
-	 */
-	public any function finish() {
-		setFinished( true );
-		return this;
-	}
-
-	/**
-	 * Returns whether or not the response is finished with
-	 *
-	 * @autodoc true
-	 *
-	 */
-	public boolean function isFinished() {
-		return getFinished();
 	}
 }
