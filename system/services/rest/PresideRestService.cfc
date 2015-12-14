@@ -26,7 +26,7 @@ component {
 		var restResponse = createRestResponse();
 		var restRequest  = createRestRequest( arguments.uri, arguments.requestContext );
 
-		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse, restRequest=restRequest } );
+		_announceInterception( "onRestRequest", { restRequest=restRequest, restResponse=restResponse } );
 
 		if ( !restRequest.getFinished() ) {
 			processRequest(
@@ -125,7 +125,12 @@ component {
 				, title              = "Unhandled #e.type# exception"
 				, type               = "rest.server.error"
 			);
-			_announceInterception( "onRestError", arguments );
+
+			_announceInterception( "onRestError", {
+				  error        = e
+				, restRequest  = restRequest
+				, restResponse = restResponse
+			} );
 		}
 	}
 

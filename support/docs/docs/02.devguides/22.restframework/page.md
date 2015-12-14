@@ -227,10 +227,69 @@ settings.rest.apis[ "/myapi/v2" ] = { corsEnabled=true };
 
 ## Basic caching
 
+The framework automatically adds `ETag` response headers for GET and HEAD REST requests. These are a simple MD5 hash of the serialized response body. In addition, if the REST request includes a `If-None-Match` request header who's value matches the generated `ETag`, the framework will set an empty response body and set the status of the response to `304 Not modified`.
+
+More advanced caching can be achieved using the CacheBox framework that is built in to ColdBox (and therefore PresideCMS). See the [ColdBox docs](http://wiki.coldbox.org/wiki/CacheBox.cfm) for further details.
+
 ## HEAD requests
+
+The framework deals with HEAD requests for you, without you needing to implement a resource handler action for the verb. Simply, when responding to a HEAD request, the system will call the GET action for your resource and empty the body data before rendering the response.
 
 ## CORS support
 
+[CORS (Cross-Origin Request Sharing)](http://www.w3.org/TR/cors/) is used to validate that a resource can be used by a system from another origin. This is relevant for browser based JavaScript requests to your API where the requesting page resides at a domain that differs to that of the API.
+
+Before requesting the remote resource fully, a browser will send a "pre-flight" request using the `OPTIONS` HTTP Method along with headers to describe the intentions of the upcoming request. The PresideCMS Rest framework detects these requests for you and responds appropriately based on:
+
+1. Whether or not CORS is enabled for the API (currently, we only allow enabling or disabling CORS globally for all domains)
+2. Whether or not the matching resource supplies a method for responding to the given HTTP Method
+
+If the framework detects an `OPTIONS` request without the prerequisite CORS headers, it will respond with a `400 Bad request` status. If the request is valid, but CORS disallowed for either of the reasons above, a `403 Forbidden` status will be returned. Finally, if the request is valid and the CORS request allowed, a `200 OK` status will be returned, along with the relevant `Access-Control` response headers to inform the calling system that the CORS request is valid.
 
 ## Interception points
 
+Your application can listen into several core interception points to enhance the features of the REST platform, e.g. to implement custom authentication. See the [ColdBox Interceptor's documentation](http://wiki.coldbox.org/wiki/Interceptors.cfm) for detailed documentation on interceptors.
+
+For example, an interceptor that listens for the `onUnsupportedRestMethod` interception point and changes the REST response to something other than the default:
+
+```luceescript
+component extends="coldbox.system.Interceptor" {
+
+	public void function configure() {}
+
+	public void function onUnsupportedRestMethod( event, interceptData ) {
+		var response = interceptData.restResponse;
+
+		response.setStatus( 405, "This is not the method you are looking for" )
+		        .setBody( "nope" )
+		        .setRenderer( "plain" )
+		        .setMimeType( "text/plain" );
+	}
+}
+```
+
+The Interception points are:
+
+### onRestRequest
+
+Fired at the beginning of a REST request. Takes `restRequest` and `restResponse` objects as arguments.
+
+### onRestError
+
+Fired whenever an unhandled exception occurs during execution of the request. Takes `error`, `restRequest` and `restResponse` objects as arguments.
+
+### onMissingRestResource
+
+Fired when no resource matches the incoming URL Path. Takes `restRequest` and `restResponse` objects as arguments.
+
+### onUnsupportedRestMethod
+
+Fired when the matched resource does not support the used HTTP Method. Takes `restRequest` and `restResponse` objects as arguments.
+
+### preInvokeRestResource
+
+Fired before the resource's handler action is called. Takes `args` structure, and `restRequest` and `restResponse` objects as arguments. The `args` structure are the arguments that will be passed to the resource's handler action.
+
+### postInvokeRestResource
+
+Fired after the resource's handler action is called. Takes `args` structure, and `restRequest` and `restResponse` objects as arguments. The `args` structure represents the arguments that were passed to the resource's handler action.
