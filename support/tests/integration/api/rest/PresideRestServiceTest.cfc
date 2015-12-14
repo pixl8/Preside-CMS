@@ -705,9 +705,10 @@ component extends="testbox.system.BaseSpec"{
 			it( "should call renderData on the request context", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				expect( mockRequestContext.$callLog().renderData.len() ).toBe( 1 );
 			} );
@@ -715,10 +716,11 @@ component extends="testbox.system.BaseSpec"{
 			it( "should pass the response renderer to the 'type' argument in renderData", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.setRenderer( "jsonp" );
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restResponse.setRenderer( "jsonp" );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "type" ) ).toBeTrue();
@@ -728,10 +730,11 @@ component extends="testbox.system.BaseSpec"{
 			it( "should pass the response mime type to the 'contenttype' argument in renderData", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.setMimeType( "text/plain" );
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restResponse.setMimeType( "text/plain" );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "contentType" ) ).toBeTrue();
@@ -741,10 +744,11 @@ component extends="testbox.system.BaseSpec"{
 			it( "should pass the response status code to the 'statusCode' argument in renderData", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.setStatusCode( 451 );
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restResponse.setStatusCode( 451 );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "statusCode" ) ).toBeTrue();
@@ -754,10 +758,11 @@ component extends="testbox.system.BaseSpec"{
 			it( "should pass the response status text to the 'statusText' argument in renderData", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.setStatusText( "This content has been censored and cannot therefor be shown" );
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restResponse.setStatusText( "This content has been censored and cannot therefor be shown" );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "statusText" ) ).toBeTrue();
@@ -767,10 +772,11 @@ component extends="testbox.system.BaseSpec"{
 			it( "should pass the response data to the 'data' argument in renderData", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.setData( { test="data" } );
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restResponse.setData( { test="data" } );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "data" ) ).toBeTrue();
@@ -780,10 +786,11 @@ component extends="testbox.system.BaseSpec"{
 			it( "should pass an empty string to the renderData 'data' argument, when the data in the response object is NULL", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.noData();
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restResponse.noData();
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var renderDataArgs = mockRequestContext.$callLog().renderData[1];
 				expect( renderDataArgs.keyExists( "data" ) ).toBeTrue();
@@ -793,15 +800,16 @@ component extends="testbox.system.BaseSpec"{
 			it( "should call setHttpHeader() on the request context for each header set in the response", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/test", verb="GET" );
 
-				response.setHeaders({
+				restResponse.setHeaders({
 					  "X-My-Header"      = "my value"
 					, "X-Another-Header" = "another value"
 					, "X-good-stuff"     = "yes"
 				});
 
-				restService.processResponse( response, mockRequestContext, "/test", "GET" );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
 				var callLog = mockRequestContext.$callLog().setHttpHeader;
 
@@ -820,41 +828,33 @@ component extends="testbox.system.BaseSpec"{
 			it( "should set noData() on the response when the verb is HEAD", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/some/uri", verb="HEAD" );
 
-				response.setData( { test="data" } );
-				restService.processResponse(
-					  response       = response
-					, requestContext = mockRequestContext
-					, uri            = "/some/uri"
-					, verb           = "HEAD"
-				);
+				restResponse.setData( { test="data" } );
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
-				expect( response.getData() ).toBeNull();
+				expect( restResponse.getData() ).toBeNull();
 			} );
 
 			it( "should set a 304 response when ETag matches supplied If-None-Match header", function(){
 				var restService        = getService();
 				var mockRequestContext = getMockRequestContext();
-				var response           = new preside.system.services.rest.PresideRestResponse();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest( uri="/some/uri", verb="HEAD" );
 				var etag               = LCase( Hash( Now() ) );
 
-				response.setData( { test="data" } );
-				response.setHeader( "etag", etag );
+				restResponse.setData( { test="data" } );
+				restResponse.setHeader( "etag", etag );
 
 				restService.$( "setEtag", etag );
 				mockRequestContext.$( "getHttpHeader" ).$args( header="If-None-Match", default="" ).$results( etag );
-				restService.processResponse(
-					  response       = response
-					, requestContext = mockRequestContext
-					, uri            = "/some/uri"
-					, verb           = "HEAD"
-				);
+				restService.processResponse( restRequest, restResponse, mockRequestContext );
 
-				expect( response.getData() ).toBeNull();
-				expect( response.getRenderer() ).toBe( "plain" );
-				expect( response.getStatusCode() ).toBe( 304 );
-				expect( response.getStatusText() ).toBe( "Not modified" );
+				expect( restResponse.getData() ).toBeNull();
+				expect( restResponse.getRenderer() ).toBe( "plain" );
+				expect( restResponse.getStatusCode() ).toBe( 304 );
+				expect( restResponse.getStatusText() ).toBe( "Not modified" );
 			} );
 		} );
 
@@ -925,44 +925,38 @@ component extends="testbox.system.BaseSpec"{
 		describe( "isCorsRequestAllowed()", function(){
 			it( "should return true when the result of getSetting call to config wrapper is true", function(){
 				var restService = getService();
-				var uri         = "/test/some/api";
 				var api         = "/test/some/";
 
-				restService.$( "getApiForUri", api );
 				mockConfigWrapper.$( "getSetting" ).$args(
 					  name         = "corsEnabled"
 					, api          = api
 				).$results( true );
 
-				expect( restService.isCorsRequestAllowed( uri ) ).toBeTrue();
+				expect( restService.isCorsRequestAllowed( api=api ) ).toBeTrue();
 			} );
 
 			it( "should return false when the result of getSetting call to config wrapper is false", function(){
 				var restService = getService();
-				var uri         = "/test/some/api";
 				var api         = "/test/some/";
 
-				restService.$( "getApiForUri", api );
 				mockConfigWrapper.$( "getSetting" ).$args(
 					  name         = "corsEnabled"
 					, api          = api
 				).$results( false );
 
-				expect( restService.isCorsRequestAllowed( uri ) ).toBeFalse();
+				expect( restService.isCorsRequestAllowed( api=api ) ).toBeFalse();
 			} );
 
 			it( "should return false when the result of getSetting call to config wrapper is not a boolean value", function(){
 				var restService = getService();
-				var uri         = "/test/some/api";
 				var api         = "/test/some/";
 
-				restService.$( "getApiForUri", api );
 				mockConfigWrapper.$( "getSetting" ).$args(
 					  name         = "corsEnabled"
 					, api          = api
 				).$results( "" );
 
-				expect( restService.isCorsRequestAllowed( uri ) ).toBeFalse();
+				expect( restService.isCorsRequestAllowed( api=api ) ).toBeFalse();
 			} );
 		} );
 
