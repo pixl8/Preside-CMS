@@ -268,8 +268,9 @@ component output=false {
 		};
 
 		settings.rest = {
-			  path = "/api"
-			, apis = {}
+			  path        = "/api"
+			, corsEnabled = false
+			, apis        = {}
 		};
 
 		_loadConfigurationFromExtensions();

@@ -203,5 +203,34 @@ component {
 
 ## Configuring your APIs
 
+Any additional configuration of the REST APIs can be made in your site's `Config.cfc` file. There is a core settings structure for REST that looks like:
+
+```luceescript
+settings.rest = {
+	  path        = "/api"
+	, corsEnabled = false
+	, apis        = {}
+};
+```
+
+Additional settings can be defined either globally, or per API. Currently there is only a single setting, `corsEnabled` which is turned off by default. An example of turning CORS on globally would look like this:
+
+```luceescript
+settings.rest.corsEnabled = true
+```
+
+Or, to turn it on only for a specific API:
+
+```luceescript
+settings.rest.apis[ "/myapi/v2" ] = { corsEnabled=true };
+```
+
+## Basic caching
+
+## HEAD requests
+
+## CORS support
+
+
 ## Interception points
 
