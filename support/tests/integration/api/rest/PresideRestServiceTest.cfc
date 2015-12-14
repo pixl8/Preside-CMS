@@ -912,13 +912,60 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "isCorsRequestAllowed()", function(){
+			it( "should return true when the result of getSetting call to config wrapper is true", function(){
+				var restService = getService();
+				var uri         = "/test/some/api";
+				var api         = "/test/some/";
+
+				restService.$( "getApiForUri", api );
+				mockConfigWrapper.$( "getSetting" ).$args(
+					  name         = "corsEnabled"
+					, api          = api
+				).$results( true );
+
+				expect( restService.isCorsRequestAllowed( uri ) ).toBeTrue();
+			} );
+
+			it( "should return false when the result of getSetting call to config wrapper is false", function(){
+				var restService = getService();
+				var uri         = "/test/some/api";
+				var api         = "/test/some/";
+
+				restService.$( "getApiForUri", api );
+				mockConfigWrapper.$( "getSetting" ).$args(
+					  name         = "corsEnabled"
+					, api          = api
+				).$results( false );
+
+				expect( restService.isCorsRequestAllowed( uri ) ).toBeFalse();
+			} );
+
+			it( "should return false when the result of getSetting call to config wrapper is not a boolean value", function(){
+				var restService = getService();
+				var uri         = "/test/some/api";
+				var api         = "/test/some/";
+
+				restService.$( "getApiForUri", api );
+				mockConfigWrapper.$( "getSetting" ).$args(
+					  name         = "corsEnabled"
+					, api          = api
+				).$results( "" );
+
+				expect( restService.isCorsRequestAllowed( uri ) ).toBeFalse();
+			} );
+		} );
+
 	}
 
 	private any function getService( ) {
-		variables.mockController = createStub();
+		variables.mockController    = createStub();
+		variables.mockConfigWrapper = createEmptyMock( "preside.system.services.rest.PresideRestConfigurationWrapper" );
+
 		var restService = createMock( object=new preside.system.services.rest.PresideRestService(
-			  controller          = mockController
-			, resourceDirectories = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
+			  controller           = mockController
+			, resourceDirectories  = [ "/resources/rest/dir1", "/resources/rest/dir2" ]
+			, configurationWrapper = mockConfigWrapper
 		) );
 
 		restService.$( "_announceInterception" );

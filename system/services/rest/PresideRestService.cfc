@@ -10,13 +10,14 @@
 component {
 
 	/**
-	 * @resourceDirectories.inject presidecms:directories:handlers/rest-apis
-	 * @controller.inject          coldbox
-	 *
+	 * @resourceDirectories.inject  presidecms:directories:handlers/rest-apis
+	 * @controller.inject           coldbox
+	 * @configurationWrapper.inject presideRestConfigurationWrapper
 	 */
-	public any function init( required array resourceDirectories, required any controller ) {
+	public any function init( required array resourceDirectories, required any controller, required any configurationWrapper ) {
 		_setApis( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
 		_setController( arguments.controller );
+		_setConfigurationWrapper( arguments.configurationWrapper );
 
 		return this;
 	}
@@ -184,8 +185,11 @@ component {
 		}
 	}
 
-	public boolean function isCorsRequestAllowed() {
-		return true;// TO BE IMPLEMENTED WHEN NEEDED!
+	public boolean function isCorsRequestAllowed( required string uri ) {
+		var api           = getApiForUri( arguments.uri );
+		var isCorsEnabled = _getConfigurationWrapper().getSetting( name="corsEnabled", api=api );
+
+		return IsBoolean( isCorsEnabled ) && isCorsEnabled;
 	}
 
 	public void function processResponse( required any response, required any requestContext, required string uri, required string verb ) {
@@ -360,6 +364,13 @@ component {
 	}
 	private void function _setController( required any controller ) {
 		_controller = arguments.controller;
+	}
+
+	private any function _getConfigurationWrapper() {
+		return _configurationWrapper;
+	}
+	private void function _setConfigurationWrapper( required any configurationWrapper ) {
+		_configurationWrapper = arguments.configurationWrapper;
 	}
 
 }
