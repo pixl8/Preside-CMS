@@ -1,12 +1,5 @@
 /**
  * Object to represent a REST request. Used in REST requests (see [[restframework]]).
- * This is a simple bean with the following properties:
- *
- *     api      (e.g. /myapi/v2)
- *     uri      (e.g. /blogs/2345083745/)
- *     verb     (e.g. POST, GET, etc.)
- *     resource (e.g. the resource that matches the request - a struct with various information about the resource)
- *     finished (e.g. whether or not we're done with the request)
  *
  * @autodoc true
  */
