@@ -11,8 +11,6 @@ component accessors=true displayName="Preside REST Request" {
 	property name="finished" type="boolean" default=false;
 	property name="resource" type="struct";
 
-
-
 	/**
 	 * Returns the API matched by this REST
 	 * request. e.g. "/myapi/v2"
