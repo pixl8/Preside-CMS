@@ -41,9 +41,9 @@ component {
 			, savedFilters = [ "livePages" ]
 		);
 
-		response.setData( QueryToArray( records ) )
-		        .setStatus( 200, "Awesome" )
-		        .setHeader( "X-Rocking", true );
+		restResponse.setData( QueryToArray( records ) )
+		            .setStatus( 200, "Awesome" )
+		            .setHeader( "X-Rocking", true );
 	}
 
 	private void function post( required string variable, required string variable2 ) {
@@ -67,7 +67,7 @@ component {
 
 The `@restUri` annotation defines URL patterns that will be matched by this resource. It can optionally contain wildcards that map to variable names indicated by curly braces `{somevariable}`. Individual patterns are separated with a comma.
 
-The entire URL path for routing a REST request to this resource will be made up of three parts:
+The entire URL path for routing a REST request to a resource will be made up of three parts:
 
 1. The configured REST path that tells PresideCMS that this is a REST request. The default is `/api`.
 2. The path to the specific API that the resource lives under, i.e. the folder structure beneath `/handlers/rest-apis`
@@ -80,11 +80,7 @@ For example, if your resource lived at `/handlers/rest-apis/myapi/v1/Page.cfc` a
 /api/myapi/v1/pages/some-slug/359860837568/
 ```
 
-The `/api` part of the URL path tells PresideCMS that this is a REST API request. This is configurable in `Config.cfc` with the `settings.rest.path` variable, e.g. `settings.rest.path = "/rest"`.
-
-Next, `/myapi/v1` maps to the API that the resource lives under.
-
-Finally, `/pages/some-slug/359860837568/` and `/pages/` both match patterns defined in the `@restUri` annotation.
+>>>>>> You can configure the path that the framework uses to recognize rest requests by setting the `settings.rest.path` variable in your site's `Config.cfc` file. e.g. `settings.rest.path = "/rest";`.
 
 ## Mapping HTTP Methods (Verbs) to resource handler actions
 
@@ -102,7 +98,7 @@ component {
 	private void function delete( required string id ) {
 		blogCategoryDao.deleteData( id=arguments.id );
 
-		response.noData().setStatus( 200, "OK" );
+		restResponse.noData().setStatus( 200, "OK" );
 	}
 }
 ```
@@ -127,14 +123,21 @@ component {
 	private void function deleteCategory( required string id ) {
 		blogCategoryDao.deleteData( id=arguments.id );
 
-		response.noData().setStatus( 200, "OK" );
+		restResponse.noData().setStatus( 200, "OK" );
 	}
 }
 ```
 
 ## Accepting arguments
 
-Because your REST API resources are defined as ColdBox handlers, your handler actions will always receive the usual `event`, `rc` and `prc` arguments. In addition, the REST framework provides your handler action with a `response` argument that is an instance of the [[api-presiderestresponse]] object. You can use the `response` object to set data, mime type, renderer, status code and HTTP headers for the response of the REST request. See [[api-presiderestresponse]] for a full reference. e.g.
+Because your REST API resources are defined as ColdBox handlers, your handler actions will always receive the usual `event`, `rc` and `prc` arguments. 
+
+### REST Request and Response objects
+
+In addition to the standard ColdBox arguments, the REST framework provides your handler action with `restRequest` and `restResponse` arguments. You can use the `restResponse` object to set data, mime type, renderer, status code and HTTP headers for the response of the REST request. The `restRequest` argument can be used to discover information about the request, and to prematurely end the request with `restRequest.finish()`.
+
+See the reference docs for [[api-presiderestrequest]] and [[api-presiderestresponse]] for full details.
+
 
 ```luceescript
 /**
@@ -143,7 +146,7 @@ Because your REST API resources are defined as ColdBox handlers, your handler ac
  */
 component {
 	private void function get() {
-		response.setError( 
+		restResponse.setError( 
 			  errorCode = 501
 			, title     = "Not implemented"
 			, message   = "The /events/ GET api has not yet been implemented." 
@@ -152,7 +155,7 @@ component {
 }
 ```
 
->>>>>> we prefer not to include the event, rc, prc and response arguments in the function definition to help readability.
+>>>>>> We prefer not to include the `event`, `rc`, `prc`, `restRequest` and `restResponse` arguments in the function *definition* to help with readability.
 
 ### REST URI Tokens
 
