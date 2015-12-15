@@ -99,6 +99,12 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"               );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                );
+		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                  );
+		interceptorSettings.customInterceptionPoints.append( "onRestError"                    );
+		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"          );
+		interceptorSettings.customInterceptionPoints.append( "onUnsupportedRestMethod"        );
+		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"          );
+		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -264,6 +270,12 @@ component output=false {
 			  enabled                 = true
 			, policy                  = "myspace"
 			, bypassForAdministrators = true
+		};
+
+		settings.rest = {
+			  path        = "/api"
+			, corsEnabled = false
+			, apis        = {}
 		};
 
 		_loadConfigurationFromExtensions();
