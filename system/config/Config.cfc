@@ -218,6 +218,7 @@ component output=false {
 		settings.uploads_directory     = ExpandPath( "/uploads" );
 		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
 
+
 		settings.ckeditor = {
 			  defaults    = {
 				  stylesheets = [ "/css/admin/specific/richeditor/" ]
