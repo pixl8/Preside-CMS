@@ -1,7 +1,25 @@
 ---
-id: derivatives
-title: Configuring Image Derivatives
+id: assetmanager
+title: Working with the Asset Manager
 ---
+
+## Introduction
+
+PresideCMS provides an asset management system that allows users of the system to upload, and add information about, multimedia files. Files can be organised into a folder tree and folders can be configured with permission rules and upload restrictions.
+
+This system can be tailored to your application's needs in the same ways that the rest of PresideCMS can be extended and customized.
+
+## Data model and storage providers
+
+## Rendering assets
+
+## Derivatives
+
+## Configuration
+
+## Integrating assets in forms and data model
+
+
 
 This page will serve as your guide on configuring image derivatives on your application. To start with, please open the file /website/config/Config.cfc then copy the code below:
 
