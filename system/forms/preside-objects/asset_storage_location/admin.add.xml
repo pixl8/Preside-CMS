@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset storage location: add form
+
+This form is used for adding locations to the asset manager. Storage provider
+specific forms will be merged with this form for the final result.
+-->
+<form>
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field binding="asset_storage_location.name" sortorder="10" control="textinput" />
+		</fieldset>
+	</tab>
+</form>

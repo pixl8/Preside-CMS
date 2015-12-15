@@ -6,10 +6,13 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @storageProvider.inject            assetStorageProvider
+	 * @defaultStorageProvider.inject     assetStorageProvider
 	 * @temporaryStorageProvider.inject   tempStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
 	 * @documentMetadataService.inject    DocumentMetadataService
+	 * @systemConfigurationService.inject systemConfigurationService
+	 * @storageLocationService.inject     storageLocationService
+	 * @storageProviderService.inject     storageProviderService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
@@ -21,11 +24,13 @@ component {
 	 * @assetMetaDao.inject               presidecms:object:asset_meta
 	 */
 	public any function init(
-		  required any    storageProvider
+		  required any    defaultStorageProvider
 		, required any    temporaryStorageProvider
 		, required any    assetTransformer
 		, required any    documentMetadataService
 		, required any    systemConfigurationService
+		, required any    storageLocationService
+		, required any    storageProviderService
 		, required any    assetDao
 		, required any    assetVersionDao
 		, required any    folderDao
@@ -39,13 +44,16 @@ component {
  		_setAssetVersionDao( arguments.assetVersionDao );
 		_setFolderDao( arguments.folderDao );
 
+		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
 
-		_setStorageProvider( arguments.storageProvider );
+		_setDefaultStorageProvider( arguments.defaultStorageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
 		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setStorageLocationService( arguments.storageLocationService );
+		_setStorageProviderService( arguments.storageProviderService );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
@@ -77,6 +85,10 @@ component {
 			  id   = arguments.id
 			, data = arguments.data
 		);
+	}
+
+	public boolean function setFolderLocation( required string id, required struct data ) {
+		return editFolder( argumentCollection=arguments );
 	}
 
 	public query function getFolder( required string id, boolean includeHidden=false ) {
@@ -169,16 +181,17 @@ component {
 		var restrictions = getFolderRestrictions( arguments.folderId );
 		var assets       = _getAssetDao().selectData(
 			  filter       = { id = arguments.assetIds }
-			, selectFields = [ "asset_type", "size" ]
+			, selectFields = [ "asset_type", "size", "asset_folder" ]
 		);
 
 		for( var asset in assets ) {
 			var allowed = isAssetAllowedInFolder(
-				  type         = asset.asset_type
-				, size         = asset.size
-				, folderId     = arguments.folderId
-				, throwIfNot   = arguments.throwIfNot
-				, restrictions = restrictions
+				  type            = asset.asset_type
+				, size            = asset.size
+				, currentFolderId = asset.asset_folder
+				, folderId        = arguments.folderId
+				, throwIfNot      = arguments.throwIfNot
+				, restrictions    = restrictions
 			);
 
 			if ( !allowed ) {
@@ -193,6 +206,7 @@ component {
 		  required string  type
 		, required string  size
 		, required string  folderId
+		,          string  currentFolderId = ""
 		,          boolean throwIfNot   = false
 		,          struct  restrictions = getFolderRestrictions( arguments.folderId )
 	) {
@@ -222,14 +236,33 @@ component {
 			return false;
 		}
 
+		if ( Len( Trim( arguments.currentFolderId ) ) ) {
+			var currentLocation = _getStorageLocationForFolder( arguments.currentFolderId );
+			var newLocation     = _getStorageLocationForFolder( arguments.folderId );
+
+			if ( ( currentLocation.id ?: "" ) != ( newLocation.Id ?: "" ) ) {
+				if ( arguments.throwIfNot ) {
+					throw(
+						  type    = "PresideCMS.AssetManager.folder.in.different.location"
+						, message = "Cannot move file to asset folder due to folder location ([#( newLocation.name ?: 'default' )#]) being different from the source folder location ([#( currentLocation.name ?: 'default' )#])"
+					);
+				}
+
+				return false;
+			}
+		}
+
 		return true;
 	}
 
 	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
-			, filter       = { parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId() }
 			, orderBy      = "label"
+			, filter       = {
+				  parent_folder = Len( Trim( arguments.parentFolder ) ) ? arguments.parentFolder : getRootFolderId()
+				, is_trashed    = false
+			  }
 		);
 
 		if ( !StructKeyExists( arguments, "finalQuery" ) ) {
@@ -246,10 +279,18 @@ component {
 	}
 
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
-		var tree    = [];
+		var tree   = [];
+		var filter = { is_trashed = false };
+
+		if ( Len( Trim( arguments.parentFolder ) ) ) {
+			filter.parent_folder = arguments.parentFolder;
+		} else {
+			filter.id = getRootFolderId();
+		}
+
 		var folders = _getFolderDao().selectData(
-			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "Count( asset.id ) as asset_count" ]
-			, filter       = Len( Trim( arguments.parentFolder ) ) ? { parent_folder =  arguments.parentFolder } : { id = getRootFolderId() }
+			  selectFields = [ "asset_folder.id", "asset_folder.label", "asset_folder.access_restriction", "asset_folder.is_system_folder", "storage_location.name as storage_location" ]
+			, filter       = filter
 			, extraFilters = [ _getExcludeHiddenFilter() ]
 			, groupBy      = "asset_folder.id"
 			, orderBy      = "label"
@@ -263,7 +304,10 @@ component {
 			folder.permissionContext = arguments.permissionContext;
 			folder.permissionContext.prepend( folder.id );
 
-			folder.append( { children=getFolderTree( folder.id, folder.access_restriction, folder.permissionContext ) } );
+			folder.append({
+				  children    = getFolderTree( folder.id, folder.access_restriction, folder.permissionContext )
+				, asset_count = getAssetCount( folder.id )
+			} );
 
 			tree.append( folder );
 		}
@@ -300,13 +344,13 @@ component {
 		, string  orderBy     = ""
 		, string  searchQuery = ""
 		, string  folder      = ""
+		, boolean trashed     = false
 
 	) {
 
 		var result        = { totalRecords = 0, records = "" };
 		var parentFolder  = Len( Trim( arguments.folder ) ) ? arguments.folder : getRootFolderId();
-		var isTrashFolder = parentFolder == _getTrashFolderId();
-		var titleField    = isTrashFolder ? "original_title" : "title";
+		var titleField    = arguments.trashed ? "original_title" : "title";
 		var args          = {
 			  startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows
@@ -315,11 +359,22 @@ component {
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
-			args.filter       = "asset_folder = :asset_folder and #titleField# like :q";
-			args.filterParams = { asset_folder=parentFolder, q = { type="varchar", value="%" & arguments.searchQuery & "%" } };
+			args.filter       = "#titleField# like :q and is_trashed = :is_trashed";
+			args.filterParams = {
+				  is_trashed   = arguments.trashed
+				, q            = { type="varchar", value="%" & arguments.searchQuery & "%" }
+			};
+			if ( !arguments.trashed ) {
+				args.filter = "asset_folder = :asset_folder and " & args.filter;
+				args.filterParams.asset_folder = parentFolder;
+			}
 		} else {
-			args.filter = { asset_folder = parentFolder };
+			args.filter = { is_trashed = arguments.trashed };
+			if ( !arguments.trashed ) {
+				args.filter.asset_folder = parentFolder;
+			}
 		}
+
 
 		result.records = _getAssetDao().selectData( argumentCollection = args );
 
@@ -338,8 +393,8 @@ component {
 
 	public array function searchAssets( array ids=[], string searchQuery="", array allowedTypes=[], numeric maxRows=100 ) {
 		var assetDao    = _getAssetDao();
-		var filter      = "( asset.asset_folder != :asset_folder )";
-		var params      = { asset_folder = _getTrashFolderId() };
+		var filter      = "( asset.is_trashed = :is_trashed )";
+		var params      = { is_trashed = false };
 		var types       = _getTypes();
 		var records     = "";
 		var result      = [];
@@ -382,8 +437,8 @@ component {
 	}
 
 	public string function getPrefetchCachebusterForAjaxSelect( array allowedTypes=[] ) {
-		var filter  = "( asset.asset_folder != :asset_folder )";
-		var params  = { asset_folder = _getTrashFolderId() };
+		var filter  = "( asset.is_trashed = :is_trashed )";
+		var params  = { is_trashed = false };
 		var records = "";
 
 		if ( arguments.allowedTypes.len() ) {
@@ -409,7 +464,7 @@ component {
 	}
 
 	public boolean function folderHasContent( required string id ) {
-		return _getAssetDao().dataExists( filter={ asset_folder=arguments.id } ) || _getFolderDao().dataExists( filter={ parent_folder=arguments.id } );
+		return _getAssetDao().dataExists( filter={ asset_folder=arguments.id, is_trashed=false } ) || _getFolderDao().dataExists( filter={ parent_folder=arguments.id, is_trashed=false } );
 	}
 
 	public boolean function trashFolder( required string id ) {
@@ -424,7 +479,7 @@ component {
 		}
 
 		return _getFolderDao().updateData( id = arguments.id, data = {
-			  parent_folder  = _getTrashFolderId()
+			  is_trashed     = true
 			, label          = CreateUUId()
 			, original_label = folder.label
 		} );
@@ -528,7 +583,7 @@ component {
 			, throwIfNot = true
 		);
 
-		_getStorageProvider().putObject(
+		_getStorageProviderForFolder( asset.asset_folder ).putObject(
 			  object = arguments.fileBinary
 			, path   = newFileName
 		);
@@ -559,7 +614,7 @@ component {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "asset_folder" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -586,7 +641,7 @@ component {
 			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
-		_getStorageProvider().putObject( object = arguments.fileBinary, path = newFileName );
+		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject( object = arguments.fileBinary, path = newFileName );
 
 		versionId = _getAssetVersionDao().insertData( data=assetVersion );
 
@@ -663,18 +718,32 @@ component {
 			);
 
 			for( var assetId in arguments.assetIds ) {
-				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path" ] );
+				var asset = getAsset( id=assetId, selectFields=[ "original_title", "asset_type", "trashed_path", "asset_folder", "active_version" ] );
 				if ( asset.recordCount ) {
-					var newPath = LCase( assetId & "." & asset.asset_type );
+					var newPath = "/uploaded/" & LCase( assetId & "." & asset.asset_type );
+					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
 
-					_getStorageProvider().restoreObject( asset.trashed_path, newPath );
+					storageProvider.restoreObject( asset.trashed_path, newPath );
+					if ( Len( Trim( asset.active_version ) ) ) {
+						_getAssetVersionDao().updateData( id=asset.active_version, data={
+							  is_trashed     = false
+							, storage_path   = newPath
+							, trashed_path   = ""
+						} );
+					}
+
+					_restoreAssociatedFiles( assetId, storageProvider );
+
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
 						, title          = asset.original_title
+						, is_trashed     = false
 						, storage_path   = newPath
 						, original_title = ""
 						, trashed_path   = ""
 					} );
+
+
 				}
 			}
 
@@ -724,11 +793,11 @@ component {
 		var assetBinary = "";
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
-			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
+			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProvider().getObject( asset.storage_path, arguments.isTrashed );
+			return _getStorageProviderForFolder( asset.asset_folder ).getObject( asset.storage_path, arguments.isTrashed );
 		}
 	}
 
@@ -742,16 +811,16 @@ component {
 				, versionId      = arguments.versionId
 				, derivativeName = arguments.derivativeName
 				, throwOnMissing = arguments.throwOnMissing
-				, selectFields   = [ "storage_path" ]
+				, selectFields   = [ "asset_derivative.storage_path", "asset.asset_folder" ]
 			);
 		} else {
 			asset = Len( Trim( arguments.versionId ) )
-				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "storage_path" ] )
-				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField ] );
+				? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
+				: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset.#storagePathField#", "asset.asset_folder" ] );
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProvider().getObjectInfo( asset.storage_path, arguments.isTrashed );
+			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo( asset.storage_path, arguments.isTrashed );
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
@@ -762,33 +831,47 @@ component {
 
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder", "active_version" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
 			return false;
 		}
 
-		trashedPath = _getStorageProvider().softDeleteObject( asset.storage_path );
+		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( asset.storage_path );
+		if( asset.active_version.len() ) {
+			_getAssetVersionDao().updateData(
+				  id   = asset.active_version
+				, data = { is_trashed=true, trashed_path = trashedPath }
+			);
+		}
+
+		_deleteAssociatedFiles(
+			  assetId    = arguments.id
+			, folderId   = asset.asset_folder
+			, softDelete = true
+		);
 
 		return assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
 			, title          = CreateUUId()
 			, original_title = asset.title
-			, asset_folder   = _getTrashFolderId()
+			, is_trashed     = true
 		} );
 	}
 
 	public boolean function permanentlyDeleteAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title", "asset_folder" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
 			return false;
 		}
 
-		_getStorageProvider().deleteObject( asset.trashed_path, true );
+		_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
+		_deleteAssociatedFiles( arguments.id, asset.asset_folder );
+
 		return assetDao.deleteData( id=arguments.id );
 	}
 
@@ -829,10 +912,11 @@ component {
 			  assetId        = arguments.assetId
 			, derivativeName = arguments.derivativeName
 			, versionId      = arguments.versionId
+			, selectFields   = [ "asset_derivative.storage_path", "asset.asset_folder" ]
 		);
 
 		if ( derivative.recordCount ) {
-			return _getStorageProvider().getObject( derivative.storage_path );
+			return _getStorageProviderForFolder( derivative.asset_folder ).getObject( derivative.storage_path );
 		}
 	}
 
@@ -867,8 +951,8 @@ component {
 	) {
 		var signature       = getDerivativeConfigSignature( arguments.derivativeName );
 		var asset           = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "storage_path" ] )
-			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path" ] );
+			? getAssetVersion( assetId=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true, selectFields=[ "asset_version.storage_path", "asset.asset_folder" ] )
+			: getAsset( id=arguments.assetId, throwOnMissing=true, selectFields=[ "storage_path", "asset_folder" ] );
 
 		var assetBinary     = getAssetBinary( id=arguments.assetId, versionId=arguments.versionId, throwOnMissing=true );
 		var fileext         = ListLast( asset.storage_path, "." );
@@ -892,7 +976,7 @@ component {
 		}
 		var assetType = getAssetType( filename=storagePath, throwOnMissing=true );
 
-		_getStorageProvider().putObject( assetBinary, storagePath );
+		_getStorageProviderForFolder( asset.asset_folder ).putObject( assetBinary, storagePath );
 
 		return _getDerivativeDao().insertData( {
 			  asset_type    = assetType.typeName
@@ -1003,11 +1087,13 @@ component {
 	}
 
 	public boolean function deleteAssetVersion( required string assetId, required string versionId ) {
-		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version" ] );
+		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version", "asset_folder" ] );
 
 		if ( !asset.recordCount || asset.active_version == arguments.versionId ) {
 			return false;
 		}
+
+		_deleteAssociatedFiles( arguments.assetId, asset.asset_folder, arguments.versionId );
 
 		return _getAssetVersionDao().deleteData(
 			filter = { id=arguments.versionId, asset=arguments.assetId }
@@ -1048,35 +1134,68 @@ component {
 		return "";
 	}
 
-	public string function getTrashFolderId() {
-		return _getTrashFolderId();
-	}
-
-	public string function getTrashCount() {
+	public numeric function getTrashCount() {
 		var result = _getAssetDao().selectData(
 			  selectFields = [ "Count(1) as asset_count" ]
-			, filter       = { asset_folder=_getTrashFolderId() }
+			, filter       = { is_trashed=true }
+		);
+
+		return Val( result.asset_count ?: "" );
+	}
+
+	public numeric function getAssetCount( required string folderId ) {
+		var result = _getAssetDao().selectData(
+			  selectFields = [ "Count(1) as asset_count" ]
+			, filter       = { is_trashed=false, asset_folder=arguments.folderId }
 		);
 
 		return Val( result.asset_count ?: "" );
 	}
 
 // PRIVATE HELPERS
+	private void function _migrateFromLegacyRecycleBinApproach() {
+		var folderDao   = _getFolderDao();
+		var trashFolder = folderDao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
+
+		if ( trashFolder.recordCount ) {
+			var assetDao = _getAssetDao();
+
+			assetDao.updateData(
+				  filter = { asset_folder = trashFolder.id }
+				, data   = { is_trashed = true }
+			);
+
+			assetDao.updateData(
+				  filter = "is_trashed IS NULL"
+				, data   = { is_trashed = false }
+			);
+
+			folderDao.updateData(
+				  filter = { parent_folder = trashFolder.id }
+				, data   = { is_trashed = true }
+			);
+
+			folderDao.updateData(
+				  filter = "is_trashed IS NULL"
+				, data   = { is_trashed = false }
+			);
+
+			folderDao.updateData(
+				  id     = trashFolder.id
+				, data   = { is_trashed = true, label="$legacy_recycle_bin" }
+			);
+		}
+	}
+
 	private void function _setupSystemFolders( required struct configuredFolders ) {
 		var dao         = _getFolderDao();
 		var rootFolder  = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$root" } );
-		var trashFolder = dao.selectData( selectFields=[ "id" ], filter="parent_folder is null and label = :label", filterParams={ label="$recycle_bin" } );
+
 
 		if ( rootFolder.recordCount ) {
 			_setRootFolderId( rootFolder.id );
 		} else {
 			_setRootFolderId( dao.insertData( data={ label="$root" } ) );
-		}
-
-		if ( trashFolder.recordCount ) {
-			_setTrashFolderId( trashFolder.id );
-		} else {
-			_setTrashFolderId( dao.insertData( data={ label="$recycle_bin" } ) );
 		}
 
 		for( var folderId in arguments.configuredFolders ){
@@ -1226,12 +1345,98 @@ component {
 		}
 	}
 
-// GETTERS AND SETTERS
-	private any function _getStorageProvider() {
-		return _storageProvider;
+	private any function _getStorageProviderForFolder( required string folderId ) {
+		var location = _getStorageLocationForFolder( arguments.folderId );
+
+		if ( location.isEmpty() ) {
+			return _getDefaultStorageProvider();
+		}
+
+		return _getStorageProviderService().getProvider(
+			  id            = location.storageProvider
+			, configuration = location.configuration
+		);
 	}
-	private void function _setStorageProvider( required any storageProvider ) {
-		_storageProvider = arguments.storageProvider;
+
+	private struct function _getStorageLocationForFolder( required string folderId ){
+		var folder = _getFolderDao().selectData(
+			  id           = arguments.folderId
+			, selectFields = [ "parent_folder", "storage_location" ]
+		);
+
+		if ( folder.recordCount ) {
+			if ( folder.storage_location.len() ) {
+				return _getStorageLocationService().getLocation( folder.storage_location );
+			}
+			if ( folder.parent_folder.len() ) {
+				return _getStorageLocationForFolder( folder.parent_folder );
+			}
+		}
+
+		return {};
+	}
+
+	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="", boolean softDelete=false ) {
+		var versionFilter    = { asset = arguments.assetId };
+		var derivativeFilter = { asset = arguments.assetId };
+		var assetVersionDao  = _getAssetVersionDao();
+		var derivativeDao    = _getDerivativeDao();
+		var trashedPath      = "";
+
+		if ( arguments.versionId.len() ) {
+			versionFilter.id               = arguments.versionId;
+			derivativeFilter.asset_version = arguments.versionId;
+		}
+
+		if ( arguments.softDelete ) {
+			versionFilter.is_trashed = false;
+			derivativeFilter.is_trashed = false;
+		}
+
+		var versions        = assetVersionDao.selectData( filter=versionFilter   , selectfields=[ "id", "storage_path" ] );
+		var derivatives     = derivativeDao.selectData( filter=derivativeFilter, selectfields=[ "id", "storage_path" ] );
+		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
+
+		for( var version in versions ) {
+			if ( arguments.softDelete ) {
+				trashedPath = storageProvider.softDeleteObject( version.storage_path );
+				assetVersionDao.updateData( id=version.id, data={ is_trashed=true, trashed_path=trashedPath } );
+			} else {
+				storageProvider.deleteObject( version.storage_path );
+			}
+		}
+		for( var derivative in derivatives ) {
+			if ( arguments.softDelete ) {
+				trashedPath = storageProvider.softDeleteObject( derivative.storage_path );
+				derivativeDao.updateData( id=derivative.id, data={ is_trashed=true, trashed_path=trashedPath } );
+			} else {
+				storageProvider.deleteObject( derivative.storage_path );
+			}
+		}
+	}
+
+	private void function _restoreAssociatedFiles( required string assetId, required any storageProvider ) {
+		var assetVersionDao  = _getAssetVersionDao();
+		var derivativeDao    = _getDerivativeDao();
+		var versions         = assetVersionDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }   , selectfields=[ "id", "storage_path", "trashed_path" ] );
+		var derivatives      = derivativeDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }, selectfields=[ "id", "storage_path", "trashed_path" ] );
+
+		for( var version in versions ) {
+			storageProvider.restoreObject( version.trashed_path, version.storage_path );
+			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="" } );
+		}
+		for( var derivative in derivatives ) {
+			storageProvider.restoreObject( derivative.trashed_path, derivative.storage_path );
+			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="" } );
+		}
+	}
+
+// GETTERS AND SETTERS
+	private any function _getDefaultStorageProvider() {
+		return _defaultStorageProvider;
+	}
+	private void function _setDefaultStorageProvider( required any defaultStorageProvider ) {
+		_defaultStorageProvider = arguments.defaultStorageProvider;
 	}
 
 	private any function _getTemporaryStorageProvider() {
@@ -1260,13 +1465,6 @@ component {
 	}
 	private void function _setRootFolderId( required string rootFolderId ) {
 		_rootFolderId = arguments.rootFolderId;
-	}
-
-	private string function _getTrashFolderId() {
-		return _trashFolderId;
-	}
-	private void function _setTrashFolderId( required string trashFolderId ) {
-		_trashFolderId = arguments.trashFolderId;
 	}
 
 	private any function _getGroups() {
@@ -1330,5 +1528,19 @@ component {
 	}
 	private void function _setDocumentMetadataService( required any documentMetadataService ) {
 		_documentMetadataService = arguments.documentMetadataService;
+	}
+
+	private any function _getStorageLocationService() {
+		return _storageLocationService;
+	}
+	private void function _setStorageLocationService( required any storageLocationService ) {
+		_storageLocationService = arguments.storageLocationService;
+	}
+
+	private any function _getStorageProviderService() {
+		return _storageProviderService;
+	}
+	private void function _setStorageProviderService( required any storageProviderService ) {
+		_storageProviderService = arguments.storageProviderService;
 	}
 }

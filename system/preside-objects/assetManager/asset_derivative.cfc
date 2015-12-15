@@ -9,6 +9,8 @@ component extends="preside.system.base.SystemPresideObject" output=false display
 	property name="label" maxLength=200 required=true uniqueindexes="derivative|3";
 
 	property name="storage_path" type="string" dbtype="varchar" maxLength=255 required=true   uniqueindexes="assetpath";
-	property name="trashed_path" type="string" dbtype="varchar" maxLength=255 required=false;
 	property name="asset_type"   type="string" dbtype="varchar" maxLength=10  required=true;
+
+	property name="is_trashed"   type="boolean" dbtype="boolean"               required=false default=false;
+	property name="trashed_path" type="string"  dbtype="varchar" maxLength=255 required=false;
 }

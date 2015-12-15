@@ -1,4 +1,6 @@
 interface {
+	public any function validate( required struct configuration, required any validationResult ) {}
+
 	public boolean function objectExists( required string path, boolean trashed=false ) {}
 
 	public query function listObjects( required string path ) {}

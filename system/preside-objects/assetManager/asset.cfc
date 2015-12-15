@@ -7,9 +7,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="asset_folder" relationship="many-to-one"                          required=true   uniqueindexes="assetfolder|1";
 
 	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
-	property name="original_title"    type="string"  dbtype="varchar" maxLength=200     required=false;
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";
-	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=255     required=false;
 	property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;
 	property name="author"            type="string"  dbtype="varchar" maxLength=100     required=false;
 	property name="size"              type="numeric" dbtype="int"                       required=true;
@@ -18,6 +16,11 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="width"             type="numeric" dbtype="int"                       required=false;
 	property name="height"            type="numeric" dbtype="int"                       required=false;
 	property name="active_version"    relationship="many-to-one" relatedTo="asset_version" required=false;
+
+	property name="is_trashed"        type="boolean" dbtype="boolean"                   required=false default=false;
+	property name="trashed_path"      type="string"  dbtype="varchar" maxLength=255     required=false;
+	property name="original_title"    type="string"  dbtype="varchar" maxLength=200     required=false;
+
 
 	property name="access_restriction"  type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset:access_restriction.option.inherit,preside-objects.asset:access_restriction.option.none,preside-objects.asset:access_restriction.option.full";
 	property name="full_login_required" type="boolean" dbtype="boolean"               required=false default=false;
