@@ -28,16 +28,7 @@
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr">
 			</tbody>
 		</table>
-		<div class="form-actions" id="multi-action-buttons">
-			<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#translateResource( "cms:assetmanager.browser.deleteMulti.prompt" )#">
-				<i class="fa fa-trash-o bigger-110"></i>
-				#translateResource( "cms:assetmanager.browser.deleteMulti.btn" )#
-			</button>
 
-			<button class="btn btn-info" disabled="disabled" data-global-key="m" data-toggle="move-assets-dialog" data-target="move-assets-form" data-dialog-title="#translateResource( 'cms:assetmanager.move.multi.assets.dialog.title' )#">
-				<i class="fa fa-folder bigger-110"></i>
-				#translateResource( "cms:assetmanager.browser.moveMulti.btn" )#
-			</button>
-		</div>
+		#renderView( view="/admin/assetmanager/_listingTableMultiActions" )#
 	</form>
 </cfoutput>

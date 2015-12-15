@@ -6,6 +6,7 @@
 	  , $tableHeaders     = $listingTable.find( 'thead > tr > th')
 	  , $titleAndActions  = $( '.title-and-actions-container' ).first()
 	  , $pageSubtitle     = $( '.page-subtitle' ).first()
+	  , $multiActions     = $( '#multi-action-buttons' )
 	  , colConfig         = []
 	  , assets            = i18n.translateResource( "preside-objects.asset:title" )
 	  , activeFolder      = cfrequest.folder || ""
@@ -28,10 +29,11 @@
 				  url     : buildAjaxLink( "assetmanager.getFolderTitleAndActions" )
 				, data    : { folder : newActiveFolder }
 				, method  : "POST"
-				, success : function( html ){
+				, success : function( data ){
 					activeFolder = newActiveFolder;
-					$titleAndActions.html( html );
+					$titleAndActions.html( data.title );
 					$pageSubtitle.html( $node.find( '.folder-name:first' ).html() );
+					$multiActions.html( $( data.multiActions ).html() );
 
 					dataTable && dataTable.fnPageChange( 'first' );
 				}
@@ -75,10 +77,9 @@
 	};
 
 	setupMultiActionButtons = function(){
-		var $form              = $( '#multi-action-form' )
-		  , $hiddenActionField = $form.find( '[name=multiAction]' );
+		$( "body" ).on( "click", "#multi-action-buttons button", function( e ){
+			var $hiddenActionField = $( this ).closest( "form" ).find( '[name=multiAction]' );
 
-		$( "#multi-action-buttons button" ).click( function( e ){
 			$hiddenActionField.val( $( this ).attr( 'name' ) );
 		} );
 	};
