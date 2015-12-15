@@ -7,9 +7,24 @@ title: Working with the Asset Manager
 
 PresideCMS provides an asset management system that allows users of the system to upload, and add information about, multimedia files. Files can be organised into a folder tree and folders can be configured with permission rules and upload restrictions.
 
+![Screenshot showing asset manager homepage](images/screenshots/assetmanager.jpg) 
+
 This system can be tailored to your application's needs in the same ways that the rest of PresideCMS can be extended and customized.
 
-## Data model and storage providers
+## Data model
+
+The metadata and folder structure of your assets are all stored in your application's database using [[presidedataobjects]]. The objects and their relationships are modelled below:
+
+![Asset manager database model](images/diagrams/asset_manager_erd.png)
+
+These objects can all be modified to take on requirements of your application. See the links below for reference documentation on each object:
+
+* [[presideobject-asset_storage_location]]
+* [[presideobject-asset_folder]]
+* [[presideobject-asset]]
+* [[presideobject-asset_version]]
+* [[presideobject-asset_derivative]]
+* [[presideobject-asset_meta]]
 
 ## Rendering assets
 
