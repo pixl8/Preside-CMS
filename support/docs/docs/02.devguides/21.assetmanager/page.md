@@ -7,9 +7,7 @@ title: Working with the Asset Manager
 
 PresideCMS provides an asset management system that allows users of the system to upload, and add information about, multimedia files. Files can be organised into a folder tree and folders can be configured with permission rules and upload restrictions.
 
-![Screenshot showing asset manager homepage](images/screenshots/assetmanager.jpg) 
-
-This system can be tailored to your application's needs in the same ways that the rest of PresideCMS can be extended and customized.
+![Screenshot showing asset manager homepage](images/screenshots/assetmanager.jpg)
 
 ## Data model
 
@@ -25,6 +23,17 @@ These objects can all be modified to take on requirements of your application. S
 * [[presideobject-asset_version]]
 * [[presideobject-asset_derivative]]
 * [[presideobject-asset_meta]]
+
+When making additions and modifications, you may also want to change the appearance of various forms for uploading and editing assets, folders, etc. Reference documentation on those forms can be found below:
+
+* [[form-assetaddform]]
+* [[form-assetaddthroughpickerform]]
+* [[form-asseteditform]]
+* [[form-assetnewversionform]]
+* [[form-assetfolderaddform]]
+* [[form-assetfoldereditform]]
+* [[form-assetstoragelocationaddform]]
+* [[form-assetstoragelocationeditform]]
 
 ## Integrating assets in your application
 
@@ -68,6 +77,20 @@ The form control will *automatically* be used for object properties that have a 
     </tab>
 </form>
 ```
+
+### Getting a raw link to an asset
+
+This can be done with:
+
+```luceescript
+event.buildLink( 
+      assetId    = idOfAsset
+    , derivative = "optionalDerivative"
+    , versionId  = optionalVersionId
+);
+```
+
+Here, `assetId` is the ID of the asset who's link we want to build, `derivative` is the name of a configured asset derivative (see below), and `versionId` is the ID of a specific version of an asset.
 
 ### Render assets in your views
 
@@ -120,75 +143,71 @@ A "banner" context viewlet for images could therefor be implemented as a view at
 </cfoutput>
 ```
 
-
-
-
-
 ## Derivatives
 
+Derivatives are transformed versions of an asset. This could be a particular crop of a picture, a preview image of a PDF, etc. They are configured in your application's `Config.cfc`, for example:
+
+```luceescript
+settings.assetmanager.derivatives.leadImage = {
+      permissions     = "inherit"
+    , inEditor        = true
+    , transformations = [ { method="shrinkToFit", args={ width=800, height=400 } } ]
+};
+```
+
+Once defined, a derivative can then be used when building a link to an asset and in the core default contexts of `renderAsset()`. For example:
+
+```luceescript
+assetUrl = event.buildLink( assetId=myImageId, derivative="leadImage" );
+// ...
+renderedAsset = renderAsset( assetId=myImageId, args={ derivative="leadImage" } ); 
+
+```
+
+### Configuration options
+
+#### Permissions
+
+The `permissions` configuration option relates to access permissions defined on the core asset and how they should apply to the derivative. Valid values are "inherit" and "public". The default value is "inherit" and this means that the derivative will share the same access permissions as the asset that it is based on. Derivatives with `permissions` set to "public" will have no permissions checking at all, regardless of the permissions set on the base asset.
+
+#### inEditor
+
+A boolean value indicating whether or not the derivative should be selectable by system editors when embedding images in content. Derivatives with this option set to `true` appear in the "Preset" dropdown in the Image picker:
+
+![Screenshot showing 'Preset' picker](images/screenshots/imagepresetpicker.jpg)
+
+The default value is `false`. If set to `true`, you should also supply a human readable label for the derivative in a `i18n/derivatives.properties` file. This can be done using `{derivativeid}.title=Some title`:
+
+```
+leadimage.title=Lead image (800x400)
+thumbnail.title=Thumbnail (100x100)
+```
+
+>>> This feature was introduced in v10.4.0
+
+#### Transformations
+
+An array of configured transformations that the original asset binary will be passed through in order to create a new version. 
+
+A transformation is defined as a CFML structure, with the following keys:
+
+* **method (required)**: Method that matches a method implemented in the [[api-assettransformer]] service object
+* **args (optional)**: Structure of arguments passed to the transformation *method*.
+* **inputfiletype (optional)**: Only apply this transformation to images of this type. e.g. "pdf".
+* **outputfiletype (optional)**: Expected output filetype of the transformation
+
+An example using all of the above arguments, is the admin thumbnail derivative that works for both PDFs and images:
+
+```luceescript
+settings.assetmanager.derivatives.adminthumbnail = {
+      permissions     = "inherit"
+    , inEditor        = false
+    , transformations = [
+          { method="pdfPreview" , args={ page=1 }, inputfiletype="pdf", outputfiletype="jpg" }
+        , { method="shrinkToFit", args={ width=200, height=200 } }
+      ]
+};
+```
+
+
 ## Configuration
-
-
-This page will serve as your guide on configuring image derivatives on your application. To start with, please open the file /website/config/Config.cfc then copy the code below:
-
-
-```luceescript
-private struct function _getConfiguredAssetDerivatives() {
-	var derivatives  = super._getConfiguredAssetDerivatives();
-
-	derivatives.homebanner = {
-		  permissions = "inherit"
-		, inEditor    = true
-		, transformations = [
-			  { method="Resize", args={ width=1900, height=800, maintainaspectratio=true } }
-		  ]
-	};
-
-
-	return derivatives;
-}
-```
-
-
-### Derivatives Options
-
-You can pass the following arguments to the derivatives:
-
-<div class="table-responsive">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-
-
-            <tr>
-                <td>`permissions`</td>
-                <td>Please set the permission to inherit if you want the derivatives be used anywhere in the application, this is a required paramater. Default:'inherit'</td>
-            </tr>
-
-            <tr>
-                <td>`inEditor`</td>
-                <td>Please set the inEditor to true if you want the derivatives setting to become available on the editor. Default:'false'</td>
-            </tr>
-
-        </tbody>
-    </table>
-</div>
-
-### i18n Settings
-
-You can chanage the name/label of derivatives via i18n/derivatives.properties using this format: derivativeName.title = Desired Name
-
-
-```luceescript
-
-adminThumbnail.title=Admin thumbnail
-icon.title=Icon thumbnail
-
-```
-
->>> This feature was first introduced in PresideCMS v10.3.7. The details below do not apply for older versions of the software.
