@@ -179,7 +179,46 @@ settings.assetmanager.folders.profileImages = {
 
 ## File types
 
-TODO
+Configured file types allows you to specify the filetypes that are uploadable to the asset manager by default. File types are grouped into "super types", for example "image", and the configuration allows you to specify download behaviour and mimetype of each type. The structure of configuration is as follows:
+
+```luceescript
+settings.assetmanager.types.supertype.fileextension = {
+      serveAsAttachment = trueOrFalse
+    , mimetype          = stringMimeType
+};
+```
+
+Here is an excerpt from the core configuration to give a fuller picture:
+
+```luceescript
+settings.assetmanager.types.image = {
+      jpg  = { serveAsAttachment=false, mimeType="image/jpeg" }
+    , jpeg = { serveAsAttachment=false, mimeType="image/jpeg" }
+    , gif  = { serveAsAttachment=false, mimeType="image/gif"  }
+    , png  = { serveAsAttachment=false, mimeType="image/png"  }
+};
+
+settings.assetmanager.types.document = {
+      pdf  = { serveAsAttachment=true, mimeType="application/pdf"    }
+    , csv  = { serveAsAttachment=true, mimeType="application/csv"    }
+    , doc  = { serveAsAttachment=true, mimeType="application/msword" }
+    , dot  = { serveAsAttachment=true, mimeType="application/msword" }
+
+```
+
+### Labelling
+
+In addition to the file type configuration above, you are also able to supply labels for the file types and super types. These are displayed when choosing file type restrictions for uploading to your asset manager folders.
+
+Labels are added in `/i18n/filetypes.properties` and take the form: `{typeOrSuperType}.picker.label=Human readable label`. For example:
+
+```properties
+image.picker.label=Image: any type
+gif.picker.label=Image: gif
+png.picker.label=Image: png
+jpg.picker.label=Image: jpg
+jpeg.picker.label=Image: jpeg
+```
 
 ## Derivatives
 
