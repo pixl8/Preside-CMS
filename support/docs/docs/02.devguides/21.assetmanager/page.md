@@ -143,6 +143,44 @@ A "banner" context viewlet for images could therefor be implemented as a view at
 </cfoutput>
 ```
 
+## Configuration
+
+Overall configuration of asset manager behaviour is made in the `settings.assetmanager` struct in your application's `Config.cfc` file. 
+
+Valid keys are:
+
+* **maxFileSize** This controls the default maximum file upload size in MB. The default value is 5MB.
+* **types** Configures the allowed file types to be uploaded to the asset manager (see File types, below)
+* **derivatives** Configures named derivates (see Derivatives, below)
+* **folders** Configures system folders that will always be available in your asset manager (see System folders, below)
+
+An example configuration section for the asset manager (`Config.cfc`):
+
+```luceescript
+settings.assetmanager.maxFileSize = 10;
+
+settings.assetmanager.types.video.ogv = { serveAsAttachment=true, mimeType="video/ogg" };
+
+settings.assetmanager.derivatives.leadimage = {
+      permissions     = "inherit"
+    , inEditor        = true
+    , transformations = [ { method="resize", args={ width=800, height=400 } } ]
+};
+
+settings.assetmanager.folders.profileImages = {
+      label  = "Profile images"
+    , hidden = false
+    , children = {
+            members    = { label="Members"    , hidden=false }
+          , nonMembers = { label="Non-Members", hidden=false }
+      }
+};
+```
+
+## File types
+
+TODO
+
 ## Derivatives
 
 Derivatives are transformed versions of an asset. This could be a particular crop of a picture, a preview image of a PDF, etc. They are configured in your application's `Config.cfc`, for example:
@@ -209,5 +247,10 @@ settings.assetmanager.derivatives.adminthumbnail = {
 };
 ```
 
+## System folders
 
-## Configuration
+TODO
+
+## Storage providers and locations
+
+TODO
