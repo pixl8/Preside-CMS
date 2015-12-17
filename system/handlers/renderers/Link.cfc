@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="linkDao"      inject="presidecms:object:link";
 	property name="pageDao"      inject="presidecms:object:page";
@@ -13,7 +13,7 @@ component output=false {
 			return "<!-- link not found -->";
 		}
 
-		args.href = linksService.getLinkUrl( link.id );
+		args.href  = linksService.getLinkUrl( link.id );
 		args.title = args.title ?: Trim( link.title );
 
 		if ( !Len( Trim( args.body ?: "" ) ) ) {
@@ -22,7 +22,8 @@ component output=false {
 			} elseif ( Len( Trim( link.text ) ) ) {
 				args.body = Trim( link.text );
 			} elseif ( link.type == "email" ) {
-				args.body = linksService.emailAntiSpam( link.email_address );
+				args.emailAntiSpam = args.email_anti_spam ?: false;
+				args.body = linksService.emailAntiSpam( link.email_address, args.emailAntiSpam );
 			} elseif ( link.type == "sitetreelink" ) {
 				var page = pageDao.selectData( id=link.page, selectFields=[ "title" ] );
 				args.body = page.title;

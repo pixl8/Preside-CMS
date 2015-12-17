@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset folder: set location form
+
+This form is used for setting the storage location for a folder in the asset manager section of the administrator.
+-->
+<form>
+	<tab id="basic" sortorder="10" title="preside-objects.asset_folder:basic.tab.title">
+		<fieldset id="basic" sortorder="10">
+			<field sortorder="10" binding="asset_folder.storage_location" control="AssetStorageLocationPicker" />
+		</fieldset>
+	</tab>
+</form>
