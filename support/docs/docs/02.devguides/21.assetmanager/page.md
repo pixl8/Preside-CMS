@@ -288,7 +288,30 @@ settings.assetmanager.derivatives.adminthumbnail = {
 
 ## System folders
 
-TODO
+System folders are pre-defined asset manager folders that will always exist in your asset manager folder structure. They cannot be deleted through the admin UI and can optionally be completely hidden from the UI. They are configured in `Config.cfc`, for example:
+
+```luceescript
+settings.assetmanager.folders.profileImages = {
+      label  = "Profile images"
+    , hidden = false
+    , children = {
+            memberProfileImages    = { label="Members"    , hidden=false }
+          , nonMemberProfileImages = { label="Non-Members", hidden=false }
+      }
+};
+```
+
+The purpose of system folders is to be able to programatically upload assets directly to a named folder that you know will exist. This can be achieved with the [[assetmanagerservice-addasset]] method:
+
+```luceescript
+assetManagerService.addAsset(
+      fileBinary = uploadedFileBinary
+    , fileName   = uploadedFileName
+    , folder     = "memberProfileImages"
+    , assetData  = { description="Uploaded profile image for #loggedInMemberName#", title=loggedInMemberName }
+);
+```
+>>>> Asset titles must be unique within any given folder. If you are programatically uploading assets to the asset manager, you need to code for this uniqueness to avoid duplicate key errors.
 
 ## Storage providers and locations
 
