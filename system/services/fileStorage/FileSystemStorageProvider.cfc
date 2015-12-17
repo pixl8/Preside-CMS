@@ -1,4 +1,12 @@
-component output=false singleton=true implements="preside.system.services.fileStorage.StorageProvider" {
+/**
+ * Implementation of the [[api-storageprovider]] interface to provide a file system based
+ * storage provider.
+ *
+ * @singleton
+ * @autodoc
+ *
+ */
+component implements="preside.system.services.fileStorage.StorageProvider" displayname="File System Storage Provider" {
 
 // CONSTRUCTOR
 	public any function init( required string rootDirectory, required string trashDirectory, string rootUrl="" ){

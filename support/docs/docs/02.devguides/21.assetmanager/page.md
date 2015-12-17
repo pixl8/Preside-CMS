@@ -315,4 +315,112 @@ assetManagerService.addAsset(
 
 ## Storage providers and locations
 
-TODO
+The asset manager allows you to define and use multiple storage locations. For example, you might have a shared drive on your server for private documents, and an Amazon Cloudfront CDN for your public images. Once your locations have been configured, you are then able to map folders in the asset manager to different locations.
+
+![Screenshot of storage location selection](images/screenshots/storagelocationselection.jpg)
+
+### Storage providers
+
+The system works with a concept of storage *providers*. The core system implements a single 'file storage' provider for you to use. Custom storage providers can be created by creating a CFC that adheres to the core [[api-storageprovider]] interface and by supplying configuration forms that can be used by administrators of the system to configure an instance of your provider.
+
+Defining a custom provider is as follows:
+
+#### 1. Create a CFC file
+
+Create a CFC that implements the [[api-storageprovider]] interface, i.e.
+
+```luceescript
+compoment implements="preside.system.services.fileStorage.StorageProvider" {
+    // ...   
+}
+```
+
+You will need to thoroughly read the [[api-storageprovider|interface documentation]] and be sure to implement each method appropriately. In addition, you will almost certainly want to implement an `init()` constructor method to take any configuration that your provider requires (i.e. security credentials, etc.).
+
+#### 2. Declare the provider in config
+
+You must declare the storage provider in your application's `Config.cfc` file, this is simply mapping an ID to a CFC path:
+
+```luceescript
+settings.storageProviders.myProvider = { 
+    class = "app.services.filestorage.MyProvider"
+};
+```
+
+Here we declare a provider named "myProvider", who's CFC file lives at "app.services.filestorage.MyProvider".
+
+#### 3. Provide a configuration form for the provider
+
+You must provide a configuration form for the provider. This will be used by administrators when managing a specific storage location that uses your provider. By convention, this is expected to live at `/forms/storage-providers/{providerid}.xml`. In our example above, the form would live at `/forms/storage-providers/myProvider.xml`. The form fields defined here must map to arguments passed to your custom provider CFC's init() method.
+
+>>> The form definition will be merged with either [[form-assetstoragelocationaddform]] or [[form-assetstoragelocationeditform]] depending on whether a storage location is being added or edited.
+
+For example:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="storage-providers.filesystem:">
+    <tab id="default">
+        <fieldset id="filesystem">
+            <field sortorder="10" name="rootDirectory"  control="textinput" required="true" />
+            <field sortorder="20" name="trashDirectory" control="textinput" required="true" />
+        </fieldset>
+    </tab>
+</form>
+```
+
+#### 4. Provider i18n resources to describe the provider and its configuration
+
+By convention, you must create a `.properties` file at `/i18n/storage-providers/{providerid}.properties`. For example: `/i18n/storage-providers/myProvider.properties`. It should contain `title`, `description` and `iconclass` keys to describe the provider itself plus any keys for describing form fields, etc. For example:
+
+```properties
+title=File system
+description=The file system storage provider stores files in the local file system. Suitable for sites without any clustering requirements.
+iconclass=fa-folder
+
+field.rootDirectory.title=Root path
+field.rootDirectory.placeholder=e.g. /uploads/assets
+field.trashDirectory.title=Trash path
+field.trashDirectory.placeholder=e.g. /uploads/.trash
+
+error.creating.directory=The directory, {1}, does not exist and could not be created. Error: {2}. Please note, you must supply full directory paths
+```
+
+### Default location
+
+The asset manager system works out of the box without the need to configure any storage locations through the UI. For this, it uses a default configured storage provider through Wirebox. The core configuration of this provider is located at `/system/config/Wirebox.cfc` and looks like this:
+
+```
+map( "assetStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+    .initArg( name="rootDirectory" , value=settings.uploads_directory & "/assets" )
+    .initArg( name="trashDirectory", value=settings.uploads_directory & "/.trash" )
+    .initArg( name="rootUrl"       , value="" );
+```
+
+#### Overriding the default storage location
+
+This can be done in two ways. Firstly, you could change `settings.uploads_directory` to be a full path to a directory other than the default. This might be a mounted shared drive for example, or just a directory outside of the webroot (recommended). The second option would be to manually configure an entirely different Storage provider that maps to "assetStorageProvider". This would be done in your site's `/config/Wirebox.cfc` file, for example:
+
+```luceescript
+component extends="preside.system.config.WireBox" {
+
+    public void function configure() {
+        super.configure();
+
+        var settings = getColdbox().getSettingStructure();
+
+        if ( IsBoolean( settings.myProvider.enabled ?: "" ) && settings.myProvider.enabled ) {       
+
+            map( "assetStorageProvider" ).asSingleton().to( "app.services.fileStorage.MyProvider" ).noAutoWire()
+                .initArg( name="apiKey"    , value=settings.myProvider.apiKey                 )
+                .initArg( name="uploadPath", value=settings.myProvider.uploadPath & "/assets" )
+                .initArg( name="trashPath" , value=settings.myProvider.uploadPath & "/.trash" )
+                .initArg( name="rootUrl"   , value=settings.myProvider.rootUrl                );
+
+        }
+    }
+
+}
+```
+
+>>> You should consider that your application may run in multiple environments and need to be able to configure these settings per environment. Using the technique above that uses ColdBox settings to configure your provider could help with that as these are able to be set per environment (see the [ColdBox documentation](http://wiki.coldbox.org/wiki/ConfigurationCFC.cfm#environments) for further details). If you're super smart and have beautifully setup environments, you could use environment variables to setup the settings, making your default storage provider configuration truly portable.
