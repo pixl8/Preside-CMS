@@ -1,8 +1,10 @@
 /**
- * @singleton true
+ * Provides APIs for programatically interacting with the Asset Manager (see [[assetmanager]] for more details)
  *
+ * @singleton
+ * @autodoc
  */
-component {
+component displayName="AssetManager Service" {
 
 // CONSTRUCTOR
 	/**
@@ -565,6 +567,17 @@ component {
 		return newId;
 	}
 
+	/**
+	 * Adds an asset into the Asset manager. The asset binary will be uploaded to the appropriate storage
+	 * location for the given folder.
+	 *
+	 * @autodoc
+	 * @fileBinary.hint Binary data of the file
+	 * @fileName.hint   Uploaded filename (asset type information will be retrieved from here)
+	 * @folder.hint     Either folder ID or name of a configured system folder
+	 * @assetData.hint  Structure of additional data that can be saved against the [[presideobject-asset]] record
+	 *
+	 */
 	public string function addAsset( required binary fileBinary, required string fileName, required string folder, struct assetData={} ) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
