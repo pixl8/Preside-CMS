@@ -43,7 +43,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 		adapter.$( "_fetchVersionInfo" ).$args( "presidecms/stable/PresideCMS-0.1.0.json" ).$results( { version:"0.1.0.00011" } );
 		adapter.$( "_fetchVersionInfo" ).$args( "presidecms/stable/PresideCMS-0.1.1.json" ).$results( { version:"0.1.1.00089" } );
 
-		super.assertEquals( "0.1.1.00089", adapter.getLatestVersion() );
+		super.assertEquals( "0.1.1.00089", adapter.getLatestVersion().version );
 	}
 
 	function test05_getSettings_shouldFetchSettingsFromSystemConfigurationService() output=false {
