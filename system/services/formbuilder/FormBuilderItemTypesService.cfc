@@ -36,8 +36,21 @@ component {
 			var category = {
 				  id    = categoryId
 				, title = $translateResource( uri="formbuilder.item-categories:#categoryId#.title", defaultValue=categoryId )
+				, types = []
 			};
 
+			for( var typeId in configured[ categoryId ] ) {
+				var type = configured[ categoryId ][ typeId ];
+
+				type.id    = typeId;
+				type.title = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
+
+				category.types.append( type );
+			}
+
+			category.types.sort( function( a, b ){
+				return a.title > b.title ? 1 : -1;
+			} );
 			categories.append( category );
 		}
 
