@@ -1,7 +1,10 @@
 /**
+ * The formbuilder_formitem object represents an individual item within a form builder form.
+ * This could be a form control, some free text, etc.
+ *
  * @nolabel
  */
-component {
+component displayname="Form builder: Item" extends="preside.system.base.SystemPresideObject" {
 	property name="section" relationship="many-to-one" relatedto="formbuilder_formsection" required=true uniqueindexes="formitem|1";
 
 	property name="sort_order"    type="numeric" dbtype="int"     required=true uniqueindexes="formitem|2";

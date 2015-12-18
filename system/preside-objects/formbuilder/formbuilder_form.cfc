@@ -1,7 +1,9 @@
 /**
+ * The formbuilder_form object represents a single form within the form builder system
+ *
  * @labelfield name
  */
-component {
+component displayname="Form builder: form" extends="preside.system.base.SystemPresideObject" {
 	property name="name"                   type="string"  dbtype="varchar" maxlength=255 required=true uniqueindexes="formname";
 	property name="description"            type="string"  dbtype="text"                  required=false;
 	property name="locked"                 type="boolean" dbtype="boolean"               required=false default=false;
