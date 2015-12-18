@@ -28,7 +28,7 @@ component {
 	 *
 	 * @autodoc
 	 */
-	public array function getCategoriesAndItemTypes() {
+	public array function getItemTypesByCategory() {
 		var configured = _getConfiguredTypesAndCategories();
 		var categories = [];
 

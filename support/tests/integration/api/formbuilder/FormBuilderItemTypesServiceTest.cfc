@@ -1,12 +1,12 @@
 component extends="testbox.system.BaseSpec"{
 
 	function run(){
-		describe( "getCategoriesAndItemTypes", function(){
+		describe( "getItemTypesByCategory", function(){
 
 			it( "should return an empty array when there are no configured types", function(){
 				var service = getService();
 
-				expect( service.getCategoriesAndItemTypes() ).toBe( [] );
+				expect( service.getItemTypesByCategory() ).toBe( [] );
 			} );
 
 			it( "should return an array of configured categories, ordered by their translated label", function(){
@@ -20,7 +20,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryY.title", defaultValue="categoryY" ).$results( "Category Y" );
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryZ.title", defaultValue="categoryZ" ).$results( "Category Z" );
 
-				var categoriesAndTypes = service.getCategoriesAndItemTypes();
+				var categoriesAndTypes = service.getItemTypesByCategory();
 
 				expect( categoriesAndTypes.len()  ).toBe( 3 );
 				expect( categoriesAndTypes[1].id    ).toBe( "categoryX"  );
@@ -40,7 +40,7 @@ component extends="testbox.system.BaseSpec"{
 
 				service.$( "$translateResource", "meh" );
 
-				var categoriesAndTypes = service.getCategoriesAndItemTypes();
+				var categoriesAndTypes = service.getItemTypesByCategory();
 
 				expect( categoriesAndTypes.len()  ).toBe( 3 );
 				expect( categoriesAndTypes[1].types ).toBe( [] );
@@ -62,7 +62,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
 
-				var categoriesAndTypes = service.getCategoriesAndItemTypes();
+				var categoriesAndTypes = service.getItemTypesByCategory();
 
 				expect( categoriesAndTypes.len()  ).toBe( 1 );
 				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
@@ -89,7 +89,7 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
 
-				var categoriesAndTypes = service.getCategoriesAndItemTypes();
+				var categoriesAndTypes = service.getItemTypesByCategory();
 
 				expect( categoriesAndTypes.len()  ).toBe( 1 );
 				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
