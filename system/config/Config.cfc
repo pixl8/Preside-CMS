@@ -282,6 +282,8 @@ component output=false {
 			, apis        = {}
 		};
 
+		settings.formbuilder = _setupFormBuilder();
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
@@ -493,5 +495,18 @@ component output=false {
 				CreateObject( cfcPath ).configure( config=variables );
 			}
 		}
+	}
+
+	private struct function _setupFormBuilder() {
+		var fbSettings = { itemtypes={} };
+
+		fbSettings.itemTypes.standard = { sortorder=10, types={
+			  spacer    = { isFormField=false }
+			, content   = { isFormField=false }
+			, textinput = { isFormField=true  }
+			, textarea  = { isFormField=true  }
+		} };
+
+		return fbSettings;
 	}
 }
