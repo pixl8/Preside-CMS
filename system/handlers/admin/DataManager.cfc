@@ -1296,7 +1296,7 @@
 				}
 			} else {
 				if ( Len( successAction ?: "" ) ) {
-					setNextEvent( url=event.buildAdminLink( linkTo=successAction ) );
+					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#newId#" ) );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
 				}
