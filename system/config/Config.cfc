@@ -155,6 +155,7 @@ component output=false {
 			, "assetmanager"
 			, "datamanager"
 			, "websiteUserManager"
+			, "formbuilder"
 		];
 
 		settings.adminConfigurationMenuItems = [
@@ -192,6 +193,7 @@ component output=false {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
+			, formbuilder            = [ "navigate", "addform", "editform" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -211,9 +213,10 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
-		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
-		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
+		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
@@ -253,6 +256,7 @@ component output=false {
 			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ] }
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
+			, formbuilder           = { enabled=true , siteTemplates=[ "*" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ] }
