@@ -9,26 +9,40 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getItemTypesByCategory() ).toBe( [] );
 			} );
 
-			it( "should return an array of configured categories, ordered by their translated label", function(){
+			it( "should return an array of configured categories, ordered by their defined sort order", function(){
 				var service = getService( {
-					  categoryX = {}
-					, categoryZ = {}
-					, categoryY = {}
+					  categoryX = { sortOrder=20  }
+					, categoryZ = { sortOrder=100 }
+					, categoryY = { sortOrder=5   }
 				} );
 
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryX.title", defaultValue="categoryX" ).$results( "Category X" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryY.title", defaultValue="categoryY" ).$results( "Category Y" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryZ.title", defaultValue="categoryZ" ).$results( "Category Z" );
+				service.$( "$translateResource", "test" );
 
 				var categoriesAndTypes = service.getItemTypesByCategory();
 
 				expect( categoriesAndTypes.len()  ).toBe( 3 );
-				expect( categoriesAndTypes[1].id    ).toBe( "categoryX"  );
-				expect( categoriesAndTypes[1].title ).toBe( "Category X" );
-				expect( categoriesAndTypes[2].id    ).toBe( "categoryY"  );
-				expect( categoriesAndTypes[2].title ).toBe( "Category Y" );
+				expect( categoriesAndTypes[1].id    ).toBe( "categoryY"  );
+				expect( categoriesAndTypes[2].id    ).toBe( "categoryX"  );
 				expect( categoriesAndTypes[3].id    ).toBe( "categoryZ"  );
-				expect( categoriesAndTypes[3].title ).toBe( "Category Z" );
+			} );
+
+			it( "should provide translated titles for each category", function(){
+				var service = getService( {
+					  categoryX = { sortOrder=20  }
+					, categoryZ = { sortOrder=100 }
+					, categoryY = { sortOrder=5   }
+				} );
+
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryX.title", defaultValue="categoryX" ).$results( "Category X" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryZ.title", defaultValue="categoryZ" ).$results( "Category Z" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:categoryY.title", defaultValue="categoryY" ).$results( "Category Y" );
+
+				var categoriesAndTypes = service.getItemTypesByCategory();
+
+				expect( categoriesAndTypes.len()  ).toBe( 3 );
+				expect( categoriesAndTypes[1].title ).toBe( "Category Y"  );
+				expect( categoriesAndTypes[2].title ).toBe( "Category X"  );
+				expect( categoriesAndTypes[3].title ).toBe( "Category Z"  );
 			} );
 
 			it( "should return an empty 'types' array for a category when it has no types configured", function(){
@@ -50,11 +64,11 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should return item types within a category ordered by their translated label", function(){
 				var service = getService( {
-					standard = {
+					standard = { sortOrder=10, types={
 						  textinput = { someConfig=true }
 						, textarea  = { moreConfig="test" }
 						, test      = { test=CreateUUId() }
-					}
+					} }
 				} );
 
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
@@ -76,11 +90,11 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should include any defined configuration for each type in the returned type structure", function(){
 				var config  = {
-					standard = {
+					standard = { sortOrder=10, types={
 						  textinput = { someConfig=true }
 						, textarea  = { moreConfig="test" }
 						, test      = { test=CreateUUId() }
-					}
+					} }
 				};
 				var service = getService( config );
 
@@ -93,9 +107,9 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( categoriesAndTypes.len()  ).toBe( 1 );
 				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
-				expect( categoriesAndTypes[1].types[1].moreConfig ?: "" ).toBe( config.standard.textarea.moreConfig  );
-				expect( categoriesAndTypes[1].types[2].someConfig ?: "" ).toBe( config.standard.textinput.someConfig );
-				expect( categoriesAndTypes[1].types[3].test       ?: "" ).toBe( config.standard.test.test            );
+				expect( categoriesAndTypes[1].types[1].moreConfig ?: "" ).toBe( config.standard.types.textarea.moreConfig  );
+				expect( categoriesAndTypes[1].types[2].someConfig ?: "" ).toBe( config.standard.types.textinput.someConfig );
+				expect( categoriesAndTypes[1].types[3].test       ?: "" ).toBe( config.standard.types.test.test            );
 			} );
 		} );
 	}

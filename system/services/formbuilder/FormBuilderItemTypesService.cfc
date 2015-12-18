@@ -21,10 +21,9 @@ component {
 
 // PUBLIC API
 	/**
-	 * Returns an array of item categories ordered by their translations
-	 * for the current request and also containing each of their child
-	 * item types, also ordered by their translations for the current
-	 * request.
+	 * Returns an array of item categories each with child
+	 * item types. Categories ordered by defined sort order
+	 * and item types ordered by defined sort order
 	 *
 	 * @autodoc
 	 */
@@ -34,13 +33,14 @@ component {
 
 		for( var categoryId in configured ) {
 			var category = {
-				  id    = categoryId
-				, title = $translateResource( uri="formbuilder.item-categories:#categoryId#.title", defaultValue=categoryId )
-				, types = []
+				  id        = categoryId
+				, title     = $translateResource( uri="formbuilder.item-categories:#categoryId#.title", defaultValue=categoryId )
+				, types     = []
 			};
+			var types = configured[ categoryId ].types ?: {};
 
-			for( var typeId in configured[ categoryId ] ) {
-				var type = configured[ categoryId ][ typeId ];
+			for( var typeId in types ) {
+				var type = types[ typeId ];
 
 				type.id    = typeId;
 				type.title = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
@@ -51,11 +51,15 @@ component {
 			category.types.sort( function( a, b ){
 				return a.title > b.title ? 1 : -1;
 			} );
+
 			categories.append( category );
 		}
 
 		categories.sort( function( a, b ){
-			return a.title > b.title ? 1 : -1;
+			var orderA = configured[ a.id ].sortOrder ?: 10000;
+			var orderB = configured[ b.id ].sortOrder ?: 10000;
+
+			return orderA > orderB ? 1 : -1;
 		} );
 
 		return categories;
