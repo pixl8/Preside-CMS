@@ -1,0 +1,14 @@
+.formbuilder-workpanel {
+  border: 1px solid #eeeeee;
+}
+.formbuilder-workpanel .formbuilder-workpanel-header,
+.formbuilder-workpanel .formbuilder-workpanel-body {
+  padding: 15px;
+}
+.formbuilder-workpanel .formbuilder-workpanel-header {
+  border-bottom: 1px solid #eeeeee;
+}
+.formbuilder-workpanel .formbuilder-workpanel-header h2 {
+  font-weight: lighter;
+  margin-top: 0;
+}

@@ -8,17 +8,6 @@
 
 <cfoutput>
 	<cfif showButtonGroup>
-		<div class="top-right-button-group">
-			<cfif canEdit>
-				<a class="pull-right inline" href="#event.buildAdminLink( linkTo="formbuilder.editForm", queryString="id=" & formId )#" data-global-key="e">
-					<button class="btn btn-success btn-sm">
-						<i class="fa fa-pencil"></i>
-						#translateResource( "formbuilder:edit.form.btn" )#
-					</button>
-				</a>
-			</cfif>
-		</div>
-
 		<div class="row">
 			<div class="col-md-4 col-lg-3">
 				<div class="tabbable">
@@ -50,6 +39,21 @@
 			</div>
 
 			<div class="col-md-8 col-lg-9">
+				<div class="formbuilder-workpanel">
+					<div class="formbuilder-workpanel-header">
+						<cfif canEdit>
+							<a class="pull-right inline" href="#event.buildAdminLink( linkTo="formbuilder.editForm", queryString="id=" & formId )#" data-global-key="e">
+								#translateResource( "formbuilder:edit.form.btn" )#
+								<i class="fa fa-fw fa-lg fa-cog"></i>
+							</a>
+						</cfif>
+
+						<h2 class="blue">#theForm.name#</h2>
+						<p>#theForm.description#</p>
+					</div>
+					<div class="formbuilder-workpanel-body">
+					</div>
+				</div>
 			</div>
 		</div>
 	</cfif>
