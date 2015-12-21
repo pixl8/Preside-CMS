@@ -58,7 +58,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" {
 		return site.id ?: "";
 	}
 
-	public string function buildLink() {
+	public string function buildLink() output=false{
 		var prc = getRequestContext().getCollection( private=true );
 
 		announceInterception(
