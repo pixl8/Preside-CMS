@@ -1,0 +1,13 @@
+.formbuilder-item-type-picker dt {
+  font-weight: normal;
+  color: #999999;
+  margin: 0 0 10px 2px;
+}
+.formbuilder-item-type-picker dd {
+  display: block;
+  float: left;
+  width: 50%;
+  padding: 5px 10px;
+  border: 1px solid #ffffff;
+  background-color: #f0f7fc;
+}
