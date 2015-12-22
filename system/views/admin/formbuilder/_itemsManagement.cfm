@@ -3,18 +3,13 @@
 </cfscript>
 
 <cfoutput>
+	<cfif !items.len()>
+		<div class="instructions">
+			<p>#translateResource( "formbuilder:manage.empty.form.notice")#</p>
+			<i class="fa fa-fw fa-lg fa-plus blue"></i>
+		</div>
+	</cfif>
+
 	<ul class="list-unstyled">
-		<cfif !items.len()>
-			<li class="section empty">
-				<div class="instructions">
-					<p>#translateResource( "formbuilder:manage.empty.form.notice")#</p>
-					<i class="fa fa-fw fa-lg fa-plus blue"></i>
-				</div>
-				<ul class="list-unstyled items">
-				</ul>
-			</li>
-		<cfelse>
-			<!--- TODO --->
-		</cfif>
 	</ul>
 </cfoutput>
