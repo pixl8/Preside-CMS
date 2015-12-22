@@ -18,9 +18,40 @@
 	}
 
 	.formbuilder-workpanel-body {
+		position : relative;
+
 		.instructions {
 			text-align : center;
 			padding    : 20px 0;
+
+			.empty-notice {
+				display : none;
+			}
+
+			&.empty {
+				.empty-notice {
+					display : block;
+				}
+				.not-empty-notice {
+					display : none;
+				}
+			}
+		}
+
+		.form-items {
+			.item-type {
+				padding          : 10px;
+				background-color : @pale-blue;
+				border           : 1px solid @light-blue;
+				border-radius    : 5px;
+				margin-bottom    : 10px;
+				font-size        : 1.1em;
+
+				&.sortable-placeholder {
+					border     : 2px dashed @light-blue;
+					min-height : 3em;
+				}
+			}
 		}
 	}
 

@@ -3,7 +3,8 @@
   color: #999999;
   margin: 0 0 10px 2px;
 }
-.formbuilder-item-type-picker dd {
+.formbuilder-item-type-picker .item-type {
+  cursor: pointer;
   display: block;
   float: left;
   width: 50%;
