@@ -146,6 +146,11 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/formbuilder/_itemTypePicker", args=args );
 	}
 
+	private string function itemsBySection( event, rc, prc, args ) {
+		args.itemsBySection = formBuilderService.getFormItemsBySection( args.formId ?: "" );
+		return renderView( view="/admin/formbuilder/_itemsBySection", args=args );
+	}
+
 // PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
 		var permKey   = "formbuilder." & arguments.key;

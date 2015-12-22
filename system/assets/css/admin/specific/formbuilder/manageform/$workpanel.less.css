@@ -12,3 +12,15 @@
   font-weight: lighter;
   margin-top: 0;
 }
+.formbuilder-workpanel .formbuilder-workpanel-body .section {
+  border: 5px dashed #eeeeee;
+  padding: 15px;
+  margin: 15px;
+}
+.formbuilder-workpanel .formbuilder-workpanel-body .section:first-child {
+  margin-top: 0;
+}
+.formbuilder-workpanel .formbuilder-workpanel-body .section .instructions {
+  text-align: center;
+  padding: 20px 0;
+}

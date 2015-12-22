@@ -52,6 +52,7 @@
 						<p>#theForm.description#</p>
 					</div>
 					<div class="formbuilder-workpanel-body">
+						#renderViewlet( event="admin.formbuilder.itemsBySection", args={ formId=formId } )#
 					</div>
 				</div>
 			</div>
