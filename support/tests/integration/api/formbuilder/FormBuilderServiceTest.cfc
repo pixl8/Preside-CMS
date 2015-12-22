@@ -32,11 +32,12 @@ component extends="testbox.system.BaseSpec"{
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
 					, sortOrder    = "sections.sort_order, sections$items.sort_order"
+					, forceJoins   = "inner"
 					, selectFields = [
-						  "sections.id         as section_id"
-						, "items.id            as item_id"
-						, "items.item_type     as item_type"
-						, "items.configuration as item_configuration"
+						  "sections.id                  as section_id"
+						, "sections$items.id            as item_id"
+						, "sections$items.item_type     as item_type"
+						, "sections$items.configuration as item_configuration"
 					  ]
 				).$results( QueryNew( '' ) );
 
@@ -65,11 +66,12 @@ component extends="testbox.system.BaseSpec"{
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
 					, sortOrder    = "sections.sort_order, sections$items.sort_order"
+					, forceJoins   = "inner"
 					, selectFields = [
-						  "sections.id         as section_id"
-						, "items.id            as item_id"
-						, "items.item_type     as item_type"
-						, "items.configuration as item_configuration"
+						  "sections.id                  as section_id"
+						, "sections$items.id            as item_id"
+						, "sections$items.item_type     as item_type"
+						, "sections$items.configuration as item_configuration"
 					  ]
 				).$results( dummyData );
 
@@ -91,11 +93,12 @@ component extends="testbox.system.BaseSpec"{
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
 					, sortOrder    = "sections.sort_order, sections$items.sort_order"
+					, forceJoins   = "inner"
 					, selectFields = [
-						  "sections.id         as section_id"
-						, "items.id            as item_id"
-						, "items.item_type     as item_type"
-						, "items.configuration as item_configuration"
+						  "sections.id                  as section_id"
+						, "sections$items.id            as item_id"
+						, "sections$items.item_type     as item_type"
+						, "sections$items.configuration as item_configuration"
 					  ]
 				).$results( dummyData );
 

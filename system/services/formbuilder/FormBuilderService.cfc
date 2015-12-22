@@ -35,11 +35,12 @@ component {
 		var sectionsAndItems = $getPresideObject( "formbuilder_form" ).selectData(
 			  id           = arguments.id
 			, sortOrder    = "sections.sort_order, sections$items.sort_order"
+			, forceJoins   = "inner"
 			, selectFields = [
-				  "sections.id         as section_id"
-				, "items.id            as item_id"
-				, "items.item_type     as item_type"
-				, "items.configuration as item_configuration"
+				  "sections.id                  as section_id"
+				, "sections$items.id            as item_id"
+				, "sections$items.item_type     as item_type"
+				, "sections$items.configuration as item_configuration"
 			  ]
 		);
 		var sectionNumber  = 0;
