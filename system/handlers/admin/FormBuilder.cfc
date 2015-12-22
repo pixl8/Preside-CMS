@@ -146,9 +146,9 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/formbuilder/_itemTypePicker", args=args );
 	}
 
-	private string function itemsBySection( event, rc, prc, args ) {
-		args.itemsBySection = formBuilderService.getFormItemsBySection( args.formId ?: "" );
-		return renderView( view="/admin/formbuilder/_itemsBySection", args=args );
+	private string function itemsManagement( event, rc, prc, args ) {
+		args.items = formBuilderService.getFormItems( args.formId ?: "" );
+		return renderView( view="/admin/formbuilder/_itemsManagement", args=args );
 	}
 
 // PRIVATE UTILITY

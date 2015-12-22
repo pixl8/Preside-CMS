@@ -25,39 +25,29 @@ component {
 	}
 
 	/**
-	 * Retuns a form's sections and items in a nested array
+	 * Retuns a form's items in an ordered array
 	 *
 	 * @autodoc
 	 * @id.hint ID of the form who's sections and items you wish to get
 	 */
-	public array function getFormItemsBySection( required string id ) {
-		var result           = [];
-		var sectionsAndItems = $getPresideObject( "formbuilder_form" ).selectData(
+	public array function getFormItems( required string id ) {
+		var result = [];
+		var items  = $getPresideObject( "formbuilder_form" ).selectData(
 			  id           = arguments.id
-			, sortOrder    = "sections.sort_order, sections$items.sort_order"
+			, sortOrder    = "items.sort_order"
 			, forceJoins   = "inner"
 			, selectFields = [
-				  "sections.id                  as section_id"
-				, "sections$items.id            as item_id"
-				, "sections$items.item_type     as item_type"
-				, "sections$items.configuration as item_configuration"
+				  "items.id"
+				, "items.item_type"
+				, "items.configuration"
 			  ]
 		);
-		var sectionNumber  = 0;
-		var currentSection = "";
 
-		for( var record in sectionsAndItems ) {
-			if ( record.section_id != currentSection ) {
-				result.append( { id=record.section_id, items=[] } );
-
-				currentSection = record.section_id;
-				sectionNumber  = result.len();
-			}
-
-			result[ sectionNumber ].items.append( {
-				  id            = record.item_id
-				, type          = record.item_type
-				, configuration = DeSerializeJson( record.item_configuration )
+		for( var item in items ) {
+			result.append( {
+				  id            = item.id
+				, type          = item.item_type
+				, configuration = DeSerializeJson( item.configuration )
 			} );
 		}
 

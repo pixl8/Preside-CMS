@@ -23,7 +23,7 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "getFormItemsBySection", function(){
+		describe( "getFormItems", function(){
 
 			it( "should return an empty array when form has no sections", function(){
 				var service = getService();
@@ -31,78 +31,77 @@ component extends="testbox.system.BaseSpec"{
 
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
-					, sortOrder    = "sections.sort_order, sections$items.sort_order"
+					, sortOrder    = "items.sort_order"
 					, forceJoins   = "inner"
 					, selectFields = [
-						  "sections.id                  as section_id"
-						, "sections$items.id            as item_id"
-						, "sections$items.item_type     as item_type"
-						, "sections$items.configuration as item_configuration"
+						  "items.id"
+						, "items.item_type"
+						, "items.configuration"
 					  ]
 				).$results( QueryNew( '' ) );
 
-				expect( service.getFormItemsBySection( formId ) ).toBe( [] );
+				expect( service.getFormItems( formId ) ).toBe( [] );
 			} );
 
 			it( "should return a nested array representation of returned database query", function(){
 				var service        = getService();
 				var formId         = CreateUUId();
-				var sections       = [ CreateUUId(), CreateUUId(), CreateUUId() ];
-				var dummyData      = QueryNew( 'section_id,item_id,item_type,item_configuration', 'varchar,varchar,varchar,varchar', [
-					  [ sections[1], "item1", "typea", "{}" ]
-					, [ sections[1], "item2", "typeb", "{}" ]
-					, [ sections[2], "item3", "typeb", "{}" ]
-					, [ sections[2], "item4", "typeb", "{}" ]
-					, [ sections[3], "item5", "typea", "{}" ]
-					, [ sections[3], "item6", "typea", "{}" ]
-					, [ sections[3], "item7", "typeb", "{}" ]
+				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
+					  [ "item1", "typea", "{}" ]
+					, [ "item2", "typeb", "{}" ]
+					, [ "item3", "typeb", "{}" ]
+					, [ "item4", "typeb", "{}" ]
+					, [ "item5", "typea", "{}" ]
+					, [ "item6", "typea", "{}" ]
+					, [ "item7", "typeb", "{}" ]
 				] );
 				var expectedResult = [
-					  { id=sections[1], items=[{ id="item1", type="typea", configuration={} }, { id="item2", type="typeb", configuration={} } ] }
-					, { id=sections[2], items=[{ id="item3", type="typeb", configuration={} }, { id="item4", type="typeb", configuration={} } ] }
-					, { id=sections[3], items=[{ id="item5", type="typea", configuration={} }, { id="item6", type="typea", configuration={} }, { id="item7", type="typeb", configuration={} } ] }
+					  { id="item1", type="typea", configuration={} }
+					, { id="item2", type="typeb", configuration={} }
+					, { id="item3", type="typeb", configuration={} }
+					, { id="item4", type="typeb", configuration={} }
+					, { id="item5", type="typea", configuration={} }
+					, { id="item6", type="typea", configuration={} }
+					, { id="item7", type="typeb", configuration={} }
 				];
 
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
-					, sortOrder    = "sections.sort_order, sections$items.sort_order"
+					, sortOrder    = "items.sort_order"
 					, forceJoins   = "inner"
 					, selectFields = [
-						  "sections.id                  as section_id"
-						, "sections$items.id            as item_id"
-						, "sections$items.item_type     as item_type"
-						, "sections$items.configuration as item_configuration"
+						  "items.id"
+						, "items.item_type"
+						, "items.configuration"
 					  ]
 				).$results( dummyData );
 
-				expect( service.getFormItemsBySection( formId ) ).toBe( expectedResult );
+				expect( service.getFormItems( formId ) ).toBe( expectedResult );
 			} );
 
 			it( "should deserialize configuration that has neen saved in the database", function(){
 				var service        = getService();
 				var formId         = CreateUUId();
-				var sections       = [ CreateUUId(), CreateUUId(), CreateUUId() ];
-				var dummyData      = QueryNew( 'section_id,item_id,item_type,item_configuration', 'varchar,varchar,varchar,varchar', [
-					  [ sections[1], "item1", "typea", '{ "cat":"dog", "test":true }' ]
+				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
+					  [ "item1", "typea", '{ "cat":"dog", "test":true }' ]
 				] );
 				var expectedResult = [
-					{ id=sections[1], items=[{ id="item1", type="typea", configuration={ cat="dog", test=true } } ] }
+					{ id="item1", type="typea", configuration={ cat="dog", test=true } }
 				];
 
 
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
-					, sortOrder    = "sections.sort_order, sections$items.sort_order"
+					, sortOrder    = "items.sort_order"
 					, forceJoins   = "inner"
 					, selectFields = [
-						  "sections.id                  as section_id"
-						, "sections$items.id            as item_id"
-						, "sections$items.item_type     as item_type"
-						, "sections$items.configuration as item_configuration"
+						  "items.id"
+						, "items.item_type"
+						, "items.configuration"
 					  ]
 				).$results( dummyData );
 
-				expect( service.getFormItemsBySection( formId ) ).toBe( expectedResult );
+				expect( service.getFormItems( formId ) ).toBe( expectedResult );
 			} );
 
 		} );

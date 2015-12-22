@@ -1,10 +1,10 @@
 <cfscript>
-	itemsBySection = args.itemsBySection ?: [];
+	items = args.items ?: [];
 </cfscript>
 
 <cfoutput>
 	<ul class="list-unstyled">
-		<cfif !itemsBySection.len()>
+		<cfif !items.len()>
 			<li class="section empty">
 				<div class="instructions">
 					<p>#translateResource( "formbuilder:manage.empty.form.notice")#</p>

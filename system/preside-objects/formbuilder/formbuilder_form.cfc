@@ -13,5 +13,5 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 	property name="form_submitted_message" type="string"  dbtype="text"                  required=false;
 	property name="form_inactive_message"  type="string"  dbtype="text"                  required=false;
 
-	property name="sections" relationship="one-to-many" relatedto="formbuilder_formsection" relationshipKey="form";
+	property name="items" relationship="one-to-many" relatedto="formbuilder_formitem" relationshipKey="form";
 }
