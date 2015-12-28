@@ -105,4 +105,10 @@
     	}
     });
 
+
+    $('.icon-picker-fontawesome').iconpicker({
+        title: 'Using Font Awesome',
+        icons: ['home', 'repeat', 'search','arrow-left', 'arrow-right', 'star']
+    });
+
 } )( presideJQuery );
