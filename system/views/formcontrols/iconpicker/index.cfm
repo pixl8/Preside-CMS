@@ -17,7 +17,7 @@
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control icon-picker-fontawesome" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" data-placement="topLeft" />
+		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control icon-picker-fontawesome" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" data-placement="bottomLeft" />
 		<i class="fa fa-crosshairs"></i>
 	</span>
 </cfoutput>
