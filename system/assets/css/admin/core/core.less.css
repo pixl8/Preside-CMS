@@ -25860,6 +25860,17 @@ img.presidecms .editable-click:hover {
   background-color: #eeeeee;
   border-radius: 5px;
 }
+.presidecms #page-thumbnail {
+  position: absolute;
+  border: 1px solid #ccc;
+  background: #333;
+  padding: 2px;
+  display: none;
+  color: #fff;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+}
 .modal-dialog-layout-container .main-content {
   margin-left: 0;
 }
