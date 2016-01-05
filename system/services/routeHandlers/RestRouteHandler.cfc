@@ -34,17 +34,11 @@ component  {
 	}
 
 	public boolean function reverseMatch( required struct buildArgs, required any event ) {
-		return StructKeyExists( arguments.buildArgs, "linkTo" );
+		return false;
 	}
 
 	public string function build( required struct buildArgs, required any event ) {
-		var link = "";
-
-		if ( Len( Trim( buildArgs.queryString ?: "" ) ) ) {
-			link &= "?" & buildArgs.queryString;
-		}
-
-		return event.getSiteUrl() & link;
+		return "";
 	}
 
 // private getters and setters
