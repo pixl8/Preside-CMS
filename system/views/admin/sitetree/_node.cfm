@@ -4,6 +4,7 @@
 	param name="args._hierarchy_depth"            type="string";
 	param name="args.title"                       type="string";
 	param name="args.page_type"                   type="string";
+	param name="args.main_image"                  type="string";
 	param name="args.slug"                        type="string";
 	param name="args.full_slug"                   type="string";
 	param name="args.datecreated"                 type="date";
@@ -58,6 +59,13 @@
 		selectedAncestors = prc.selectedAncestors ?: [];
 		isSelected        = args.id == selected;
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
+
+        var dataImage = "";
+		if( Trim( Len(args.main_image) ) ){
+			var main_image_url = event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  );
+			    dataImage      = 'data-image="#main_image_url#"';
+		}
+
 	}
 </cfscript>
 
@@ -69,11 +77,9 @@
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
-					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
-						#args.title#
-					</a>
+					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
 				<cfelse>
-					<span class="page-title">#args.title#</span>
+					<span class="page-title" #dataImage#>#args.title#</span>
 				</cfif>
 
 				<div class="actions pull-right btn-group">
