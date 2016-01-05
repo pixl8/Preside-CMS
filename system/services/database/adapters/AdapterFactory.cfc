@@ -23,6 +23,9 @@ component output=false singleton=true {
 				case "MySql":
 					adapters[ arguments.dsn ] = new MySqlAdapter();
 				break;
+				case "Microsoft SQL Server":
+					adapters[ arguments.dsn ] = new MsSqlAdapter();
+				break;
 
 				default:
 					throw( type="PresideObjects.databaseEngineNotSupported", message="The database engine, [#dbType#], is not supported by the PresideObjects engine at this time" );
