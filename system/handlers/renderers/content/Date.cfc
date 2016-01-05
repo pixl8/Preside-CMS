@@ -4,7 +4,7 @@ component output=false {
 		var data = args.data ?: "";
 
 		if ( IsDate( data ) ) {
-			return dateFormat( parseDateTime( data ), "long" );
+			return dateFormat( parseDateTime( data ), "dd mmm yyyy" );
 		}
 
 		return data;
