@@ -42,11 +42,11 @@
 	} );
 
 	addRouteHandler( getModel( "errorRouteHandler" ) );
+	addRouteHandler( getModel( "standardRouteHandler" ) );
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( "adminRouteHandler" ) );
 	addRouteHandler( getModel( "assetRouteHandler" ) );
 	addRouteHandler( getModel( "plainStoredFileRouteHandler" ) );
 	addRouteHandler( getModel( "staticAssetRouteHandler" ) );
 	addRouteHandler( getModel( "restRouteHandler" ) );
-	addRouteHandler( getModel( "standardRouteHandler" ) );
 </cfscript>
