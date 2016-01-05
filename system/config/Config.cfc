@@ -440,6 +440,11 @@ component output=false {
 			, transformations = [ { method="shrinkToFit", args={ width=48, height=32 } } ]
 		};
 
+		derivatives.pageThumbnail = {
+			  permissions = "inherit"
+			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
+		};
+
 		return derivatives;
 	}
 
