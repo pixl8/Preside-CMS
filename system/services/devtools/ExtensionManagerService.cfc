@@ -31,15 +31,31 @@ component singleton=true {
 			if ( arguments.activeOnly && !(extension.active && installed ) ) {
 				ArrayDeleteAt( extensionList, i );
 			} else {
+
 				listed.append( extension.name );
 				extension.installed = installed;
 				extension.directory = extension.installed ? _getExtensionsDirectory() & "/" & extension.name : "";
+
+				var manifestFilePath = extension.directory & "/manifest.json";
+
+				if ( !FileExists( manifestFilePath ) ) {
+					throw( type="ExtensionManager.missingManifest", message="The extension, [#extension.directory#], does not have a manifest file" );
+				}
+
 			}
 		}
 
 		if ( !arguments.activeOnly ) {
 			for( var extension in presentExtensions ) {
 				if ( !ArrayFind( listed, extension ) ) {
+
+				   var extensionDir     = _getExtensionsDirectory() & "/" & extension;
+				   var manifestFilePath = extensionDir & "/manifest.json";
+
+					if ( !FileExists( manifestFilePath ) ) {
+						throw( type="ExtensionManager.missingManifest", message="The extension, [#extensionDir#], does not have a manifest file" );
+					}
+
 					extensionList.append( {
 						  name      = extension
 						, active    = false
