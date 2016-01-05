@@ -60,12 +60,7 @@
 		isSelected        = args.id == selected;
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
 
-        var dataImage = "";
-		if( Trim( Len(args.main_image) ) ){
-			var main_image_url = event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  );
-			    dataImage      = 'data-image="#main_image_url#"';
-		}
-
+		dataImage = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
 	}
 </cfscript>
 
