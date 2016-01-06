@@ -30,7 +30,7 @@ component {
 		return "";
 	}
 
-	public string function emailAntiSpam( required string emailAddress, boolean bypassAntiSpam false ) {
+	public string function emailAntiSpam( required string emailAddress, boolean bypassAntiSpam=false ) {
 		var antiSpam = "";
 
 		if( arguments.bypassAntiSpam ){
@@ -45,9 +45,10 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private string function _buildEmailHref( required query link, boolean bypassAntiSpam true ) {
-		var plainHref = "mailto:#link.email_address#";
-		var delim     = "?";
+	private string function _buildEmailHref( required query link ) {
+		var plainHref      = "mailto:#link.email_address#";
+		var delim          = "?";
+		var bypassAntiSpam = arguments.link.email_anti_spam ?: false;
 
 		if ( Len( Trim( link.email_subject ) ) ) {
 			plainHref &= delim & "subject=" & UrlEncodedFormat( link.email_subject );
@@ -57,7 +58,7 @@ component {
 			plainHref &= delim & "body=" & UrlEncodedFormat( link.email_body );
 
 		}
-		return emailAntiSpam( plainHref, arguments.bypassAntiSpam );
+		return emailAntiSpam( plainHref, bypassAntiSpam );
 	}
 
 	private string function _buildUrlHref( required query link ) {
