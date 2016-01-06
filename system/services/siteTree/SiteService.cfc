@@ -100,7 +100,10 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			}
 		}
 
-		var sites = _getSiteDao().selectData( orderBy = "#dbAdapter.getLengthFunctionSql( 'domain' )#, #dbAdapter.getLengthFunctionSql( 'path' )#" );
+		var siteDao   = _getSiteDao();
+		var dbAdapter = siteDao.getDbAdapter();
+		var sites     = siteDao.selectData( orderBy = "#dbAdapter.getLengthFunctionSql( 'domain' )#, #dbAdapter.getLengthFunctionSql( 'path' )#" );
+
 		for( var site in sites ) {
 			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ site.id ] ) ) {
 				_getSessionStorage().setVar( "_activeSite", site );
