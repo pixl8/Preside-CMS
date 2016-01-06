@@ -105,4 +105,10 @@
     	}
     });
 
+
+    $('.icon-picker-fontawesome').iconpicker({
+        title: i18n.translateResource( 'cms:font.awesome.picker.title' ),
+        hideOnSelect: true
+    });
+
 } )( presideJQuery );
