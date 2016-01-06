@@ -261,7 +261,10 @@ component output=false {
 		};
 
 		settings.filters = {
-			livePages = { filter = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or now() > page.embargo_date ) and ( page.expiry_date is null or now() < page.expiry_date )" }
+			livePages = {
+				  filter       = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )"
+				, filterParams = { "now" = { type="cf_sql_date", value=Now() } }
+			}
 		};
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
