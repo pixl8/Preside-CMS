@@ -370,4 +370,12 @@ component {
 
 		return false;
 	}
+
+	public string function getLengthFunctionSql( required string expression ) {
+		return "Length( #expression# )";
+	}
+
+	public string function getNowFunctionSql( required string expression ) {
+		return "Now()";
+	}
 }
