@@ -205,7 +205,7 @@ component extends="BaseAdapter" {
 
 		for( col in arguments.selectColumns ){
 			if( Len( Trim( arguments.tableAlias ) ) && !FindNoCase( ".", col, 1 ) && Len( col ) > 1 && !containsAggregateFunctions( col ) ) {
-				sql &= delim & arguments.tableAlias & "." & col;
+				sql &= delim & escapeEntity( arguments.tableAlias ) & "." & escapeEntity( col );
 			} else {
 				sql &= delim & col;
 			}
