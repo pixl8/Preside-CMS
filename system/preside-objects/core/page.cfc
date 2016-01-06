@@ -61,8 +61,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	 * @newData.hint Struct containing the changed fields on the parent node
 	 */
 	public void function updateChildHierarchyHelpers( required query oldData, required struct newData ) autodoc=true output=false {
-		var q      = new query();
-		var sql    = "update #getTableName()# set datemodified = ?";
+		var q         = new query();
+		var sql       = "update #getTableName()# set datemodified = ?";
+		var dbAdapter = this.getDbAdapter();
 
 		q.setDatasource( getDsn() );
 		q.addParam( value=Now(), cfsqltype="timestamp" );
@@ -71,14 +72,14 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 			if ( arguments.newData.keyExists( field ) ) {
 				switch( field ) {
 					case "_hierarchy_lineage":
-						sql &= ', _hierarchy_child_selector = Concat( ?, Right( _hierarchy_child_selector, Length( _hierarchy_child_selector ) - ? ) )';
+						sql &= ', _hierarchy_child_selector = #dbAdapter.getConcatenationSql( '?', 'Right( _hierarchy_child_selector, #dbAdapter.getLengthFunctionSql( '_hierarchy_child_selector' )# - ? )')#';
 						q.addParam( value=arguments.newData[ field ]          , cfsqltype="varchar" );
 						q.addParam( value=Len( arguments.oldData[ field ][1] ), cfsqltype="integer" );
 						// deliberate no break!
 
 					case "_hierarchy_slug":
 					case "_hierarchy_sort_order":
-						sql &= ', #field# = Concat( ?, Right( #field#, Length( #field# ) - ? ) )';
+						sql &= ', #field# = #dbAdapter.getConcatenationSql( '?', 'Right( #field#, #dbAdapter.getLengthFunctionSql( field )# - ? )' )#';
 						q.addParam( value=arguments.newData[ field ]          , cfsqltype="varchar" );
 						q.addParam( value=Len( arguments.oldData[ field ][1] ), cfsqltype="integer" );
 						break;

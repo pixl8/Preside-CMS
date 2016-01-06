@@ -199,4 +199,8 @@ component extends="BaseAdapter" {
 	public string function getIfNullStatement( required string statement, required string alternativeStatement, required string alias ) {
 		return "IfNull( #arguments.statement#, #arguments.alternativeStatement# ) as #arguments.alias#";
 	}
+
+	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
+		return "Concat( #leftExpression#, #rightExpression# )";
+	}
 }

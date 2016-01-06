@@ -326,4 +326,8 @@ component extends="BaseAdapter" {
 	public string function getLengthFunctionSql( required string expression ) {
 		return "Len( #expression# )";
 	}
+
+	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
+		return "#leftExpression# + #rightExpression#";
+	}
 }

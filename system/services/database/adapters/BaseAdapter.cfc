@@ -378,4 +378,8 @@ component {
 	public string function getNowFunctionSql( required string expression ) {
 		return "Now()";
 	}
+
+	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
+		return "getConcatenationSql() not implemented. Must be implemented by extended adapters.";
+	}
 }
