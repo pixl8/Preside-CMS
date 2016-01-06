@@ -18,11 +18,13 @@ component {
 
 // PUBLIC API METHODS
 	public void function redirectOnMatch( required string path, required string fullUrl ) {
+		var ruleDao = _getRuleDao();
+		var dbAdapter = ruleDao.getDbAdapter();
 		var match = _getRuleDao().selectData(
 			  selectFields = [ "redirect_type", "redirect_to_link" ]
 			, filter       = "( exact_match_only = 1 and source_url_pattern = :source_url_pattern ) or ( exact_match_only = 0 and :source_url_pattern like Concat( source_url_pattern, '%' ) )"
 			, filterParams = { source_url_pattern = arguments.path }
-			, orderBy      = "length( source_url_pattern ) desc"
+			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'source_url_pattern' )# desc"
 			, maxRows      = "1"
 		);
 
