@@ -355,8 +355,8 @@
     "use strict";
     if (typeof define === "function" && define.amd) {
         define([ "jquery" ], a);
-    } else if (window.jQuery && !window.jQuery.fn.iconpicker) {
-        a(window.jQuery);
+    } else if (window.presideJQuery && !window.presideJQuery.fn.iconpicker) {
+        a(window.presideJQuery);
     }
 })(function(a) {
     "use strict";

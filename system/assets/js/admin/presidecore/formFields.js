@@ -107,8 +107,8 @@
 
 
     $('.icon-picker-fontawesome').iconpicker({
-        title: 'Using Font Awesome',
-        icons: ['home', 'repeat', 'search','arrow-left', 'arrow-right', 'star']
+        title: i18n.translateResource( 'cms:font.awesome.picker.title' ),
+        hideOnSelect: true
     });
 
 } )( presideJQuery );

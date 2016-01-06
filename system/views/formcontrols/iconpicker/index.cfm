@@ -10,9 +10,6 @@
 		value = "";
 	}
 
-	if ( IsDate( value ) ) {
-		value = DateTimeFormat( value, "yyyy-mm-dd HH:nn:ss" );
-	}
 </cfscript>
 
 <cfoutput>
