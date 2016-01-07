@@ -256,7 +256,7 @@
 
 			poService.dbSync();
 
-			realIndexes = _getDbTableIndexes( "ptest_an_object" );
+			realIndexes = _getTableIndexes( "ptest_an_object" );
 
 			super.assertEquals( expectedIndexes, realIndexes );
 
@@ -283,7 +283,7 @@
 
 			poService.dbSync();
 
-			realIndexes = _getDbTableIndexes( "ptest_an_object" );
+			realIndexes = _getTableIndexes( "ptest_an_object" );
 
 			super.assertEquals( expectedIndexes, realIndexes );
 		</cfscript>
@@ -294,30 +294,30 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
 			var expectedResult = {
-				"fk_c3f5fa6fe828a7c89f411d93d5e0ce7c" = {
-					  pk_table  = "ptest_object_a"
-					, fk_table  = "ptest_object_b"
-					, pk_column = "id"
-					, fk_column = "related_to_a"
-					, on_update = "cascade"
-					, on_delete = "error"
-				},
-				"fk_6a2b9624ca18e99fd0b48df47187ed70" = {
+				"fk_9a2cb7e9423ef863c7903bb6fcd47d62" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
 					, fk_column = "related_to_a_again"
-					, on_update = "cascade"
-					, on_delete = "set null"
+					, on_update = "error"
+					, on_delete = "error"
 				},
-				"fk_e8ad2c420c66dc63e413e0b99e7137e5" = {
+				"fk_974b4dc11f57ab136c6b4692ee879f77" = {
 					  pk_table  = "ptest_object_b"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
 					, fk_column = "object_b"
-					, on_update = "cascade"
+					, on_update = "error"
 					, on_delete = "error"
 				},
+				"fk_c1b6799c2f91c4924d0b170b238ad57d" = {
+					  pk_table  = "ptest_object_a"
+					, fk_table  = "ptest_object_b"
+					, pk_column = "id"
+					, fk_column = "related_to_a"
+					, on_update = "error"
+					, on_delete = "error"
+				}
 			};
 			var keys = "";
 
@@ -1325,8 +1325,8 @@
 				, datemodified = { name="datemodified", control="none"     , dbtype="datetime", generator="none", maxLength=0, relatedTo="none", relationship="none", required=true, type="date" }
 				, id           = { name="id"          , control="none"     , dbtype="varchar" , generator="UUID", maxLength=35, relatedTo="none", relationship="none", required=true, type="string", pk=true }
 				, label        = { name="label"       , control="textinput", dbtype="varchar" , generator="none", maxLength=250, relatedTo="none", relationship="none", required=true, type="string" }
-				, object_d         = { name="object_d"        , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade" }
-				, related_to_a     = { name="related_to_a"    , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade" }
+				, object_d         = { name="object_d"        , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_d", relationship="many-to-one", required=false, type="string", onDelete="set null", onUpdate="cascade-if-no-cycle-check" }
+				, related_to_a     = { name="related_to_a"    , control="default"  , dbtype="int"      , generator="none", maxLength=0,  relatedTo="object_a", relationship="many-to-one", required=true, type="string", onDelete="error", onUpdate="cascade-if-no-cycle-check" }
 			};
 
 			result = poService.getObjectProperties( objectName = "object_b" );
@@ -1353,7 +1353,7 @@
 				, required     = false
 				, type         = "string"
 				, onDelete     = "set null"
-				, onUpdate     = "cascade"
+				, onUpdate     = "cascade-if-no-cycle-check"
 			};
 
 			result = poService.getObjectProperty( objectName = "object_b", propertyName="object_d" );
@@ -2624,36 +2624,6 @@
 			}
 
 			return cols;
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="_getDbTableIndexes" access="private" returntype="struct" output="false">
-		<cfargument name="table" type="string" required="true" />
-
-		<cfscript>
-			var indexes = "";
-			var index   = "";
-			var ixs     = {};
-
-			dbinfo type="index" table="#arguments.table#" name="indexes" datasource="#application.dsn#";
-
-			for( index in indexes ){
-				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name );
-				var isActuallyAnIndex = index.index_name.len();
-
-				if ( isActuallyAnIndex && !isPrimaryKeyIndex ) {
-					if ( not StructKeyExists( ixs, index.index_name ) ){
-						ixs[ index.index_name ] = {
-							  unique = not index.non_unique
-							, fields = ""
-						}
-					}
-
-					ixs[ index.index_name ].fields = ListAppend( ixs[ index.index_name ].fields, index.column_name );
-				}
-			}
-
-			return ixs;
 		</cfscript>
 	</cffunction>
 

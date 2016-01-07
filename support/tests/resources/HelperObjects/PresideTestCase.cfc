@@ -241,7 +241,10 @@
 			dbinfo type="index" table="#arguments.tableName#" name="indexes" datasource="#application.dsn#";
 
 			for( index in indexes ){
-				if ( index.index_name neq "PRIMARY" ) {
+				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name );
+				var isActuallyAnIndex = index.index_name.len();
+
+				if ( isActuallyAnIndex && !isPrimaryKeyIndex ) {
 					if ( not StructKeyExists( ixs, index.index_name ) ){
 						ixs[ index.index_name ] = {
 							  unique = not index.non_unique
