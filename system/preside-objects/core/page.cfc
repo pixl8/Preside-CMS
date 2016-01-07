@@ -17,10 +17,10 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="trashed"      type="boolean" dbtype="boolean"                  required=false default=false control="none";
 	property name="old_slug"     type="string"  dbtype="varchar" maxLength="50"   required=false;
 
-	property name="main_image"  relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image";
-	property name="parent_page" relationship="many-to-one" relatedTo="page"                    required=false                     uniqueindexes="slug|1" control="none";
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
+	property name="main_image"  relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="parent_page" relationship="many-to-one" relatedTo="page"                    required=false                     uniqueindexes="slug|1" control="none"  ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="internal_search_access"                  type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block" labels="preside-objects.page:internal_search_access.option.inherit,preside-objects.page:internal_search_access.option.allow,preside-objects.page:internal_search_access.option.deny";
 	property name="search_engine_access"                    type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block"       labels="preside-objects.page:search_engine_access.option.inherit,preside-objects.page:search_engine_access.option.allow,preside-objects.page:search_engine_access.option.deny";

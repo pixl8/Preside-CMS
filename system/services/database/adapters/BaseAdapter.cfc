@@ -72,11 +72,32 @@ component {
 		sql &= " add constraint #escapeEntity( arguments.constraintName )#";
 		sql &= " foreign key ( #escapeEntity( arguments.sourceColumn )# )";
 		sql &= " references #escapeEntity( arguments.foreignTable )# ( #escapeEntity( arguments.foreignColumn )# )";
-		if ( arguments.onDelete neq "error" ) {
-			sql &= " on delete #arguments.onDelete eq 'cascade' ? 'cascade' : 'set null'#";
+
+		switch( arguments.onDelete ) {
+			case 'error':
+				break;
+			case 'cascade':
+			case 'cascade-if-no-cycle-check':
+				sql &= " on delete cascade";
+				break;
+			case 'no action':
+				sql &= " on delete no action";
+				break;
+			default:
+				sql &= " on delete set null";
 		}
-		if ( arguments.onUpdate neq "error" ) {
-			sql &= " on update #arguments.onUpdate eq 'cascade' ? 'cascade' : 'set null'#";
+		switch( arguments.onUpdate ) {
+			case 'error':
+				break;
+			case 'cascade':
+			case 'cascade-if-no-cycle-check':
+				sql &= " on update cascade";
+				break;
+			case 'no action':
+				sql &= " on update no action";
+				break;
+			default:
+				sql &= " on update set null";
 		}
 
 		return sql;

@@ -117,8 +117,32 @@ component extends="BaseAdapter" {
 		sql &= " foreign key ( #escapeEntity( arguments.sourceColumn )# )";
 		sql &= " references #escapeEntity( arguments.foreignTable )# ( #escapeEntity( arguments.foreignColumn )# )";
 
-		// note, we do not allow `on update / on delete cascade` here due to SQL server's dim view of
-		// them leading to 'may cause cycles or multiple cascade paths' errors
+		switch( arguments.onDelete ) {
+			case 'error':
+				break;
+			case 'cascade':
+				sql &= " on delete cascade";
+				break;
+			case 'cascade-if-no-cycle-check':
+			case 'no action':
+				sql &= " on delete no action";
+				break;
+			default:
+				sql &= " on delete set null";
+		}
+		switch( arguments.onUpdate ) {
+			case 'error':
+				break;
+			case 'cascade':
+				sql &= " on update cascade";
+				break;
+			case 'cascade-if-no-cycle-check':
+			case 'no action':
+				sql &= " on update no action";
+				break;
+			default:
+				sql &= " on update set null";
+		}
 
 		return sql;
 	}
