@@ -687,12 +687,13 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
+			var nowSql    = _getDbAdapter().getNowFunctionSql();
 			var q = new query();
 
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() ), ('test2', Now(), Now() ), ('test3', Now(), Now() ), ('test4', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #nowSql#, #nowSql# ), ('test2', #nowSql#, #nowSql# ), ('test3', #nowSql#, #nowSql# ), ('test4', #nowSql#, #nowSql# )" );
 			q.execute();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "Test failed, data should have been inserted into the table before attempting the delete" );
