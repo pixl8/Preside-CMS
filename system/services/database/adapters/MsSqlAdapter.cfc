@@ -278,9 +278,7 @@ component extends="BaseAdapter" {
 		}
 
 		if ( Len( Trim ( arguments.orderBy ) )  && !arguments.maxRows ) {
-			if ( !containsAggregateFunctions( sql ) ) {
-				sql &= " order by " & arguments.orderBy;
-			}
+			sql &= " order by " & arguments.orderBy;
 		}
 
 		if ( arguments.maxRows ) {
