@@ -248,7 +248,7 @@ component extends="BaseAdapter" {
 		if ( arguments.maxRows ) {
 			if ( Len( Trim ( arguments.orderBy ) ) ) {
 				if ( !containsAggregateFunctions( sql ) ) {
-					sql &= ", row_number() over (order by " & arguments.orderBy & ") as row ";
+					sql &= ", row_number() over (order by " & arguments.orderBy & ") as _rownumber ";
 				}
 			}
 		}
@@ -285,7 +285,7 @@ component extends="BaseAdapter" {
 
 		if ( arguments.maxRows ) {
 			if ( Len( Trim ( arguments.orderBy ) ) ) {
-				sql = "select * from ( " & sql & " ) as Temp where row > #arguments.startRow-1# and row <= #arguments.maxRows#";
+				sql = "select * from ( " & sql & " ) as recordset where _rownumber between #( arguments.startRow )# and #( ( arguments.startRow + arguments.maxRows ) - 1 )#";
 			} else {
 				sql = Replace(sql, "select", "select top #arguments.maxRows#", "one");
 			}
