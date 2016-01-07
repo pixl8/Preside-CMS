@@ -3,7 +3,7 @@
 	<cffunction name="setup" access="public" returntype="void" output="false">
 		<cfscript>
 			super.setup();
-			_dropAllTables();
+			_emptyDatabase();
 		</cfscript>
 	</cffunction>
 
@@ -2587,27 +2587,6 @@
 
 
 <!--- private helpers --->
-	<cffunction name="_dropAllTables" access="private" returntype="void" output="false">
-		<cfset var tables = _getDbTables() />
-		<cfset var table  = "" />
-		<cfset var fks    = "" />
-		<cfset var fk     = "" />
-
-		<cfloop list="#tables#" index="table">
-			<cfset fks = _getTableForeignKeys( table ) />
-			<cfloop collection="#fks#" item="fk">
-				<cfquery datasource="#application.dsn#">
-					alter table #fks[fk].fk_table# drop foreign key #fk#
-				</cfquery>
-			</cfloop>
-		</cfloop>
-		<cfloop list="#tables#" index="table">
-			<cfquery datasource="#application.dsn#">
-				drop table #table#
-			</cfquery>
-		</cfloop>
-	</cffunction>
-
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />
 		<cfargument name="defaultPrefix"     type="string" required="false" default="ptest_" />
@@ -2631,12 +2610,6 @@
 				, interceptorService = mockInterceptorService
 			)
 		</cfscript>
-	</cffunction>
-
-	<cffunction name="_getDbTables" access="private" returntype="string" output="false">
-		<cfset var tables = "" />
-		<cfdbinfo type="tables" name="tables" datasource="#application.dsn#" />
-		<cfreturn ValueList( tables.table_name ) />
 	</cffunction>
 
 	<cffunction name="_getDbTableColumns" access="private" returntype="struct" output="false">
@@ -2667,7 +2640,10 @@
 			dbinfo type="index" table="#arguments.table#" name="indexes" datasource="#application.dsn#";
 
 			for( index in indexes ){
-				if ( index.index_name neq "PRIMARY" ) {
+				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name );
+				var isActuallyAnIndex = index.index_name.len();
+
+				if ( isActuallyAnIndex && !isPrimaryKeyIndex ) {
 					if ( not StructKeyExists( ixs, index.index_name ) ){
 						ixs[ index.index_name ] = {
 							  unique = not index.non_unique
