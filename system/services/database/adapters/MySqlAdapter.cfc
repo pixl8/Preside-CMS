@@ -200,6 +200,13 @@ component extends="BaseAdapter" {
 		return "IfNull( #arguments.statement#, #arguments.alternativeStatement# ) as #arguments.alias#";
 	}
 
+	public string function getToggleForeignKeyChecks(
+		  required boolean checksEnabled
+		, required string  tableName
+	) {
+		return "set foreign_key_checks=" & ( arguments.checksEnabled ? '1' : '0' );
+	}
+
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "Concat( #leftExpression#, #rightExpression# )";
 	}

@@ -286,6 +286,13 @@ component extends="BaseAdapter" {
 		return "IsNull( #arguments.statement#, #arguments.alternativeStatement# ) as #arguments.alias#";
 	}
 
+	public string function getToggleForeignKeyChecks(
+		  required boolean checksEnabled
+		, required string  tableName
+	) {
+		return "alter table #escapeEntity( arguments.tableName )# " & ( arguments.checksEnabled ? 'nocheck' : 'check' ) & " constraint all";
+	}
+
 	private string function reCompileGroupByForMsSql( string sql, array select, string groupBy, string tableAlias ) {
 		var sqlNonGroupBy      = arguments.sql;
 		var strNonGroupBy      = Replace( arguments.groupBy, "group by", "", "all" );

@@ -353,8 +353,11 @@ component {
 		return true;
 	}
 
-	public string function getToggleForeignKeyChecks( required boolean checksEnabled ) {
-		return "set foreign_key_checks=" & ( arguments.checksEnabled ? '1' : '0' );
+	public string function getToggleForeignKeyChecks(
+		  required boolean checksEnabled
+		, required string  tableName
+	) {
+		return "getToggleForeignKeyChecks() not implemented. Must be implemented by extended adapters.";
 	}
 
 	public string function getIfNullStatement( required string statement, required string alternativeStatement, required string alias ) {
