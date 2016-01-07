@@ -290,7 +290,7 @@ component extends="BaseAdapter" {
 		  required boolean checksEnabled
 		, required string  tableName
 	) {
-		return "alter table #escapeEntity( arguments.tableName )# " & ( arguments.checksEnabled ? 'nocheck' : 'check' ) & " constraint all";
+		return "alter table #escapeEntity( arguments.tableName )# " & ( arguments.checksEnabled ? 'nocheck' : 'with check check' ) & " constraint all";
 	}
 
 	private string function reCompileGroupByForMsSql( string sql, array select, string groupBy, string tableAlias ) {
