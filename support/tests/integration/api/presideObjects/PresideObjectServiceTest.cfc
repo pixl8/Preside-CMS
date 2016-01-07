@@ -293,30 +293,31 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
+			var cascadeType = _getDbAdapter().supportsRenameInAlterColumnStatement() ? "cascade" : "error";
 			var expectedResult = {
 				"fk_9a2cb7e9423ef863c7903bb6fcd47d62" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
 					, fk_column = "related_to_a_again"
-					, on_update = "error"
-					, on_delete = "error"
+					, on_update = cascadeType
+					, on_delete = cascadeType
 				},
 				"fk_974b4dc11f57ab136c6b4692ee879f77" = {
 					  pk_table  = "ptest_object_b"
 					, fk_table  = "ptest_object_c"
 					, pk_column = "id"
 					, fk_column = "object_b"
-					, on_update = "error"
-					, on_delete = "error"
+					, on_update = cascadeType
+					, on_delete = cascadeType
 				},
 				"fk_c1b6799c2f91c4924d0b170b238ad57d" = {
 					  pk_table  = "ptest_object_a"
 					, fk_table  = "ptest_object_b"
 					, pk_column = "id"
 					, fk_column = "related_to_a"
-					, on_update = "error"
-					, on_delete = "error"
+					, on_update = cascadeType
+					, on_delete = cascadeType
 				}
 			};
 			var keys = "";
