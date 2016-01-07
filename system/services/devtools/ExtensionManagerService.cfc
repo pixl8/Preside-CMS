@@ -36,12 +36,13 @@ component singleton=true {
 				extension.installed = installed;
 				extension.directory = extension.installed ? _getExtensionsDirectory() & "/" & extension.name : "";
 
-				var manifestFilePath = extension.directory & "/manifest.json";
+				if ( extension.directory.len() && DirectoryExists( extension.directory ) ) {
+					var manifestFilePath = extension.directory & "/manifest.json";
 
-				if ( !FileExists( manifestFilePath ) ) {
-					throw( type="ExtensionManager.missingManifest", message="The extension, [#extension.directory#], does not have a manifest file" );
+					if ( !FileExists( manifestFilePath ) ) {
+						throw( type="ExtensionManager.missingManifest", message="The extension, [#extension.directory#], does not have a manifest file" );
+					}
 				}
-
 			}
 		}
 
@@ -52,7 +53,7 @@ component singleton=true {
 				   var extensionDir     = _getExtensionsDirectory() & "/" & extension;
 				   var manifestFilePath = extensionDir & "/manifest.json";
 
-					if ( !FileExists( manifestFilePath ) ) {
+					if ( Len( Trim( extensionDir ) ) && DirectoryExists( extensionDir ) && !FileExists( manifestFilePath ) ) {
 						throw( type="ExtensionManager.missingManifest", message="The extension, [#extensionDir#], does not have a manifest file" );
 					}
 
