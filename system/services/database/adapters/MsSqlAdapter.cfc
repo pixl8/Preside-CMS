@@ -359,4 +359,15 @@ component extends="BaseAdapter" {
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "#leftExpression# + #rightExpression#";
 	}
+
+	public boolean function supportsRenameInAlterColumnStatement() {
+		return false;
+	}
+
+	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
+		return "EXEC sp_rename "
+		     & "@objname = '#arguments.tableName#.#arguments.oldColumnName#', "
+			 & "@newname = '#arguments.newColumnName#', "
+			 & "@objtype = 'COLUMN' ";
+	}
 }

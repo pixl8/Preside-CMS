@@ -280,8 +280,10 @@ component output=false singleton=true {
 		var index          = "";
 		var indexSql       = "";
 		var deprecateSql   = "";
+		var renameSql      = "";
 		var columnName     = "";
 		var deDeprecateSql = "";
+		var newName        = "";
 
 		for( column in columnsFromDb ){
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
@@ -321,21 +323,43 @@ component output=false singleton=true {
 						);
 					}
 				} else if ( !column.column_name contains "__deprecated__" ) {
-					deprecateSql = adapter.getAlterColumnSql(
-						  tableName     = arguments.tableName
-						, columnName    = column.column_name
-						, newName       = "__deprecated__" & column.column_name
-						, dbType        = column.type_name
-						, nullable      = true // its deprecated, must be nullable!
-						, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
-						, primaryKey    = column.is_primarykey
-						, autoIncrement = column.is_autoincrement
-					);
-
 					if ( column.is_foreignkey ){
 						_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=column.column_name, dsn=arguments.dsn );
 					}
-					_runSql( sql=deprecateSql, dsn=arguments.dsn );
+
+					newName = "__deprecated__" & column.column_name;
+					if ( !adapter.supportsRenameInAlterColumnStatement() ) {
+						renameSql = adapter.getRenameColumnSql(
+							  tableName     = arguments.tableName
+							, oldColumnName = column.column_name
+							, newColumnName = newName
+						);
+						_runSql( sql=renameSql, dsn=arguments.dsn );
+
+						deprecateSql = adapter.getAlterColumnSql(
+							  tableName     = arguments.tableName
+							, columnName    = newName
+							, dbType        = column.type_name
+							, nullable      = true // its deprecated, must be nullable!
+							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+							, primaryKey    = column.is_primarykey
+							, autoIncrement = column.is_autoincrement
+						);
+						_runSql( sql=deprecateSql, dsn=arguments.dsn );
+					} else {
+						deprecateSql = adapter.getAlterColumnSql(
+							  tableName     = arguments.tableName
+							, columnName    = column.column_name
+							, newName       = newName
+							, dbType        = column.type_name
+							, nullable      = true // its deprecated, must be nullable!
+							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+							, primaryKey    = column.is_primarykey
+							, autoIncrement = column.is_autoincrement
+						);
+						_runSql( sql=deprecateSql, dsn=arguments.dsn );
+					}
+
 					_setDatabaseObjectVersion(
 						  entityType   = "column"
 						, parentEntity = arguments.tableName

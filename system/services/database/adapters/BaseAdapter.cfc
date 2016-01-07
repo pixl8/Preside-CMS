@@ -406,4 +406,12 @@ component {
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "getConcatenationSql() not implemented. Must be implemented by extended adapters.";
 	}
+
+	public boolean function supportsRenameInAlterColumnStatement() {
+		return true;
+	}
+
+	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
+		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
+	}
 }

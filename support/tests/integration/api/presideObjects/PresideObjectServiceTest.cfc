@@ -141,11 +141,9 @@
 				columns = _getDbTableColumns( table );
 
 				super.assert( StructKeyExists( columns, "id" ), "The id column was not created." );
-				super.assertEquals( "varchar", columns.id.type_name, "The id column was not a varchar." );
-				super.assertEquals( "35", columns.id.column_size, "The id column did not have a length of 35." );
+				super.assertEquals( "int", ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
 				super.assertFalse( columns.id.nullable, "The id column should not be nullable" );
 				super.assert( columns.id.is_primarykey, "The id column should be the primary key" );
-				super.assertFalse( columns.id.is_autoincrement, "The id column should not be auto incrementing" );
 
 				switch( table ){
 					case "test_test_1":
