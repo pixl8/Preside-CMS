@@ -412,7 +412,7 @@
 			super.assertFalse( poService.dataExists( objectName="object_a" ), "dataExists() returned true when no data does exist" );
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			cachebox.clearAll();
@@ -426,7 +426,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
 			var result = "";
-			var filter = "label like :label and ( DateDiff( Now(), datemodified ) <= :age or DateDiff( Now(), datecreated ) <= :age )";
+			var filter = "label like :label and ( DateDiff( #_getNowSql()#, datemodified ) <= :age or DateDiff( #_getNowSql()#, datecreated ) <= :age )";
 			var filterParams = {
 				  label = "test%"
 				, age       = { value=2, type="cf_sql_integer" }
@@ -443,7 +443,7 @@
 			super.assertFalse( result, "dataExists() returned true when no data does exist" );
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -461,7 +461,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
 			var result = "";
-			var filter = "object_e.label like :object_e.label and ( DateDiff( Now(), object_e.datemodified ) <= :age or DateDiff( Now(), object_d.datecreated ) <= :age )";
+			var filter = "object_e.label like :object_e.label and ( DateDiff( #_getNowSql()#, object_e.datemodified ) <= :age or DateDiff( #_getNowSql()#, object_d.datecreated ) <= :age )";
 			var filterParams = {
 				  "object_e.label" = "test%"
 				, age       = { value=2, type="cf_sql_integer" }
@@ -500,7 +500,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -537,32 +537,32 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values (  Now(), Now(), 'a test' )" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values (  #_getNowSql()#, #_getNowSql()#, 'a test' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values (  Now(), Now(), '#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values (  #_getNowSql()#, #_getNowSql()#, '#eId#','e test' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values (  Now(), Now(), 'd test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values (  #_getNowSql()#, #_getNowSql()#, 'd test', '#eId#' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  Now(), Now(),  '#bId#', 'b test', 1, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  #_getNowSql()#, #_getNowSql()#,  '#bId#', 'b test', 1, 1 )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  Now(), Now(),  '#cId#', 'testing c', '#bId#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  #_getNowSql()#, #_getNowSql()#,  '#cId#', 'testing c', '#bId#' )" );
 			q.execute();
 
 			q = new query();
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  Now(), Now(),  '#fId#', 'testing f', '#cId#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  #_getNowSql()#, #_getNowSql()#,  '#fId#', 'testing f', '#cId#' )" );
 			q.execute();
 
 			result = poService.dataExists(
@@ -594,7 +594,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -620,7 +620,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test'),( Now(), Now(), 'test2'),( Now(), Now(), 'test3'),( Now(), Now(), 'test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test'),( #_getNowSql()#, #_getNowSql()#, 'test2'),( #_getNowSql()#, #_getNowSql()#, 'test3'),( #_getNowSql()#, #_getNowSql()#, 'test4')" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -646,7 +646,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test'),( Now(), Now(), 'test2'),( Now(), Now(), 'test3'),( Now(), Now(), 'test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test'),( #_getNowSql()#, #_getNowSql()#, 'test2'),( #_getNowSql()#, #_getNowSql()#, 'test3'),( #_getNowSql()#, #_getNowSql()#, 'test4')" );
 			q.execute();
 
 			result = poService.deleteData(
@@ -687,13 +687,12 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var result    = "";
-			var nowSql    = _getDbAdapter().getNowFunctionSql();
 			var q = new query();
 
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #nowSql#, #nowSql# ), ('test2', #nowSql#, #nowSql# ), ('test3', #nowSql#, #nowSql# ), ('test4', #nowSql#, #nowSql# )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# ), ('test2', #_getNowSql()#, #_getNowSql()# ), ('test3', #_getNowSql()#, #_getNowSql()# ), ('test4', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "Test failed, data should have been inserted into the table before attempting the delete" );
@@ -799,7 +798,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test1' ), ( Now(), Now(), 'test2'), ( Now(), Now(), 'test3'), ( Now(), Now(), 'test4')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test1' ), ( #_getNowSql()#, #_getNowSql()#, 'test2'), ( #_getNowSql()#, #_getNowSql()#, 'test3'), ( #_getNowSql()#, #_getNowSql()#, 'test4')" );
 			q.execute();
 
 			super.assert( poService.dataExists( objectName="object_a" ), "Test failed, data should have been inserted into the table before attempting the delete" );
@@ -847,7 +846,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'test1' ), ( Now(), Now(), 'test2'), ( Now(), Now(), 'test3'), ( Now(), Now(), 'test4'), ( Now(), Now(), 'test5')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'test1' ), ( #_getNowSql()#, #_getNowSql()#, 'test2'), ( #_getNowSql()#, #_getNowSql()#, 'test3'), ( #_getNowSql()#, #_getNowSql()#, 'test4'), ( #_getNowSql()#, #_getNowSql()#, 'test5')" );
 			q.execute();
 
 			result = poService.updateData(
@@ -882,22 +881,22 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'a test' ), ( Now(), Now(), 'another test')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'a test' ), ( #_getNowSql()#, #_getNowSql()#, 'another test')" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( Now(), Now(), '#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( #_getNowSql()#, #_getNowSql()#, '#eId#','e test' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( Now(), Now(), 'd test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( #_getNowSql()#, #_getNowSql()#, 'd test', '#eId#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  Now(), Now(), '#bId#', 'b test', 1, 1 ),(  Now(), Now(), '#bId2#', 'b test', 2, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values (  #_getNowSql()#, #_getNowSql()#, '#bId#', 'b test', 1, 1 ),(  #_getNowSql()#, #_getNowSql()#, '#bId2#', 'b test', 2, 1 )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  Now(), Now(), '#cId#', 'testing c', '#bId#' ),(  Now(), Now(), '#cId2#', 'testing c 2', '#bId2#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values (  #_getNowSql()#, #_getNowSql()#, '#cId#', 'testing c', '#bId#' ),(  #_getNowSql()#, #_getNowSql()#, '#cId2#', 'testing c 2', '#bId2#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  Now(), Now(), '#fId#', 'testing f', '#cId#' ),(  Now(), Now(), '#fId2#', 'testing f again', '#cId2#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values (  #_getNowSql()#, #_getNowSql()#, '#fId#', 'testing f', '#cId#' ),(  #_getNowSql()#, #_getNowSql()#, '#fId2#', 'testing f again', '#cId2#' )" );
 			q.execute();
 
 			result = poService.updateData(
@@ -931,22 +930,22 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( Now(), Now(), 'a test' ), ( Now(), Now(), 'another test')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, datemodified, label ) values ( #_getNowSql()#, #_getNowSql()#, 'a test' ), ( #_getNowSql()#, #_getNowSql()#, 'another test')" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( Now(), Now(), '#eId#','e test' )" );
+			q.setSQL( "insert into ptest_object_e ( datecreated, datemodified, id, label ) values ( #_getNowSql()#, #_getNowSql()#, '#eId#','e test' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( Now(), Now(), 'd test', '#eId#' )" );
+			q.setSQL( "insert into ptest_object_d ( datecreated, datemodified, label, object_e ) values ( #_getNowSql()#, #_getNowSql()#, 'd test', '#eId#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values ( Now(), Now(), '#bId#', 'b test', 1, 1 ),(  Now(), Now(), '#bId2#', 'b test', 2, 1 )" );
+			q.setSQL( "insert into ptest_object_b ( datecreated, datemodified, id, label, related_to_a, object_d ) values ( #_getNowSql()#, #_getNowSql()#, '#bId#', 'b test', 1, 1 ),(  #_getNowSql()#, #_getNowSql()#, '#bId2#', 'b test', 2, 1 )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values ( Now(), Now(), '#cId#', 'testing c', '#bId#' ),(  Now(), Now(), '#cId2#', 'testing c 2', '#bId2#' )" );
+			q.setSQL( "insert into ptest_object_c ( datecreated, datemodified, id, label, object_b ) values ( #_getNowSql()#, #_getNowSql()#, '#cId#', 'testing c', '#bId#' ),(  #_getNowSql()#, #_getNowSql()#, '#cId2#', 'testing c 2', '#bId2#' )" );
 			q.execute();
 
-			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values ( Now(), Now(), '#fId#', 'testing f', '#cId#' ),( Now(), Now(),  '#fId2#', 'testing f again', '#cId2#' )" );
+			q.setSQL( "insert into ptest_object_f ( datecreated, datemodified, id, label, object_c ) values ( #_getNowSql()#, #_getNowSql()#, '#fId#', 'testing f', '#cId#' ),( #_getNowSql()#, #_getNowSql()#,  '#fId2#', 'testing f again', '#cId2#' )" );
 			q.execute();
 
 			result = poService.updateData(
@@ -975,7 +974,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( datecreated, label, datemodified ) values ( Now(), 'test1',  '1980-12-09 03:15:34'), ( Now(), 'test2', '1980-12-09 03:15:34'), ( Now(), 'test3', '1980-12-09 03:15:34'), ( Now(), 'test4', '1980-12-09 03:15:34'), ( Now(), 'test5', '1980-12-09 03:15:34')" );
+			q.setSQL( "insert into ptest_object_a ( datecreated, label, datemodified ) values ( #_getNowSql()#, 'test1',  '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test2', '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test3', '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test4', '1980-12-09 03:15:34'), ( #_getNowSql()#, 'test5', '1980-12-09 03:15:34')" );
 			q.execute();
 
 			result = poService.updateData(
@@ -993,7 +992,7 @@
 			super.assertEquals( 5, result.recordCount, "Records were not correctly updated" );
 
 			for( record in result ){
-				super.assert( DateDiff( "s", record.datemodified, Now() ) LTE 10, "Date was not updated" );
+				super.assert( DateDiff( "s", record.datemodified, #_getNowSql()# ) LTE 10, "Date was not updated" );
 			}
 		</cfscript>
 	</cffunction>
@@ -1172,7 +1171,7 @@
 
 			result = poService.selectData(
 				  objectname   = "object_b"
-				, filter       = "object_a.id = :object_a.id and DateDiff( Now(), object_d.datecreated ) <= :age"
+				, filter       = "object_a.id = :object_a.id and DateDiff( #_getNowSql()#, object_d.datecreated ) <= :age"
 				, filterParams = { "object_a.id" = 2, age = { value = 0, type="cf_sql_integer" } }
 			);
 
@@ -1408,7 +1407,7 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_a ( label, datemodified, datecreated) values ('test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.listForeignObjectsBlockingDelete(
@@ -1430,11 +1429,11 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			result = poService.listForeignObjectsBlockingDelete(
@@ -1456,11 +1455,11 @@
 			poService.dbSync();
 
 			q.setDatasource( application.dsn );
-			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_e ( id, label, datemodified, datecreated) values ( 'TEST-UUID', 'test', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test1', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
-			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', Now(), Now() )" );
+			q.setSQL( "insert into ptest_object_d ( object_e, label, datemodified, datecreated) values ( 'TEST-UUID', 'test2', #_getNowSql()#, #_getNowSql()# )" );
 			q.execute();
 
 			super.assert( poService.selectData( objectName="object_d" ).recordCount );
@@ -2696,4 +2695,7 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="_getNowSql" access="private" returntype="string" output="false">
+		<cfreturn _getDbAdapter().getNowFunctionSql() />
+	</cffunction>
 </cfcomponent>
