@@ -162,17 +162,16 @@ component extends="BaseAdapter" {
 		,          string tableAlias = ""
 		,          array  joins      = []
 	) {
-		var sql      = "update #escapeEntity( arguments.tableName )#";
+		var sql      = "update ";
 		var delim    = "";
 		var col      = "";
 		var entity   = "";
 		var hasAlias = Len( Trim( arguments.tableAlias ) );
 
-		if ( ArrayLen( arguments.joins ) ) {
-			sql &= getJoinSql(
-				  tableName  = arguments.tableName
-				, joins      = arguments.joins
-			);
+		if ( hasAlias ) {
+			sql &= arguments.tableAlias;
+		} else {
+			sql &= arguments.tableName;
 		}
 
 		sql &= " set";
@@ -183,8 +182,15 @@ component extends="BaseAdapter" {
 			delim = ",";
 		}
 
-		if ( Len( arguments.tableAlias ) ) {
+		if ( hasAlias ) {
 			sql &= " from #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )# ";
+		}
+
+		if ( arguments.joins.len() ) {
+			sql &= getJoinSql(
+				  tableName  = arguments.tableName
+				, joins      = arguments.joins
+			);
 		}
 
 		sql &= getClauseSql(
