@@ -399,7 +399,7 @@ component {
 		return "Length( #expression# )";
 	}
 
-	public string function getNowFunctionSql( required string expression ) {
+	public string function getNowFunctionSql() {
 		return "Now()";
 	}
 

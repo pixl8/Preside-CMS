@@ -228,11 +228,7 @@ component extends="BaseAdapter" {
 		var col         = "";
 
 		for( col in arguments.selectColumns ){
-			if( Len( Trim( arguments.tableAlias ) ) && !FindNoCase( ".", col, 1 ) && Len( col ) > 1 && !containsAggregateFunctions( col ) ) {
-				sql &= delim & escapeEntity( arguments.tableAlias ) & "." & escapeEntity( col );
-			} else {
-				sql &= delim & col;
-			}
+			sql &= delim & col;
 			delim = ", ";
 		}
 		if ( containsAggregateFunctions( sql ) ) {
@@ -369,5 +365,9 @@ component extends="BaseAdapter" {
 		     & "@objname = '#arguments.tableName#.#arguments.oldColumnName#', "
 			 & "@newname = '#arguments.newColumnName#', "
 			 & "@objtype = 'COLUMN' ";
+	}
+
+	public string function getNowFunctionSql() {
+		return "GetDate()";
 	}
 }
