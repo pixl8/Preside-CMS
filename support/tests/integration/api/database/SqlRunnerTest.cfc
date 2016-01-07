@@ -6,11 +6,11 @@
 			var logger = new tests.resources.HelperObjects.TestLogger( logLevel = "DEBUG" );
 			var runner = _getRunner( logger );
 			var sqlStatements = [
-				  "create table `some_table` ( `some_table_id` int ) engine=InnoDb"
-				, "insert into `some_table` values ( 1 ), ( 2 ), ( 3 )"
-				, "insert into `some_table` values ( 1 ), ( 2 ), ( 3 )"
-				, "select `some_table_id` from `some_table` where `some_table_id` = 1"
-				, "drop table `some_table`"
+				  "create table some_table ( some_table_id int )"
+				, "insert into some_table values ( 1 ), ( 2 ), ( 3 )"
+				, "insert into some_table values ( 1 ), ( 2 ), ( 3 )"
+				, "select some_table_id from some_table where some_table_id = 1"
+				, "drop table some_table"
 			];
 			var sql = "";
 			var logs = "";
@@ -33,11 +33,11 @@
 			var logger = new tests.resources.HelperObjects.TestLogger( logLevel = "INFORMATION" );
 			var runner = _getRunner( logger );
 			var sqlStatements = [
-				  "create table `some_table` ( `some_table_id` int ) engine=InnoDb"
-				, "insert into `some_table` values ( 1 ), ( 2 ), ( 3 )"
-				, "insert into `some_table` values ( 1 ), ( 2 ), ( 3 )"
-				, "select `some_table_id` from `some_table` where `some_table_id` = 1"
-				, "drop table `some_table`"
+				  "create table some_table ( some_table_id int )"
+				, "insert into some_table values ( 1 ), ( 2 ), ( 3 )"
+				, "insert into some_table values ( 1 ), ( 2 ), ( 3 )"
+				, "select some_table_id from some_table where some_table_id = 1"
+				, "drop table some_table"
 			];
 			var sql = "";
 			var logs = "";
