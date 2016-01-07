@@ -426,7 +426,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var q = new query();
 			var result = "";
-			var filter = "label like :label and ( DateDiff( #_getNowSql()#, datemodified ) <= :age or DateDiff( #_getNowSql()#, datecreated ) <= :age )";
+			var filter = "label like :label and ( -1 <= :age or -1 <= :age )";
 			var filterParams = {
 				  label = "test%"
 				, age       = { value=2, type="cf_sql_integer" }
@@ -461,7 +461,7 @@
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
 			var q = new query();
 			var result = "";
-			var filter = "object_e.label like :object_e.label and ( DateDiff( #_getNowSql()#, object_e.datemodified ) <= :age or DateDiff( #_getNowSql()#, object_d.datecreated ) <= :age )";
+			var filter = "object_e.label like :object_e.label and ( -1 <= :age or -1 <= :age )";
 			var filterParams = {
 				  "object_e.label" = "test%"
 				, age       = { value=2, type="cf_sql_integer" }
@@ -992,7 +992,7 @@
 			super.assertEquals( 5, result.recordCount, "Records were not correctly updated" );
 
 			for( record in result ){
-				super.assert( DateDiff( "s", record.datemodified, #_getNowSql()# ) LTE 10, "Date was not updated" );
+				super.assert( DateDiff( "s", record.datemodified, Now() ) LTE 10, "Date was not updated" );
 			}
 		</cfscript>
 	</cffunction>
@@ -1171,7 +1171,7 @@
 
 			result = poService.selectData(
 				  objectname   = "object_b"
-				, filter       = "object_a.id = :object_a.id and DateDiff( #_getNowSql()#, object_d.datecreated ) <= :age"
+				, filter       = "object_a.id = :object_a.id and -1 <= :age"
 				, filterParams = { "object_a.id" = 2, age = { value = 0, type="cf_sql_integer" } }
 			);
 
