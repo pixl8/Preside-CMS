@@ -151,16 +151,17 @@
 	</cffunction>
 
 	<cffunction name="_emptyDatabase" access="private" returntype="any" output="false">
-		<cfset var tables = _getDbTables() />
-		<cfset var table  = "" />
-		<cfset var fks    = "" />
-		<cfset var fk     = "" />
+		<cfset var dbAdapter = _getDbAdapter() />
+		<cfset var tables    = _getDbTables() />
+		<cfset var table     = "" />
+		<cfset var fks       = "" />
+		<cfset var fk        = "" />
 
 		<cfloop list="#tables#" index="table">
 			<cfset fks = _getTableForeignKeys( table ) />
 			<cfloop collection="#fks#" item="fk">
 				<cfquery datasource="#application.dsn#">
-					alter table #fks[fk].fk_table# drop foreign key #fk#
+					#dbAdapter.getDropForeignKeySql( foreignKeyName=fk, tableName=fks[fk].fk_table )#
 				</cfquery>
 			</cfloop>
 		</cfloop>
@@ -172,9 +173,23 @@
 	</cffunction>
 
 	<cffunction name="_getDbTables" access="private" returntype="string" output="false">
-		<cfset var tables = "" />
-		<cfdbinfo type="tables" name="tables" datasource="#application.dsn#" />
-		<cfreturn ValueList( tables.table_name ) />
+		<cfscript>
+			var tableInfo       = "";
+			var tables          = [];
+			var reservedSchemas = [ "sys", "information_schema" ]
+
+			dbinfo type="tables" name="tableInfo" datasource=application.dsn;
+
+			for( var table in tableInfo ){
+				var isInReservedSchema = reservedSchemas.find( table.table_schem ?: "" );
+				var isPhysicalTable    = ( table.table_type ?: "table" ) == "table";
+				if ( !isInReservedSchema && isPhysicalTable ) {
+					tables.append( table.table_name );
+				}
+			}
+
+			return tables.toList();
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="_getTableForeignKeys" access="private" returntype="struct" output="false">
@@ -252,6 +267,12 @@
 
 			return columns;
 		</cfscript>
+	</cffunction>
+
+	<cffunction name="_getDbAdapter" access="private" returntype="any" output="false">
+		<cfreturn new preside.system.services.database.adapters.AdapterFactory(
+			dbInfoService = new preside.system.services.database.DbInfoService()
+		).getAdapter( application.dsn ) />
 	</cffunction>
 
 </cfcomponent>
