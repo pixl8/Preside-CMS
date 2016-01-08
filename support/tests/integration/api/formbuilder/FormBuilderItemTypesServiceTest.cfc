@@ -135,6 +135,59 @@ component extends="testbox.system.BaseSpec"{
 				expect( categoriesAndTypes[1].types[2].isFormField ?: "" ).toBe( true  );
 				expect( categoriesAndTypes[1].types[3].isFormField ?: "" ).toBe( false );
 			} );
+
+			it( "should set a 'requiresConfiguration' setting for an input type to true when isFormField is true", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField="blah" }
+						, test      = { test=CreateUUId(), isFormField=false }
+					} }
+				};
+				var service = getService( config );
+
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
+
+				var categoriesAndTypes = service.getItemTypesByCategory();
+
+				expect( categoriesAndTypes.len()  ).toBe( 1 );
+				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
+				expect( categoriesAndTypes[1].types[1].requiresConfiguration ?: "" ).toBe( true  );
+				expect( categoriesAndTypes[1].types[2].requiresConfiguration ?: "" ).toBe( true  );
+				expect( categoriesAndTypes[1].types[3].requiresConfiguration ?: "" ).toBe( false );
+			} );
+
+			it( "should set a 'requiresConfiguration' setting for an input type to true when isFormField is false but a configuration form exists for the input type", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField=false }
+						, test      = { test=CreateUUId(), isFormField=false }
+					} }
+				};
+				var service = getService( config );
+
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
+
+				mockFormsService.$( "formExists" ).$args( "formbuilder.itemtypes.textinput" ).$results( true );
+				mockFormsService.$( "formExists" ).$args( "formbuilder.itemtypes.textarea" ).$results( true );
+				mockFormsService.$( "formExists" ).$args( "formbuilder.itemtypes.test" ).$results( true );
+
+				var categoriesAndTypes = service.getItemTypesByCategory();
+
+
+				expect( categoriesAndTypes.len()  ).toBe( 1 );
+				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
+				expect( categoriesAndTypes[1].types[1].requiresConfiguration ?: "" ).toBe( true );
+				expect( categoriesAndTypes[1].types[2].requiresConfiguration ?: "" ).toBe( true );
+				expect( categoriesAndTypes[1].types[3].requiresConfiguration ?: "" ).toBe( true );
+			} );
 		} );
 	}
 

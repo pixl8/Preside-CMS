@@ -11,10 +11,11 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @configuredTypesAndCategories.inject coldbox:setting:formbuilder.itemtypes
-	 *
+	 * @formsService.inject                 formsService
 	 */
-	public any function init( required struct configuredTypesAndCategories ) {
+	public any function init( required struct configuredTypesAndCategories, required any formsService ) {
 		_setConfiguredTypesAndCategories( arguments.configuredTypesAndCategories );
+		_setFormsService( arguments.formsService );
 
 		return this;
 	}
@@ -47,7 +48,8 @@ component {
 
 				category.types.append( type );
 
-				type.isFormField = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
+				type.isFormField           = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
+				type.requiresConfiguration = type.isFormField || _getFormsService().formExists( "formbuilder.itemtypes.#typeid#" );
 			}
 
 			category.types.sort( function( a, b ){
@@ -75,6 +77,13 @@ component {
 	}
 	private void function _setConfiguredTypesAndCategories( required struct configuredTypesAndCategories ) {
 		_configuredTypesAndCategories = arguments.configuredTypesAndCategories;
+	}
+
+	private any function _getFormsService() {
+		return _formsService;
+	}
+	private void function _setFormsService( required any formsService ) {
+		_formsService = arguments.formsService;
 	}
 
 }
