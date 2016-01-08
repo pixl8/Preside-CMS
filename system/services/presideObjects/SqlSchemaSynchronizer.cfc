@@ -285,6 +285,10 @@ component output=false singleton=true {
 		var deDeprecateSql = "";
 		var newName        = "";
 
+		// MySQL particularly can get its knickers in a twist with foreign keys.
+		// Drop all foreign keys before messing with table modifications
+		_dropAllForeignKeysForTable( columnsFromDb, arguments.tableName, arguments.dsn );
+
 		for( column in columnsFromDb ){
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
 				columnName = Replace( column.column_name, "__deprecated__", "" );
@@ -310,9 +314,6 @@ component output=false singleton=true {
 					}
 
 					if ( not StructKeyExists( columnVersions, columnName ) or colSql.version neq columnVersions[ columnName ] ) {
-						if ( column.is_foreignkey ){
-							_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=columnName, dsn=arguments.dsn );
-						}
 						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 						_setDatabaseObjectVersion(
 							  entityType   = "column"
@@ -323,10 +324,6 @@ component output=false singleton=true {
 						);
 					}
 				} else if ( !column.column_name contains "__deprecated__" ) {
-					if ( column.is_foreignkey ){
-						_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=column.column_name, dsn=arguments.dsn );
-					}
-
 					newName = "__deprecated__" & column.column_name;
 					if ( !adapter.supportsRenameInAlterColumnStatement() ) {
 						renameSql = adapter.getRenameColumnSql(
@@ -433,6 +430,19 @@ component output=false singleton=true {
 				sql = adapter.getDropForeignKeySql( tableName = key.fk_table, foreignKeyName = keyName );
 
 				_runSql( sql = sql, dsn = arguments.dsn );
+			}
+		}
+	}
+
+	private void function _dropAllForeignKeysForTable( required query tableColumns, required string tableName, required string dsn ) {
+		for( var column in arguments.tableColumns ){
+			if ( column.is_foreignkey ){
+				_deleteForeignKeysForColumn(
+					  primaryTableName  = column.referenced_primarykey_table
+					, foreignTableName  = arguments.tableName
+					, foreignColumnName = column.column_name
+					, dsn               = arguments.dsn
+				);
 			}
 		}
 	}
