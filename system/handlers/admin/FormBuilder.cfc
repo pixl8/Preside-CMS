@@ -58,6 +58,26 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="formbuilder:manageform.breadcrumb.title", data=[ prc.form.name ] )
 			, link  = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & prc.form.id )
 		);
+
+		event.includeData( {
+			  "formbuilderFormId"              = prc.form.id
+			, "formbuilderSaveNewItemEndpoint" = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
+		} );
+	}
+
+	public void function addItemAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+
+		configuration.delete( "formId"   );
+		configuration.delete( "itemType" );
+
+		var newId = formBuilderService.addItem(
+			  formId        = rc.formId   ?: ""
+			, itemType      = rc.itemType ?: ""
+			, configuration = configuration
+		);
+
+		event.renderData( type="plain", data=newId );
 	}
 
 	public void function editForm( event, rc, prc ) {
