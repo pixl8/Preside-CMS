@@ -53,4 +53,29 @@ component {
 
 		return result;
 	}
+
+	/**
+	 * Adds a new item to the form. Returns the ID of the
+	 * newly generated item
+	 *
+	 * @autodoc
+	 * @formId.hint        ID of the form to which to add the new item
+	 * @itemtype.hint      ID of the item type, e.g. 'content' or 'textarea', etc.
+	 * @configuration.hint Structure of configuration options for the item
+	 */
+	public string function addItem(
+		  required string formId
+		, required string itemType
+		, required struct configuration
+	) {
+		var formItemDao   = $getPresideObject( "formbuilder_formitem" );
+		var existingItems = formItemDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
+
+		return formItemDao.insertData( data={
+			  form          = arguments.formId
+			, item_type     = arguments.itemType
+			, configuration = SerializeJson( arguments.configuration )
+			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
+		} );
+	}
 }

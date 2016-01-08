@@ -105,14 +105,43 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "addItem", function(){
+
+			it( "should save passed item data to the given form with next available sort order value", function(){
+				var service       = getService();
+				var formId        = CreateUUId();
+				var itemtype      = "sometype";
+				var configuration = { test=true, configuration="nice" };
+				var newId         = CreateUUId();
+				var topSortOrder  = 5;
+
+				mockFormItemDao.$( "selectData" ).$args( filter={ form=formId }, selectFields=[ "Max( sort_order ) as max_sort_order" ] ).$results( QueryNew( "max_sort_order", "int", [[ topSortOrder ]]) );
+				mockFormItemDao.$( "insertData" ).$args( data={
+					  form          = formId
+					, item_type     = itemType
+					, configuration = SerializeJson( configuration )
+					, sort_order    = topSortOrder+1
+				} ).$results( newId );
+
+				expect( service.addItem(
+					  formId        = formId
+					, itemType      = itemType
+					, configuration = configuration
+				) ).toBe( newId );
+			} );
+
+		} );
 	}
 
 	private function getService() {
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService() );
 
 		variables.mockFormDao = CreateStub();
+		variables.mockFormItemDao = CreateStub();
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
+		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
 
 		return service;
 	}
