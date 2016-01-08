@@ -111,13 +111,43 @@ component extends="testbox.system.BaseSpec"{
 				expect( categoriesAndTypes[1].types[2].someConfig ?: "" ).toBe( config.standard.types.textinput.someConfig );
 				expect( categoriesAndTypes[1].types[3].test       ?: "" ).toBe( config.standard.types.test.test            );
 			} );
+
+			it( "should default a 'isFormField' setting for each input type to true", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField="blah" }
+						, test      = { test=CreateUUId(), isFormField=false }
+					} }
+				};
+				var service = getService( config );
+
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
+
+				var categoriesAndTypes = service.getItemTypesByCategory();
+
+				expect( categoriesAndTypes.len()  ).toBe( 1 );
+				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
+				expect( categoriesAndTypes[1].types[1].isFormField ?: "" ).toBe( true  );
+				expect( categoriesAndTypes[1].types[2].isFormField ?: "" ).toBe( true  );
+				expect( categoriesAndTypes[1].types[3].isFormField ?: "" ).toBe( false );
+			} );
 		} );
 	}
 
 	private function getService( struct configuration={} ) {
+		mockFormsService = CreateEmptyMock( "preside.system.services.forms.FormsService" );
+		mockFormsService.$( "formExists", false );
+
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderItemTypesService(
 			  configuredTypesAndCategories = arguments.configuration
+			, formsService                 = mockFormsService
 		) );
+
+
 
 		return service;
 	}

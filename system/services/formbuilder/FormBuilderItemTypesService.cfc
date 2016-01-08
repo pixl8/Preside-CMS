@@ -46,6 +46,8 @@ component {
 				type.title = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
 
 				category.types.append( type );
+
+				type.isFormField = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
 			}
 
 			category.types.sort( function( a, b ){
