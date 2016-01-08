@@ -1,4 +1,8 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -17,7 +21,7 @@ component output=false singleton=true {
 		, required boolean autoRunScripts
 		, required boolean autoRestoreDeprecatedFields
 
-	) output=false {
+	) {
 
 		_setAdapterFactory( arguments.adapterFactory );
 		_setSqlRunner( arguments.sqlRunner );
@@ -30,7 +34,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public void function synchronize( required array dsns, required struct objects ) output=false {
+	public void function synchronize( required array dsns, required struct objects ) {
 		var versions           = _getVersionsOfDatabaseObjects( arguments.dsns );
 		var objName            = "";
 		var obj                = "";
@@ -146,7 +150,7 @@ component output=false singleton=true {
 		, required string dbFieldList
 		,          struct relationships = {}
 
-	) output=false {
+	) {
 		var adapter   = _getAdapter( dsn = arguments.dsn );
 		var columnSql = "";
 		var colName   = "";
@@ -229,7 +233,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	private void function _createObjectInDb( required struct generatedSql, required string dsn ) output=false {
+	private void function _createObjectInDb( required struct generatedSql, required string dsn ) {
 		var columnName = "";
 		var column     = "";
 		var indexName  = "";
@@ -268,7 +272,7 @@ component output=false singleton=true {
 		, required string dsn
 		, required struct columnVersions
 
-	) output=false {
+	) {
 		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
 		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var dbColumnNames  = ValueList( columnsFromDb.column_name );
@@ -415,7 +419,7 @@ component output=false singleton=true {
 		, required string foreignColumnName
 		, required string dsn
 
-	) output=false {
+	) {
 		var keys    = "";
 		var keyName = "";
 		var key     = "";
@@ -447,7 +451,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _syncForeignKeys( required struct objects ) output=false {
+	private void function _syncForeignKeys( required struct objects ) {
 		var objName         = "";
 		var obj             = "";
 		var dbKeys          = "";
@@ -548,7 +552,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _enableFkChecks( required boolean enabled, required string dsn, required string tableName ) output=false {
+	private void function _enableFkChecks( required boolean enabled, required string dsn, required string tableName ) {
 		var adapter = _getAdapter( dsn=arguments.dsn );
 
 		if ( adapter.canToggleForeignKeyChecks() ) {
@@ -559,13 +563,13 @@ component output=false singleton=true {
 		}
 	}
 
-	private array function _getBuiltSqlScriptArray() output=false {
+	private array function _getBuiltSqlScriptArray() {
 		request._sqlSchemaSynchronizerSqlArray = request._sqlSchemaSynchronizerSqlArray ?: [];
 
 		return request._sqlSchemaSynchronizerSqlArray;
 	}
 
-	private array function _getVersionTableScriptArray() output=false {
+	private array function _getVersionTableScriptArray() {
 		request._sqlSchemaSynchronizerVersionSqlArray = request._sqlSchemaSynchronizerVersionSqlArray ?: [];
 
 		return request._sqlSchemaSynchronizerVersionSqlArray;
@@ -574,11 +578,11 @@ component output=false singleton=true {
 
 
 // SIMPLE PRIVATE PROXIES
-	private any function _getAdapter() output=false {
+	private any function _getAdapter() {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
 	}
 
-	private any function _runSql() output=false {
+	private any function _runSql() {
 		if ( _getAutoRunScripts() ) {
 			return _getSqlRunner().runSql( argumentCollection = arguments );
 		}
@@ -587,11 +591,11 @@ component output=false singleton=true {
 		sqlScripts.append( Duplicate( arguments ) );
 	}
 
-	private query function _getTableInfo() output=false {
+	private query function _getTableInfo() {
 		return _getDbInfoService().getTableInfo( argumentCollection = arguments );
 	}
 
-	private query function _getTableColumns() output=false {
+	private query function _getTableColumns() {
 		try {
 			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
 		} catch( any e ) {
@@ -603,7 +607,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _getTableIndexes() output=false {
+	private struct function _getTableIndexes() {
 		try {
 			return _getDbInfoService().getTableIndexes( argumentCollection = arguments );
 		} catch( any e ) {
@@ -615,7 +619,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _getTableForeignKeys() output=false {
+	private struct function _getTableForeignKeys() {
 		try {
 			return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
 		} catch( any e ) {
@@ -627,11 +631,11 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _getVersionsOfDatabaseObjects() output=false {
+	private struct function _getVersionsOfDatabaseObjects() {
 		return _getSchemaVersioningService().getVersions( argumentCollection = arguments );
 	}
 
-	private void function _setDatabaseObjectVersion() output=false {
+	private void function _setDatabaseObjectVersion() {
 		if ( _getAutoRunScripts() ) {
 			return _getSchemaVersioningService().setVersion( argumentCollection = arguments );
 		}
@@ -643,7 +647,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _ensureValidDbEntityNames( required struct objects ) output=false {
+	private void function _ensureValidDbEntityNames( required struct objects ) {
 		for( var objectName in arguments.objects ) {
 			var objMeta = arguments.objects[ objectName ].meta ?: {};
 			var adapter = _getAdapterFactory().getAdapter( objMeta.dsn ?: "" );
@@ -658,38 +662,38 @@ component output=false singleton=true {
 
 
 // GETTERS AND SETTERS
-	private any function _getAdapterFactory() output=false {
+	private any function _getAdapterFactory() {
 		return _adapterFactory;
 	}
-	private void function _setAdapterFactory( required any adapterFactory ) output=false {
+	private void function _setAdapterFactory( required any adapterFactory ) {
 		_adapterFactory = arguments.adapterFactory;
 	}
 
-	private any function _getSqlRunner() output=false {
+	private any function _getSqlRunner() {
 		return _sqlRunner;
 	}
-	private void function _setSqlRunner( required any sqlRunner ) output=false {
+	private void function _setSqlRunner( required any sqlRunner ) {
 		_sqlRunner = arguments.sqlRunner;
 	}
 
-	private any function _getDbInfoService() output=false {
+	private any function _getDbInfoService() {
 		return _dbInfoService;
 	}
-	private void function _setDbInfoService( required any dbInfoService ) output=false {
+	private void function _setDbInfoService( required any dbInfoService ) {
 		_dbInfoService = arguments.dbInfoService;
 	}
 
-	private any function _getSchemaVersioningService() output=false {
+	private any function _getSchemaVersioningService() {
 		return _schemaVersioningService;
 	}
-	private void function _setSchemaVersioningService( required any schemaVersioningService ) output=false {
+	private void function _setSchemaVersioningService( required any schemaVersioningService ) {
 		_schemaVersioningService = arguments.schemaVersioningService;
 	}
 
-	private boolean function _getAutoRunScripts() output=false {
+	private boolean function _getAutoRunScripts() {
 		return _autoRunScripts;
 	}
-	private void function _setAutoRunScripts( required boolean autoRunScripts ) output=false {
+	private void function _setAutoRunScripts( required boolean autoRunScripts ) {
 		_autoRunScripts = arguments.autoRunScripts;
 	}
 
