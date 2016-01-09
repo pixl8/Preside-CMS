@@ -10,7 +10,7 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredTypesAndCategories.inject coldbox:setting:formbuilder.itemtypes
+	 * @configuredTypesAndCategories.inject coldbox:setting:formbuilder.item-types
 	 * @formsService.inject                 formsService
 	 */
 	public any function init( required struct configuredTypesAndCategories, required any formsService ) {
@@ -49,7 +49,7 @@ component {
 				category.types.append( type );
 
 				type.isFormField           = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
-				type.requiresConfiguration = type.isFormField || _getFormsService().formExists( "formbuilder.itemtypes.#typeid#" );
+				type.requiresConfiguration = type.isFormField || _getFormsService().formExists( "formbuilder.item-types.#typeid#" );
 			}
 
 			category.types.sort( function( a, b ){
@@ -91,7 +91,7 @@ component {
 // PRIVATE HELPERS
 	private struct function _getItemTypeConfig( required string itemType ) {
 		var configured                = _getConfiguredTypesAndCategories();
-		var standardFormFieldFormName = "formbuilder.itemtypes.formfield";
+		var standardFormFieldFormName = "formbuilder.item-types.formfield";
 
 		for( var categoryId in configured ) {
 			var types = configured[ categoryId ].types ?: {};
@@ -103,7 +103,7 @@ component {
 					type.id                    = typeId;
 					type.title                 = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
 					type.isFormField           = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
-					type.configFormName        = "formbuilder.itemtypes.#typeid#";
+					type.configFormName        = "formbuilder.item-types.#typeid#";
 					type.configFormExists      = _getFormsService().formExists( type.configFormName );
 					type.requiresConfiguration = type.isFormField || type.configFormExists;
 

@@ -175,9 +175,9 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
 				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
 
-				mockFormsService.$( "formExists" ).$args( "formbuilder.itemtypes.textinput" ).$results( true );
-				mockFormsService.$( "formExists" ).$args( "formbuilder.itemtypes.textarea" ).$results( true );
-				mockFormsService.$( "formExists" ).$args( "formbuilder.itemtypes.test" ).$results( true );
+				mockFormsService.$( "formExists" ).$args( "formbuilder.item-types.textinput" ).$results( true );
+				mockFormsService.$( "formExists" ).$args( "formbuilder.item-types.textarea" ).$results( true );
+				mockFormsService.$( "formExists" ).$args( "formbuilder.item-types.test" ).$results( true );
 
 				var categoriesAndTypes = service.getItemTypesByCategory();
 
@@ -201,7 +201,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 				var service = getService( config );
 				var itemType = "content";
-				var expectedFormName = "formbuilder.itemtypes." & itemType;
+				var expectedFormName = "formbuilder.item-types." & itemType;
 
 				service.$( "$translateResource", "" );
 				mockFormsService.$( "formExists" ).$args( expectedFormName ).$results( true );
@@ -209,7 +209,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getConfigFormNameForItemType( itemType) ).toBe( expectedFormName );
 			} );
 
-			it( "should return 'formbuilder.itemtypes.formfield' when the type has no individual configuration but is a form field", function(){
+			it( "should return 'formbuilder.item-types.formfield' when the type has no individual configuration but is a form field", function(){
 				var config  = {
 					standard = { sortOrder=10, types={
 						  textinput = { someConfig=true }
@@ -219,8 +219,8 @@ component extends="testbox.system.BaseSpec"{
 				};
 				var service          = getService( config );
 				var itemType         = "textinput";
-				var itemTypeFormName = "formbuilder.itemtypes." & itemType;
-				var expectedFormName = "formbuilder.itemtypes.formfield";
+				var itemTypeFormName = "formbuilder.item-types." & itemType;
+				var expectedFormName = "formbuilder.item-types.formfield";
 
 				service.$( "$translateResource", "" );
 				mockFormsService.$( "formExists" ).$args( itemTypeFormName ).$results( false );
@@ -238,8 +238,8 @@ component extends="testbox.system.BaseSpec"{
 				};
 				var service          = getService( config );
 				var itemType         = "textinput";
-				var itemTypeFormName = "formbuilder.itemtypes." & itemType;
-				var fieldFormName    = "formbuilder.itemtypes.formfield";
+				var itemTypeFormName = "formbuilder.item-types." & itemType;
+				var fieldFormName    = "formbuilder.item-types.formfield";
 				var expectedFormName = CreateUUId();
 
 				service.$( "$translateResource", "" );
@@ -259,7 +259,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 				var service = getService( config );
 				var itemType = "spacer";
-				var expectedFormName = "formbuilder.itemtypes." & itemType;
+				var expectedFormName = "formbuilder.item-types." & itemType;
 
 				service.$( "$translateResource", "" );
 				mockFormsService.$( "formExists" ).$args( expectedFormName ).$results( false );
