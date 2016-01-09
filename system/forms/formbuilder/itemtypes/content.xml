@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.itemtypes.content:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="body" control="richeditor" required="true" />
+		</fieldset>
+	</tab>
+</form>

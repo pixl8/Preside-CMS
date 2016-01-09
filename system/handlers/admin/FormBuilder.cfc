@@ -62,7 +62,12 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			  "formbuilderFormId"              = prc.form.id
 			, "formbuilderSaveNewItemEndpoint" = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
+			, "formbuilderItemConfigEndpoint"  = event.buildAdminLink( linkTo="formbuilder.renderItemConfig" )
 		} );
+	}
+
+	public void function renderItemConfig( event, rc, prc ) {
+		event.renderData( data={ title="Test this stuff", body="This would be the config form" }, type="json" );
 	}
 
 	public void function addItemAction( event, rc, prc ) {

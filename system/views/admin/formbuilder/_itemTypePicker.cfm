@@ -9,7 +9,7 @@
 				<dt>#category.title#</dt>
 
 				<cfloop array="#category.types#" index="n" item="type">
-					<dd data-id="#type.id#" data-requires-configuration="#type.requiresConfiguration#" class="item-type">
+					<dd class="item-type" data-item-template="true" data-item-type="#type.id#" data-requires-configuration="#type.requiresConfiguration#">
 						<a>#type.title#</a>
 					</dd>
 				</cfloop>
