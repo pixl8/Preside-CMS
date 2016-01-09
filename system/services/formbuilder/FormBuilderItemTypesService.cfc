@@ -69,7 +69,64 @@ component {
 		return categories;
 	}
 
+	/**
+	 * Returns the configuration form name for the given item
+	 * type. If the item type is a form field, this form will
+	 * be a combination of the core formfield form + any custom
+	 * configuration for the item type itself.
+	 *
+	 * Returns an empty string when not a form field and when
+	 * no configuration exists.
+	 *
+	 * @autodoc
+	 * @itemType.hint The item type who's config form name you wish to retrieve
+	 *
+	 */
+	public string function getConfigFormNameForItemType( required string itemType ) {
+		var itemTypeConfig = _getItemTypeConfig( arguments.itemType );
+
+		return itemTypeConfig.configFormName ?: "";
+	}
+
 // PRIVATE HELPERS
+	private struct function _getItemTypeConfig( required string itemType ) {
+		var configured                = _getConfiguredTypesAndCategories();
+		var standardFormFieldFormName = "formbuilder.itemtypes.formfield";
+
+		for( var categoryId in configured ) {
+			var types = configured[ categoryId ].types ?: {};
+
+			for( var typeId in types ) {
+				if ( typeId == itemType ) {
+					var type = types[ typeId ];
+
+					type.id                    = typeId;
+					type.title                 = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
+					type.isFormField           = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
+					type.configFormName        = "formbuilder.itemtypes.#typeid#";
+					type.configFormExists      = _getFormsService().formExists( type.configFormName );
+					type.requiresConfiguration = type.isFormField || type.configFormExists;
+
+					if ( type.requiresConfiguration ) {
+						if ( type.configFormExists && type.isFormField ) {
+							type.configFormName = _getFormsService().getMergedFormName(
+								  formName          = standardFormFieldFormName
+								, mergeWithFormName = type.configFormName
+							);
+						} else if ( type.isFormField ) {
+							type.configFormName = standardFormFieldFormName;
+						}
+					} else {
+						type.configFormName = "";
+					}
+
+					return type;
+				}
+			}
+		}
+
+		return {};
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTypesAndCategories() {

@@ -189,6 +189,98 @@ component extends="testbox.system.BaseSpec"{
 				expect( categoriesAndTypes[1].types[3].requiresConfiguration ?: "" ).toBe( true );
 			} );
 		} );
+
+		describe( "getConfigFormNameForItemType", function(){
+			it( "should return form name based on convention when item type is not a form control", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField=false }
+						, content   = { isFormField=false }
+					} }
+				};
+				var service = getService( config );
+				var itemType = "content";
+				var expectedFormName = "formbuilder.itemtypes." & itemType;
+
+				service.$( "$translateResource", "" );
+				mockFormsService.$( "formExists" ).$args( expectedFormName ).$results( true );
+
+				expect( service.getConfigFormNameForItemType( itemType) ).toBe( expectedFormName );
+			} );
+
+			it( "should return 'formbuilder.itemtypes.formfield' when the type has no individual configuration but is a form field", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField=false }
+						, content   = { isFormField=false }
+					} }
+				};
+				var service          = getService( config );
+				var itemType         = "textinput";
+				var itemTypeFormName = "formbuilder.itemtypes." & itemType;
+				var expectedFormName = "formbuilder.itemtypes.formfield";
+
+				service.$( "$translateResource", "" );
+				mockFormsService.$( "formExists" ).$args( itemTypeFormName ).$results( false );
+
+				expect( service.getConfigFormNameForItemType( itemType) ).toBe( expectedFormName );
+			} );
+
+			it( "should return merged formname when itemtype is both a form field and has its own custom config form", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField=false }
+						, content   = { isFormField=false }
+					} }
+				};
+				var service          = getService( config );
+				var itemType         = "textinput";
+				var itemTypeFormName = "formbuilder.itemtypes." & itemType;
+				var fieldFormName    = "formbuilder.itemtypes.formfield";
+				var expectedFormName = CreateUUId();
+
+				service.$( "$translateResource", "" );
+				mockFormsService.$( "formExists" ).$args( itemTypeFormName ).$results( true );
+				mockFormsService.$( "getMergedFormName" ).$args( formName=fieldFormName, mergeWithFormName=itemTypeFormName ).$results( expectedFormName );
+
+				expect( service.getConfigFormNameForItemType( itemType) ).toBe( expectedFormName );
+			} );
+
+			it( "should return an empty string when the item type has no configuration", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField=false }
+						, spacer   = { isFormField=false }
+					} }
+				};
+				var service = getService( config );
+				var itemType = "spacer";
+				var expectedFormName = "formbuilder.itemtypes." & itemType;
+
+				service.$( "$translateResource", "" );
+				mockFormsService.$( "formExists" ).$args( expectedFormName ).$results( false );
+
+				expect( service.getConfigFormNameForItemType( itemType) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the item type does not exist", function(){
+				var config  = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true }
+						, textarea  = { moreConfig="test", isFormField=false }
+						, spacer   = { isFormField=false }
+					} }
+				};
+				var service = getService( config );
+				var itemType = "nonexistant";
+
+				expect( service.getConfigFormNameForItemType( itemType) ).toBe( "" );
+			} );
+		} );
 	}
 
 	private function getService( struct configuration={} ) {
