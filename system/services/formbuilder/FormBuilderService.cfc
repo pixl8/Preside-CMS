@@ -42,14 +42,13 @@ component {
 	 */
 	public array function getFormItems( required string id ) {
 		var result = [];
-		var items  = $getPresideObject( "formbuilder_form" ).selectData(
-			  id           = arguments.id
-			, sortOrder    = "items.sort_order"
-			, forceJoins   = "inner"
+		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  filter       = { form=arguments.id }
+			, sortOrder    = "sort_order"
 			, selectFields = [
-				  "items.id"
-				, "items.item_type"
-				, "items.configuration"
+				  "id"
+				, "item_type"
+				, "configuration"
 			  ]
 		);
 

@@ -29,14 +29,13 @@ component extends="testbox.system.BaseSpec"{
 				var service = getService();
 				var formId  = CreateUUId();
 
-				mockFormDao.$( "selectData" ).$args(
-					  id           = formId
-					, sortOrder    = "items.sort_order"
-					, forceJoins   = "inner"
+				mockFormItemDao.$( "selectData" ).$args(
+					  filter       = { form=formId }
+					, sortOrder    = "sort_order"
 					, selectFields = [
-						  "items.id"
-						, "items.item_type"
-						, "items.configuration"
+						  "id"
+						, "item_type"
+						, "configuration"
 					  ]
 				).$results( QueryNew( '' ) );
 
@@ -72,14 +71,13 @@ component extends="testbox.system.BaseSpec"{
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
 				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
 
-				mockFormDao.$( "selectData" ).$args(
-					  id           = formId
-					, sortOrder    = "items.sort_order"
-					, forceJoins   = "inner"
+				mockFormItemDao.$( "selectData" ).$args(
+					  filter       = { form=formId }
+					, sortOrder    = "sort_order"
 					, selectFields = [
-						  "items.id"
-						, "items.item_type"
-						, "items.configuration"
+						  "id"
+						, "item_type"
+						, "configuration"
 					  ]
 				).$results( dummyData );
 
@@ -95,14 +93,13 @@ component extends="testbox.system.BaseSpec"{
 				var expectedResult = { cat="dog", test=true };
 
 				mockItemTypesService.$( "getItemTypeConfig", {} );
-				mockFormDao.$( "selectData" ).$args(
-					  id           = formId
-					, sortOrder    = "items.sort_order"
-					, forceJoins   = "inner"
+				mockFormItemDao.$( "selectData" ).$args(
+					  filter       = { form=formId }
+					, sortOrder    = "sort_order"
 					, selectFields = [
-						  "items.id"
-						, "items.item_type"
-						, "items.configuration"
+						  "id"
+						, "item_type"
+						, "configuration"
 					  ]
 				).$results( dummyData );
 
