@@ -62,12 +62,20 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			  "formbuilderFormId"              = prc.form.id
 			, "formbuilderSaveNewItemEndpoint" = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
-			, "formbuilderItemConfigEndpoint"  = event.buildAdminLink( linkTo="formbuilder.renderItemConfig" )
 		} );
 	}
 
-	public void function renderItemConfig( event, rc, prc ) {
-		event.renderData( data={ title="Test this stuff", body="This would be the config form" }, type="json" );
+	public void function itemConfigDialog( event, rc, prc ) {
+		prc.itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
+		prc.pageTitle      = translateResource( uri="formbuilder:itemconfig.dialog.title"   , data=[ prc.itemTypeConfig.title ] );
+		prc.pageSubTitle   = translateResource( uri="formbuilder:itemconfig.dialog.subtitle", data=[ prc.itemTypeConfig.title ] );
+		prc.pageIcon       = "cog";
+
+		if ( !prc.itemTypeConfig.count() ) {
+			event.adminNotFound();
+		}
+
+		event.setLayout( "adminModalDialog" );
 	}
 
 	public void function addItemAction( event, rc, prc ) {

@@ -1,0 +1,1 @@
+{"version":3,"sources":["dialogActionHandlers.js"],"names":["$","$configForm","window","isFormBuilderItemConfigValid","valid","getFormBuilderItemConfig","serializeObject","presideJQuery"],"mappings":"CAAA,SAAYA,GAEX,GAAIC,GAAcD,EAAG,gCAErBE,QAAOC,6BAA+B,WACrC,MAAOF,GAAYG,SAGpBF,OAAOG,yBAA2B,WACjC,MAAOJ,GAAYK,oBAGhBC","file":"_itemConfigDialog.min.js"}

@@ -13,7 +13,6 @@
 	  , $instructions       = $( ".instructions" )
 	  , formId              = cfrequest.formbuilderFormId
 	  , saveNewItemEndpoint = cfrequest.formbuilderSaveNewItemEndpoint
-	  , itemConfigEndpoint  = cfrequest.formbuilderItemConfigEndpoint
 	  , setupDragAndDropBehaviour
 	  , addItemFromDropZone
 	  , sortableStop
@@ -84,36 +83,29 @@
 	};
 
 	launchConfiguration = function( $item ){
-		var launchModal
+		var itemData = $item.data()
 		  , onCancelDialog
+		  , onIFrameLoad
 		  , onDialogOk
 		  , modal
-		  , itemData = $item.data();
+		  , modalIframe;
 
-		launchModal = function( data ) {
-			var modalConfig = {
-				  title     : data.title
-				, message   : data.body
-				, className : ""
-				, buttons   : {}
-				, show      : true
-			};
+		onDialogOk = function(){
+			if ( !modalIframe.isFormBuilderItemConfigValid() ) {
+				return false;
+			}
 
-			modalConfig.buttons.cancel = {
-				label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" ),
-				className : "btn-default",
-				callback  : onCancelDialog
-			};
-			modalConfig.buttons.ok = {
-				label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" ),
-				className : "btn-primary",
-				callback  : onDialogOk
-			};
+			var config = modalIframe.getFormBuilderItemConfig();
 
-			modal = presideBootbox.dialog( modalConfig );
+			if ( typeof itemData.id === "undefined" ) {
+				saveNewItem( itemData.itemType, config, function( itemId ){
+					$item.data( "id", itemId );
+
+					// todo, render item post save
+					// todo, save order of all items
+				} );
+			}
 		};
-
-		onDialogOk = function(){ alert( "onDialogOk" ); };
 
 		onCancelDialog = function(){
 			var itemData = $item.data();
@@ -123,16 +115,21 @@
 			}
 		};
 
-		$.ajax( itemConfigEndpoint, {
-			  method  : "POST"
-			, cache   : false
-			, success : launchModal
-			, data    : {
-				  itemType : itemData.itemType
-				, id       : ( itemData.id || "" )
-			}
+		onIFrameLoad = function( iframe ){
+			modalIframe = iframe;
+		};
+
+		modal = new PresideIframeModal( itemData.configEndpoint, "100%", "100%", {
+	  		  onLoad   : onIFrameLoad
+	  		, onok     : onDialogOk
+	  		, oncancel : onCancelDialog
+		}, {
+			  title      : itemData.configTitle
+			, className  : "full-screen-dialog"
+			, buttonList : [ "ok", "cancel" ]
 		} );
 
+		modal.open();
 	};
 
 	setupDragAndDropBehaviour();

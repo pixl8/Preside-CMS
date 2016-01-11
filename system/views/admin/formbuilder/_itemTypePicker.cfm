@@ -1,6 +1,4 @@
-<cfscript>
-	itemTypesByCategory = args.itemTypesByCategory ?: [];
-</cfscript>
+<cfset itemTypesByCategory = args.itemTypesByCategory ?: [] />
 
 <cfoutput>
 	<div class="formbuilder-item-type-picker">
@@ -9,7 +7,12 @@
 				<dt>#category.title#</dt>
 
 				<cfloop array="#category.types#" index="n" item="type">
-					<dd class="item-type" data-item-template="true" data-item-type="#type.id#" data-requires-configuration="#type.requiresConfiguration#">
+					<dd class="item-type"
+					    data-item-template="true"
+					    data-item-type="#type.id#"
+					    data-requires-configuration="#type.requiresConfiguration#"
+					    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#type.id#' )#"
+					    data-config-title="#translateResource( uri="formbuilder:itemconfig.modal.title", data=[ type.title ] )#">
 						<a>#type.title#</a>
 					</dd>
 				</cfloop>

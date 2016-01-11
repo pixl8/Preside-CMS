@@ -10,7 +10,7 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredTypesAndCategories.inject coldbox:setting:formbuilder.item-types
+	 * @configuredTypesAndCategories.inject coldbox:setting:formbuilder.itemtypes
 	 * @formsService.inject                 formsService
 	 */
 	public any function init( required struct configuredTypesAndCategories, required any formsService ) {
@@ -83,13 +83,18 @@ component {
 	 *
 	 */
 	public string function getConfigFormNameForItemType( required string itemType ) {
-		var itemTypeConfig = _getItemTypeConfig( arguments.itemType );
+		var itemTypeConfig = getItemTypeConfig( arguments.itemType );
 
 		return itemTypeConfig.configFormName ?: "";
 	}
 
-// PRIVATE HELPERS
-	private struct function _getItemTypeConfig( required string itemType ) {
+	/**
+	 * Returns configuration struct for the given item type
+	 *
+	 * @autodoc
+	 * @itemType.hint the item type who's configuration you wish to retrieve
+	 */
+	public struct function getItemTypeConfig( required string itemType ) {
 		var configured                = _getConfiguredTypesAndCategories();
 		var standardFormFieldFormName = "formbuilder.item-types.formfield";
 
