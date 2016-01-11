@@ -132,13 +132,96 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "validateItemConfig", function(){
+
+			it( "should do a standard preside validation based on the configuration form for the item type", function(){
+ 				var service              = getService();
+ 				var itemType             = "textarea";
+ 				var formName             = "someform" & CreateUUId();
+ 				var itemTypeConfig       = { isFormField=false, configFormName=formName, requiresConfiguration=true };
+ 				var config               = { name="something", test=true };
+ 				var mockValidationResult = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+
+ 				mockItemTypesService.$( "getItemTypeConfig" ).$args( itemType ).$results( itemTypeConfig );
+ 				mockValidationEngine.$( "newValidationResult", mockValidationResult );
+ 				mockFormsService.$( "validateForm" ).$args( formName=formName, formData=config, validationResult=mockValidationResult ).$results( mockValidationResult );
+
+ 				expect( service.validateItemConfig(
+ 					  formId   = CreateUUId()
+ 					, itemId   = CreateUUId()
+ 					, itemType = itemType
+ 					, config   = config
+ 				) ).toBe( mockValidationResult );
+
+			} );
+
+			it( "should return fresh validation result when the item type has no configuration", function(){
+				var service              = getService();
+ 				var itemType             = "textarea";
+ 				var itemTypeConfig       = { isFormField=false, configFormName="", requiresConfiguration=false };
+ 				var config               = {};
+ 				var mockValidationResult = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+
+ 				mockItemTypesService.$( "getItemTypeConfig" ).$args( itemType ).$results( itemTypeConfig );
+ 				mockValidationEngine.$( "newValidationResult", mockValidationResult );
+
+ 				expect( service.validateItemConfig(
+ 					  formId   = CreateUUId()
+ 					, itemId   = CreateUUId()
+ 					, itemType = itemType
+ 					, config   = config
+ 				) ).toBe( mockValidationResult );
+			} );
+
+			it( "it should fail validation on the uniqueness of the 'name' config field when the item is a form field and an item with that name alread exists", function(){
+				var service              = getService();
+ 				var itemType             = "textarea";
+ 				var formName             = "someform" & CreateUUId();
+ 				var itemTypeConfig       = { isFormField=true, configFormName=formName, requiresConfiguration=true };
+ 				var config               = { name="something", test=true };
+ 				var mockValidationResult = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+ 				var formId               = CreateUUId();
+				var itemId               = CreateUUId();
+ 				var dummyExistingResults = QueryNew( "configuration", "varchar", [[SerializeJson({ name="test" })],[SerializeJson({ name="something" })]]);
+
+ 				mockValidationResult.$( "addError" );
+ 				mockItemTypesService.$( "getItemTypeConfig" ).$args( itemType ).$results( itemTypeConfig );
+ 				mockValidationEngine.$( "newValidationResult", mockValidationResult );
+ 				mockFormsService.$( "validateForm" ).$args( formName=formName, formData=config, validationResult=mockValidationResult ).$results( mockValidationResult );
+ 				mockFormItemDao.$( "selectData" ).$args(
+ 					  filter       = "form = :form and id != :id"
+ 					, filterParams = { form=formId, id=itemId }
+ 					, selectFields = [ "configuration" ]
+ 				).$results( dummyExistingResults );
+
+ 				expect( service.validateItemConfig(
+ 					  formId   = formId
+ 					, itemId   = itemId
+ 					, itemType = itemType
+ 					, config   = config
+ 				) ).toBe( mockValidationResult );
+
+ 				var callLog = mockValidationResult.$callLog().addError;
+ 				expect( callLog.len() ).toBe( 1 );
+ 				expect( callLog[ 1 ] ).toBe( { fieldName="name", message="formbuilder:validation.non.unique.field.name" } );
+			} );
+
+		} );
 	}
 
 	private function getService() {
-		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService() );
+		variables.mockFormDao          = CreateStub();
+		variables.mockFormItemDao      = CreateStub();
+		variables.mockItemTypesService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
+		variables.mockFormsService     = CreateEmptyMock( "preside.system.services.forms.FormsService" );
+		variables.mockValidationEngine = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
 
-		variables.mockFormDao = CreateStub();
-		variables.mockFormItemDao = CreateStub();
+		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
+			  itemTypesService = mockItemTypesService
+			, formsService     = mockFormsService
+			, validationEngine = mockValidationEngine
+		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );

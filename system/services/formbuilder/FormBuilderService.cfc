@@ -8,7 +8,17 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @itemTypesService.inject formbuilderItemTypesService
+	 * @formsService.inject     formsService
+	 * @validationEngine.inject validationEngine
+	 *
+	 */
+	public any function init( required any itemTypesService, required any formsService, required any validationEngine ) {
+		_setItemTypesService( arguments.itemTypesService );
+		_setFormsService( arguments.formsService );
+		_setValidationEngine( arguments.validationEngine );
+
 		return this;
 	}
 
@@ -77,5 +87,87 @@ component {
 			, configuration = SerializeJson( arguments.configuration )
 			, sort_order    = Val( existingItems.max_sort_order ?: "" ) + 1
 		} );
+	}
+
+	/**
+	 * Validates the configuration for an item within a form. Returns
+	 * a Preside validation result object.
+	 *
+	 * @autodoc
+	 * @formId.hint   ID of the form to which the item belongs / will belong
+	 * @itemType.hint Type of the form item, e.g. 'textinput', 'content', etc.
+	 * @config.hint   Configuration struct to validate
+	 * @itemId.hint   ID of the form item, should it already exist
+	 *
+	 */
+	public any function validateItemConfig(
+		  required string formId
+		, required string itemType
+		, required struct config
+		,          string itemId = ""
+	) {
+		var itemTypeConfig   = _getItemTypesService().getItemTypeConfig( itemType );
+		var validationResult = _getValidationEngine().newValidationResult();
+
+		if ( itemTypeConfig.requiresConfiguration ) {
+			validationResult = _getFormsService().validateForm(
+				  formName         = itemTypeConfig.configFormName
+				, formData         = config
+				, validationResult = validationResult
+			);
+
+			if ( itemTypeConfig.isFormField && Len( Trim( arguments.config.name ?: "" ) ) ) {
+				_validateFieldNameIsUniqueForFormItem( argumentCollection=arguments, validationResult=validationResult );
+			}
+		}
+
+		return validationResult;
+	}
+
+// PRIVATE HELPERS
+	private void function _validateFieldNameIsUniqueForFormItem(
+		  required string formId
+		, required struct config
+		, required string itemId
+		, required any    validationResult
+	) {
+		var existingItems = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  filter       = "form = :form and id != :id"
+			, filterParams = { form=arguments.formid, id=arguments.itemId }
+			, selectFields = [ "configuration" ]
+		);
+
+		for( var item in existingItems ) {
+			try {
+				item = DeserializeJson( item.configuration )
+			} catch ( any e ) {
+				item = {};
+			}
+			if ( item.name == arguments.config.name ) {
+				validationResult.addError( fieldName="name", message="formbuilder:validation.non.unique.field.name" );
+			}
+		}
+	}
+
+// GETTERS AND SETTERS
+	private any function _getItemTypesService() {
+		return _itemTypesService;
+	}
+	private void function _setItemTypesService( required any itemTypesService ) {
+		_itemTypesService = arguments.itemTypesService;
+	}
+
+	private any function _getFormsService() {
+		return _formsService;
+	}
+	private void function _setFormsService( required any formsService ) {
+		_formsService = arguments.formsService;
+	}
+
+	private any function _getValidationEngine() {
+		return _validationEngine;
+	}
+	private void function _setValidationEngine( required any validationEngine ) {
+		_validationEngine = arguments.validationEngine;
 	}
 }
