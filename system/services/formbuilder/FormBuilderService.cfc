@@ -151,7 +151,7 @@ component {
 			} catch ( any e ) {
 				item = {};
 			}
-			if ( item.name == arguments.config.name ) {
+			if ( ( item.name ?: "" ) == arguments.config.name ) {
 				validationResult.addError( fieldName="name", message="formbuilder:validation.non.unique.field.name" );
 			}
 		}
