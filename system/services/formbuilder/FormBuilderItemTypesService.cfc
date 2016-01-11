@@ -22,6 +22,73 @@ component {
 
 // PUBLIC API
 	/**
+	 * Returns configuration struct for the given item type
+	 *
+	 * @autodoc
+	 * @itemType.hint the item type who's configuration you wish to retrieve
+	 */
+	public struct function getItemTypeConfig( required string itemType ) {
+		var cachedConfigurations = _getCachedItemTypeConfiguration();
+
+		if ( !cachedConfigurations.keyExists( arguments.itemType ) ) {
+			var configured                = _getConfiguredTypesAndCategories();
+			var standardFormFieldFormName = "formbuilder.item-types.formfield";
+			var found                     = false;
+
+			for( var categoryId in configured ) {
+				var types = configured[ categoryId ].types ?: {};
+
+				for( var typeId in types ) {
+					if ( typeId == itemType ) {
+						var type = types[ typeId ];
+
+						type.id                      = typeId;
+						type.title                   = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
+						type.isFormField             = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
+						type.configFormName          = "formbuilder.item-types.#typeid#";
+						type.configFormExists        = _getFormsService().formExists( type.configFormName );
+						type.adminPlaceholderViewlet = "renderers.formbuilder.item-types.#type.id#.adminPlaceholder";
+						type.requiresConfiguration   = type.isFormField || type.configFormExists;
+
+						if ( type.requiresConfiguration ) {
+							if ( type.configFormExists && type.isFormField ) {
+								type.configFormName = _getFormsService().getMergedFormName(
+									  formName          = standardFormFieldFormName
+									, mergeWithFormName = type.configFormName
+								);
+							} else if ( type.isFormField ) {
+								type.configFormName = standardFormFieldFormName;
+							}
+						} else {
+							type.configFormName = "";
+						}
+
+						if ( !$getColdbox().viewletExists( type.adminPlaceholderViewlet ) ) {
+							type.adminPlaceholderViewlet = "";
+						}
+
+						cachedConfigurations[ arguments.itemType ] = type;
+						found = true;
+						break;
+					}
+				}
+
+				if ( found ) {
+					break;
+				}
+			}
+
+			if ( !found ) {
+				cachedConfigurations[ arguments.itemType ] = {};
+			}
+
+			_setCachedItemTypeConfiguration( cachedConfigurations );
+		}
+
+		return cachedConfigurations[ arguments.itemType ];
+	}
+
+	/**
 	 * Returns an array of item categories each with child
 	 * item types. Categories ordered by defined sort order
 	 * and item types ordered by defined sort order
@@ -41,15 +108,9 @@ component {
 			var types = configured[ categoryId ].types ?: {};
 
 			for( var typeId in types ) {
-				var type = types[ typeId ];
-
-				type.id    = typeId;
-				type.title = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
+				var type = getItemTypeConfig( typeId );
 
 				category.types.append( type );
-
-				type.isFormField           = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
-				type.requiresConfiguration = type.isFormField || _getFormsService().formExists( "formbuilder.item-types.#typeid#" );
 			}
 
 			category.types.sort( function( a, b ){
@@ -88,67 +149,7 @@ component {
 		return itemTypeConfig.configFormName ?: "";
 	}
 
-	/**
-	 * Returns configuration struct for the given item type
-	 *
-	 * @autodoc
-	 * @itemType.hint the item type who's configuration you wish to retrieve
-	 */
-	public struct function getItemTypeConfig( required string itemType ) {
-		var cachedConfigurations = _getCachedItemTypeConfiguration();
 
-		if ( !cachedConfigurations.keyExists( arguments.itemType ) ) {
-			var configured                = _getConfiguredTypesAndCategories();
-			var standardFormFieldFormName = "formbuilder.item-types.formfield";
-			var found                     = false;
-
-			for( var categoryId in configured ) {
-				var types = configured[ categoryId ].types ?: {};
-
-				for( var typeId in types ) {
-					if ( typeId == itemType ) {
-						var type = types[ typeId ];
-
-						type.id                    = typeId;
-						type.title                 = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
-						type.isFormField           = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
-						type.configFormName        = "formbuilder.item-types.#typeid#";
-						type.configFormExists      = _getFormsService().formExists( type.configFormName );
-						type.requiresConfiguration = type.isFormField || type.configFormExists;
-
-						if ( type.requiresConfiguration ) {
-							if ( type.configFormExists && type.isFormField ) {
-								type.configFormName = _getFormsService().getMergedFormName(
-									  formName          = standardFormFieldFormName
-									, mergeWithFormName = type.configFormName
-								);
-							} else if ( type.isFormField ) {
-								type.configFormName = standardFormFieldFormName;
-							}
-						} else {
-							type.configFormName = "";
-						}
-
-						cachedConfigurations[ arguments.itemType ] = type;
-						found = true;
-						break;
-					}
-				}
-
-				if ( found ) {
-					break;
-				}
-			}
-
-			if ( !found ) {
-				cachedConfigurations[ arguments.itemType ] = {};
-			}
-
-			_setCachedItemTypeConfiguration( cachedConfigurations );
-		}
-
-		return cachedConfigurations[ arguments.itemType ];
-	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTypesAndCategories() {

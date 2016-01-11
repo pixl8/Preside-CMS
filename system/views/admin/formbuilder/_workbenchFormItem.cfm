@@ -10,7 +10,13 @@
 	    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#args.type.id#&itemid=#args.id#' )#"
 	    data-config-title="#translateResource( uri='formbuilder:itemconfig.modal.title', data=[ args.type.title ] )#">
 
-		<div class="pull-left">#args.type.title#</div>
+		<div class="pull-left">
+			<cfif args.type.adminPlaceholderViewlet.len()>
+				#renderViewlet( event=args.type.adminPlaceholderViewlet, args=args )#
+			<cfelse>
+				#args.type.title#
+			</cfif>
+		</div>
 		<div class="pull-right">
 			<div class="action-buttons btn-group">
 				<a href="##">

@@ -1,6 +1,76 @@
 component extends="testbox.system.BaseSpec"{
 
 	function run(){
+		describe( "getItemTypeConfig", function(){
+			it( "should include any configuration defined in the configuration struct for the given type", function(){
+				var serviceConfig = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true, morenonStandardConfig=CreateUUId() }
+						, textarea  = { moreConfig="test" }
+						, test      = { test=CreateUUId() }
+					} }
+				};
+				var service        = getService( serviceConfig );
+				var itemTypeConfig = service.getItemTypeConfig( "textinput" );
+
+
+				expect( itemTypeConfig.someConfig            ?: "" ).toBe( serviceConfig.standard.types.textinput.someConfig );
+				expect( itemTypeConfig.morenonStandardConfig ?: "" ).toBe( serviceConfig.standard.types.textinput.morenonStandardConfig );
+			} );
+
+			it( "should default a 'isFormField' setting to true when it doesn't already exist", function(){
+				var serviceConfig = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true, morenonStandardConfig=CreateUUId() }
+						, textarea  = { moreConfig="test" }
+						, test      = { test=CreateUUId() }
+					} }
+				};
+				var service        = getService( serviceConfig );
+				var itemTypeConfig = service.getItemTypeConfig( "test" );
+
+				expect( itemTypeConfig.isFormField ?: "" ).toBe( true );
+			} );
+
+			it( "should return a 'adminPlaceholderViewlet' setting derived by convention when the viewlet exists", function(){
+				var serviceConfig = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true, morenonStandardConfig=CreateUUId() }
+						, textarea  = { moreConfig="test" }
+						, test      = { test=CreateUUId() }
+					} }
+				};
+				var expectedViewlet = "renderers.formbuilder.item-types.test.adminPlaceholder";
+				var service         = getService( serviceConfig );
+
+				mockColdbox.$( "viewletExists" ).$args( expectedViewlet ).$results( true );
+
+
+				var itemTypeConfig = service.getItemTypeConfig( "test" );
+
+				expect( itemTypeConfig.adminPlaceholderViewlet ?: "" ).toBe( expectedViewlet );
+			} );
+
+			it( "should return a 'adminPlaceholderViewlet' setting that is empty the convention based viewlet does not exist", function(){
+				var serviceConfig = {
+					standard = { sortOrder=10, types={
+						  textinput = { someConfig=true, morenonStandardConfig=CreateUUId() }
+						, textarea  = { moreConfig="test" }
+						, test      = { test=CreateUUId() }
+					} }
+				};
+				var expectedViewlet = "renderers.formbuilder.item-types.test.adminPlaceholder";
+				var service         = getService( serviceConfig );
+
+				mockColdbox.$( "viewletExists" ).$args( expectedViewlet ).$results( false );
+
+
+				var itemTypeConfig = service.getItemTypeConfig( "test" );
+
+				expect( itemTypeConfig.adminPlaceholderViewlet ?: "" ).toBe( "" );
+			} );
+		} );
+
 		describe( "getItemTypesByCategory", function(){
 
 			it( "should return an empty array when there are no configured types", function(){
@@ -86,107 +156,6 @@ component extends="testbox.system.BaseSpec"{
 				expect( categoriesAndTypes[1].types[2].title ).toBe( "Text input" );
 				expect( categoriesAndTypes[1].types[3].id    ).toBe( "test"       );
 				expect( categoriesAndTypes[1].types[3].title ).toBe( "Zzzzz"      );
-			} );
-
-			it( "should include any defined configuration for each type in the returned type structure", function(){
-				var config  = {
-					standard = { sortOrder=10, types={
-						  textinput = { someConfig=true }
-						, textarea  = { moreConfig="test" }
-						, test      = { test=CreateUUId() }
-					} }
-				};
-				var service = getService( config );
-
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
-
-				var categoriesAndTypes = service.getItemTypesByCategory();
-
-				expect( categoriesAndTypes.len()  ).toBe( 1 );
-				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
-				expect( categoriesAndTypes[1].types[1].moreConfig ?: "" ).toBe( config.standard.types.textarea.moreConfig  );
-				expect( categoriesAndTypes[1].types[2].someConfig ?: "" ).toBe( config.standard.types.textinput.someConfig );
-				expect( categoriesAndTypes[1].types[3].test       ?: "" ).toBe( config.standard.types.test.test            );
-			} );
-
-			it( "should default a 'isFormField' setting for each input type to true", function(){
-				var config  = {
-					standard = { sortOrder=10, types={
-						  textinput = { someConfig=true }
-						, textarea  = { moreConfig="test", isFormField="blah" }
-						, test      = { test=CreateUUId(), isFormField=false }
-					} }
-				};
-				var service = getService( config );
-
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
-
-				var categoriesAndTypes = service.getItemTypesByCategory();
-
-				expect( categoriesAndTypes.len()  ).toBe( 1 );
-				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
-				expect( categoriesAndTypes[1].types[1].isFormField ?: "" ).toBe( true  );
-				expect( categoriesAndTypes[1].types[2].isFormField ?: "" ).toBe( true  );
-				expect( categoriesAndTypes[1].types[3].isFormField ?: "" ).toBe( false );
-			} );
-
-			it( "should set a 'requiresConfiguration' setting for an input type to true when isFormField is true", function(){
-				var config  = {
-					standard = { sortOrder=10, types={
-						  textinput = { someConfig=true }
-						, textarea  = { moreConfig="test", isFormField="blah" }
-						, test      = { test=CreateUUId(), isFormField=false }
-					} }
-				};
-				var service = getService( config );
-
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
-
-				var categoriesAndTypes = service.getItemTypesByCategory();
-
-				expect( categoriesAndTypes.len()  ).toBe( 1 );
-				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
-				expect( categoriesAndTypes[1].types[1].requiresConfiguration ?: "" ).toBe( true  );
-				expect( categoriesAndTypes[1].types[2].requiresConfiguration ?: "" ).toBe( true  );
-				expect( categoriesAndTypes[1].types[3].requiresConfiguration ?: "" ).toBe( false );
-			} );
-
-			it( "should set a 'requiresConfiguration' setting for an input type to true when isFormField is false but a configuration form exists for the input type", function(){
-				var config  = {
-					standard = { sortOrder=10, types={
-						  textinput = { someConfig=true }
-						, textarea  = { moreConfig="test", isFormField=false }
-						, test      = { test=CreateUUId(), isFormField=false }
-					} }
-				};
-				var service = getService( config );
-
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-categories:standard.title", defaultValue="standard" ).$results( "Standard" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textinput:title", defaultValue="textinput" ).$results( "Text input" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.textarea:title", defaultValue="textarea" ).$results( "Text area" );
-				service.$( "$translateResource" ).$args( uri="formbuilder.item-types.test:title", defaultValue="test" ).$results( "Zzzzz" );
-
-				mockFormsService.$( "formExists" ).$args( "formbuilder.item-types.textinput" ).$results( true );
-				mockFormsService.$( "formExists" ).$args( "formbuilder.item-types.textarea" ).$results( true );
-				mockFormsService.$( "formExists" ).$args( "formbuilder.item-types.test" ).$results( true );
-
-				var categoriesAndTypes = service.getItemTypesByCategory();
-
-
-				expect( categoriesAndTypes.len()  ).toBe( 1 );
-				expect( categoriesAndTypes[1].types.len() ).toBe( 3 );
-				expect( categoriesAndTypes[1].types[1].requiresConfiguration ?: "" ).toBe( true );
-				expect( categoriesAndTypes[1].types[2].requiresConfiguration ?: "" ).toBe( true );
-				expect( categoriesAndTypes[1].types[3].requiresConfiguration ?: "" ).toBe( true );
 			} );
 		} );
 
@@ -285,6 +254,7 @@ component extends="testbox.system.BaseSpec"{
 
 	private function getService( struct configuration={} ) {
 		mockFormsService = CreateEmptyMock( "preside.system.services.forms.FormsService" );
+		mockColdbox = CreateStub();
 		mockFormsService.$( "formExists", false );
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderItemTypesService(
@@ -292,7 +262,9 @@ component extends="testbox.system.BaseSpec"{
 			, formsService                 = mockFormsService
 		) );
 
-
+		service.$( "$translateResource", "" );
+		service.$( "$getColdbox", mockColdbox );
+		mockColdbox.$( "viewletExists", false );
 
 		return service;
 	}
