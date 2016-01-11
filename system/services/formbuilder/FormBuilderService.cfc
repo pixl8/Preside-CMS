@@ -154,6 +154,22 @@ component {
 		return validationResult;
 	}
 
+	/**
+	 * Deletes a configured item from a form. Returns true
+	 * on success, false otherwise.
+	 *
+	 * @autodoc
+	 * @id.hint The ID of the item you wish to delete
+	 *
+	 */
+	public boolean function deleteItem( required string id ) {
+		if ( Len( Trim( arguments.id ) ) ) {
+			return $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

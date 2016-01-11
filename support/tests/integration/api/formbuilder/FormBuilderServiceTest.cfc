@@ -212,6 +212,57 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "deleteItem", function(){
+
+			it( "should remove item from the database", function(){
+				var service = getService();
+				var itemId  = CreateUUId();
+
+				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+
+				service.deleteItem( itemId );
+
+				var callLog = mockFormItemDao.$callLog().deleteData;
+				expect( callLog.len() ).toBe( 1 );
+
+				expect( callLog[ 1 ] ).toBe( { id=itemId } );
+			} );
+
+			it( "should return true when an item was deleted from the database", function(){
+				var service = getService();
+				var itemId  = CreateUUId();
+
+				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+
+				expect( service.deleteItem( itemId )  ).toBeTrue();
+
+
+			} );
+
+			it( "should return false when no records were deleted from the database", function(){
+				var service = getService();
+				var itemId  = CreateUUId();
+
+				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 0 );
+
+				expect( service.deleteItem( itemId )  ).toBeFalse();
+
+
+			} );
+
+			it( "should not attempt to delete anything and return false when an empty string is passed as the id", function(){
+				var service = getService();
+				var itemId  = "";
+
+				mockFormItemDao.$( "deleteData" );
+
+				expect( service.deleteItem( itemId )  ).toBeFalse();
+				var callLog = mockFormItemDao.$callLog().deleteData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+
+		} );
 	}
 
 	private function getService() {
