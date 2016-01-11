@@ -13,7 +13,8 @@
 					    data-requires-configuration="#type.requiresConfiguration#"
 					    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#type.id#' )#"
 					    data-config-title="#translateResource( uri="formbuilder:itemconfig.modal.title", data=[ type.title ] )#">
-						<a>#type.title#</a>
+
+						<span>#type.title#</span>
 					</dd>
 				</cfloop>
 			</dl>
