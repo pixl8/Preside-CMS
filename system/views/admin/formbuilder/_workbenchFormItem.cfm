@@ -26,6 +26,10 @@
 				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
 					<i class="fa fa-trash"></i>
 				</a>
+
+				<a href="##" class="sort-link">
+					<i class="fa fa-reorder"></i>
+				</a>
 			</div>
 		</div>
 		<div class="clearfix"></div>

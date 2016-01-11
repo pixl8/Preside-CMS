@@ -41,6 +41,7 @@
 		$itemsContainer.sortable( {
 			  stop        : sortableStop
 			, placeholder : "item-type sortable-placeholder"
+			, handle      : ".sort-link"
 		} );
 	};
 
