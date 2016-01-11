@@ -18,19 +18,11 @@
 								#translateResource( "formbuilder:manage.tab.fields.title" )#
 							</a>
 						</li>
-						<li>
-							<a data-toggle="tab" href="##tab-settings">
-								<i class="fa fa-fw fa-cog blue"></i>
-								#translateResource( "formbuilder:manage.tab.field.settings.title" )#
-							</a>
-						</li>
 					</ul>
 
 					<div class="tab-content">
 						<div id="tab-fields" class="tab-pane active">
 							#renderViewlet( "admin.formbuilder.itemTypePicker" )#
-						</div>
-						<div id="tab-settings" class="tab-pane">
 						</div>
 					</div>
 				</div>
