@@ -76,6 +76,37 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.setLayout( "adminModalDialog" );
+
+		event.includeData( {
+			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
+		} );
+	}
+
+	public void function validateItemConfig( event, rc, prc ) {
+		var config = event.getCollectionWithoutSystemVars();
+
+		config.delete( "formId"   );
+		config.delete( "itemId"   );
+		config.delete( "itemType" );
+
+		var validationResult = formBuilderService.validateItemConfig(
+			  formId    = rc.formId   ?: ""
+			, itemId    = rc.itemId   ?: ""
+			, itemType  = rc.itemType ?: ""
+			, config    = config
+		);
+
+		if ( validationResult.validated() ) {
+			event.renderData( data=true, type="json" );
+		} else {
+			var errors = {};
+			var messages = validationResult.getMessages();
+
+			for( var fieldName in messages ){
+				errors[ fieldName ] = translateResource( uri=messages[ fieldName ].message, defaultValue=messages[ fieldName ].message, data=messages[ fieldName ].params ?: [] );
+			}
+			event.renderData( data=errors, type="json" );
+		}
 	}
 
 	public void function addItemAction( event, rc, prc ) {

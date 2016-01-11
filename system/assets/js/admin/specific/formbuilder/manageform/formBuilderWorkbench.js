@@ -91,20 +91,24 @@
 		  , modalIframe;
 
 		onDialogOk = function(){
-			if ( !modalIframe.isFormBuilderItemConfigValid() ) {
-				return false;
-			}
+			modalIframe.validateFormBuilderItemConfig( formId, itemData.id || "", function( valid ){
+				if ( valid ) {
+					var config = modalIframe.getFormBuilderItemConfig();
 
-			var config = modalIframe.getFormBuilderItemConfig();
+					if ( typeof itemData.id === "undefined" ) {
+						saveNewItem( itemData.itemType, config, function( itemId ){
+							$item.data( "id", itemId );
 
-			if ( typeof itemData.id === "undefined" ) {
-				saveNewItem( itemData.itemType, config, function( itemId ){
-					$item.data( "id", itemId );
+							// todo, render item post save
+							// todo, save order of all items
+						} );
+					}
 
-					// todo, render item post save
-					// todo, save order of all items
-				} );
-			}
+					modal.close();
+				}
+			} );
+
+			return false;
 		};
 
 		onCancelDialog = function(){

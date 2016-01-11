@@ -131,9 +131,17 @@ component {
 		, required string itemId
 		, required any    validationResult
 	) {
+		var filter = "form = :form";
+		var filterParams = { form=arguments.formid };
+
+		if ( Len( Trim( arguments.itemId ) ) ) {
+			filter &= " and id != :id";
+			filterParams.id = arguments.itemId;
+		}
+
 		var existingItems = $getPresideObject( "formbuilder_formitem" ).selectData(
-			  filter       = "form = :form and id != :id"
-			, filterParams = { form=arguments.formid, id=arguments.itemId }
+			  filter       = filter
+			, filterParams = filterParams
 			, selectFields = [ "configuration" ]
 		);
 
