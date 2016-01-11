@@ -55,15 +55,22 @@ component extends="testbox.system.BaseSpec"{
 					, [ "item6", "typea", "{}" ]
 					, [ "item7", "typeb", "{}" ]
 				] );
+				var types = {
+					  a = { test=true, something=CreateUUId() }
+					, b = { test=true, something=CreateUUId() }
+				};
 				var expectedResult = [
-					  { id="item1", type="typea", configuration={} }
-					, { id="item2", type="typeb", configuration={} }
-					, { id="item3", type="typeb", configuration={} }
-					, { id="item4", type="typeb", configuration={} }
-					, { id="item5", type="typea", configuration={} }
-					, { id="item6", type="typea", configuration={} }
-					, { id="item7", type="typeb", configuration={} }
+					  { id="item1", type=types.a, configuration={} }
+					, { id="item2", type=types.b, configuration={} }
+					, { id="item3", type=types.b, configuration={} }
+					, { id="item4", type=types.b, configuration={} }
+					, { id="item5", type=types.a, configuration={} }
+					, { id="item6", type=types.a, configuration={} }
+					, { id="item7", type=types.b, configuration={} }
 				];
+
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typea" ).$results( types.a );
+				mockItemTypesService.$( "getItemTypeConfig" ).$args( "typeb" ).$results( types.b );
 
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
@@ -79,17 +86,15 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getFormItems( formId ) ).toBe( expectedResult );
 			} );
 
-			it( "should deserialize configuration that has neen saved in the database", function(){
+			it( "should deserialize configuration that has een saved in the database", function(){
 				var service        = getService();
 				var formId         = CreateUUId();
 				var dummyData      = QueryNew( 'id,item_type,configuration', 'varchar,varchar,varchar', [
 					  [ "item1", "typea", '{ "cat":"dog", "test":true }' ]
 				] );
-				var expectedResult = [
-					{ id="item1", type="typea", configuration={ cat="dog", test=true } }
-				];
+				var expectedResult = { cat="dog", test=true };
 
-
+				mockItemTypesService.$( "getItemTypeConfig", {} );
 				mockFormDao.$( "selectData" ).$args(
 					  id           = formId
 					, sortOrder    = "items.sort_order"
@@ -101,7 +106,9 @@ component extends="testbox.system.BaseSpec"{
 					  ]
 				).$results( dummyData );
 
-				expect( service.getFormItems( formId ) ).toBe( expectedResult );
+				var formItems = service.getFormItems( formId );
+				expect( formItems.len() ).toBe( 1 );
+				expect( formItems[ 1 ].configuration ).toBe( expectedResult );
 			} );
 
 		} );

@@ -56,7 +56,7 @@ component {
 		for( var item in items ) {
 			result.append( {
 				  id            = item.id
-				, type          = item.item_type
+				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
 				, configuration = DeSerializeJson( item.configuration )
 			} );
 		}
