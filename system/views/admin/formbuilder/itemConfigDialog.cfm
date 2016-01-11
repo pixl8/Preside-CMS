@@ -1,5 +1,6 @@
 <cfscript>
 	configFormName = prc.itemTypeConfig.configFormName ?: "";
+	savedData      = prc.savedData ?: {};
 	itemType       = rc.itemType ?: "";
 	formId         = "configform-" & CreateUUId();
 </cfscript>
@@ -11,7 +12,7 @@
 			  formName          = configFormName
 			, context           = "admin"
 			, formId            = formId
-			, savedData         = {}
+			, savedData         = savedData
 		)#
 	</form>
 </cfoutput>

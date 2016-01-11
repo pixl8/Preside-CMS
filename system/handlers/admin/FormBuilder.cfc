@@ -63,10 +63,18 @@ component extends="preside.system.base.AdminHandler" {
 			  "formbuilderFormId"              = prc.form.id
 			, "formbuilderSaveNewItemEndpoint" = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
 			, "formbuilderDeleteItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.deleteItemAction" )
+			, "formbuilderSaveItemEndpoint"    = event.buildAdminLink( linkTo="formbuilder.saveItemAction" )
 		} );
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
+		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
+			var item = formBuilderService.getFormItem( rc.itemId );
+			if ( item.count() ) {
+				prc.savedData = item.configuration;
+			}
+		}
+
 		prc.itemTypeConfig = itemTypesService.getItemTypeConfig( rc.itemType ?: "" );
 		prc.pageTitle      = translateResource( uri="formbuilder:itemconfig.dialog.title"   , data=[ prc.itemTypeConfig.title ] );
 		prc.pageSubTitle   = translateResource( uri="formbuilder:itemconfig.dialog.subtitle", data=[ prc.itemTypeConfig.title ] );
@@ -183,6 +191,23 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data={
 			  id       = newId
 			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
+		} );
+	}
+
+	public void function saveItemAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+		var itemId        = rc.id ?: "";
+
+		configuration.delete( "id" );
+
+		formBuilderService.saveItem(
+			  id            = itemId
+			, configuration = configuration
+		);
+
+		event.renderData( type="json", data={
+			  id       = itemId
+			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( itemId ) )
 		} );
 	}
 

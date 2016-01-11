@@ -120,6 +120,24 @@ component {
 	}
 
 	/**
+	 * Updates the configuration of a given item in the form.
+	 *
+	 * @autodoc
+	 * @id.hint            ID of the item to update
+	 * @configuration.hint Configuration to save against the item
+	 *
+	 */
+	public any function saveItem( required string id, required struct configuration ) {
+		if ( !arguments.id.len() ) {
+			return 0;
+		}
+
+		return $getPresideObject( "formbuilder_formitem" ).updateData( id=arguments.id, data={
+			configuration = SerializeJson( arguments.configuration )
+		} );
+	}
+
+	/**
 	 * Validates the configuration for an item within a form. Returns
 	 * a Preside validation result object.
 	 *

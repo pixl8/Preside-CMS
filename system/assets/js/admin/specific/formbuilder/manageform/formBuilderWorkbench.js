@@ -13,6 +13,7 @@
 	  , $instructions       = $( ".instructions" )
 	  , formId              = cfrequest.formbuilderFormId
 	  , saveNewItemEndpoint = cfrequest.formbuilderSaveNewItemEndpoint
+	  , saveItemEndpoint    = cfrequest.formbuilderSaveItemEndpoint
 	  , deleteItemEndpoint  = cfrequest.formbuilderDeleteItemEndpoint
 	  , setupDragAndDropBehaviour
 	  , setupClickBehaviours
@@ -21,7 +22,9 @@
 	  , addItemDirectlyFromList
 	  , processNewItem
 	  , saveNewItem
+	  , saveItem
 	  , launchConfiguration
+	  , editItem
 	  , deleteItem;
 
 	setupDragAndDropBehaviour = function() {
@@ -42,10 +45,7 @@
 	};
 
 	setupClickBehaviours = function(){
-		$itemsContainer.on( "click", ".edit-link", function( e ){
-			e.preventDefault();
-			alert( 'edit clicked' );
-		} );
+		$itemsContainer.on( "click", ".edit-link", editItem );
 
 		$itemsContainer.on( "click", ".delete-link", deleteItem );
 	};
@@ -98,6 +98,25 @@
 		} )
 	};
 
+	saveItem = function( configuration, $item ){
+		var data = $.extend( {}, { id : $item.data( "id" ) }, configuration )
+		  , postSave;
+
+		postSave = function( data ){
+			var $newItem = $( data.itemView );
+
+			$item.after( $newItem );
+			$item.remove();
+		};
+
+		$.ajax( saveItemEndpoint, {
+			  method  : "POST"
+			, data    : data
+			, cache   : false
+			, success : postSave
+		} )
+	};
+
 	launchConfiguration = function( $item ){
 		var itemData = $item.data()
 		  , onCancelDialog
@@ -113,6 +132,8 @@
 
 					if ( typeof itemData.id === "undefined" ) {
 						saveNewItem( itemData.itemType, config, $item );
+					} else {
+						saveItem( config, $item );
 					}
 
 					modal.close();
@@ -145,6 +166,15 @@
 		} );
 
 		modal.open();
+	};
+
+	editItem = function( e ) {
+		var $link  = $( this )
+		  , $item  = $link.closest( ".form-item" );
+
+		e.preventDefault();
+
+		launchConfiguration( $item );
 	};
 
 	deleteItem = function( e ){
