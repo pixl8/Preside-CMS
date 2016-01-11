@@ -64,6 +64,37 @@ component {
 	}
 
 	/**
+	 * Retuns a form's item from the DB converted to a useful struct. Keys are
+	 * 'id', 'type' (a structure containing type configuration) and 'configuration'
+	 * (a structure of configuration options for the item)
+	 *
+	 * @autodoc
+	 * @id.hint ID of the item you wish to get
+	 */
+	public struct function getFormItem( required string id ) {
+		var result = [];
+		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
+			  filter       = { id=arguments.id }
+			, sortOrder    = "sort_order"
+			, selectFields = [
+				  "id"
+				, "item_type"
+				, "configuration"
+			  ]
+		);
+
+		for( var item in items ) {
+			return {
+				  id            = item.id
+				, type          = _getItemTypesService().getItemTypeConfig( item.item_type )
+				, configuration = DeSerializeJson( item.configuration )
+			};
+		}
+
+		return {};
+	}
+
+	/**
 	 * Adds a new item to the form. Returns the ID of the
 	 * newly generated item
 	 *

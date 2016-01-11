@@ -60,25 +60,29 @@
 	processNewItem = function( $newItem ) {
 		var itemTypeConfig = $newItem.data();
 		if ( !itemTypeConfig.requiresConfiguration ) {
-			saveNewItem( itemTypeConfig.itemType, {}, function( itemId ){
-				$newItem.data( "id", itemId );
-
-				// todo, render item post save
-				// todo, save order of all items
-			} );
+			saveNewItem( itemTypeConfig.itemType, {}, $newItem );
 		} else {
 			launchConfiguration( $newItem );
 		}
 	};
 
-	saveNewItem = function( itemType, configuration, callback ){
-		var data = $.extend( {}, { formId: formId, itemType: itemType }, configuration );
+	saveNewItem = function( itemType, configuration, $item ){
+		var data = $.extend( {}, { formId: formId, itemType: itemType }, configuration )
+		  , postSave;
+
+		postSave = function( data ){
+			var $newItem = $( data.itemView );
+
+			$item.after( $newItem );
+			$item.remove();
+			// todo, save order of all items
+		};
 
 		$.ajax( saveNewItemEndpoint, {
 			  method  : "POST"
 			, data    : data
 			, cache   : false
-			, success : callback
+			, success : postSave
 		} )
 	};
 
@@ -96,12 +100,7 @@
 					var config = modalIframe.getFormBuilderItemConfig();
 
 					if ( typeof itemData.id === "undefined" ) {
-						saveNewItem( itemData.itemType, config, function( itemId ){
-							$item.data( "id", itemId );
-
-							// todo, render item post save
-							// todo, save order of all items
-						} );
+						saveNewItem( itemData.itemType, config, $item );
 					}
 
 					modal.close();

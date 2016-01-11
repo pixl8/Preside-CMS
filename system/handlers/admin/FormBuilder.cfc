@@ -121,7 +121,10 @@ component extends="preside.system.base.AdminHandler" {
 			, configuration = configuration
 		);
 
-		event.renderData( type="plain", data=newId );
+		event.renderData( type="json", data={
+			  id = newId
+			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
+		} );
 	}
 
 	public void function editForm( event, rc, prc ) {
