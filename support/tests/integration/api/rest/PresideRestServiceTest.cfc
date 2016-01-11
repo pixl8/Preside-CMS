@@ -14,12 +14,14 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should find first regex match for a passed URI", function(){
 				var restService = getService();
-
-				expect( restService.getResourceForUri( api="/api1", resourcePath="/test/my-pattern/#CreateUUId()#/" ) ).toBe( {
+				var result = restService.getResourceForUri( api="/api1", resourcePath="/test/my-pattern/#CreateUUId()#/" );
+				expect( result ).toBe( {
 					  handler    = "api1.ResourceX"
 					, tokens     = [ "pattern", "id" ]
 					, uriPattern = "^/test/(.*?)/(.*?)/$"
 					, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+					, requiredParameters = { delete=[], get=[], put=[] }
+					, parameterTypes = { delete={}, get={}, put={} }
 				} );
 			} );
 
@@ -983,6 +985,115 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "_validateRequiredRestParameters()", function(){
+			it( "should validate correctly if there are no required parameters", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest(
+					resource={
+						  handler    = "myResource"
+						, tokens     = [ "whatever", "thisisjust", "atest" ]
+						, uriPattern = "/test/(.*?)/(.*?)/"
+						, verbs      = { post="post", get="get", delete="delete" }
+						//, requiredParameters = { get= ["a", "b"] }
+					},
+					uri="/some/uri/23",
+					verb="get"
+				);
+
+				makePublic( restService, "_validateRequiredRestParameters" );
+				var validationResult = restService._validateRequiredRestParameters( restRequest, restResponse, {} );
+				expect ( validationResult.valid ).toBeTrue();
+				expect ( validationResult.errors ).toBe([]);
+			} );
+			it( "should detect missing required parameters", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest(
+					resource={
+						  handler    = "myResource"
+						, tokens     = [ "whatever", "thisisjust", "atest" ]
+						, uriPattern = "/test/(.*?)/(.*?)/"
+						, verbs      = { post="post", get="get", delete="delete" }
+						, requiredParameters = { get= ["a", "b"] }
+					},
+					uri="/some/uri/23",
+					verb="get"
+				);
+
+				makePublic( restService, "_validateRequiredRestParameters" );
+				var validationResult = restService._validateRequiredRestParameters( restRequest, restResponse, {a=5} );
+				expect ( validationResult.valid ).toBeFalse();
+				expect ( validationResult.errors ).toHaveLength(1);
+				expect ( validationResult.errors[1] ).toBe("Missing required parameter 'b'");
+			} );
+		} );
+
+		describe( "_validateRestParameterTypes()", function(){
+			it( "should validate correctly if there are no defined parameter types", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest(
+					resource={
+						  handler    = "myResource"
+						, tokens     = [ "whatever", "thisisjust", "atest" ]
+						, uriPattern = "/test/(.*?)/(.*?)/"
+						, verbs      = { post="post", get="get", delete="delete" }
+						, parameterTypes = { get= {} }
+					},
+					uri="/some/uri/23",
+					verb="get"
+				);
+
+				makePublic( restService, "_validateRestParameterTypes" );
+				var validationResult = restService._validateRestParameterTypes( restRequest, restResponse, {a=5, b="xxx", c=now()} );
+				expect ( validationResult.valid ).toBeTrue();
+				expect ( validationResult.errors ).toBeEmpty();
+			} );
+			it( "should validate date, numeric and uuid values correctly if supplied parameters are correct", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest(
+					resource={
+						  handler    = "myResource"
+						, tokens     = [ "whatever", "thisisjust", "atest" ]
+						, uriPattern = "/test/(.*?)/(.*?)/"
+						, verbs      = { post="post", get="get", delete="delete" }
+						, parameterTypes = { get={a="date", b="numeric", c="uuid"} }
+					},
+					uri="/some/uri/23",
+					verb="get"
+				);
+
+				makePublic( restService, "_validateRestParameterTypes" );
+				var validationResult = restService._validateRestParameterTypes( restRequest, restResponse, {a=now(), b=5, c=createUUID()} );
+				expect ( validationResult.valid ).toBeTrue();
+				expect ( validationResult.errors ).toBeEmpty();
+			} );
+			it( "should validate date, numeric and uuid values correctly if supplied parameters are incorrect", function(){
+				var restService        = getService();
+				var restResponse       = getRestResponse();
+				var restRequest        = getRestRequest(
+					resource={
+						  handler    = "myResource"
+						, tokens     = [ "whatever", "thisisjust", "atest" ]
+						, uriPattern = "/test/(.*?)/(.*?)/"
+						, verbs      = { post="post", get="get", delete="delete" }
+						, parameterTypes = { get={a="date", b="numeric", c="uuid"} }
+					},
+					uri="/some/uri/23",
+					verb="get"
+				);
+
+				makePublic( restService, "_validateRestParameterTypes" );
+				var validationResult = restService._validateRestParameterTypes( restRequest, restResponse, {a="invaliddate", b="invalidnumericvalue", c="invaliduuid"} );
+				expect ( validationResult.valid ).toBeFalse();
+				expect ( validationResult.errors ).toHaveLength(3);
+				expect ( validationResult.errors ).toInclude("Parameter 'A' needs to be a date value");
+				expect ( validationResult.errors ).toInclude("Parameter 'B' needs to be a numeric value");
+				expect ( validationResult.errors ).toInclude("Parameter 'C' needs to be a UUID");
+			} );
+		} );
 	}
 
 	private any function getService( ) {

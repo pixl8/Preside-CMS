@@ -98,6 +98,38 @@ component {
 			args.restResponse = arguments.restResponse;
 			args.restRequest  = arguments.restRequest;
 
+			// perform generic required parameter validation
+			var validationResult = _validateRequiredRestParameters( restRequest=restRequest, restResponse=restResponse, args=args );
+			if ( not validationResult.valid ) {
+				args.validationErrors = validationResult.errors;
+				_announceInterception( "onMissingRequiredRestRequestParameter", { restRequest=restRequest, restResponse=restResponse, args=args } );
+				if ( arguments.restRequest.getFinished() ) {
+					// the error was handled by a custom interceptor - just return
+					return;
+				}
+				// error was not handled by a custom interceptor
+				// TODO: check if a custom exception should be thrown here
+				// or whether processing should continue normally and the CF internal exception is thrown on method call
+				//throw(type="MissingRequiredRestRequestParameterException", message="There are missing required parameters", detail=serializeJSON(validationResult.errors));
+			}
+
+			// perform generic parameter type validation
+			validationResult = _validateRestParameterTypes( restRequest=restRequest, restResponse=restResponse, args=args );
+			if ( not validationResult.valid ) {
+				args.validationErrors = validationResult.errors;
+				_announceInterception( "onInvalidRestRequestParameterType", { restRequest=restRequest, restResponse=restResponse, args=args } );
+				if ( arguments.restRequest.getFinished() ) {
+					// the error was handled by a custom interceptor - just return
+					return;
+				}
+				// error was not handled by a custom interceptor
+				// TODO: check if a custom exception should be thrown here
+				// or whether processing should continue normally and the CF internal exception is thrown on method call
+				//throw(type="InvalidRestRequestParameterTypeException", message="There are invalid parameter types", detail=serializeJSON(validationResult.errors));
+			}
+
+			//validateRestRequestParameters( restRequest=restRequest, restResponse=restResponse, args=args );
+
 			_announceInterception( "preInvokeRestResource", { restRequest=restRequest, restResponse=restResponse, args=args } );
 			if ( arguments.restRequest.getFinished() ) {
 				return;
@@ -133,6 +165,28 @@ component {
 			} );
 		}
 	}
+/*
+	public void function validateRestRequestParameters(
+		  required any restRequest
+		, required any restResponse
+		, required struct args
+	) {
+
+		var validationResult = _validateRequiredRestParameters(argumentCollection=arguments);
+		if ( not validationResult.valid ) {
+			args.validationErrors = validationResult.errors;
+			_announceInterception( "onMissingRequiredRestRequestParameter", { restRequest=restRequest, restResponse=restResponse, args=args } );
+			if ( arguments.restRequest.getFinished() ) {
+				return;
+			}
+		}
+
+		validationResult = _validateRestParameterTypes(argumentCollection=arguments);
+		if ( not validationResult.valid ) {
+			args.validationErrors = validationResult.errors;
+			_announceInterception( "onInvalidRestRequestParameterType", { restRequest=restRequest, restResponse=restResponse, args=args } );
+		}
+	}*/
 
 	public void function processOptionsRequest(
 		  required any restRequest
@@ -350,6 +404,74 @@ component {
 		}
 
 		return false;
+	}
+
+	private struct function _validateRequiredRestParameters(
+		required any restRequest
+		, required any restResponse
+		, required struct args
+	) {
+		var restResource = arguments.restRequest.getResource();
+        var restVerb = arguments.restRequest.getVerb();
+        var requiredParameters = restResource.requiredParameters[restVerb] ?: [];
+        var validationResult = {valid=true, errors=[]};
+
+        if (requiredParameters.isEmpty()) {
+        	return validationResult;
+        }
+
+        for ( var requiredParameterName in requiredParameters ) {
+            if ( !arguments.args.keyExists( requiredParameterName ) ) {
+            	validationResult.valid = false;
+            	validationResult.errors.append("Missing required parameter '#requiredParameterName#'");
+            }
+        }
+        return validationResult;
+	}
+
+	private struct function _validateRestParameterTypes(
+		required any restRequest
+		, required any restResponse
+		, required struct args
+	) {
+		var restResource = arguments.restRequest.getResource();
+        var restVerb = arguments.restRequest.getVerb();
+        var restArgs = arguments.args;
+        var parameterTypes = restResource.parameterTypes[restVerb] ?: {};
+        var validationResult = {valid=true, errors=[]};
+
+        if (parameterTypes.isEmpty()) {
+        	return validationResult;
+        }
+
+        var paramValue = "";
+        var paramValue = "";
+        var errorMessage = "";
+
+        for (var paramName in restArgs) {
+            if (!parameterTypes.keyExists(paramName)) {
+                continue;
+            }
+            paramValue = restArgs[paramName];
+            paramType = parameterTypes[paramName];
+            errorMessage = "";
+            if (paramType eq "numeric" and not isNumeric(paramValue)) {
+                errorMessage = "Parameter '#paramName#' needs to be a numeric value";
+            }
+            else if (paramType eq "date" and not isDate(paramValue)) {
+                errorMessage = "Parameter '#paramName#' needs to be a date value";
+            }
+            else if (paramType eq "uuid" and not isValid("uuid", paramValue)) {
+                errorMessage = "Parameter '#paramName#' needs to be a UUID";
+            }
+            if ( len(errorMessage) ) {
+            	validationResult.valid = false;
+            	validationResult.errors.append(errorMessage);
+            }
+            // TODO: add more generic type validations
+        }
+
+        return validationResult;
 	}
 
 // GETTERS AND SETTERS
