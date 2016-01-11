@@ -19,11 +19,11 @@
 		</div>
 		<div class="pull-right">
 			<div class="action-buttons btn-group">
-				<a href="##">
+				<a href="##" class="edit-link">
 					<i class="fa fa-pencil"></i>
 				</a>
 
-				<a href="##">
+				<a href="##" class="delete-link">
 					<i class="fa fa-trash"></i>
 				</a>
 			</div>

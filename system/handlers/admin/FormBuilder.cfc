@@ -122,7 +122,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		event.renderData( type="json", data={
-			  id = newId
+			  id       = newId
 			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
 		} );
 	}

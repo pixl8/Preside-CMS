@@ -14,6 +14,7 @@
 	  , formId              = cfrequest.formbuilderFormId
 	  , saveNewItemEndpoint = cfrequest.formbuilderSaveNewItemEndpoint
 	  , setupDragAndDropBehaviour
+	  , setupClickBehaviours
 	  , addItemFromDropZone
 	  , sortableStop
 	  , addItemDirectlyFromList
@@ -35,6 +36,18 @@
 		$itemsContainer.sortable( {
 			  stop        : sortableStop
 			, placeholder : "item-type sortable-placeholder"
+		} );
+	};
+
+	setupClickBehaviours = function(){
+		$itemsContainer.on( "click", ".edit-link", function( e ){
+			e.preventDefault();
+			alert( 'edit clicked' );
+		} );
+
+		$itemsContainer.on( "click", ".delete-link", function( e ){
+			e.preventDefault();
+			alert( 'delete clicked' );
 		} );
 	};
 
@@ -136,6 +149,6 @@
 	};
 
 	setupDragAndDropBehaviour();
-
+	setupClickBehaviours();
 
 } )( presideJQuery );
