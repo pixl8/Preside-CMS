@@ -62,6 +62,7 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( {
 			  "formbuilderFormId"              = prc.form.id
 			, "formbuilderSaveNewItemEndpoint" = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
+			, "formbuilderDeleteItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.deleteItemAction" )
 		} );
 	}
 
@@ -107,24 +108,6 @@ component extends="preside.system.base.AdminHandler" {
 			}
 			event.renderData( data=errors, type="json" );
 		}
-	}
-
-	public void function addItemAction( event, rc, prc ) {
-		var configuration = event.getCollectionWithoutSystemVars();
-
-		configuration.delete( "formId"   );
-		configuration.delete( "itemType" );
-
-		var newId = formBuilderService.addItem(
-			  formId        = rc.formId   ?: ""
-			, itemType      = rc.itemType ?: ""
-			, configuration = configuration
-		);
-
-		event.renderData( type="json", data={
-			  id       = newId
-			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
-		} );
 	}
 
 	public void function editForm( event, rc, prc ) {
@@ -183,6 +166,30 @@ component extends="preside.system.base.AdminHandler" {
 				, successUrl       = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & formId )
 			}
 		);
+	}
+
+	public void function addItemAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+
+		configuration.delete( "formId"   );
+		configuration.delete( "itemType" );
+
+		var newId = formBuilderService.addItem(
+			  formId        = rc.formId   ?: ""
+			, itemType      = rc.itemType ?: ""
+			, configuration = configuration
+		);
+
+		event.renderData( type="json", data={
+			  id       = newId
+			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
+		} );
+	}
+
+	public void function deleteItemAction( event, rc, prc ) {
+		var deleteSuccess = formBuilderService.deleteItem( rc.id ?: "" );
+
+		event.renderData( data=deleteSuccess, type="json" );
 	}
 
 // AJAXY ACTIONS

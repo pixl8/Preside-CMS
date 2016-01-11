@@ -2,7 +2,7 @@
 <cfparam name="args.type" type="struct" />
 
 <cfoutput>
-	<li class="item-type ui-draggable"
+	<li class="item-type ui-draggable form-item"
 	    data-id="#args.id#"
 	    data-item-template="false"
 	    data-item-type="#args.type.id#"
@@ -23,7 +23,7 @@
 					<i class="fa fa-pencil"></i>
 				</a>
 
-				<a href="##" class="delete-link">
+				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
 					<i class="fa fa-trash"></i>
 				</a>
 			</div>

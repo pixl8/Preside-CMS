@@ -13,6 +13,7 @@
 	  , $instructions       = $( ".instructions" )
 	  , formId              = cfrequest.formbuilderFormId
 	  , saveNewItemEndpoint = cfrequest.formbuilderSaveNewItemEndpoint
+	  , deleteItemEndpoint  = cfrequest.formbuilderDeleteItemEndpoint
 	  , setupDragAndDropBehaviour
 	  , setupClickBehaviours
 	  , addItemFromDropZone
@@ -20,7 +21,8 @@
 	  , addItemDirectlyFromList
 	  , processNewItem
 	  , saveNewItem
-	  , launchConfiguration;
+	  , launchConfiguration
+	  , deleteItem;
 
 	setupDragAndDropBehaviour = function() {
 		$itemTypes.draggable({
@@ -45,10 +47,7 @@
 			alert( 'edit clicked' );
 		} );
 
-		$itemsContainer.on( "click", ".delete-link", function( e ){
-			e.preventDefault();
-			alert( 'delete clicked' );
-		} );
+		$itemsContainer.on( "click", ".delete-link", deleteItem );
 	};
 
 	addItemFromDropZone = function( event, ui ){
@@ -146,6 +145,31 @@
 		} );
 
 		modal.open();
+	};
+
+	deleteItem = function( e ){
+		var $link  = $( this )
+		  , $item  = $link.closest( ".form-item" )
+		  , title  = $link.data( "title" ) || $link.attr( "title" )
+		  , prompt = i18n.translateResource( "cms:confirmation.prompt", { data:[ ( title.charAt(0).toLowerCase() + title.slice(1) ) ] } );
+
+		e.preventDefault();
+
+		presideBootbox.confirm( prompt, function( confirmed ) {
+			if ( confirmed ) {
+				$.ajax( deleteItemEndpoint, {
+					  method : "POST"
+					, data   : { id : $item.data( "id" ) }
+					, cache  : false
+					, success : function( result ){
+						if ( result ) {
+							$item.remove();
+						}
+					}
+				} );
+
+			}
+		});
 	};
 
 	setupDragAndDropBehaviour();
