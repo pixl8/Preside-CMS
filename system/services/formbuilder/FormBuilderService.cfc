@@ -44,7 +44,7 @@ component {
 		var result = [];
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { form=arguments.id }
-			, sortOrder    = "sort_order"
+			, orderBy      = "sort_order"
 			, selectFields = [
 				  "id"
 				, "item_type"

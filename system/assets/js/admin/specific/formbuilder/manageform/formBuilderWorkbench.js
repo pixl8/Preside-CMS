@@ -8,13 +8,14 @@
  */
 ( function( $ ){
 
-	var $itemTypes          = $( ".formbuilder-item-type-picker .item-type" )
-	  , $itemsContainer     = $( ".form-items" )
-	  , $instructions       = $( ".instructions" )
-	  , formId              = cfrequest.formbuilderFormId
-	  , saveNewItemEndpoint = cfrequest.formbuilderSaveNewItemEndpoint
-	  , saveItemEndpoint    = cfrequest.formbuilderSaveItemEndpoint
-	  , deleteItemEndpoint  = cfrequest.formbuilderDeleteItemEndpoint
+	var $itemTypes           = $( ".formbuilder-item-type-picker .item-type" )
+	  , $itemsContainer      = $( ".form-items" )
+	  , $instructions        = $( ".instructions" )
+	  , formId               = cfrequest.formbuilderFormId
+	  , saveNewItemEndpoint  = cfrequest.formbuilderSaveNewItemEndpoint
+	  , saveItemEndpoint     = cfrequest.formbuilderSaveItemEndpoint
+	  , deleteItemEndpoint   = cfrequest.formbuilderDeleteItemEndpoint
+	  , setSortOrderEndpoint = cfrequest.formbuilderSetSortOrderEndpoint
 	  , setupDragAndDropBehaviour
 	  , setupClickBehaviours
 	  , addItemFromDropZone
@@ -25,7 +26,8 @@
 	  , saveItem
 	  , launchConfiguration
 	  , editItem
-	  , deleteItem;
+	  , deleteItem
+	  , saveSortOrder;
 
 	setupDragAndDropBehaviour = function() {
 		$itemTypes.draggable({
@@ -67,6 +69,8 @@
 		if ( data.itemTemplate ) {
 			processNewItem( item );
 			item.data( "itemTemplate", false );
+		} else {
+			saveSortOrder();
 		}
 	};
 
@@ -88,7 +92,7 @@
 
 			$item.after( $newItem );
 			$item.remove();
-			// todo, save order of all items
+			saveSortOrder();
 		};
 
 		$.ajax( saveNewItemEndpoint, {
@@ -201,6 +205,19 @@
 
 			}
 		});
+	};
+
+	saveSortOrder = function(){
+		var itemIds = $itemsContainer.sortable( "toArray", { attribute : "data-id" } ).join();
+
+		if ( itemIds.length ) {
+			$.ajax( setSortOrderEndpoint, {
+				  method : "POST"
+				, data   : { itemIds : itemIds }
+				, cache  : false
+			} );
+		}
+
 	};
 
 	setupDragAndDropBehaviour();

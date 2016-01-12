@@ -60,10 +60,11 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		event.includeData( {
-			  "formbuilderFormId"              = prc.form.id
-			, "formbuilderSaveNewItemEndpoint" = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
-			, "formbuilderDeleteItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.deleteItemAction" )
-			, "formbuilderSaveItemEndpoint"    = event.buildAdminLink( linkTo="formbuilder.saveItemAction" )
+			  "formbuilderFormId"               = prc.form.id
+			, "formbuilderSaveNewItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
+			, "formbuilderDeleteItemEndpoint"   = event.buildAdminLink( linkTo="formbuilder.deleteItemAction" )
+			, "formbuilderSaveItemEndpoint"     = event.buildAdminLink( linkTo="formbuilder.saveItemAction" )
+			, "formbuilderSetSortOrderEndpoint" = event.buildAdminLink( linkTo="formbuilder.setSortOrderAction" )
 		} );
 	}
 
@@ -215,6 +216,13 @@ component extends="preside.system.base.AdminHandler" {
 		var deleteSuccess = formBuilderService.deleteItem( rc.id ?: "" );
 
 		event.renderData( data=deleteSuccess, type="json" );
+	}
+
+	public void function setSortOrderAction( event, rc, prc ) {
+		var itemsUpdated = formBuilderService.setItemsSortOrder( ListToArray( rc.itemIds ?: "" ) );
+		var success      = itemsUpdated > 0;
+
+		event.renderData( data=success, type="json" );
 	}
 
 // AJAXY ACTIONS

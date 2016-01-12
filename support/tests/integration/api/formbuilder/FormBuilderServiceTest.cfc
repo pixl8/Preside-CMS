@@ -31,7 +31,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
-					, sortOrder    = "sort_order"
+					, orderBy      = "sort_order"
 					, selectFields = [
 						  "id"
 						, "item_type"
@@ -73,7 +73,7 @@ component extends="testbox.system.BaseSpec"{
 
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
-					, sortOrder    = "sort_order"
+					, orderBy      = "sort_order"
 					, selectFields = [
 						  "id"
 						, "item_type"
@@ -95,7 +95,7 @@ component extends="testbox.system.BaseSpec"{
 				mockItemTypesService.$( "getItemTypeConfig", {} );
 				mockFormItemDao.$( "selectData" ).$args(
 					  filter       = { form=formId }
-					, sortOrder    = "sort_order"
+					, orderBy      = "sort_order"
 					, selectFields = [
 						  "id"
 						, "item_type"
