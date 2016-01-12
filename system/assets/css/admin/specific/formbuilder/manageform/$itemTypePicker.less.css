@@ -1,9 +1,13 @@
-.formbuilder-item-type-picker dt {
+.presidecms .formbuilder-item-type-picker .formbuilder-item-type-picker-category-title {
   font-weight: normal;
   color: #999999;
   margin: 0 0 10px 2px;
+  font-size: 100%;
 }
-.formbuilder-item-type-picker .item-type {
+.presidecms .formbuilder-item-type-picker .formbuilder-item-type-picker-item-list {
+  margin: 0;
+}
+.presidecms .formbuilder-item-type-picker .formbuilder-item-type-picker-item-list .item-type {
   cursor: move;
   display: block;
   float: left;
