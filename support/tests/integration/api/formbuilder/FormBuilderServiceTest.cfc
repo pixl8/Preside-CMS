@@ -263,6 +263,32 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "setItemsSortOrder", function(){
+			it( "should set the sort order of all items to their position in the passed array of item IDs", function(){
+				var service = getService();
+				var items   = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockFormItemDao.$( "updateData", 1 );
+
+				service.setItemsSortOrder( items );
+
+				var callLog = mockFormItemDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( items.len() );
+				for( var i=1; i <= items.len(); i++ ){
+					expect( callLog[ i ] ).toBe( { id=items[i], data={ sort_order=i } } );
+				}
+			} );
+
+			it( "should return the number of records updated", function(){
+				var service = getService();
+				var items   = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockFormItemDao.$( "updateData", 1 );
+
+				expect( service.setItemsSortOrder( items ) ).toBe( items.len() );
+			} );
+		} );
 	}
 
 	private function getService() {

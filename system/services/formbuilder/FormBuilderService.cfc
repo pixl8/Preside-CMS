@@ -64,7 +64,7 @@ component {
 	}
 
 	/**
-	 * Retuns a form's item from the DB converted to a useful struct. Keys are
+	 * Retuns a form's item from the DB, converted to a useful struct. Keys are
 	 * 'id', 'type' (a structure containing type configuration) and 'configuration'
 	 * (a structure of configuration options for the item)
 	 *
@@ -75,7 +75,6 @@ component {
 		var result = [];
 		var items  = $getPresideObject( "formbuilder_formitem" ).selectData(
 			  filter       = { id=arguments.id }
-			, sortOrder    = "sort_order"
 			, selectFields = [
 				  "id"
 				, "item_type"
@@ -186,6 +185,29 @@ component {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sets the sort order of items within a form. Returns the number
+	 * of items who's order has been set.
+	 *
+	 * @autodoc
+	 * @items.hint Array of item ids in the order they should be set
+	 *
+	 */
+	public numeric function setItemsSortOrder( required array items ) {
+		var itemDao      = $getPresideObject( "formbuilder_formitem" );
+		var updatedCount = 0;
+
+		for( var i=1; i<=arguments.items.len(); i++ ){
+			var id = arguments.items[ i ];
+
+			if ( IsSimpleValue( id ) && Len( Trim( id) ) ) {
+				updatedCount += itemDao.updateData( id=id, data={ sort_order=i } );
+			}
+		}
+
+		return updatedCount;
 	}
 
 // PRIVATE HELPERS
