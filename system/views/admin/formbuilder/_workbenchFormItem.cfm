@@ -1,5 +1,6 @@
-<cfparam name="args.id"   type="string" />
-<cfparam name="args.type" type="struct" />
+<cfparam name="args.id"            type="string" />
+<cfparam name="args.type"          type="struct" />
+<cfparam name="args.configuration" type="struct" />
 
 <cfoutput>
 	<li class="item-type ui-draggable form-item"
@@ -13,6 +14,8 @@
 		<div class="pull-left">
 			<cfif args.type.adminPlaceholderViewlet.len()>
 				#renderViewlet( event=args.type.adminPlaceholderViewlet, args=args )#
+			<cfelseif Len( args.configuration.label ?: "" )>
+				#args.type.label# (#args.type.title#)
 			<cfelse>
 				#args.type.title#
 			</cfif>
