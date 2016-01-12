@@ -10860,10 +10860,12 @@ td.presidecms .visible-print {
   margin: 0 3px;
   display: inline-block;
   opacity: 0.85;
+}
+.presidecms .action-buttons a:not(.disabled) {
   -webkit-transition: all 0.1s;
   transition: all 0.1s;
 }
-.presidecms .action-buttons a:hover {
+.presidecms .action-buttons a:not(.disabled):hover {
   text-decoration: none;
   -moz-transform: scale(1.2);
   -webkit-transform: scale(1.2);
@@ -10871,6 +10873,9 @@ td.presidecms .visible-print {
   -ms-transform: scale(1.2);
   transform: scale(1.2);
   opacity: 1;
+}
+.presidecms .action-buttons a.disabled {
+  cursor: not-allowed;
 }
 .presidecms .navbar {
   margin-bottom: 0;

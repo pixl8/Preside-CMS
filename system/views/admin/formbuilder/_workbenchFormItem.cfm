@@ -19,9 +19,13 @@
 		</div>
 		<div class="pull-right">
 			<div class="action-buttons btn-group">
-				<a href="##" class="edit-link">
-					<i class="fa fa-pencil"></i>
-				</a>
+				<cfif args.type.requiresConfiguration>
+					<a href="##" class="edit-link">
+						<i class="fa fa-pencil"></i>
+					</a>
+				<cfelse>
+					<a class="grey disabled"><i class="fa fa-pencil"></i></a>
+				</cfif>
 
 				<a href="##" class="delete-link" title="#translateResource( uri='formbuilder:delete.item.link.title', data=[ args.type.title ] )#">
 					<i class="fa fa-trash"></i>
