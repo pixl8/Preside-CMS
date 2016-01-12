@@ -2,10 +2,13 @@
 <form i18nBaseUri="formbuilder.item-types.formfield:">
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
-			<field name="name"        control="textinput"   required="true"  sortorder="10" />
-			<field name="mandatory"   control="yesnoswitch" required="false" sortorder="20" />
-			<field name="placeholder" control="textinput"   required="false" sortorder="30" />
-			<field name="help"        control="textarea"    required="false" sortorder="40" />
+			<field name="name" control="textinput" required="true" sortorder="10">
+				<rule validator="match" message="formbuilder.item-types.formfield:validation.error.invalid.name.format">
+					<param name="regex" value="^[a-zA-Z][a-zA-Z0-9\-_]*$" />
+				</rule>
+			</field>
+			<field name="mandatory" control="yesnoswitch" required="false" sortorder="20" />
+			<field name="help"      control="textarea"    required="false" sortorder="40" />
 		</fieldset>
 	</tab>
 </form>
