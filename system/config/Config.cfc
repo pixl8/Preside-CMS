@@ -501,10 +501,12 @@ component output=false {
 		var fbSettings = { itemtypes={} };
 
 		fbSettings.itemTypes.standard = { sortorder=10, types={
+			  textinput = { isFormField=true  }
+			, textarea  = { isFormField=true  }
+		} };
+		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }
 			, content   = { isFormField=false }
-			, textinput = { isFormField=true  }
-			, textarea  = { isFormField=true  }
 		} };
 
 		return fbSettings;

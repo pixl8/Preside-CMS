@@ -50,8 +50,8 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
 
-		prc.pageTitle    = translateResource( uri="formbuilder:manage.form.page.title"   , data=[ prc.form.name ] );
-		prc.pageSubtitle = translateResource( uri="formbuilder:manage.form.page.subtitle", data=[ prc.form.name ] );
+		prc.pageTitle    = prc.form.name; //translateResource( uri="formbuilder:manage.form.page.title"   , data=[ prc.form.name ] );
+		prc.pageSubtitle = prc.form.description; // translateResource( uri="formbuilder:manage.form.page.subtitle", data=[ prc.form.name ] );
 		prc.canEdit      = hasCmsPermission( permissionKey="formbuilder.editform" );
 
 		event.addAdminBreadCrumb(

@@ -8,7 +8,8 @@
  */
 ( function( $ ){
 
-	var $itemTypes           = $( ".formbuilder-item-type-picker .item-type" )
+	var $itemTypePicker      = $( ".formbuilder-item-type-picker" )
+	  , $itemTypes           = $( ".formbuilder-item-type-picker .item-type" )
 	  , $itemsContainer      = $( ".form-items" )
 	  , $instructions        = $( ".instructions" )
 	  , formId               = cfrequest.formbuilderFormId
@@ -44,6 +45,15 @@
 			  stop        : sortableStop
 			, placeholder : "item-type sortable-placeholder"
 			, handle      : ".sort-link"
+		} );
+	};
+
+	setupAccordionForItemTypes = function() {
+		$itemTypePicker.accordion( {
+			  collapsible : true
+			, heightStyle : "content"
+			, animate     : 250
+			, header      : ".accordion-header"
 		} );
 	};
 
@@ -221,6 +231,7 @@
 	};
 
 	setupDragAndDropBehaviour();
+	setupAccordionForItemTypes();
 	setupClickBehaviours();
 
 } )( presideJQuery );

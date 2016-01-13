@@ -97,8 +97,8 @@ module.exports = function( grunt ) {
 					  src  : "js/admin/lib/jquery-2.0.3.js"
 					, dest : "js/admin/lib/jquery-2.0.3.min.js"
 				},{
-					  src  : "js/admin/lib/jquery-ui-1.10.3.custom.js"
-					, dest : "js/admin/lib/jquery-ui-1.10.3.custom.min.js"
+					  src  : "js/admin/lib/jquery-ui-1.11.4.js"
+					, dest : "js/admin/lib/jquery-ui-1.11.4.min.js"
 				} ]
 			}
 		},
