@@ -105,9 +105,8 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "onUnsupportedRestMethod"        			);
 		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"          			);
 		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"         			);
-		interceptorSettings.customInterceptionPoints.append( "onMissingRequiredRestRequestParameter"	);
-		interceptorSettings.customInterceptionPoints.append( "onInvalidRestRequestParameterType"        );
-
+		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError"    );
+		
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
 		};

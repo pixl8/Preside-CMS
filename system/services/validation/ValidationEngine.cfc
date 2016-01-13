@@ -53,7 +53,7 @@ component output="false" singleton=true {
 		var rules = "";
 		var rulesAndMessagesJs = "";
 
-		if ( _rulesetExists( arguments.ruleset ) ) {
+		if ( rulesetExists( arguments.ruleset ) ) {
 			rules = _getRuleset( arguments.ruleset );
 			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules )
 
@@ -103,6 +103,10 @@ component output="false" singleton=true {
 		return new ValidationResult();
 	}
 
+	public boolean function rulesetExists( required string rulesetName ) output=false {
+		return StructKeyExists( _getRulesets(), arguments.rulesetName );
+	}
+
 // PRIVATE HELPERS
 	private void function _loadCoreValidators() output=false {
 		newProvider( sourceCfc = new CoreValidators() );
@@ -122,10 +126,6 @@ component output="false" singleton=true {
 		var rulesets = _getRulesets();
 
 		return rulesets[ arguments.rulesetName ];
-	}
-
-	private boolean function _rulesetExists( required string rulesetName ) output=false {
-		return StructKeyExists( _getRulesets(), arguments.rulesetName );
 	}
 
 	private string function _generateCustomValidatorsJs( required array rules ) output=false {

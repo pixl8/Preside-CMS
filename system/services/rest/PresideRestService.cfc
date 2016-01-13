@@ -10,14 +10,26 @@
 component {
 
 	/**
-	 * @resourceDirectories.inject  presidecms:directories:handlers/rest-apis
-	 * @controller.inject           coldbox
-	 * @configurationWrapper.inject presideRestConfigurationWrapper
+	 * @resourceDirectories.inject  	presidecms:directories:handlers/rest-apis
+	 * @controller.inject           	coldbox
+	 * @configurationWrapper.inject 	presideRestConfigurationWrapper
+	 * @validationEngine.inject 		validationEngine
+	 * @i18n.inject 					coldbox:plugin:i18n
 	 */
-	public any function init( required array resourceDirectories, required any controller, required any configurationWrapper ) {
+	public any function init(
+		required array resourceDirectories,
+		required any controller,
+		required any configurationWrapper,
+		required any validationEngine,
+		required any i18n
+	) {
 		_setApis( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
 		_setController( arguments.controller );
 		_setConfigurationWrapper( arguments.configurationWrapper );
+		_setValidationEngine( arguments.validationEngine );
+		_setI18n( arguments.i18n );
+
+		_createParameterValidationRuleSets();
 
 		return this;
 	}
@@ -98,37 +110,10 @@ component {
 			args.restResponse = arguments.restResponse;
 			args.restRequest  = arguments.restRequest;
 
-			// perform generic required parameter validation
-			var validationResult = _validateRequiredRestParameters( restRequest=restRequest, restResponse=restResponse, args=args );
-			if ( not validationResult.valid ) {
-				args.validationErrors = validationResult.errors;
-				_announceInterception( "onMissingRequiredRestRequestParameter", { restRequest=restRequest, restResponse=restResponse, args=args } );
-				if ( arguments.restRequest.getFinished() ) {
-					// the error was handled by a custom interceptor - just return
-					return;
-				}
-				// error was not handled by a custom interceptor
-				// TODO: check if a custom exception should be thrown here
-				// or whether processing should continue normally and the CF internal exception is thrown on method call
-				//throw(type="MissingRequiredRestRequestParameterException", message="There are missing required parameters", detail=serializeJSON(validationResult.errors));
+			_validateRestParameters( restRequest=restRequest, restResponse=restResponse, args=args );
+			if ( arguments.restRequest.getFinished() ) {
+				return;
 			}
-
-			// perform generic parameter type validation
-			validationResult = _validateRestParameterTypes( restRequest=restRequest, restResponse=restResponse, args=args );
-			if ( not validationResult.valid ) {
-				args.validationErrors = validationResult.errors;
-				_announceInterception( "onInvalidRestRequestParameterType", { restRequest=restRequest, restResponse=restResponse, args=args } );
-				if ( arguments.restRequest.getFinished() ) {
-					// the error was handled by a custom interceptor - just return
-					return;
-				}
-				// error was not handled by a custom interceptor
-				// TODO: check if a custom exception should be thrown here
-				// or whether processing should continue normally and the CF internal exception is thrown on method call
-				//throw(type="InvalidRestRequestParameterTypeException", message="There are invalid parameter types", detail=serializeJSON(validationResult.errors));
-			}
-
-			//validateRestRequestParameters( restRequest=restRequest, restResponse=restResponse, args=args );
 
 			_announceInterception( "preInvokeRestResource", { restRequest=restRequest, restResponse=restResponse, args=args } );
 			if ( arguments.restRequest.getFinished() ) {
@@ -165,28 +150,6 @@ component {
 			} );
 		}
 	}
-/*
-	public void function validateRestRequestParameters(
-		  required any restRequest
-		, required any restResponse
-		, required struct args
-	) {
-
-		var validationResult = _validateRequiredRestParameters(argumentCollection=arguments);
-		if ( not validationResult.valid ) {
-			args.validationErrors = validationResult.errors;
-			_announceInterception( "onMissingRequiredRestRequestParameter", { restRequest=restRequest, restResponse=restResponse, args=args } );
-			if ( arguments.restRequest.getFinished() ) {
-				return;
-			}
-		}
-
-		validationResult = _validateRestParameterTypes(argumentCollection=arguments);
-		if ( not validationResult.valid ) {
-			args.validationErrors = validationResult.errors;
-			_announceInterception( "onInvalidRestRequestParameterType", { restRequest=restRequest, restResponse=restResponse, args=args } );
-		}
-	}*/
 
 	public void function processOptionsRequest(
 		  required any restRequest
@@ -406,72 +369,112 @@ component {
 		return false;
 	}
 
-	private struct function _validateRequiredRestParameters(
-		required any restRequest
+	private void function _validateRestParameters(
+		  required any restRequest
 		, required any restResponse
 		, required struct args
 	) {
-		var restResource = arguments.restRequest.getResource();
-        var restVerb = arguments.restRequest.getVerb();
-        var requiredParameters = restResource.requiredParameters[restVerb] ?: [];
-        var validationResult = {valid=true, errors=[]};
 
-        if (requiredParameters.isEmpty()) {
-        	return validationResult;
-        }
+		var resource = arguments.restRequest.getResource();
+		var verb = arguments.restRequest.getVerb();
+		var rulesetName = "restparamruleset.#resource.handler#.#verb#";
 
-        for ( var requiredParameterName in requiredParameters ) {
-            if ( !arguments.args.keyExists( requiredParameterName ) ) {
-            	validationResult.valid = false;
-            	validationResult.errors.append("Missing required parameter '#requiredParameterName#'");
-            }
-        }
-        return validationResult;
+		if ( !_validationEngine.rulesetExists( rulesetName ) ) {
+			return;
+		}
+
+		var validationResult = _validationEngine.validate( "restparamruleset.#resource.handler#.#verb#", args );
+
+		if ( validationResult.validated() ) {
+			return;
+		}
+
+		arguments.args.error = {
+			  type = "rest.parameter.validation.error"
+			, title = "REST Parameter Validation Error"
+			, errorCode = 400
+			, message = "A parameter validation error occurred within the REST API"
+			, detail = "The request has errors in the following parameters: #arrayToList(validationResult.listErrorFields(), ', ')#"
+			, additionalInfo = _translateValidationResultMessages(validationResult.getMessages())
+		};
+
+		_announceInterception( "onRestRequestParameterValidationError", { restRequest=arguments.restRequest, restResponse=arguments.restResponse, args=arguments.args } );
+
+		if ( arguments.restRequest.getFinished() ) {
+			// the error was handled by a custom interceptor - just return
+			return;
+		}
+
+		// at this point there was no custom interceptor that handled the problem - just fall back to the default behaviour
+		arguments.restResponse.setError( argumentCollection = arguments.args.error );
+		arguments.restRequest.finish();
 	}
 
-	private struct function _validateRestParameterTypes(
-		required any restRequest
-		, required any restResponse
-		, required struct args
-	) {
-		var restResource = arguments.restRequest.getResource();
-        var restVerb = arguments.restRequest.getVerb();
-        var restArgs = arguments.args;
-        var parameterTypes = restResource.parameterTypes[restVerb] ?: {};
-        var validationResult = {valid=true, errors=[]};
+	private void function _createParameterValidationRuleSets() {
 
-        if (parameterTypes.isEmpty()) {
-        	return validationResult;
-        }
+		var resource = 0;
+		var verb = "";
+		var rules = [];
+		var param = "";
+		var type = "";
+		var validator = "";
 
-        var paramValue = "";
-        var paramValue = "";
-        var errorMessage = "";
+		for ( var apiRootPath in _apis ) {
+			for ( resource in _apis[apiRootPath] ) {
+				for ( verb in resource.verbs ) {
+					rules = [];
+					for ( param in resource.requiredParameters[verb] ) {
+						rules.append( { 
+	              			  fieldName = param
+	            			, validator = "required" 
+	        			} );
+					}
+					for ( param in resource.parameterTypes[verb] ) {
+						type = resource.parameterTypes[verb][param];
+						validator = "";
+						if ( type eq "numeric" ) {
+							validator = "number";
+	        			}
+	        			else if ( type eq "date" ) {
+	        				validator = "date";
+	        			}
+	        			else if ( type eq "uuid" ) {
+	        				validator = "uuid";
+	        			}
 
-        for (var paramName in restArgs) {
-            if (!parameterTypes.keyExists(paramName)) {
-                continue;
-            }
-            paramValue = restArgs[paramName];
-            paramType = parameterTypes[paramName];
-            errorMessage = "";
-            if (paramType eq "numeric" and not isNumeric(paramValue)) {
-                errorMessage = "Parameter '#paramName#' needs to be a numeric value";
-            }
-            else if (paramType eq "date" and not isDate(paramValue)) {
-                errorMessage = "Parameter '#paramName#' needs to be a date value";
-            }
-            else if (paramType eq "uuid" and not isValid("uuid", paramValue)) {
-                errorMessage = "Parameter '#paramName#' needs to be a UUID";
-            }
-            if ( len(errorMessage) ) {
-            	validationResult.valid = false;
-            	validationResult.errors.append(errorMessage);
-            }
-            // TODO: add more generic type validations
-        }
+	        			if ( len( validator ) gt 0 ) {
+	        				rules.append( { 
+		              			  fieldName = param
+		            			, validator = validator
+		        			} );
+	        			}
+					}
 
-        return validationResult;
+					// TODO: create a 'isTypeOf' core validator
+					// TODO: support 'non-empty string' validators (it's implicit via "required" but not available for optional params)
+					// TODO: support custom validators (e.g. via cfargument annotations)
+
+					if (!rules.isEmpty()) {
+						_validationEngine.newRuleset( name="restparamruleset.#resource.handler#.#verb#", rules=rules );
+					}
+				}
+			}
+		}
+	}
+
+	private struct function _translateValidationResultMessages( required struct messages ) {
+
+		var result = {};
+
+		for (var param in arguments.messages) {
+
+			// TODO: support arguments.messages[param].params to be replaced in resources
+			// e.g. validation.min.default=Must be at least {1}
+
+			result[param] = _getI18n().translateResource( uri=arguments.messages[param].message, data=arguments.messages[param].params );
+		}
+
+		return result;
 	}
 
 // GETTERS AND SETTERS
@@ -495,6 +498,20 @@ component {
 	}
 	private void function _setConfigurationWrapper( required any configurationWrapper ) {
 		_configurationWrapper = arguments.configurationWrapper;
+	}
+
+	private any function _getValidationEngine() {
+		return _validationEngine;
+	}
+	private void function _setValidationEngine( required any validationEngine ) {
+		_validationEngine = arguments.validationEngine;
+	}
+
+	private any function _getI18n() {
+		return _i18n;
+	}
+	private void function _setI18n( required any i18n ) {
+		_i18n = arguments.i18n;
 	}
 
 }
