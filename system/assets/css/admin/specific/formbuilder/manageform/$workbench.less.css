@@ -1,0 +1,32 @@
+.formbuilder-workbench .formbuilder-workbench-items {
+  position: relative;
+}
+.formbuilder-workbench .formbuilder-workbench-items .instructions {
+  text-align: center;
+  padding: 20px 0;
+}
+.formbuilder-workbench .formbuilder-workbench-items .instructions .empty-notice {
+  display: none;
+}
+.formbuilder-workbench .formbuilder-workbench-items .instructions.empty .empty-notice {
+  display: block;
+}
+.formbuilder-workbench .formbuilder-workbench-items .instructions.empty .not-empty-notice {
+  display: none;
+}
+.formbuilder-workbench .formbuilder-workbench-items .form-items .item-type {
+  padding: 10px;
+  background-color: #f0f7fc;
+  border: 1px solid #93cbf9;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+.formbuilder-workbench .formbuilder-workbench-items .form-items .item-type.sortable-placeholder {
+  border: 2px dashed #93cbf9;
+  min-height: 3em;
+}
+.formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .sort-link:active,
+.formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .sort-link:hover {
+  cursor: move;
+}
