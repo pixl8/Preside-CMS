@@ -16,6 +16,7 @@
 							    data-config-title="#translateResource( uri="formbuilder:itemconfig.modal.title", data=[ type.title ] )#">
 
 								<span>#type.title#</span>
+								<i class="pull-right fa fa-fw fa-reorder grey"></i>
 							</li>
 						</cfloop>
 					</ul>

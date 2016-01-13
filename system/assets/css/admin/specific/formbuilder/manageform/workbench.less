@@ -1,49 +1,76 @@
 @import url( 'globals.less' );
 
-.formbuilder-workbench {
+.presidecms {
 
-	.formbuilder-workbench-items {
-		position : relative;
+	.formbuilder-workbench {
 
-		.instructions {
-			text-align : center;
-			padding    : 20px 0;
+		a, .ui-accordion .ui-accordion-header, .ui-icon {
+			color : @default-font-colour;
+		}
 
-			.empty-notice {
-				display : none;
+		.ui-accordion {
+			.ui-accordion-header, .ui-accordion-header.ui-state-active {
+				background-color : @default-panel-background-colour;
 			}
 
-			&.empty {
-				.empty-notice {
-					display : block;
-				}
-				.not-empty-notice {
-					display : none;
+			.ui-accordion-content {
+				border-bottom-width : 0;
+			}
+
+			.group:last-child {
+				.ui-accordion-content {
+					border-bottom-width : 1px;
+
 				}
 			}
 		}
 
-		.form-items {
-			.item-type {
-				padding          : 10px;
-				background-color : @pale-blue;
-				border           : 1px solid @light-blue;
-				border-radius    : 5px;
-				margin-bottom    : 10px;
-				font-size        : 1.1em;
+		.formbuilder-workbench-items {
+			position      : relative;
+			padding       : 20px;
+			border        : 3px dashed @grey14;
+			border-radius : 10px;
 
-				&.sortable-placeholder {
-					border     : 2px dashed @light-blue;
-					min-height : 3em;
+			.instructions {
+				text-align : center;
+				padding    : 20px 0;
+
+				.empty-notice {
+					display : none;
 				}
 
-				.sort-link {
-					&:active, &:hover {
-						cursor : move;
+				&.empty {
+					.empty-notice {
+						display : block;
+					}
+					.not-empty-notice {
+						display : none;
+					}
+				}
+			}
+
+			.form-items {
+				.item-type {
+					padding          : 10px;
+					background-color : @default-panel-background-colour;
+					border           : 1px solid @default-panel-border-colour;
+					border-radius    : 5px;
+					margin-bottom    : 10px;
+					font-size        : 1.1em;
+
+					&.sortable-placeholder {
+						border     : 2px dashed @light-blue;
+						min-height : 3em;
+					}
+
+					.sort-link {
+						&:active, &:hover {
+							cursor : move;
+						}
 					}
 				}
 			}
 		}
-	}
 
+	}
 }
