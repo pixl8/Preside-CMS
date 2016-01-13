@@ -20,7 +20,7 @@ When you fork our repository in GitHub, you essentially have a "cut off" reposit
 
 ```
 # add the master repo as a git remote called 'upstream'
-git remote add upstream // needed here ssh + https urls
+git remote add upstream https://github.com/pixl8/Preside-CMS.git
 
 # fetch the latest code from the upstream remote
 git fetch upstream
@@ -29,7 +29,7 @@ git fetch upstream
 git checkout stable
 git merge upstream/stable
 
-# do this for as many branches that you want to 
+# do this for as many branches that you want to
 # work with locally
 git checkout release-10.2.4
 git merge upstream/release-10.2.4
