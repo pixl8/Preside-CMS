@@ -6,6 +6,7 @@
 .presidecms .formbuilder-workbench .ui-accordion .ui-accordion-header,
 .presidecms .formbuilder-workbench .ui-accordion .ui-accordion-header.ui-state-active {
   background-color: #eeeeee;
+  font-weight: normal;
 }
 .presidecms .formbuilder-workbench .ui-accordion .ui-accordion-content {
   border-bottom-width: 0;
