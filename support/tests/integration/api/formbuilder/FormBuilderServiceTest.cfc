@@ -289,6 +289,114 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.setItemsSortOrder( items ) ).toBe( items.len() );
 			} );
 		} );
+
+		describe( "activateForm", function(){
+			it( "should set the given's form active status to true", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.activateForm( formId ) ).toBe( 1 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=true } } );
+			} );
+
+			it( "should do nothing when the passed ID is an empty string", function(){
+				var service = getService();
+				var formId  = "";
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.activateForm( formId ) ).toBe( 0 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "deactivateForm", function(){
+			it( "should set the given's form active status to false", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.deactivateForm( formId ) ).toBe( 1 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ active=false } } );
+			} );
+
+			it( "should do nothing when the passed ID is an empty string", function(){
+				var service = getService();
+				var formId  = "";
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.deactivateForm( formId ) ).toBe( 0 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "lockForm", function(){
+			it( "should set the given's form locked status to true", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.lockForm( formId ) ).toBe( 1 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=true } } );
+			} );
+
+			it( "should do nothing when the passed ID is an empty string", function(){
+				var service = getService();
+				var formId  = "";
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.lockForm( formId ) ).toBe( 0 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "unlockForm", function(){
+			it( "should set the given's form locked status to false", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.unlockForm( formId ) ).toBe( 1 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( { id=formId, data={ locked=false } } );
+			} );
+
+			it( "should do nothing when the passed ID is an empty string", function(){
+				var service = getService();
+				var formId  = "";
+
+				mockFormDao.$( "updateData", 1 );
+
+				expect( service.unlockForm( formId ) ).toBe( 0 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+		} );
 	}
 
 	private function getService() {

@@ -4,6 +4,8 @@
 </cfscript>
 
 <cfoutput>
+	#renderViewlet( event="admin.formbuilder.statusControls", args=QueryRowToStruct( theForm ) )#
+
 	<div class="tabbable">
 		#renderViewlet( event="admin.formbuilder.managementTabs", args={ activeTab="manage" } )#
 

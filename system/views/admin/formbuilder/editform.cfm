@@ -5,6 +5,8 @@
 </cfscript>
 
 <cfoutput>
+	#renderViewlet( event="admin.formbuilder.statusControls", args=theForm )#
+
 	<div class="tabbable">
 		#renderViewlet( event="admin.formbuilder.managementTabs", args={ activeTab="settings" } )#
 

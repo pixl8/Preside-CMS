@@ -225,6 +225,42 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( data=success, type="json" );
 	}
 
+	public void function activateAction( event, rc, prc ) {
+		_permissionsCheck( "activateForm", event );
+
+		var formId    = rc.id ?: "";
+		var activated = IsTrue( rc.activated ?: "" );
+
+		if ( activated ) {
+			formBuilderService.activateForm( formId );
+			messagebox.info( translateResource( "formbuilder:activated.confirmation" ) );
+		} else {
+			formBuilderService.deactivateForm( formId );
+			messagebox.info( translateResource( "formbuilder:deactivated.confirmation" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) )
+	}
+
+	public void function lockAction( event, rc, prc ) {
+		_permissionsCheck( "lockForm", event );
+
+		var formId = rc.id ?: "";
+		var locked = IsTrue( rc.locked ?: "" );
+
+		if ( locked ) {
+			formBuilderService.lockForm( formId );
+			messagebox.info( translateResource( "formbuilder:locked.confirmation" ) );
+		} else {
+			formBuilderService.unlockForm( formId );
+			messagebox.info( translateResource( "formbuilder:unlocked.confirmation" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.manageform", querystring="id=" & formId ) )
+
+	}
+
+
 // AJAXY ACTIONS
 	public void function getFormsForAjaxDataTables( event, rc, prc ) {
 		runEvent(
@@ -261,6 +297,13 @@ component extends="preside.system.base.AdminHandler" {
 	private string function managementTabs( event, rc, prc, args ) {
 		args.canEdit = hasCmsPermission( permissionKey="formbuilder.editform" );
 		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
+	}
+
+	private string function statusControls( event, rc, prc, args ) {
+		args.canLock     = hasCmsPermission( permissionKey="formbuilder.lockForm" );
+		args.canActivate = hasCmsPermission( permissionKey="formbuilder.activateForm" );
+
+		return renderView( view="/admin/formbuilder/_statusControls", args=args );
 	}
 
 // PRIVATE UTILITY

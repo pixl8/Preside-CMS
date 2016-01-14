@@ -210,6 +210,78 @@ component {
 		return updatedCount;
 	}
 
+	/**
+	 * Activates the given form so that it can be embedded and used
+	 * in editorial content.
+	 *
+	 * @autodoc
+	 * @id.hint ID of the form you want to activate
+	 */
+	public numeric function activateForm( required string id ) {
+		if ( !Len( Trim( arguments.id ) ) ) {
+			return 0;
+		}
+
+		return $getPresideObject( "formbuilder_form" ).updateData(
+			  id = arguments.id
+			, data = { active = true }
+		);
+	}
+
+	/**
+	 * Deactivates the given form so that it can no longer be
+	 * embedded and used in editorial content.
+	 *
+	 * @autodoc
+	 * @id.hint ID of the form you want to deactivate
+	 */
+	public numeric function deactivateForm( required string id ) {
+		if ( !Len( Trim( arguments.id ) ) ) {
+			return 0;
+		}
+
+		return $getPresideObject( "formbuilder_form" ).updateData(
+			  id = arguments.id
+			, data = { active = false }
+		);
+	}
+
+	/**
+	 * Locks the given form so that it can no longer
+	 * be edited.
+	 *
+	 * @autodoc
+	 * @id.hint ID of the form you want to lock
+	 */
+	public numeric function lockForm( required string id ) {
+		if ( !Len( Trim( arguments.id ) ) ) {
+			return 0;
+		}
+
+		return $getPresideObject( "formbuilder_form" ).updateData(
+			  id = arguments.id
+			, data = { locked = true }
+		);
+	}
+
+	/**
+	 * Unlocks the given form so that it can once
+	 * again be edited.
+	 *
+	 * @autodoc
+	 * @id.hint ID of the form you want to unlock
+	 */
+	public numeric function unlockForm( required string id ) {
+		if ( !Len( Trim( arguments.id ) ) ) {
+			return 0;
+		}
+
+		return $getPresideObject( "formbuilder_form" ).updateData(
+			  id = arguments.id
+			, data = { locked = false }
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
