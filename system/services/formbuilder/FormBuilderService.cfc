@@ -107,6 +107,10 @@ component {
 		, required string itemType
 		, required struct configuration
 	) {
+		if ( isFormLocked( formId=arguments.formId ) ) {
+			return "";
+		}
+
 		var formItemDao   = $getPresideObject( "formbuilder_formitem" );
 		var existingItems = formItemDao.selectData( selectFields=[ "Max( sort_order ) as max_sort_order" ], filter={ form=arguments.formId } );
 
@@ -127,7 +131,7 @@ component {
 	 *
 	 */
 	public any function saveItem( required string id, required struct configuration ) {
-		if ( !arguments.id.len() ) {
+		if ( !arguments.id.len() || isFormLocked( itemId=arguments.id ) ) {
 			return 0;
 		}
 
@@ -280,6 +284,37 @@ component {
 			  id = arguments.id
 			, data = { locked = false }
 		);
+	}
+
+	/**
+	 * Returns whether or not the given form is locked
+	 * for editing.
+	 *
+	 * @autodoc
+	 * @formid.hint ID of the form you want to check. Required if 'itemId' not supplied.
+	 * @itemId.hint ID of the form you want to check. Required if 'id' not supplied
+	 */
+	public boolean function isFormLocked( string formid="", string itemId="" ) {
+		if ( !Len( Trim( arguments.formId ) ) ) {
+			if ( !Len( Trim( arguments.itemId ) ) ) {
+				return false;
+			}
+
+			var item = $getPresideObject( "formbuilder_formitem" ).selectData(
+				  id           = arguments.itemId
+				, selectFields = [ "form" ]
+			);
+			if ( !item.recordCount ) {
+				return false;
+			}
+
+			arguments.formId = item.form;
+		}
+
+		return $getPresideObject( "formbuilder_form" ).dataExists( filter={
+			  id     = arguments.formId
+			, locked = true
+		} );
 	}
 
 // PRIVATE HELPERS

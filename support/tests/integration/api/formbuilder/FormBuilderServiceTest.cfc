@@ -127,6 +127,7 @@ component extends="testbox.system.BaseSpec"{
 					, configuration = SerializeJson( configuration )
 					, sort_order    = topSortOrder+1
 				} ).$results( newId );
+				service.$( "isFormLocked", false );
 
 				expect( service.addItem(
 					  formId        = formId
@@ -135,6 +136,32 @@ component extends="testbox.system.BaseSpec"{
 				) ).toBe( newId );
 			} );
 
+			it( "should do nothing when the form is locked", function(){
+				var service       = getService();
+				var formId        = CreateUUId();
+				var itemtype      = "sometype";
+				var configuration = { test=true, configuration="nice" };
+				var newId         = CreateUUId();
+				var topSortOrder  = 5;
+
+				mockFormItemDao.$( "selectData" ).$args( filter={ form=formId }, selectFields=[ "Max( sort_order ) as max_sort_order" ] ).$results( QueryNew( "max_sort_order", "int", [[ topSortOrder ]]) );
+				mockFormItemDao.$( "insertData" ).$args( data={
+					  form          = formId
+					, item_type     = itemType
+					, configuration = SerializeJson( configuration )
+					, sort_order    = topSortOrder+1
+				} ).$results( newId );
+				service.$( "isFormLocked", true );
+
+				expect( service.addItem(
+					  formId        = formId
+					, itemType      = itemType
+					, configuration = configuration
+				) ).toBe( "" );
+
+				expect( mockFormItemDao.$callLog().selectData.len() ).toBe( 0 );
+				expect( mockFormItemDao.$callLog().insertData.len() ).toBe( 0 );
+			} );
 		} );
 
 		describe( "validateItemConfig", function(){
@@ -396,6 +423,39 @@ component extends="testbox.system.BaseSpec"{
 				var callLog = mockFormDao.$callLog().updateData;
 				expect( callLog.len() ).toBe( 0 );
 			} );
+		} );
+
+		describe( "isFormLocked", function(){
+
+			it( "should return true when the form for the passed form id has its locked status set to true in the database", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "dataExists" ).$args( filter={ id=formId, locked=true } ).$results( true );
+
+				expect( service.isFormLocked( formId ) ).toBeTrue();
+			} );
+
+			it( "should return false when the form for the passed form id has its locked status set to false in the database", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "dataExists" ).$args( filter={ id=formId, locked=true } ).$results( false );
+
+				expect( service.isFormLocked( formId ) ).toBeFalse();
+			} );
+
+			it( "should get the form ID from the passed form item id if an item id is passed and no form id is passed", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+				var itemId  = CreateUUId();
+
+				mockFormItemDao.$( "selectData" ).$args( id=itemId, selectFields=[ "form" ] ).$results( QueryNew( 'form', 'varchar', [[formId]] ) );
+				mockFormDao.$( "dataExists" ).$args( filter={ id=formId, locked=true } ).$results( true );
+
+				expect( service.isFormLocked( itemId=itemId ) ).toBeTrue();
+			} );
+
 		} );
 	}
 
