@@ -41,7 +41,7 @@
   font-size: 1.1em;
 }
 .presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type.sortable-placeholder {
-  border: 2px dashed #93cbf9;
+  border: 2px dashed #dddddd;
   min-height: 3em;
 }
 .presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .sort-link:active,
