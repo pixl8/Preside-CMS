@@ -258,6 +258,11 @@ component extends="preside.system.base.AdminHandler" {
 		return renderView( view="/admin/formbuilder/_itemsManagement", args=args );
 	}
 
+	private string function managementTabs( event, rc, prc, args ) {
+		args.canEdit = hasCmsPermission( permissionKey="formbuilder.editform" );
+		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
+	}
+
 // PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
 		var permKey   = "formbuilder." & arguments.key;
