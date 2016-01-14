@@ -15,7 +15,7 @@
 			<cfif args.type.adminPlaceholderViewlet.len()>
 				#renderViewlet( event=args.type.adminPlaceholderViewlet, args=args )#
 			<cfelseif Len( args.configuration.label ?: "" )>
-				#args.type.label# (#args.type.title#)
+				#args.configuration.label# (#args.type.title#)
 			<cfelse>
 				#args.type.title#
 			</cfif>

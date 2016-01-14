@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.formfield:">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field name="label" control="textinput" required="true" sortorder="20" />
+			<field name="name" control="textinput" required="false" sortorder="10">
+				<rule validator="match" message="formbuilder.item-types.formfield:validation.error.invalid.name.format">
+					<param name="regex" value="^[a-zA-Z][a-zA-Z0-9_]*$" />
+				</rule>
+			</field>
+		</fieldset>
+	</tab>
+</form>

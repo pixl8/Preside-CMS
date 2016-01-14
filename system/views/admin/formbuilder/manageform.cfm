@@ -10,12 +10,12 @@
 		<div class="tab-content">
 			<div class="tab-pane active formbuilder-workbench">
 				<div class="row">
-					<div class="col-md-4 col-lg-3">
+					<div class="col-md-5 col-lg-4">
 						<div id="tab-fields" class="item-type-picker">
 							#renderViewlet( "admin.formbuilder.itemTypePicker" )#
 						</div>
 					</div>
-					<div class="col-md-8 col-lg-9">
+					<div class="col-md-7 col-lg-8">
 						<div class="formbuilder-workbench-items">
 							#renderViewlet( event="admin.formbuilder.itemsManagement", args={ formId=formId } )#
 						</div>
