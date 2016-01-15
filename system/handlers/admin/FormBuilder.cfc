@@ -231,6 +231,10 @@ component extends="preside.system.base.AdminHandler" {
 		var formId    = rc.id ?: "";
 		var activated = IsTrue( rc.activated ?: "" );
 
+		if ( formBuilderService.isFormLocked( formId ) ) {
+			event.adminAccessDenied();
+		}
+
 		if ( activated ) {
 			formBuilderService.activateForm( formId );
 			messagebox.info( translateResource( "formbuilder:activated.confirmation" ) );
@@ -300,8 +304,9 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function statusControls( event, rc, prc, args ) {
+		args.locked      = IsTrue( args.locked ?: "" );
 		args.canLock     = hasCmsPermission( permissionKey="formbuilder.lockForm" );
-		args.canActivate = hasCmsPermission( permissionKey="formbuilder.activateForm" );
+		args.canActivate = !args.locked && hasCmsPermission( permissionKey="formbuilder.activateForm" );
 
 		return renderView( view="/admin/formbuilder/_statusControls", args=args );
 	}
