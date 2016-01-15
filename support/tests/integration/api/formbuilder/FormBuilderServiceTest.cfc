@@ -247,6 +247,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemId  = CreateUUId();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				service.deleteItem( itemId );
 
@@ -261,6 +262,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemId  = CreateUUId();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 1 );
+				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeTrue();
 
@@ -272,6 +274,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemId  = CreateUUId();
 
 				mockFormItemDao.$( "deleteData" ).$args( id=itemId ).$results( 0 );
+				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
 
@@ -283,6 +286,19 @@ component extends="testbox.system.BaseSpec"{
 				var itemId  = "";
 
 				mockFormItemDao.$( "deleteData" );
+				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( false );
+
+				expect( service.deleteItem( itemId )  ).toBeFalse();
+				var callLog = mockFormItemDao.$callLog().deleteData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+
+			it( "should not attempt to delete anything and return false when form is locked", function(){
+				var service = getService();
+				var itemId  = CreateUUId();
+
+				mockFormItemDao.$( "deleteData" );
+				service.$( "isFormLocked" ).$args( itemId=itemId ).$results( true );
 
 				expect( service.deleteItem( itemId )  ).toBeFalse();
 				var callLog = mockFormItemDao.$callLog().deleteData;
@@ -297,6 +313,7 @@ component extends="testbox.system.BaseSpec"{
 				var items   = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
 
 				mockFormItemDao.$( "updateData", 1 );
+				service.$( "isFormLocked", false );
 
 				service.setItemsSortOrder( items );
 
@@ -312,8 +329,22 @@ component extends="testbox.system.BaseSpec"{
 				var items   = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
 
 				mockFormItemDao.$( "updateData", 1 );
+				service.$( "isFormLocked", false );
 
 				expect( service.setItemsSortOrder( items ) ).toBe( items.len() );
+			} );
+
+			it( "should do nothing when the form is locked", function(){
+				var service = getService();
+				var items   = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockFormItemDao.$( "updateData", 1 );
+				service.$( "isFormLocked", true );
+
+				service.setItemsSortOrder( items );
+
+				var callLog = mockFormItemDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
 			} );
 		} );
 
@@ -323,6 +354,7 @@ component extends="testbox.system.BaseSpec"{
 				var formId  = CreateUUId();
 
 				mockFormDao.$( "updateData", 1 );
+				service.$( "isFormLocked", false );
 
 				expect( service.activateForm( formId ) ).toBe( 1 );
 
@@ -336,6 +368,20 @@ component extends="testbox.system.BaseSpec"{
 				var formId  = "";
 
 				mockFormDao.$( "updateData", 1 );
+				service.$( "isFormLocked", false );
+
+				expect( service.activateForm( formId ) ).toBe( 0 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+
+			it( "should do nothing when the form is locked", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "updateData", 1 );
+				service.$( "isFormLocked", true );
 
 				expect( service.activateForm( formId ) ).toBe( 0 );
 
@@ -350,6 +396,7 @@ component extends="testbox.system.BaseSpec"{
 				var formId  = CreateUUId();
 
 				mockFormDao.$( "updateData", 1 );
+				service.$( "isFormLocked", false );
 
 				expect( service.deactivateForm( formId ) ).toBe( 1 );
 
@@ -363,6 +410,20 @@ component extends="testbox.system.BaseSpec"{
 				var formId  = "";
 
 				mockFormDao.$( "updateData", 1 );
+				service.$( "isFormLocked", false );
+
+				expect( service.deactivateForm( formId ) ).toBe( 0 );
+
+				var callLog = mockFormDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 0 );
+			} );
+
+			it( "should do nothing when the form is locked", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+
+				mockFormDao.$( "updateData", 1 );
+				service.$( "isFormLocked", true );
 
 				expect( service.deactivateForm( formId ) ).toBe( 0 );
 

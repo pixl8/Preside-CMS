@@ -184,7 +184,7 @@ component {
 	 *
 	 */
 	public boolean function deleteItem( required string id ) {
-		if ( Len( Trim( arguments.id ) ) ) {
+		if ( Len( Trim( arguments.id ) ) && !isFormLocked( itemId=arguments.id ) ) {
 			return $getPresideObject( "formbuilder_formitem" ).deleteData( id=arguments.id ) > 0;
 		}
 
@@ -206,6 +206,10 @@ component {
 		for( var i=1; i<=arguments.items.len(); i++ ){
 			var id = arguments.items[ i ];
 
+			if ( isFormLocked( itemId=id ) ) {
+				return 0;
+			}
+
 			if ( IsSimpleValue( id ) && Len( Trim( id) ) ) {
 				updatedCount += itemDao.updateData( id=id, data={ sort_order=i } );
 			}
@@ -222,7 +226,7 @@ component {
 	 * @id.hint ID of the form you want to activate
 	 */
 	public numeric function activateForm( required string id ) {
-		if ( !Len( Trim( arguments.id ) ) ) {
+		if ( !Len( Trim( arguments.id ) ) || isFormLocked( formId=arguments.id ) ) {
 			return 0;
 		}
 
@@ -240,7 +244,7 @@ component {
 	 * @id.hint ID of the form you want to deactivate
 	 */
 	public numeric function deactivateForm( required string id ) {
-		if ( !Len( Trim( arguments.id ) ) ) {
+		if ( !Len( Trim( arguments.id ) ) || isFormLocked( formId=arguments.id ) ) {
 			return 0;
 		}
 
