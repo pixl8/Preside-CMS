@@ -50,9 +50,8 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
 
-		prc.pageTitle    = prc.form.name; //translateResource( uri="formbuilder:manage.form.page.title"   , data=[ prc.form.name ] );
-		prc.pageSubtitle = prc.form.description; // translateResource( uri="formbuilder:manage.form.page.subtitle", data=[ prc.form.name ] );
-		prc.canEdit      = hasCmsPermission( permissionKey="formbuilder.editform" );
+		prc.pageTitle    = prc.form.name;
+		prc.pageSubtitle = prc.form.description;
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="formbuilder:manageform.breadcrumb.title", data=[ prc.form.name ] )
@@ -117,6 +116,28 @@ component extends="preside.system.base.AdminHandler" {
 			}
 			event.renderData( data=errors, type="json" );
 		}
+	}
+
+	public void function submissions( event, rc, prc ) {
+		prc.form = formBuilderService.getForm( rc.id ?: "" );
+
+		if ( !prc.form.recordcount ) {
+			messagebox.error( translateResource( "formbuilder:form.not.found.alert" ) );
+			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
+		}
+
+		prc.pageTitle    = prc.form.name;
+		prc.pageSubtitle = prc.form.description;
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="formbuilder:manageform.breadcrumb.title", data=[ prc.form.name ] )
+			, link  = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & prc.form.id )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="formbuilder:submissions.breadcrumb.title", data=[ prc.form.name ] )
+			, link  = event.buildAdminLink( linkTo="formbuilder.submissions", queryStrign="id=" & prc.form.id )
+		);
+
 	}
 
 	public void function editForm( event, rc, prc ) {
