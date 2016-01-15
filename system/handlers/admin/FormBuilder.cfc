@@ -128,6 +128,10 @@ component extends="preside.system.base.AdminHandler" {
 			messagebox.error( translateResource( "formbuilder:form.not.found.alert" ) );
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
+		if ( IsTrue( prc.form.locked ) ) {
+			event.adminAccessDenied();
+		}
+
 		prc.form = QueryRowToStruct( prc.form );
 
 		prc.pageTitle    = translateResource( uri="formbuilder:edit.form.page.title"   , data=[ prc.form.name ] );
@@ -164,6 +168,9 @@ component extends="preside.system.base.AdminHandler" {
 	public void function editFormAction( event, rc, prc ) {
 		_permissionsCheck( "editform", event );
 		var formId = rc.id ?: "";
+		if ( formBuilderService.isFormLocked( formId ) ) {
+			event.adminAccessDenied();
+		}
 
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
@@ -299,7 +306,11 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function managementTabs( event, rc, prc, args ) {
-		args.canEdit = hasCmsPermission( permissionKey="formbuilder.editform" );
+		var formId   = rc.id ?: "";
+		var isLocked = formBuilderService.isFormLocked( formId );
+
+		args.canEdit = !isLocked && hasCmsPermission( permissionKey="formbuilder.editform" );
+
 		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
 	}
 
