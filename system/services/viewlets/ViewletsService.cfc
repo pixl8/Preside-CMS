@@ -27,6 +27,7 @@ component {
 	 * the handlers and views of the entire application.
 	 *
 	 * @autodoc
+	 * @filter.hint A regular expression with which to filter the viewlets to return
 	 */
 	public array function listPossibleViewlets( string filter="" ) {
 		var cachedResults = _getCachedResults();
