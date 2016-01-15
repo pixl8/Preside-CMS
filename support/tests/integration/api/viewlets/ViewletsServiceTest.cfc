@@ -83,6 +83,29 @@ component extends="testbox.system.BaseSpec"{
 					, "templatespecific.test"
 				] );
 			} );
+
+			it( "should filter the returned set of viewlets by the passed 'filter' argument", function(){
+				var service = getService( directories=[
+					  "/resources/viewletsservice/listPossibleViewlets/folder1"
+					, "/resources/viewletsservice/listPossibleViewlets/folder2"
+					, "/resources/viewletsservice/listPossibleViewlets/site-templates/mytemplate"
+				] );
+
+				mockSiteService.$( "getActiveSiteTemplate", "mytemplate" );
+
+				var viewlets = service.listPossibleViewlets( filter="\.test$" );
+
+				viewlets.sort( "textnocase" );
+
+				expect( viewlets ).toBe( [
+					  "default.test"
+					, "subfolder.handler.test"
+					, "subfolder.secondlevel.test"
+					, "templateHandler.test"
+					, "templatespecific.test"
+				] );
+
+			} );
 		} );
 
 	}

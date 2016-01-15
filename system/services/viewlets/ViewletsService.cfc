@@ -27,9 +27,19 @@ component {
 	 *
 	 * @autodoc
 	 */
-	public array function listPossibleViewlets() {
+	public array function listPossibleViewlets( string filter="" ) {
 		var viewlets = Duplicate( _getCoreViewlets() );
 		viewlets.append( _getSiteTemplateViewlets(), true );
+
+		if ( Len( Trim( arguments.filter ) ) ) {
+			for( var i=viewlets.len(); i>0; i-- ){
+				var viewlet = viewlets[ i ];
+
+				if ( !ReFindNoCase( arguments.filter, viewlet ) ) {
+					viewlets.deleteAt( i );
+				}
+			}
+		}
 
 		return viewlets;
 	}
