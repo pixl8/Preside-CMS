@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="widgets.formbuilderform:">
+	<tab>
+		<fieldset>
+			<field sortorder="10" name="form"       required="true"  control="objectpicker" object="formbuilder_form" objectFilters="activeFormbuilderForms" />
+			<field sortorder="20" name="instanceid" required="false" control="textinput" />
+		</fieldset>
+	</tab>
+</form>
