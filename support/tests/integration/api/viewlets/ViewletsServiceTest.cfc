@@ -11,8 +11,8 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should return an array of dot notation viewlets based on the views and handlers contained within the source directories", function(){
 				var service = getService( directories=[
-					  "/resources/viewletsservice/justviews/folder1"
-					, "/resources/viewletsservice/justviews/folder2"
+					  "/resources/viewletsservice/listPossibleViewlets/folder1"
+					, "/resources/viewletsservice/listPossibleViewlets/folder2"
 				] );
 				var viewlets = service.listPossibleViewlets();
 
@@ -33,9 +33,9 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should not return viewlets in site template folders when the site template is not the current site template", function(){
 				var service = getService( directories=[
-					  "/resources/viewletsservice/justviews/folder1"
-					, "/resources/viewletsservice/justviews/folder2"
-					, "/resources/viewletsservice/justviews/site-templates/mytemplate"
+					  "/resources/viewletsservice/listPossibleViewlets/folder1"
+					, "/resources/viewletsservice/listPossibleViewlets/folder2"
+					, "/resources/viewletsservice/listPossibleViewlets/site-templates/mytemplate"
 				] );
 				var viewlets = service.listPossibleViewlets();
 
@@ -56,9 +56,9 @@ component extends="testbox.system.BaseSpec"{
 
 			it( "should return additional viewlets from site template folders when site template matches current active site template", function(){
 				var service = getService( directories=[
-					  "/resources/viewletsservice/justviews/folder1"
-					, "/resources/viewletsservice/justviews/folder2"
-					, "/resources/viewletsservice/justviews/site-templates/mytemplate"
+					  "/resources/viewletsservice/listPossibleViewlets/folder1"
+					, "/resources/viewletsservice/listPossibleViewlets/folder2"
+					, "/resources/viewletsservice/listPossibleViewlets/site-templates/mytemplate"
 				] );
 
 				mockSiteService.$( "getActiveSiteTemplate", "mytemplate" );
@@ -77,6 +77,9 @@ component extends="testbox.system.BaseSpec"{
 					, "subfolder.handler.test"
 					, "subfolder.secondlevel.test"
 					, "subfolder.someview"
+					, "templateHandler"
+					, "templateHandler.index"
+					, "templateHandler.test"
 					, "templatespecific.test"
 				] );
 			} );
