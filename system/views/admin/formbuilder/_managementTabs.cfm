@@ -5,12 +5,14 @@
 	formId          = rc.id ?: "";
 	submissionCount = args.submissionCount ?: 0;
 
-	tabs.append({
-		  icon   = "fa-reorder"
-		, active = ( activeTab == "manage" )
-		, link   = event.buildAdminLink( linkto="formbuilder.manageform", queryString="id=#formId#" )
-		, title  = translateResource( "formbuilder:management.tabs.fields.title" )
-	});
+	if ( canEdit ) {
+		tabs.append({
+			  icon   = "fa-reorder"
+			, active = ( activeTab == "manage" )
+			, link   = event.buildAdminLink( linkto="formbuilder.manageform", queryString="id=#formId#" )
+			, title  = translateResource( "formbuilder:management.tabs.fields.title" )
+		});
+	}
 
 	tabs.append({
 		  icon   = "fa-users"

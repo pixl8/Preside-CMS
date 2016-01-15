@@ -50,6 +50,10 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
 
+		if ( IsTrue( prc.form.locked ) ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & prc.form.id ) );
+		}
+
 		prc.pageTitle    = prc.form.name;
 		prc.pageSubtitle = prc.form.description;
 
@@ -150,7 +154,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
 		if ( IsTrue( prc.form.locked ) ) {
-			event.adminAccessDenied();
+			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & prc.form.id ) );
 		}
 
 		prc.form = QueryRowToStruct( prc.form );
