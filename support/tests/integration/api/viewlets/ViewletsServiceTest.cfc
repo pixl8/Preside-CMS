@@ -9,7 +9,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.listPossibleViewlets() ).toBe( [] );
 			} );
 
-			it( "should return an array of dot notation viewlets based on the views contained within the source directories", function(){
+			it( "should return an array of dot notation viewlets based on the views and handlers contained within the source directories", function(){
 				var service = getService( directories=[
 					  "/resources/viewletsservice/justviews/folder1"
 					, "/resources/viewletsservice/justviews/folder2"
@@ -22,6 +22,10 @@ component extends="testbox.system.BaseSpec"{
 					  "anotherview"
 					, "default"
 					, "default.index"
+					, "default.test"
+					, "subfolder.handler"
+					, "subfolder.handler.index"
+					, "subfolder.handler.test"
 					, "subfolder.secondlevel.test"
 					, "subfolder.someview"
 				] );
@@ -41,6 +45,10 @@ component extends="testbox.system.BaseSpec"{
 					  "anotherview"
 					, "default"
 					, "default.index"
+					, "default.test"
+					, "subfolder.handler"
+					, "subfolder.handler.index"
+					, "subfolder.handler.test"
 					, "subfolder.secondlevel.test"
 					, "subfolder.someview"
 				] );
@@ -63,6 +71,10 @@ component extends="testbox.system.BaseSpec"{
 					  "anotherview"
 					, "default"
 					, "default.index"
+					, "default.test"
+					, "subfolder.handler"
+					, "subfolder.handler.index"
+					, "subfolder.handler.test"
 					, "subfolder.secondlevel.test"
 					, "subfolder.someview"
 					, "templatespecific.test"

@@ -40,10 +40,30 @@ component {
 			  core          = {}
 			, sitetemplates = {}
 		};
+		var registerViewlet = function( viewletName, siteTemplate ){
+			if ( arguments.siteTemplate == "" ) {
+				viewlets.core[ arguments.viewletName ] = true;
+			} else {
+				viewlets.sitetemplates[ arguments.siteTemplate ] = viewlets.sitetemplates[ arguments.siteTemplate ] ?: {};
+				viewlets.sitetemplates[ arguments.siteTemplate ][ arguments.viewletName ] = true;
+			}
+
+			if ( arguments.viewletName.reFindNoCase( "\.index$" ) ) {
+				arguments.viewletName = arguments.viewletName.reReplaceNoCase( "\.index$", "" )
+
+				if ( arguments.siteTemplate == "" ) {
+					viewlets.core[ arguments.viewletName ] = true;
+				} else {
+					viewlets.sitetemplates[ arguments.siteTemplate ][ arguments.viewletName ] = true;
+				}
+			}
+		}
 
 		for( var directory in directories ) {
-			var viewsDirectory = directory & "/views";
+			var viewsDirectory    = directory & "/views";
+			var handlersDirectory = directory & "/handlers";
 			var siteTemplate   = _getSiteTemplateFromDirectory( directory );
+
 
 			if ( DirectoryExists( viewsDirectory ) ) {
 				var expandedDirPath = ExpandPath( viewsDirectory );
@@ -56,23 +76,30 @@ component {
 					viewletName = viewletName.reReplaceNoCase( "\.cfm$" , "" );
 					viewletName = viewletName.reReplaceNoCase( "[\/\\]" , ".", "all" );
 
-					if ( siteTemplate == "" ) {
-						viewlets.core[ viewletName ] = true;
-					} else {
-						viewlets.sitetemplates[ siteTemplate ] = viewlets.sitetemplates[ siteTemplate ] ?: {};
-						viewlets.sitetemplates[ siteTemplate ][ viewletName ] = true;
-					}
+					registerViewlet( viewletName, siteTemplate );
+				}
+			}
 
-					if ( viewletName.reFindNoCase( "\.index$" ) ) {
-						viewletName = viewletName.reReplaceNoCase( "\.index$", "" )
+			if ( DirectoryExists( handlersDirectory ) ) {
+				var expandedDirPath = ExpandPath( handlersDirectory );
+				var handlerFiles    = DirectoryList( handlersDirectory, true, "path", "*.cfc" );
 
-						if ( siteTemplate == "" ) {
-							viewlets.core[ viewletName ] = true;
-						} else {
-							viewlets.sitetemplates[ siteTemplate ][ viewletName ] = true;
-						}
+				for( var handlerFile in handlerFiles ) {
+					var viewletNameBase = handlerFile.replace( expandedDirPath, "" ).reReplaceNoCase( "\.cfc$" , "" );
+					var handlerCfcPath  = handlersDirectory & viewletNameBase
+
+					handlerCfcPath  = handlerCfcPath.reReplaceNoCase( "^[\/\\]", "" );
+					handlerCfcPath  = handlerCfcPath.reReplaceNoCase( "[\/\\]" , ".", "all" );
+					viewletNameBase = viewletNameBase.reReplaceNoCase( "^[\/\\]", "" );
+					viewletNameBase = viewletNameBase.reReplaceNoCase( "[\/\\]" , ".", "all" );
+
+					var actions = _readActionsFromHandler( handlerCfcPath );
+					for( var action in actions ) {
+						var viewletName = viewletNameBase & "." & action;
+						registerViewlet( viewletName, siteTemplate )
 					}
 				}
+
 			}
 		}
 
@@ -98,6 +125,30 @@ component {
 		}
 
 		return ReReplaceNoCase( arguments.directory, regex, "\1" );
+	}
+
+	private array function _readActionsFromHandler( required string handlerCfcPath ) {
+		var actions                    = {};
+		var lifeCycleRegex             = "^(pre|post|around)";
+		var readNonLifeCycleFunctions = function( meta ){
+			var functions = arguments.meta.functions ?: [];
+
+			if ( arguments.meta.keyExists( "extends" ) ) {
+				readNonLifeCycleFunctions( arguments.meta.extends );
+			}
+
+			for( var func in functions ) {
+				var functionName = func.name ?: "";
+				if ( Len( Trim( functionName ) ) && !ReFindNoCase( lifeCycleRegex, functionName ) ) {
+					actions[ functionName ] = true;
+				}
+			}
+		};
+
+
+		readNonLifeCycleFunctions( getComponentMetadata( handlerCfcPath ) );
+
+		return actions.keyArray();
 	}
 
 // GETTERS AND SETTERS
