@@ -11,7 +11,7 @@
 
 // CONSTRUCTOR
  	/**
- 	 * viewletsService.inject viewletsService
+ 	 * @viewletsService.inject viewletsService
  	 *
  	 */
  	public any function init( required any viewletsService ) {

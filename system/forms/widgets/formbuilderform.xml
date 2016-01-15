@@ -3,7 +3,8 @@
 	<tab>
 		<fieldset>
 			<field sortorder="10" name="form"       required="true"  control="objectpicker" object="formbuilder_form" objectFilters="activeFormbuilderForms" />
-			<field sortorder="20" name="instanceid" required="false" control="textinput" />
+			<field sortorder="20" name="layout"     required="false" control="formBuilderFormLayoutPicker" defaultValue="default" />
+			<field sortorder="30" name="instanceid" required="false" control="textinput" />
 		</fieldset>
 	</tab>
 </form>
