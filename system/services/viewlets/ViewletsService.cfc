@@ -15,6 +15,7 @@ component {
 	public any function init( required array sourceDirectories, required any siteService ) {
 		_setSiteService( arguments.siteService );
 		_scanDirectories( arguments.sourceDirectories );
+		_setCachedResults( {} );
 
 		return this;
 	}
@@ -28,20 +29,27 @@ component {
 	 * @autodoc
 	 */
 	public array function listPossibleViewlets( string filter="" ) {
-		var viewlets = Duplicate( _getCoreViewlets() );
-		viewlets.append( _getSiteTemplateViewlets(), true );
+		var cachedResults = _getCachedResults();
+		var cacheKey      = _getSiteService().getActiveSiteTemplate() & arguments.filter;
 
-		if ( Len( Trim( arguments.filter ) ) ) {
-			for( var i=viewlets.len(); i>0; i-- ){
-				var viewlet = viewlets[ i ];
+		if ( !cachedResults.keyExists( cacheKey ) ) {
+			var viewlets = Duplicate( _getCoreViewlets() );
+			viewlets.append( _getSiteTemplateViewlets(), true );
 
-				if ( !ReFindNoCase( arguments.filter, viewlet ) ) {
-					viewlets.deleteAt( i );
+			if ( Len( Trim( arguments.filter ) ) ) {
+				for( var i=viewlets.len(); i>0; i-- ){
+					var viewlet = viewlets[ i ];
+
+					if ( !ReFindNoCase( arguments.filter, viewlet ) ) {
+						viewlets.deleteAt( i );
+					}
 				}
 			}
+
+			cachedResults[ cacheKey ] = viewlets;
 		}
 
-		return viewlets;
+		return cachedResults[ cacheKey ] ?: [];
 	}
 
 // PRIVATE HELPERS
@@ -181,5 +189,12 @@ component {
 	}
 	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
+	}
+
+	private struct function _getCachedResults() {
+		return _cachedResults;
+	}
+	private void function _setCachedResults( required struct cachedResults ) {
+		_cachedResults = arguments.cachedResults;
 	}
 }
