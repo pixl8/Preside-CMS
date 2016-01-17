@@ -55,10 +55,12 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	 * @path.hint   The URL path of the incoming request, e.g. /path/to/somepage.html
 	 */
 	public struct function matchSite( required string domain, required string path ) output=false autodoc=true {
-		var possibleMatches = _getSiteDao().selectData(
+		var siteDao   = _getSiteDao();
+		var dbAdapter = siteDao.getDbAdapter();
+		var possibleMatches = siteDao.selectData(
 			  filter       = "( domain = '*' or domain = :domain )"
 			, filterParams = { domain = arguments.domain }
-			, orderBy      = "Length( domain ) desc, Length( path ) desc"
+			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )# desc"
 		);
 
 		for( var match in possibleMatches ){
@@ -98,7 +100,10 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 			}
 		}
 
-		var sites = _getSiteDao().selectData( orderBy = "Length( domain ), Length( path )" );
+		var siteDao   = _getSiteDao();
+		var dbAdapter = siteDao.getDbAdapter();
+		var sites     = siteDao.selectData( orderBy = "#dbAdapter.getLengthFunctionSql( 'domain' )#, #dbAdapter.getLengthFunctionSql( 'path' )#" );
+
 		for( var site in sites ) {
 			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ site.id ] ) ) {
 				_getSessionStorage().setVar( "_activeSite", site );

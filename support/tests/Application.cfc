@@ -67,12 +67,24 @@ component {
 			}
 		}
 
-		if ( info.database_productname neq "MySql" or Val( info.database_version ) lt 5 ) {
-			throw(
-				  type    = "presideTestSuite.invalidDsn"
-				, message = "Invalid Datasource. Only MySQL version 5 and above is supported at this time."
-				, detail  = "The db product of the datasource is reported as: #info.database_productname# #info.database_version#"
-			);
+		switch( info.database_productname ) {
+			case "MySQL":
+				if ( Val( info.database_version ) lt 5 ) {
+					throw(
+						  type    = "presideTestSuite.invalidDsn"
+						, message = "Invalid Datasource. Only MySQL version 5 and above is supported at this time."
+						, detail  = "The db product of the datasource is reported as: #info.database_productname# #info.database_version#"
+					);
+				}
+				break;
+			case "Microsoft SQL Server":
+				break;
+			default:
+				throw(
+					  type    = "presideTestSuite.invalidDsn"
+					, message = "Invalid Datasource. Only MySQL (version 5 and above) and Microsoft SQL Server are supported at this time."
+					, detail  = "The db product of the datasource is reported as: #info.database_productname# #info.database_version#"
+				);
 		}
 
 		application.dsn = dsn;
@@ -81,6 +93,10 @@ component {
 	}
 
 	private void function _loadDsn() {
+		if ( _dsnExists() ) {
+			return;
+		}
+
 		var dbConfig = {
 			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306" )
 			, host     = _getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost" )
@@ -109,5 +125,17 @@ component {
 		var result = CreateObject("java", "java.lang.System").getenv().get( arguments.variableName );
 
 		return IsNull( result ) ? arguments.default : result;
+	}
+
+	private boolean function _dsnExists() {
+		try {
+			var info = "";
+
+			dbinfo type="version" name="info" datasource="preside_test_suite";
+
+			return info.recordcount > 0;
+		} catch ( database e ) {
+			return false;
+		}
 	}
 }
