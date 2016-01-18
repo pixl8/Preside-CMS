@@ -87,6 +87,38 @@
 		return fieldLayouts;
 	}
 
+	/**
+	 * Returns the convention based viewlet name
+	 * for the given item type
+	 *
+	 * @autodoc
+	 * @itemtype.hint The item type who's viewlet you wish to get
+	 *
+	 */
+	public string function getItemTypeViewlet( required string itemType ) {
+		return "formbuilder.item-types.#itemType#.render";
+	}
+
+	/**
+	 * Returns the viewlet that should be used to render
+	 * the given item type and form field layout combination.
+	 *
+	 * @autodoc
+	 * @itemType.hint The Item Type who's viewlet you wish to get
+	 * @layout.hint   The layout who's viewlet you wish to get
+	 *
+	 */
+	public string function getFormFieldLayoutViewlet( required string itemType, required string layout ) {
+		var layouts = listFormFieldLayouts( itemType=arguments.itemType );
+
+		for( var layout in layouts ) {
+			if ( layout.id == arguments.layout ) {
+				return layout.viewlet;
+			}
+		}
+		return "formbuilder.layouts.formfield.default";
+	}
+
  // GETTERS AND SETTERS
 	private any function _getViewletsService() {
 		return _viewletsService;

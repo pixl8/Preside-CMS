@@ -64,6 +64,58 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "getItemTypeViewlet", function(){
+			it( "should return viewlet name calculated by convention based on the passed item type", function(){
+				expect( getService().getItemTypeViewlet( "myitemtype" ) ).toBe( "formbuilder.item-types.myitemtype.render" );
+			} );
+		} );
+
+		describe( "getFormFieldLayoutViewlet", function(){
+			it( "should return the viewlet specified for the item type and layout combination", function(){
+				var service  = getService();
+				var itemType = "myitemtype";
+				var layouts  = [
+					  { id="blah"   , viewlet="test.viewlet.1" }
+					, { id="default", viewlet="test.viewlet.2" }
+					, { id="test"   , viewlet="test.viewlet.3" }
+					, { id="another", viewlet="test.viewlet.4" }
+				];
+
+				service.$( "listFormFieldLayouts" ).$args(
+					itemType=itemType
+				).$results( layouts );
+
+				var viewlet = service.getFormFieldLayoutViewlet(
+					  itemType = "myitemtype"
+					, layout   = "test"
+				);
+
+				expect( viewlet ).toBe( "test.viewlet.3" );
+			} );
+
+			it( "should return [formbuilder.layouts.formfield.default] when no layout matches the given arguments", function(){
+				var service  = getService();
+				var itemType = "myitemtype";
+				var layouts  = [
+					  { id="blah"   , viewlet="test.viewlet.1" }
+					, { id="default", viewlet="test.viewlet.2" }
+					, { id="test"   , viewlet="test.viewlet.3" }
+					, { id="another", viewlet="test.viewlet.4" }
+				];
+
+				service.$( "listFormFieldLayouts" ).$args(
+					itemType=itemType
+				).$results( layouts );
+
+				var viewlet = service.getFormFieldLayoutViewlet(
+					  itemType = "myitemtype"
+					, layout   = "somelayoutthatdoesnotexist"
+				);
+
+				expect( viewlet ).toBe( "formbuilder.layouts.formfield.default" );
+			} );
+		} );
+
 	}
 
 	private function getService() {
