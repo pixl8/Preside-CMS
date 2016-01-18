@@ -21,7 +21,7 @@ component {
 		required any   configurationWrapper,
 		required any   validationEngine,
 	) {
-		_setApis( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
+		_readResourceDirectories( arguments.resourceDirectories );
 		_setController( arguments.controller );
 		_setConfigurationWrapper( arguments.configurationWrapper );
 		_setValidationEngine( arguments.validationEngine );
@@ -303,6 +303,13 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private void function _readResourceDirectories( required array resourceDirectories ) {
+		var resourceReader = new PresideRestResourceReader();
+		var apis           = resourceReader.readResourceDirectories( arguments.resourceDirectories );
+
+		_setApis( apis );
+	}
+
 	private array function _getApiList() {
 		if ( !variables.keyExists( "_apiList" ) ) {
 			_apiList = _getApis().keyArray();
@@ -367,96 +374,89 @@ component {
 	}
 
 	private void function _validateRestParameters(
-		  required any restRequest
-		, required any restResponse
+		  required any    restRequest
+		, required any    restResponse
 		, required struct args
 	) {
-
-		var resource = arguments.restRequest.getResource();
-		var verb = arguments.restRequest.getVerb();
-		var rulesetName = "restparamruleset.#resource.handler#.#verb#";
+		var resource    = arguments.restRequest.getResource();
+		var verb        = arguments.restRequest.getVerb();
+		var rulesetName = _getValidationRulesetName( resource.handler, verb );
 
 		if ( !_validationEngine.rulesetExists( rulesetName ) ) {
 			return;
 		}
 
-		var validationResult = _validationEngine.validate( "restparamruleset.#resource.handler#.#verb#", args );
+		var validationResult = _validationEngine.validate( rulesetName, args );
 
 		if ( validationResult.validated() ) {
 			return;
 		}
 
 		arguments.args.error = {
-			  type = "rest.parameter.validation.error"
-			, title = "REST Parameter Validation Error"
-			, errorCode = 400
-			, message = "A parameter validation error occurred within the REST API"
-			, detail = "The request has errors in the following parameters: #arrayToList(validationResult.listErrorFields(), ', ')#"
-			, additionalInfo = _translateValidationResultMessages(validationResult.getMessages())
+			  type           = "rest.parameter.validation.error"
+			, title          = "REST Parameter Validation Error"
+			, errorCode      = 400
+			, message        = "A parameter validation error occurred within the REST API"
+			, detail         = "The request has errors in the following parameters: #validationResult.listErrorFields().toList( ', ' )#"
+			, additionalInfo = _translateValidationResultMessages( validationResult.getMessages() )
 		};
 
 		_announceInterception( "onRestRequestParameterValidationError", { restRequest=arguments.restRequest, restResponse=arguments.restResponse, args=arguments.args } );
-
 		if ( arguments.restRequest.getFinished() ) {
-			// the error was handled by a custom interceptor - just return
 			return;
 		}
 
-		// at this point there was no custom interceptor that handled the problem - just fall back to the default behaviour
-		arguments.restResponse.setError( argumentCollection = arguments.args.error );
+		arguments.restResponse.setError( argumentCollection=arguments.args.error );
 		arguments.restRequest.finish();
 	}
 
 	private void function _createParameterValidationRuleSets() {
-
-		var resource = 0;
-		var verb = "";
-		var rules = [];
-		var param = "";
-		var type = "";
 		var validator = "";
+		var apis      = _getApis();
 
-		for ( var apiRootPath in _apis ) {
-			for ( resource in _apis[apiRootPath] ) {
-				for ( verb in resource.verbs ) {
-					rules = [];
-					if (structKeyExists(resource.requiredParameters, verb)) {
-						for ( param in resource.requiredParameters[verb] ) {
+		for ( var apiRootPath in apis ) {
+			for ( var resource in apis[ apiRootPath ] ) {
+				for ( var verb in resource.verbs ) {
+					var rules = [];
+					if ( resource.requiredParameters.keyExists( verb ) ) {
+						for ( var param in resource.requiredParameters[ verb ] ) {
 							rules.append( {
-		              			  fieldName = param
-		            			, validator = "required"
-		        			} );
+								  fieldName = param
+								, validator = "required"
+							} );
 						}
 					}
-					if (structKeyExists(resource.parameterTypes, verb)) {
-						for ( param in resource.parameterTypes[verb] ) {
-							type = resource.parameterTypes[verb][param];
-							validator = "";
-							if ( type eq "numeric" ) {
-								validator = "number";
-		        			}
-		        			else if ( type eq "date" ) {
-		        				validator = "date";
-		        			}
-		        			else if ( type eq "uuid" ) {
-		        				validator = "uuid";
-		        			}
+					if ( resource.parameterTypes.keyExists( verb ) ) {
+						for ( var param in resource.parameterTypes[ verb ] ) {
+							var type      = resource.parameterTypes[verb][param];
+							var validator = "";
 
-		        			if ( len( validator ) gt 0 ) {
-		        				rules.append( {
-			              			  fieldName = param
-			            			, validator = validator
-			        			} );
-		        			}
+							switch( type ) {
+								case "numeric":
+									validator = "number";
+									break;
+								case "date":
+								case "uuid":
+									validator = type;
+							}
+
+							if ( Len( validator ) ) {
+								rules.append( {
+									  fieldName = param
+									, validator = validator
+								} );
+							}
 						}
 					}
 
 					// TODO: create a 'isTypeOf' core validator
 					// TODO: support 'non-empty string' validators (it's implicit via "required" but not available for optional params)
 					// TODO: support custom validators (e.g. via cfargument annotations)
-
 					if (!rules.isEmpty()) {
-						_validationEngine.newRuleset( name="restparamruleset.#resource.handler#.#verb#", rules=rules );
+						_validationEngine.newRuleset(
+							  name  = _getValidationRulesetName( resource.handler, verb )
+							, rules = rules
+						);
 					}
 				}
 			}
@@ -478,6 +478,10 @@ component {
 		}
 
 		return result;
+	}
+
+	private string function _getValidationRulesetName( required string handler, required string verb ) {
+		return "restparamruleset.#arguments.handler#.#arguments.verb#";
 	}
 
 // GETTERS AND SETTERS
