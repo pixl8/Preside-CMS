@@ -285,10 +285,10 @@ component output=false singleton=true {
 		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
-		objMeta.indexes[ "ix_versioning_version_number" ] = { unique=false, fields="_version_number" };
-		objMeta.indexes[ "ix_versioning_version_author" ] = { unique=false, fields="_version_author" };
+		objMeta.indexes[ "ix_versioning_version_number_#createUUID()#" ] = { unique=false, fields="_version_number" };
+		objMeta.indexes[ "ix_versioning_version_author_#createUUID()#" ] = { unique=false, fields="_version_author" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
-			objMeta.indexes[ "ix_versioning_record_id" ]      = { unique=false, fields="id,_version_number" };
+			objMeta.indexes[ "ix_versioning_record_id_#createUUID()#" ]      = { unique=false, fields="id,_version_number" };
 		}
 	}
 

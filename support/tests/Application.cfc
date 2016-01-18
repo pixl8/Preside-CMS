@@ -79,6 +79,8 @@ component {
 				break;
 			case "Microsoft SQL Server":
 				break;
+			case "PostgreSQL":
+				break;
 			default:
 				throw(
 					  type    = "presideTestSuite.invalidDsn"
@@ -98,16 +100,16 @@ component {
 		}
 
 		var dbConfig = {
-			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306" )
+			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "5432" )
 			, host     = _getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost" )
 			, database = _getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )
-			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "travis" )
-			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "" )
+			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "postgres" )
+			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "sqlPwd@12##" )
 		};
 
 		try {
 			this.datasources[ "preside_test_suite" ] = {
-				  type     : 'MySQL'
+				  type     : 'PostgreSQL'
 				, port     : dbConfig.port
 				, host     : dbConfig.host
 				, database : dbConfig.database
