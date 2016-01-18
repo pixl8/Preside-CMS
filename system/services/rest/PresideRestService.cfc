@@ -10,24 +10,21 @@
 component {
 
 	/**
-	 * @resourceDirectories.inject  	presidecms:directories:handlers/rest-apis
-	 * @controller.inject           	coldbox
-	 * @configurationWrapper.inject 	presideRestConfigurationWrapper
-	 * @validationEngine.inject 		validationEngine
-	 * @i18n.inject 					coldbox:plugin:i18n
+	 * @resourceDirectories.inject presidecms:directories:handlers/rest-apis
+	 * @controller.inject          coldbox
+	 * @configurationWrapper.injec presideRestConfigurationWrapper
+	 * @validationEngine.inject    validationEngine
 	 */
 	public any function init(
 		required array resourceDirectories,
-		required any controller,
-		required any configurationWrapper,
-		required any validationEngine,
-		required any i18n
+		required any   controller,
+		required any   configurationWrapper,
+		required any   validationEngine,
 	) {
 		_setApis( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
 		_setController( arguments.controller );
 		_setConfigurationWrapper( arguments.configurationWrapper );
 		_setValidationEngine( arguments.validationEngine );
-		_setI18n( arguments.i18n );
 
 		_createParameterValidationRuleSets();
 
@@ -425,9 +422,9 @@ component {
 					rules = [];
 					if (structKeyExists(resource.requiredParameters, verb)) {
 						for ( param in resource.requiredParameters[verb] ) {
-							rules.append( { 
+							rules.append( {
 		              			  fieldName = param
-		            			, validator = "required" 
+		            			, validator = "required"
 		        			} );
 						}
 					}
@@ -446,7 +443,7 @@ component {
 		        			}
 
 		        			if ( len( validator ) gt 0 ) {
-		        				rules.append( { 
+		        				rules.append( {
 			              			  fieldName = param
 			            			, validator = validator
 			        			} );
@@ -467,15 +464,17 @@ component {
 	}
 
 	private struct function _translateValidationResultMessages( required struct messages ) {
-
 		var result = {};
 
-		for (var param in arguments.messages) {
+		for ( var param in arguments.messages ) {
 
 			// TODO: support arguments.messages[param].params to be replaced in resources
 			// e.g. validation.min.default=Must be at least {1}
 
-			result[param] = _getI18n().translateResource( uri=arguments.messages[param].message, data=arguments.messages[param].params );
+			result[ param ] = $translateResource(
+				  uri  = arguments.messages[ param ].message
+				, data = arguments.messages[ param ].params
+			);
 		}
 
 		return result;
@@ -510,12 +509,4 @@ component {
 	private void function _setValidationEngine( required any validationEngine ) {
 		_validationEngine = arguments.validationEngine;
 	}
-
-	private any function _getI18n() {
-		return _i18n;
-	}
-	private void function _setI18n( required any i18n ) {
-		_i18n = arguments.i18n;
-	}
-
 }
