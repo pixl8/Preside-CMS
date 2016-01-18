@@ -109,6 +109,6 @@ component validationProvider=true {
 			return true;
 		}
 
-		return isValid( "uuid", arguments.value );
+		return IsValid( "uuid", arguments.value );
 	}
 }
