@@ -106,8 +106,10 @@ component displayName="Preside REST Resource Reader" {
 	 * @autodoc true
 	 */
 	public array function readResource( required string cfcPath, required string api ) {
-		var readMeta = { verbs={} };
+		var readMeta = { verbs={}, requiredParameters={}, parameterTypes={} };
 		var verbs    = [ "get", "post", "put", "delete", "head", "options" ];
+		var validatableParameterTypes = ["string", "date", "numeric", "uuid"];
+
 		var reader = function( meta ){
 			if ( arguments.meta.keyExists( "extends" ) ) {
 				reader( arguments.meta.extends );
@@ -118,11 +120,28 @@ component displayName="Preside REST Resource Reader" {
 			}
 
 			var functions = meta.functions ?: [];
+			var verb = "";
 			for( var func in functions ) {
+				verb = "";
+
 				if ( verbs.findNoCase( func.name ?: "" ) ) {
-					readMeta.verbs[ func.name ] = func.name;
+					verb = func.name;
 				} else if ( verbs.findNoCase( func.restVerb ?: "" ) ) {
-					readMeta.verbs[ func.restVerb ] = func.name;
+					verb = func.restVerb;
+				}
+				if ( len(verb)) {
+					readMeta.verbs[ verb ] = func.name;
+					readMeta.requiredParameters[ verb ] = [];
+					readMeta.parameterTypes[ verb ] = {};
+					for ( var param in func.parameters ) {
+						if ( param.keyExists("required") && isBoolean(param.required) and param.required ) {
+							readMeta.requiredParameters[ verb ].append( param.name );
+						}
+						// skip non-validatable parameter types
+						if ( param.keyExists("type") && arrayFindNoCase(validatableParameterTypes, param.type) gt 0 ) {
+							readMeta.parameterTypes[ verb ][ param.name ] = param.type;
+						}
+					}
 				}
 			}
 		};
@@ -141,8 +160,10 @@ component displayName="Preside REST Resource Reader" {
 		for( var uri in uris ) {
 			var resource = readUri( uri );
 
-			resource.verbs   = readMeta.verbs;
-			resource.handler = handler;
+			resource.verbs   			= readMeta.verbs;
+			resource.requiredParameters = readMeta.requiredParameters;
+			resource.parameterTypes   	= readMeta.parameterTypes;
+			resource.handler 			= handler;
 
 			resources.append( resource );
 		}
