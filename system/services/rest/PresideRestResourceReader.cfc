@@ -106,9 +106,9 @@ component displayName="Preside REST Resource Reader" {
 	 * @autodoc true
 	 */
 	public array function readResource( required string cfcPath, required string api ) {
-		var readMeta = { verbs={}, requiredParameters={}, parameterTypes={} };
-		var verbs    = [ "get", "post", "put", "delete", "head", "options" ];
-		var validatableParameterTypes = ["string", "date", "numeric", "uuid"];
+		var readMeta                  = { verbs={}, requiredParameters={}, parameterTypes={} };
+		var verbs                     = [ "get", "post", "put", "delete", "head", "options" ];
+		var validatableParameterTypes = [ "string", "date", "numeric", "uuid" ];
 
 		var reader = function( meta ){
 			if ( arguments.meta.keyExists( "extends" ) ) {
@@ -120,25 +120,24 @@ component displayName="Preside REST Resource Reader" {
 			}
 
 			var functions = meta.functions ?: [];
-			var verb = "";
+
 			for( var func in functions ) {
-				verb = "";
+				var verb = "";
 
 				if ( verbs.findNoCase( func.name ?: "" ) ) {
 					verb = func.name;
 				} else if ( verbs.findNoCase( func.restVerb ?: "" ) ) {
 					verb = func.restVerb;
 				}
-				if ( len(verb)) {
+				if ( Len( verb ) ) {
 					readMeta.verbs[ verb ] = func.name;
 					readMeta.requiredParameters[ verb ] = [];
 					readMeta.parameterTypes[ verb ] = {};
 					for ( var param in func.parameters ) {
-						if ( param.keyExists("required") && isBoolean(param.required) and param.required ) {
+						if ( isBoolean( param.required ?: "" ) && param.required ) {
 							readMeta.requiredParameters[ verb ].append( param.name );
 						}
-						// skip non-validatable parameter types
-						if ( param.keyExists("type") && arrayFindNoCase(validatableParameterTypes, param.type) gt 0 ) {
+						if ( validatableParameterTypes.findNoCase( param.type ?: "" ) ) {
 							readMeta.parameterTypes[ verb ][ param.name ] = param.type;
 						}
 					}
