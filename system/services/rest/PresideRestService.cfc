@@ -423,31 +423,35 @@ component {
 			for ( resource in _apis[apiRootPath] ) {
 				for ( verb in resource.verbs ) {
 					rules = [];
-					for ( param in resource.requiredParameters[verb] ) {
-						rules.append( { 
-	              			  fieldName = param
-	            			, validator = "required" 
-	        			} );
-					}
-					for ( param in resource.parameterTypes[verb] ) {
-						type = resource.parameterTypes[verb][param];
-						validator = "";
-						if ( type eq "numeric" ) {
-							validator = "number";
-	        			}
-	        			else if ( type eq "date" ) {
-	        				validator = "date";
-	        			}
-	        			else if ( type eq "uuid" ) {
-	        				validator = "uuid";
-	        			}
-
-	        			if ( len( validator ) gt 0 ) {
-	        				rules.append( { 
+					if (structKeyExists(resource.requiredParameters, verb)) {
+						for ( param in resource.requiredParameters[verb] ) {
+							rules.append( { 
 		              			  fieldName = param
-		            			, validator = validator
+		            			, validator = "required" 
 		        			} );
-	        			}
+						}
+					}
+					if (structKeyExists(resource.parameterTypes, verb)) {
+						for ( param in resource.parameterTypes[verb] ) {
+							type = resource.parameterTypes[verb][param];
+							validator = "";
+							if ( type eq "numeric" ) {
+								validator = "number";
+		        			}
+		        			else if ( type eq "date" ) {
+		        				validator = "date";
+		        			}
+		        			else if ( type eq "uuid" ) {
+		        				validator = "uuid";
+		        			}
+
+		        			if ( len( validator ) gt 0 ) {
+		        				rules.append( { 
+			              			  fieldName = param
+			            			, validator = validator
+			        			} );
+		        			}
+						}
 					}
 
 					// TODO: create a 'isTypeOf' core validator

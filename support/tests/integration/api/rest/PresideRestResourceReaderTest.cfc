@@ -128,7 +128,7 @@ component extends="testbox.system.BaseSpec"{
 						, uriPattern 			= "^/my/paramaware/pattern/(.*?)$"
 						, verbs      			= { get="get" }
 						, requiredParameters	= { get=["param1", "x"] }
-						, parameterTypes      	= { get={param1="string", x="numeric", y="numeric", z="uuid"} }
+						, parameterTypes      	= { get={param1="string", x="numeric", y="date", z="uuid"} }
 					},{
 						  handler    			= "api1.subapi.TestResource"
 						, tokens     			= []
