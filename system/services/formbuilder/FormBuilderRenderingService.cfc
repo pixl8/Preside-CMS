@@ -119,6 +119,25 @@
 		return "formbuilder.layouts.formfield.default";
 	}
 
+	/**
+	 * Returns the viewlet that should be used to render
+	 * the given form layout.
+	 *
+	 * @autodoc
+	 * @layout.hint The layout who's viewlet you wish to get
+	 *
+	 */
+	public string function getFormLayoutViewlet( required string layout ) {
+		var layouts = listFormLayouts();
+
+		for( var layout in layouts ) {
+			if ( layout.id == arguments.layout ) {
+				return layout.viewlet;
+			}
+		}
+		return "formbuilder.layouts.form.default";
+	}
+
  // GETTERS AND SETTERS
 	private any function _getViewletsService() {
 		return _viewletsService;

@@ -116,6 +116,42 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+
+		describe( "getFormLayoutViewlet", function(){
+			it( "should return the viewlet defined for the given form layout id", function(){
+				var service  = getService();
+				var layout   = "test";
+				var layouts  = [
+					  { id="blah"   , viewlet="test.viewlet.one" }
+					, { id="default", viewlet="test.viewlet.two" }
+					, { id="test"   , viewlet="test.viewlet.three" }
+					, { id="another", viewlet="test.viewlet.four" }
+				];
+
+				service.$( "listFormLayouts", layouts );
+
+				var viewlet = service.getFormLayoutViewlet( layout );
+
+				expect( viewlet ).toBe( "test.viewlet.three" );
+			} );
+
+			it( "should return [formbuilder.layouts.form.default] when no layout matches the given arguments", function(){
+				var service  = getService();
+				var layout   = "somelayoutthatdoesnotexist";
+				var layouts  = [
+					  { id="blah"   , viewlet="test.viewlet.one" }
+					, { id="default", viewlet="test.viewlet.two" }
+					, { id="test"   , viewlet="test.viewlet.three" }
+					, { id="another", viewlet="test.viewlet.four" }
+				];
+
+				service.$( "listFormLayouts", layouts );
+
+				var viewlet = service.getFormLayoutViewlet( layout );
+
+				expect( viewlet ).toBe( "formbuilder.layouts.form.default" );
+			} );
+		} );
 	}
 
 	private function getService() {
