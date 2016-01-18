@@ -541,4 +541,21 @@ component displayName="Preside Super Class" {
 	public any function $translateResource() {
 		return $getColdbox().getPlugin( "i18n" ).translateResource( argumentCollection=arguments );
 	}
+
+	/**
+	 * Proxy to the core PresideCMS 'renderViewlet' method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var rendered = $renderViewlet( event="my.viewlet", args=someData );
+	 *
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $renderViewlet() {
+		return $getColdbox().renderViewlet( argumentCollection=arguments );
+	}
 }

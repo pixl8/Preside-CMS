@@ -9,13 +9,20 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @itemTypesService.inject formbuilderItemTypesService
-	 * @formsService.inject     formsService
-	 * @validationEngine.inject validationEngine
+	 * @itemTypesService.inject            formbuilderItemTypesService
+	 * @formBuilderRenderingService.inject formBuilderRenderingService
+	 * @formsService.inject                formsService
+	 * @validationEngine.inject            validationEngine
 	 *
 	 */
-	public any function init( required any itemTypesService, required any formsService, required any validationEngine ) {
+	public any function init(
+		  required any itemTypesService
+		, required any formBuilderRenderingService
+		, required any formsService
+		, required any validationEngine
+	) {
 		_setItemTypesService( arguments.itemTypesService );
+		_setFormBuilderRenderingService( arguments.formBuilderRenderingService );
 		_setFormsService( arguments.formsService );
 		_setValidationEngine( arguments.validationEngine );
 
@@ -321,6 +328,33 @@ component {
 		} );
 	}
 
+	/**
+	 * Renders the given form item with its configuration
+	 * options.
+	 *
+	 * @autodoc
+	 * @itemType.hint      The type of the item to render
+	 * @configuration.hint The configuration struct of the item to render
+	 */
+	public string function renderFormItem( required string itemType, required struct configuration ) {
+		var renderingService = _getFormBuilderRenderingService();
+		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType );
+		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
+
+		if ( Len( Trim( arguments.configuration.layout ?: "" ) ) ) {
+			var layoutArgs    = Duplicate( arguments.configuration );
+			var layoutViewlet = renderingService.getFormFieldLayoutViewlet(
+				  itemType = arguments.itemType
+				, layout   = arguments.configuration.layout
+			);
+
+			layoutArgs.renderedItem = renderedItem;
+			renderedItem = $renderViewlet( event=layoutViewlet, args=layoutArgs );
+		}
+
+		return renderedItem;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
@@ -360,6 +394,13 @@ component {
 	}
 	private void function _setItemTypesService( required any itemTypesService ) {
 		_itemTypesService = arguments.itemTypesService;
+	}
+
+	private any function _getFormBuilderRenderingService() {
+		return _formBuilderRenderingService;
+	}
+	private void function _setFormBuilderRenderingService( required any formBuilderRenderingService ) {
+		_formBuilderRenderingService = arguments.formBuilderRenderingService;
 	}
 
 	private any function _getFormsService() {

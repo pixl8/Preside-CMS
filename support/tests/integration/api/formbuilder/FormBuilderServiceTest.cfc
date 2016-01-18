@@ -518,19 +518,56 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "renderFormItem", function(){
+			it( "should render the given item's type viewlet with the supplied data args", function(){
+				var service         = getService();
+				var itemType        = "anItemType";
+				var itemTypeViewlet = "some.viewlet." & CreateUUId();
+				var rendered        = CreateUUId();
+				var configuration   = { test="true", maxSomething=10 };
+
+				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=itemType ).$results( itemTypeViewlet );
+				service.$( "$renderViewlet" ).$args( event=itemTypeViewlet, args=configuration ).$results( rendered );
+
+				expect( service.renderFormItem( itemType=itemType, configuration=configuration ) ).toBe( rendered );
+			} );
+
+			it( "should return a rendered form item layout that is passed item configuration along with rendered item as 'body' argument, when configuration specifies a 'layout'", function(){
+				var service            = getService();
+				var itemType           = "anItemType";
+				var itemTypeViewlet    = "some.viewlet." & CreateUUId();
+				var layoutViewlet      = "some.layout." & CreateUUId();
+				var renderedItem       = CreateUUId();
+				var renderedLayout     = CreateUUId();
+				var configuration      = { test="true", maxSomething=10, layout="somelayout" };
+				var expectedLayoutArgs = Duplicate( configuration );
+
+				expectedLayoutArgs.renderedItem = renderedItem;
+
+				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=itemType ).$results( itemTypeViewlet );
+				mockRenderingService.$( "getFormFieldLayoutViewlet" ).$args( itemType=itemType, layout="somelayout" ).$results( layoutViewlet );
+				service.$( "$renderViewlet" ).$args( event=itemTypeViewlet, args=configuration      ).$results( renderedItem );
+				service.$( "$renderViewlet" ).$args( event=layoutViewlet, args=expectedLayoutArgs ).$results( renderedLayout );
+
+				expect( service.renderFormItem( itemType=itemType, configuration=configuration ) ).toBe( renderedLayout );
+			} );
+		} );
 	}
 
 	private function getService() {
 		variables.mockFormDao          = CreateStub();
 		variables.mockFormItemDao      = CreateStub();
 		variables.mockItemTypesService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
+		variables.mockRenderingService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
 		variables.mockFormsService     = CreateEmptyMock( "preside.system.services.forms.FormsService" );
 		variables.mockValidationEngine = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
-			  itemTypesService = mockItemTypesService
-			, formsService     = mockFormsService
-			, validationEngine = mockValidationEngine
+			  itemTypesService            = mockItemTypesService
+			, formBuilderRenderingService = mockRenderingService
+			, formsService                = mockFormsService
+			, validationEngine            = mockValidationEngine
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
