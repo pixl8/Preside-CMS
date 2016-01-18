@@ -32,6 +32,38 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
+		describe( "listFormFieldLayouts", function(){
+			it( "should return an empty array when no viewlets exist in the system that match the convention based viewlet patterns, [formbuilder.layouts.formfield.*]", function(){
+				var service = getService();
+
+				expect( service.listFormFieldLayouts( itemType="textinput" ) ).toBe( [] );
+			} );
+
+			it( "should return a combined array of layouts that are both generic and that match the given item type", function(){
+				var service         = getService();
+				var matchedViewlets = [
+					  "formbuilder.layouts.formfield.default"
+					, "formbuilder.layouts.formfield.twocol"
+					, "formbuilder.layouts.formfield.textinput.default"
+					, "formbuilder.layouts.formfield.textinput.fancy"
+					, "formbuilder.layouts.formfield.textarea.wholesome"
+				];
+				var expectedResult  = [
+					  { id="default", viewlet="formbuilder.layouts.formfield.textinput.default", title="Translated default" }
+					, { id="fancy"  , viewlet="formbuilder.layouts.formfield.textinput.fancy"  , title="Translated fancy"   }
+					, { id="twocol" , viewlet="formbuilder.layouts.formfield.twocol"           , title="Translated twocol"  }
+				];
+
+				service.$( "$translateResource" ).$args( uri="formbuilder.layouts.formfield:default.title", defaultValue="default" ).$results( "Translated default" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.layouts.formfield:fancy.title"  , defaultValue="fancy"   ).$results( "Translated fancy"   );
+				service.$( "$translateResource" ).$args( uri="formbuilder.layouts.formfield:twocol.title" , defaultValue="twocol"  ).$results( "Translated twocol"  );
+
+				mockViewletsService.$( "listPossibleViewlets" ).$args( filter="^formbuilder\.layouts\.formfield\." ).$results( matchedViewlets );
+
+				expect( service.listFormFieldLayouts( itemType="textinput" ) ).toBe( expectedResult );
+			} );
+		} );
+
 	}
 
 	private function getService() {
