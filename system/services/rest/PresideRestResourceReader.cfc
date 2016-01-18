@@ -159,10 +159,10 @@ component displayName="Preside REST Resource Reader" {
 		for( var uri in uris ) {
 			var resource = readUri( uri );
 
-			resource.verbs   			= readMeta.verbs;
+			resource.verbs              = readMeta.verbs;
 			resource.requiredParameters = readMeta.requiredParameters;
-			resource.parameterTypes   	= readMeta.parameterTypes;
-			resource.handler 			= handler;
+			resource.parameterTypes     = readMeta.parameterTypes;
+			resource.handler            = handler;
 
 			resources.append( resource );
 		}
