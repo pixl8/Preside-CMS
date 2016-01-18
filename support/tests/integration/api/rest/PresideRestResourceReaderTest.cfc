@@ -95,42 +95,58 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "readResourceDirectories()", function(){
-			it( "should return a resource arryas grouped into API endpoints from all the .cfc resource files in the passed array of directories", function(){
+			it( "should return a resource arrays grouped into API endpoints from all the .cfc resource files in the passed array of directories", function(){
 				var resources = resourceReader.readResourceDirectories( [ "/resources/rest/dir1", "/resources/rest/dir2" ] );
-
 				expect( resources ).toBe( {
 					"/" = [{
-						  handler    = "RootApiResource"
-						, tokens     = []
-						, uriPattern = "^/root/match/$"
-						, verbs      = { post="post" }
+						  handler    			= "RootApiResource"
+						, tokens     			= []
+						, uriPattern 			= "^/root/match/$"
+						, verbs      			= { post="post" }
+						, requiredParameters	= { post=[] }
+						, parameterTypes      	= { post={} }
 					}],
 					"/api1" = [{
-						  handler    = "api1.ResourceX"
-						, tokens     = [ "pattern", "id" ]
-						, uriPattern = "^/test/(.*?)/(.*?)/$"
-						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+						  handler    			= "api1.ResourceX"
+						, tokens     			= [ "pattern", "id" ]
+						, uriPattern 			= "^/test/(.*?)/(.*?)/$"
+						, verbs      			= { post="post", get="get", delete="delete", put="putDataTest" }
+						, requiredParameters	= { delete=[], get=[], put=[] }
+						, parameterTypes 		= { delete={}, get={}, put={} }
+						
 					},{
-						  handler    = "api1.ResourceX"
-						, tokens     = [ "pattern" ]
-						, uriPattern = "^/test/(.*?)$"
-						, verbs      = { post="post", get="get", delete="delete", put="putDataTest" }
+						  handler    			= "api1.ResourceX"
+						, tokens     			= [ "pattern" ]
+						, uriPattern 			= "^/test/(.*?)$"
+						, verbs      			= { post="post", get="get", delete="delete", put="putDataTest" }
+						, requiredParameters	= { delete=[], get=[], put=[] }
+						, parameterTypes 		= { delete={}, get={}, put={} }
 					}],
 					"/api1/subapi" = [{
-						  handler    = "api1.subapi.TestResource"
-						, tokens     = []
-						, uriPattern = "^/my/pattern/$"
-						, verbs      = { get="get" }
+						  handler    			= "api1.subapi.ParamAwareResource"
+						, tokens     			= [ "param1" ]
+						, uriPattern 			= "^/my/paramaware/pattern/(.*?)$"
+						, verbs      			= { get="get" }
+						, requiredParameters	= { get=["param1", "x"] }
+						, parameterTypes      	= { get={param1="string", x="numeric", y="date", z="uuid"} }
+					},{
+						  handler    			= "api1.subapi.TestResource"
+						, tokens     			= []
+						, uriPattern 			= "^/my/pattern/$"
+						, verbs      			= { get="get" }
+						, requiredParameters	= { get=[] }
+						, parameterTypes      	= { get={} }
 					}],
 					"/api2" = [{
-						  handler    = "api2.AnotherResource"
-						, tokens     = [ "pattern", "here" ]
-						, uriPattern = "^/another/matching/(.*?)/(.*?)$"
-						, verbs      = { post="post" }
+						  handler    			= "api2.AnotherResource"
+						, tokens     			= [ "pattern", "here" ]
+						, uriPattern 			= "^/another/matching/(.*?)/(.*?)$"
+						, verbs      			= { post="post" }
+						, requiredParameters	= { post=[] }
+						, parameterTypes      	= { post={} }
 					}]
 				});
 			} );
-
 
 		} );
 
