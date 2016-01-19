@@ -8,11 +8,44 @@
 component {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @validationEngine.inject validationEngine
+	 *
+	 */
+	public any function init( required any validationEngine ) {
+		_setValidationEngine( arguments.validationEngine );
 		return this;
 	}
 
 // PUBLIC API
+	/**
+	 * Creates a ruleset with the validation engine
+	 * and returns the name of the ruleset for the
+	 * given form builder items (array)
+	 *
+	 * @autodoc
+	 * @items.hint Array of form builder form items
+	 *
+	 */
+	public string function getRulesetForFormItems( required array items ) {
+		var rules = [];
+
+		for( var item in items ) {
+			if ( IsBoolean( item.type.isFormField ?: "" ) && item.type.isFormField ) {
+				var config   = item.configuration ?: {};
+				var itemType = item.type.id ?: "";
+
+				rules.append( getStandardRulesForFormField( argumentCollection=config ), true );
+				rules.append( getItemTypeSpecificRulesForFormField( itemType=itemType, configuration=config ), true );
+			}
+		}
+		var rulename = "formbuilderform." & LCase( Hash( SerializeJson( rules ) ) );
+
+		_getValidationEngine().newRuleset( name=rulename, rules=rules );
+
+		return rulename;
+	}
+
 	/**
 	 * Returns an array of rules for a given form builder
 	 * form field's configuration. The form builder form item's
@@ -75,4 +108,13 @@ component {
 			, eventArguments = { args=arguments.configuration }
 		);
 	}
+
+// GETTERS AND SETTERS
+	private any function _getValidationEngine() {
+		return _validationEngine;
+	}
+	private void function _setValidationEngine( required any validationEngine ) {
+		_validationEngine = arguments.validationEngine;
+	}
+
 }

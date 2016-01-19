@@ -133,13 +133,64 @@ component extends="testbox.system.BaseSpec"{
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
 			} );
 		} );
+
+		describe( "getRulesetForFormItems", function(){
+			it( "should generate an array of rules for each form field item in the passed item array and register it with the validation engine, returning the name of the ruleset", function(){
+				var service             = getService();
+				var expectedRules       = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+				var expectedRulesetName = "formbuilderform." & LCase( Hash( SerializeJson( expectedRules ) ) );
+				var items               = [{
+					  id            = CreateUUId()
+					, type          = { id="sometype", isFormField=true }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = [ 1, 2, 3 ]
+					, specificRules = [ 4, 5, 6 ]
+				},{
+					  id            = CreateUUId()
+					, type          = { id="textinput", isFormField=true }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = [ 7 ]
+					, specificRules = []
+				},{
+					  id            = CreateUUId()
+					, type          = { id="anothertype", isFormField=false }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = [ 1, 2, 3 ]
+					, specificRules = [ 4, 5, 6 ]
+				},{
+					  id            = CreateUUId()
+					, type          = { id="sometype", isFormField=true }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = [ 8, 9 ]
+					, specificRules = [ 10 ]
+				}];
+
+				for( item in items ) {
+					if ( item.type.isFormField ) {
+						service.$( "getStandardRulesForFormField" ).$args( argumentCollection=item.configuration ).$results( item.standardRules );
+						service.$( "getItemTypeSpecificRulesForFormField" ).$args( itemtype=item.type.id, configuration=item.configuration ).$results(  item.specificRules );
+					}
+				}
+
+				mockValidationEngine.$( "newRuleset", expectedRules );
+
+				expect( service.getRulesetForFormItems( items ) ).toBe( expectedRulesetName );
+				expect( mockValidationEngine.$callLog().newRuleset.len() ).toBe( 1 );
+				expect( mockValidationEngine.$callLog().newRuleset[1].name ).toBe( expectedRulesetName );
+				expect( mockValidationEngine.$callLog().newRuleset[1].rules ).toBe( expectedRules );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
 	private function getService() {
-		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderValidationService() );
+		variables.mockColdbox          = CreateStub();
+		variables.mockValidationEngine = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
 
-		variables.mockColdbox = CreateStub();
+		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderValidationService(
+			validationEngine = mockValidationEngine
+		) );
+
 		service.$( "$getColdbox", mockColdbox );
 		mockColdbox.$( "handlerExists", true );
 
