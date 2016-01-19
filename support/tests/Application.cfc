@@ -100,16 +100,16 @@ component {
 		}
 
 		var dbConfig = {
-			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "5432" )
+			  port     = _getEnvironmentVariable( "PRESIDETEST_DB_PORT"    , "3306" )
 			, host     = _getEnvironmentVariable( "PRESIDETEST_DB_HOST"    , "localhost" )
 			, database = _getEnvironmentVariable( "PRESIDETEST_DB_NAME"    , "preside_test" )
-			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "postgres" )
-			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "sqlPwd@12##" )
+			, username = _getEnvironmentVariable( "PRESIDETEST_DB_USER"    , "travis" )
+			, password = _getEnvironmentVariable( "PRESIDETEST_DB_PASSWORD", "" )
 		};
 
 		try {
 			this.datasources[ "preside_test_suite" ] = {
-				  type     : 'PostgreSQL'
+				  type     : 'MySQL'
 				, port     : dbConfig.port
 				, host     : dbConfig.host
 				, database : dbConfig.database
