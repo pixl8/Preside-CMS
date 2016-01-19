@@ -179,6 +179,49 @@ component extends="testbox.system.BaseSpec"{
 				expect( mockValidationEngine.$callLog().newRuleset[1].name ).toBe( expectedRulesetName );
 				expect( mockValidationEngine.$callLog().newRuleset[1].rules ).toBe( expectedRules );
 			} );
+
+			it( "should return an empty string and not register a ruleset when there are no rules", function(){
+				var service             = getService();
+				var expectedRules       = [];
+				var expectedRulesetName = "";
+				var items               = [{
+					  id            = CreateUUId()
+					, type          = { id="sometype", isFormField=true }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = []
+					, specificRules = []
+				},{
+					  id            = CreateUUId()
+					, type          = { id="textinput", isFormField=true }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = []
+					, specificRules = []
+				},{
+					  id            = CreateUUId()
+					, type          = { id="anothertype", isFormField=false }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = []
+					, specificRules = []
+				},{
+					  id            = CreateUUId()
+					, type          = { id="sometype", isFormField=true }
+					, configuration = { blah=true, test=CreateUUId() }
+					, standardRules = []
+					, specificRules = []
+				}];
+
+				for( item in items ) {
+					if ( item.type.isFormField ) {
+						service.$( "getStandardRulesForFormField" ).$args( argumentCollection=item.configuration ).$results( item.standardRules );
+						service.$( "getItemTypeSpecificRulesForFormField" ).$args( itemtype=item.type.id, configuration=item.configuration ).$results(  item.specificRules );
+					}
+				}
+
+				mockValidationEngine.$( "newRuleset", expectedRules );
+
+				expect( service.getRulesetForFormItems( items ) ).toBe( expectedRulesetName );
+				expect( mockValidationEngine.$callLog().newRuleset.len() ).toBe( 0 );
+			} );
 		} );
 	}
 

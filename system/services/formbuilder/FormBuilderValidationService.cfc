@@ -28,7 +28,8 @@ component {
 	 *
 	 */
 	public string function getRulesetForFormItems( required array items ) {
-		var rules = [];
+		var rules    = [];
+		var rulename = "";
 
 		for( var item in items ) {
 			if ( IsBoolean( item.type.isFormField ?: "" ) && item.type.isFormField ) {
@@ -39,9 +40,12 @@ component {
 				rules.append( getItemTypeSpecificRulesForFormField( itemType=itemType, configuration=config ), true );
 			}
 		}
-		var rulename = "formbuilderform." & LCase( Hash( SerializeJson( rules ) ) );
 
-		_getValidationEngine().newRuleset( name=rulename, rules=rules );
+		if ( rules.len() ) {
+			rulename = "formbuilderform." & LCase( Hash( SerializeJson( rules ) ) );
+
+			_getValidationEngine().newRuleset( name=rulename, rules=rules );
+		}
 
 		return rulename;
 	}
