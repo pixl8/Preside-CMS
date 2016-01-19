@@ -1,7 +1,11 @@
-component output="false" singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
-	public any function init() output=false {
+	public any function init() {
 		_setRulesets( {} );
 		_setValidators( {} );
 		_setRulesetFactory( new RuleSetFactory() );
@@ -11,7 +15,7 @@ component output="false" singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) outut=false {
+	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) {
 		var rules       = _getRuleset( arguments.ruleset );
 		var validators  = _getValidators();
 		var validator   = _getValidators();
@@ -48,7 +52,7 @@ component output="false" singleton=true {
 		return result;
 	}
 
-	public string function getJqueryValidateJs( required string ruleset ) outut=false {
+	public string function getJqueryValidateJs( required string ruleset ) {
 		var js    = "";
 		var rules = "";
 		var rulesAndMessagesJs = "";
@@ -70,7 +74,7 @@ component output="false" singleton=true {
 		return js;
 	}
 
-	public array function newRuleset( required string name, any rules=[] ) output=false {
+	public array function newRuleset( required string name, any rules=[] ) {
 		var rulesets = _getRulesets();
 
 		rulesets[ arguments.name ] = _getRuleSetFactory().newRuleset( rules = arguments.rules );
@@ -78,7 +82,7 @@ component output="false" singleton=true {
 		return rulesets[ arguments.name ];
 	}
 
-	public ValidationProvider function newProvider( required any sourceCfc ) output=false {
+	public ValidationProvider function newProvider( required any sourceCfc ) {
 		var providerFactory = new ValidationProviderFactory();
 		var provider        = providerFactory.createProvider( sourceCfc = arguments.sourceCfc );
 
@@ -87,24 +91,24 @@ component output="false" singleton=true {
 		return provider;
 	}
 
-	public array function listRulesets() output=false {
+	public array function listRulesets() {
 		var ruleSets = StructKeyArray( _getRulesets() );
 		ArraySort( ruleSets, "textnocase" );
 		return ruleSets;
 	}
 
-	public array function listValidators() output=false {
+	public array function listValidators() {
 		var validators = StructKeyArray( _getValidators() );
 		ArraySort( validators, "textnocase" );
 		return validators;
 	}
 
-	public any function newValidationResult() output=false {
+	public any function newValidationResult() {
 		return new ValidationResult();
 	}
 
 // PRIVATE HELPERS
-	private void function _loadCoreValidators() output=false {
+	private void function _loadCoreValidators() {
 		newProvider( sourceCfc = new CoreValidators() );
 	}
 
@@ -118,17 +122,17 @@ component output="false" singleton=true {
 		}
 	}
 
-	private array function _getRuleset( required string rulesetName ) output=false {
+	private array function _getRuleset( required string rulesetName ) {
 		var rulesets = _getRulesets();
 
 		return rulesets[ arguments.rulesetName ];
 	}
 
-	private boolean function _rulesetExists( required string rulesetName ) output=false {
+	private boolean function _rulesetExists( required string rulesetName ) {
 		return StructKeyExists( _getRulesets(), arguments.rulesetName );
 	}
 
-	private string function _generateCustomValidatorsJs( required array rules ) output=false {
+	private string function _generateCustomValidatorsJs( required array rules ) {
 		var validators  = _getValidators();
 		var provider    = "";
 		var validatorJs = "";
@@ -154,7 +158,7 @@ component output="false" singleton=true {
 		return Trim( js );
 	}
 
-	private struct function _generateRulesAndMessagesJs( required array rules ) output=false {
+	private struct function _generateRulesAndMessagesJs( required array rules ) {
 		var validators = _getValidators();
 		var jsRules    = {};
 		var jsMessages = {};
@@ -192,7 +196,7 @@ component output="false" singleton=true {
 		return js;
 	}
 
-	private boolean function _evaluateConditionalRule( required struct rule, required struct data ) output=false {
+	private boolean function _evaluateConditionalRule( required struct rule, required struct data ) {
 		var condition = arguments.rule.serverCondition;
 		var parsed    = "";
 		var result    = true;
@@ -221,7 +225,7 @@ component output="false" singleton=true {
 		return result;
 	}
 
-	private string function _generateClientCondition( required string condition ) output=false {
+	private string function _generateClientCondition( required string condition ) {
 		var parsed = Trim( ReReplace( arguments.condition, "\$\{([a-zA-Z1-9_\$]+)\}", '$( this.form ).find( "[name=''\1'']" )', "all" ) );
 
 		if ( Left( parsed, 8 ) eq "function" ) {
@@ -231,7 +235,7 @@ component output="false" singleton=true {
 		return "function( element ){ return #parsed#; }";
 	}
 
-	private string function _parseParamsForJQueryValidate( required array params, required string validator ) output=false {
+	private string function _parseParamsForJQueryValidate( required array params, required string validator ) {
 		switch( validator ){
 			case "min":
 			case "max":
@@ -245,17 +249,17 @@ component output="false" singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private struct function _getRulesets() output=false {
+	private struct function _getRulesets() {
 		return _rulesets;
 	}
-	private void function _setRulesets( required struct rulesets ) output=false {
+	private void function _setRulesets( required struct rulesets ) {
 		_rulesets = arguments.rulesets;
 	}
 
-	private struct function _getValidators() output=false {
+	private struct function _getValidators() {
 		return _validators;
 	}
-	private void function _setValidators( required struct validators ) output=false {
+	private void function _setValidators( required struct validators ) {
 		_validators = arguments.validators;
 	}
 
