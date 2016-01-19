@@ -553,6 +553,60 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.renderFormItem( itemType=itemType, configuration=configuration ) ).toBe( renderedLayout );
 			} );
 		} );
+
+		describe( "renderForm", function(){
+			it( "should compile a form from rendering its saved items in order and rendering them within a core form layout and and finally the specified form layout", function(){
+				var service            = getService();
+				var formId             = CreateUUId();
+				var formLayout         = "test";
+				var formArgs           = { some="test", configuration=CreateUUId() };
+				var formViewlet        = "formbuilder.layouts.form.test";
+				var coreViewlet        = "formbuilder.layouts.core.form";
+				var renderedCoreLayout = CreateUUId();
+				var renderedFormLayout = CreateUUId();
+				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+				var formItems          = [{
+					  id            = CreateUUId()
+					, itemType      = "textinput"
+					, configuration = { test=true, something=CreateUUId() }
+				},{
+					  id            = CreateUUId()
+					, itemType      = "content"
+					, configuration = { body=CreateUUId() }
+				},{
+					  id            = CreateUUId()
+					, itemType      = "textarea"
+					, configuration = { label="test", defaultvalue=CreateUUId() }
+				}];
+				var formLayoutArgs = Duplicate( formArgs );
+				var coreLayoutArgs = Duplicate( formArgs );
+
+				coreLayoutArgs.renderedItems = renderedItems.toList( "" );
+				formLayoutArgs.renderedForm  = renderedCoreLayout;
+
+				mockRenderingService.$( "getFormLayoutViewlet" ).$args( layout=formLayout ).$results( formViewlet );
+
+
+				service.$( "getFormItems" ).$args( id=formId ).$results( formItems );
+				for( var i=1; i<=formItems.len(); i++ ) {
+					var item = formItems[ i ];
+					service.$( "renderFormItem" ).$args(
+						  itemType=item.itemType
+						, configuration=item.configuration
+					).$results( renderedItems[ i ] );
+				}
+				service.$( "$renderViewlet" ).$args( event=coreViewlet, args=coreLayoutArgs ).$results( renderedCoreLayout );
+				service.$( "$renderViewlet" ).$args( event=formViewlet, args=formLayoutArgs ).$results( renderedFormLayout );
+
+				expect(
+					service.renderForm(
+						  formId        = formId
+						, layout        = formLayout
+						, configuration = formArgs
+					)
+				).toBe( renderedFormLayout );
+			} );
+		} );
 	}
 
 	private function getService() {

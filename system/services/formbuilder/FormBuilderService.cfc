@@ -329,6 +329,46 @@ component {
 	}
 
 	/**
+	 * Renders the given form within a passed layout
+	 * and using any passed custom configuration data.
+	 *
+	 * @autodoc
+	 * @formId.hint        The ID of the form to render
+	 * @layout.hint        The form layout to use
+	 * @configuration.hint Struct containing any custom configuration that may be used by the viewlets used to render the form
+	 *
+	 */
+	public string function renderForm(
+		  required string formId
+		,          string layout        = "default"
+		,          struct configuration = {}
+	) {
+		var items             = getFormItems( id=arguments.formId );
+		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
+		var coreLayoutArgs    = Duplicate( arguments.configuration );
+		var coreLayoutViewlet = "formbuilder.layouts.core.form";
+		var formLayoutArgs    = Duplicate( arguments.configuration );
+		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
+
+		for( var item in items ) {
+			renderedItems.append( renderFormItem(
+				  itemType      = item.itemType
+				, configuration = item.configuration
+			) );
+		}
+		coreLayoutArgs.renderedItems = renderedItems.toString();
+		formLayoutArgs.renderedForm = $renderViewlet(
+			  event = coreLayoutViewlet
+			, args  = coreLayoutArgs
+		);
+
+		return $renderViewlet(
+			  event = formLayoutViewlet
+			, args  = formLayoutArgs
+		);
+	}
+
+	/**
 	 * Renders the given form item with its configuration
 	 * options.
 	 *
