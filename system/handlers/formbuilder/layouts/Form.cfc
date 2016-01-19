@@ -8,7 +8,7 @@ component {
 	}
 
 	private string function default( event, rc, prc, args={} ) {
-		return "Not yet implemented";
+		return renderView( view="/formbuilder/layouts/form/default", args=args );
 	}
 
 }

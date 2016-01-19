@@ -356,6 +356,7 @@ component {
 				, configuration = item.configuration
 			) );
 		}
+
 		coreLayoutArgs.renderedItems = renderedItems.toString();
 		formLayoutArgs.renderedForm = $renderViewlet(
 			  event = coreLayoutViewlet
@@ -381,7 +382,7 @@ component {
 		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
 
-		if ( Len( Trim( arguments.configuration.layout ?: "" ) ) ) {
+		if ( arguments.configuration.keyExists( "layout" ) ) {
 			var layoutArgs    = Duplicate( arguments.configuration );
 			var layoutViewlet = renderingService.getFormFieldLayoutViewlet(
 				  itemType = arguments.itemType
