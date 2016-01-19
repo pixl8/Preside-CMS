@@ -282,14 +282,26 @@ component output=false singleton=true {
 			, generator    = "none"
 		};
 
+
+
 		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
-		objMeta.indexes[ "ix_versioning_version_number_#createUUID()#" ] = { unique=false, fields="_version_number" };
-		objMeta.indexes[ "ix_versioning_version_author_#createUUID()#" ] = { unique=false, fields="_version_author" };
-		if ( StructKeyExists( objMeta.properties, "id" ) ) {
-			objMeta.indexes[ "ix_versioning_record_id_#createUUID()#" ]      = { unique=false, fields="id,_version_number" };
+		for(indexKey in objMeta.indexes){
+			objMeta.indexes[ _renameTableIndexes(indexKey) ] = duplicate( objMeta.indexes[indexKey]); 
+			structDelete(objMeta.indexes, indexKey);
 		}
+
+		objMeta.indexes[ "ix_#objMeta.tableName#_version_number" ] = { unique=false, fields="_version_number" };
+		objMeta.indexes[ "ix_#objMeta.tableName#_version_author" ] = { unique=false, fields="_version_author" };
+		if ( StructKeyExists( objMeta.properties, "id" ) ) {
+			objMeta.indexes[ "ix_#objMeta.tableName#_record_id" ]      = { unique=false, fields="id,_version_number" };
+		}
+	}
+
+	private any function _renameTableIndexes( required string indexKey ) output=false {
+		var newIndexName = RereplaceNoCase( arguments.indexKey, '^([iu]x_)',  '\1version_' );
+		return newIndexName;
 	}
 
 	private any function _createVersionNumberSequenceObject( required string primaryDsn ) output=false {

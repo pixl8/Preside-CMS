@@ -211,7 +211,7 @@ component extends="BaseAdapter" {
 		}
 
 		if ( arguments.maxRows ) {
-			sql &= " limit #arguments.startRow-1#, #arguments.maxRows#";
+			sql &= " limit #arguments.maxRows# offset #arguments.startRow-1#";
 		}
 
 		return sql;
@@ -225,7 +225,7 @@ component extends="BaseAdapter" {
 		  required boolean checksEnabled
 		, required string  tableName
 	) {
-		return "set foreign_key_checks=" & ( arguments.checksEnabled ? '1' : '0' );
+		return "alter table "& "#escapeEntity(arguments.tableName)#" &" "&( arguments.checksEnabled ? 'ENABLE' : 'DISABLE' ) & " TRIGGER ALL";
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
