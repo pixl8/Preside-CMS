@@ -567,15 +567,15 @@ component extends="testbox.system.BaseSpec"{
 				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
 				var formItems          = [{
 					  id            = CreateUUId()
-					, itemType      = "textinput"
+					, type          = { id="textinput" }
 					, configuration = { test=true, something=CreateUUId() }
 				},{
 					  id            = CreateUUId()
-					, itemType      = "content"
+					, type          = { id="content" }
 					, configuration = { body=CreateUUId() }
 				},{
 					  id            = CreateUUId()
-					, itemType      = "textarea"
+					, type          = { id="textarea" }
 					, configuration = { label="test", defaultvalue=CreateUUId() }
 				}];
 				var formLayoutArgs = Duplicate( formArgs );
@@ -591,8 +591,8 @@ component extends="testbox.system.BaseSpec"{
 				for( var i=1; i<=formItems.len(); i++ ) {
 					var item = formItems[ i ];
 					service.$( "renderFormItem" ).$args(
-						  itemType=item.itemType
-						, configuration=item.configuration
+						  itemType      = item.type.id
+						, configuration = item.configuration
 					).$results( renderedItems[ i ] );
 				}
 				service.$( "$renderViewlet" ).$args( event=coreViewlet, args=coreLayoutArgs ).$results( renderedCoreLayout );

@@ -2,7 +2,18 @@ component {
 	property name="formbuilderService" inject="formbuilderService";
 
 	private function index( event, rc, prc, args={} ) {
-		return "<p>**Form builder form render not yet implemented**</p>";
+		var formId = args.form   ?: "";
+		var layout = args.layout ?: "";
+
+		if ( Len( Trim( formId ) ) ) {
+			return formbuilderService.renderForm(
+				  formId        = formId
+				, layout        = layout
+				, configuration = args
+			);
+		}
+
+		return "";
 	}
 
 	private string function placeholder( event, rc, prc, args={} ) {

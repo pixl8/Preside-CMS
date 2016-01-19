@@ -352,7 +352,7 @@ component {
 
 		for( var item in items ) {
 			renderedItems.append( renderFormItem(
-				  itemType      = item.itemType
+				  itemType      = item.type.id
 				, configuration = item.configuration
 			) );
 		}
