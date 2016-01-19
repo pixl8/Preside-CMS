@@ -88,12 +88,35 @@ component extends="testbox.system.BaseSpec"{
 				] );
 			} );
 		} );
+
+		describe( "getItemTypeSpecificRulesForFormField", function(){
+			it( "should call a convention based handler action to get rules for the given item type", function(){
+				var service       = getService();
+				var itemType      = "testitemtype";
+				var handlerAction = "formbuilder.item-types.#itemType#.getValidationRules";
+				var rules         = [ "test", "test", "test" ];
+				var itemconfig    = { test="test", name="test", blah=CreateUUId() };
+
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = handlerAction
+					, private        = true
+					, prepostexempt  = true
+					, eventArguments = { args = itemconfig }
+				).$results( rules );
+
+				expect( service.getItemTypeSpecificRulesForFormField( itemType=itemType, configuration=itemConfig ) ).toBe( rules );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
 	private function getService() {
-		var service = new preside.system.services.formbuilder.FormBuilderValidationService();
+		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderValidationService() );
 
-		return CreateMock( object=service );
+		variables.mockColdbox = CreateStub();
+		service.$( "$getColdbox", mockColdbox );
+		mockColdbox.$( "handlerExists", true );
+
+		return service;
 	}
 }
