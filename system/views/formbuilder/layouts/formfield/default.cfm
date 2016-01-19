@@ -1,10 +1,11 @@
 <cfparam name="args.renderedItem" type="string"  />
 <cfparam name="args.label"        type="string"  />
+<cfparam name="args.id"           type="string"  />
 <cfparam name="args.mandatory"    type="boolean" default="false" />
 
 <cfoutput>
 	<div class="form-group">
-		<label class="col-sm-2 control-label no-padding-right" for="TODO">
+		<label class="col-sm-2 control-label no-padding-right" for="#args.id#">
 			#args.label#
 			<cfif IsTrue( args.mandatory )>
 				<em class="required" role="presentation">

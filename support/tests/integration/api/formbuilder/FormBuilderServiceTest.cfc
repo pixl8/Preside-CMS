@@ -565,34 +565,40 @@ component extends="testbox.system.BaseSpec"{
 				var renderedCoreLayout = CreateUUId();
 				var renderedFormLayout = CreateUUId();
 				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+				var idPrefix           = "fb_" & CreateUUId() & "_";
 				var formItems          = [{
 					  id            = CreateUUId()
 					, type          = { id="textinput" }
-					, configuration = { test=true, something=CreateUUId() }
+					, configuration = { test=true, something=CreateUUId(), name="test" }
 				},{
 					  id            = CreateUUId()
 					, type          = { id="content" }
-					, configuration = { body=CreateUUId() }
+					, configuration = { body=CreateUUId(), name="blah" }
 				},{
 					  id            = CreateUUId()
 					, type          = { id="textarea" }
-					, configuration = { label="test", defaultvalue=CreateUUId() }
+					, configuration = { label="test", defaultvalue=CreateUUId(), name="blah2" }
 				}];
 				var formLayoutArgs = Duplicate( formArgs );
 				var coreLayoutArgs = Duplicate( formArgs );
 
 				coreLayoutArgs.renderedItems = renderedItems.toList( "" );
+				coreLayoutArgs.id            = idPrefix;
 				formLayoutArgs.renderedForm  = renderedCoreLayout;
 
 				mockRenderingService.$( "getFormLayoutViewlet" ).$args( layout=formLayout ).$results( formViewlet );
 
 
+				service.$( "_createIdPrefix", idPrefix );
 				service.$( "getFormItems" ).$args( id=formId ).$results( formItems );
 				for( var i=1; i<=formItems.len(); i++ ) {
 					var item = formItems[ i ];
+					var config = Duplicate( item.configuration );
+
+					config.id = idPrefix & ( config.name ?: "" );
 					service.$( "renderFormItem" ).$args(
 						  itemType      = item.type.id
-						, configuration = item.configuration
+						, configuration = config
 					).$results( renderedItems[ i ] );
 				}
 				service.$( "$renderViewlet" ).$args( event=coreViewlet, args=coreLayoutArgs ).$results( renderedCoreLayout );

@@ -349,16 +349,21 @@ component {
 		var coreLayoutViewlet = "formbuilder.layouts.core.form";
 		var formLayoutArgs    = Duplicate( arguments.configuration );
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
+		var idPrefixForFields = _createIdPrefix();
 
 		for( var item in items ) {
+			config    = Duplicate( item.configuration );
+			config.id = idPrefixForFields & ( config.name ?: CreateUUId() );
+
 			renderedItems.append( renderFormItem(
 				  itemType      = item.type.id
-				, configuration = item.configuration
+				, configuration = config
 			) );
 		}
 
 		coreLayoutArgs.renderedItems = renderedItems.toString();
-		formLayoutArgs.renderedForm = $renderViewlet(
+		coreLayoutArgs.id            = idPrefixForFields;
+		formLayoutArgs.renderedForm  = $renderViewlet(
 			  event = coreLayoutViewlet
 			, args  = coreLayoutArgs
 		);
@@ -427,6 +432,10 @@ component {
 				validationResult.addError( fieldName="name", message="formbuilder:validation.non.unique.field.name" );
 			}
 		}
+	}
+
+	private string function _createIdPrefix() {
+		return "formbuilder_" & LCase( Hash( Now() ) );
 	}
 
 // GETTERS AND SETTERS
