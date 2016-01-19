@@ -106,6 +106,32 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( service.getItemTypeSpecificRulesForFormField( itemType=itemType, configuration=itemConfig ) ).toBe( rules );
 			} );
+
+			it( "should return an empty array when no item type specific ruleset generator handler exists", function(){
+				var service       = getService();
+				var itemType      = "testitemtype";
+				var handlerAction = "formbuilder.item-types.#itemType#.getValidationRules";
+				var itemconfig    = { test="test", name="test", blah=CreateUUId() };
+
+				mockColdbox.$( "handlerExists" ).$args( handlerAction ).$results( false );
+				mockColdbox.$( "runEvent", [ 1, 2, 3 ] );
+
+				expect( service.getItemTypeSpecificRulesForFormField( itemType=itemType, configuration=itemConfig ) ).toBe( [] );
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
+			} );
+
+			it( "should return an empty array when no item type specific ruleset generator handler exists", function(){
+				var service       = getService();
+				var itemType      = "testitemtype";
+				var handlerAction = "formbuilder.item-types.#itemType#.getValidationRules";
+				var itemconfig    = { test="test", name="test", blah=CreateUUId() };
+
+				mockColdbox.$( "handlerExists" ).$args( handlerAction ).$results( false );
+				mockColdbox.$( "runEvent", [ 1, 2, 3 ] );
+
+				expect( service.getItemTypeSpecificRulesForFormField( itemType=itemType, configuration=itemConfig ) ).toBe( [] );
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
+			} );
 		} );
 	}
 

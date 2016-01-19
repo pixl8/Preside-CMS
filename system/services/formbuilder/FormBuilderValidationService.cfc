@@ -61,8 +61,15 @@ component {
 	 *
 	 */
 	public array function getItemTypeSpecificRulesForFormField( required string itemType, required struct configuration ) {
-		return $getColdbox().runEvent(
-			  event          = "formbuilder.item-types.#arguments.itemType#.getValidationRules"
+		var handlerAction = "formbuilder.item-types.#arguments.itemType#.getValidationRules";
+		var coldbox       = $getColdbox();
+
+		if ( !coldbox.handlerExists( handlerAction ) ) {
+			return [];
+		}
+
+		return coldbox.runEvent(
+			  event          = handlerAction
 			, private        = true
 			, prepostExempt  = true
 			, eventArguments = { args=arguments.configuration }
