@@ -52,7 +52,7 @@ component {
 		return result;
 	}
 
-	public string function getJqueryValidateJs( required string ruleset ) {
+	public string function getJqueryValidateJs( required string ruleset, string jqueryReference="presideJQuery" ) {
 		var js    = "";
 		var rules = "";
 		var rulesAndMessagesJs = "";
@@ -68,7 +68,7 @@ component {
 					js &= "rules : { "    & Trim( rulesAndMessagesJs.rules    ) & " }, ";
 					js &= "messages : { " & Trim( rulesAndMessagesJs.messages ) & " } ";
 				js &= "}; "
-			js &= "} )( presideJQuery )";
+			js &= "} )( #jqueryReference# )";
 		}
 
 		return js;

@@ -619,7 +619,7 @@ component extends="testbox.system.BaseSpec"{
 				var formLayout         = "test";
 				var formArgs           = { some="test", configuration=CreateUUId() };
 				var formViewlet        = "formbuilder.layouts.form.test";
-				var coreViewlet        = "formbuilder.layouts.core.form";
+				var coreViewlet        = "formbuilder.layouts.core.formLayout";
 				var renderedCoreLayout = CreateUUId();
 				var renderedFormLayout = CreateUUId();
 				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
@@ -642,6 +642,7 @@ component extends="testbox.system.BaseSpec"{
 
 				coreLayoutArgs.renderedItems = renderedItems.toList( "" );
 				coreLayoutArgs.id            = idPrefix;
+				coreLayoutArgs.formItems     = formItems;
 				formLayoutArgs.renderedForm  = renderedCoreLayout;
 
 				mockRenderingService.$( "getFormLayoutViewlet" ).$args( layout=formLayout ).$results( formViewlet );
