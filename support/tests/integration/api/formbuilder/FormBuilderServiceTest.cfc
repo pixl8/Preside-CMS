@@ -519,6 +519,64 @@ component extends="testbox.system.BaseSpec"{
 
 		} );
 
+		describe( "isFormActive", function(){
+
+			it( "should return false when the given form is set to inactive", function(){
+				var service    = getService();
+				var formId     = CreateUUId();
+				var formRecord = QueryNew( 'active,active_from,active_to', 'boolean,date,date', [[false,NullValue(),NullValue()]]);
+
+				service.$( "getForm" ).$args( id=formId ).$results( formRecord );
+
+				expect( service.isFormActive( formId ) ).toBe( false );
+			} );
+
+			it( "should return true when the given form is set to active and no active_from / active_to dates are set", function(){
+				var service    = getService();
+				var formId     = CreateUUId();
+				var formRecord = QueryNew( 'active,active_from,active_to', 'boolean,date,date', [[true,NullValue(),NullValue()]]);
+
+				service.$( "getForm" ).$args( id=formId ).$results( formRecord );
+
+				expect( service.isFormActive( formId ) ).toBe( true );
+			} );
+
+			it( "should return false when the given form is set to active but the active_from date is in the future", function(){
+				var service    = getService();
+				var formId     = CreateUUId();
+				var activeFrom = DateAdd( 'd', 1, Now() );
+				var formRecord = QueryNew( 'active,active_from,active_to', 'boolean,date,date', [[true,activeFrom,NullValue()]]);
+
+				service.$( "getForm" ).$args( id=formId ).$results( formRecord );
+
+				expect( service.isFormActive( formId ) ).toBe( false );
+			} );
+
+			it( "should return false when the given form is set to active but the active_to date is in the past", function(){
+				var service    = getService();
+				var formId     = CreateUUId();
+				var activeTo   = DateAdd( 'd', -1, Now() );
+				var formRecord = QueryNew( 'active,active_from,active_to', 'boolean,date,date', [[true,NullValue(),activeTo]]);
+
+				service.$( "getForm" ).$args( id=formId ).$results( formRecord );
+
+				expect( service.isFormActive( formId ) ).toBe( false );
+			} );
+
+			it( "should return true when the given form is set to active and the current date falls between the active_from and active_to dates (when set)", function(){
+				var service    = getService();
+				var formId     = CreateUUId();
+				var activeTo   = DateAdd( 'd', 1, Now() );
+				var activeFrom = DateAdd( 'd', -1, Now() );
+				var formRecord = QueryNew( 'active,active_from,active_to', 'boolean,date,date', [[true,activeFrom,activeTo]]);
+
+				service.$( "getForm" ).$args( id=formId ).$results( formRecord );
+
+				expect( service.isFormActive( formId ) ).toBe( true );
+			} );
+
+		} );
+
 		describe( "renderFormItem", function(){
 			it( "should render the given item's type viewlet with the supplied data args", function(){
 				var service         = getService();

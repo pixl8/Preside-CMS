@@ -329,6 +329,32 @@ component {
 	}
 
 	/**
+	 * Returns whether or not the form is active. This will be a combination
+	 * of the active flag and active from and to date range.
+	 *
+	 * @autodoc
+	 * @formId.hint The ID of the form you wish to check
+	 *
+	 */
+	public boolean function isFormActive( required string formId ) {
+		var formRecord = getForm( id=arguments.formid );
+
+		if ( !IsBoolean( formRecord.active ?: "" ) || !formRecord.active ) {
+			return false;
+		}
+
+		if ( !IsNull( formRecord.active_from ) && IsDate( formRecord.active_from ) && formRecord.active_from > Now() ) {
+			return false;
+		}
+
+		if ( !IsNull( formRecord.active_to ) && IsDate( formRecord.active_to ) && formRecord.active_to < Now() ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Renders the given form within a passed layout
 	 * and using any passed custom configuration data.
 	 *
