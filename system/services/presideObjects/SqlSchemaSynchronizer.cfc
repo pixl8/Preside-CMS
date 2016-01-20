@@ -511,9 +511,9 @@ component {
 				}
 			}
 		}
+		
 		for( objName in objects ) {
 			obj = objects[ objName ];
-			var dbType = _getDbInfoService().getDatabaSeversion(dsn = obj.meta.dsn).database_productname //checking the dbtype
 			for( key in obj.sql.relationships ){
 				if ( !ListFindNoCase( existingKeysNotToTouch[ objName ] ?: "", key ) ) {
 					transaction {
@@ -530,7 +530,7 @@ component {
 							} catch( any e ) {}
 						}
 						try {
-							if(dbType == 'PostgreSQL'){
+							if ( _getAdapter( obj.meta.dsn ).requiresManualCommitForTransactions() ) {
 								_runSql( sql = 'commit', dsn = obj.meta.dsn );
 							}
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );

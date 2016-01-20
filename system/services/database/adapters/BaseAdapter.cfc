@@ -10,6 +10,19 @@ component {
 		return arguments.entityName;
 	}
 
+
+	public boolean function requiresManualCommitForTransactions(){
+		return false;
+	}
+
+	public string function getInsertReturnType(){
+		return 'info';
+	}
+
+	public string function getGeneratedKey(required any result){
+		return arguments.result.generatedKey;
+	}
+
 	public string function getColumnDefinitionSql(
 		  required string   columnName
 		, required string   dbType

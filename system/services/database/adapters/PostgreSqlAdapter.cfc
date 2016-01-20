@@ -18,6 +18,24 @@ component extends="BaseAdapter" {
 		return escaped;
 	}
 
+	public boolean function requiresManualCommitForTransactions(){
+		return true;
+	}
+
+	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
+		var sql = super.getInsertSql( argumentCollection=arguments );
+		sql[1] &= " RETURNING id"
+		return sql;
+	}
+
+	public string function getInsertReturnType(){
+		return 'recordset';
+	}
+
+	public string function getGeneratedKey(required any result){
+		return arguments.result.id;
+	}
+
 	public string function getColumnDefinitionSql(
                  required string   columnName
                , required string   dbType
