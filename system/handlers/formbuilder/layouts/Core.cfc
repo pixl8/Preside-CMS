@@ -12,6 +12,8 @@ component {
 			);
 		}
 
+		event.include( assetId="/js/frontend/formbuilder/" );
+
 		return renderView( view="/formbuilder/layouts/core/formLayout", args=args );
 	}
 

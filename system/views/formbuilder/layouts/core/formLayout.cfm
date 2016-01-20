@@ -5,7 +5,7 @@
 <cfoutput>
 	<form action="" id="#args.id#" method="post">
 		<cfloop collection="#args#" item="argName">
-			<cfif argName != "renderedItems" && IsSimpleValue( args[ argName ] )>
+			<cfif !( [ "id", "validationJs","renderedItems", "context", "layout" ].findNoCase( argName ) ) && IsSimpleValue( args[ argName ] )>
 				<input type="hidden" name="#argName#" value="#HtmlEditFormat( args[ argName ] )#">
 			</cfif>
 		</cfloop>
@@ -16,9 +16,15 @@
 	<cfif Len( Trim( args.validationJs ) )>
 		<cfsavecontent variable="validationJs">
 			( function(){
-				if ( typeof jQuery !== 'undefined' && typeof jQuery.validator !== 'undefined' ) {
+				if ( typeof jQuery !== 'undefined' ) {
 					( function( $ ){
-						$('###args.id#').validate( #args.validationJs# );
+						var $form = $('###args.id#');
+
+						if ( typeof jQuery.validator !== 'undefined' ) {
+							$form.validate( #args.validationJs# );
+						}
+
+						$form.presideFormBuilderForm();
 					} )( jQuery );
 				}
 			} )();

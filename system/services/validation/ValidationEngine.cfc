@@ -62,7 +62,8 @@ component {
 			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules )
 
 			js = "( function( $ ){ ";
-				js &= 'var translateResource = ( i18n && i18n.translateResource ) ? i18n.translateResource : function(a){ return a }; ';
+				js &= 'var i18nDefined = typeof i18n !== "undefined" && typeof i18n.translateResource !== "undefined"';
+				js &= ', translateResource = i18nDefined ? i18n.translateResource : function(a){ return a }; ';
 				js &= _generateCustomValidatorsJs( rules ) & " ";
 				js &= "return { ";
 					js &= "rules : { "    & Trim( rulesAndMessagesJs.rules    ) & " }, ";
