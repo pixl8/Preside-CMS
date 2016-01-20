@@ -81,7 +81,6 @@ component {
 							, columnVersions = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
 						);
 						_enableFkChecks( true, obj.meta.dsn, obj.meta.tableName );
-
 					} catch( any e ) {
 						throw(
 							  type    = "presideobjectservice.dbsync.error"
@@ -89,7 +88,6 @@ component {
 							, detail  = "SQL: [#( e.sql ?: '' )#]. Error message: [#e.message#]. Error Detail [#e.detail#]."
 						);
 					}
-
 				}
 			}
 			_syncForeignKeys( objects );
@@ -467,7 +465,6 @@ component {
 		var newKey          = "";
 		var deleteSql       = "";
 		var existingKeysNotToTouch = {};
-		
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			dbKeys = _getTableForeignKeys( tableName = obj.meta.tableName, dsn = obj.meta.dsn );
@@ -514,7 +511,6 @@ component {
 				}
 			}
 		}
-
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			var dbType = _getDbInfoService().getDatabaSeversion(dsn = obj.meta.dsn).database_productname //checking the dbtype
@@ -534,9 +530,9 @@ component {
 							} catch( any e ) {}
 						}
 						try {
-							if(dbType == 'PostgreSQL'){	
-								_runSql( sql = 'commit', dsn = obj.meta.dsn );	
-							}	
+							if(dbType == 'PostgreSQL'){
+								_runSql( sql = 'commit', dsn = obj.meta.dsn );
+							}
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
 						} catch( any e ) {
 							var message = "An error occurred while attempting to create a foreign key for the [#objName#] object.";

@@ -136,7 +136,7 @@ component singleton=true {
 		}
 
 		if ( not arguments.includeTrash ) {
-			args.filter &= " and page.trashed = 0";
+			args.filter &= " and page.trashed = '0'";
 		}
 
 		if ( ArrayLen( arguments.selectFields ) ) {
@@ -156,7 +156,7 @@ component singleton=true {
 		, string  searchQuery = ""
 		, array   ids         = []
 	) {
-		var filter = "( page.trashed = 0 )";
+		var filter = "( page.trashed = '0' )";
 		var params = {};
 
 		if ( arguments.ids.len() ) {

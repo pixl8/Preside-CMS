@@ -12,8 +12,10 @@ component extends="BaseAdapter" {
 // PUBLIC API METHODS
 	public string function escapeEntity( required string entityName ) {
 		var escaped = '"#arguments.entityName#"';
-
-		return Replace( escaped, ".", "`.`", "all" );
+		if(listlen(escaped,'.') gt 1){
+			escaped = Replace( escaped, Chr(34), " ", "all" )
+		}
+		return escaped;
 	}
 
 	public string function getColumnDefinitionSql(
@@ -26,8 +28,7 @@ component extends="BaseAdapter" {
 
        ) {
 
-           var columnDef  = escapeEntity( arguments.columnName )
-           
+           var columnDef  = escapeEntity( arguments.columnName );
            var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
 
            if ( arguments.autoIncrement ) {
@@ -87,7 +88,7 @@ component extends="BaseAdapter" {
 
 
 	) {
-		var columnDef = getColumnDefinitionSql(
+		var columnDef = getColumnDefinitionAlterSql(
 			  columnName    = arguments.newName
 			, dbType        = arguments.dbType
 			, defaultValue  = arguments.defaultValue
@@ -96,7 +97,7 @@ component extends="BaseAdapter" {
 			, autoIncrement = arguments.autoIncrement
 		);
 
-		return "alter table #escapeEntity( arguments.tableName )# modify column #escapeEntity( arguments.columnName )# #columnDef#";
+		return "alter table #escapeEntity( arguments.tableName )# alter column #columnDef.columnType# , alter column #columnDef.columnSet#"
 	}
 
 	public string function getTableDefinitionSql( required string tableName, required string columnSql ) {
@@ -154,10 +155,10 @@ component extends="BaseAdapter" {
 	public string function getDeleteSql( required string tableName, required any filter, string tableAlias="" ) {
 		var sql = "delete from "
 
-		if ( Len( Trim( arguments.tableAlias ) ) ) {
-			sql &= "#escapeEntity( arguments.tableAlias )# using #escapeEntity( arguments.tableName )# as #escapeEntity( arguments.tableAlias )#";
+		if(Len( Trim( arguments.tableAlias ) ) ) {
+			sql &= "#arguments.tableName# as #arguments.tableAlias#";
 		} else {
-			sql &= "#escapeEntity( arguments.tableName )#";
+			sql &= "#arguments.tableName#";
 		}
 
 		return sql & getClauseSql(
@@ -187,9 +188,9 @@ component extends="BaseAdapter" {
 			delim = ", ";
 		}
 
-		sql &= " from " & escapeEntity( arguments.tableName );
+		sql &= " from " & arguments.tableName ;
 		if ( Len( arguments.tableAlias ) ) {
-			sql &= " " & escapeEntity( arguments.tableAlias );
+			sql &= " " & arguments.tableAlias ;
 		}
 
 		if ( ArrayLen( arguments.joins ) ) {
@@ -231,4 +232,70 @@ component extends="BaseAdapter" {
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "Concat( #leftExpression#, #rightExpression# )";
 	}
+
+	private struct function getColumnDefinitionAlterSql(
+                 required string   columnName
+               , required string   dbType
+               ,          numeric  maxLength     = 0
+               ,          boolean  nullable      = true
+               ,          boolean  primaryKey    = false
+               ,          boolean  autoIncrement = false
+
+       ) {
+		   var columnAlter = structNew();
+           var columnType  = escapeEntity( arguments.columnName );
+           var columnSet  = escapeEntity( arguments.columnName );
+
+           columnType &= " Type";
+           columnSet &= " Set";
+
+           var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
+
+           if ( arguments.autoIncrement ) {
+                   columnType &= " serial";
+                   arguments.maxLength = 0;
+           }else{
+
+               switch( arguments.dbType ) {
+                   case "datetime":
+                           columnType &= " timestamp";
+                           break;
+                   case "longtext":
+                           columnType &= " text";
+                           break;
+                   case "double":
+                           columnType &= " float";
+                   case "bigint":
+                   case "int":
+                   case "float":
+                   case "text":
+                           arguments.maxLength = 0;
+                           columnType &= " #arguments.dbType#";
+                           break;
+                   default:
+                           columnType &= " #arguments.dbType#";
+                           break;
+               }
+       }
+
+       if ( arguments.dbType eq "varchar" and not arguments.maxLength ) {
+               arguments.maxLength = 200;
+       }
+
+       if ( arguments.maxLength ) {
+               columnType &= "(#arguments.maxLength#)";
+       }
+
+       if ( arguments.primaryKey ) {
+               columnType &= " primary key";
+       }
+
+      columnType &= ( isNullable ? " null" : " not null" );
+      columnSet &= ( isNullable ? " null" : " not null" );
+
+      columnAlter['columnType'] = columnType;
+      columnAlter['columnSet'] = columnSet;
+
+      return columnAlter;
+   }
 }
