@@ -372,7 +372,7 @@ component {
 		var items             = getFormItems( id=arguments.formId );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
-		var coreLayoutViewlet = "formbuilder.formLayout";
+		var coreLayoutViewlet = "formbuilder.formbuilder.formLayout";
 		var formLayoutArgs    = Duplicate( arguments.configuration );
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
 		var idPrefixForFields = _createIdPrefix();

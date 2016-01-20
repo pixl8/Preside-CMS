@@ -619,7 +619,7 @@ component extends="testbox.system.BaseSpec"{
 				var formLayout         = "test";
 				var formArgs           = { some="test", configuration=CreateUUId() };
 				var formViewlet        = "formbuilder.layouts.form.test";
-				var coreViewlet        = "formbuilder.formLayout";
+				var coreViewlet        = "formbuilder.formbuilder.formLayout";
 				var renderedCoreLayout = CreateUUId();
 				var renderedFormLayout = CreateUUId();
 				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];

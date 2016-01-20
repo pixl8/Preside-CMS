@@ -3,7 +3,7 @@
 <cfparam name="args.validationJs"  type="string" default="" />
 
 <cfoutput>
-	<form action="" id="#args.id#" method="post">
+	<form action="#event.buildLink( linkTo='formbuilder.formbuilder.submitAction' )#" id="#args.id#" method="post">
 		<cfloop collection="#args#" item="argName">
 			<cfif !( [ "id", "validationJs","renderedItems", "context", "layout" ].findNoCase( argName ) ) && IsSimpleValue( args[ argName ] )>
 				<input type="hidden" name="#argName#" value="#HtmlEditFormat( args[ argName ] )#">
