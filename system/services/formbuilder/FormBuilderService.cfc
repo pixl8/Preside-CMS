@@ -428,6 +428,27 @@ component {
 		return renderedItem;
 	}
 
+	/**
+	 * Returns the submission success message saved
+	 * against the form for the given form ID
+	 *
+	 * @autodoc
+	 * @formId.hint ID of the form who's message you wish to get
+	 *
+	 */
+	public string function getSubmissionSuccessMessage( required string formId ) {
+		if ( !Len( Trim( arguments.formId ) ) ) {
+			return "";
+		}
+
+		var dbRecord = $getPresideObject( "formbuilder_form" ).selectData(
+			  id         = arguments.formId
+			, selectData = [ "form_submitted_message" ]
+		);
+
+		return dbRecord.form_submitted_message ?: "";
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

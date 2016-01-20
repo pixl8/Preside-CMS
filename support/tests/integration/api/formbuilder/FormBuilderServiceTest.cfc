@@ -672,6 +672,46 @@ component extends="testbox.system.BaseSpec"{
 				).toBe( renderedFormLayout );
 			} );
 		} );
+
+		describe( "getSubmissionSuccessMessage", function(){
+			it( "should return the 'form_submitted_message' for the given form ID", function(){
+				var service        = getService();
+				var formId         = CreateUUId();
+				var successMessage = "Test success message" & CreateUUId();
+				var dbRecord       = QueryNew( 'form_submitted_message', 'varchar', [ [ successMessage ] ] );
+
+				mockFormDao.$( "selectData" ).$args(
+					  id           = formId
+					, selectFields = [ "form_submitted_message" ]
+				).$results( dbRecord );
+
+				expect( service.getSubmissionSuccessMessage( formId ) ).toBe( successMessage );
+			} );
+
+			it( "should return an empty string when no db records found for the given ID", function(){
+				var service        = getService();
+				var formId         = CreateUUId();
+				var dbRecord       = QueryNew( 'form_submitted_message' );
+
+				mockFormDao.$( "selectData" ).$args(
+					  id           = formId
+					, selectFields = [ "form_submitted_message" ]
+				).$results( dbRecord );
+
+				expect( service.getSubmissionSuccessMessage( formId ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string and not attempt DB lookup when passed formId is empty string", function(){
+				var service        = getService();
+				var formId         = "";
+				var dbRecord       = QueryNew( 'form_submitted_message' );
+
+				mockFormDao.$( "selectData" );
+
+				expect( service.getSubmissionSuccessMessage( formId ) ).toBe( "" );
+				expect( mockFormDao.$callLog().selectData.len() ).toBe( 0 );
+			} );
+		} );
 	}
 
 	private function getService() {
