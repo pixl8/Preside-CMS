@@ -290,7 +290,6 @@ component extends="BaseAdapter" {
                columnType &= " primary key";
        }
 
-      columnType &= ( isNullable ? " null" : " not null" );
       columnSet &= ( isNullable ? " null" : " not null" );
 
       columnAlter['columnType'] = columnType;
