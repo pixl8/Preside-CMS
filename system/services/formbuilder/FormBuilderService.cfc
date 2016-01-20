@@ -372,7 +372,7 @@ component {
 		var items             = getFormItems( id=arguments.formId );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
-		var coreLayoutViewlet = "formbuilder.formbuilder.formLayout";
+		var coreLayoutViewlet = "formbuilder.core.formLayout";
 		var formLayoutArgs    = Duplicate( arguments.configuration );
 		var formLayoutViewlet = _getFormBuilderRenderingService().getFormLayoutViewlet( layout=arguments.layout );
 		var idPrefixForFields = _createIdPrefix();
@@ -447,6 +447,29 @@ component {
 		);
 
 		return dbRecord.form_submitted_message ?: "";
+	}
+
+	/**
+	 * Given incoming request params, returns a structure
+	 * containing only the params relevent for the given form
+	 *
+	 * @autodoc
+	 * @formId.hint      The ID of the form
+	 * @requestData.hint A struct containing request data parameters
+	 *
+	 */
+	public struct function getRequestDataForForm( required string formId, required struct requestData ) {
+		var formData  = {};
+		var formItems = getFormItems( id=arguments.formId );
+
+		for( var item in formItems ) {
+			var itemName = item.configuration.name ?: "";
+			if ( item.type.isFormField && Len( Trim( itemName ) ) && arguments.requestData.keyExists( itemName ) ) {
+				formData[ itemName ] = arguments.requestData[ itemName ];
+			}
+		}
+
+		return formData;
 	}
 
 // PRIVATE HELPERS

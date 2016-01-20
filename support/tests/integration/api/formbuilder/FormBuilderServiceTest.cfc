@@ -619,7 +619,7 @@ component extends="testbox.system.BaseSpec"{
 				var formLayout         = "test";
 				var formArgs           = { some="test", configuration=CreateUUId() };
 				var formViewlet        = "formbuilder.layouts.form.test";
-				var coreViewlet        = "formbuilder.formbuilder.formLayout";
+				var coreViewlet        = "formbuilder.core.formLayout";
 				var renderedCoreLayout = CreateUUId();
 				var renderedFormLayout = CreateUUId();
 				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
@@ -710,6 +710,37 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( service.getSubmissionSuccessMessage( formId ) ).toBe( "" );
 				expect( mockFormDao.$callLog().selectData.len() ).toBe( 0 );
+			} );
+		} );
+
+		describe( "getRequestDataForForm", function(){
+			it(  "should return a structure of data that contains only the relevent fields for the given form, given a struct containing an entire requests request params", function(){
+				var service        = getService();
+				var formId         = CreateUUId();
+				var items          = [{
+					  type          = { isFormField=false }
+					, configuration = { name="test1" }
+				},{
+					  type          = { isFormField=true }
+					, configuration = { name="test2" }
+				},{
+					  type          = { isFormField=true }
+					, configuration = { name="test3" }
+				},{
+					  type          = { isFormField=true }
+					, configuration = { name="test4" }
+				}];
+				var input          = { yes=false, no=true, test1=CreateUUId(), test2="nice", test4=CreateUUId() };
+				var expectedOutput = { test2=input.test2, test4=input.test4 };
+
+				service.$( "getFormItems" ).$args( id=formId ).$results( items );
+
+				expect(
+					service.getRequestDataForForm(
+						  formId      = formId
+						, requestData = input
+					)
+				).toBe( expectedOutput );
 			} );
 		} );
 	}

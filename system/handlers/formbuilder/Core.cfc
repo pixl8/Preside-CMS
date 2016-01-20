@@ -5,35 +5,42 @@ component {
 	property name="validationEngine"             inject="validationEngine";
 
 	public any function submitAction( event, rc, prc ) {
-		var formId = rc.form ?: "";
+		var formId       = rc.form ?: "";
+		var validRequest = Len( Trim( formId ) ) && Len( Trim( cgi.http_referer ) ) && event.getHTTPMethod() == "POST";
 
-		if ( !Len( Trim( formId ) ) ) {
+		if ( !validRequest ) {
 			event.notFound();
 		}
 
-		// TODO, better referer checking to ensure we're coming from the same
-		// site, etc.
-		if ( !Len( Trim( cgi.http_referer ) ) ) {
-			event.notFound();
-		}
+		var submission       = event.getCollectionWithoutSystemVars();
+		var validationResult = formBuilderService.saveFormSubmission(
+			  formId     = formId
+			, submission = submission
+		);
 
-		// TODO, actually process the submission
-
-		// assuming we're all good...
 		if ( event.isAjax() ) {
-			var successMessage = renderViewlet( event="formbuilder.formbuilder.successMessage", args={ formId=formId } );
+			if ( validationResult.validated() ) {
+				var successMessage = renderViewlet( event="formbuilder.core.successMessage", args={ formId=formId } );
 
-			event.renderData( data={ success=true, response=successMessage }, type="json" );
+				event.renderData( data={ success=true, response=successMessage }, type="json" );
+			} else {
+				event.renderData( data={ sucess=false, errors=validationResult.getMessages() } );
+			}
 		} else {
-			setNextEvent( url=cgi.http_referer, persistStruct={
-				formBuilderFormSubmitted = formId
-			} );
+			if ( validationResult.validated() ) {
+				setNextEvent( url=cgi.http_referer, persistStruct={
+					formBuilderFormSubmitted = formId
+				} );
+			} else {
+				submission.validationResult = validationResult;
+				setNextEvent( url=cgi.http_referer, persistStruct=submission );
+			}
 		}
 	}
 
 	private string function formLayout( event, rc, prc, args={} ) {
 		if ( ( rc.formBuilderFormSubmitted ?: "" ) == ( args.form ?: "" ) ) {
-			return renderViewlet( event="formbuilder.formbuilder.successMessage", args={ formId=args.form } )
+			return renderViewlet( event="formbuilder.core.successMessage", args={ formId=args.form } )
 		}
 
 		var validationRulesetName = formBuilderValidationService.getRulesetForFormItems( args.formItems ?: [] );
