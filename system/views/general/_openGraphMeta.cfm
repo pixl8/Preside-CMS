@@ -16,6 +16,6 @@
 		<meta name="og:description" content="#XmlFormat( local.teaser )#" />
 	</cfif>
 	<cfif Len( local.mainImage )>
-		<meta name="og:image" content="#event.getBaseUrl()##event.buildLink( assetId=local.mainImage )#" />
+		<meta name="og:image" content="#event.buildLink( assetId=local.mainImage )#" />
 	</cfif>
 </cfoutput>
