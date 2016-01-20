@@ -1,5 +1,6 @@
 component {
 
+	property name="formBuilderService"           inject="formBuilderService";
 	property name="formBuilderValidationService" inject="formBuilderValidationService";
 	property name="validationEngine"             inject="validationEngine";
 
@@ -20,7 +21,9 @@ component {
 
 		// assuming we're all good...
 		if ( event.isAjax() ) {
-			event.renderData( data={ success=true, response="Wohoo! way to go you did it!" }, type="json" );
+			var successMessage = renderViewlet( event="formbuilder.formbuilder.successMessage", args={ formId=formId } );
+
+			event.renderData( data={ success=true, response=successMessage }, type="json" );
 		} else {
 			setNextEvent( url=cgi.http_referer, persistStruct={
 				formBuilderFormSubmitted = formId
@@ -30,8 +33,7 @@ component {
 
 	private string function formLayout( event, rc, prc, args={} ) {
 		if ( ( rc.formBuilderFormSubmitted ?: "" ) == ( args.form ?: "" ) ) {
-			// TODO, render the editorial success message
-			return "Wohoo! You did it (manually done here...)";
+			return renderViewlet( event="formbuilder.formbuilder.successMessage", args={ formId=args.form } )
 		}
 
 		var validationRulesetName = formBuilderValidationService.getRulesetForFormItems( args.formItems ?: [] );
@@ -45,6 +47,13 @@ component {
 		event.include( assetId="/js/frontend/formbuilder/" );
 
 		return renderView( view="/formbuilder/layouts/core/formLayout", args=args );
+	}
+
+	private string function successMessage( event, rc, prc, args ) {
+		args.successMessage = formBuilderService.getSubmissionSuccessMessage( args.formId ?: "" );
+		args.successMessage = renderContent( renderer="richeditor", data=args.successMessage );
+
+		return renderView( view="/formbuilder/layouts/core/successMessage", args=args );
 	}
 
 }

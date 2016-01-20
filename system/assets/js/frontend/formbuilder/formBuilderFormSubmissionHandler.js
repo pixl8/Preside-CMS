@@ -30,7 +30,9 @@ if ( typeof window.jQuery !== "undefined" ) {
 					}
 
 					if ( data.success ) {
-						$form.parent().html( data.response );
+						$form.parent().fadeOut( 200, function(){
+							$form.parent().html( data.response ).fadeIn( 200 );
+						} );
 					} else {
 						$form.validate().showErrors( data.errors );
 					}
