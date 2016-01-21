@@ -1,6 +1,6 @@
 /**
  * @singleton
- *
+ * @presideservice
  */
 component {
 
@@ -183,7 +183,7 @@ component {
 			}
 			jsRules[ rule.fieldName ] &= ' }';
 
-			jsMessages[ rule.fieldName ] = ListAppend( jsMessages[ rule.fieldName ], ' "#LCase( rule.validator )#" : translateResource( "#message#", { data : #SerializeJson( params )# } )' );
+			jsMessages[ rule.fieldName ] = ListAppend( jsMessages[ rule.fieldName ], ' "#LCase( rule.validator )#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
 		}
 
 		for( rule in arguments.rules ){
