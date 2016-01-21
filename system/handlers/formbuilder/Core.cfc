@@ -24,7 +24,13 @@ component {
 
 				event.renderData( data={ success=true, response=successMessage }, type="json" );
 			} else {
-				event.renderData( data={ sucess=false, errors=validationResult.getMessages() } );
+				var errors = {};
+				var messages = validationResult.getMessages();
+				for( var fieldName in messages ) {
+					var message = messages[ fieldName ];
+					errors[ fieldName ] = translateResource( uri=message.message, data=message.params );
+				}
+				event.renderData( data={ success=false, errors=errors }, type="json" );
 			}
 		} else {
 			if ( validationResult.validated() ) {
