@@ -3,7 +3,7 @@
 <cfparam name="args.validationJs"  type="string" default="" />
 
 <cfoutput>
-	<form action="#event.buildLink( linkTo='formbuilder.formbuilder.submitAction' )#" id="#args.id#" method="post">
+	<form action="#event.buildLink( linkTo='formbuilder.core.submitAction' )#" id="#args.id#" method="post">
 		<cfloop collection="#args#" item="argName">
 			<cfif !( [ "id", "validationJs","renderedItems", "context", "layout" ].findNoCase( argName ) ) && IsSimpleValue( args[ argName ] )>
 				<input type="hidden" name="#argName#" value="#HtmlEditFormat( args[ argName ] )#">
@@ -13,22 +13,20 @@
 		#args.renderedItems#
 	</form>
 
-	<cfif Len( Trim( args.validationJs ) )>
-		<cfsavecontent variable="validationJs">
-			( function(){
-				if ( typeof jQuery !== 'undefined' ) {
-					( function( $ ){
-						var $form = $('###args.id#');
-
-						if ( typeof jQuery.validator !== 'undefined' ) {
-							$form.validate( #args.validationJs# );
-						}
-
-						$form.presideFormBuilderForm();
-					} )( jQuery );
-				}
-			} )();
-		</cfsavecontent>
-		<cfset event.includeInlineJs( validationJs ) />
-	</cfif>
+	<cfsavecontent variable="formJs">
+		( function(){
+			if ( typeof jQuery !== 'undefined' ) {
+				( function( $ ){
+					var $form = $('###args.id#');
+					<cfif Len( Trim( args.validationJs ) )>
+					if ( typeof jQuery.validator !== 'undefined' ) {
+						$form.validate( #args.validationJs# );
+					}
+					</cfif>
+					$form.presideFormBuilderForm();
+				} )( jQuery );
+			}
+		} )();
+	</cfsavecontent>
+	<cfset event.includeInlineJs( formJs ) />
 </cfoutput>
