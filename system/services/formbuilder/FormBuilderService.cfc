@@ -476,19 +476,43 @@ component {
 	}
 
 	/**
-	 * Validates submitted request data against a saved
-	 * form builder form's configuration.
+	 * Saves a form submission. Returns a validation result. If validation
+	 * failed, no data will be saved in the database.
 	 *
 	 * @autodoc
-	 * @formId.hint      The ID of the form who's configuration the submission will be validated against
+	 * @formId.hint      The ID of the form builder form
 	 * @requestData.hint A struct containing request data
+	 * @instanceId.hint  Free text string representing the instance of a form builder form in the website (see form builder form widget)
+	 * @ipAddress.hint   IP address of the visitor making the submission
+	 * @userAgent.hint   User agent of the visitor making the submission
 	 *
 	 */
-	public any function validateFormSubmission( required string formId, required struct requestData ) {
-		return _getFormBuilderValidationService().validateFormSubmission(
-			  formItems      = getFormItems( arguments.formId )
-			, submissionData = getRequestDataForForm( arguments.formId, arguments.requestData )
+	public any function saveFormSubmission(
+		  required string formId
+		, required struct requestData
+		,          string instanceId  = ""
+		,          string ipAddress   = Trim( ListLast( cgi.remote_addr ?: "" ) )
+		,          string userAgent   = ( cgi.http_user_agent ?: "" )
+	) {
+		var formItems        = getFormItems( arguments.formId );
+		var formData         = getRequestDataForForm( arguments.formId, arguments.requestData );
+		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
+			  formItems      = formItems
+			, submissionData = formData
 		);
+
+		if ( validationResult.validated() ) {
+			$getPresideObject( "formbuilder_formsubmission" ).insertData( data={
+				  form           = arguments.formId
+				, submitted_by   = $getWebsiteLoggedInUserId()
+				, submitted_data = SerializeJson( formData )
+				, form_instance  = arguments.instanceId
+				, ip_address     = arguments.ipAddress
+				, user_agent     = arguments.userAgent
+			} );
+		}
+
+		return validationResult;
 	}
 
 // PRIVATE HELPERS

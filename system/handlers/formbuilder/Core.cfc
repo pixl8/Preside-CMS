@@ -14,8 +14,8 @@ component {
 
 		var submission       = event.getCollectionWithoutSystemVars();
 		var validationResult = formBuilderService.saveFormSubmission(
-			  formId     = formId
-			, submission = submission
+			  formId      = formId
+			, requestData = submission
 		);
 
 		if ( event.isAjax() ) {

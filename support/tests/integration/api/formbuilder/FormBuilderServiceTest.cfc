@@ -744,8 +744,8 @@ component extends="testbox.system.BaseSpec"{
 			} );
 		} );
 
-		describe( "validateFormSubmission", function(){
-			it( "should take a form ID and request data struct and pass that through the relevant validation engine ruleset validator, returning the result", function(){
+		describe( "saveFormSubmission", function(){
+			it( "should return validation result without taking any action when validation failed", function(){
 				var service            = getService();
 				var formId             = CreateUUId();
 				var requestData        = { some="data" };
@@ -762,11 +762,59 @@ component extends="testbox.system.BaseSpec"{
 					  formItems      = formItems
 					, submissionData = formSubmissionData
 				).$results( validationResult );
+				validationResult.$( "validated", false );
+				mockFormSubmissionDao.$( "insertData", "" );
 
-				expect( service.validateFormSubmission(
+				expect( service.saveFormSubmission(
 					  formId      = formId
 					, requestData = requestData
 				) ).toBe( validationResult );
+
+				expect( mockFormSubmissionDao.$callLog().insertData.len() ).toBe( 0 );
+			} );
+
+			it( "should save submission data to a form builder submission object when validation passes", function(){
+				var service            = getService();
+				var formId             = CreateUUId();
+				var requestData        = { some="data" };
+				var formSubmissionData = { some="data", tests=CreateUUId() };
+				var formItems          = [ "just", "test", "data" ];
+				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+				var userAgent          = CreateUUId();
+				var ipAddress          = "219.349.93.4";
+				var instanceId         = "TEST" & CreateUUId();
+				var userid             = CreateUUId();
+
+				service.$( "getRequestDataForForm" ).$args(
+					  formId      = formId
+					, requestData = requestData
+				).$results( formSubmissionData );
+				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
+					  formItems      = formItems
+					, submissionData = formSubmissionData
+				).$results( validationResult );
+				validationResult.$( "validated", true );
+				mockFormSubmissionDao.$( "insertData", CreateUUId() );
+				service.$( "$getWebsiteLoggedInUserId", userId );
+
+				expect( service.saveFormSubmission(
+					  formId      = formId
+					, requestData = requestData
+					, instanceId  = instanceId
+					, ipAddress   = ipAddress
+					, userAgent   = userAgent
+				) ).toBe( validationResult );
+
+				expect( mockFormSubmissionDao.$callLog().insertData.len() ).toBe( 1 );
+				expect( mockFormSubmissionDao.$callLog().insertData[1] ).toBe( { data={
+					  form           = formId
+					, submitted_by   = userId
+					, form_instance  = instanceId
+					, ip_address     = ipAddress
+					, user_agent     = userAgent
+					, submitted_data = SerializeJson( formSubmissionData )
+				} } );
 			} );
 		} );
 	}
@@ -774,6 +822,7 @@ component extends="testbox.system.BaseSpec"{
 	private function getService() {
 		variables.mockFormDao                      = CreateStub();
 		variables.mockFormItemDao                  = CreateStub();
+		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
 		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
@@ -790,6 +839,7 @@ component extends="testbox.system.BaseSpec"{
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
+		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
 
 		return service;
 	}
