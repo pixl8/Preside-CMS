@@ -743,21 +743,49 @@ component extends="testbox.system.BaseSpec"{
 				).toBe( expectedOutput );
 			} );
 		} );
+
+		describe( "validateFormSubmission", function(){
+			it( "should take a form ID and request data struct and pass that through the relevant validation engine ruleset validator, returning the result", function(){
+				var service            = getService();
+				var formId             = CreateUUId();
+				var requestData        = { some="data" };
+				var formSubmissionData = { some="data", tests=CreateUUId() };
+				var formItems          = [ "just", "test", "data" ];
+				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+
+				service.$( "getRequestDataForForm" ).$args(
+					  formId      = formId
+					, requestData = requestData
+				).$results( formSubmissionData );
+				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
+					  formItems      = formItems
+					, submissionData = formSubmissionData
+				).$results( validationResult );
+
+				expect( service.validateFormSubmission(
+					  formId      = formId
+					, requestData = requestData
+				) ).toBe( validationResult );
+			} );
+		} );
 	}
 
 	private function getService() {
-		variables.mockFormDao          = CreateStub();
-		variables.mockFormItemDao      = CreateStub();
-		variables.mockItemTypesService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
-		variables.mockRenderingService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
-		variables.mockFormsService     = CreateEmptyMock( "preside.system.services.forms.FormsService" );
-		variables.mockValidationEngine = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
+		variables.mockFormDao                      = CreateStub();
+		variables.mockFormItemDao                  = CreateStub();
+		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
+		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
+		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
+		variables.mockValidationEngine             = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
+		variables.mockFormBuilderValidationService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderValidationService" );
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
-			  itemTypesService            = mockItemTypesService
-			, formBuilderRenderingService = mockRenderingService
-			, formsService                = mockFormsService
-			, validationEngine            = mockValidationEngine
+			  itemTypesService             = mockItemTypesService
+			, formBuilderRenderingService  = mockRenderingService
+			, formsService                 = mockFormsService
+			, formBuilderValidationService = mockFormBuilderValidationService
+			, validationEngine             = mockValidationEngine
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );

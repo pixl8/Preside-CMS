@@ -223,6 +223,24 @@ component extends="testbox.system.BaseSpec"{
 				expect( mockValidationEngine.$callLog().newRuleset.len() ).toBe( 0 );
 			} );
 		} );
+
+		describe( "validateFormSubmission", function(){
+			it( "should put the passed submission data through validation for the validation ruleset for the given form builder items array", function(){
+				var service          = getService();
+				var ruleset          = "my.ruleset." & CreateUUId();
+				var items            = [ "this", "is", "just", "dummy", "for", "test" ];
+				var submissionData   = { this="is", just="a test", data=CreateUUId() };
+				var validationResult = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+
+				service.$( "getRulesetForFormItems" ).$args( items=items ).$results( ruleset );
+				mockValidationEngine.$( "validate" ).$args( ruleset=ruleset, data=submissionData ).$results( validationResult );
+
+				expect( service.validateFormSubmission(
+					  formItems      = items
+					, submissionData = submissionData
+				) ).toBe( validationResult );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

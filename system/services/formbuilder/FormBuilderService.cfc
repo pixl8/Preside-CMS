@@ -9,20 +9,23 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @itemTypesService.inject            formbuilderItemTypesService
-	 * @formBuilderRenderingService.inject formBuilderRenderingService
-	 * @formsService.inject                formsService
-	 * @validationEngine.inject            validationEngine
+	 * @itemTypesService.inject             formbuilderItemTypesService
+	 * @formBuilderRenderingService.inject  formBuilderRenderingService
+	 * @formBuilderValidationService.inject formBuilderValidationService
+	 * @formsService.inject                 formsService
+	 * @validationEngine.inject             validationEngine
 	 *
 	 */
 	public any function init(
 		  required any itemTypesService
 		, required any formBuilderRenderingService
+		, required any formBuilderValidationService
 		, required any formsService
 		, required any validationEngine
 	) {
 		_setItemTypesService( arguments.itemTypesService );
 		_setFormBuilderRenderingService( arguments.formBuilderRenderingService );
+		_setFormBuilderValidationService( arguments.formBuilderValidationService );
 		_setFormsService( arguments.formsService );
 		_setValidationEngine( arguments.validationEngine );
 
@@ -472,6 +475,22 @@ component {
 		return formData;
 	}
 
+	/**
+	 * Validates submitted request data against a saved
+	 * form builder form's configuration.
+	 *
+	 * @autodoc
+	 * @formId.hint      The ID of the form who's configuration the submission will be validated against
+	 * @requestData.hint A struct containing request data
+	 *
+	 */
+	public any function validateFormSubmission( required string formId, required struct requestData ) {
+		return _getFormBuilderValidationService().validateFormSubmission(
+			  formItems      = getFormItems( arguments.formId )
+			, submissionData = getRequestDataForForm( arguments.formId, arguments.requestData )
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
@@ -536,5 +555,12 @@ component {
 	}
 	private void function _setValidationEngine( required any validationEngine ) {
 		_validationEngine = arguments.validationEngine;
+	}
+
+	private any function _getFormBuilderValidationService() {
+		return _formBuilderValidationService;
+	}
+	private void function _setFormBuilderValidationService( required any formBuilderValidationService ) {
+		_formBuilderValidationService = arguments.formBuilderValidationService;
 	}
 }

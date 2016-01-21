@@ -113,6 +113,20 @@ component {
 		);
 	}
 
+	/**
+	 * Validates the given submission data against a set of form builder form items.
+	 * Returns a preside Validation framework's 'ValidationResult' object.
+	 *
+	 * @autodoc
+	 * @formItems.hint      Array of form item definitions for the form
+	 * @submissionData.hint Struct of data that has been submitted for validation
+	 */
+	public any function validateFormSubmission( required array formItems, required struct submissionData ) {
+		var ruleset = getRulesetForFormItems( items=arguments.formItems );
+
+		return _getValidationEngine().validate( ruleset=ruleset, data=arguments.submissionData );
+	}
+
 // GETTERS AND SETTERS
 	private any function _getValidationEngine() {
 		return _validationEngine;
