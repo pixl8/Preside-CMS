@@ -369,8 +369,9 @@ component {
 	 */
 	public string function renderForm(
 		  required string formId
-		,          string layout        = "default"
-		,          struct configuration = {}
+		,          string layout           = "default"
+		,          struct configuration    = {}
+		,          any    validationResult = ""
 	) {
 		var items             = getFormItems( id=arguments.formId );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
@@ -381,8 +382,17 @@ component {
 		var idPrefixForFields = _createIdPrefix();
 
 		for( var item in items ) {
-			config    = Duplicate( item.configuration );
-			config.id = idPrefixForFields & ( config.name ?: CreateUUId() );
+			var config    = Duplicate( item.configuration );
+			var fieldName = config.name ?: CreateUUId();
+
+			config.id = idPrefixForFields & fieldName;
+
+			if ( !IsSimpleValue( validationResult ) && validationResult.fieldHasError( fieldName ) ) {
+				config.error = $translateResource(
+					  uri  = validationResult.getError( fieldName )
+					, data = validationResult.listErrorParameterValues( fieldName )
+				);
+			}
 
 			renderedItems.append( renderFormItem(
 				  itemType      = item.type.id

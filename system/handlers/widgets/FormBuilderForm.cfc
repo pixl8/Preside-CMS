@@ -15,9 +15,10 @@ component {
 				rendered = '<div class="alert alert-warning"><p><strong>' & translateResource( "formbuilder:inactive.form.admin.preview.warning") & '</strong></p></div>';
 			}
 			rendered &= formbuilderService.renderForm(
-				  formId        = formId
-				, layout        = layout
-				, configuration = args
+				  formId           = formId
+				, layout           = layout
+				, configuration    = args
+				, validationResult = rc.validationResult ?: ""
 			);
 		}
 
