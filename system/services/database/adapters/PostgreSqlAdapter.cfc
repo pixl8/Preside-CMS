@@ -12,10 +12,7 @@ component extends="BaseAdapter" {
 // PUBLIC API METHODS
 	public string function escapeEntity( required string entityName ) {
 		var escaped = '"#arguments.entityName#"';
-		if(listlen(escaped,'.') gt 1){
-			escaped = Replace( escaped, Chr(34), " ", "all" )
-		}
-		return escaped;
+		return (listlen(escaped,'.') gt 1) ? Replace( escaped, Chr(34), " ", "all" ) : escaped;
 	}
 
 	public boolean function requiresManualCommitForTransactions(){
@@ -54,24 +51,24 @@ component extends="BaseAdapter" {
                    arguments.maxLength = 0;
            }else{
                switch( arguments.dbType ) {
-                       case "datetime":
-                               columnDef &= " timestamp";
-                               break;
-                       case "longtext":
-                               columnDef &= " text";
-                               break;
-                       case "double":
-                               columnDef &= " float";
-                       case "bigint":
-                       case "int":
-                       case "float":
-                       case "text":
-                               arguments.maxLength = 0;
-                               columnDef &= " #arguments.dbType#";
-                               break;
-                       default:
-                               columnDef &= " #arguments.dbType#";
-                               break;
+                    case "datetime":
+                       columnDef &= " timestamp";
+                       break;
+                    case "longtext":
+                       columnDef &= " text";
+                       break;
+                    case "double":
+                           columnDef &= " float";
+                    case "bigint":
+                    case "int":
+                    case "float":
+                    case "text":
+                       arguments.maxLength = 0;
+                       columnDef &= " #arguments.dbType#";
+                       break;
+                    default:
+                       columnDef &= " #arguments.dbType#";
+                       break;
                }
        }
 
@@ -115,7 +112,13 @@ component extends="BaseAdapter" {
 			, autoIncrement = arguments.autoIncrement
 		);
 
-		return "alter table #escapeEntity( arguments.tableName )# alter column #columnDef.columnType# , alter column #columnDef.columnSet#"
+		if(structKeyExists(columnDef, "columnType")){
+			var qAlter = "alter table #escapeEntity( arguments.tableName )# alter column #columnDef.columnType#";
+		}
+		if(len(columnDef.columnSet)){
+			qAlter &= ", alter column #columnDef.columnSet#";
+		}
+		return qAlter;
 	}
 
 	public string function getTableDefinitionSql( required string tableName, required string columnSql ) {
@@ -248,7 +251,7 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
-		return "Concat( #leftExpression#, #rightExpression# )";
+		return "#leftExpression# || #rightExpression#";
 	}
 
 	private struct function getColumnDefinitionAlterSql(
@@ -262,10 +265,8 @@ component extends="BaseAdapter" {
        ) {
 		   var columnAlter = structNew();
            var columnType  = escapeEntity( arguments.columnName );
-           var columnSet  = escapeEntity( arguments.columnName );
 
            columnType &= " Type";
-           columnSet &= " Set";
 
            var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
 
@@ -308,11 +309,8 @@ component extends="BaseAdapter" {
                columnType &= " primary key";
        }
 
-      columnSet &= ( isNullable ? " null" : " not null" );
-
-      columnAlter['columnType'] = columnType;
-      columnAlter['columnSet'] = columnSet;
-
-      return columnAlter;
+       columnAlter['columnSet'] = ( isNullable ? "" : escapeEntity( arguments.columnName ) & " Set not null" );
+       columnAlter['columnType'] = columnType;
+       return columnAlter;
    }
 }
