@@ -288,20 +288,22 @@ component output=false singleton=true {
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
-			objMeta.indexes[ _renameTableIndexes(indexKey) ] = duplicate( objMeta.indexes[indexKey]); 
+			objMeta.indexes[ _renameTableIndexes(indexKey) ] = duplicate( objMeta.indexes[indexKey]);
 			structDelete(objMeta.indexes, indexKey);
 		}
-
-		objMeta.indexes[ "ix_#objMeta.tableName#_version_number" ] = { unique=false, fields="_version_number" };
-		objMeta.indexes[ "ix_#objMeta.tableName#_version_author" ] = { unique=false, fields="_version_author" };
+		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_number" ] = { unique=false, fields="_version_number" };
+		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_author" ] = { unique=false, fields="_version_author" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
-			objMeta.indexes[ "ix_#objMeta.tableName#_record_id" ]      = { unique=false, fields="id,_version_number" };
+			objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_record_id" ]      = { unique=false, fields="id,_version_number" };
 		}
 	}
 
 	private any function _renameTableIndexes( required string indexKey ) output=false {
-		var newIndexName = RereplaceNoCase( arguments.indexKey, '^([iu]x_)',  '\1version_' );
-		return newIndexName;
+		return _removeTablePrefix( RereplaceNoCase( arguments.indexKey, '^([iu]x_)', '\1version_' ) );
+	}
+
+	private any function _removeTablePrefix( required string indexKey ) output=false {
+		return replaceNoCase( arguments.indexKey, '_psys_', '_' );
 	}
 
 	private any function _createVersionNumberSequenceObject( required string primaryDsn ) output=false {
