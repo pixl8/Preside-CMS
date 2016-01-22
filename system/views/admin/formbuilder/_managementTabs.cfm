@@ -18,7 +18,7 @@
 		  icon   = "fa-users"
 		, active = ( activeTab == "submissions" )
 		, link   = event.buildAdminLink( linkto="formbuilder.submissions", queryString="id=#formId#" )
-		, title  = translateResource( uri="formbuilder:management.tabs.submissions.title", data=[ submissionCount ] )
+		, title  = translateResource( uri="formbuilder:management.tabs.submissions.title", data=[ NumberFormat( submissionCount ) ] )
 	});
 
 	if ( canEdit ) {
