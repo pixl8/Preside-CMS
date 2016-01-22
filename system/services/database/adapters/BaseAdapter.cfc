@@ -175,7 +175,7 @@ component {
 		var paramPostFix = "";
 
 		for( col in arguments.insertColumns ){
-			sql &= delim & escapeEntity( col );
+			sql &= delim & escapeEntity( lcase(col) );
 			delim = ", ";
 		}
 

@@ -113,24 +113,24 @@ component extends="BaseAdapter" {
 		);
 
 		if(structKeyExists(columnDef, "columnType")){
-			var qAlter = "alter table #escapeEntity( arguments.tableName )# alter column #columnDef.columnType#";
+			var qAlter = "alter table " & escapeEntity( arguments.tableName ) &" alter column "& columnDef.columnType;
 		}
 		if(len(columnDef.columnSet)){
-			qAlter &= ", alter column #columnDef.columnSet#";
+			qAlter &= ", alter column " & columnDef.columnSet;
 		}
 		return qAlter;
 	}
 
 	public string function getTableDefinitionSql( required string tableName, required string columnSql ) {
-		return "create table #escapeEntity( arguments.tableName )# ( #arguments.columnSql# )";
+		return 'create table '& arguments.tableName &' ( '& arguments.columnSql &' ) ';
 	}
 
 	public string function getDropForeignKeySql( required string foreignKeyName, required string tableName) {
-		return "alter table #escapeEntity( arguments.tableName )# drop constraint #escapeEntity( arguments.foreignKeyName )#";
+		return "alter table "& escapeEntity( arguments.tableName ) &" drop constraint " & escapeEntity( arguments.foreignKeyName );
 	}
 
 	public string function getDropIndexSql( required string indexName, required string tableName ) {
-		return "drop index #escapeEntity( arguments.indexName )#";
+		return "drop index " & escapeEntity( arguments.indexName );
 	}
 
 	public string function getUpdateSql(
@@ -140,11 +140,9 @@ component extends="BaseAdapter" {
 		,          string tableAlias = ""
 		,          array  joins      = []
 	) {
-		var sql      = "update #escapeEntity( arguments.tableName )#";
+		var sql      = "update "& escapeEntity( arguments.tableName );
 		var delim    = "";
 		var col      = "";
-		var entity   = "";
-		var hasAlias = Len( Trim( arguments.tableAlias ) );
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= " " & escapeEntity( arguments.tableAlias );
@@ -160,8 +158,7 @@ component extends="BaseAdapter" {
 		sql &= " set";
 
 		for( col in arguments.updateColumns ) {
-			entity = hasAlias and ListLen( col, '.' ) eq 1 ? "#col#" : col;
-			sql &= delim & " " & escapeEntity( entity ) & " = :set__" & col;
+			sql &= delim & " " & col & " = :set__" & col;
 			delim = ",";
 		}
 
@@ -177,9 +174,9 @@ component extends="BaseAdapter" {
 		var sql = "delete from "
 
 		if(Len( Trim( arguments.tableAlias ) ) ) {
-			sql &= "#arguments.tableName# as #arguments.tableAlias#";
+			sql &= arguments.tableName & ' as ' & arguments.tableAlias;
 		} else {
-			sql &= "#arguments.tableName#";
+			sql &= arguments.tableName;
 		}
 
 		return sql & getClauseSql(
@@ -238,7 +235,7 @@ component extends="BaseAdapter" {
 		}
 
 		if ( arguments.maxRows ) {
-			sql &= " limit #arguments.maxRows# offset #arguments.startRow-1#";
+			sql &= " limit " & arguments.maxRows & " offset " & arguments.startRow-1;
 		}
 
 		return sql;
@@ -252,11 +249,79 @@ component extends="BaseAdapter" {
 		  required boolean checksEnabled
 		, required string  tableName
 	) {
-		return "alter table "& "#escapeEntity(arguments.tableName)#" &" "&( arguments.checksEnabled ? 'ENABLE' : 'DISABLE' ) & " TRIGGER ALL";
+		return "alter table "& escapeEntity(arguments.tableName) &" "&( arguments.checksEnabled ? 'enable' : 'disable' ) & " trigger all";
 	}
 
 	public string function getConcatenationSql( required string leftExpression, required string rightExpression ) {
 		return "#leftExpression# || #rightExpression#";
+	}
+
+	public string function sqlDataTypeToCfSqlDatatype( required string sqlDataType ) {
+		switch( arguments.sqlDataType ){
+			case "bigint signed":
+			case "int unsigned":
+			case "bigint":
+				return "cf_sql_bigint";
+			case "binary":
+				return "cf_sql_binary";
+			case "bit":
+			case "bool":
+			case "boolean":
+				return "cf_sql_bit";
+			case "blob":
+				return "cf_sql_blob";
+			case "char":
+				return "cf_sql_char";
+			case "date":
+				return "cf_sql_date";
+			case "decimal":
+				return "cf_sql_decimal";
+			case "double":
+			case "double precision":
+			case "real":
+				return "cf_sql_double";
+			case "mediumint signed":
+			case "mediumint unsigned":
+			case "int signed":
+			case "mediumint":
+			case "int":
+			case "integer":
+				return "cf_sql_integer";
+			case "mediumblob":
+			case "longblob":
+			case "tinyblob":
+				return "cf_sql_longvarbinary";
+			case "text":
+				return "cf_sql_longvarchar";
+			case "mediumtext":
+			case "longtext":
+				return "cf_sql_longvarchar";
+			case "numeric":
+			case "bigint unsigned":
+				return "cf_sql_numeric";
+			case "float":
+				return "cf_sql_real";
+			case "smallint signed":
+			case "smallint unsigned":
+			case "tinyint signed":
+			case "tinyint":
+			case "smallint":
+				return "cf_sql_smallint";
+			case "datetime":
+			case "timestamp":
+				return "cf_sql_timestamp";
+			case "tinyint unsigned":
+				return "cf_sql_tinyint";
+			case  "varbinary":
+				return "cf_sql_varbinary";
+			case "varchar":
+			case "tinytext":
+			case "enum":
+			case "set":
+				return "cf_sql_varchar";
+			default:
+				return "cf_sql_varchar";
+		}
 	}
 
 	private struct function getColumnDefinitionAlterSql(

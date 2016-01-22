@@ -509,7 +509,7 @@ component singleton=true {
 		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
 
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
-		var filter = "parent_page = :parent_page and trashed = 0 and ( #exclusionField# is null or #exclusionField# = 0 )";
+		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
 		var filterParams = {};
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
