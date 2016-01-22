@@ -20,7 +20,7 @@ component extends="testbox.system.BaseSpec"{
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, maxLength=30 ) ).toBe( [
-					{ fieldName="testfield", validator="maxLength", params={ max=30 } }
+					{ fieldName="testfield", validator="maxLength", params={ maxLength=30 } }
 				] );
 			} );
 
@@ -34,7 +34,7 @@ component extends="testbox.system.BaseSpec"{
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, minLength=5 ) ).toBe( [
-					{ fieldName="testfield", validator="minLength", params={ min=5 } }
+					{ fieldName="testfield", validator="minLength", params={ minLength=5 } }
 				] );
 			} );
 
@@ -48,7 +48,7 @@ component extends="testbox.system.BaseSpec"{
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, minLength=5, maxLength=30 ) ).toBe( [
-					{ fieldName="testfield", validator="rangeLength", params={ min=5, max=30 } }
+					{ fieldName="testfield", validator="rangeLength", params={ minLength=5, maxLength=30 } }
 				] );
 			} );
 

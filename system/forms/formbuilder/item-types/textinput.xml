@@ -2,8 +2,8 @@
 <form i18nBaseUri="formbuilder.item-types.textinput:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="min_length" control="spinner" required="false" sortorder="33" defaultvalue="0" />
-			<field name="max_length" control="spinner" required="false" sortorder="36" defaultvalue="0" />
+			<field name="minlength" control="spinner" required="false" sortorder="33" defaultvalue="0" />
+			<field name="maxlength" control="spinner" required="false" sortorder="36" defaultvalue="0" />
 		</fieldset>
 	</tab>
 </form>
