@@ -177,9 +177,11 @@ component extends="BaseAdapter" {
 		sql &= " set";
 
 		for( col in arguments.updateColumns ) {
-			entity = hasAlias and ListLen( col, '.' ) eq 1 ? "#col#" : col;
-			sql &= delim & " " & escapeEntity( entity ) & " = :set__" & col;
-			delim = ",";
+			if( col != "id" ) {
+				entity = hasAlias and ListLen( col, '.' ) eq 1 ? "#col#" : col;
+				sql &= delim & " " & escapeEntity( entity ) & " = :set__" & col;
+				delim = ",";
+			}
 		}
 
 		if ( hasAlias ) {
