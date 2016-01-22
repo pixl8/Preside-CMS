@@ -12,7 +12,7 @@ component extends="BaseAdapter" {
 // PUBLIC API METHODS
 	public string function escapeEntity( required string entityName ) {
 		var escaped = '"#arguments.entityName#"';
-		return (listlen(escaped,'.') gt 1) ? Replace( escaped, Chr(34), " ", "all" ) : escaped;
+		return (listlen(escaped,'.') gt 1) ? Replace( escaped, '"', " ", "all" ) : escaped;
 	}
 
 	public boolean function requiresManualCommitForTransactions(){
