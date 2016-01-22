@@ -817,6 +817,22 @@ component extends="testbox.system.BaseSpec"{
 				} } );
 			} );
 		} );
+
+		describe( "getSubmissionCount", function(){
+			it( "should return the number of submissions for the given form", function(){
+				var service       = getService();
+				var formId        = CreateUUId();
+				var responseCount = 453;
+				var queryResult   = QueryNew( "submission_count", "int", [ [ responseCount ] ] );
+
+				mockFormSubmissionDao.$( "selectData" ).$args(
+					  filter       = { form=formId }
+					, selectFields = [ "Count( id ) as submission_count" ]
+				).$results( queryResult );
+
+				expect( service.getSubmissionCount( formId=formId ) ).toBe( responseCount );
+			} );
+		} );
 	}
 
 	private function getService() {

@@ -525,6 +525,22 @@ component {
 		return validationResult;
 	}
 
+	/**
+	 * Returns the number of submissions made for
+	 * a given form
+	 *
+	 * @autodoc
+	 * @formid.hint The ID of the form who's submissions you want to count
+	 *
+	 */
+	public numeric function getSubmissionCount( required string formId ) {
+		var submissions = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  filter       = { form=formId }
+			, selectFields = [ "Count( id ) as submission_count" ]
+		);
+		return Val( submissions.submission_count ?: "" );
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
