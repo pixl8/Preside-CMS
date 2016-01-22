@@ -160,7 +160,7 @@ component extends="BaseAdapter" {
 		sql &= " set";
 
 		for( col in arguments.updateColumns ) {
-			entity = hasAlias and ListLen( col, '.' ) eq 1 ? "#arguments.tableAlias#.#col#" : col;
+			entity = hasAlias and ListLen( col, '.' ) eq 1 ? "#col#" : col;
 			sql &= delim & " " & escapeEntity( entity ) & " = :set__" & col;
 			delim = ",";
 		}
@@ -226,6 +226,11 @@ component extends="BaseAdapter" {
 
 		if ( Len( Trim ( arguments.groupBy ) ) ) {
 			sql &= " group by " & arguments.groupBy;
+			if ( ArrayLen( arguments.joins ) ) {
+				for( aliasCol in arguments.joins) {
+					sql &= ", #aliasCol.tableAlias#.#aliasCol.tableColumn#"
+				}
+			}
 		}
 
 		if ( Len( Trim ( arguments.orderBy ) ) ) {

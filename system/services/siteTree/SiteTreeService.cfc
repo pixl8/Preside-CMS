@@ -512,7 +512,7 @@ component singleton=true {
 		var filter = "parent_page = :parent_page and trashed = 0 and ( #exclusionField# is null or #exclusionField# = 0 )";
 		var filterParams = {};
 		if ( !arguments.includeInactive ) {
-			filter &= " and active = 1";
+			filter &= " and active = '1'";
 		}
 
 		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes );

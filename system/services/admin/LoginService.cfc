@@ -341,7 +341,7 @@ component displayName="Admin login service" {
 
 	private query function _getUserByLoginId( required string loginId ) {
 		return _getUserDao().selectData(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
 		);
