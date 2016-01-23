@@ -10,10 +10,10 @@
 component {
 
 	/**
-	 * @resourceDirectories.inject presidecms:directories:handlers/rest-apis
-	 * @controller.inject          coldbox
-	 * @configurationWrapper.injec presideRestConfigurationWrapper
-	 * @validationEngine.inject    validationEngine
+	 * @resourceDirectories.inject  presidecms:directories:handlers/rest-apis
+	 * @controller.inject           coldbox
+	 * @configurationWrapper.inject presideRestConfigurationWrapper
+	 * @validationEngine.inject     validationEngine
 	 */
 	public any function init(
 		required array resourceDirectories,
