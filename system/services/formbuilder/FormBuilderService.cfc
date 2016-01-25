@@ -424,7 +424,7 @@ component {
 	 */
 	public string function renderFormItem( required string itemType, required struct configuration ) {
 		var renderingService = _getFormBuilderRenderingService();
-		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType );
+		var itemViewlet      = renderingService.getItemTypeViewlet( itemType=arguments.itemType, context="input" );
 		var renderedItem     = $renderViewlet( event=itemViewlet, args=arguments.configuration );
 
 		if ( arguments.configuration.keyExists( "layout" ) ) {

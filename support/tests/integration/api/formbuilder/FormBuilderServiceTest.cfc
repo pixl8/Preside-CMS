@@ -585,7 +585,7 @@ component extends="testbox.system.BaseSpec"{
 				var rendered        = CreateUUId();
 				var configuration   = { test="true", maxSomething=10 };
 
-				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=itemType ).$results( itemTypeViewlet );
+				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=itemType, context="input" ).$results( itemTypeViewlet );
 				service.$( "$renderViewlet" ).$args( event=itemTypeViewlet, args=configuration ).$results( rendered );
 
 				expect( service.renderFormItem( itemType=itemType, configuration=configuration ) ).toBe( rendered );
@@ -603,7 +603,7 @@ component extends="testbox.system.BaseSpec"{
 
 				expectedLayoutArgs.renderedItem = renderedItem;
 
-				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=itemType ).$results( itemTypeViewlet );
+				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=itemType, context="input" ).$results( itemTypeViewlet );
 				mockRenderingService.$( "getFormFieldLayoutViewlet" ).$args( itemType=itemType, layout="somelayout" ).$results( layoutViewlet );
 				service.$( "$renderViewlet" ).$args( event=itemTypeViewlet, args=configuration      ).$results( renderedItem );
 				service.$( "$renderViewlet" ).$args( event=layoutViewlet, args=expectedLayoutArgs ).$results( renderedLayout );

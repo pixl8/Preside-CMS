@@ -65,8 +65,26 @@ component extends="testbox.system.BaseSpec"{
 		} );
 
 		describe( "getItemTypeViewlet", function(){
-			it( "should return viewlet name calculated by convention based on the passed item type", function(){
-				expect( getService().getItemTypeViewlet( "myitemtype" ) ).toBe( "formbuilder.item-types.myitemtype.render" );
+
+			it( "should return 'formbuilder.item-types.(theitemtype).renderInput', when the given context is 'input'", function(){
+				var expected = "formbuilder.item-types.myitemtype.renderInput";
+				var actual   = getService().getItemTypeViewlet( "myitemtype", "input" );
+
+				expect( actual ).toBe( expected );
+			} );
+
+			it( "should return 'formbuilder.item-types.(theitemtype).renderAdminPlaceholder', when the given context is 'adminPlaceholder'", function(){
+				var expected = "formbuilder.item-types.myitemtype.renderAdminPlaceholder";
+				var actual   = getService().getItemTypeViewlet( "myitemtype", "adminPlaceholder" );
+
+				expect( actual ).toBe( expected );
+			} );
+
+			it( "should return 'formbuilder.item-types.(theitemtype).renderResponse', when the given context is 'response'", function(){
+				var expected = "formbuilder.item-types.myitemtype.renderResponse";
+				var actual   = getService().getItemTypeViewlet( "myitemtype", "response" );
+
+				expect( actual ).toBe( expected );
 			} );
 		} );
 
