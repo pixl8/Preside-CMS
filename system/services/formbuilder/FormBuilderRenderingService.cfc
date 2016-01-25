@@ -96,7 +96,13 @@
 	 * @context.hint  The context in which the item will be rendered. i.e. 'input', 'adminPlaceholder', 'response', etc.
 	 */
 	public string function getItemTypeViewlet( required string itemType, required string context ) {
-		return "formbuilder.item-types.#arguments.itemType#.render#arguments.context#";
+		var itemTypeSpecific = "formbuilder.item-types.#arguments.itemType#.render#arguments.context#";
+
+		if ( $getColdbox().viewletExists( itemTypeSpecific ) ) {
+			return itemTypeSpecific;
+		}
+
+		return "formbuilder.defaultRenderers.#arguments.context#";
 	}
 
 	/**

@@ -1,8 +1,9 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="formBuilderService" inject="formBuilderService";
-	property name="itemTypesService"   inject="formBuilderItemTypesService";
-	property name="messagebox"         inject="coldbox:plugin:messagebox";
+	property name="formBuilderService"          inject="formBuilderService";
+	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
+	property name="itemTypesService"            inject="formBuilderItemTypesService";
+	property name="messagebox"                  inject="coldbox:plugin:messagebox";
 
 
 // PRE-HANDLER
@@ -225,7 +226,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.renderData( type="json", data={
 			  id       = newId
-			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormItem", args=formBuilderService.getFormItem( newId ) )
 		} );
 	}
 
@@ -242,7 +243,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.renderData( type="json", data={
 			  id       = itemId
-			, itemView = renderView( view="/admin/formbuilder/_workbenchFormItem", args=formBuilderService.getFormItem( itemId ) )
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormItem", args=formBuilderService.getFormItem( itemId ) )
 		} );
 	}
 
@@ -394,6 +395,14 @@ component extends="preside.system.base.AdminHandler" {
 		args.canActivate = !args.locked && hasCmsPermission( permissionKey="formbuilder.activateForm" );
 
 		return renderView( view="/admin/formbuilder/_statusControls", args=args );
+	}
+
+	private string function workbenchFormItem( event, rc, prc, args ) {
+		args.placeholder = renderViewlet(
+			  event = formBuilderRenderingService.getItemTypeViewlet( itemType=( args.type.id ?: "" ), context="adminPlaceholder" )
+			, args  = args
+		);
+		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
 
 // PRIVATE UTILITY

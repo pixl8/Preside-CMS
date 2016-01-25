@@ -67,24 +67,48 @@ component extends="testbox.system.BaseSpec"{
 		describe( "getItemTypeViewlet", function(){
 
 			it( "should return 'formbuilder.item-types.(theitemtype).renderInput', when the given context is 'input'", function(){
+				var service  = getService();
 				var expected = "formbuilder.item-types.myitemtype.renderInput";
-				var actual   = getService().getItemTypeViewlet( "myitemtype", "input" );
 
-				expect( actual ).toBe( expected );
+				mockColdbox.$( "viewletExists", true );
+
+				expect(
+					service.getItemTypeViewlet( "myitemtype", "input" )
+				).toBe( expected );
 			} );
 
 			it( "should return 'formbuilder.item-types.(theitemtype).renderAdminPlaceholder', when the given context is 'adminPlaceholder'", function(){
+				var service  = getService();
 				var expected = "formbuilder.item-types.myitemtype.renderAdminPlaceholder";
-				var actual   = getService().getItemTypeViewlet( "myitemtype", "adminPlaceholder" );
 
-				expect( actual ).toBe( expected );
+				mockColdbox.$( "viewletExists", true );
+
+				expect(
+					service.getItemTypeViewlet( "myitemtype", "adminPlaceholder" )
+				).toBe( expected );
 			} );
 
 			it( "should return 'formbuilder.item-types.(theitemtype).renderResponse', when the given context is 'response'", function(){
+				var service  = getService();
 				var expected = "formbuilder.item-types.myitemtype.renderResponse";
-				var actual   = getService().getItemTypeViewlet( "myitemtype", "response" );
 
-				expect( actual ).toBe( expected );
+				mockColdbox.$( "viewletExists", true );
+
+				expect(
+					service.getItemTypeViewlet( "myitemtype", "response" )
+				).toBe( expected );
+			} );
+
+			it( "should return a default viewlet if the item type does not have a specific viewlet for the given context", function(){
+				var service          = getService();
+				var itemTypeSpecific = "formbuilder.item-types.myitemtype.renderResponse";
+				var defaultViewlet   = "formbuilder.defaultRenderers.response";
+
+				mockColdbox.$( "viewletExists" ).$args( itemTypeSpecific ).$results( false );
+
+				expect(
+					service.getItemTypeViewlet( "myitemtype", "response" )
+				).toBe( defaultViewlet );
 			} );
 		} );
 
@@ -174,12 +198,15 @@ component extends="testbox.system.BaseSpec"{
 
 	private function getService() {
 		variables.mockViewletsService = CreateEmptyMock( "preside.system.services.viewlets.ViewletsService" );
+		variables.mockColdbox         = CreateStub();
+
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderRenderingService(
 			viewletsService = mockViewletsService
 		) );
 
 		mockViewletsService.$( "listPossibleViewlets", [] );
-		service.$( "translateResource", "" );
+		service.$( "$translateResource", "" );
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}

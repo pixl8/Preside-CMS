@@ -1,6 +1,7 @@
 <cfparam name="args.id"            type="string" />
 <cfparam name="args.type"          type="struct" />
 <cfparam name="args.configuration" type="struct" />
+<cfparam name="args.placeholder"   type="string" />
 
 <cfoutput>
 	<li class="item-type ui-draggable form-item"
@@ -12,13 +13,7 @@
 	    data-config-title="#translateResource( uri='formbuilder:itemconfig.modal.title', data=[ args.type.title ] )#">
 
 		<div class="pull-left">
-			<cfif args.type.adminPlaceholderViewlet.len()>
-				#renderViewlet( event=args.type.adminPlaceholderViewlet, args=args )#
-			<cfelseif Len( args.configuration.label ?: "" )>
-				#args.configuration.label# (#args.type.title#)
-			<cfelse>
-				#args.type.title#
-			</cfif>
+			#args.placeholder#
 		</div>
 		<div class="pull-right">
 			<div class="action-buttons btn-group">

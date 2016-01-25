@@ -1,6 +1,6 @@
 component {
 
-	private string function render( event, rc, prc, args={} ) {
+	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
 
 		return renderFormControl(

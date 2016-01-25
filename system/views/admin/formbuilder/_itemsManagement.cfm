@@ -5,7 +5,7 @@
 <cfoutput>
 	<ul class="list-unstyled form-items">
 		<cfloop array="#items#" item="item" index="i">
-			#renderView( view="/admin/formbuilder/_workbenchFormItem", args=item )#
+			#renderViewlet( event="admin.formbuilder.workbenchFormItem", args=item )#
 		</cfloop>
 	</ul>
 	<div class="instructions<cfif !items.len()> empty</cfif>">
