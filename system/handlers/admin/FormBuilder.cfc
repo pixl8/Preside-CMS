@@ -321,7 +321,8 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !Len( Trim( formId ) ) ) {
 			event.adminNotFound();
 		}
-		var useMultiActions = hasCmsPermission( "formbuilder.deleteSubmissions" );
+		var canDelete       = hasCmsPermission( "formbuilder.deleteSubmissions" );
+		var useMultiActions = canDelete;
 		var checkboxCol     = [];
 		var optionsCol      = [];
 		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
@@ -334,6 +335,7 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = dtHelper.getSearchQuery()
 		);
 		var records = Duplicate( results.records );
+		var deleteSubmissionTitle = translateResource( "formbuilder:delete.submission.prompt")
 
 		for( var record in records ){
 			for( var field in gridFields ){
@@ -344,7 +346,12 @@ component extends="preside.system.base.AdminHandler" {
 				checkboxCol.append( renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
 			}
 
-			optionsCol.append( "" );
+			optionsCol.append( renderView( view="/admin/formbuilder/_submissionActions", args={
+				  canDelete             = canDelete
+				, viewSubmissionLink    = event.buildAdminLink( linkto="formbuilder.viewSubmission"         , queryString="id=#record.id#" )
+				, deleteSubmissionLink  = event.buildAdminLink( linkto="formbuilder.deleteSubmissionsAction", queryString="id=#record.id#&formId=#formId#" )
+				, deleteSubmissionTitle = deleteSubmissionTitle
+ 			} ) );
 		}
 
 		if ( useMultiActions ) {

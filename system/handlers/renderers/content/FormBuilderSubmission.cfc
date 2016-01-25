@@ -31,6 +31,10 @@ component  {
 					  item     = item
 					, rendered = rendered
 				});
+
+				if ( IsTrue( args.firstResponseOnly ?: "" ) ) {
+					break;
+				}
 			}
 		}
 
@@ -38,6 +42,7 @@ component  {
 	}
 
 	private string function adminDataTable( event, rc, prc, args={} ){
+		args.firstResponseOnly = true;
 		args.renderedSubmission = default( argumentCollection=arguments );
 
 		return renderView( view="/renderers/content/formBuilderSubmission/adminDataTable", args=args );

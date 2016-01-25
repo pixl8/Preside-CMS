@@ -1,21 +1,19 @@
-.presidecms .formbuilder-submission-preview {
-  background-color: #eeeeee;
-  border: 1px solid #dddddd;
-  border-radius: 5px;
-  padding: 3px 10px;
-}
-.presidecms .formbuilder-response {
+.presidecms .formbuilder-submission-preview .formbuilder-response {
   float: left;
   display: inline-block;
-  height: 1.5em;
-  max-width: 80%;
   margin: 0;
-  overflow: hidden;
+  background-color: transparent;
+  width: calc(100% - 1.5em);
 }
-.presidecms .formbuilder-response dt {
-  max-width: 110px;
-  text-align: left;
+.presidecms .formbuilder-submission-preview .formbuilder-response td,
+.presidecms .formbuilder-submission-preview .formbuilder-response th {
+  border: none;
+  background-color: transparent !important;
+  padding: 0;
 }
-.presidecms .formbuilder-response dd {
-  margin-left: 120px;
+.presidecms .formbuilder-submission-preview .formbuilder-response td {
+  padding-left: 1em;
+}
+.presidecms .formbuilder-submission-preview .formbuilder-response td::after {
+  content: "\2026";
 }

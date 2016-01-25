@@ -2,17 +2,19 @@
 
 <cfif args.responses.len()>
 	<cfoutput>
-		<dl class="dl-horizontal formbuilder-response">
+		<table class="table formbuilder-response"
 			<cfloop array="#args.responses#" item="response" index="i">
-				<dt>#( response.item.configuration.label ?: response.item.configuration.name )#</dt>
-				<dd>
-					<cfif Len( Trim( response.rendered ) )>
-						#response.rendered#
-					<cfelse>
-						<em class="grey">#translateResource( "formbuilder:no.response.placeholder" )#</em>
-					</cfif>
-				</dd>
+				<tr>
+					<th>#( response.item.configuration.label ?: response.item.configuration.name )#:</th>
+					<td>
+						<cfif Len( Trim( response.rendered ) )>
+							#response.rendered#
+						<cfelse>
+							<em class="grey">#translateResource( "formbuilder:no.response.placeholder" )#</em>
+						</cfif>
+					</td>
+				</tr>
 			</cfloop>
-		</dl>
+		</table>
 	</cfoutput>
 </cfif>

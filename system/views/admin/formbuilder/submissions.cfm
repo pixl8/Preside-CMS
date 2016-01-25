@@ -15,7 +15,7 @@
 				#renderView( view="/admin/datamanager/_objectDataTable", args={
 					  objectName      = "formbuilder_formsubmission"
 					, useMultiActions = canDelete
-					, multiActionUrl  = event.buildAdminLink( linkTo='formbuilder.deleteSubissions', querystring="formId=#formId#" )
+					, multiActionUrl  = event.buildAdminLink( linkTo='formbuilder.deleteSubmissionsAction', querystring="formId=#formId#" )
 					, datasourceUrl   = event.buildAdminLink( linkTo='formbuilder.listSubmissionsForAjaxDataTable', querystring="formId=#formId#" )
 					, gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ]
 					, allowSearch     = true
