@@ -833,6 +833,87 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getSubmissionCount( formId=formId ) ).toBe( responseCount );
 			} );
 		} );
+
+		describe( "getItemByInputName", function(){
+			it( "should return the form item that matches on input name", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+				var names   = [ CreateUUId(), CreateUUId(),CreateUUId(),CreateUUId(),CreateUUId() ];
+				var name    = names[4];
+				var items   = [
+					  { type={ isFormField=true }, configuration={ name=names[ 1 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 2 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 3 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 4 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 5 ] } }
+				];
+
+				service.$( "getFormItems" ).$args( formId ).$results( items );
+				expect( service.getItemByInputName( formId, name ) ).toBe( items[ 4 ] );
+			} );
+
+			it( "should return and empty struct when no item found", function(){
+				var service = getService();
+				var formId  = CreateUUId();
+				var names   = [ CreateUUId(), CreateUUId(),CreateUUId(),CreateUUId(),CreateUUId() ];
+				var name    = CreateUUId();
+				var items   = [
+					  { type={ isFormField=true }, configuration={ name=names[ 1 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 2 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 3 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 4 ] } }
+					, { type={ isFormField=true }, configuration={ name=names[ 5 ] } }
+				];
+
+				service.$( "getFormItems" ).$args( formId ).$results( items );
+				expect( service.getItemByInputName( formId, name ) ).toBe( {} );
+			} );
+		} );
+
+		describe( "renderResponse", function(){
+
+			it( "should render the given item's type response viewlet with the supplied data args", function(){
+				var service         = getService();
+				var formId          = CreateUUId();
+				var inputName       = CreateUUId();
+				var inputValue      = CreateUUId();
+				var matchingItem    = { type={ id="someType", isFormField=true }, configuration={ name=inputName, label="hello", test=CreateUUId() } };
+				var itemTypeViewlet = "some.viewlet." & CreateUUId();
+				var expectedResult  = CreateUUId();
+				var renderArgs      = { response=inputValue, itemConfiguration=matchingItem.configuration };
+
+				mockRenderingService.$( "getItemTypeViewlet" ).$args( itemType=matchingItem.type.id, context="response" ).$results( itemTypeViewlet );
+				service.$( "getItemByInputName" ).$args( formId=formId, inputName=inputName ).$results( matchingItem );
+				service.$( "$renderViewlet" ).$args( event=itemTypeViewlet, args=renderArgs ).$results( expectedResult );
+
+				var rendered = service.renderResponse(
+					  formId     = formId
+					, inputName  = inputName
+					, inputValue = inputValue
+				);
+
+				expect( rendered ).toBe( expectedResult );
+			} );
+
+			it( "should return the inputValue unadulterated when a corresponding item could not be found", function(){
+				var service         = getService();
+				var formId          = CreateUUId();
+				var inputName       = CreateUUId();
+				var inputValue      = CreateUUId();
+				var matchingItem    = {};
+
+				service.$( "getItemByInputName" ).$args( formId=formId, inputName=inputName ).$results( matchingItem );
+
+				var rendered = service.renderResponse(
+					  formId     = formId
+					, inputName  = inputName
+					, inputValue = inputValue
+				);
+
+				expect( rendered ).toBe( inputValue );
+			} );
+
+		} );
 	}
 
 	private function getService() {

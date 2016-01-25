@@ -104,6 +104,23 @@ component {
 	}
 
 	/**
+	 * Retuns a form's item that matches the given input name.
+	 *
+	 * @autodoc
+	 * @formId.hint    ID of the form who's item you wish to get
+	 * @inputName.hint Name of the input
+	 */
+	public struct function getItemByInputName( required string formId, required string inputName ) {
+		var items = getFormItems( arguments.formId );
+		for( var item in items ) {
+			if ( item.type.isFormField && ( item.configuration.name ?: "" ) == arguments.inputName ) {
+				return item;
+			}
+		}
+		return {};
+	}
+
+	/**
 	 * Adds a new item to the form. Returns the ID of the
 	 * newly generated item
 	 *
@@ -439,6 +456,38 @@ component {
 		}
 
 		return renderedItem;
+	}
+
+	/**
+	 * Renders the response for a particular form response
+	 *
+	 * @autodoc
+	 * @formid.hint     ID of the form that this response has been submitted against
+	 * @inputName.hint  Name of the form item that contains the response
+	 * @inputValue.hint Value of the response
+	 */
+	public string function renderResponse(
+		  required string formId
+		, required string inputName
+		, required string inputValue
+	) {
+		var item = getItemByInputName(
+			  formId    = arguments.formid
+			, inputName = arguments.inputName
+		);
+		if ( !item.count() ) {
+			return arguments.inputValue;
+		}
+
+		var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
+			  itemType = item.type.id
+			, context  = "response"
+		);
+
+		return $renderViewlet( event=viewlet, args={
+			  response          = arguments.inputValue
+			, itemConfiguration = itemConfiguration = item.configuration
+		} );
 	}
 
 	/**
