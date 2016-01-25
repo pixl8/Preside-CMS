@@ -38,7 +38,9 @@ component  {
 	}
 
 	private string function adminDataTable( event, rc, prc, args={} ){
-		return default( argumentCollection=arguments ); // todo - wrap this in some jazz to do show/hide
+		args.renderedSubmission = default( argumentCollection=arguments );
+
+		return renderView( view="/renderers/content/formBuilderSubmission/adminDataTable", args=args );
 	}
 
 }
