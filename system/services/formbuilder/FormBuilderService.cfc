@@ -570,8 +570,7 @@ component {
 				, "formbuilder_formsubmission.submitted_data"
 				, "formbuilder_formsubmission.form_instance"
 				, "formbuilder_formsubmission.datecreated"
-				, "submitted_by.${labelfield} as submitted_by"
-				, "submitted_by.email_address as submitted_by_email_address"
+				, "submitted_by.id as submitted_by"
 			]
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
