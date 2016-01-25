@@ -266,7 +266,7 @@ component output=false singleton=true {
 			, relationship = "none"
 			, relatedto    = "none"
 			, generator    = "none"
-			, renderer     = "adminuse}"
+			, renderer     = "adminuser"
 		};
 
 		objMeta.properties[ "_version_changed_fields" ] = {
