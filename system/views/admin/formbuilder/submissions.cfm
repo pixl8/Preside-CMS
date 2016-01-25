@@ -1,10 +1,11 @@
 <cfscript>
-	formId    = prc.form ?: QueryNew( '' );
+	theForm   = prc.form ?: QueryNew( '' );
+	formId    = theForm.id;
 	canDelete = hasCmsPermission( "formbuilder.deleteSubmissions" );
 </cfscript>
 
 <cfoutput>
-	#renderViewlet( event="admin.formbuilder.statusControls", args=QueryRowToStruct( formId ) )#
+	#renderViewlet( event="admin.formbuilder.statusControls", args=QueryRowToStruct( theForm ) )#
 
 	<div class="tabbable">
 		#renderViewlet( event="admin.formbuilder.managementTabs", args={ activeTab="submissions" } )#
@@ -14,8 +15,8 @@
 				#renderView( view="/admin/datamanager/_objectDataTable", args={
 					  objectName      = "formbuilder_formsubmission"
 					, useMultiActions = canDelete
-					, multiActionUrl  = event.buildAdminLink( linkTo='formbuilder.deleteSubissions', querystring="formId=formId" )
-					, datasourceUrl   = event.buildAdminLink( linkTo='formbuilder.listSubmissionsForAjaxDataTable', querystring="formId=formId" )
+					, multiActionUrl  = event.buildAdminLink( linkTo='formbuilder.deleteSubissions', querystring="formId=#formId#" )
+					, datasourceUrl   = event.buildAdminLink( linkTo='formbuilder.listSubmissionsForAjaxDataTable', querystring="formId=#formId#" )
 					, gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ]
 					, allowSearch     = true
 				} )#

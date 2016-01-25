@@ -541,6 +541,55 @@ component {
 		return Val( submissions.submission_count ?: "" );
 	}
 
+	/**
+	 * Returns form submissions in a result format that is ready
+	 * for display in grid table
+	 *
+	 * @autodoc
+	 * @formid.hint      ID of the form who's submissions you wish to get
+	 * @startRow.hint    Start row of recordset (for pagination)
+	 * @maxRows.hint     Max rows to fetch (for pagination)
+	 * @orderBy.hint     Order by field
+	 * @searchQuery.hint Search query with which to filter
+	 *
+	 */
+	public struct function getSubmissionsForGridListing(
+		  required string  formId
+		,          numeric startRow     = 1
+		,          numeric maxRows      = 10
+		,          string  orderBy      = ""
+		,          string  searchQuery  = ""
+	) {
+		var submissionsDao = $getPresideObject( "formbuilder_formsubmission" );
+		var result         = { totalRecords=0, records="" };
+
+		result.records        = submissionsDao.selectData(
+			  filter = { form = arguments.formId }
+			, selectFields = [
+				  "formbuilder_formsubmission.id"
+				, "formbuilder_formsubmission.submitted_data"
+				, "formbuilder_formsubmission.form_instance"
+				, "formbuilder_formsubmission.datecreated"
+				, "submitted_by.${labelfield} as submitted_by"
+				, "submitted_by.email_address as submitted_by_email_address"
+			]
+			, startRow         = arguments.startRow
+			, maxRows          = arguments.maxRows
+			, orderBy          = arguments.orderBy
+		);
+
+		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+			result.totalRecords = result.records.recordCount;
+		} else {
+			result.totalRecords = submissionsDao.selectData(
+				  selectFields = [ "count( * ) as nRows" ]
+				, filter       = { form = arguments.formId }
+			).nRows;
+		}
+
+		return result;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId

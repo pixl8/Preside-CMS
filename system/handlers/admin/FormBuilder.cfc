@@ -172,6 +172,52 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function listSubmissionsForAjaxDataTable( event, rc, prc ) {
+		var formId   = ( rc.formId ?: "" );
+
+		if ( !Len( Trim( formId ) ) ) {
+			event.adminNotFound();
+		}
+		var useMultiActions = hasCmsPermission( "formbuilder.deleteSubmissions" );
+		var checkboxCol     = [];
+		var optionsCol      = [];
+		var gridFields      = [ "submitted_by", "datecreated", "form_instance", "submitted_data" ];
+		var dtHelper        = getMyPlugin( "JQueryDatatablesHelpers" );
+		var results         = formbuilderService.getSubmissionsForGridListing(
+			  formId      = formId
+			, startRow    = dtHelper.getStartRow()
+			, maxRows     = dtHelper.getMaxRows()
+			, orderBy     = dtHelper.getSortOrder()
+			, searchQuery = dtHelper.getSearchQuery()
+		);
+		var records = Duplicate( results.records );
+
+		for( var record in records ){
+			for( var field in gridFields ){
+				records[ field ][ records.currentRow ] = renderField( "formbuilder_formsubmission", field, record[ field ], [ "adminDataTable", "admin" ] );
+			}
+
+			if ( useMultiActions ) {
+				checkboxCol.append( renderView( view="/admin/datamanager/_listingCheckbox", args={ recordId=record.id } ) );
+			}
+
+			optionsCol.append( "" );
+		}
+
+		if ( useMultiActions ) {
+			QueryAddColumn( records, "_checkbox", checkboxCol );
+			ArrayPrepend( gridFields, "_checkbox" );
+		}
+
+		QueryAddColumn( records, "_options" , optionsCol );
+		ArrayAppend( gridFields, "_options" );
+
+		event.renderData(
+			  type = "json"
+			, data = dtHelper.queryToResult( records, gridFields, results.totalRecords )
+		);
+	}
+
 // DOING STUFF ACTIONS
 	public void function addFormAction( event, rc, prc ) {
 		_permissionsCheck( "addform", event );

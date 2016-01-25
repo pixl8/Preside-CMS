@@ -40,7 +40,7 @@ component extends="testbox.system.BaseSpec"{
 						, test      = { test=CreateUUId() }
 					} }
 				};
-				var expectedViewlet = "renderers.formbuilder.item-types.test.adminPlaceholder";
+				var expectedViewlet = "formbuilder.item-types.test.adminPlaceholder";
 				var service         = getService( serviceConfig );
 
 				mockColdbox.$( "viewletExists" ).$args( expectedViewlet ).$results( true );
@@ -59,7 +59,7 @@ component extends="testbox.system.BaseSpec"{
 						, test      = { test=CreateUUId() }
 					} }
 				};
-				var expectedViewlet = "renderers.formbuilder.item-types.test.adminPlaceholder";
+				var expectedViewlet = "formbuilder.item-types.test.adminPlaceholder";
 				var service         = getService( serviceConfig );
 
 				mockColdbox.$( "viewletExists" ).$args( expectedViewlet ).$results( false );

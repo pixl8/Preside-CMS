@@ -47,7 +47,7 @@ component {
 						type.isFormField             = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
 						type.configFormName          = "formbuilder.item-types.#typeid#";
 						type.configFormExists        = _getFormsService().formExists( type.configFormName );
-						type.adminPlaceholderViewlet = "renderers.formbuilder.item-types.#type.id#.adminPlaceholder";
+						type.adminPlaceholderViewlet = "formbuilder.item-types.#type.id#.adminPlaceholder";
 						type.requiresConfiguration   = type.isFormField || type.configFormExists;
 
 						if ( type.requiresConfiguration ) {
