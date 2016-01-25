@@ -165,7 +165,6 @@ component extends="BaseAdapter" {
 		var sql      = "update ";
 		var delim    = "";
 		var col      = "";
-		var entity   = "";
 		var hasAlias = Len( Trim( arguments.tableAlias ) );
 
 		if ( hasAlias ) {
@@ -177,9 +176,10 @@ component extends="BaseAdapter" {
 		sql &= " set";
 
 		for( col in arguments.updateColumns ) {
-			entity = hasAlias and ListLen( col, '.' ) eq 1 ? "#col#" : col;
-			sql &= delim & " " & escapeEntity( entity ) & " = :set__" & col;
-			delim = ",";
+			if( col != "id" ) {
+				sql &= delim & " " & escapeEntity( col ) & " = :set__" & col;
+				delim = ",";
+			}
 		}
 
 		if ( hasAlias ) {
