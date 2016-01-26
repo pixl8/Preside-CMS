@@ -25953,6 +25953,13 @@ img.presidecms .editable-click:hover {
 .full-screen-dialog .modal-dialog .modal-content .modal-footer {
   margin-top: 0;
 }
+.full-screen-dialog.with-padding .modal-dialog .modal-content .modal-body {
+  padding: 20px;
+}
+.full-screen-dialog.limited-size .modal-dialog {
+  max-width: 1200px;
+  max-height: 800px;
+}
 .presidecms.iframe .page-content {
   padding-left: 0;
   padding-right: 0;
