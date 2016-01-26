@@ -299,6 +299,27 @@ component extends="preside.system.base.AdminHandler" {
 
 	}
 
+	public void function deleteSubmissionsAction( event, rc, prc ) {
+		var formId        = rc.formId ?: "";
+		var submissionIds = ListToArray( rc.id ?: "" );
+
+		_permissionsCheck( "deleteSubmissions", event );
+
+		if ( !Len( Trim( formId ) ) ) {
+			event.adminNotFound();
+		}
+
+		formBuilderService.deleteSubmissions( submissionIds );
+
+		if ( submissionIds.len() == 1 ) {
+			messagebox.info( translateResource( uri="formbuilder:submission.deleted.confirmation" ) );
+		} else {
+			messagebox.info( translateResource( uri="formbuilder:submissions.deleted.confirmation" ) );
+		}
+
+		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & formId ) );
+	}
+
 
 // AJAXY ACTIONS
 	public void function getFormsForAjaxDataTables( event, rc, prc ) {

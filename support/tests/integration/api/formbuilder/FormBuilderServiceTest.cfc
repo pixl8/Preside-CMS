@@ -914,6 +914,19 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 		} );
+
+		describe( "deleteSubmissions", function(){
+			it( "should delete the passed submissions from the database", function(){
+				var service = getService();
+				var submissionIds = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockFormSubmissionDao.$( "deleteData" ).$args( filter={ id=submissionIds } ).$results( 3 );
+
+				expect( service.deleteSubmissions( submissionIds ) ).toBe( 3 );
+				expect( mockFormSubmissionDao.$callLog().deleteData.len() ).toBe( 1 );
+				expect( mockFormSubmissionDao.$callLog().deleteData[ 1 ] ).toBe( { filter={ id=submissionIds } } );
+			} );
+		} );
 	}
 
 	private function getService() {

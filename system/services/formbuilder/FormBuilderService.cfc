@@ -638,6 +638,19 @@ component {
 		return result;
 	}
 
+	/**
+	 * Deletes the given submissions from the database
+	 *
+	 * @autodoc
+	 * @submissionIds.hint an array of submission IDs to delete
+	 *
+	 */
+	public numeric function deleteSubmissions( required array submissionIds ) {
+		return $getPresideObject( "formbuilder_formsubmission" ).deleteData(
+			filter = { id = arguments.submissionIds }
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
