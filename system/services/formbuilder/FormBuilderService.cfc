@@ -624,9 +624,43 @@ component {
 	) {
 		var submissionsDao = $getPresideObject( "formbuilder_formsubmission" );
 		var result         = { totalRecords=0, records="" };
+		var extraFilters   = [];
+		var sortBy         = ListFirst( arguments.orderBy, " " );
+		var sortOrder      = ListLast( arguments.orderBy, " " );
 
-		result.records        = submissionsDao.selectData(
-			  filter = { form = arguments.formId }
+		switch( sortBy ) {
+			case "submitted_by":
+				sortBy = "submitted_by.display_name";
+				break;
+			case "datecreated":
+			case "instanceId":
+			case "submitted_data":
+				break;
+
+			default:
+				sortBy = "datecreated";
+		}
+		switch( sortorder ) {
+			case "asc":
+			case "desc":
+				break;
+			default:
+				sortorder = "asc";
+		}
+
+		if ( Len( Trim( arguments.searchQuery ) ) ) {
+			extraFilters.append({
+				  filter       = "submitted_by.display_name like :q or formbuilder_formsubmission.form_instance like :q or formbuilder_formsubmission.submitted_data like :q"
+				, filterParams = { q = { type="cf_sql_varchar", value="%#arguments.searchQuery#%" } }
+			});
+		}
+
+		result.records = submissionsDao.selectData(
+			  filter       = { form = arguments.formId }
+			, extraFilters = extraFilters
+			, startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
+			, orderBy      = "#sortby# #sortorder#"
 			, selectFields = [
 				  "formbuilder_formsubmission.id"
 				, "formbuilder_formsubmission.submitted_data"
@@ -634,9 +668,6 @@ component {
 				, "formbuilder_formsubmission.datecreated"
 				, "submitted_by.id as submitted_by"
 			]
-			, startRow         = arguments.startRow
-			, maxRows          = arguments.maxRows
-			, orderBy          = arguments.orderBy
 		);
 
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
