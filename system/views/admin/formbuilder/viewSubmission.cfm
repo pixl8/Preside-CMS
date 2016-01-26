@@ -4,6 +4,9 @@
 	<div class="well">
 		<h2>
 			#renderContent( 'websiteUser', prc.submission.submitted_by, [ "admin" ] )#
+			<cfif Len( Trim( prc.submission.submitted_by ) )>
+				<a href="#event.buildAdminLink( linkto='websiteUserManager.editUser', queryString='id=' & prc.submission.submitted_by )#" target="_blank"><i class="fa fa-fw fa-external-link"></i></a>
+			</cfif>
 		</h2>
 		<dl class="dl-horizontal">
 			<dt>#translateResource( "preside-objects.formbuilder_formsubmission:field.datecreated.title")#</dt>
