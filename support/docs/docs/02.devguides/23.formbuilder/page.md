@@ -94,6 +94,88 @@ An item type can _optionally_ have custom configuration options defined in a Pre
 </form>
 ```
 
+#### 4. Form item renderer (for form input)
+
+Each form item must define an "input" renderer so that the system knows how to display the item when rendering the form. This renderer is defined as a viewlet (see [[presideviewlets]]) using the convention: `formbuilder.item-types.(itemtype).renderInput`. For example, a "textarea" item type might define the viewlet in a handler, `/handlers/formbuider/item-types/Textarea.cfc`:
+
+```luceescript
+component {
+	private string function renderInput( event, rc, prc, args={} ) {
+		var controlName = args.name ?: "";
+
+		return renderFormControl(
+			  argumentCollection = arguments
+			, name               = controlName
+			, type               = "textarea"
+			, context            = "formbuilder"
+			, id                 = args.id ?: controlName
+			, layout             = ""
+			, required           = IsTrue( args.mandatory ?: "" )
+		);
+	}
+}
+```
+
+The `args` struct passed to the viewlet will contain any saved configuration for the item (see "Configuration form" above), along with the following additional keys:
+
+* **id:** A unique ID for the form item (calculated dynamically per request to ensure uniqueness)
+* **error:** An error message. This may be supplied if the form has validation errors that need to be displayed for the item
+
+An alternative example of an input renderer might be for an item type that is _not_ a form control, e.g. the 'content' item type. It's viewlet could be implemented simply as a view, `/views/formbuilder/item-types/content/renderInput.cfm`:
+
+```lucee
+<cfoutput>
+	#renderContent( 
+		  renderer = "richeditor"
+		, data     = ( args.body ?: "" )
+	)#
+</cfoutput>
+```
+
+`args.body` is available to the item type because it is defined in it's configuration form.
+
+#### 5. Response renderer (optional)
+
+An item type can optionally supply a response renderer as a _viewlet_ matching the convention `formbuilder.item-types.(itemtype).renderResponse`. This renderer will be used to display the item as part of a form submission. If no renderer is defined, the system will fall back on the core viewlet, `formbuilder.defaultRenderers.response`.
+
+TODO: provide example.
+
+#### 6. Validation rule generator (optional)
+
+TODO: provide docs on validation rule generation for an item type
+
+#### 7. Item type layouts (optional)
+
 
 ## Form builder permissioning
 
+Access to the Form Builder admin system can be controlled through the [[cmspermissioning]] system. The following access keys are defined:
+
+* `formbuilder.navigate`
+* `formbuilder.addform`
+* `formbuilder.editform`
+* `formbuilder.lockForm`
+* `formbuilder.activateForm`
+* `formbuilder.deleteSubmissions`
+
+In addition, a `formbuildermanager` _role_ is defined that has access to all form builder operations:
+
+```luceescript
+settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
+```
+
+### Defining more restricted roles
+
+In your own application, you could provide more fine tuned form builder access rules with configuration along the lines of the examples below:
+
+```luceescript
+// Adding perms to an existing role
+settings.adminRoles.contenteditor.append( "formbuilder.*"                  );
+settings.adminRoles.contenteditor.append( "!formbuilder.lockForm"          );
+settings.adminRoles.contenteditor.append( "!formbuilder.activateForm"      );
+settings.adminRoles.contenteditor.append( "!formbuilder.deleteSubmissions" );
+
+// defining a new role
+settings.adminRoles.formbuilderviewer = [ "formbuilder.navigate" ];
+
+```
