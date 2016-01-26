@@ -25950,6 +25950,13 @@ img.presidecms .editable-click:hover {
 .full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body iframe {
   height: 100%;
 }
+.full-screen-dialog .modal-dialog .modal-content .modal-body .modal-padding {
+  padding: 20px;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .modal-padding-horizontal {
+  padding-left: 20px;
+  padding-right: 20px;
+}
 .full-screen-dialog .modal-dialog .modal-content .modal-footer {
   margin-top: 0;
 }
