@@ -591,6 +591,19 @@ component {
 	}
 
 	/**
+	 * Returns the submission record matching the given ID
+	 *
+	 * @autodoc
+	 * @submissionId.hint The ID of the submission you wish to get
+	 *
+	 */
+	public query function getSubmission( required string submissionId ) {
+		return $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			filter = { id=submissionId }
+		);
+	}
+
+	/**
 	 * Returns form submissions in a result format that is ready
 	 * for display in grid table
 	 *

@@ -1,11 +1,12 @@
 <cfparam name="args.canDelete"             type="boolean" />
 <cfparam name="args.viewSubmissionLink"    type="string"  />
+<cfparam name="args.viewSubmissionTitle"   type="string"  />
 <cfparam name="args.deleteSubmissionLink"  type="string"  />
 <cfparam name="args.deleteSubmissionTitle" type="string"  />
 
 <cfoutput>
 	<div class="action-buttons btn-group">
-		<a href="#args.viewSubmissionLink#">
+		<a href="#args.viewSubmissionLink#" data-toggle="bootbox-modal" data-title="#HtmlEditFormat( args.viewSubmissionTitle )#" data-modal-class="full-screen-dialog">
 			<i class="fa fa-eye"></i>
 		</a>
 

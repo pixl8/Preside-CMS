@@ -173,6 +173,17 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function viewSubmission( event, rc, prc ) {
+		prc.submission = formBuilderService.getSubmission( rc.id ?: "" );
+
+		if ( !prc.submission.recordCount ) {
+			event.adminNotFound();
+		}
+
+		rc.formId = prc.submission.form;
+
+		event.noLayout();
+	}
 
 
 // DOING STUFF ACTIONS
@@ -356,7 +367,8 @@ component extends="preside.system.base.AdminHandler" {
 			, searchQuery = dtHelper.getSearchQuery()
 		);
 		var records = Duplicate( results.records );
-		var deleteSubmissionTitle = translateResource( "formbuilder:delete.submission.prompt")
+		var viewSubmissionTitle   = translateResource( "formbuilder:view.submission.modal.title" );
+		var deleteSubmissionTitle = translateResource( "formbuilder:delete.submission.prompt" );
 
 		for( var record in records ){
 			for( var field in gridFields ){
@@ -371,6 +383,7 @@ component extends="preside.system.base.AdminHandler" {
 				  canDelete             = canDelete
 				, viewSubmissionLink    = event.buildAdminLink( linkto="formbuilder.viewSubmission"         , queryString="id=#record.id#" )
 				, deleteSubmissionLink  = event.buildAdminLink( linkto="formbuilder.deleteSubmissionsAction", queryString="id=#record.id#&formId=#formId#" )
+				, viewSubmissionTitle   = viewSubmissionTitle
 				, deleteSubmissionTitle = deleteSubmissionTitle
  			} ) );
 		}
