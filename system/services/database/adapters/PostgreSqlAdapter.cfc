@@ -30,7 +30,7 @@ component extends="BaseAdapter" {
 	}
 
 	public string function getGeneratedKey(required any result){
-		return arguments.result.id;
+		return arguments.result.id ?: "";
 	}
 
 	public string function getColumnDefinitionSql(

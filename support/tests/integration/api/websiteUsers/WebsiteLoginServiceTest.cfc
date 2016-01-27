@@ -76,7 +76,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
 		).$results( QueryNew( '' ) );
@@ -99,7 +99,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
 		).$results( mockRecord );
@@ -123,7 +123,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		userService.$( "isLoggedIn" ).$results( false );
 		userService.$( "recordLogin" ).$results( true );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
 		).$results( mockRecord );
@@ -150,7 +150,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		userService.$( "isLoggedIn" ).$results( false );
 		userService.$( "recordLogin" ).$results( true );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
 		).$results( mockRecord );
@@ -208,7 +208,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockSessionStorage.$( "setVar" );
 		mockBCryptService.$( "hashPw" ).$args( newToken ).$results( "reHashedToken" );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = "fred" }
 			, useCache     = false
 		).$results( mockRecord );
@@ -266,7 +266,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockCookieService.$( "deleteVar" ).$args( "_presidecms-site-persist" ).$results( true );
 		mockUserLoginTokenDao.$( "deleteData" );
 		mockUserDao.$( "selectData" ).$args(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = "fred" }
 			, useCache     = false
 		).$results( mockRecord );

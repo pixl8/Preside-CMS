@@ -20,7 +20,7 @@ component {
 	}
 
 	public string function getGeneratedKey(required any result){
-		return arguments.result.generatedKey;
+		return arguments.result.generatedKey ?: "";
 	}
 
 	public string function getColumnDefinitionSql(
@@ -136,7 +136,7 @@ component {
 			sql &= "unique ";
 		}
 
-		sql &= "index #escapeEntity( arguments.indexName)# on #escapeEntity( arguments.tableName )# (";
+		sql &= "index #escapeEntity( ensureValidIndexName ( arguments.indexName ) )# on #escapeEntity( arguments.tableName )# (";
 
 		for( field in fields ){
 			sql &= delim & " " & escapeEntity( field );
@@ -146,6 +146,13 @@ component {
 		sql &= " )";
 
 		return sql;
+	}
+
+	public string function ensureValidIndexName( required string indexName ) {
+	    if ( len(arguments.indexName) < 64 ) {
+	        return arguments.indexName;
+	    }
+	    return ReReplaceNoCase( arguments.indexName, "([ui]x_).*", "\1" & LCase( Hash( arguments.indexName ) ) );
 	}
 
 	public string function getDropIndexSql( required string indexName, required string tableName ) {
