@@ -11,8 +11,8 @@ component extends="BaseAdapter" {
 
 // PUBLIC API METHODS
 	public string function escapeEntity( required string entityName ) {
-		var escaped = '"#arguments.entityName#"';
-		return (listlen(escaped,'.') gt 1) ? Replace( escaped, '"', " ", "all" ) : escaped;
+		var escaped = '"#lcase(arguments.entityName)#"';
+		return Replace( escaped, '.', '"."', "all" );
 	}
 
 	public boolean function requiresManualCommitForTransactions(){
@@ -21,7 +21,7 @@ component extends="BaseAdapter" {
 
 	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
 		var sql = super.getInsertSql( argumentCollection=arguments );
-		sql[1] &= " RETURNING id"
+		sql[1] &= " RETURNING *"
 		return sql;
 	}
 
