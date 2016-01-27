@@ -318,6 +318,14 @@ component {
 					}
 
 					if ( not StructKeyExists( columnVersions, columnName ) or colSql.version neq columnVersions[ columnName ] ) {
+
+						for( index in indexesFromDb ){
+							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
+								indexSql = indexesSql[ index ];
+								_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
+							}
+						}
+
 						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 						_setDatabaseObjectVersion(
 							  entityType   = "column"
@@ -326,6 +334,13 @@ component {
 							, version      = colSql.version
 							, dsn          = arguments.dsn
 						);
+
+						for( index in indexesFromDb ){
+							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
+								indexSql = indexesSql[ index ];
+								_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+							}
+						}
 					}
 				} else if ( !column.column_name contains "__deprecated__" ) {
 					newName = "__deprecated__" & column.column_name;
