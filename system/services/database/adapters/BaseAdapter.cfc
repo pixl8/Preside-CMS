@@ -433,6 +433,10 @@ component {
 	public boolean function supportsRenameInAlterColumnStatement() {
 		return true;
 	}
+	
+	public boolean function supportsCascadeUpdateDelete() {
+		return true;
+	}
 
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";

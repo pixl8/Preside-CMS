@@ -126,6 +126,7 @@
 			var expectedTables = [ "test_test_1", "test_test_2", "test_3" ];
 			var table          = "";
 			var idTypeName = _getDbAdapter().getColumnDBType('int', 'autoIncrement');
+			var bitTypeName = _getDbAdapter().getColumnDBType('bit');
 
 			poService.dbSync();
 
@@ -154,13 +155,13 @@
 				switch( table ){
 					case "test_test_1":
 						super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not soft deleted." );
-						super.assertEquals( "bit", columns.__deprecated__test_property.type_name, "The test_property column was not a bit." );
+						super.assertEquals( bitTypeName, columns.__deprecated__test_property.type_name, "The test_property column was not a bit." );
 						super.assert( columns.__deprecated__test_property.nullable, "The test_property column for table 1 was not nullable." );
 					break;
 					case "test_test_2":
 					case "test_3":
 						super.assert( StructKeyExists( columns, "test_property" ), "The test_property column does not exist." );
-						super.assertEquals( "bit", columns.test_property.type_name, "The test_property column was not a bit." );
+						super.assertEquals( bitTypeName, columns.test_property.type_name, "The test_property column was not a bit." );
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
@@ -299,7 +300,7 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
-			var cascadeType = _getDbAdapter().supportsRenameInAlterColumnStatement() ? "cascade" : "error";
+			var cascadeType = _getDbAdapter().supportsCascadeUpdateDelete() ? "cascade" : "error";
 			var expectedResult = {
 				"fk_9a2cb7e9423ef863c7903bb6fcd47d62" = {
 					  pk_table  = "ptest_object_a"

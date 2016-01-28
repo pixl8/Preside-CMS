@@ -362,6 +362,11 @@ component extends="BaseAdapter" {
 		return "#leftExpression# + #rightExpression#";
 	}
 
+
+	public boolean function supportsCascadeUpdateDelete() {
+		return false;
+	}
+	
 	public boolean function supportsRenameInAlterColumnStatement() {
 		return false;
 	}

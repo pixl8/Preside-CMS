@@ -45,6 +45,8 @@ component extends="BaseAdapter" {
                     	return "text";
                     case "double":
                     	return "float";
+                    case "bit":
+                    	return "bool";
                     default:
                     	return arguments.dataType;
                }
