@@ -504,7 +504,10 @@ component output=false {
 		fbSettings.itemTypes.standard = { sortorder=10, types={
 			  textinput    = { isFormField=true  }
 			, textarea     = { isFormField=true  }
+			, number 	   = { isFormField=true  }
+			, email		   = { isFormField=true  }
 			, submitButton = { isFormField=false }
+			, date 		   = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }
