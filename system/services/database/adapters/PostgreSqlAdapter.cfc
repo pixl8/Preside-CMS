@@ -140,14 +140,31 @@ component extends="BaseAdapter" {
 		,          string tableAlias = ""
 		,          array  joins      = []
 	) {
-		var sql      = "update "& escapeEntity( arguments.tableName );
-		var delim    = "";
-		var col      = "";
+
+
+		var sql      			= "update "& escapeEntity( arguments.tableName );
+		var delim    			= "";
+		var col      			= "";
+		var clauseSqlFromJoin	= "";
+		var clauseSql 			= ""; 
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= " " & escapeEntity( arguments.tableAlias );
 		}
+		sql &= " set";
+
+		for( col in arguments.updateColumns ) {
+			sql &= delim & " " & col & " = :set__" & col;
+			delim = ",";
+		}
+		
 		if ( ArrayLen( arguments.joins ) ) {
+
+			var firstJoinTable = arguments.joins[1];
+			sql &= " from #escapeEntity( firstJoinTable.tablename )# #escapeEntity( firstJoinTable.tablealias )#";
+			clauseSqlFromJoin = " #escapeEntity( firstJoinTable.tablealias )#.#escapeEntity( firstJoinTable.tablecolumn )# = #escapeEntity( firstJoinTable.jointotable )#.#escapeEntity( firstJoinTable.jointocolumn )#";
+
+			ArrayDeleteAt(arguments.joins,1);
 			sql &= getJoinSql(
 				  tableName  = arguments.tableName
 				, tableAlias = arguments.tableAlias
@@ -155,17 +172,18 @@ component extends="BaseAdapter" {
 			);
 		}
 
-		sql &= " set";
-
-		for( col in arguments.updateColumns ) {
-			sql &= delim & " " & col & " = :set__" & col;
-			delim = ",";
-		}
-
-		sql &= getClauseSql(
+		clauseSql = getClauseSql(
 			  tableAlias = arguments.tableAlias
 			, filter     = arguments.filter
 		);
+		
+		if ( Len(clauseSql) ){
+			clauseSql &= len(clauseSqlFromJoin) ? ' and ' & clauseSqlFromJoin : '';
+		} else {
+			clauseSql &= len(clauseSqlFromJoin) ? ' where ' & clauseSqlFromJoin : '';
+		} 
+
+		sql &= clauseSql;
 
 		return sql;
 	}
