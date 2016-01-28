@@ -508,6 +508,8 @@ component output=false {
 			, email		   = { isFormField=true  }
 			, submitButton = { isFormField=false }
 			, date 		   = { isFormField=true  }
+			, dateRange    = { isFormField=true  }
+			, price		   = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }

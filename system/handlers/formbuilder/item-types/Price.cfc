@@ -6,12 +6,13 @@ component {
 		return renderFormControl(
 			  argumentCollection = arguments
 			, name               = controlName
-			, type               = "emailInput"
+			, type               = "spinner"
 			, context            = "formbuilder"
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, class				 = "form-control"
+			, step				 = 0.01
+
 		);
 	}
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.emailinput:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="placeholder" control="textinput" required="false" sortorder="33" defaultvalue="" />
+		</fieldset>
+	</tab>
+</form>

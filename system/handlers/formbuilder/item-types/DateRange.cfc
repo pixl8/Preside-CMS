@@ -1,17 +1,19 @@
 component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
-		var controlName = args.name ?: "";
+
+		var fromDate = args.name   ?: "";
+		var toDate   = args.toDate ?: "";
 
 		return renderFormControl(
 			  argumentCollection = arguments
-			, name               = controlName
-			, type               = "emailInput"
+			, name               = fromDate
+			, toDate   			 = toDate
+			, type               = "DateRangepicker"
 			, context            = "formbuilder"
-			, id                 = args.id ?: controlName
+			, fromDateID         = args.id ?: fromDate
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, class				 = "form-control"
 		);
 	}
 }
