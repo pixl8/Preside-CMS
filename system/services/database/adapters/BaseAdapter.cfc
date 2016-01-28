@@ -305,6 +305,9 @@ component {
 		return 64;
 	}
 
+	public string function getColumnDBType( required string dataType ){
+		return arguments.dataType;
+	}
 	public string function sqlDataTypeToCfSqlDatatype( required string sqlDataType ) {
 		switch( arguments.sqlDataType ){
 			case "bigint signed":

@@ -33,6 +33,24 @@ component extends="BaseAdapter" {
 		return arguments.result.id ?: "";
 	}
 
+
+	public string function getColumnDBType( required string dataType, string extraInfo ){
+		if (arguments.extraInfo eq "autoIncrement"){
+			return "serial";
+		} else {
+			switch( arguments.dataType ) {
+                    case "datetime":
+                    	return "timestamp";
+                    case "longtext":
+                    	return "text";
+                    case "double":
+                    	return "float";
+                    default:
+                    	return arguments.dataType;
+               }
+		}
+	}
+
 	public string function getColumnDefinitionSql(
                  required string   columnName
                , required string   dbType
@@ -88,7 +106,12 @@ component extends="BaseAdapter" {
        columnDef &= ( isNullable ? " null" : " not null" );
 
        return columnDef;
-   }
+	}
+
+
+	public numeric function getTableNameMaxLength() {
+		return 63;
+	}
 
 	public string function getAlterColumnSql(
 		  required string  tableName
@@ -342,6 +365,15 @@ component extends="BaseAdapter" {
 		}
 	}
 
+
+	public boolean function supportsRenameInAlterColumnStatement() {
+		return false;
+	}
+
+	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
+		return "alter table #escapeEntity( arguments.tableName )# rename #escapeEntity( arguments.oldColumnName )#  to #escapeEntity( arguments.newColumnName )#";
+	}
+
 	private struct function getColumnDefinitionAlterSql(
                  required string   columnName
                , required string   dbType
@@ -375,6 +407,10 @@ component extends="BaseAdapter" {
                    case "bigint":
                    case "int":
                    case "float":
+                   case "bit":
+                   			arguments.maxLength = 0;
+                   			columnType &= " #arguments.dbType# USING (#arguments.columnName#::::#arguments.dbType#)";
+                           break;
                    case "text":
                            arguments.maxLength = 0;
                            columnType &= " #arguments.dbType#";
