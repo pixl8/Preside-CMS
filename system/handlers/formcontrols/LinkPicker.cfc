@@ -1,9 +1,9 @@
-component output=false {
+component {
 
-	public string function index( event, rc, prc, args={} ) output=false {
+	public string function index( event, rc, prc, args={} ) {
 		args.control   = "objectPicker";
 		args.object    = "link";
-		args.quickAdd  = args.quickAdd ?: true;
+		args.quickAdd  = args.quickAdd  ?: true;
 		args.quickEdit = args.quickEdit ?: true;
 
 		args.quickAddUrl         = event.buildAdminLink( linkTo="LinkPicker.quickAddForm" );

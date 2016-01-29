@@ -99,6 +99,12 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
 		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"               );
 		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                );
+		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                  );
+		interceptorSettings.customInterceptionPoints.append( "onRestError"                    );
+		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"          );
+		interceptorSettings.customInterceptionPoints.append( "onUnsupportedRestMethod"        );
+		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"          );
+		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"         );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -161,6 +167,9 @@ component output=false {
 			, "maintenanceMode"
 		];
 
+		settings.storageProviders = {
+			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
+		};
 		settings.assetManager = {
 			  maxFileSize       = "5"
 			, types             = _getConfiguredFileTypes()
@@ -193,9 +202,10 @@ component output=false {
 				, link           = [ "read", "add", "edit", "delete", "viewversions" ]
 			}
 			, assetmanager           = {
-				  general = [ "navigate" ]
-				, folders = [ "add", "edit", "delete", "manageContextPerms" ]
-				, assets  = [ "upload", "edit", "delete", "download", "pick" ]
+				  general          = [ "navigate" ]
+				, folders          = [ "add", "edit", "delete", "manageContextPerms" ]
+				, assets           = [ "upload", "edit", "delete", "download", "pick" ]
+				, storagelocations = [ "manage" ]
 			 }
 		};
 
@@ -213,6 +223,7 @@ component output=false {
 		// uploads directory - each site really should override this setting and provide an external location
 		settings.uploads_directory     = ExpandPath( "/uploads" );
 		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
+
 
 		settings.ckeditor = {
 			  defaults    = {
@@ -259,6 +270,12 @@ component output=false {
 			  enabled                 = true
 			, policy                  = "myspace"
 			, bypassForAdministrators = true
+		};
+
+		settings.rest = {
+			  path        = "/api"
+			, corsEnabled = false
+			, apis        = {}
 		};
 
 		_loadConfigurationFromExtensions();

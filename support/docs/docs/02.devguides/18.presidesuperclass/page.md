@@ -10,13 +10,25 @@ PresideCMS comes with its own suite of service objects that you can use in your 
  * @presideService
  */
 component {
+    
+    function init() {
+        return this;
+    }
+
     // ...
 }
 // or 
 component presideService {
+    
+    function init() {
+        return this;
+    }
+
     // ...
 }
 ```
+
+>>> Service CFCs that declare themselves as Preside Services **must** implement an `init()` method, even if it does nothing but `return this;`.
 
 Once your service has been flagged as being a "Preside Service", it will instantly have a number of core methods available to it such as `$getPresideObject()` and `$isFeatureEnabled()`. e.g.
 
