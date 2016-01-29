@@ -114,9 +114,10 @@ component output=false {
 
 		if ( permissionSettings.restricted ) {
 			var hasPerm = event.isAdminUser() && hasCmsPermission(
-				  permissionKey = "assetmanager.assets.download"
-				, context       = "assetmanagerfolder"
-				, contextKeys   = permissionSettings.contextTree
+				  permissionKey       = "assetmanager.assets.download"
+				, context             = "assetmanagerfolder"
+				, contextKeys         = permissionSettings.contextTree
+				, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
 			);
 			if ( hasPerm ) { return; }
 
@@ -125,9 +126,10 @@ component output=false {
 			}
 
 			hasPerm = hasWebsitePermission(
-				  permissionKey = "assets.access"
-				, context       = "asset"
-				, contextKeys   = permissionSettings.contextTree
+				  permissionKey       = "assets.access"
+				, context             = "asset"
+				, contextKeys         = permissionSettings.contextTree
+				, forceGrantByDefault = IsBoolean( permissionSettings.grantAcessToAllLoggedInUsers ) && permissionSettings.grantAcessToAllLoggedInUsers
 			)
 			if ( !hasPerm ) {
 				event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );

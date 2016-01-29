@@ -22,8 +22,10 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="original_title"    type="string"  dbtype="varchar" maxLength=200     required=false;
 
 
-	property name="access_restriction"  type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset:access_restriction.option.inherit,preside-objects.asset:access_restriction.option.none,preside-objects.asset:access_restriction.option.full";
-	property name="full_login_required" type="boolean" dbtype="boolean"               required=false default=false;
+	property name="access_restriction"                   type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset:access_restriction.option.inherit,preside-objects.asset:access_restriction.option.none,preside-objects.asset:access_restriction.option.full";
+	property name="full_login_required"                  type="boolean" dbtype="boolean"               required=false default=false;
+	property name="grantaccess_to_all_logged_in_users"   type="boolean" dbtype="boolean"               required=false default=false;
+
 
 	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId";
 	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId";

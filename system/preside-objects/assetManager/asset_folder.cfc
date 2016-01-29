@@ -7,9 +7,11 @@ component output="false" extends="preside.system.base.SystemPresideObject" displ
 	property name="max_filesize_in_mb"   type="numeric" dbtype="float"                 required=false maxValue=1000000;
 	property name="access_restriction"   type="string"  dbtype="varchar" maxLength="7" required=false default="inherit" format="regex:(inherit|none|full)"  control="select" values="inherit,none,full" labels="preside-objects.asset_folder:access_restriction.option.inherit,preside-objects.asset_folder:access_restriction.option.none,preside-objects.asset_folder:access_restriction.option.full";
 	property name="full_login_required"  type="boolean" dbtype="boolean"               required=false default=false;
-	property name="is_system_folder"     type="boolean" dbtype="boolean"               required=false default=false;
-	property name="system_folder_key"    type="string"  dbtype="varchar" maxLength=200 required=false indexes="systemfolderkey";
-	property name="hidden"               type="boolean" dbtype="boolean"               required=false default=false;
+
+	property name="is_system_folder"                      type="boolean" dbtype="boolean"               required=false default=false;
+	property name="system_folder_key"                     type="string"  dbtype="varchar" maxLength=200 required=false indexes="systemfolderkey";
+	property name="hidden"                                type="boolean" dbtype="boolean"               required=false default=false;
+	property name="grantaccess_to_all_logged_in_users"    type="boolean" dbtype="boolean"               required=false default=false;
 
 	property name="is_trashed"           type="boolean" dbtype="boolean"               required=false default=false;
 	property name="original_label"       type="string"  dbtype="varchar" maxLength=200 required=false;

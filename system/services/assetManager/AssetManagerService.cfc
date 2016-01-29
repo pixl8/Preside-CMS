@@ -1003,9 +1003,10 @@ component displayName="AssetManager Service" {
 	public struct function getAssetPermissioningSettings( required string assetId ) {
 		var asset    = getAsset( arguments.assetId );
 		var settings = {
-			  contextTree       = [ arguments.assetId ] //ListToArray( ValueList( folders.id ) ) };
-			, restricted        = false
-			, fullLoginRequired = false
+			  contextTree                        = [ arguments.assetId ] //ListToArray( ValueList( folders.id ) ) };
+			, restricted                         = false
+			, fullLoginRequired                  = false
+			, grantAcessToAllLoggedInUsers       = false
 		}
 
 		if ( !asset.recordCount ){ return settings; }
@@ -1015,16 +1016,19 @@ component displayName="AssetManager Service" {
 		for( var folder in folders ){ settings.contextTree.append( folder.id ); }
 
 		if ( asset.access_restriction != "inherit" ) {
-			settings.restricted        = asset.access_restriction == "full";
-			settings.fullLoginRequired = IsBoolean( asset.full_login_required ) && asset.full_login_required;
+			settings.restricted                   = asset.access_restriction == "full";
+			settings.fullLoginRequired            = IsBoolean( asset.full_login_required ) && asset.full_login_required;
+			settings.grantAcessToAllLoggedInUsers = IsBoolean( asset.grantaccess_to_all_logged_in_users ) && asset.grantaccess_to_all_logged_in_users;
 
 			return settings;
 		}
 
+
 		for( var folder in folders ) {
 			if ( folder.access_restriction != "inherit" ) {
-				settings.restricted        = folder.access_restriction == "full";
-				settings.fullLoginRequired = IsBoolean( folder.full_login_required ) && folder.full_login_required;
+				settings.restricted                   = folder.access_restriction == "full";
+				settings.fullLoginRequired            = IsBoolean( folder.full_login_required ) && folder.full_login_required;
+				settings.grantAcessToAllLoggedInUsers = IsBoolean( folder.grantaccess_to_all_logged_in_users ) && folder.grantaccess_to_all_logged_in_users;
 
 				return settings;
 			}
