@@ -136,7 +136,7 @@ component singleton=true {
 		}
 
 		if ( not arguments.includeTrash ) {
-			args.filter &= " and page.trashed = 0";
+			args.filter &= " and page.trashed = '0'";
 		}
 
 		if ( ArrayLen( arguments.selectFields ) ) {
@@ -156,7 +156,7 @@ component singleton=true {
 		, string  searchQuery = ""
 		, array   ids         = []
 	) {
-		var filter = "( page.trashed = 0 )";
+		var filter = "( page.trashed = '0' )";
 		var params = {};
 
 		if ( arguments.ids.len() ) {
@@ -509,10 +509,10 @@ component singleton=true {
 		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
 
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
-		var filter = "parent_page = :parent_page and trashed = 0 and ( #exclusionField# is null or #exclusionField# = 0 )";
+		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
 		var filterParams = {};
 		if ( !arguments.includeInactive ) {
-			filter &= " and active = 1";
+			filter &= " and active = '1'";
 		}
 
 		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes );

@@ -394,7 +394,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 // private helpers
 	private struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(
-			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = 1"
+			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
 			, useCache     = false
 		);

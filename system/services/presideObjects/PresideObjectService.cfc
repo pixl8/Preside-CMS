@@ -321,9 +321,13 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				, dbAdapter         = adapter
 			);
 
-			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType="info" );
+			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType() );
+			
+			if ( adapter.requiresManualCommitForTransactions() ){
+				_runSql( sql='commit', dsn=obj.dsn );
+			}
 
-			newId = Len( Trim( newId ) ) ? newId : ( result.generatedKey ?: "" );
+			newId = Len( Trim( newId ) ) ? newId : ( adapter.getGeneratedKey(result) ?: "" );
 			if ( Len( Trim( newId ) ) ) {
 				for( key in manyToManyData ){
 					syncManyToManyData(

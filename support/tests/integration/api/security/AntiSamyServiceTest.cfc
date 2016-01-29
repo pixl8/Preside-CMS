@@ -10,8 +10,7 @@ component extends="testbox.system.BaseSpec" {
 
 			it( "should strip script tags from content (we know it should do much more, but just to test...)", function(){
 				var dirty   = '<b>BigBossKent</b><button onclick="f()">Alert - please click</button><script>function f() {confirm(“Youve been hacked!")}</script>';
-				var cleaned = "<b>BigBossKent</b>
-<button>Alert - please click</button>";
+				var cleaned = "<b>BigBossKent</b>#chr(10)#<button>Alert - please click</button>";
 				var actual  = antiSamy.clean( dirty );
 
 				expect( actual ).toBe( cleaned );
