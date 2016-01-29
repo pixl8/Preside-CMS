@@ -35,79 +35,79 @@ component extends="BaseAdapter" {
 
 
 	public string function getColumnDBType( required string dataType, string extraInfo ){
-		if (arguments.extraInfo eq "autoIncrement"){
+		if (arguments.extraInfo == "autoIncrement"){
 			return "serial";
 		} else {
 			switch( arguments.dataType ) {
-                    case "datetime":
-                    	return "timestamp";
-                    case "longtext":
-                    	return "text";
-                    case "double":
-                    	return "float";
-                    case "bit":
-                    	return "bool";
-                    default:
-                    	return arguments.dataType;
-               }
+				case "datetime":
+					return "timestamp";
+				case "longtext":
+					return "text";
+				case "double":
+					return "float";
+				case "bit":
+					return "bool";
+				default:
+					return arguments.dataType;
+			}
 		}
 	}
 
 	public string function getColumnDefinitionSql(
-                 required string   columnName
-               , required string   dbType
-               ,          numeric  maxLength     = 0
-               ,          boolean  nullable      = true
-               ,          boolean  primaryKey    = false
-               ,          boolean  autoIncrement = false
+		  required string   columnName
+		, required string   dbType
+		,          numeric  maxLength     = 0
+		,          boolean  nullable      = true
+		,          boolean  primaryKey    = false
+		,          boolean  autoIncrement = false
 
-       ) {
+	) {
 
-           var columnDef  = escapeEntity( arguments.columnName );
-           var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
+		var columnDef  = escapeEntity( arguments.columnName );
+		var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
 
-           if ( arguments.autoIncrement ) {
-                   columnDef &= " serial";
-                   arguments.maxLength = 0;
-           }else{
-               switch( arguments.dbType ) {
-                    case "datetime":
-                       columnDef &= " timestamp";
-                       break;
-                    case "longtext":
-                       columnDef &= " text";
-                       break;
-                    case "double":
-                           columnDef &= " float";
-                    case "bigint":
-                    case "int":
-                    case "float":
-                    case "text":
-                       arguments.maxLength = 0;
-                       columnDef &= " #arguments.dbType#";
-                       break;
-                    default:
-                       columnDef &= " #arguments.dbType#";
-                       break;
-               }
-       }
+		if ( arguments.autoIncrement ) {
+			   columnDef &= " serial";
+			   arguments.maxLength = 0;
+		} else {
+		   switch( arguments.dbType ) {
+				case "datetime":
+				   columnDef &= " timestamp";
+				   break;
+				case "longtext":
+				   columnDef &= " text";
+				   break;
+				case "double":
+					   columnDef &= " float";
+				case "bigint":
+				case "int":
+				case "float":
+				case "text":
+				   arguments.maxLength = 0;
+				   columnDef &= " #arguments.dbType#";
+				   break;
+				default:
+				   columnDef &= " #arguments.dbType#";
+				   break;
+			}
+		}
 
 
-       if ( arguments.dbType eq "varchar" and not arguments.maxLength ) {
-               arguments.maxLength = 200;
-       }
+		if ( arguments.dbType == "varchar" and not arguments.maxLength ) {
+			arguments.maxLength = 200;
+		}
 
-       if ( arguments.maxLength ) {
-               columnDef &= "(#arguments.maxLength#)";
-       }
+		if ( arguments.maxLength ) {
+			columnDef &= "(#arguments.maxLength#)";
+		}
 
-       if ( arguments.primaryKey ) {
-               columnDef &= " primary key";
-       }
+		if ( arguments.primaryKey ) {
+			columnDef &= " primary key";
+		}
 
-       columnDef &= ( isNullable ? " null" : " not null" );
+		columnDef &= ( isNullable ? " null" : " not null" );
 
-       return columnDef;
+		return columnDef;
 	}
 
 
@@ -171,7 +171,7 @@ component extends="BaseAdapter" {
 		var delim    			= "";
 		var col      			= "";
 		var clauseSqlFromJoin	= "";
-		var clauseSql 			= ""; 
+		var clauseSql 			= "";
 
 		if ( Len( Trim( arguments.tableAlias ) ) ) {
 			sql &= " " & escapeEntity( arguments.tableAlias );
@@ -182,7 +182,7 @@ component extends="BaseAdapter" {
 			sql &= delim & " " & col & " = :set__" & col;
 			delim = ",";
 		}
-		
+
 		if ( ArrayLen( arguments.joins ) ) {
 
 			var firstJoinTable = arguments.joins[1];
@@ -201,12 +201,12 @@ component extends="BaseAdapter" {
 			  tableAlias = arguments.tableAlias
 			, filter     = arguments.filter
 		);
-		
+
 		if ( Len(clauseSql) ){
 			clauseSql &= len(clauseSqlFromJoin) ? ' and ' & clauseSqlFromJoin : '';
 		} else {
 			clauseSql &= len(clauseSqlFromJoin) ? ' where ' & clauseSqlFromJoin : '';
-		} 
+		}
 
 		sql &= clauseSql;
 
@@ -377,66 +377,65 @@ component extends="BaseAdapter" {
 	}
 
 	private struct function getColumnDefinitionAlterSql(
-                 required string   columnName
-               , required string   dbType
-               ,          numeric  maxLength     = 0
-               ,          boolean  nullable      = true
-               ,          boolean  primaryKey    = false
-               ,          boolean  autoIncrement = false
+				 required string   columnName
+			   , required string   dbType
+			   ,          numeric  maxLength     = 0
+			   ,          boolean  nullable      = true
+			   ,          boolean  primaryKey    = false
+			   ,          boolean  autoIncrement = false
 
-       ) {
-		   var columnAlter = structNew();
-           var columnType  = escapeEntity( arguments.columnName );
+	   ) {
+			var columnAlter = structNew();
+			var columnType  = escapeEntity( arguments.columnName );
 
-           columnType &= " Type";
+			columnType &= " Type";
 
-           var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
+			var isNullable = not arguments.primaryKey and ( arguments.nullable or StructKeyExists( arguments, 'defaultValue' ) );
 
-           if ( arguments.autoIncrement ) {
-                   columnType &= " serial";
-                   arguments.maxLength = 0;
-           }else{
+			if ( arguments.autoIncrement ) {
+				columnType &= " serial";
+				arguments.maxLength = 0;
+			} else {
+				switch( arguments.dbType ) {
+					case "datetime":
+						columnType &= " timestamp";
+						break;
+					case "longtext":
+						columnType &= " text";
+						break;
+					case "double":
+						columnType &= " float";
+					case "bigint":
+					case "int":
+					case "float":
+					case "bit":
+						arguments.maxLength = 0;
+						columnType &= " #arguments.dbType# USING (#arguments.columnName#::::#arguments.dbType#)";
+						break;
+					case "text":
+						arguments.maxLength = 0;
+						columnType &= " #arguments.dbType#";
+						break;
+					default:
+						columnType &= " #arguments.dbType#";
+					break;
+				}
+			}
 
-               switch( arguments.dbType ) {
-                   case "datetime":
-                           columnType &= " timestamp";
-                           break;
-                   case "longtext":
-                           columnType &= " text";
-                           break;
-                   case "double":
-                           columnType &= " float";
-                   case "bigint":
-                   case "int":
-                   case "float":
-                   case "bit":
-                   			arguments.maxLength = 0;
-                   			columnType &= " #arguments.dbType# USING (#arguments.columnName#::::#arguments.dbType#)";
-                           break;
-                   case "text":
-                           arguments.maxLength = 0;
-                           columnType &= " #arguments.dbType#";
-                           break;
-                   default:
-                           columnType &= " #arguments.dbType#";
-                           break;
-               }
-       }
+			if ( arguments.dbType == "varchar" and not arguments.maxLength ) {
+				arguments.maxLength = 200;
+			}
 
-       if ( arguments.dbType eq "varchar" and not arguments.maxLength ) {
-               arguments.maxLength = 200;
-       }
+			if ( arguments.maxLength ) {
+				columnType &= "(#arguments.maxLength#)";
+			}
 
-       if ( arguments.maxLength ) {
-               columnType &= "(#arguments.maxLength#)";
-       }
+			if ( arguments.primaryKey ) {
+				columnType &= " primary key";
+			}
 
-       if ( arguments.primaryKey ) {
-               columnType &= " primary key";
-       }
-
-       columnAlter['columnSet'] = ( isNullable ? "" : escapeEntity( arguments.columnName ) & " Set not null" );
-       columnAlter['columnType'] = columnType;
-       return columnAlter;
+			columnAlter['columnSet'] = ( isNullable ? "" : escapeEntity( arguments.columnName ) & " Set not null" );
+			columnAlter['columnType'] = columnType;
+			return columnAlter;
    }
 }
