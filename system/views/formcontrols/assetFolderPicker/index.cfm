@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 	folders      = args.folders      ?: QueryNew('id,label,depth');
@@ -14,7 +13,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="#inputClass# object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
+	<select class="object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
 		<option>#HtmlEditFormat( translateResource( "cms:option.pleaseselect", "" ) )#</option>
 		<option value="#root#"<cfif root eq value> selected="selected"</cfif>>#HtmlEditFormat( translateResource( "cms:assetmanager.folder.select.no.parent", "" ) )#</option>
 		<cfloop query="folders">

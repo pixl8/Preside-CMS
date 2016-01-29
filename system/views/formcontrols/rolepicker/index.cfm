@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
 	roles        = args.roles        ?: ArrayNew(1)
 
@@ -15,7 +14,7 @@
 	<cfloop array="#roles#" index="role">
 		<div class="checkbox role-picker-checkbox">
 			<label>
-				<input class="#inputClass# ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox"  value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
+				<input class="ace ace-switch ace-switch-3" name="#inputName#" id="#inputId#-#role#" type="checkbox" class="ace" value="#HtmlEditFormat( role )#"<cfif ListFindNoCase( value, role )> checked="checked"</cfif> tabindex="#getNextTabIndex()#">
 				<span class="lbl">
 					<span class="role-title bigger">
 						#translateResource( uri="roles:#role#.title" )#

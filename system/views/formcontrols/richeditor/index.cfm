@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 	extraClasses = args.extraClasses ?: "";
@@ -20,7 +19,7 @@
 	<textarea id          = "#inputId#"
 	          placeholder = "#placeholder#"
 	          name        = "#inputName#"
-	          class       = "#inputClass# richeditor #extraClasses#"
+	          class       = "richeditor #extraClasses#"
 	          tabindex="#getNextTabIndex()#"
 	          <cfif Len( Trim( args.toolbar ?: "" ) )>
 	               data-toolbar = "#Trim( args.toolbar )#"

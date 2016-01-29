@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 	layouts      = args.layouts    ?: ArrayNew(1);
@@ -13,7 +12,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="#inputClass# object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
+	<select class="object-picker" data-placeholder="#placeholder#" name="#inputName#" id="#inputId#" tabindex="#getNextTabIndex()#">
 		<option>#translateResource( "cms:option.pleaseselect", "" )#</option>
 		<cfloop array="#layouts#" index="layout">
 			<option value="#layout.value#"<cfif value eq layout.value> selected="selected"</cfif>>#layout.label#</option>
