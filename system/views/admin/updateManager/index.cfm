@@ -1,7 +1,7 @@
 <cfscript>
 	isGitClone              = IsTrue( prc.isGitClone      ?: "" );
 	currentVersion          = prc.currentVersion          ?: "unknown";
-	latestVersion           = prc.latestVersion           ?: "unknown";
+	latestVersion           = prc.latestVersion           ?: { version = "unknown" };
 	versionUpToDate         = prc.versionUpToDate         ?: false;
 	latestVersionDownloaded = prc.latestVersionDownloaded ?: false;
 	downloadedVersions      = prc.downloadedVersions      ?: [];
@@ -30,7 +30,7 @@
 				#translateResource( uri="cms:updateManager.current.version.unknown" )#
 			</div>
 
-		<cfelseif latestVersion eq "unknown">
+		<cfelseif latestVersion.version eq "unknown">
 			<div class="alert alert-danger">
 				<i class="fa fa-warning fa-lg"></i>&nbsp;
 				#translateResource( uri="cms:updateManager.latest.version.unknown", data=[ "<strong>#currentVersion#</strong>" ] )#
@@ -39,21 +39,21 @@
 			<div class="alert alert-info clearfix">
 				<i class="fa fa-info-circle fa-lg"></i>&nbsp;
 				<cfif latestVersionDownloaded>
-					#translateResource( uri="cms:updateManager.latest.version.installable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
-					<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.installVersionAction', queryString='version=#latestVersion#' )#">
+					#translateResource( uri="cms:updateManager.latest.version.installable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion.version#</strong>" ] )#
+					<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.installVersionAction', queryString='version=#latestVersion.version#' )#">
 						<i class="fa fa-bolt"></i>
 						#translateResource( uri="cms:updateManager.install.version.btn" )#
 					</a>
-				<cfelseif downloadingVersions.keyExists( latestVersion )>
-					#translateResource( uri="cms:updateManager.latest.version.downloading", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
+				<cfelseif downloadingVersions.keyExists( latestVersion.version )>
+					#translateResource( uri="cms:updateManager.latest.version.downloading", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion.version#</strong>" ] )#
 					<a class="btn pull-right btn-disabled" disabled>
 						<i class="fa fa-cloud-download"></i>
 						#translateResource( uri="cms:updateManager.downloading.version.btn" )#
 					</a>
-					<cfset event.includeData( { downloadingVersion=latestVersion } ) />
+					<cfset event.includeData( { downloadingVersion=latestVersion.version } ) />
 				<cfelse>
-					#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion#</strong>" ] )#
-					<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.downloadVersionAction', queryString='version=#latestVersion#' )#">
+					#translateResource( uri="cms:updateManager.latest.version.downloadable", data=[ "<strong>#currentVersion#</strong>", "<strong>#latestVersion.version#</strong>", #dateformat(latestVersion.date,'mmmm dd, yyyy')#,  "<a href='#latestVersion.noteURL#'>#translateResource( uri="cms:updateManager.releaseNotes.th" )#</a>"] )# 
+					<a class="btn pull-right btn-primary" href="#event.buildAdminLink( linkTo='updateManager.downloadVersionAction', queryString='version=#latestVersion.version#' )#">
 						<i class="fa fa-cloud-download"></i>
 						#translateResource( uri="cms:updateManager.download.version.btn" )#
 					</a>
@@ -124,6 +124,8 @@
 					<thead>
 						<tr>
 							<th>#translateResource( uri="cms:updateManager.version.th" )#</th>
+							<th>#translateResource( uri="cms:updateManager.buildDate.th" )#</th>
+							<th>#translateResource( uri="cms:updateManager.releaseNotes.th" )#</th>
 							<th>#translateResource( uri="cms:updateManager.downloaded.th" )#</th>
 							<th>#translateResource( uri="cms:updateManager.version.actions.th" )#</th>
 						</tr>
@@ -132,6 +134,14 @@
 						<cfloop array="#availableVersions#" item="version" index="i">
 							<tr<cfif version.downloaded> class="current"</cfif>>
 								<td>#version.version#</td>
+								<td>#dateformat(version.date,'mmmm. dd, yyyy')#</td>
+								<td>
+									<cfif version.noteURL eq '-'>
+										-
+									<cfelse>	
+										<a href="#version.noteURL#" target="_blank">#translateResource( "cms:updateManager.notes.in" )#</a>
+									</cfif>
+								</td>
 								<cfif version.downloaded>
 									<td><i class="green fa fa-check"></i></td>
 									<td>

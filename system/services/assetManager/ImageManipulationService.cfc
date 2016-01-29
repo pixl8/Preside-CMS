@@ -1,18 +1,36 @@
-component output=false singleton=true {
+/**
+ * Provides logic for manipulating images.
+ *
+ * @singleton
+ * @autodoc
+ *
+ */
+component displayname="Image Manipulation Service" {
 
 // CONSTRUCTOR
-	public any function init() output=false {
+	public any function init() {
 		return this;
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Resizes an image
+	 *
+	 * @autodoc
+	 * @asset.hint               Binary of the image to resize
+	 * @width.hint               New width, in pixels
+	 * @height.hint              New height, in pixels
+	 * @quality.hint             Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
+	 * @maintainAspectRatio.hint Whether or not maintain the aspect ratio of the image (if true, an autocrop may be applied if the aspect ratio of the resize differs from the source image)
+	 *
+	 */
 	public binary function resize(
 		  required binary  asset
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
-	) output=false {
+	) {
 		var image              = "";
 		var interpolation      = arguments.quality
 		var targetAspectRatio  = 0;
@@ -63,12 +81,23 @@ component output=false singleton=true {
 		return ImageGetBlob( image );
 	}
 
+	/**
+	 * Shrinks an image to fit within a given width and height, without changing
+	 * the images aspect ratio.
+	 *
+	 * @autodoc
+	 * @asset.hint   Binary of the image to transorm
+	 * @width.hint   Maximum width for the image, in pixels
+	 * @height.hint  Maximum height for the image, in pixels
+	 * @quality.hint Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
+	 *
+	 */
 	public binary function shrinkToFit(
 		  required binary  asset
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
-	) output=false {
+	) {
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
@@ -95,7 +124,26 @@ component output=false singleton=true {
 		return ImageGetBlob( image );
 	}
 
-	public binary function pdfPreview( required binary asset ) output=false {
+	/**
+	 * Generates an image from the first page of the provided PDF binary
+	 *
+	 * @autodoc
+	 * @asset.hint       Binary of the PDF
+	 * @scale.hint       Size of the thumbnail relative to the source page. The value represents a percentage from 1 through 100.
+	 * @resolution.hint  Image quality used to generate thumbnail images
+	 * @format.hint      File type of thumbnail image output
+	 * @pages.hint       Page or pages in the source PDF document on which to perform the action. You can specify multiple pages and page ranges as follows: "1,6-9,56-89,100, 110-120".
+	 * @transparent.hint (format="png" only) Specifies whether the image background is transparent or opaque
+	 *
+	 */
+	public binary function pdfPreview(
+		  required binary asset
+		,          string scale
+		,          string resolution
+		,          string format
+		,          string pages
+		,          string transparent
+	) {
 		var imagePrefix = CreateUUId();
 		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
 		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
@@ -117,7 +165,14 @@ component output=false singleton=true {
 		return FileReadBinary( tmpFilePath );
 	}
 
-	public struct function getImageInformation( required binary asset ) output=false {
+	/**
+	 * Retrieves a structure of information about the image (e.g. height and width).
+	 *
+	 * @autodoc
+	 * @asset.hint Binary of the image from which to extract the info
+	 *
+	 */
+	public struct function getImageInformation( required binary asset ) {
 		try {
 			return ImageInfo( ImageNew( arguments.asset ) );
 		} catch ( "java.io.IOException" e ) {
