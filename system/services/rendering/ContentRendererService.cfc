@@ -223,15 +223,27 @@ component singleton=true output="false" {
 			embeddedImage = _findNextEmbeddedImage( renderedContent );
 
 			if ( Len( Trim( embeddedImage.asset ?: "" ) ) ) {
-				var args = Duplicate( embeddedImage );
+				var args       = Duplicate( embeddedImage );
+				var derivative = args.derivative ?: "";
 
 				args.delete( "asset" );
 				args.delete( "placeholder" );
+				args.delete( "derivative" );
 
-				renderedImage = _getAssetRendererService().renderAsset(
-					  assetId = embeddedImage.asset
-					, context = arguments.context
-					, args    = args
+				if( Len( Trim( derivative ) ) && derivative NEQ "none" ){
+					args.delete( "width" );
+					args.delete( "height" );
+					args.delete( "quality" );
+					args.delete( "dimensions" );
+
+					args.derivative = derivative;
+
+				}
+
+				renderedImage    = _getAssetRendererService().renderAsset(
+					  assetId    = embeddedImage.asset
+					, context    = arguments.context
+					, args       = args
 				);
 			}
 
