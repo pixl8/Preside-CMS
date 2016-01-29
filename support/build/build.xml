@@ -20,12 +20,27 @@
 
 		<zip destfile="${artifacts.dir}/${release.name}/PresideCMS-${preside.version}.zip">
 			<zipfileset dir="../../" prefix="presidecms-${preside.version}.${build.number}">
-				<exclude name="support/**"  />
+				<exclude name="support/**"                    />
+				<exclude name="system/assets/node_modules/**" />
+				<exclude name=".travis.yml"                   />
+				<exclude name="build.sh"                      />
+				<exclude name="test.sh"                       />
+				<exclude name=".twgit*"                       />
+				<exclude name=".zanata-cache/**"              />
+				<exclude name="zanata.xml"                    />
+			</zipfileset>
+		</zip>
+		<zip destfile="${artifacts.dir}/${release.name}.zip">
+			<zipfileset dir="../../">
+				<exclude name="support/**"                     />
 				<exclude name="system/assets/node_modules/**"  />
-				<exclude name=".travis.yml" />
-				<exclude name="build.sh"    />
-				<exclude name="test.sh"     />
-				<exclude name=".twgit*"     />
+				<exclude name=".travis.yml"                    />
+				<exclude name="build.sh"                       />
+				<exclude name="test.sh"                        />
+				<exclude name=".twgit*"                        />
+				<exclude name=".zanata-cache/**"               />
+				<exclude name="zanata.xml"                     />
+				<exclude name="version.json"                   />
 			</zipfileset>
 		</zip>
 
