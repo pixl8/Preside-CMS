@@ -1,11 +1,11 @@
 <cfscript>
-	inputName    = args.name         ?: "";
-	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
-	placeholder  = args.placeholder  ?: "";
-	defaultValue = args.defaultValue ?: "";
+	inputName    = args.name          ?: "";
+	inputId      = args.id            ?: "";
+	inputClass   = args.class         ?: "";
+	placeholder  = args.placeholder   ?: "";
+	defaultValue = args.defaultValue  ?: "";
 	minValue     = Val( args.minValue ?: 0 );
-	maxValue     = Val( args.maxValue ?: 999 );
+	maxValue     = args.maxValue      ?: "";
 	step         = Val( args.step     ?: 1 );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
