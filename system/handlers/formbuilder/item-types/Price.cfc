@@ -12,7 +12,7 @@ component {
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
 			, step				 = 0.01
-
+			, class				 = "form-control"
 		);
 	}
 }

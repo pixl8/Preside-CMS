@@ -1,11 +1,11 @@
 <cfscript>
-	fromDate       = args.name      	?: "";
-	toDate  	   = args.toDate  		?: "";
-	inputId        = args.id           	?: "";
-	inputClass     = args.class        	?: "";
-	placeholder    = args.placeholder  	?: "";
-	defaultValue   = args.defaultValue 	?: "";
-
+	fromDate       = args.name      		?: "";
+	toDate  	   = args.toDate  			?: "";
+	inputId        = args.id           		?: "";
+	inputClass     = args.class        		?: "";
+	placeholder    = args.placeholder  		?: "";
+	defaultValue   = args.defaultValue 		?: "";
+	toDateLabel	   = args.args.toDateLabel  ?: "To";
 	from  = event.getValue( name=fromDate, defaultValue=defaultValue );
 	if ( not IsSimpleValue( from ) ) {
 		from = "";
@@ -28,7 +28,7 @@
 <cfoutput>
 	<div class="input-group input-daterange">
 	    <input name="#fromDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( from )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
-	    <span class="input-group-addon">#toDate#</span>
+	    <span class="input-group-addon">#toDateLabel#</span>
 	    <input name="#toDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( to )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
 	</div>
 </cfoutput>
