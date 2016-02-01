@@ -227,7 +227,7 @@ component extends="preside.system.base.AdminHandler" {
 
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#newId#" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree") );
 		}
 	}
 
