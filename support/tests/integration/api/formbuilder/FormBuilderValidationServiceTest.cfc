@@ -240,6 +240,22 @@ component extends="testbox.system.BaseSpec"{
 					, submissionData = submissionData
 				) ).toBe( validationResult );
 			} );
+
+			it( "should return an empty validation result if there are no validation rules for the form", function(){
+				var service          = getService();
+				var ruleset          = "";
+				var items            = [ "this", "is", "just", "dummy", "for", "test" ];
+				var submissionData   = { this="is", just="a test", data=CreateUUId() };
+				var validationResult = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+
+				service.$( "getRulesetForFormItems" ).$args( items=items ).$results( ruleset );
+				mockValidationEngine.$( "newValidationResult", validationResult );
+
+				expect( service.validateFormSubmission(
+					  formItems      = items
+					, submissionData = submissionData
+				) ).toBe( validationResult );
+			} );
 		} );
 	}
 

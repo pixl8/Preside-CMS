@@ -124,7 +124,11 @@ component {
 	public any function validateFormSubmission( required array formItems, required struct submissionData ) {
 		var ruleset = getRulesetForFormItems( items=arguments.formItems );
 
-		return _getValidationEngine().validate( ruleset=ruleset, data=arguments.submissionData );
+		if ( ruleset.len() ) {
+			return _getValidationEngine().validate( ruleset=ruleset, data=arguments.submissionData );
+		}
+
+		return _getValidationEngine().newValidationResult();
 	}
 
 // GETTERS AND SETTERS
