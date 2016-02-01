@@ -558,7 +558,7 @@ component {
 		, required string inputName
 		, required struct requestData
 	) {
-		var processorHandler = "formbuilder.item-types.#arguments.itemType#.processFormSubmission";
+		var processorHandler = "formbuilder.item-types.#arguments.itemType#.getItemDataFromRequest";
 		var coldbox          = $getColdbox();
 
 		if ( coldbox.handlerExists( processorHandler ) ) {

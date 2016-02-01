@@ -939,7 +939,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemType    = "test";
 				var inputName   = "stuffs";
 				var requestData = { test=CreateUUId(), something=false };
-				var handlerName = "formbuilder.item-types.#itemType#.processFormSubmission";
+				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
 				var result      = CreateUUId();
 
 				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( true );
@@ -964,7 +964,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemType    = "test";
 				var inputName   = "test";
 				var requestData = { test=CreateUUId(), something=false };
-				var handlerName = "formbuilder.item-types.#itemType#.processFormSubmission";
+				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
 
 				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( false );
 
@@ -982,7 +982,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemType    = "test";
 				var inputName   = "whateverthisisatest";
 				var requestData = { test=CreateUUId(), something=false };
-				var handlerName = "formbuilder.item-types.#itemType#.processFormSubmission";
+				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
 
 				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( false );
 
