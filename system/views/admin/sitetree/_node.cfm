@@ -8,6 +8,8 @@
 	param name="args.full_slug"                   type="string";
 	param name="args.datecreated"                 type="date";
 	param name="args.datemodified"                type="date";
+	param name="args.embargo_date"                type="any" default="";
+	param name="args.expiry_date"                 type="any" default="";
 	param name="args.active"                      type="boolean";
 	param name="args.trashed"                     type="boolean";
 	param name="args.child_count"                 type="numeric";
@@ -141,6 +143,15 @@
 			</td>
 			<td>#pageType#</td>
 			<td>#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#</td>
+			<td>
+				<cfif args.embargo_date NEQ "" AND args.expiry_date NEQ "">
+					<cfif DateCompare(NOW(),args.embargo_date) NEQ -1  AND DateCompare(args.expiry_date,NOW()) NEQ -1>
+						<i class="fa fa-clock-o green" title= "#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#" ></i>
+					<cfelse>
+						<i class="fa fa-clock-o red" title= "#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
+					</cfif>
+				</cfif>
+			</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">
