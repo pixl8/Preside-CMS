@@ -535,6 +535,37 @@ component {
 	}
 
 	/**
+	 * Attempts to retrieve the submitted response for a given item from
+	 * the form request, processing any custom preprocessor logic that
+	 * is defined for the item type in the process.
+	 *
+	 * @autodoc
+	 * @itemType.hint    The type ID of the item
+	 * @inputName.hint   The configured input name of the item
+	 * @requestData.hint The submitted data to the request
+	 *
+	 */
+	public any function getItemDataFromRequest(
+		  required string itemType
+		, required string inputName
+		, required struct requestData
+	) {
+		var processorHandler = "formbuilder.item-types.#arguments.itemType#.processFormSubmission";
+		var coldbox          = $getColdbox();
+
+		if ( coldbox.handlerExists( processorHandler ) ) {
+			return coldbox.runEvent(
+				  event          = processorHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args={ inputName=arguments.inputName, requestData=requestData } }
+			);
+		}
+
+		return arguments.requestData[ arguments.inputName ] ?: NullValue();
+	}
+
+	/**
 	 * Saves a form submission. Returns a validation result. If validation
 	 * failed, no data will be saved in the database.
 	 *
