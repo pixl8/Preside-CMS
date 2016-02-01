@@ -718,22 +718,26 @@ component extends="testbox.system.BaseSpec"{
 				var service        = getService();
 				var formId         = CreateUUId();
 				var items          = [{
-					  type          = { isFormField=false }
+					  type          = { isFormField=false, id="type1" }
 					, configuration = { name="test1" }
 				},{
-					  type          = { isFormField=true }
+					  type          = { isFormField=true , id="type2" }
 					, configuration = { name="test2" }
 				},{
-					  type          = { isFormField=true }
+					  type          = { isFormField=true , id="type3" }
 					, configuration = { name="test3" }
 				},{
-					  type          = { isFormField=true }
+					  type          = { isFormField=true , id="type4" }
 					, configuration = { name="test4" }
 				}];
 				var input          = { yes=false, no=true, test1=CreateUUId(), test2="nice", test4=CreateUUId() };
-				var expectedOutput = { test2=input.test2, test4=input.test4 };
+				var processed      = { test2=CreateUUId(), test4={ complex=true, test=CreateUUId() } }
+				var expectedOutput = { test2=processed.test2, test4=processed.test4 };
 
 				service.$( "getFormItems" ).$args( id=formId ).$results( items );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type2", inputName="test2", requestData=input ).$results( processed.test2 );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type3", inputName="test3", requestData=input ).$results( NullValue() );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type4", inputName="test4", requestData=input ).$results( processed.test4 );
 
 				expect(
 					service.getRequestDataForForm(
@@ -927,12 +931,78 @@ component extends="testbox.system.BaseSpec"{
 				expect( mockFormSubmissionDao.$callLog().deleteData[ 1 ] ).toBe( { filter={ id=submissionIds } } );
 			} );
 		} );
+
+		describe( "getItemDataFromRequest", function(){
+
+			it( "it should return result of preprocessing handler, when a preprocessing handler exists for the given item type", function(){
+				var service     = getService();
+				var itemType    = "test";
+				var inputName   = "stuffs";
+				var requestData = { test=CreateUUId(), something=false };
+				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
+				var result      = CreateUUId();
+
+				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( true );
+				mockColdbox.$( "runEvent"      ).$args(
+					  event          = handlerName
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { args={ inputName=inputName, requestData=requestData } }
+				).$results( result );
+
+				expect(
+					service.getItemDataFromRequest(
+						  itemType    = itemType
+						, inputName   = inputName
+						, requestData = requestData
+					)
+				).toBe( result );
+			} );
+
+			it( "should return the value of the matching key in the request data for the given input name when there is no preprocessing handler for the item type", function(){
+				var service     = getService();
+				var itemType    = "test";
+				var inputName   = "test";
+				var requestData = { test=CreateUUId(), something=false };
+				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
+
+				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( false );
+
+				expect(
+					service.getItemDataFromRequest(
+						  itemType    = itemType
+						, inputName   = inputName
+						, requestData = requestData
+					)
+				).toBe( requestData[ inputName ] );
+			} );
+
+			it( "should return NULL when the item does not exist in the request data and there is no preprocessing handler for the item either	", function(){
+				var service     = getService();
+				var itemType    = "test";
+				var inputName   = "whateverthisisatest";
+				var requestData = { test=CreateUUId(), something=false };
+				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
+
+				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( false );
+
+				expect(
+					service.getItemDataFromRequest(
+						  itemType    = itemType
+						, inputName   = inputName
+						, requestData = requestData
+					)
+				).toBeNull();
+			} );
+
+		} );
 	}
 
 	private function getService() {
 		variables.mockFormDao                      = CreateStub();
 		variables.mockFormItemDao                  = CreateStub();
 		variables.mockFormSubmissionDao            = CreateStub();
+		variables.mockColdbox                      = CreateStub();
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
 		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
@@ -950,6 +1020,8 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
+
+		service.$( "$getColdbox", mockColdbox );
 
 		return service;
 	}
