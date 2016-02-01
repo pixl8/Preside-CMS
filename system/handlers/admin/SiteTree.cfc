@@ -1,5 +1,4 @@
 component extends="preside.system.base.AdminHandler" {
-
 	property name="siteTreeService"                  inject="siteTreeService";
 	property name="formsService"                     inject="formsService";
 	property name="pageTypesService"                 inject="pageTypesService";
@@ -48,7 +47,6 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.access_restriction"
 			, "Count( child_pages.id ) as child_count"
 		] );
-
 		prc.trashCount = siteTreeService.getTrashCount();
 	}
 
@@ -67,6 +65,8 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.page_type"
 			, "page.datecreated"
 			, "page.datemodified"
+			, "page.embargo_date"
+			, "page.expiry_date"
 			, "page._hierarchy_slug as full_slug"
 			, "page.trashed"
 			, "page.access_restriction"
@@ -125,7 +125,6 @@ component extends="preside.system.base.AdminHandler" {
 			node.append( additionalNodeArgs );
 			rendered &= renderView( view="/admin/sitetree/_node", args=node );
 		}
-
 		event.renderData( data=rendered );
 	}
 
