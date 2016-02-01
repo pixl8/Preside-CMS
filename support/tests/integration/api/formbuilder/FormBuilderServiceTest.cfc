@@ -718,22 +718,26 @@ component extends="testbox.system.BaseSpec"{
 				var service        = getService();
 				var formId         = CreateUUId();
 				var items          = [{
-					  type          = { isFormField=false }
+					  type          = { isFormField=false, id="type1" }
 					, configuration = { name="test1" }
 				},{
-					  type          = { isFormField=true }
+					  type          = { isFormField=true , id="type2" }
 					, configuration = { name="test2" }
 				},{
-					  type          = { isFormField=true }
+					  type          = { isFormField=true , id="type3" }
 					, configuration = { name="test3" }
 				},{
-					  type          = { isFormField=true }
+					  type          = { isFormField=true , id="type4" }
 					, configuration = { name="test4" }
 				}];
 				var input          = { yes=false, no=true, test1=CreateUUId(), test2="nice", test4=CreateUUId() };
-				var expectedOutput = { test2=input.test2, test4=input.test4 };
+				var processed      = { test2=CreateUUId(), test4={ complex=true, test=CreateUUId() } }
+				var expectedOutput = { test2=processed.test2, test4=processed.test4 };
 
 				service.$( "getFormItems" ).$args( id=formId ).$results( items );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type2", inputName="test2", requestData=input ).$results( processed.test2 );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type3", inputName="test3", requestData=input ).$results( NullValue() );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type4", inputName="test4", requestData=input ).$results( processed.test4 );
 
 				expect(
 					service.getRequestDataForForm(

@@ -526,8 +526,16 @@ component {
 
 		for( var item in formItems ) {
 			var itemName = item.configuration.name ?: "";
-			if ( item.type.isFormField && Len( Trim( itemName ) ) && arguments.requestData.keyExists( itemName ) ) {
-				formData[ itemName ] = arguments.requestData[ itemName ];
+			if ( item.type.isFormField && Len( Trim( itemName ) ) ) {
+				var itemValue = getItemDataFromRequest(
+					  itemType    = item.type.id
+					, inputName   = itemName
+					, requestData = arguments.requestData
+				);
+
+				if ( !IsNull( itemValue ) ) {
+					formData[ itemName ] = itemValue;
+				}
 			}
 		}
 
