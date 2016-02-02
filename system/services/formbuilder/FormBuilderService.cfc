@@ -526,12 +526,51 @@ component {
 
 		for( var item in formItems ) {
 			var itemName = item.configuration.name ?: "";
-			if ( item.type.isFormField && Len( Trim( itemName ) ) && arguments.requestData.keyExists( itemName ) ) {
-				formData[ itemName ] = arguments.requestData[ itemName ];
+			if ( item.type.isFormField && Len( Trim( itemName ) ) ) {
+				var itemValue = getItemDataFromRequest(
+					  itemType    = item.type.id
+					, inputName   = itemName
+					, requestData = arguments.requestData
+				);
+
+				if ( !IsNull( itemValue ) ) {
+					formData[ itemName ] = itemValue;
+				}
 			}
 		}
 
 		return formData;
+	}
+
+	/**
+	 * Attempts to retrieve the submitted response for a given item from
+	 * the form request, processing any custom preprocessor logic that
+	 * is defined for the item type in the process.
+	 *
+	 * @autodoc
+	 * @itemType.hint    The type ID of the item
+	 * @inputName.hint   The configured input name of the item
+	 * @requestData.hint The submitted data to the request
+	 *
+	 */
+	public any function getItemDataFromRequest(
+		  required string itemType
+		, required string inputName
+		, required struct requestData
+	) {
+		var processorHandler = "formbuilder.item-types.#arguments.itemType#.getItemDataFromRequest";
+		var coldbox          = $getColdbox();
+
+		if ( coldbox.handlerExists( processorHandler ) ) {
+			return coldbox.runEvent(
+				  event          = processorHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args={ inputName=arguments.inputName, requestData=requestData } }
+			);
+		}
+
+		return arguments.requestData[ arguments.inputName ] ?: NullValue();
 	}
 
 	/**
