@@ -5,7 +5,6 @@
 	inputClass     = args.class        		?: "";
 	placeholder    = args.placeholder  		?: "";
 	defaultValue   = args.defaultValue 		?: "";
-	toDateLabel	   = args.args.toDateLabel  ?: "To";
 	from  = event.getValue( name=fromDate, defaultValue=defaultValue );
 	if ( not IsSimpleValue( from ) ) {
 		from = "";
@@ -27,8 +26,9 @@
 
 <cfoutput>
 	<div class="input-group input-daterange">
+		<span class="input-group-addon">From</span>
 	    <input name="#fromDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( from )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
-	    <span class="input-group-addon">#toDateLabel#</span>
+	    <span class="input-group-addon">To</span>
 	    <input name="#toDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( to )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
 	</div>
 </cfoutput>
