@@ -26,9 +26,9 @@
 
 <cfoutput>
 	<div class="input-group input-daterange">
-		<span class="input-group-addon">From</span>
+		<span class="input-group-addon">#translateResource( uri="cms:formbuilder.from", data=[ urlEncodedFormat( args.label ) ] )#</span>
 	    <input name="#fromDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( from )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
-	    <span class="input-group-addon">To</span>
+	    <span class="input-group-addon">#translateResource( uri="cms:formbuilder.to", data=[ urlEncodedFormat( args.label ) ] )#</span>
 	    <input name="#toDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( to )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
 	</div>
 </cfoutput>
