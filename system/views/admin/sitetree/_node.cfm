@@ -60,6 +60,9 @@
 		selectedAncestors = prc.selectedAncestors ?: [];
 		isSelected        = args.id == selected;
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
+
+		usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
+		outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
 	}
 </cfscript>
 
@@ -142,14 +145,11 @@
 				</div>
 			</td>
 			<td>#pageType#</td>
-			<td>#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#</td>
 			<td>
-				<cfif args.embargo_date NEQ "" AND args.expiry_date NEQ "">
-					<cfif DateCompare(NOW(),args.embargo_date) NEQ -1  AND DateCompare(args.expiry_date,NOW()) NEQ -1>
-						<i class="fa fa-clock-o green" title= "#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#" ></i>
-					<cfelse>
-						<i class="fa fa-clock-o red" title= "#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
-					</cfif>
+				#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#
+
+				<cfif usesDateRestrictions>
+					<i class="fa fa-clock-o <cfif outOfDate>red<cfelse>green</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
 				</cfif>
 			</td>
 			<td>

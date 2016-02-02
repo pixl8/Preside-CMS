@@ -1,7 +1,9 @@
 <cfscript>
 	site = event.getSite();
+
 	prc.pageIcon  = "sitemap";
 	prc.pageTitle = site.name ?: translateResource( "cms:sitetree" );
+
 	activeTree          = prc.activeTree ?: [];
 	trashCount          = prc.trashCount ?: 0;
 </cfscript>
@@ -26,7 +28,6 @@
 				<th>#translateResource( 'cms:sitetree.table.title.header'    )#</th>
 				<th>#translateResource( 'cms:sitetree.table.pagetype.header' )#</th>
 				<th>#translateResource( 'cms:sitetree.table.active.header'   )#</th>
-				<th>#translateResource( 'cms:sitetree.table.date.header'     )#</th>
 				<th>#translateResource( 'cms:sitetree.table.access.header'   )#</th>
 				<th>#translateResource( 'cms:sitetree.table.url.header'      )#</th>
 			</tr>
