@@ -24083,6 +24083,15 @@ img.presidecms .editable-click:hover {
 .presidecms .popover-content {
   min-height: 60px;
 }
+.presidecms .nav-tabs li.error {
+  font-weight: bold;
+}
+.presidecms .nav-tabs li.error a {
+  background-color: #ffeeee;
+}
+.presidecms .nav-tabs li.error.active a {
+  background-color: #ffffff;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }
