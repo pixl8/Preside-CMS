@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form i18nBaseUri="formbuilder.item-types.textarea:">
+<form i18nBaseUri="formbuilder.item-types.select:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="multiple" control="yesnoswitch" required="false" sortorder="32" />
-			<field name="values"   control="textinput"   required="false" sortorder="36" defaultvalue="" />
+			<field name="Multiple" control="yesnoswitch" required="false" sortorder="32" />
+			<field name="Values"   control="textinput"   required="false" sortorder="36" defaultvalue="" />
+			<field name="Labels"   control="textinput"   required="false" sortorder="38" defaultvalue="" />
 		</fieldset>
 	</tab>
 </form>

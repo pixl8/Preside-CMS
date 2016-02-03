@@ -13,6 +13,8 @@ component {
 			, required           = IsTrue( args.mandatory ?: "" )
 			, multiple 			 = args.multiple ?: 0
 			, values 			 = args.values
+			, class 			 = "form-control"
+			, labels			 = args.Labels ?: ""
 		);
 	}
 }

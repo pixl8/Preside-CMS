@@ -8,7 +8,7 @@
 	sortable           = args.sortable         ?: "";
 	extraClasses       = args.extraClasses     ?: "";
 	values             = args.values           ?: "";
-	labels             = args.labels           ?: args.values;
+	labels             = len(args.labels) ? args.labels : args.values;
 	addMissingValues   = IsTrue( args.addMissingValues ?: "" );
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
