@@ -3,8 +3,9 @@
 	<tab id="default">
 		<fieldset id="default">
 			<field name="Multiple" control="yesnoswitch" required="false" sortorder="32" />
-			<field name="Values"   control="textinput"   required="false" sortorder="36" defaultvalue="" />
-			<field name="Labels"   control="textinput"   required="false" sortorder="38" defaultvalue="" />
+			<field name="Values"   control="textinput"   required="false" sortorder="34" defaultvalue="" />
+			<field name="Labels"   control="textinput"   required="false" sortorder="36" defaultvalue="" />
+			<field name="Datamanager"   control="dataManagerObjectPicker" sortorder="38" />
 		</fieldset>
 	</tab>
 </form>
