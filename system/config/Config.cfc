@@ -510,6 +510,7 @@ component output=false {
 			, date 		   = { isFormField=true  }
 			, dateRange    = { isFormField=true  }
 			, price		   = { isFormField=true  }
+			, select	   = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }
