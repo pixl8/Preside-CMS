@@ -1,15 +1,18 @@
 <cfscript>
-	inputName          = args.name             ?: "";
-	inputId            = args.id               ?: "";
-	inputClass         = args.class            ?: "";
-	placeholder        = args.placeholder      ?: "";
-	defaultValue       = args.defaultValue     ?: "";
-	multiple           = args.multiple         ?: false;
-	sortable           = args.sortable         ?: "";
-	extraClasses       = args.extraClasses     ?: "";
-	values             = args.values           ?: "";
-	labels             = args.labels           ?: args.values;
-	addMissingValues   = IsTrue( args.addMissingValues ?: "" );
+	inputName          		= args.name             			?: "";
+	inputId            		= args.id               			?: "";
+	inputClass         		= args.class            			?: "";
+	placeholder        		= args.placeholder      			?: "";
+	defaultValue       		= args.defaultValue     			?: "";
+	multiple           		= args.multiple         			?: false;
+	sortable           		= args.sortable         			?: "";
+	extraClasses       		= args.extraClasses     			?: "";
+	values             		= args.values                		?: "";
+	labels             		= len( args.labels ) 				?  args.labels : args.values;
+	addMissingValues   		= IsTrue( args.addMissingValues 	?: "" );
+	removeObjectPickerClass	= args.removeObjectPickerClass     	?: false;
+	objectPickerClass  		= removeObjectPickerClass			?  "" : "object-picker" ;
+
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
@@ -24,7 +27,7 @@
 </cfscript>
 
 <cfoutput>
-	<select class="#inputClass# object-picker #extraClasses#"
+	<select class="#inputClass# #objectPickerClass# #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"
