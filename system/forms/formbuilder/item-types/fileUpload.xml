@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.fileupload:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="Accept" control="textinput"  required="false" sortorder="34" defaultvalue="" />
+		</fieldset>
+	</tab>
+</form>

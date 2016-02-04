@@ -511,6 +511,10 @@ component output=false {
 			, dateRange    = { isFormField=true  }
 			, price		   = { isFormField=true  }
 			, select	   = { isFormField=true  }
+			, checkboxList = { isFormField=true  }
+			, checkbox	   = { isFormField=true  }
+			, radio	       = { isFormField=true  }
+			, fileUpload   = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }
