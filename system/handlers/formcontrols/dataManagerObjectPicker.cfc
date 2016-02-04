@@ -8,10 +8,9 @@ component {
 			return "";
 		}
 
-		args.values = [];
-		args.labels = [];
-		args.values.append( "" ); // show the default values as empty
-		args.labels.append( "" ); // show the default labels as empty
+		args.values = [ "" ]; // show the default values as empty
+		args.labels = [ "" ]; // show the default labels as empty
+
 		for( var group in groupedObjects ){
 			for( var object in group.objects ){
 				args.values.append( object.id );
