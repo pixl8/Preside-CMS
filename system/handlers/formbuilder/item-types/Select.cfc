@@ -12,18 +12,18 @@ component {
 		formControl.layout          = "";
 		formControl.required        = IsTrue( args.mandatory ?: "" );
 		formControl.multiple 		= args.multiple 		 ?: 0;
-		formControl.values 			= args.values;
 		formControl.class 			= "form-control";;
-		formControl.labels			= args.Labels 			 ?: ""
 
-		if(len(dataManagerName)) {
+		if( len( dataManagerName ) ) {
 			formControl.object 		= dataManagerName;
 			formControl.type        = "objectPicker";
 			formControl.ajax 		= false;
 		} else {
 			formControl.type        = "select";
+			formControl.values 		= replaceNoCase( args.values, chr( 10 ), ',', 'All' ); // chr ( 10 ) means newline
+			formControl.labels		= replaceNoCase( args.Labels, chr( 10 ), ',', 'All' )		 ?: "";
 		}
 
-		return renderFormControl(argumentCollection = formControl);
+		return renderFormControl( argumentCollection = formControl );
 	}
 }
