@@ -515,6 +515,7 @@ component output=false {
 			, checkbox	   = { isFormField=true  }
 			, radio	       = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
+			, captcha      = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }
