@@ -36,7 +36,8 @@ component {
 	}
 
 	public void function onRequestEnd() {
-		_cleanUpSessionsAndSessionCookies();
+		_invalidateSessionIfNotUsed();
+		_ensureCookiesAreHttpOnlyAndSecureWhenNeeded();
 	}
 
 	public boolean function onRequest() output=true {
@@ -285,13 +286,12 @@ component {
 		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
 	}
 
-	private void function _cleanUpSessionsAndSessionCookies() {
+	private void function _invalidateSessionIfNotUsed() {
 		var applicationSettings  = getApplicationSettings();
 		var sessionIsUsed        = false;
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
 		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
 		var sessionsEnabled      = IsBoolean( applicationSettings.sessionManagement ) && applicationSettings.sessionManagement;
-
 
 		if ( sessionsEnabled ) {
 			for( var key in session ) {
@@ -314,16 +314,6 @@ component {
 			}
 
 			_removeSessionCookies();
-		} else {
-			_ensureSessionCookiesAreHttpOnly();
-		}
-	}
-
-	private void function _ensureSessionCookiesAreHttpOnly() {
-		for( var cookieName in [ 'CFID','CFTOKEN','JSESSIONID' ] ) {
-			if ( cookie.keyExists( cookieName ) ) {
-				cookie name=cookieName value="#cookie[ cookieName ]#" httponly=true;
-			}
 		}
 	}
 
@@ -335,7 +325,7 @@ component {
 
 		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
 			var cooky = allCookies[ i ];
-			if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID)=", cooky ) ) {
+			if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
 				cleanedCookies.append( cooky );
 			}
 		}
@@ -343,6 +333,40 @@ component {
 		pc.setHeader( "Set-Cookie", NullValue() );
 		for( var cooky in cleanedCookies ) {
 			resp.addHeader( "Set-Cookie", cooky );
+		}
+	}
+
+	private void function _ensureCookiesAreHttpOnlyAndSecureWhenNeeded() {
+		var pc                = getPageContext();
+		var resp              = pc.getResponse();
+		var allCookies        = resp.getHeaders( "Set-Cookie" );
+		var httpRegex         = "(^|;)HTTPOnly(;|$)";
+		var secureRegex       = "(^|;)Secure(;|$)";
+		var cleanedCookies    = [];
+		var anyCookiesChanged = false;
+		var site              = _getColdboxController().getRequestContext().getSite();
+		var isSecure          = ( site.protocol ?: "http" ) == "https";
+
+		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
+			var cooky = allCookies[ i ];
+			if ( !ReFindNoCase( httpRegex, cooky ) ) {
+				cooky = ListAppend( cooky, "HTTPOnly", ";" );
+				anyCookiesChanged = true;
+			}
+
+			if ( isSecure && !ReFindNoCase( secureRegex, cooky ) ) {
+				cooky = ListAppend( cooky, "Secure", ";" );
+				anyCookiesChanged = true;
+			}
+
+			cleanedCookies.append( cooky );
+		}
+
+		if ( anyCookiesChanged ) {
+			pc.setHeader( "Set-Cookie", NullValue() );
+			for( var cooky in cleanedCookies ) {
+				resp.addHeader( "Set-Cookie", cooky );
+			}
 		}
 	}
 
