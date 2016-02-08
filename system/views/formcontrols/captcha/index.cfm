@@ -10,4 +10,5 @@
 
 <cfoutput>
 	<div class="g-recaptcha" data-sitekey="#captchaKey#"></div>
+	<input type="hidden" title="Please verify that you are not a robot." class="hiddencode required" name="hiddencode" id="hiddencode">
 </cfoutput>
