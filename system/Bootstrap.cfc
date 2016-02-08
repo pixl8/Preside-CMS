@@ -313,14 +313,7 @@ component {
 				this.sessionTimeout = CreateTimeSpan( 0, 0, 0, 1 );
 			}
 
-			var cookies = Duplicate( cookie );
-			getPageContext().setHeader( "Set-Cookie", NullValue() );
-
-			for( var cookieName in cookies ) {
-				if ( ![ "cfid", "cftoken", "jsessionid" ].findNoCase( cookieName ) ) {
-					cookie[ cookieName ] = cookies[ cookieName ];
-				}
-			}
+			_removeSessionCookies();
 		} else {
 			_ensureSessionCookiesAreHttpOnly();
 		}
@@ -331,6 +324,25 @@ component {
 			if ( cookie.keyExists( cookieName ) ) {
 				cookie name=cookieName value="#cookie[ cookieName ]#" httponly=true;
 			}
+		}
+	}
+
+	private void function _removeSessionCookies() {
+		var pc             = getPageContext();
+		var resp           = pc.getResponse();
+		var allCookies     = resp.getHeaders( "Set-Cookie" );
+		var cleanedCookies = [];
+
+		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
+			var cooky = allCookies[ i ];
+			if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID)=", cooky ) ) {
+				cleanedCookies.append( cooky );
+			}
+		}
+
+		pc.setHeader( "Set-Cookie", NullValue() );
+		for( var cooky in cleanedCookies ) {
+			resp.addHeader( "Set-Cookie", cooky );
 		}
 	}
 
