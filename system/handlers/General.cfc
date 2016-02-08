@@ -48,6 +48,8 @@ component {
 					}
 				}
 			}
+
+			request[ "preside.path_info" ] = antiSamyService.clean( UrlDecode( request[ "preside.path_info" ] ?: "" ) );
 		}
 	}
 
