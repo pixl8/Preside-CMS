@@ -4,7 +4,7 @@ component {
 		var controlName = args.name ?: "";
 
 		event.include( assetId="/css/admin/frontend/" );
-		event.include( assetId="/js/frontend/starRatting/" );
+		event.include( assetId="/js/frontend/formbuilder/starRatting/" );
 
 		return renderFormControl(
 			  argumentCollection = arguments
