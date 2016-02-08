@@ -517,6 +517,7 @@ component output=false {
 			, fileUpload   = { isFormField=true  }
 			, captcha      = { isFormField=true  }
 			, starRatting  = { isFormField=true  }
+			, matrix       = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={
 			  spacer    = { isFormField=false }
