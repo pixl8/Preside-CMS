@@ -36,7 +36,7 @@ component {
 	}
 
 	public void function onRequestEnd() {
-		_invalidateSessionIfNotUsed();
+		_cleanUpSessionsAndSessionCookies();
 	}
 
 	public boolean function onRequest() output=true {
@@ -285,7 +285,7 @@ component {
 		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
 	}
 
-	private void function _invalidateSessionIfNotUsed() {
+	private void function _cleanUpSessionsAndSessionCookies() {
 		var applicationSettings  = getApplicationSettings();
 		var sessionIsUsed        = false;
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
@@ -320,6 +320,16 @@ component {
 				if ( ![ "cfid", "cftoken", "jsessionid" ].findNoCase( cookieName ) ) {
 					cookie[ cookieName ] = cookies[ cookieName ];
 				}
+			}
+		} else {
+			_ensureSessionCookiesAreHttpOnly();
+		}
+	}
+
+	private void function _ensureSessionCookiesAreHttpOnly() {
+		for( var cookieName in [ 'CFID','CFTOKEN','JSESSIONID' ] ) {
+			if ( cookie.keyExists( cookieName ) ) {
+				cookie name=cookieName value="#cookie[ cookieName ]#" httponly=true;
 			}
 		}
 	}
