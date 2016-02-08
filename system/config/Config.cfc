@@ -515,7 +515,7 @@ component output=false {
 			, checkbox	   = { isFormField=true  }
 			, radio	       = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
-			, captcha      = { isFormField=true  }
+			, captcha      = { isFormField=false }
 			, starRatting  = { isFormField=true  }
 			, matrix       = { isFormField=true  }
 		} };

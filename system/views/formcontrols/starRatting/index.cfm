@@ -8,5 +8,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="hidden" id="#inputId#" name="#inputName#" data-min="0" data-max="#values#" data-step="0.5" data-size="xs" class="#inputClass# starRatting" tabindex="#getNextTabIndex()#">
+	<input type="hidden" id="#inputId#" name="#inputName#" data-min="0" data-max="#values#" data-step="0.5" data-size="xs" class="#inputClass# rating" tabindex="#getNextTabIndex()#">
 </cfoutput>
