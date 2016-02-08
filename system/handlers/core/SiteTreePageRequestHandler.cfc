@@ -53,6 +53,8 @@ component output=false {
 
 		event.setView( "/core/simpleBodyRenderer" );
 
+		event.setXFrameOptionsHeader();
+
 		announceInterception( "postRenderSiteTreePage" );
 	}
 }
