@@ -48,7 +48,7 @@ component {
 	private string function _buildEmailHref( required query link ) {
 		var plainHref      = "mailto:#link.email_address#";
 		var delim          = "?";
-		var bypassAntiSpam = arguments.link.email_anti_spam ?: false;
+		var bypassAntiSpam = IsBoolean( arguments.link.email_anti_spam ?: "" ) && arguments.link.email_anti_spam;
 
 		if ( Len( Trim( link.email_subject ) ) ) {
 			plainHref &= delim & "subject=" & UrlEncodedFormat( link.email_subject );
