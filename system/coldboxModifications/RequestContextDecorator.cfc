@@ -290,7 +290,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			}
 		}
 
-		getRequestContext().setHTTPHeader( name="X-Frame-Options", value=arguments.value );
+		getRequestContext().setHTTPHeader( name="X-FRAME-OPTIONS", value=arguments.value );
 	}
 
 // FRONT END, dealing with current page
