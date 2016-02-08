@@ -143,7 +143,7 @@ component {
 
 		if ( !Len( Trim( owner ) ) ) {
 			var owner = CreateUUId();
-			cookieService.setVar( cookieKey, owner );
+			cookieService.setVar( name=cookieKey, value=owner, httpOnly=true );
 		}
 
 		return owner;
