@@ -18,6 +18,7 @@ component displayName="Preside Super Class" {
 	 * @errorLogService.inject            delayedInjector:errorLogService
 	 * @featureService.inject             delayedInjector:featureService
 	 * @notificationService.inject        delayedInjector:notificationService
+	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
 	public any function init(
@@ -31,6 +32,7 @@ component displayName="Preside Super Class" {
 		,  required any errorLogService
 		,  required any featureService
 		,  required any notificationService
+		,  required any coldbox
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -42,6 +44,7 @@ component displayName="Preside Super Class" {
 		$errorLogService            = arguments.errorLogService;
 		$featureService             = arguments.featureService;
 		$notificationService        = arguments.notificationService;
+		$coldbox                    = arguments.coldbox;
 
 		return this;
 	}
@@ -513,5 +516,46 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $createNotification() {
 		return $getNotificationService().createNotification( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns the coldbox controller	 *
+	 *
+	 * @autodoc
+	 */
+	public any function $getColdbox() {
+		return $coldbox;
+	}
+
+	/**
+	 * Proxy to the i18n Coldbox plugin's `translateResource()` method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * translated = $translateResource( uri="cms:ok.btn" );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $translateResource() {
+		return $getColdbox().getPlugin( "i18n" ).translateResource( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to the core PresideCMS 'renderViewlet' method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * var rendered = $renderViewlet( event="my.viewlet", args=someData );
+	 *
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $renderViewlet() {
+		return $getColdbox().renderViewlet( argumentCollection=arguments );
 	}
 }
