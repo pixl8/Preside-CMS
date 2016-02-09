@@ -49,7 +49,8 @@ component {
 				}
 			}
 
-			request[ "preside.path_info" ] = antiSamyService.clean( UrlDecode( request[ "preside.path_info" ] ?: "" ) );
+			request[ "preside.path_info"    ] = antiSamyService.clean( request[ "preside.path_info"    ] ?: "" );
+			request[ "preside.query_string" ] = antiSamyService.clean( request[ "preside.query_string" ] ?: "" );
 		}
 	}
 
