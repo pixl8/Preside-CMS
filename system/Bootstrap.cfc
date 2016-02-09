@@ -322,7 +322,7 @@ component {
 		var thisFilePath = trace[ 1 ].template;
 		var dir          = GetDirectoryFromPath( thisFilePath );
 
-		return ReReplace( dir, "/system/?$", "" );
+		return ReReplace( dir, "[\\/]system[\\/]?$", "" );
 	}
 
 	private string function _getApplicationRoot() {
@@ -330,7 +330,7 @@ component {
 		var appCfcPath = trace[ trace.len() ].template;
 		var dir        = GetDirectoryFromPath( appCfcPath );
 
-		return ReReplace( dir, "/$", "" );
+		return ReReplace( dir, "[\\/]$", "" );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
