@@ -8,11 +8,10 @@
 	sortable           		= args.sortable         			?: "";
 	extraClasses       		= args.extraClasses     			?: "";
 	values             		= args.values                		?: "";
-	labels             		= len( args.labels ) 				?  args.labels : args.values;
 	addMissingValues   		= IsTrue( args.addMissingValues 	?: "" );
 	removeObjectPickerClass	= args.removeObjectPickerClass     	?: false;
 	objectPickerClass  		= removeObjectPickerClass			?  "" : "object-picker" ;
-
+	labels            		= ( structKeyExists( args, "labels") && len( args.labels ) )  ?  args.labels : args.values;
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }

@@ -516,7 +516,7 @@ component output=false {
 			, radio	       = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
 			, captcha      = { isFormField=false }
-			, starRatting  = { isFormField=true  }
+			, starRating   = { isFormField=true  }
 			, matrix       = { isFormField=true  }
 		} };
 		fbSettings.itemTypes.content = { sortorder=20, types={

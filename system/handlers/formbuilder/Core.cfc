@@ -6,20 +6,20 @@ component {
 	property name="storageProvider" 			 inject="formBuilderStorageProvider";
 
 	public any function submitAction( event, rc, prc ) {
-
 		var formId       = rc.form ?: "";
 		var validRequest = Len( Trim( formId ) ) && Len( Trim( cgi.http_referer ) ) && event.getHTTPMethod() == "POST";
 
 		if ( !validRequest ) {
 			event.notFound();
 		}
-
-		for (fileFieldName in rc.fileFields){
-			var fileName = GetPageContext().formScope().getUploadResource(fileFieldName).getName();
-			storageProvider.putObject( object=rc[fileFieldName], path=fileName );
-			rc[fileFieldName] = fileName;
+		if( structKeyExists( rc, "fileFields" ) ){
+			for (fileFieldName in rc.fileFields){
+				var fileName = GetPageContext().formScope().getUploadResource(fileFieldName).getName();
+				var path = formId & '/' & createUUID() & '--' & fileName;
+				storageProvider.putObject( object=rc[fileFieldName], path=path );
+				rc[fileFieldName] = listLast(path,'/');
+			}
 		}
-
 		var submission       = event.getCollectionWithoutSystemVars();
 		var validationResult = formBuilderService.saveFormSubmission(
 			  formId      = formId
