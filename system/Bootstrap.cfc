@@ -338,13 +338,20 @@ component {
 
 	private void function _ensureCookiesAreHttpOnlyAndSecureWhenNeeded() {
 		var pc                = getPageContext();
+		var cbController      = _getColdboxController();
+
+		if ( IsNull( cbController ) ) {
+			pc.setHeader( "Set-Cookie", NullValue() );
+			return;
+		}
+
 		var resp              = pc.getResponse();
 		var allCookies        = resp.getHeaders( "Set-Cookie" );
 		var httpRegex         = "(^|;)HTTPOnly(;|$)";
 		var secureRegex       = "(^|;)Secure(;|$)";
 		var cleanedCookies    = [];
 		var anyCookiesChanged = false;
-		var site              = _getColdboxController().getRequestContext().getSite();
+		var site              = cbController.getRequestContext().getSite();
 		var isSecure          = ( site.protocol ?: "http" ) == "https";
 
 		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
