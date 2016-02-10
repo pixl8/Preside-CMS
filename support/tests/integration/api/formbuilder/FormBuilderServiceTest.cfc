@@ -1003,6 +1003,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockFormItemDao                  = CreateStub();
 		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockColdbox                      = CreateStub();
+		variables.mockSpreadsheetLib               = CreateStub();
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
 		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
@@ -1015,6 +1016,7 @@ component extends="testbox.system.BaseSpec"{
 			, formsService                 = mockFormsService
 			, formBuilderValidationService = mockFormBuilderValidationService
 			, validationEngine             = mockValidationEngine
+			, spreadsheetLib               = mockSpreadsheetLib
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );

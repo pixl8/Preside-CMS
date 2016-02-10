@@ -14,4 +14,8 @@ component {
 	private string function response( event, rc, prc, args={} ) {
 		return renderContent( renderer="plaintext", data=( args.response ?: "" ) );
 	}
+
+	private array function responseForExport( event, rc, prc, args={} ) {
+		return [ renderContent( renderer="plaintext", data=( args.response ?: "" ) ) ];
+	}
 }
