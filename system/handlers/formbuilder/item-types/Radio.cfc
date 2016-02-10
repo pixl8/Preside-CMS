@@ -10,8 +10,9 @@ component {
 			, context            = "formbuilder"
 			, id                 = args.id ?: controlName
 			, layout             = ""
-			, values             = args.values
 			, required           = IsTrue( args.mandatory ?: "" )
+			, values 			 = replaceNoCase( args.values, chr( 10 ), ',', 'All' ) // chr ( 10 ) means newline
+			, labels			 = replaceNoCase( args.labels, chr( 10 ), ',', 'All' )		 ?: ""
 		);
 	}
 }

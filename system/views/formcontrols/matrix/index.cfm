@@ -6,6 +6,7 @@
 	defaultValue       		= args.defaultValue     			?: "";
 	rows             		= args.rows                		    ?: "";
 	columns             	= args.columns			     	    ?: "";
+	options             	= args.options			     	    ?: "";
 
 	if ( len( rows ) ) { rows = ListToArray( rows ); }
 	if ( len( columns ) ) { columns = ListToArray( columns ); }
@@ -32,7 +33,7 @@
 			<td><label>#row#</label></td>
 			<cfloop array="#columns#" index="i" item="selectedvalue">
 				<cfset selected = ListFindNoCase( value, selectedvalue ) />
-				<td><input type="radio"
+				<td><input type="#options#"
 					class="#inputClass#"
 					name="#inputname#_#row#"
 					id="#row##inputid#"
