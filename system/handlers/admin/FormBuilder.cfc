@@ -187,9 +187,17 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function exportSubmissions( event, rc, prc ) {
+		var formId   = rc.formId ?: "";
+		var theForm  = formBuilderService.getForm( formId );
+
+		if ( !theForm.recordCount ) {
+			event.adminNotFound();
+		}
+
+		var fileName = LCase( ReReplace( theForm.name, "[\W]", "_", "all" ) ) & "_" & DateTimeFormat( Now(), "yyyymmdd_HHnn" ) & ".xls";
 		var workbook = formBuilderService.exportResponsesToExcel( rc.formId ?: "" );
 
-		spreadsheetLib.download( workbook, "exportblah.xls" );
+		spreadsheetLib.download( workbook, fileName );
 	}
 
 // DOING STUFF ACTIONS
