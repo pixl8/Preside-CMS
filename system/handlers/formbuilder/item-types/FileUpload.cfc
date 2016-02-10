@@ -7,9 +7,9 @@ component {
 			fileStorageProvider = 'formBuilderStorageProvider',
 			fileStoragePath     = args.response);
 
-		checkDowbloadOption = len(trim(fileName)) ? '<a target="_blank" href="#args.response#"><i class="fa fa-fw fa-download blue"></i> #trim(fileName)#</a>' : translateResource( "cms:datatables.emptyTable" );
+		checkDownloadOption = len(trim(fileName)) ? '<a target="_blank" href="#args.response#"><i class="fa fa-fw fa-download blue"></i> #trim(fileName)#</a>' : translateResource( "cms:datatables.emptyTable" );
 
-		return checkDowbloadOption;
+		return checkDownloadOption;
 	}
 
 	private string function renderInput( event, rc, prc, args={} ) {
