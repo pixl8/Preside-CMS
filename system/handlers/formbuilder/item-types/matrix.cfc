@@ -21,23 +21,19 @@ component {
 		var itemConfig  = args.itemConfiguration ?: {};
 		var rows        = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
 		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
-		var data        = [];
-
-		for( var i=rows.len(); i>0; i-- ) {
-			if ( IsEmpty( Trim( rows[i] ) ) ) {
-				rows.deleteAt( i );
-			}
-		}
+		var data        = {};
 
 		for( var i=1; i <= rows.len(); i++ ) {
-			var expectedInputName = inputName & "_" & rows[i];
-			var value             = rc[ expectedInputName ] ?: "";
+			if ( Len( Trim( rows[ i ] ) ) ) {
+				var expectedInputName = inputName & "_" & rows[i];
+				var value             = rc[ expectedInputName ] ?: "";
 
-			if ( isMandatory && !Len( Trim( value ) ) ) {
-				return "";
+				if ( isMandatory && !Len( Trim( value ) ) ) {
+					return "";
+				}
+
+				data[ rows[ i ] ] = value;
 			}
-
-			data.append( value );
 		}
 
 		return SerializeJson( data );
@@ -67,7 +63,7 @@ component {
 
 		for( var row in rows ) {
 			if ( !IsEmpty( Trim( row ) ) ) {
-				columns.append( ListAppend( itemName, row, ": " ) );
+				columns.append( itemName & ": " & row );
 			}
 		}
 
@@ -76,25 +72,19 @@ component {
 
 // private helpers
 	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
-		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : [];
+		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
 		var itemConfig = args.itemConfiguration ?: {};
 		var rows       = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
 		var answers    = [];
 
-		for( var i=rows.len(); i>0; i-- ) {
-			if ( IsEmpty( Trim( rows[i] ) ) ) {
-				rows.deleteAt( i );
-			}
-		}
-
 		for( var i=1; i <= rows.len(); i++ ) {
-			var qAndA = { question=rows[i], answer="" };
 
-			if ( IsArray( response ) && response.len() >= i ) {
-				qAndA.answer = ListChangeDelims( response[i], ", " );
+			if ( Len( Trim( rows[ i ] ) ) ) {
+				answers.append( {
+					  question = rows[i]
+					, answer   = ListChangeDelims( ( response[ rows[i] ] ?: "" ), ", " )
+				} );
 			}
-
-			answers.append( qAndA );
 		}
 
 		return answers;
