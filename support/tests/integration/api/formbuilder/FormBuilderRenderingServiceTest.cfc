@@ -194,6 +194,35 @@ component extends="testbox.system.BaseSpec"{
 				expect( viewlet ).toBe( "formbuilder.layouts.form.default" );
 			} );
 		} );
+
+		describe( "getItemTypeExportColumns", function(){
+			it( "should return the result of 'getExportColumns' handler action for the item types handler, when it exists", function(){
+				var service       = getService();
+				var handler       = "formbuilder.item-types.myitemtype.getExportColumns";
+				var configuration = { test="fubar", label="blah" };
+				var columns       = [ "column 1", "column 2" ];
+
+				mockColdbox.$( "handlerExists" ).$args( handler ).$results( true );
+				mockColdbox.$( "runEvent" ).$args( event=handler, private=true, prepostExempt=true, eventArguments={ args=configuration } ).$results( columns );
+
+				expect(
+					service.getItemTypeExportColumns( itemType="myitemtype", configuration=configuration )
+				).toBe( columns );
+			} );
+
+			it( "should return the configured label of the item when no custom export columns handler action exists for the item type", function(){
+				var service       = getService();
+				var handler       = "formbuilder.item-types.testtype.getExportColumns";
+				var configuration = { test="fubar", label="blah" };
+				var columns       = [ "column 1", "column 2" ];
+
+				mockColdbox.$( "handlerExists" ).$args( handler ).$results( false );
+
+				expect(
+					service.getItemTypeExportColumns( itemType="testtype", configuration=configuration )
+				).toBe( [ configuration.label ] );
+			} );
+		} );
 	}
 
 	private function getService() {

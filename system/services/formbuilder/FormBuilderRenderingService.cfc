@@ -144,6 +144,31 @@
 		return "formbuilder.layouts.form.default";
 	}
 
+	/**
+	 * Returns an array of column names that the item type will need when rendering
+	 * and excel export of responses.
+	 *
+	 * @autodoc
+	 * @itemType.hint      The item type, e.g. 'select'
+	 * @configuration.hint The stored configuration options for the item within the form
+	 *
+	 */
+	public array function getItemTypeExportColumns( required string itemType, required struct configuration ) {
+		var customHandler = "formbuilder.item-types.#arguments.itemType#.getExportColumns";
+		var cbController  = $getColdbox();
+
+		if ( cbController.handlerExists( customHandler ) ) {
+			return cbController.runEvent(
+				  event          = customHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = { args=arguments.configuration }
+			);
+		}
+
+		return [ ( arguments.configuration.label ?: "" ) ];
+	}
+
  // GETTERS AND SETTERS
 	private any function _getViewletsService() {
 		return _viewletsService;
