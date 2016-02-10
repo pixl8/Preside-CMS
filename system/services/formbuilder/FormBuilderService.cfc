@@ -531,9 +531,10 @@ component {
 			var itemName = item.configuration.name ?: "";
 			if ( item.type.isFormField && Len( Trim( itemName ) ) ) {
 				var itemValue = getItemDataFromRequest(
-					  itemType    = item.type.id
-					, inputName   = itemName
-					, requestData = arguments.requestData
+					  itemType          = item.type.id
+					, inputName         = itemName
+					, requestData       = arguments.requestData
+					, itemConfiguration = item.configuration
 				);
 
 				if ( !IsNull( itemValue ) ) {
@@ -551,15 +552,17 @@ component {
 	 * is defined for the item type in the process.
 	 *
 	 * @autodoc
-	 * @itemType.hint    The type ID of the item
-	 * @inputName.hint   The configured input name of the item
-	 * @requestData.hint The submitted data to the request
+	 * @itemType.hint          The type ID of the item
+	 * @inputName.hint         The configured input name of the item
+	 * @requestData.hint       The submitted data to the request
+	 * @itemConfiguration.hint Configuration data associated with the item
 	 *
 	 */
 	public any function getItemDataFromRequest(
 		  required string itemType
 		, required string inputName
 		, required struct requestData
+		, required struct itemConfiguration
 	) {
 		var processorHandler = "formbuilder.item-types.#arguments.itemType#.getItemDataFromRequest";
 		var coldbox          = $getColdbox();
@@ -569,7 +572,7 @@ component {
 				  event          = processorHandler
 				, private        = true
 				, prePostExempt  = true
-				, eventArguments = { args={ inputName=arguments.inputName, requestData=requestData } }
+				, eventArguments = { args={ inputName=arguments.inputName, requestData=requestData, itemConfiguration=arguments.itemConfiguration } }
 			);
 		}
 

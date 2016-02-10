@@ -17,15 +17,86 @@ component {
 	}
 
 	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
-	    var inputName = args.inputName ?: "";
-	    var returnData = "";
+		var inputName   = args.inputName ?: "";
+		var itemConfig  = args.itemConfiguration ?: {};
+		var rows        = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
+		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
+		var data        = [];
 
-	    for ( key in rc ){
-	    	if ( findNoCase( inputName, key ) ){
-	    		name = replaceNoCase( key, inputName&"_", "", "All" );
-	    		returnData = listAppend( returnData, name&" - "&rc[ inputName & "_" &name ] );
-	    	}
-	    }
-	    return returnData;
+		for( var i=rows.len(); i>0; i-- ) {
+			if ( IsEmpty( Trim( rows[i] ) ) ) {
+				rows.deleteAt( i );
+			}
+		}
+
+		for( var i=1; i <= rows.len(); i++ ) {
+			var expectedInputName = inputName & "_" & rows[i];
+			var value             = rc[ expectedInputName ] ?: "";
+
+			if ( isMandatory && !Len( Trim( value ) ) ) {
+				return "";
+			}
+
+			data.append( value );
+		}
+
+		return SerializeJson( data );
+	}
+
+	private string function renderResponse( event, rc, prc, args={} ) {
+		var qAndA = _getQuestionsAndAnswers( argumentCollection=arguments );
+
+		return renderView( view="/formbuilder/item-types/matrix/renderResponse", args={ answers=qAndA } );
+	}
+
+	private array function renderResponseForExport( event, rc, prc, args={} ) {
+		var qAndA = _getQuestionsAndAnswers( argumentCollection=arguments );
+		var justAnswers = [];
+
+		for( qa in qAndA ) {
+			justAnswers.append( qa.answer );
+		}
+
+		return justAnswers;
+	}
+
+	private array function getExportColumns( event, rc, prc, args={} ) {
+		var rows       = ListToArray( args.rows ?: "", Chr(10) & Chr(13) );
+		var columns    = [];
+		var itemName   = args.label ?: "";
+
+		for( var row in rows ) {
+			if ( !IsEmpty( Trim( row ) ) ) {
+				columns.append( ListAppend( itemName, row, ": " ) );
+			}
+		}
+
+		return columns;
+	}
+
+// private helpers
+	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
+		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : [];
+		var itemConfig = args.itemConfiguration ?: {};
+		var rows       = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
+		var answers    = [];
+
+		for( var i=rows.len(); i>0; i-- ) {
+			if ( IsEmpty( Trim( rows[i] ) ) ) {
+				rows.deleteAt( i );
+			}
+		}
+
+		for( var i=1; i <= rows.len(); i++ ) {
+			var qAndA = { question=rows[i], answer="" };
+
+			if ( IsArray( response ) && response.len() >= i ) {
+				qAndA.answer = ListChangeDelims( response[i], ", " );
+			}
+
+			answers.append( qAndA );
+		}
+
+		return answers;
 	}
 }
