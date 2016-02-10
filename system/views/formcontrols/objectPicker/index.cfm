@@ -1,29 +1,31 @@
 <cfscript>
-	object              = args.object           ?: "";
-	inputName           = args.name             ?: "";
-	inputId             = args.id               ?: "";
-	inputClass          = args.class            ?: "";
-	placeholder         = args.placeholder      ?: "";
-	placeholder         = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
-	defaultValue        = args.defaultValue     ?: "";
-	sortable            = args.sortable         ?: "";
-	ajax                = args.ajax             ?: true;
-	remoteUrl           = args.remoteUrl        ?: "";
-	prefetchUrl         = args.prefetchUrl      ?: "";
-	records             = args.records          ?: QueryNew('');
-	searchable          = args.searchable       ?: true;
-	multiple            = args.multiple         ?: false;
-	extraClasses        = args.extraClasses     ?: "";
-	resultTemplate      = args.resultTemplate   ?: "{{text}}";
-	selectedTemplate    = args.selectedTemplate ?: "{{text}}";
-	disabledValues      = args.disabledValues   ?: "";
-	quickAdd            = args.quickAdd         ?: false;
-	quickAddUrl         = args.quickAddUrl      ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#" );
-	quickAddModalTitle  = translateResource( args.quickAddModalTitle ?: "cms:datamanager.quick.add.modal.title" );
-	quickEdit           = args.quickEdit         ?: false;
+	object              	= args.object           ?: "";
+	inputName           	= args.name             ?: "";
+	inputId             	= args.id               ?: "";
+	inputClass          	= args.class            ?: "";
+	placeholder         	= args.placeholder      ?: "";
+	placeholder         	= HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
+	defaultValue        	= args.defaultValue     ?: "";
+	sortable            	= args.sortable         ?: "";
+	ajax                	= args.ajax             ?: true;
+	remoteUrl           	= args.remoteUrl        ?: "";
+	prefetchUrl         	= args.prefetchUrl      ?: "";
+	records             	= args.records          ?: QueryNew('');
+	searchable          	= args.searchable       ?: true;
+	multiple            	= args.multiple         ?: false;
+	extraClasses        	= args.extraClasses     ?: "";
+	resultTemplate      	= args.resultTemplate   ?: "{{text}}";
+	selectedTemplate    	= args.selectedTemplate ?: "{{text}}";
+	disabledValues      	= args.disabledValues   ?: "";
+	quickAdd            	= args.quickAdd         ?: false;
+	quickAddUrl         	= args.quickAddUrl      ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#" );
+	quickAddModalTitle  	= translateResource( args.quickAddModalTitle ?: "cms:datamanager.quick.add.modal.title" );
+	quickEdit           	= args.quickEdit        					 ?: false;
+	removeObjectPickerClass	= args.removeObjectPickerClass     			 ?: false;
+	objectPickerClass  		= removeObjectPickerClass					 ?  "" : "object-picker" ;
 
-	resultTemplateId   = Len( Trim( resultTemplate ) ) ? "result_template_" & CreateUUId() : "";
-	selectedTemplateId = Len( Trim( selectedTemplate ) ) ? "selected_template_" & CreateUUId() : "";
+	resultTemplateId   		= Len( Trim( resultTemplate ) ) 			 ? "result_template_" & CreateUUId() : "";
+	selectedTemplateId 		= Len( Trim( selectedTemplate ) ) 			 ? "selected_template_" & CreateUUId() : "";
 
 	value = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -60,7 +62,7 @@
 	<cfif Len( Trim( selectedTemplate ) ) >
 		<script type="text/mustache" id="#selectedTemplateId#">#selectedTemplate#</script>
 	</cfif>
-	<select class="#inputClass# object-picker #extraClasses#"
+	<select class="#inputClass# #objectPickerClass# #extraClasses#"
 	        name="#inputName#"
 	        id="#inputId#"
 	        tabindex="#getNextTabIndex()#"

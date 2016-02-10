@@ -8,19 +8,31 @@ if ( typeof window.jQuery !== "undefined" ) {
 				  , submitHandler
 				  , successHandler
 				  , errorHandler;
-
+				var fileFields='';
+				$.each($form.find('input[type=file]'),function(key,value){
+					if(fileFields.length){
+						fileFields=fileFields+',';
+					}
+					fileFields=fileFields+value.name;
+				});
+				if(fileFields.length){
+					$form.append("<input type='hidden' name='fileFields' value='"+fileFields+"' >");
+				}
 				submitHandler = function( e ){
 					e.preventDefault();
 					if ( useJqueryValidate && !$form.valid() ) {
 						return;
 					}
-
+					var formData = new FormData($(this)[0]);
 					$.ajax( submissionEndpoint, {
 						  method  : "POST"
 						, cache   : false
-						, data    : $form.serialize()
+						, data    : formData
 						, success : successHandler
 						, error   : errorHandler
+						, async	  : false
+						, contentType: false
+						, processData: false
 					} );
 				};
 

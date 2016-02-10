@@ -3,6 +3,7 @@ component {
 	property name="formBuilderService"           inject="formBuilderService";
 	property name="formBuilderValidationService" inject="formBuilderValidationService";
 	property name="validationEngine"             inject="validationEngine";
+	property name="storageProvider" 			 inject="formBuilderStorageProvider";
 
 	public any function submitAction( event, rc, prc ) {
 		var formId       = rc.form ?: "";
@@ -11,7 +12,16 @@ component {
 		if ( !validRequest ) {
 			event.notFound();
 		}
-
+		if( structKeyExists( rc, "fileFields" ) ){
+			for ( fileFieldName in rc.fileFields ){
+				if( len( rc[ fileFieldName ] ) ){
+					var fileName = GetPageContext().formScope().getUploadResource( fileFieldName ).getName();
+					var uniqueFilename = '/form-'& formId & '/' & createUUID() & '_' & fileName;
+					storageProvider.putObject( object = rc[fileFieldName], path = uniqueFilename );
+					rc[fileFieldName] = uniqueFilename;
+				}
+			}
+		}
 		var submission       = event.getCollectionWithoutSystemVars();
 		var validationResult = formBuilderService.saveFormSubmission(
 			  formId      = formId
