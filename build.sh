@@ -24,6 +24,8 @@ echo "Installing dependencies via box.json...";
 echo "";
 
 box install --force
+rm -rf ./system/externals/lucee-spreadsheet/javaLoader
+rm -rf ./system/externals/lucee-spreadsheet/test
 
 echo "";
 echo "Running tests (please be patient, expect this to take several minutes)...";
