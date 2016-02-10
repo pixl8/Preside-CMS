@@ -1,7 +1,7 @@
 component {
 	property name="assetManagerService"      inject="assetManagerService";
 
-	private any function renderresponse( event, rc, prc, args={} ) {
+	private any function renderResponse( event, rc, prc, args={} ) {
 		fileName = listrest (args.response , '_' );
 		args.response = event.buildLink(
 			fileStorageProvider = 'formBuilderStorageProvider',
