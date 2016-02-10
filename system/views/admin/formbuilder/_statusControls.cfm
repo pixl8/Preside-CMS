@@ -56,6 +56,15 @@
 					)#
 				</cfif>
 			</label>
+
+			<label>
+				<a href="#event.buildAdminLink( linkto='formbuilder.exportSubmissions', queryString='formid=' & formId )#" title="#HtmlEditFormat( translateResource( 'formbuilder:excel.download.link' ) )#">
+					<span class="fa-stack fa-lg green">
+						<i class="fa fa-circle fa-stack-2x"></i>
+						<i class="fa fa-cloud-download fa-stack-1x fa-inverse"></i>
+					</span>
+				</a>
+			</label>
 		</div>
 	</div>
 </cfoutput>

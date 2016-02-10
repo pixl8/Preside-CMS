@@ -12,11 +12,6 @@
 
 		<div class="tab-content">
 			<div class="tab-pane active">
-				<div class="pull-right">
-					<a href="#event.buildAdminLink( linkto='formbuilder.exportSubmissions', queryString='formid=' & formId )#">Download xls</a>
-				</div>
-
-
 				#renderView( view="/admin/datamanager/_objectDataTable", args={
 					  objectName      = "formbuilder_formsubmission"
 					, useMultiActions = canDelete
