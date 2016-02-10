@@ -1,5 +1,17 @@
 component {
 	property name="assetManagerService"      inject="assetManagerService";
+
+	private any function renderresponse( event, rc, prc, args={} ) {
+		fileName = listrest (args.response , '_' );
+		args.response = event.buildLink(
+			fileStorageProvider = 'formBuilderStorageProvider',
+			fileStoragePath     = args.response);
+
+		checkDowbloadOption = len(trim(fileName)) ? '<a target="_blank" href="#args.response#"><i class="fa fa-fw fa-download blue"></i> #trim(fileName)#</a>' : translateResource( "cms:datatables.emptyTable" );
+
+		return checkDowbloadOption;
+	}
+
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
 		if ( Len( Trim( args.accept ) ) ) {

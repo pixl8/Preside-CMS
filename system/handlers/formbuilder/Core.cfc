@@ -13,11 +13,13 @@ component {
 			event.notFound();
 		}
 		if( structKeyExists( rc, "fileFields" ) ){
-			for (fileFieldName in rc.fileFields){
-				var fileName = GetPageContext().formScope().getUploadResource(fileFieldName).getName();
-				var path = formId & '/' & createUUID() & '--' & fileName;
-				storageProvider.putObject( object=rc[fileFieldName], path=path );
-				rc[fileFieldName] = listLast(path,'/');
+			for ( fileFieldName in rc.fileFields ){
+				if( len( rc[ fileFieldName ] ) ){
+					var fileName = GetPageContext().formScope().getUploadResource( fileFieldName ).getName();
+					var uniqueFilename = '/form-'& formId & '/' & createUUID() & '_' & fileName;
+					storageProvider.putObject( object = rc[fileFieldName], path = uniqueFilename );
+					rc[fileFieldName] = uniqueFilename;
+				}
 			}
 		}
 		var submission       = event.getCollectionWithoutSystemVars();
