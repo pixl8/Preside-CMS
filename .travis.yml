@@ -13,6 +13,7 @@ before_install:
 install:
 - curl --location 'https://www.ortussolutions.com/parent/download/commandbox/type/bin' -o /tmp/box.zip
 - unzip /tmp/box.zip -d /tmp/bin
+- sed -i "s/java_args='-client'/java_args='-Xmx512m -client'/" /tmp/bin/box
 - gem install s3_website
 before_script:
 - mysql -e 'create database preside_test;'
