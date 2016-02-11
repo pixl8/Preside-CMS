@@ -24,16 +24,17 @@
 	<cfloop array="#values#" index="i" item="selectValue">
 		<cfset selected   = ListFindNoCase( value, selectValue ) />
 		<cfset valueFound = valueFound || selected />
-
-		<label class="checkbox-inline">
-			<input type="checkbox"
+		<div class="checkbox">
+		  	<label>
+		  		<input type="checkbox"
 				   class="#inputClass# #extraClasses#"
 				   name="#inputName#"
 				   id="#inputId#"
 				   tabindex="#getNextTabIndex()#"
 				   value="#HtmlEditFormat( selectValue )#" <cfif selected> checked="checked"</cfif> >
 				   #HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
-		</label>
+		  	</label>
+		</div>
 		</cfloop>
 	</select>
 </cfoutput>

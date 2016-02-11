@@ -2,8 +2,9 @@
 <form i18nBaseUri="formbuilder.item-types.matrix:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="Rows"   control="textarea"   required="false" sortorder="34" defaultvalue="" />
-			<field name="Columns"   control="textarea"   required="false" sortorder="36" defaultvalue="" />
+			<field name="Rows" control="textarea"   required="false" sortorder="34" defaultvalue="" />
+			<field name="Columns" control="textarea"   required="false" sortorder="36" defaultvalue="" />
+			<field name="option" control="select" values="checkbox,radio" labels="Checkbox,Radio" required="true" sortorder="38"/>
 		</fieldset>
 	</tab>
 </form>
