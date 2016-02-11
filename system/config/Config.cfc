@@ -523,6 +523,7 @@ component output=false {
 			  spacer    = { isFormField=false }
 			, content   = { isFormField=false }
 		} };
+		fbSettings.actions = [ "email" ];
 
 		return fbSettings;
 	}
