@@ -18,6 +18,37 @@ component {
 
 	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
 	    var inputName = args.inputName ?: "";
-	    return "Form - " &rc[ inputName & "_from" ]&" , To - " & rc[ inputName & "_to"   ];
+	    var dateFrom  = rc[ inputName & "_from" ] ?: "";
+	    var dateTo    = rc[ inputName & "_from" ] ?: "";
+
+	    if ( IsDate( dateFrom ) && IsDate( dateTo ) ) {
+	    	return SerializeJson( { from=dateFrom, to=dateTo } );
+	    }
+
+	    return "";
+	}
+
+	private string function renderResponse( event, rc, prc, args={} ) {
+		var response = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
+		var dateFrom = IsDate( response.from ?: "" ) ? DateFormat( response.from, "yyyy-mm-dd" ) : "";
+		var dateTo   = IsDate( response.to   ?: "" ) ? DateFormat( response.to  , "yyyy-mm-dd" ) : "";
+
+		return renderView( view="/formbuilder/item-types/daterange/renderResponse", args={ dateFrom=dateFrom, dateTo=dateTo } );
+	}
+
+	private array function renderResponseForExport( event, rc, prc, args={} ) {
+		var response = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
+		var dateFrom = IsDate( response.from ?: "" ) ? DateFormat( response.from, "yyyy-mm-dd" ) : "";
+		var dateTo   = IsDate( response.to   ?: "" ) ? DateFormat( response.to  , "yyyy-mm-dd" ) : "";
+
+		return [ dateFrom, dateTo ];
+	}
+
+	private array function getExportColumns( event, rc, prc, args={} ) {
+		var fieldLabel  = args.label ?: "";
+		var fromColumn  = translateResource( uri="formbuilder.item-types.daterange:date.from.column.name", data=[ fieldLabel ]);
+		var toColumn    = translateResource( uri="formbuilder.item-types.daterange:date.to.column.name"  , data=[ fieldLabel ]);
+
+		return [ fromColumn, toColumn ];
 	}
 }

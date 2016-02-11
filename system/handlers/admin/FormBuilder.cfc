@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
 	property name="itemTypesService"            inject="formBuilderItemTypesService";
 	property name="messagebox"                  inject="coldbox:plugin:messagebox";
+	property name="spreadsheetLib"              inject="spreadsheetLib";
 
 
 // PRE-HANDLER
@@ -185,6 +186,19 @@ component extends="preside.system.base.AdminHandler" {
 		event.noLayout();
 	}
 
+	public void function exportSubmissions( event, rc, prc ) {
+		var formId   = rc.formId ?: "";
+		var theForm  = formBuilderService.getForm( formId );
+
+		if ( !theForm.recordCount ) {
+			event.adminNotFound();
+		}
+
+		var fileName = LCase( ReReplace( theForm.name, "[\W]", "_", "all" ) ) & "_" & DateTimeFormat( Now(), "yyyymmdd_HHnn" ) & ".xls";
+		var workbook = formBuilderService.exportResponsesToExcel( rc.formId ?: "" );
+
+		spreadsheetLib.download( workbook, fileName );
+	}
 
 // DOING STUFF ACTIONS
 	public void function addFormAction( event, rc, prc ) {
@@ -330,6 +344,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & formId ) );
 	}
+
 
 
 // AJAXY ACTIONS

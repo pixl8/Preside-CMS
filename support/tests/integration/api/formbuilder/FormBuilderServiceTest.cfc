@@ -735,9 +735,9 @@ component extends="testbox.system.BaseSpec"{
 				var expectedOutput = { test2=processed.test2, test4=processed.test4 };
 
 				service.$( "getFormItems" ).$args( id=formId ).$results( items );
-				service.$( "getItemDataFromRequest" ).$args( itemType="type2", inputName="test2", requestData=input ).$results( processed.test2 );
-				service.$( "getItemDataFromRequest" ).$args( itemType="type3", inputName="test3", requestData=input ).$results( NullValue() );
-				service.$( "getItemDataFromRequest" ).$args( itemType="type4", inputName="test4", requestData=input ).$results( processed.test4 );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type2", inputName="test2", requestData=input, itemConfiguration=items[2].configuration ).$results( processed.test2 );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type3", inputName="test3", requestData=input, itemConfiguration=items[3].configuration ).$results( NullValue() );
+				service.$( "getItemDataFromRequest" ).$args( itemType="type4", inputName="test4", requestData=input, itemConfiguration=items[4].configuration ).$results( processed.test4 );
 
 				expect(
 					service.getRequestDataForForm(
@@ -940,6 +940,7 @@ component extends="testbox.system.BaseSpec"{
 				var inputName   = "stuffs";
 				var requestData = { test=CreateUUId(), something=false };
 				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
+				var config      = { test=CreateUUId() };
 				var result      = CreateUUId();
 
 				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( true );
@@ -947,14 +948,15 @@ component extends="testbox.system.BaseSpec"{
 					  event          = handlerName
 					, private        = true
 					, prepostExempt  = true
-					, eventArguments = { args={ inputName=inputName, requestData=requestData } }
+					, eventArguments = { args={ inputName=inputName, requestData=requestData, itemConfiguration=config } }
 				).$results( result );
 
 				expect(
 					service.getItemDataFromRequest(
-						  itemType    = itemType
-						, inputName   = inputName
-						, requestData = requestData
+						  itemType          = itemType
+						, inputName         = inputName
+						, requestData       = requestData
+						, itemConfiguration = config
 					)
 				).toBe( result );
 			} );
@@ -964,6 +966,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemType    = "test";
 				var inputName   = "test";
 				var requestData = { test=CreateUUId(), something=false };
+				var config      = { test=CreateUUId() };
 				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
 
 				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( false );
@@ -973,6 +976,7 @@ component extends="testbox.system.BaseSpec"{
 						  itemType    = itemType
 						, inputName   = inputName
 						, requestData = requestData
+						, itemConfiguration = config
 					)
 				).toBe( requestData[ inputName ] );
 			} );
@@ -982,6 +986,7 @@ component extends="testbox.system.BaseSpec"{
 				var itemType    = "test";
 				var inputName   = "whateverthisisatest";
 				var requestData = { test=CreateUUId(), something=false };
+				var config      = { test=CreateUUId() };
 				var handlerName = "formbuilder.item-types.#itemType#.getItemDataFromRequest";
 
 				mockColdbox.$( "handlerExists" ).$args( handlerName ).$results( false );
@@ -991,6 +996,7 @@ component extends="testbox.system.BaseSpec"{
 						  itemType    = itemType
 						, inputName   = inputName
 						, requestData = requestData
+						, itemConfiguration = config
 					)
 				).toBeNull();
 			} );
@@ -1003,6 +1009,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockFormItemDao                  = CreateStub();
 		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockColdbox                      = CreateStub();
+		variables.mockSpreadsheetLib               = CreateStub();
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
 		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
@@ -1015,6 +1022,7 @@ component extends="testbox.system.BaseSpec"{
 			, formsService                 = mockFormsService
 			, formBuilderValidationService = mockFormBuilderValidationService
 			, validationEngine             = mockValidationEngine
+			, spreadsheetLib               = mockSpreadsheetLib
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );

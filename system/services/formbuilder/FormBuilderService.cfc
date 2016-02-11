@@ -14,6 +14,7 @@ component {
 	 * @formBuilderValidationService.inject formBuilderValidationService
 	 * @formsService.inject                 formsService
 	 * @validationEngine.inject             validationEngine
+	 * @spreadsheetLib.inject               spreadsheetLib
 	 *
 	 */
 	public any function init(
@@ -22,12 +23,14 @@ component {
 		, required any formBuilderValidationService
 		, required any formsService
 		, required any validationEngine
+		, required any spreadsheetLib
 	) {
 		_setItemTypesService( arguments.itemTypesService );
 		_setFormBuilderRenderingService( arguments.formBuilderRenderingService );
 		_setFormBuilderValidationService( arguments.formBuilderValidationService );
 		_setFormsService( arguments.formsService );
 		_setValidationEngine( arguments.validationEngine );
+		_setSpreadsheetLib( arguments.spreadsheetLib );
 
 		return this;
 	}
@@ -486,7 +489,7 @@ component {
 
 		return $renderViewlet( event=viewlet, args={
 			  response          = arguments.inputValue
-			, itemConfiguration = itemConfiguration = item.configuration
+			, itemConfiguration = item.configuration
 		} );
 	}
 
@@ -528,9 +531,10 @@ component {
 			var itemName = item.configuration.name ?: "";
 			if ( item.type.isFormField && Len( Trim( itemName ) ) ) {
 				var itemValue = getItemDataFromRequest(
-					  itemType    = item.type.id
-					, inputName   = itemName
-					, requestData = arguments.requestData
+					  itemType          = item.type.id
+					, inputName         = itemName
+					, requestData       = arguments.requestData
+					, itemConfiguration = item.configuration
 				);
 
 				if ( !IsNull( itemValue ) ) {
@@ -548,15 +552,17 @@ component {
 	 * is defined for the item type in the process.
 	 *
 	 * @autodoc
-	 * @itemType.hint    The type ID of the item
-	 * @inputName.hint   The configured input name of the item
-	 * @requestData.hint The submitted data to the request
+	 * @itemType.hint          The type ID of the item
+	 * @inputName.hint         The configured input name of the item
+	 * @requestData.hint       The submitted data to the request
+	 * @itemConfiguration.hint Configuration data associated with the item
 	 *
 	 */
 	public any function getItemDataFromRequest(
 		  required string itemType
 		, required string inputName
 		, required struct requestData
+		, required struct itemConfiguration
 	) {
 		var processorHandler = "formbuilder.item-types.#arguments.itemType#.getItemDataFromRequest";
 		var coldbox          = $getColdbox();
@@ -566,7 +572,7 @@ component {
 				  event          = processorHandler
 				, private        = true
 				, prePostExempt  = true
-				, eventArguments = { args={ inputName=arguments.inputName, requestData=requestData } }
+				, eventArguments = { args={ inputName=arguments.inputName, requestData=requestData, itemConfiguration=arguments.itemConfiguration } }
 			);
 		}
 
@@ -734,6 +740,99 @@ component {
 		);
 	}
 
+	/**
+	 * Exports the responses to the given form to an excel spreadsheet. Returns
+	 * a workbook object (see [[spreadsheets]]).
+	 *
+	 * @autodoc
+	 * @formid.hint ID of the form you wish to produce spreadsheet for
+	 *
+	 */
+	public any function exportResponsesToExcel( required string formId ) {
+		var formDefinition = getForm( arguments.formId );
+
+		if ( !formDefinition.recordCount ) {
+			return;
+		}
+
+		var renderingService = _getFormBuilderRenderingService();
+		var formItems        = getFormItems( arguments.formId );
+		var spreadsheetLib   = _getSpreadsheetLib();
+		var workbook         = spreadsheetLib.new();
+		var headers          = [ "Submission ID", "Submission date", "Submitted by logged in user", "Form instance ID" ];
+		var itemColumnMap    = {};
+		var itemsToRender    = [];
+		var submissions      = $getPresideObject( "formbuilder_formsubmission" ).selectData(
+			  filter  = { form = arguments.formId }
+			, orderBy = "datecreated"
+		);
+
+		for( var i=1; i <= formItems.len(); i++ ) {
+			if ( formItems[i].type.isFormField ) {
+				var columns = renderingService.getItemTypeExportColumns( formItems[i].type.id, formItems[i].configuration );
+
+				if ( columns.len() ) {
+					itemsToRender.append( formItems[i] );
+					itemColumnMap[ formItems[ i ].id ] = columns;
+					headers.append( columns, true );
+
+				}
+			}
+		}
+
+		headers.append( "IP Address" );
+		headers.append( "User agent" );
+
+		spreadsheetLib.renameSheet( workbook, $translateResource( uri="formbuilder:spreadsheet.main.sheet.title", data=[ formDefinition.name ] ), 1 );
+		for( var i=1; i <= headers.len(); i++ ){
+			spreadsheetLib.setCellValue( workbook, headers[i], 1, i );
+		}
+
+		var row = 1;
+		for( var submission in submissions ) {
+			var column = 4;
+			row++;
+			spreadsheetLib.setCellValue( workbook, submission.id, row, 1 );
+			spreadsheetLib.setCellValue( workbook, DateTimeFormat( submission.datecreated, "yyyy-mm-dd HH:nn:ss" ), row, 2 );
+			spreadsheetLib.setCellValue( workbook, submission.submitted_by, row, 3 );
+			spreadsheetLib.setCellValue( workbook, submission.form_instance, row, 4 );
+
+			if ( itemsToRender.len() ) {
+				var data   = DeSerializeJson( submission.submitted_data );
+				for( item in itemsToRender ) {
+					var viewlet = _getFormBuilderRenderingService().getItemTypeViewlet(
+						  itemType = item.type.id
+						, context  = "responseForExport"
+					);
+					var itemColumns = $renderViewlet( event=viewlet, args={
+						  response          = data[ item.configuration.name ?: "" ] ?: ""
+						, itemConfiguration = item.configuration
+					} );
+					var mappedColumns = itemColumnMap[ item.id ];
+
+					for( var i=1; i<=mappedColumns.len(); i++ ) {
+						if ( itemColumns.len() >= i ) {
+							spreadsheetLib.setCellValue( workbook, itemColumns[ i ], row, ++column );
+						} else {
+							spreadsheetLib.setCellValue( workbook, "", row, ++column );
+						}
+					}
+				}
+			}
+
+			spreadsheetLib.setCellValue( workbook, submission.ip_address, row, ++column );
+			spreadsheetLib.setCellValue( workbook, submission.user_agent, row, ++column );
+		}
+
+		spreadsheetLib.formatRow( workbook, { bold=true }, 1 );
+		spreadsheetLib.addFreezePane( workbook, 0, 1 );
+		for( var i=1; i <= headers.len(); i++ ){
+			spreadsheetLib.autoSizeColumn( workbook, i );
+		}
+
+		return workbook;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
@@ -805,5 +904,12 @@ component {
 	}
 	private void function _setFormBuilderValidationService( required any formBuilderValidationService ) {
 		_formBuilderValidationService = arguments.formBuilderValidationService;
+	}
+
+	private any function _getSpreadsheetLib() {
+		return _spreadsheetLib;
+	}
+	private void function _setSpreadsheetLib( required any spreadsheetLib ) {
+		_spreadsheetLib = arguments.spreadsheetLib;
 	}
 }
