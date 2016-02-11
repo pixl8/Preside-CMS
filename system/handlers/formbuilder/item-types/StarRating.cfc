@@ -14,6 +14,7 @@ component {
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, values             = args.Values
+			, halfStar           = args.halfStar ?: 0
 			, required           = IsTrue( args.mandatory ?: "" )
 		);
 	}

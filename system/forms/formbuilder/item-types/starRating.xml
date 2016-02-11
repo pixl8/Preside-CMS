@@ -2,7 +2,8 @@
 <form i18nBaseUri="formbuilder.item-types.starRatting:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="Values" control="spinner" required="false" sortorder="36" defaultvalue="0" />
+			<field name="Values"   control="spinner"     required="false" sortorder="36" defaultvalue="5" />
+			<field name="HalfStar" control="yesnoswitch" required="false" sortorder="36" />
 		</fieldset>
 	</tab>
 </form>
