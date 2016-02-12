@@ -124,6 +124,30 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function actions( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
+		prc.form = formBuilderService.getForm( rc.id ?: "" );
+
+		if ( !prc.form.recordcount ) {
+			messagebox.error( translateResource( "formbuilder:form.not.found.alert" ) );
+			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
+		}
+
+		prc.pageTitle    = prc.form.name;
+		prc.pageSubtitle = prc.form.description;
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="formbuilder:manageform.breadcrumb.title", data=[ prc.form.name ] )
+			, link  = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & prc.form.id )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="formbuilder:actions.breadcrumb.title", data=[ prc.form.name ] )
+			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryStrign="id=" & prc.form.id )
+		);
+
+	}
+
 	public void function submissions( event, rc, prc ) {
 		prc.form = formBuilderService.getForm( rc.id ?: "" );
 
@@ -440,6 +464,7 @@ component extends="preside.system.base.AdminHandler" {
 		var isLocked = formBuilderService.isFormLocked( formId );
 
 		args.canEdit         = !isLocked && hasCmsPermission( permissionKey="formbuilder.editform" );
+		args.canEditActions  = !isLocked && hasCmsPermission( permissionKey="formbuilder.editformactions" );
 		args.submissionCount = formBuilderService.getSubmissionCount( formId );
 
 		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
