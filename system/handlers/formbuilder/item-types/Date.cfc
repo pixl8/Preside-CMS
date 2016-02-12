@@ -4,13 +4,18 @@ component {
 		var controlName = args.name ?: "";
 		event.include( assetId="/js/frontend/formbuilder/datePicker/" );
 		return renderFormControl(
-			  argumentCollection = arguments
-			, name               = controlName
-			, type               = "datepicker"
-			, context            = "formbuilder"
-			, id                 = args.id ?: controlName
-			, layout             = ""
-			, required           = IsTrue( args.mandatory ?: "" )
+			  argumentCollection 			= arguments
+			, name               			= controlName
+			, type               			= "datepicker"
+			, context            			= "formbuilder"
+			, id                 			= args.id ?: controlName
+			, layout             			= ""
+			, required           			= IsTrue( args.mandatory ?: "" )
+			, minDate            			= args.minDate ?: ""
+			, maxDate                 		= args.maxDate ?: ""
+			, greaterThanCurrentDate        = args.greaterThanCurrentDate 		 ?: ""
+			, greaterThanDateEnteredInField = args.greaterThanDateEnteredInField ?: ""
+			, lessThanDateEnteredInField    = args.lessThanDateEnteredInField 	 ?: ""
 		);
 	}
 }

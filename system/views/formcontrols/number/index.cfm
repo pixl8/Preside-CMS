@@ -8,6 +8,7 @@
 	minValue     = Val( args.minValue ?: 0 );
 	maxValue     = args.maxValue      ?: "";
 	step         = Val( args.step     ?: 1 );
+	currency 	 = args.args.currency ?: "";
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
@@ -18,5 +19,13 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control number" min="#minValue#" max="#maxValue#" step="#step#" size="#Len( maxValue )#" tabindex="#getNextTabIndex()#">
+	<cfif len( currency )>
+		<span class="block input-sign input-sign-right">
+			<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" min="#minValue#" max="#maxValue#" step="#step#" size="#Len( maxValue )#" tabindex="#getNextTabIndex()#">
+			<i class="sign">#currency#</i>
+		</span>
+		<input type="hidden" value="#currency#">
+	<cfelse>
+		<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" min="#minValue#" max="#maxValue#" step="#step#" size="#Len( maxValue )#" tabindex="#getNextTabIndex()#">
+	</cfif>
 </cfoutput>

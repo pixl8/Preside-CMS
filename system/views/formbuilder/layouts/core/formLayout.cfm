@@ -18,6 +18,23 @@
 			if ( typeof jQuery !== 'undefined' ) {
 				( function( $ ){
 					var $form = $('###args.id#');
+					if ( typeof jQuery.validator !== 'undefined' ) {
+						$.validator.addMethod('filesize', function (value, element, param) {
+							var fileSize = element.files[0].size / 1024;
+							var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ;
+							return this.optional(element) || (fileSizeInMB <= param)
+						}, 'File size must be less than {0} MB');
+
+						if($form.find("input[type='file']").length) {
+							$form.validate().settings.ignore = ":file:not(input[type=file])";
+							$("input[type='file']").rules("add", {
+								"filesize": function ()  {
+								return parseInt( $("input[name='maxFileSize']").val() );
+								},
+								messages:{filesize:"File size must be less than {0} MB"}
+							});
+						}
+					}
 					<cfif Len( Trim( args.validationJs ) )>
 						if ( typeof jQuery.validator !== 'undefined' ) {
 							$form.validate( #args.validationJs# );
@@ -30,8 +47,8 @@
 			                           } else {
 			                               return false;
 			                           }
-			                       	}});
-								}
+			                    	}});
+			                    });
 							});
 						}
 					</cfif>

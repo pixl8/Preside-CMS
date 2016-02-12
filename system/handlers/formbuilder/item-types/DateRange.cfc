@@ -13,6 +13,11 @@ component {
 			, fromDateID         = args.id ?: fromDate
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
+			, minDate            = args.minDate ?: ""
+			, maxDate            = args.maxDate ?: ""
+			, greaterThanCurrentDate        = args.greaterThanCurrentDate 		 ?: ""
+			, greaterThanDateEnteredInField = args.greaterThanDateEnteredInField ?: ""
+			, lessThanDateEnteredInField    = args.lessThanDateEnteredInField 	 ?: ""
 		);
 	}
 
