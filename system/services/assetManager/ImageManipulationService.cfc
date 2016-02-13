@@ -80,16 +80,8 @@ component output=false singleton=true {
 		}
 
 		imageInfo = ImageInfo( image );
-		if ( imageInfo.width > arguments.width && imageInfo.height > arguments.height ) {
-			if ( ( imageInfo.width - arguments.width ) > ( imageInfo.height - arguments.height ) ) {
-				ImageScaleToFit( image, arguments.width, "", interpolation );
-			} else {
-				ImageScaleToFit( image, "", arguments.height, interpolation );
-			}
-		} elseif ( imageInfo.width > arguments.width ) {
-			ImageScaleToFit( image, arguments.width, "", interpolation );
-		} elseif ( imageInfo.height > arguments.height ) {
-			ImageScaleToFit( image, "", arguments.height, interpolation );
+		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
+				ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
 		}
 
 		return ImageGetBlob( image );
