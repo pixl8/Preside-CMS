@@ -10,7 +10,7 @@ component {
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, class				 = ""
+			, class				 = "number"
 			, minValue			 = args.minValue
 			, maxValue			 = args.maxValue
 		);

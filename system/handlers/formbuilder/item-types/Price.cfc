@@ -6,13 +6,18 @@ component {
 		return renderFormControl(
 			  argumentCollection = arguments
 			, name               = controlName
-			, type               = "spinner"
+			, type               = "number"
 			, context            = "formbuilder"
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
 			, step				 = 0.01
-			, class				 = "form-control"
+			, class				 = "price"
 		);
+	}
+
+	private string function renderResponse( event, rc, prc, args={} ) {
+		price =  args.response&' '&args.itemConfiguration.currency;
+		return price;
 	}
 }

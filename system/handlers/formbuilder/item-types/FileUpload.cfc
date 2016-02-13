@@ -29,6 +29,7 @@ component {
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
 			, accept			 = extensionList ?: ""
+			, maximumfilesize	 = args.maximumfilesize ?: ""
 		);
 	}
 }

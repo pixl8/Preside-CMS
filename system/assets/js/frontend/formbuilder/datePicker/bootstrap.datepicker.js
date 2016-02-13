@@ -1017,10 +1017,19 @@
 
 if ( typeof window.jQuery !== "undefined" ) {
 	( function( $ ){
-		$('.date-picker')
-				.datepicker( { autoclose:true } )
+		$('.date-picker').each(function() {
+			var ID = $(this).closest('input').attr('id');
+    		var startDateID = $(this).siblings('.startDate').attr('id');
+			var endDateID = $(this).siblings('.endDate').attr('id');
+			$('#'+ID)
+				.datepicker( {
+					 autoclose : true
+					,startDate : new Date($('#'+startDateID).val())
+    				,endDate   : new Date($('#'+endDateID).val())
+					} )
 				.next().on( "click", function(){
 					$(this).prev().focus();
 				});
+		});
 	} )( jQuery );
 }
