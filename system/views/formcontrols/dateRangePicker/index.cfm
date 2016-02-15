@@ -5,13 +5,6 @@
 	inputClass     				  = args.class        ?: "";
 	placeholder    				  = args.placeholder  ?: "";
 	defaultValue   				  = args.defaultValue ?: "";
-	minDate 	 				  = args.minDate 	  ?: "";
-	maxDate 	 				  = args.maxDate 	  ?: "";
-	startDate					  = "";
-	endDate					  	  = "";
-	greaterThanCurrentDate 		  = args.greaterThanCurrentDate 		?: "";
-	greaterThanDateEnteredInField = args.greaterThanDateEnteredInField  ?: "";
-	lessThanDateEnteredInField    = args.lessThanDateEnteredInField 	?: "";
 
 	from  = event.getValue( name=fromDate, defaultValue=defaultValue );
 	if ( not IsSimpleValue( from ) ) {
@@ -43,6 +36,5 @@
 		    <input name="#toDate#" id="#toDate#" type="text" class="#inputClass# form-control date-picker" value="#HtmlEditFormat( to )#" data-date-format="yyyy-mm-dd" tabindex="#getNextTabIndex()#">
 		</div>
 	</div>
-
 </cfoutput>
 
