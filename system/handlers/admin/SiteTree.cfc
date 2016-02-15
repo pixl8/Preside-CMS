@@ -840,6 +840,7 @@ component extends="preside.system.base.AdminHandler" {
 		var parentId = rc.parent   ?: "";
 		var pageType = rc.pageType ?: "";
 
+		prc.gridFields = _getObjectFieldsForGrid( pageType );
 		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
 
 		if ( !Len( Trim( pageType ) ) || !pageTypesService.pageTypeExists( pageType ) || !ListFindNoCase( pageTypesService.getPageType( prc.parentPage.page_type ).getManagedChildTypes(), pageType ) ) {
@@ -863,6 +864,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getManagedPagesForAjaxDataTables( event, rc, prc ) {
 		var parentId = rc.parent   ?: "";
 		var pageType = rc.pageType ?: "";
+		var gridFields = ListToArray( rc.gridFields );
 
 		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
 
@@ -873,9 +875,9 @@ component extends="preside.system.base.AdminHandler" {
 
 		var optionsCol = [];
 		var dtHelper   = getMyPlugin( "JQueryDatatablesHelpers" );
-		var gridFields = [ "title", "active", "datecreated" ];
 		var results    = siteTreeService.getManagedChildrenForDataTable(
-			  parentId     = parentId
+			  objectName   = pageType
+			, parentId     = parentId
 			, pageType     = pageType
 			, selectFields = gridFields
 			, startRow     = dtHelper.getStartRow()
@@ -888,9 +890,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( "page", field, record[ field ], [ "adminDataTable", "admin" ] );
+				records[ field ][ records.currentRow ] = renderField( pageType, field, record[ field ], [ "adminDataTable", "admin" ] );
 			}
 			var args = record;
+			args.title 			= record[ gridFields[1] ];
 			args.canEdit        = _checkPermissions( argumentCollection=arguments, key="edit"        , pageId=args.id, throwOnError=false );
 			args.canDelete      = _checkPermissions( argumentCollection=arguments, key="delete"      , pageId=args.id, throwOnError=false );
 			args.canViewHistory = _checkPermissions( argumentCollection=arguments, key="viewversions", pageId=args.id, throwOnError=false );
@@ -1023,5 +1026,9 @@ component extends="preside.system.base.AdminHandler" {
 			  title = arguments.pageTitle
 			, link  = event.buildAdminLink( linkto="sitetree.editpage", queryString="id=" & arguments.pageId )
 		);
+	}
+
+	private array function _getObjectFieldsForGrid( required string objectName ) {
+		return siteTreeService.listGridFields( arguments.objectName );
 	}
 }

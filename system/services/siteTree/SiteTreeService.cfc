@@ -309,6 +309,7 @@ component singleton=true {
 	public struct function getManagedChildrenForDataTable(
 		  required string  parentId
 		  required string  pageType
+		, required string  objectName
 		,          array   selectFields = []
 		,          numeric startRow     = 1
 		,          numeric maxRows      = 10
@@ -317,10 +318,8 @@ component singleton=true {
 	) {
 		var result = {};
 		var args = {
-			  objectName   = "page"
-			, filter       = "parent_page = :parent_page and page_type = :page_type and trashed = :trashed"
-			, filterParams = { parent_page=arguments.parentId, page_type=arguments.pageType, trashed=false }
-			, selectFields = arguments.selectFields
+			  objectName   = arguments.objectName
+			, selectFields = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
 			, maxRows      = arguments.maxRows
 			, startRow     = arguments.startRow
 			, orderBy      = arguments.orderBy
@@ -1069,6 +1068,72 @@ component singleton=true {
 
 	private string function _paddedSortOrder( required numeric sortOrder ) {
 		return NumberFormat( arguments.sortOrder, '000000' );
+	}
+
+	public array function listGridFields( required string objectName ) {
+		var fields = _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "sitetreeGridFields"
+			, defaultValue  = "id,datecreated,datemodified"
+		);
+
+		return ListToArray( fields );
+	}
+
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
+		var sqlFields          = Duplicate( arguments.gridFields );
+		var field              = "";
+		var i                  = "";
+		var props              = _getPresideObjectService().getObjectProperties( arguments.objectName );
+		var prop               = "";
+		var objName            = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
+		var labelField         = _getPresideObjectService().getObjectAttribute( objName, "labelField", "label" );
+		var replacedLabelField = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
+
+		sqlFields.delete( "id" );
+		sqlFields.append( "#objName#.id" );
+		if ( sqlFields.find( labelField ) ) {
+			sqlFields.delete( labelField );
+			sqlFields.append( replacedLabelField );
+		}
+
+		// ensure all fields are valid + get labels from join tables
+		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
+			field = sqlFields[i];
+			if ( field == "#objName#.id" || field == replacedLabelField ) {
+				continue;
+			}
+			if ( not StructKeyExists( props, field ) ) {
+				if ( arguments.versiontable && field.startsWith( "_version_" ) ) {
+					sqlFields[i] = objName & "." & field;
+				} else {
+					sqlFields[i] = "'' as " & field;
+				}
+				continue;
+			}
+
+			prop = props[ field ];
+
+			switch( prop.relationship ?: "none" ) {
+				case "one-to-many":
+				case "many-to-many":
+					sqlFields[i] = "'' as " & field;
+				break;
+
+				case "many-to-one":
+					sqlFields[i] = ( prop.name ?: "" ) & ".${labelfield} as " & field;
+				break;
+
+				default:
+					sqlFields[i] = objName & "." & field;
+			}
+
+			if ( arguments.versionTable ) {
+				sqlFields.append( objName & "._version_number" );
+			}
+		}
+
+		return sqlFields;
 	}
 
 // GETTERS AND SETTERS
