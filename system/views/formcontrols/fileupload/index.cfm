@@ -11,5 +11,5 @@
 
 <cfoutput>
 	<input type="file" id="#inputId#" class="#inputClass#" placeholder="#placeholder#" name="#inputName#" tabindex="#getNextTabIndex()#"<cfif Len( Trim( accept ) )> accept="#accept#"</cfif>>
-	<input type="hidden" class="maxFileSize" id="maxFileSize" name="maxFileSize" value="#maximumfilesize#">
+	<input type="hidden" class="maxFileSize" id="maxFileSize_#inputId#" name="maxFileSize" value="#maximumfilesize#">
 </cfoutput>

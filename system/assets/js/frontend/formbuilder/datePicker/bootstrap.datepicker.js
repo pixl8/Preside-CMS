@@ -43,6 +43,7 @@
 		this.isInput = this.element.is('input');
 		this.component = this.element.is('.date') ? this.element.find('.add-on, .btn') : false;
 		this.hasInput = this.component && this.element.find('input').length;
+		this.onRender = options.onRender || function () {};
 		if(this.component && this.component.length === 0)
 			this.component = false;
 
@@ -430,7 +431,7 @@
 
 					}
 				}
-				clsName = '';
+				clsName = ' '+this.onRender(prevMonth)+' ';
 				if (prevMonth.getUTCFullYear() < year || (prevMonth.getUTCFullYear() == year && prevMonth.getUTCMonth() < month)) {
 					clsName += ' old';
 				} else if (prevMonth.getUTCFullYear() > year || (prevMonth.getUTCFullYear() == year && prevMonth.getUTCMonth() > month)) {
@@ -816,6 +817,9 @@
 	};
 
 	$.fn.datepicker.defaults = {
+		onRender: function(date) {
+            return '';
+        }
 	};
 	$.fn.datepicker.Constructor = Datepicker;
 	var dates = $.fn.datepicker.dates = {
@@ -1018,18 +1022,62 @@
 if ( typeof window.jQuery !== "undefined" ) {
 	( function( $ ){
 		$('.date-picker').each(function() {
-			var ID = $(this).closest('input').attr('id');
-    		var startDateID = $(this).siblings('.startDate').attr('id');
-			var endDateID = $(this).siblings('.endDate').attr('id');
-			$('#'+ID)
+			var gtEnteredField = $(this).data("gt-entered-field"); // gt - greaterThan
+			var ltEnteredField = $(this).data("lt-entered-field"); // lt -lessThan
+
+			if((gtEnteredField != undefined && gtEnteredField.length) || (ltEnteredField != undefined && ltEnteredField.length)){
+
+				ID = $(this).attr("id");
+				enteredDateName = (gtEnteredField != undefined && gtEnteredField.length) ? gtEnteredField : ltEnteredField;
+				gtEnteredFieldID = $('input[name="'+enteredDateName+'"]')[0].id;
+
+				// implementation of disabled form fields
+				var nowTemp = new Date();
+				var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+				var checkin = $('#'+gtEnteredFieldID).datepicker({
+					onRender: function (date) {
+						if(gtEnteredField != undefined && gtEnteredField.length) {
+							return date.valueOf() < now.valueOf() ? 'disabled' : '';
+						} else {
+							return date.valueOf() > now.valueOf() ? 'disabled' : '';
+						}
+					}
+				}).on('changeDate', function (ev) {
+					if (ev.date.valueOf() > checkout.date.valueOf()) {
+						var newDate = new Date(ev.date)
+						if(gtEnteredField != undefined && gtEnteredField.length) {
+							newDate.setDate(newDate.getDate() + 1);
+						} else {
+							newDate.setDate(newDate.getDate() - 1);
+						}
+						checkout.update(newDate);
+					}
+					checkin.hide();
+					$('#'+ID)[0].focus();
+				}).data('datepicker');
+				var checkout = $('#'+ID).datepicker({
+					onRender: function (date) {
+						if(gtEnteredField != undefined && gtEnteredField.length) {
+							return date.valueOf() <= checkin.date.valueOf() ? 'disabled' : '';
+						} else {
+							return date.valueOf() >= checkin.date.valueOf() ? 'disabled' : '';
+						}
+					}
+				}).on('changeDate', function (ev) {
+					checkout.hide();
+				}).data('datepicker');
+
+			} else {
+				$('#'+$(this).closest('input').attr('id'))
 				.datepicker( {
 					 autoclose : true
-					,startDate : new Date($('#'+startDateID).val())
-    				,endDate   : new Date($('#'+endDateID).val())
+					,startDate : $(this).data("start-date")
+    				,endDate   : $(this).data("end-date")
 					} )
 				.next().on( "click", function(){
 					$(this).prev().focus();
 				});
+			}
 		});
 	} )( jQuery );
 }
