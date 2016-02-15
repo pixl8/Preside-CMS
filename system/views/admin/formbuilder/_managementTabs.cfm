@@ -1,9 +1,11 @@
 <cfscript>
 	activeTab       = args.activeTab ?: "manage";
 	canEdit         = IsTrue( args.canEdit ?: "" );
+	canEditActions  = IsTrue( args.canEditActions ?: "" );
 	tabs            = [];
 	formId          = rc.id ?: "";
 	submissionCount = args.submissionCount ?: 0;
+	actionCount     = args.actionCount     ?: 0;
 
 	if ( canEdit ) {
 		tabs.append({
@@ -11,6 +13,15 @@
 			, active = ( activeTab == "manage" )
 			, link   = event.buildAdminLink( linkto="formbuilder.manageform", queryString="id=#formId#" )
 			, title  = translateResource( "formbuilder:management.tabs.fields.title" )
+		});
+	}
+
+	if ( canEditActions ) {
+		tabs.append({
+			  icon   = "fa-send"
+			, active = ( activeTab == "actions" )
+			, link   = event.buildAdminLink( linkto="formbuilder.actions", queryString="id=#formId#" )
+			, title  = translateResource( uri="formbuilder:management.tabs.actions.title", data=[ NumberFormat( actionCount ) ] )
 		});
 	}
 

@@ -193,7 +193,7 @@ component output=false {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
-			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions" ]
+			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -523,6 +523,7 @@ component output=false {
 			  spacer    = { isFormField=false }
 			, content   = { isFormField=false }
 		} };
+		fbSettings.actions = [ "email" ];
 
 		return fbSettings;
 	}
