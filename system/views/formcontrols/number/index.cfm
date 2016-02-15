@@ -1,5 +1,4 @@
 <cfscript>
-// writeDump(args);abort;
 	inputName    = args.name          ?: "";
 	inputId      = args.id            ?: "";
 	inputClass   = args.class         ?: "";
