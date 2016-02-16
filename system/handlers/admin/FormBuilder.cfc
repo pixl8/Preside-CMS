@@ -65,6 +65,8 @@ component extends="preside.system.base.AdminHandler" {
 			, link  = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & prc.form.id )
 		);
 
+		event.include( "/js/admin/specific/formbuilder/workbench/" );
+		event.include( "/css/admin/specific/formbuilder/workbench/" );
 		event.includeData( {
 			  "formbuilderFormId"               = prc.form.id
 			, "formbuilderSaveNewItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
@@ -148,8 +150,8 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 
-		event.include( "/js/admin/specific/formbuilder/manageform/" );
-		event.include( "/css/admin/specific/formbuilder/manageform/" );
+		event.include( "/js/admin/specific/formbuilder/workbench/" );
+		event.include( "/css/admin/specific/formbuilder/workbench/" );
 		event.includeData( {
 			  "formbuilderFormId"               = prc.form.id
 			, "formbuilderSaveNewItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.addActionAction" )
