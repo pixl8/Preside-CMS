@@ -940,6 +940,22 @@ component {
 	}
 
 	/**
+	 * Returns the number of actions configured on
+	 * a given form
+	 *
+	 * @autodoc
+	 * @formid.hint The ID of the form who's actions you want to count
+	 *
+	 */
+	public numeric function getActionCount( required string formId ) {
+		var actions = $getPresideObject( "formbuilder_formaction" ).selectData(
+			  filter       = { form=formId }
+			, selectFields = [ "Count( id ) as action_count" ]
+		);
+		return Val( actions.action_count ?: "" );
+	}
+
+	/**
 	 * Adds a new action to the form. Returns the ID of the
 	 * newly generated action
 	 *

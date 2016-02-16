@@ -582,6 +582,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.canEdit         = !isLocked && hasCmsPermission( permissionKey="formbuilder.editform" );
 		args.canEditActions  = !isLocked && hasCmsPermission( permissionKey="formbuilder.editformactions" );
 		args.submissionCount = formBuilderService.getSubmissionCount( formId );
+		args.actionCount     = formBuilderService.getActionCount( formId );
 
 		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
 	}
