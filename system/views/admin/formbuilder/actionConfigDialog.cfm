@@ -1,13 +1,14 @@
 <cfscript>
 	configFormName = prc.actionConfig.configFormName ?: "";
 	savedData      = prc.savedData ?: {};
-	itemType       = rc.itemType ?: "";
+	action         = rc.action   ?: "";
 	formId         = "configform-" & CreateUUId();
 </cfscript>
 
 <cfoutput>
 	<form id="#formId#" data-dirty-form="protect" class="form-horizontal formbuilder-item-config-form">
-		<input type="hidden" name="itemType" value="#itemType#">
+		<input type="hidden" name="action" value="#action#">
+
 		#renderForm(
 			  formName          = configFormName
 			, context           = "admin"

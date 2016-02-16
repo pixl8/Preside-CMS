@@ -169,6 +169,25 @@
 		return [ ( arguments.configuration.label ?: "" ) ];
 	}
 
+
+	/**
+	 * Returns the convention based viewlet name
+	 * for the given action and context
+	 *
+	 * @autodoc
+	 * @action.hint  The action who's viewlet you wish to get
+	 * @context.hint The context in which the action will be rendered. i.e. 'adminPlaceholder'
+	 */
+	public string function getActionViewlet( required string action, required string context ) {
+		var actionSpecific = "formbuilder.action.#arguments.action#.render#arguments.context#";
+
+		if ( $getColdbox().viewletExists( actionSpecific ) ) {
+			return actionSpecific;
+		}
+
+		return "formbuilder.defaultActionRenderers.#arguments.context#";
+	}
+
  // GETTERS AND SETTERS
 	private any function _getViewletsService() {
 		return _viewletsService;

@@ -95,6 +95,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.setLayout( "adminModalDialog" );
 
+		event.include( "/js/admin/specific/formbuilder/configdialog/" );
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
@@ -182,9 +183,37 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.setLayout( "adminModalDialog" );
 
+		event.include( "/js/admin/specific/formbuilder/configdialog/" );
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateActionConfig" )
 		} );
+	}
+
+	public void function validateActionConfig( event, rc, prc ) {
+		var config = event.getCollectionWithoutSystemVars();
+
+		config.delete( "formId"   );
+		config.delete( "actionId" );
+		config.delete( "action"   );
+
+		var validationResult = formBuilderService.validateActionConfig(
+			  formId   = rc.formId   ?: ""
+			, actionId = rc.actionId ?: ""
+			, action   = rc.action   ?: ""
+			, config   = config
+		);
+
+		if ( validationResult.validated() ) {
+			event.renderData( data=true, type="json" );
+		} else {
+			var errors = {};
+			var messages = validationResult.getMessages();
+
+			for( var fieldName in messages ){
+				errors[ fieldName ] = translateResource( uri=messages[ fieldName ].message, defaultValue=messages[ fieldName ].message, data=messages[ fieldName ].params ?: [] );
+			}
+			event.renderData( data=errors, type="json" );
+		}
 	}
 
 	public void function submissions( event, rc, prc ) {
@@ -409,6 +438,54 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 
+	public void function addActionAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+
+		configuration.delete( "formId" );
+		configuration.delete( "action" );
+
+		var newId = formBuilderService.addAction(
+			  formId        = rc.formId   ?: ""
+			, action        = rc.action ?: ""
+			, configuration = configuration
+		);
+
+		event.renderData( type="json", data={
+			  id       = newId
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=formBuilderService.getFormAction( newId ) )
+		} );
+	}
+
+	public void function saveActionAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+		var actionId      = rc.id ?: "";
+
+		configuration.delete( "id" );
+
+		formBuilderService.saveAction(
+			  id            = actionId
+			, configuration = configuration
+		);
+
+		event.renderData( type="json", data={
+			  id       = actionId
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=formBuilderService.getFormAction( actionId ) )
+		} );
+	}
+
+	public void function deleteActionAction( event, rc, prc ) {
+		var deleteSuccess = formBuilderService.deleteAction( rc.id ?: "" );
+
+		event.renderData( data=deleteSuccess, type="json" );
+	}
+
+	public void function setActionsSortOrderAction( event, rc, prc ) {
+		var itemsUpdated = formBuilderService.setActionsSortOrder( ListToArray( rc.itemIds ?: "" ) );
+		var success      = itemsUpdated > 0;
+
+		event.renderData( data=success, type="json" );
+	}
+
 
 // AJAXY ACTIONS
 	public void function getFormsForAjaxDataTables( event, rc, prc ) {
@@ -532,8 +609,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function actionsManagement( event, rc, prc, args ) {
-		// args.items = formBuilderService.getFormActions( args.formId ?: "" );
-		args.items = [];
+		args.actions = formBuilderService.getFormActions( args.formId ?: "" );
 		return renderView( view="/admin/formbuilder/_actionsManagement", args=args );
 	}
 
