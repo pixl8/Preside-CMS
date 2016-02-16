@@ -162,6 +162,31 @@ component extends="preside.system.base.AdminHandler" {
 
 	}
 
+	public void function actionConfigDialog( event, rc, prc ) {
+		if ( Len( Trim( rc.actionId ?: "" ) ) ) {
+			var action = formBuilderService.getFormAction( rc.actionId );
+			if ( action.count() ) {
+				prc.savedData = action.configuration;
+			}
+		}
+
+		prc.actionConfig = actionsService.getActionConfig( rc.action ?: "" );
+
+		if ( !prc.actionConfig.count() ) {
+			event.adminNotFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="formbuilder:action.config.dialog.title"   , data=[ prc.actionConfig.title ] );
+		prc.pageSubTitle = translateResource( uri="formbuilder:action.config.dialog.subtitle", data=[ prc.actionConfig.title ] );
+		prc.pageIcon     = "cog";
+
+		event.setLayout( "adminModalDialog" );
+
+		event.includeData( {
+			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateActionConfig" )
+		} );
+	}
+
 	public void function submissions( event, rc, prc ) {
 		prc.form = formBuilderService.getForm( rc.id ?: "" );
 
