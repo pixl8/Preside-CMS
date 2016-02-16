@@ -768,6 +768,7 @@ component extends="testbox.system.BaseSpec"{
 				).$results( validationResult );
 				validationResult.$( "validated", false );
 				mockFormSubmissionDao.$( "insertData", "" );
+				mockActionsService.$( "triggerSubmissionActions" );
 
 				expect( service.saveFormSubmission(
 					  formId      = formId
@@ -801,6 +802,7 @@ component extends="testbox.system.BaseSpec"{
 				validationResult.$( "validated", true );
 				mockFormSubmissionDao.$( "insertData", CreateUUId() );
 				service.$( "$getWebsiteLoggedInUserId", userId );
+				mockActionsService.$( "triggerSubmissionActions" );
 
 				expect( service.saveFormSubmission(
 					  formId      = formId
@@ -819,6 +821,48 @@ component extends="testbox.system.BaseSpec"{
 					, user_agent     = userAgent
 					, submitted_data = SerializeJson( formSubmissionData )
 				} } );
+			} );
+
+			it( "should call triggerSubmissionActions() on the actions service", function(){
+				var service            = getService();
+				var formId             = CreateUUId();
+				var requestData        = { some="data" };
+				var formSubmissionData = { some="data", tests=CreateUUId() };
+				var formItems          = [ "just", "test", "data" ];
+				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
+				var userAgent          = CreateUUId();
+				var ipAddress          = "219.349.93.4";
+				var instanceId         = "TEST" & CreateUUId();
+				var userid             = CreateUUId();
+				var newSubmissionId    = CreateUUId();
+
+				service.$( "getRequestDataForForm" ).$args(
+					  formId      = formId
+					, requestData = requestData
+				).$results( formSubmissionData );
+				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
+					  formItems      = formItems
+					, submissionData = formSubmissionData
+				).$results( validationResult );
+				validationResult.$( "validated", true );
+				mockFormSubmissionDao.$( "insertData", newSubmissionId );
+				service.$( "$getWebsiteLoggedInUserId", userId );
+				mockActionsService.$( "triggerSubmissionActions" );
+
+				service.saveFormSubmission(
+					  formId      = formId
+					, requestData = requestData
+					, instanceId  = instanceId
+					, ipAddress   = ipAddress
+					, userAgent   = userAgent
+				);
+
+				expect( mockActionsService.$callLog().triggerSubmissionActions.len() ).toBe( 1 );
+				expect( mockActionsService.$callLog().triggerSubmissionActions[1] ).toBe({
+					  formId       = formId
+					, submissionId = newSubmissionId
+				});
 			} );
 		} );
 

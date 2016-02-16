@@ -622,7 +622,7 @@ component {
 		);
 
 		if ( validationResult.validated() ) {
-			$getPresideObject( "formbuilder_formsubmission" ).insertData( data={
+			var submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
 				  form           = arguments.formId
 				, submitted_by   = $getWebsiteLoggedInUserId()
 				, submitted_data = SerializeJson( formData )
@@ -630,6 +630,11 @@ component {
 				, ip_address     = arguments.ipAddress
 				, user_agent     = arguments.userAgent
 			} );
+
+			_getActionsService().triggerSubmissionActions(
+				  formId       = arguments.formId
+				, submissionId = submissionId
+			);
 		}
 
 		return validationResult;
