@@ -9,7 +9,7 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredActions.inject coldbox:settings:formbuilder.actions
+	 * @configuredActions.inject coldbox:setting:formbuilder.actions
 	 *
 	 */
 	public any function init( required array configuredActions ) {

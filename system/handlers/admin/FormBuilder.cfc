@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formBuilderService"          inject="formBuilderService";
 	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
 	property name="itemTypesService"            inject="formBuilderItemTypesService";
+	property name="actionsService"              inject="formBuilderActionsService";
 	property name="messagebox"                  inject="coldbox:plugin:messagebox";
 	property name="spreadsheetLib"              inject="spreadsheetLib";
 
@@ -145,6 +146,17 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="formbuilder:actions.breadcrumb.title", data=[ prc.form.name ] )
 			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryStrign="id=" & prc.form.id )
 		);
+
+
+		event.include( "/js/admin/specific/formbuilder/manageform/" );
+		event.include( "/css/admin/specific/formbuilder/manageform/" );
+		event.includeData( {
+			  "formbuilderFormId"               = prc.form.id
+			, "formbuilderSaveNewItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.addActionAction" )
+			, "formbuilderDeleteItemEndpoint"   = event.buildAdminLink( linkTo="formbuilder.deleteActionAction" )
+			, "formbuilderSaveItemEndpoint"     = event.buildAdminLink( linkTo="formbuilder.saveActionAction" )
+			, "formbuilderSetSortOrderEndpoint" = event.buildAdminLink( linkTo="formbuilder.setActionsSortOrderAction" )
+		} );
 
 	}
 
@@ -485,6 +497,28 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
+
+	private string function actionsPicker( event, rc, prc, args ) {
+		args.actions = actionsService.listActions();
+
+		return renderView( view="/admin/formbuilder/_actionsPicker", args=args );
+	}
+
+	private string function actionsManagement( event, rc, prc, args ) {
+		// args.items = formBuilderService.getFormActions( args.formId ?: "" );
+		args.items = [];
+		return renderView( view="/admin/formbuilder/_actionsManagement", args=args );
+	}
+
+	private string function workbenchFormAction( event, rc, prc, args ) {
+		args.placeholder = renderViewlet(
+			  event = formBuilderRenderingService.getActionViewlet( action=( args.action.id ?: "" ), context="adminPlaceholder" )
+			, args  = args
+		);
+		return renderView( view="/admin/formbuilder/_workbenchFormAction", args=args );
+	}
+
+
 
 // PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
