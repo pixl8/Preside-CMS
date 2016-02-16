@@ -2,8 +2,8 @@ component {
 
 	private string function renderAdminPlaceholder( event, rc, prc, args={} ) {
 		var placeholder = '<i class="fa fa-fw fa-envelope"></i> ';
-		var toAddress   = args.configuration.recipients ?: "";
-		var fromAddress = args.configuration.send_from  ?: "";
+		var toAddress   = HtmlEditFormat( args.configuration.recipients ?: "" );
+		var fromAddress = HtmlEditFormat( args.configuration.send_from  ?: "" );
 
 		if ( Len( Trim( fromAddress ) ) ) {
 			placeholder &= translateResource(
