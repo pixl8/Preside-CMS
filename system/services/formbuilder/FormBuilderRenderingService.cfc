@@ -179,7 +179,7 @@
 	 * @context.hint The context in which the action will be rendered. i.e. 'adminPlaceholder'
 	 */
 	public string function getActionViewlet( required string action, required string context ) {
-		var actionSpecific = "formbuilder.action.#arguments.action#.render#arguments.context#";
+		var actionSpecific = "formbuilder.actions.#arguments.action#.render#arguments.context#";
 
 		if ( $getColdbox().viewletExists( actionSpecific ) ) {
 			return actionSpecific;
