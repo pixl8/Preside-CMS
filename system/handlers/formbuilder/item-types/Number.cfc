@@ -10,9 +10,9 @@ component {
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, class				 = "number"
-			, minValue			 = args.minValue
-			, maxValue			 = args.maxValue
+			, class              = "number"
+			, minValue           = args.minValue
+			, maxValue           = args.maxValue
 		);
 	}
 }

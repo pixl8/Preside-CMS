@@ -25,11 +25,11 @@ component {
 			, name               = controlName
 			, type               = "fileupload"
 			, context            = "formbuilder"
-			, id                 = args.id ?: controlName
+			, id                 = args.id                ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, accept			 = extensionList ?: ""
-			, maximumfilesize	 = args.maximumfilesize ?: ""
+			, accept             = extensionList          ?: ""
+			, maximumfilesize    = args.maximumfilesize   ?: ""
 		);
 	}
 }
