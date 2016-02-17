@@ -3,7 +3,7 @@
 	<tab id="default">
 		<fieldset id="default">
 			<field name="Accept" 		   control="filetypepicker"  required="false"  sortorder="34"  multiple="true" defaultvalue="" />
-			<field name="MaximumFileSize"  control="textInput"       required="false"  sortorder="36"  defaultvalue="" />
+			<field name="MaximumFileSize"  control="textInput"       required="false"  sortorder="36"  defaultvalue="5" />
 		</fieldset>
 	</tab>
 </form>
