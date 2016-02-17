@@ -165,7 +165,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function actionConfigDialog( event, rc, prc ) {
 		if ( Len( Trim( rc.actionId ?: "" ) ) ) {
-			var action = formBuilderService.getFormAction( rc.actionId );
+			var action = actionsService.getFormAction( rc.actionId );
 			if ( action.count() ) {
 				prc.savedData = action.configuration;
 			}
@@ -196,7 +196,7 @@ component extends="preside.system.base.AdminHandler" {
 		config.delete( "actionId" );
 		config.delete( "action"   );
 
-		var validationResult = formBuilderService.validateActionConfig(
+		var validationResult = actionsService.validateActionConfig(
 			  formId   = rc.formId   ?: ""
 			, actionId = rc.actionId ?: ""
 			, action   = rc.action   ?: ""
@@ -444,7 +444,7 @@ component extends="preside.system.base.AdminHandler" {
 		configuration.delete( "formId" );
 		configuration.delete( "action" );
 
-		var newId = formBuilderService.addAction(
+		var newId = actionsService.addAction(
 			  formId        = rc.formId   ?: ""
 			, action        = rc.action ?: ""
 			, configuration = configuration
@@ -452,7 +452,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.renderData( type="json", data={
 			  id       = newId
-			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=formBuilderService.getFormAction( newId ) )
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=actionsService.getFormAction( newId ) )
 		} );
 	}
 
@@ -462,25 +462,25 @@ component extends="preside.system.base.AdminHandler" {
 
 		configuration.delete( "id" );
 
-		formBuilderService.saveAction(
+		actionsService.saveAction(
 			  id            = actionId
 			, configuration = configuration
 		);
 
 		event.renderData( type="json", data={
 			  id       = actionId
-			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=formBuilderService.getFormAction( actionId ) )
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=actionsService.getFormAction( actionId ) )
 		} );
 	}
 
 	public void function deleteActionAction( event, rc, prc ) {
-		var deleteSuccess = formBuilderService.deleteAction( rc.id ?: "" );
+		var deleteSuccess = actionsService.deleteAction( rc.id ?: "" );
 
 		event.renderData( data=deleteSuccess, type="json" );
 	}
 
 	public void function setActionsSortOrderAction( event, rc, prc ) {
-		var itemsUpdated = formBuilderService.setActionsSortOrder( ListToArray( rc.itemIds ?: "" ) );
+		var itemsUpdated = actionsService.setActionsSortOrder( ListToArray( rc.itemIds ?: "" ) );
 		var success      = itemsUpdated > 0;
 
 		event.renderData( data=success, type="json" );
@@ -582,7 +582,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.canEdit         = !isLocked && hasCmsPermission( permissionKey="formbuilder.editform" );
 		args.canEditActions  = !isLocked && hasCmsPermission( permissionKey="formbuilder.editformactions" );
 		args.submissionCount = formBuilderService.getSubmissionCount( formId );
-		args.actionCount     = formBuilderService.getActionCount( formId );
+		args.actionCount     = actionsService.getActionCount( formId );
 
 		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
 	}
@@ -610,7 +610,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	private string function actionsManagement( event, rc, prc, args ) {
-		args.actions = formBuilderService.getFormActions( args.formId ?: "" );
+		args.actions = actionsService.getFormActions( args.formId ?: "" );
 		return renderView( view="/admin/formbuilder/_actionsManagement", args=args );
 	}
 

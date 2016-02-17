@@ -56,11 +56,18 @@ component extends="testbox.system.BaseSpec"{
 	}
 
 	private function getService( array configuredActions=[] ) {
+		variables.mockValidationEngine = createEmptyMock( "preside.system.services.validation.ValidationEngine" );
+		variables.mockFormsService     = createEmptyMock( "preside.system.services.forms.FormsService" );
+		variables.mockActionDao        = createStub();
+
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderActionsService(
-			configuredActions = arguments.configuredActions
+			  configuredActions = arguments.configuredActions
+			, validationEngine  = mockValidationEngine
+			, formsService      = mockFormsService
 		) );
 
 		service.$( "$translateResource", "" );
+		service.$( "$getPresideObject" ).$args( "formbuild_formaction" ).$results( mockActionDao );
 
 		return service;
 	}
