@@ -15,6 +15,7 @@ component extends="coldbox.system.plugins.SessionStorage" output=false {
 
 	public any function setVar() output=false {
 		if ( areSessionsEnabled() ) {
+			sessionRotate();
 			return super.setVar( argumentCollection=arguments );
 		}
 		return;

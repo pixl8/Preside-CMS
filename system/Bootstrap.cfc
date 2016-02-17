@@ -61,6 +61,8 @@ component {
 		if ( StructKeyExists( arguments, "cbBootstrap" ) ) {
 			application.cbBootstrap.onSessionStart();
 		}
+
+		_preventSessionFixation();
 	}
 
 	public void function onSessionEnd( required struct sessionScope, required struct appScope ) {
@@ -289,6 +291,11 @@ component {
 
 	private void function _maintenanceModeCheck() {
 		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
+	}
+
+	private void function _preventSessionFixation() {
+		_removeSessionCookies();
+		SessionRotate();
 	}
 
 	private void function _invalidateSessionIfNotUsed() {
