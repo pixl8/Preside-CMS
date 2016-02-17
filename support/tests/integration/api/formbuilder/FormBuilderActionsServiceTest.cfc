@@ -19,10 +19,38 @@ component extends="testbox.system.BaseSpec"{
 				}
 
 				expect( service.listActions() ).toBe( [
-					  { id="email"  , title="email title"  , iconclass="email icon"  , description="email description"   }
-					, { id="slack"  , title="slack title"  , iconclass="slack icon"  , description="slack description"   }
-					, { id="webhook", title="webhook title", iconclass="webhook icon", description="webhook description" }
+					  { id="email"  , title="email title"  , iconclass="email icon"  , description="email description"  , configFormName="formbuilder.actions.email" }
+					, { id="slack"  , title="slack title"  , iconclass="slack icon"  , description="slack description"  , configFormName="formbuilder.actions.slack" }
+					, { id="webhook", title="webhook title", iconclass="webhook icon", description="webhook description", configFormName="formbuilder.actions.webhook" }
 				] );
+			} );
+		} );
+
+		describe( "getActionConfig", function(){
+			it( "should return the configuration struct of the given action", function(){
+				var actions = [ "email", "slack", "webhook" ];
+				var action  = "slack";
+				var service = getService( actions );
+
+				service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:title"      , defaultValue=action    ).$results( "#action# title"       );
+				service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:description", defaultValue=""        ).$results( "#action# description" );
+				service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:iconclass"  , defaultValue="fa-send" ).$results( "#action# icon"        );
+
+				expect( service.getActionConfig( action ) ).toBe( {
+					  id             = "slack"
+					, title          = "slack title"
+					, iconclass      = "slack icon"
+					, description    = "slack description"
+					, configFormName = "formbuilder.actions.slack"
+				} );
+			} );
+
+			it( "should return an empty struct when the action is not registered", function(){
+				var actions = [ "email", "slack", "webhook" ];
+				var action  = "idonotexist";
+				var service = getService( actions );
+
+				expect( service.getActionConfig( action ) ).toBe( {} );
 			} );
 		} );
 	}

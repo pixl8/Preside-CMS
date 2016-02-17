@@ -9,7 +9,7 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredActions.inject coldbox:settings:formbuilder.actions
+	 * @configuredActions.inject coldbox:setting:formbuilder.actions
 	 *
 	 */
 	public any function init( required array configuredActions ) {
@@ -32,15 +32,40 @@ component {
 		var actions           = [];
 
 		for( var action in configuredActions ) {
-			actions.append({
-				  id          = action
-				, title       = $translateResource( uri="formbuilder.actions.#action#:title"      , defaultValue=action    )
-				, description = $translateResource( uri="formbuilder.actions.#action#:description", defaultValue=""        )
-				, iconClass   = $translateResource( uri="formbuilder.actions.#action#:iconclass"  , defaultValue="fa-send" )
-			});
+			actions.append(
+				_getConventionsBasedActionConfiguration( action )
+			);
 		}
 
 		return actions;
+	}
+
+	/**
+	 * Returns the configuration of the given action
+	 *
+	 * @autodoc
+	 * @action.hint The id of the action, e.g. 'email'
+	 *
+	 */
+	public struct function getActionConfig( required string action ) {
+		var configuredActions = _getConfiguredActions();
+
+		if ( configuredActions.findNoCase( arguments.action ) ) {
+			return _getConventionsBasedActionConfiguration( arguments.action );
+		}
+
+		return {};
+	}
+
+// PRIVATE HELPERS
+	private struct function _getConventionsBasedActionConfiguration( required string action ) {
+		return {
+			  id             = arguments.action
+			, configFormName = "formbuilder.actions." & arguments.action
+			, title          = $translateResource( uri="formbuilder.actions.#arguments.action#:title"      , defaultValue=arguments.action )
+			, description    = $translateResource( uri="formbuilder.actions.#arguments.action#:description", defaultValue=""               )
+			, iconClass      = $translateResource( uri="formbuilder.actions.#arguments.action#:iconclass"  , defaultValue="fa-send"        )
+		};
 	}
 
 
