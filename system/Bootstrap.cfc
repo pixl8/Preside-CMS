@@ -40,6 +40,11 @@ component {
 		_ensureCookiesAreHttpOnlyAndSecureWhenNeeded();
 	}
 
+	public void function onAbort() {
+		_invalidateSessionIfNotUsed();
+		_ensureCookiesAreHttpOnlyAndSecureWhenNeeded();
+	}
+
 	public boolean function onRequest() output=true {
 
 		// ensure all rquests go through coldbox and requested templates cannot be included directly
@@ -347,8 +352,8 @@ component {
 
 		var resp              = pc.getResponse();
 		var allCookies        = resp.getHeaders( "Set-Cookie" );
-		var httpRegex         = "(^|;)HTTPOnly(;|$)";
-		var secureRegex       = "(^|;)Secure(;|$)";
+		var httpRegex         = "(^|;|\s)HttpOnly(;|$)";
+		var secureRegex       = "(^|;|\s)Secure(;|$)";
 		var cleanedCookies    = [];
 		var anyCookiesChanged = false;
 		var site              = cbController.getRequestContext().getSite();
@@ -357,7 +362,7 @@ component {
 		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
 			var cooky = allCookies[ i ];
 			if ( !ReFindNoCase( httpRegex, cooky ) ) {
-				cooky = ListAppend( cooky, "HTTPOnly", ";" );
+				cooky = ListAppend( cooky, "HttpOnly", ";" );
 				anyCookiesChanged = true;
 			}
 
