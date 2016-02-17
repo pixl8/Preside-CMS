@@ -445,7 +445,7 @@ component extends="preside.system.base.AdminHandler" {
 		configuration.delete( "action" );
 
 		var newId = actionsService.addAction(
-			  formId        = rc.formId   ?: ""
+			  formId        = rc.formId ?: ""
 			, action        = rc.action ?: ""
 			, configuration = configuration
 		);

@@ -630,10 +630,12 @@ component {
 				, ip_address     = arguments.ipAddress
 				, user_agent     = arguments.userAgent
 			} );
+			var submission = getSubmission( submissionId );
+			for( var s in submission ) { submission = s; }
 
 			_getActionsService().triggerSubmissionActions(
-				  formId       = arguments.formId
-				, submissionId = submissionId
+				  formId         = arguments.formId
+				, submissionData = submission
 			);
 		}
 

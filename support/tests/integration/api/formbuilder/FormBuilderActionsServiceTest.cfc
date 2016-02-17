@@ -19,9 +19,9 @@ component extends="testbox.system.BaseSpec"{
 				}
 
 				expect( service.listActions() ).toBe( [
-					  { id="email"  , title="email title"  , iconclass="email icon"  , description="email description"  , configFormName="formbuilder.actions.email" }
-					, { id="slack"  , title="slack title"  , iconclass="slack icon"  , description="slack description"  , configFormName="formbuilder.actions.slack" }
-					, { id="webhook", title="webhook title", iconclass="webhook icon", description="webhook description", configFormName="formbuilder.actions.webhook" }
+					  { id="email"  , title="email title"  , iconclass="email icon"  , description="email description"  , configFormName="formbuilder.actions.email"  , submissionHandler="formbuilder.actions.email.onSubmit" }
+					, { id="slack"  , title="slack title"  , iconclass="slack icon"  , description="slack description"  , configFormName="formbuilder.actions.slack"  , submissionHandler="formbuilder.actions.slack.onSubmit" }
+					, { id="webhook", title="webhook title", iconclass="webhook icon", description="webhook description", configFormName="formbuilder.actions.webhook", submissionHandler="formbuilder.actions.webhook.onSubmit" }
 				] );
 			} );
 		} );
@@ -37,11 +37,12 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "$translateResource" ).$args( uri="formbuilder.actions.#action#:iconclass"  , defaultValue="fa-send" ).$results( "#action# icon"        );
 
 				expect( service.getActionConfig( action ) ).toBe( {
-					  id             = "slack"
-					, title          = "slack title"
-					, iconclass      = "slack icon"
-					, description    = "slack description"
-					, configFormName = "formbuilder.actions.slack"
+					  id                = "slack"
+					, title             = "slack title"
+					, iconclass         = "slack icon"
+					, description       = "slack description"
+					, configFormName    = "formbuilder.actions.slack"
+					, submissionHandler = "formbuilder.actions.slack.onSubmit"
 				} );
 			} );
 
@@ -53,12 +54,52 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getActionConfig( action ) ).toBe( {} );
 			} );
 		} );
+
+		describe( "triggerSubmissionActions", function(){
+			it( "should trigger the submission handler for each configured action on the form", function(){
+				var actions        = [ "email", "slack", "webhook" ];
+				var service        = getService( actions );
+				var formId         = CreateUUId();
+				var submissionData = { fubar="test", blah=true };
+				var savedActions   = [{
+					  id            = CreateUUId()
+					, action        = { id="slack", submissionHandler="formbuilder.actions.slack.onSubmit" }
+					, configuration = { test=CreateUUId() }
+				},{
+					  id            = CreateUUId()
+					, action        = { id="email", submissionHandler="formbuilder.actions.email.onSubmit" }
+					, configuration = { sender="bob@email.com", recipients="dianne@test.com" }
+				},{
+					  id            = CreateUUId()
+					, action        = { id="webhook", submissionHandler="formbuilder.actions.webhook.onSubmit" }
+					, configuration = { endpoint="http://myhook.com/receiver/" }
+				}]
+
+				service.$( "getFormActions" ).$args( formId ).$results( savedActions );
+				mockColdbox.$( "runEvent" );
+
+				service.triggerSubmissionActions( formId, submissionData );
+
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( savedActions.len() );
+				for( var i=1; i <= savedActions.len(); i++ ){
+					var log = mockColdbox.$callLog().runEvent[ i ];
+
+					expect( log ).toBe( {
+						  event          = savedActions[ i ].action.submissionHandler
+						, private        = true
+						, prePostExempt  = true
+						, eventArguments = { configuration=savedActions[ i ].configuration, submissionData=submissionData }
+					} );
+				}
+			} );
+		} );
 	}
 
 	private function getService( array configuredActions=[] ) {
 		variables.mockValidationEngine = createEmptyMock( "preside.system.services.validation.ValidationEngine" );
 		variables.mockFormsService     = createEmptyMock( "preside.system.services.forms.FormsService" );
 		variables.mockActionDao        = createStub();
+		variables.mockColdbox          = createStub();
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderActionsService(
 			  configuredActions = arguments.configuredActions
@@ -67,6 +108,7 @@ component extends="testbox.system.BaseSpec"{
 		) );
 
 		service.$( "$translateResource", "" );
+		service.$( "$getColdbox", mockColdbox );
 		service.$( "$getPresideObject" ).$args( "formbuild_formaction" ).$results( mockActionDao );
 
 		return service;

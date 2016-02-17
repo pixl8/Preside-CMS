@@ -246,14 +246,37 @@ component {
 		return validationResult;
 	}
 
+	/**
+	 * Fires of submit handlers for each registered action
+	 * in the form
+	 *
+	 * @autodoc
+	 * @formId.hint         ID of the form who's actions we are to trigger
+	 * @submissionData.hint The form submission itself
+	 */
+	public void function triggerSubmissionActions( required string formId, required struct submissionData ) {
+		var configuredActions = getFormActions( arguments.formId );
+		var coldbox           = $getColdbox();
+
+		for( var savedAction in configuredActions ) {
+			coldbox.runEvent(
+				  event          = savedAction.action.submissionHandler
+				, eventArguments = { configuration = savedAction.configuration, submissionData=arguments.submissionData }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+	}
+
 // PRIVATE HELPERS
 	private struct function _getConventionsBasedActionConfiguration( required string action ) {
 		return {
-			  id             = arguments.action
-			, configFormName = "formbuilder.actions." & arguments.action
-			, title          = $translateResource( uri="formbuilder.actions.#arguments.action#:title"      , defaultValue=arguments.action )
-			, description    = $translateResource( uri="formbuilder.actions.#arguments.action#:description", defaultValue=""               )
-			, iconClass      = $translateResource( uri="formbuilder.actions.#arguments.action#:iconclass"  , defaultValue="fa-send"        )
+			  id                = arguments.action
+			, configFormName    = "formbuilder.actions." & arguments.action
+			, submissionHandler = "formbuilder.actions." & arguments.action & ".onSubmit"
+			, title             = $translateResource( uri="formbuilder.actions.#arguments.action#:title"      , defaultValue=arguments.action )
+			, description       = $translateResource( uri="formbuilder.actions.#arguments.action#:description", defaultValue=""               )
+			, iconClass         = $translateResource( uri="formbuilder.actions.#arguments.action#:iconclass"  , defaultValue="fa-send"        )
 		};
 	}
 

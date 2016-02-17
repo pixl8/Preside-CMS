@@ -762,6 +762,7 @@ component extends="testbox.system.BaseSpec"{
 					, requestData = requestData
 				).$results( formSubmissionData );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				service.$( "getSubmission", QueryNew('') );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
 					, submissionData = formSubmissionData
@@ -795,6 +796,7 @@ component extends="testbox.system.BaseSpec"{
 					, requestData = requestData
 				).$results( formSubmissionData );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				service.$( "getSubmission", QueryNew('') );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
 					, submissionData = formSubmissionData
@@ -835,12 +837,14 @@ component extends="testbox.system.BaseSpec"{
 				var instanceId         = "TEST" & CreateUUId();
 				var userid             = CreateUUId();
 				var newSubmissionId    = CreateUUId();
+				var savedSubmission    = QueryNew( 'test,me', 'varchar,varchar', [[CreateUUId(),CreateUUId()]] );
 
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
 				).$results( formSubmissionData );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				service.$( "getSubmission" ).$args( newSubmissionId ).$results( savedSubmission );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
 					, submissionData = formSubmissionData
@@ -860,8 +864,8 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( mockActionsService.$callLog().triggerSubmissionActions.len() ).toBe( 1 );
 				expect( mockActionsService.$callLog().triggerSubmissionActions[1] ).toBe({
-					  formId       = formId
-					, submissionId = newSubmissionId
+					  formId         = formId
+					, submissionData = { test=savedSubmission.test, me=savedSubmission.me }
 				});
 			} );
 		} );
