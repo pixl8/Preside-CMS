@@ -335,10 +335,12 @@ component displayName="Admin login service" {
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.usr.id );
+		SessionRotate();
 	}
 
 	private void function _destroyUserSession() {
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
+		SessionRotate();
 	}
 
 	private query function _getUserByLoginId( required string loginId ) {
