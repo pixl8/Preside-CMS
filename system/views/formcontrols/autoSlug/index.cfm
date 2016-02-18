@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	defaultValue = args.defaultValue ?: "";
 	basedOn      = args.basedOn      ?: "label";
@@ -13,5 +12,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" class="#inputClass# auto-slug" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#HtmlEditFormat( value )#" data-based-on="#basedOn#" tabindex="#getNextTabIndex()#">
+	<input type="text" class="auto-slug" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#HtmlEditFormat( value )#" data-based-on="#basedOn#" tabindex="#getNextTabIndex()#">
 </cfoutput>
