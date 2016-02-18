@@ -341,22 +341,23 @@ component {
 			}
 		}
 
-		pc.setHeader( "Set-Cookie", NullValue() );
+		resp.setHeader( "Set-Cookie", NullValue() );
+
 		for( var cooky in cleanedCookies ) {
 			resp.addHeader( "Set-Cookie", cooky );
 		}
 	}
 
 	private void function _cleanupCookies() {
-		var pc                = getPageContext();
-		var cbController      = _getColdboxController();
+		var pc           = getPageContext();
+		var resp         = pc.getResponse();
+		var cbController = _getColdboxController();
 
 		if ( IsNull( cbController ) ) {
-			pc.setHeader( "Set-Cookie", NullValue() );
+			resp.setHeader( "Set-Cookie", NullValue() );
 			return;
 		}
 
-		var resp              = pc.getResponse();
 		var allCookies        = resp.getHeaders( "Set-Cookie" );
 		var httpRegex         = "(^|;|\s)HttpOnly(;|$)";
 		var secureRegex       = "(^|;|\s)Secure(;|$)";
@@ -383,7 +384,7 @@ component {
 		anyCookiesChanged = _clearoutDuplicateCookies( cleanedCookies ) || anyCookiesChanged;
 
 		if ( anyCookiesChanged ) {
-			pc.setHeader( "Set-Cookie", NullValue() );
+			resp.setHeader( "Set-Cookie", NullValue() );
 			for( var cooky in cleanedCookies ) {
 				resp.addHeader( "Set-Cookie", cooky );
 			}
