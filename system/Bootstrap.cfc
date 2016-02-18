@@ -341,10 +341,13 @@ component {
 			}
 		}
 
-		resp.setHeader( "Set-Cookie", NullValue() );
-
-		for( var cooky in cleanedCookies ) {
-			resp.addHeader( "Set-Cookie", cooky );
+		resp.setHeader( "Set-Cookie", "" );
+		for( var i=1; i <= cleanedCookies.len(); i++ ) {
+			if ( i == 1 ) {
+				resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+			} else {
+				resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+			}
 		}
 	}
 
@@ -354,7 +357,7 @@ component {
 		var cbController = _getColdboxController();
 
 		if ( IsNull( cbController ) ) {
-			resp.setHeader( "Set-Cookie", NullValue() );
+			resp.setHeader( "Set-Cookie", "" );
 			return;
 		}
 
@@ -368,6 +371,10 @@ component {
 
 		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
 			var cooky = allCookies[ i ];
+			if ( !Len( Trim( cooky ) ) ) {
+				continue;
+			}
+
 			if ( !ReFindNoCase( httpRegex, cooky ) ) {
 				cooky = ListAppend( cooky, "HttpOnly", ";" );
 				anyCookiesChanged = true;
@@ -384,9 +391,13 @@ component {
 		anyCookiesChanged = _clearoutDuplicateCookies( cleanedCookies ) || anyCookiesChanged;
 
 		if ( anyCookiesChanged ) {
-			resp.setHeader( "Set-Cookie", NullValue() );
-			for( var cooky in cleanedCookies ) {
-				resp.addHeader( "Set-Cookie", cooky );
+			resp.setHeader( "Set-Cookie", "" );
+			for( var i=1; i <= cleanedCookies.len(); i++ ) {
+				if ( i == 1 ) {
+					resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+				} else {
+					resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+				}
 			}
 		}
 	}
