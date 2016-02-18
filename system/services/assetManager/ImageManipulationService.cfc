@@ -23,6 +23,7 @@ component displayname="Image Manipulation Service" {
 
 	public string function resize(
 		  required binary  asset
+		,          struct  assetProperty       = {}
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -35,7 +36,8 @@ component displayname="Image Manipulation Service" {
 		  required binary  asset
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
+		,          struct  assetProperty = {}
+		,          string  quality       = "highPerformance"
 	) {
 		return ImageWrappers.shrinkToFit(argumentCollection = arguments);
 	}

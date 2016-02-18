@@ -2,100 +2,89 @@ component output="false" displayname="ImageMagick"  {
 
 	public any function init(
 		 required string  path
-		, 		  string timeout = 30
+		, 		  numeric timeout = 30
 	) {
 		_setExecutablePath( arguments.path );
 		_setTimeout( arguments.timeout );
 		return this;
 	}
 
-	public any function resize(
+	public binary function resize(
 		  required binary  asset
-		, 		   string  width       = ""
-		,		   string  height 	   = ""
-		,		   boolean bExtent 	   = false
-		,		   boolean bExtentFull = false
-		,		   string  sGravity    = "center"
-	) {
-		var sourcePath = expandPath( '/uploads/assets/temp/' ) ;
-		var destPath   = expandPath( '/uploads/assets/temp/dest/' );
+		,          numeric width               = 0
+		,          numeric height              = 0
+		,          string  quality             = "highPerformance"
+		,          boolean maintainAspectRatio = false
+		,          struct  assetProperty       =  {}
+	) output=false {
+		var image              = "";
+		var interpolation      = arguments.quality
+		var targetAspectRatio  = 0;
+		var currentImageInfo   = {};
+		var currentAspectRatio = 0;
 
-		imagewrite(arguments.asset, sourcePath);
-		var execArgs  = {
-			  process = "convert"
-			, args    = '#sourcePath#'
-        };
+		try {
+			image = ImageNew( arguments.asset );
+		} catch ( "java.io.IOException" e ) {
+			throw( type="AssetTransformer.resize.notAnImage" );
+		}
 
-        if ( arguments.bExtent ) {
-        	if ( bExtentFull ) {
-        		execArgs.args &= "^";
-        	}
-        	execArgs.args &= " -gravity #arguments.sGravity# -extent #arguments.width#x#arguments.height#";
-        }
+		if( !structIsEmpty( arguments.assetProperty ) ){
+			currentImageInfo.height = arguments.assetProperty.height ?: 0;
+			currentImageInfo.width  = arguments.assetProperty.width  ?: 0;
+		}else{
+			currentImageInfo = ImageInfo( image );
+		}
 
-       	execArgs.args &= " " & destPath;
+		var imageMagickFile = "";
 
-       	execute( argumentCollection = execArgs );
+		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
+			return arguments.asset;
+		} else {
 
-       	image = FileReadBinary( destPath );
+			imageMagickFile   = imageMagickResize(
+				  sourceFile      = assetProperty.sourceFile
+				, destinationFile = assetProperty.destinationFile
+				, width           = arguments.width
+				, height          = arguments.height
+				, expand          = maintainAspectRatio
+				, crop            = maintainAspectRatio
+			);
+		}
+
+		image = FileReadBinary( imageMagickFile );
 
 		return ImageGetBlob( image );
-
 	}
 
-
-	public void function convertPDFtoImage(
-		  required string pdfSource
-		, required string destination
-		, 		   string page        = "0"
-		, 		   string format      = "jpg"
-		,		   string resolution  = "200"
-		,		   string imagePrefix = ""
-
+	public binary function pdfPreview(
+		  required binary asset
+		,          string scale
+		,          string resolution
+		,          string format
+		,          string pages          = 0
+		,          string transparent
+		,          struct assetProperty =  {}
 	) {
-		var execArgs=StructNew();
-		if( !Len( Trim( arguments.imagePrefix ) ) ){
-			var pdfFileName = ListGetAt( arguments.pdfSource,ListLen( arguments.pdfSource,"\" ),"\" );
-			arguments.imagePrefix = listDeleteAt( pdfFileName, ListLen( pdfFileName,"." ), "." );
+		var imagePrefix = CreateUUId();
+		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & ".jpg";
+		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
+
+		assetProperty.destinationFile = replaceNoCase(assetProperty.destinationFile, ".pdf", ".jpg");
+		execArgs.process     = "convert";
+		execArgs.destination = GetTempDirectory();
+
+		execArgs.args = '-density 100 -colorspace rgb "#arguments.assetProperty.sourceFile#[1]" "#tmpFilePath#"';
+
+		for( var arg in allowedArgs ) {
+			if ( StructKeyExists( arguments, arg ) ) {
+				execArgs[ arg ] = arguments[ arg ];
+			}
 		}
 
-		execArgs.process = "convert"
-		execArgs.timeout = "20"
-		if( arguments.format == 'jpg' ){
-			execArgs.args = "-density #arguments.resolution# -background white -alpha remove -quality 100 #arguments.pdfSource#[#arguments.page#] #arguments.destination & arguments.imagePrefix#.#arguments.format#";
-		}else{
-			execArgs.args = "-density #arguments.resolution# -quality 100 #arguments.pdfSource#[#arguments.page#] #arguments.destination & arguments.imagePrefix#.#arguments.format#";
-		}
 		execute(argumentCollection=execArgs);
-	}
 
-
-	public boolean function validate(
-		required string filePath
-	) {
-		var channelAndDimensions = Trim( LCase( execute(
-				  process = "identify"
-				, args    = '-format "%[channels] %wx%h" "#arguments.filePath#"' )
-			) );
-			var dimensions = "";
-
-			if( not Len( Trim( channelAndDimensions ) ) ) {
-				return false;
-			}
-
-			if ( ListLen( channelAndDimensions, " " ) gt 1 ) {
-				if ( ListFirst( channelAndDimensions, " " ) contains "cmyk" ) {
-					execute( process = "convert", args = '"#arguments.filePath#" -profile #ExpandPath("/pcmscore/api/assetmanager/color-profile/GenericCMYK.icm")# -profile #ExpandPath("/pcmscore/api/assetmanager/color-profile/sRGB_v4_ICC_preference.icc")# "#arguments.filePath#"' );
-				}
-
-				dimensions = ListRest( channelAndDimensions, " " );
-			} else {
-				dimensions = channelAndDimensions;
-			}
-
-			return ListLen( dimensions, "x" ) eq 2
-			   and Val( ListFirst( dimensions, "x" ) )
-			   and Val( ListLast ( dimensions, "x" ) );
+		return FileReadBinary( tmpFilePath );
 	}
 
 	public binary function shrinkToFit(
@@ -105,6 +94,7 @@ component output="false" displayname="ImageMagick"  {
 		,          string  quality = "highPerformance"
 		,          struct  assetProperty       =  {}
 	) output=false {
+
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
@@ -116,21 +106,26 @@ component output="false" displayname="ImageMagick"  {
 		}
 
 		if( !structIsEmpty( arguments.assetProperty ) ){
-			imageInfo.height = arguments.assetProperty.height ?: 0;
-			imageInfo.width  = arguments.assetProperty.width  ?: 0;
-		}else{
-			imageInfo = ImageInfo( image );
+			currentImageInfo.height = arguments.assetProperty.height ?: 0;
+			currentImageInfo.width  = arguments.assetProperty.width  ?: 0;
+		} else {
+			currentImageInfo = ImageInfo( image );
 		}
 
-		var imageMagickFile   = imageMagickResize(
-			  sourceFile      = assetProperty.sourceFile
-			, destinationFile = assetProperty.destinationFile
-			, width           = arguments.width
-			, height          = arguments.height
-			, expand          = true
-			, crop            = false
-		);
+		var imageMagickFile = "";
 
+		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
+			return arguments.asset;
+		} else {
+			var imageMagickFile   = imageMagickResize(
+				  sourceFile      = assetProperty.sourceFile
+				, destinationFile = assetProperty.destinationFile
+				, width           = arguments.width
+				, height          = arguments.height
+				, expand          = true
+				, crop            = false
+			);
+		}
 		image = FileReadBinary( imageMagickFile );
 
 		return ImageGetBlob( image );
@@ -146,30 +141,32 @@ component output="false" displayname="ImageMagick"  {
 		,          string  gravity   = 'center'
 	) {
 
-		var execArgs = '"#arguments.sourceFile#" -resize #arguments.width#x#arguments.height#';
+		var execArgs  = {
+			  process = "convert"
+			, args    = '"#arguments.sourceFile#" -resize #arguments.width#x#arguments.height#'
+        };
 
     	if ( arguments.expand ) {
     		if ( arguments.crop ) {
-    			execArgs &= "^";
+    			execArgs.args &= "^";
     		}
-    		execArgs &= " -gravity #arguments.gravity# -extent #arguments.width#x#arguments.height#";
+    		execArgs.args &= " -gravity #arguments.gravity# -extent #arguments.width#x#arguments.height#";
     	}
 
-    	execArgs &= " " & arguments.destinationFile;
+    	execArgs.args &= " " & arguments.destinationFile;
 
-    	cfexecute( name = "convert", arguments = execArgs );
+       	execute( argumentCollection = execArgs );
 
     	return arguments.destinationFile;
 
 	}
 
-	private private function execute(
+	private string function execute(
 		  required string process
 		, required string args
 	) {
-
 		var result = "";
-		cfexecute( name      = "#_getExecutablePath()##arguments.process#"
+		cfexecute( name      = "#_getExecutablePath()#\#arguments.process#.exe"
 				  ,arguments = "#arguments.args#"
 				  ,timeout   = "#_getTimeout()#"
 				  ,variable  = "result");
