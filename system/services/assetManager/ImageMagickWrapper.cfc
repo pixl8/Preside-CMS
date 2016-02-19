@@ -18,10 +18,7 @@ component output="false" displayname="ImageMagick"  {
 		,          struct  assetProperty       =  {}
 	) output=false {
 		var image              = "";
-		var interpolation      = arguments.quality
-		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
-		var currentAspectRatio = 0;
 
 		try {
 			image = ImageNew( arguments.asset );
@@ -41,17 +38,15 @@ component output="false" displayname="ImageMagick"  {
 		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
 			return arguments.asset;
 		} else {
-
 			imageMagickFile   = imageMagickResize(
 				  sourceFile      = assetProperty.sourceFile
-				, destinationFile = assetProperty.destinationFile
+				, destinationFile = assetProperty.sourceFile
 				, width           = arguments.width
 				, height          = arguments.height
 				, expand          = maintainAspectRatio
 				, crop            = maintainAspectRatio
 			);
 		}
-
 		image = FileReadBinary( imageMagickFile );
 
 		return ImageGetBlob( image );
@@ -62,27 +57,17 @@ component output="false" displayname="ImageMagick"  {
 		,          string scale
 		,          string resolution
 		,          string format
-		,          string pages          = 0
+		,          string pages
 		,          string transparent
 		,          struct assetProperty =  {}
 	) {
 		var imagePrefix = CreateUUId();
 		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & ".jpg";
-		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
 
 		assetProperty.destinationFile = replaceNoCase(assetProperty.destinationFile, ".pdf", ".jpg");
-		execArgs.process     = "convert";
-		execArgs.destination = GetTempDirectory();
-
-		execArgs.args = '-density 100 -colorspace rgb "#arguments.assetProperty.sourceFile#[1]" "#tmpFilePath#"';
-
-		for( var arg in allowedArgs ) {
-			if ( StructKeyExists( arguments, arg ) ) {
-				execArgs[ arg ] = arguments[ arg ];
-			}
-		}
-
-		execute(argumentCollection=execArgs);
+		execArgs.args                 = '-density 100 -colorspace rgb "#arguments.assetProperty.sourceFile#[0]" "#tmpFilePath#"';
+		assetProperty.sourceFile      = tmpFilePath;
+		execute( argumentCollection = execArgs );
 
 		return FileReadBinary( tmpFilePath );
 	}
@@ -91,13 +76,12 @@ component output="false" displayname="ImageMagick"  {
 		  required binary  asset
 		, required numeric width
 		, required numeric height
-		,          string  quality = "highPerformance"
+		,          string  quality             = "highPerformance"
 		,          struct  assetProperty       =  {}
 	) output=false {
 
-		var image         = "";
-		var imageInfo     = "";
-		var interpolation = arguments.quality;
+		var image            = "";
+		var currentImageInfo = {};
 
 		try {
 			image = ImageNew( arguments.asset );
@@ -140,11 +124,7 @@ component output="false" displayname="ImageMagick"  {
 		,          boolean crop      = false
 		,          string  gravity   = 'center'
 	) {
-
-		var execArgs  = {
-			  process = "convert"
-			, args    = '"#arguments.sourceFile#" -resize #arguments.width#x#arguments.height#'
-        };
+		var execArgs.args    = '"#arguments.sourceFile#" -resize #arguments.width#x#arguments.height#';
 
     	if ( arguments.expand ) {
     		if ( arguments.crop ) {
@@ -154,23 +134,21 @@ component output="false" displayname="ImageMagick"  {
     	}
 
     	execArgs.args &= " " & arguments.destinationFile;
-
        	execute( argumentCollection = execArgs );
 
     	return arguments.destinationFile;
-
 	}
 
 	private string function execute(
-		  required string process
-		, required string args
+		required string args
 	) {
-		var result = "";
-		cfexecute( name      = "#_getExecutablePath()#\#arguments.process#.exe"
+	    var result = "";
+		 cfexecute(
+				   name      = "#_getExecutablePath()#"
 				  ,arguments = "#arguments.args#"
 				  ,timeout   = "#_getTimeout()#"
-				  ,variable  = "result");
-		return result;
+				  ,variable  = "result" );
+		 return result;
 	}
 
 	private string function _getExecutablePath() {
