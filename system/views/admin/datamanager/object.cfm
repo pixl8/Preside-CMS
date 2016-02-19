@@ -11,10 +11,10 @@
 	prc.pageTitle    = objectTitle;
 	prc.pageSubTitle = objectDescription;
 
-
-	canAdd    = prc.canAdd    ?: false;
-	canDelete = prc.canDelete ?: false;
-	canSort   = prc.canSort   ?: false;
+	relatedProperty  = prc.relatedProperty ?: {};
+	canAdd           = prc.canAdd          ?: false;
+	canDelete        = prc.canDelete       ?: false;
+	canSort          = prc.canSort         ?: false;
 </cfscript>
 
 <cfoutput>
@@ -49,6 +49,7 @@
 		  objectName      = objectName
 		, useMultiActions = canDelete
 		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
+		, relatedProperty = relatedProperty
 		, gridFields      = gridFields
 	} )#
 </cfoutput>

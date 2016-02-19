@@ -45,8 +45,8 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = event.getValue( name="id", default="" );
-
+			var objectName   = event.getValue( name="id", default="" );
+			var relationship = "";
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -59,6 +59,17 @@
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
 			prc.gridFields = _getObjectFieldsForGrid( objectName );
+
+			objectAttributes = presideObjectService.getObjectProperties(objectName);
+			
+			for(property in objectAttributes){
+				if(objectAttributes[property].relationship == "many-to-many" OR objectAttributes[property].relationship == "many-to-one"){
+					
+					prc.relatedProperty[objectAttributes[property].relatedto] = listAppend(relationship,objectAttributes[property].relationship);
+				}
+			
+			}
+			
 		</cfscript>
 	</cffunction>
 
@@ -342,6 +353,36 @@
 				  title = translateResource( uri="cms:datamanager.translationRecordhistory.breadcrumb.title" )
 				, link  = ""
 			);
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="updateRecordAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfscript>
+			var objectName   = rc.object ?: "";
+			sourceIdList     = rc.id;
+			targetIdList     = rc[relatedFieldName];
+			
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="update", object=objectName );
+
+			for(sourceId in sourceIdList){
+				var previousData = presideObjectService.getDeNormalizedManyToManyData(	  objectName   = "event"
+																        	, id = sourceId );
+				data[sourceId] = ListRemoveDuplicates(listAppend(targetIdList, previousData.eventCategory));
+
+				getResult = presideObjectService.syncManyToManyData(  sourceObject   = objectName
+												        , sourceProperty = "eventCategory"
+												        , sourceId       = sourceId
+												        , targetIdList   = data[sourceId]     );
+			}
+			if(getResult){
+				messageBox.info( translateResource( uri="cms:datamanager.recordTranslated.confirmation", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			}
+			
 		</cfscript>
 	</cffunction>
 
@@ -763,6 +804,9 @@
 			}
 
 			switch( action ){
+				case "update":
+					return updateRecordAction( argumentCollection = arguments ); 
+				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
 				break;
