@@ -1010,6 +1010,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockFormSubmissionDao            = CreateStub();
 		variables.mockColdbox                      = CreateStub();
 		variables.mockSpreadsheetLib               = CreateStub();
+		variables.mockActionsService               = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderActionsService" );
 		variables.mockItemTypesService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderItemTypesService" );
 		variables.mockRenderingService             = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderRenderingService" );
 		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
@@ -1018,6 +1019,7 @@ component extends="testbox.system.BaseSpec"{
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
 			  itemTypesService             = mockItemTypesService
+			, actionsService               = mockActionsService
 			, formBuilderRenderingService  = mockRenderingService
 			, formsService                 = mockFormsService
 			, formBuilderValidationService = mockFormBuilderValidationService

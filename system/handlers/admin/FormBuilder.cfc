@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="formBuilderService"          inject="formBuilderService";
 	property name="formBuilderRenderingService" inject="formBuilderRenderingService";
 	property name="itemTypesService"            inject="formBuilderItemTypesService";
+	property name="actionsService"              inject="formBuilderActionsService";
 	property name="messagebox"                  inject="coldbox:plugin:messagebox";
 	property name="spreadsheetLib"              inject="spreadsheetLib";
 
@@ -64,6 +65,8 @@ component extends="preside.system.base.AdminHandler" {
 			, link  = event.buildAdminLink( linkTo="formbuilder.manageform", queryString="id=" & prc.form.id )
 		);
 
+		event.include( "/js/admin/specific/formbuilder/workbench/" );
+		event.include( "/css/admin/specific/formbuilder/workbench/" );
 		event.includeData( {
 			  "formbuilderFormId"               = prc.form.id
 			, "formbuilderSaveNewItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.addItemAction" )
@@ -92,6 +95,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		event.setLayout( "adminModalDialog" );
 
+		event.include( "/js/admin/specific/formbuilder/configdialog/" );
 		event.includeData( {
 			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateItemConfig" )
 		} );
@@ -146,6 +150,70 @@ component extends="preside.system.base.AdminHandler" {
 			, link  = event.buildAdminLink( linkTo="formbuilder.actions", queryStrign="id=" & prc.form.id )
 		);
 
+
+		event.include( "/js/admin/specific/formbuilder/workbench/" );
+		event.include( "/css/admin/specific/formbuilder/workbench/" );
+		event.includeData( {
+			  "formbuilderFormId"               = prc.form.id
+			, "formbuilderSaveNewItemEndpoint"  = event.buildAdminLink( linkTo="formbuilder.addActionAction" )
+			, "formbuilderDeleteItemEndpoint"   = event.buildAdminLink( linkTo="formbuilder.deleteActionAction" )
+			, "formbuilderSaveItemEndpoint"     = event.buildAdminLink( linkTo="formbuilder.saveActionAction" )
+			, "formbuilderSetSortOrderEndpoint" = event.buildAdminLink( linkTo="formbuilder.setActionsSortOrderAction" )
+		} );
+
+	}
+
+	public void function actionConfigDialog( event, rc, prc ) {
+		if ( Len( Trim( rc.actionId ?: "" ) ) ) {
+			var action = formBuilderService.getFormAction( rc.actionId );
+			if ( action.count() ) {
+				prc.savedData = action.configuration;
+			}
+		}
+
+		prc.actionConfig = actionsService.getActionConfig( rc.action ?: "" );
+
+		if ( !prc.actionConfig.count() ) {
+			event.adminNotFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="formbuilder:action.config.dialog.title"   , data=[ prc.actionConfig.title ] );
+		prc.pageSubTitle = translateResource( uri="formbuilder:action.config.dialog.subtitle", data=[ prc.actionConfig.title ] );
+		prc.pageIcon     = "cog";
+
+		event.setLayout( "adminModalDialog" );
+
+		event.include( "/js/admin/specific/formbuilder/configdialog/" );
+		event.includeData( {
+			"formBuilderValidationEndpoint" = event.buildAdminLink( linkTo="formbuilder.validateActionConfig" )
+		} );
+	}
+
+	public void function validateActionConfig( event, rc, prc ) {
+		var config = event.getCollectionWithoutSystemVars();
+
+		config.delete( "formId"   );
+		config.delete( "actionId" );
+		config.delete( "action"   );
+
+		var validationResult = formBuilderService.validateActionConfig(
+			  formId   = rc.formId   ?: ""
+			, actionId = rc.actionId ?: ""
+			, action   = rc.action   ?: ""
+			, config   = config
+		);
+
+		if ( validationResult.validated() ) {
+			event.renderData( data=true, type="json" );
+		} else {
+			var errors = {};
+			var messages = validationResult.getMessages();
+
+			for( var fieldName in messages ){
+				errors[ fieldName ] = translateResource( uri=messages[ fieldName ].message, defaultValue=messages[ fieldName ].message, data=messages[ fieldName ].params ?: [] );
+			}
+			event.renderData( data=errors, type="json" );
+		}
 	}
 
 	public void function submissions( event, rc, prc ) {
@@ -370,6 +438,54 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 
+	public void function addActionAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+
+		configuration.delete( "formId" );
+		configuration.delete( "action" );
+
+		var newId = formBuilderService.addAction(
+			  formId        = rc.formId   ?: ""
+			, action        = rc.action ?: ""
+			, configuration = configuration
+		);
+
+		event.renderData( type="json", data={
+			  id       = newId
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=formBuilderService.getFormAction( newId ) )
+		} );
+	}
+
+	public void function saveActionAction( event, rc, prc ) {
+		var configuration = event.getCollectionWithoutSystemVars();
+		var actionId      = rc.id ?: "";
+
+		configuration.delete( "id" );
+
+		formBuilderService.saveAction(
+			  id            = actionId
+			, configuration = configuration
+		);
+
+		event.renderData( type="json", data={
+			  id       = actionId
+			, itemView = renderViewlet( event="admin.formbuilder.workbenchFormAction", args=formBuilderService.getFormAction( actionId ) )
+		} );
+	}
+
+	public void function deleteActionAction( event, rc, prc ) {
+		var deleteSuccess = formBuilderService.deleteAction( rc.id ?: "" );
+
+		event.renderData( data=deleteSuccess, type="json" );
+	}
+
+	public void function setActionsSortOrderAction( event, rc, prc ) {
+		var itemsUpdated = formBuilderService.setActionsSortOrder( ListToArray( rc.itemIds ?: "" ) );
+		var success      = itemsUpdated > 0;
+
+		event.renderData( data=success, type="json" );
+	}
+
 
 // AJAXY ACTIONS
 	public void function getFormsForAjaxDataTables( event, rc, prc ) {
@@ -466,6 +582,7 @@ component extends="preside.system.base.AdminHandler" {
 		args.canEdit         = !isLocked && hasCmsPermission( permissionKey="formbuilder.editform" );
 		args.canEditActions  = !isLocked && hasCmsPermission( permissionKey="formbuilder.editformactions" );
 		args.submissionCount = formBuilderService.getSubmissionCount( formId );
+		args.actionCount     = formBuilderService.getActionCount( formId );
 
 		return renderView( view="/admin/formbuilder/_managementTabs", args=args );
 	}
@@ -485,6 +602,27 @@ component extends="preside.system.base.AdminHandler" {
 		);
 		return renderView( view="/admin/formbuilder/_workbenchFormItem", args=args );
 	}
+
+	private string function actionsPicker( event, rc, prc, args ) {
+		args.actions = actionsService.listActions();
+
+		return renderView( view="/admin/formbuilder/_actionsPicker", args=args );
+	}
+
+	private string function actionsManagement( event, rc, prc, args ) {
+		args.actions = formBuilderService.getFormActions( args.formId ?: "" );
+		return renderView( view="/admin/formbuilder/_actionsManagement", args=args );
+	}
+
+	private string function workbenchFormAction( event, rc, prc, args ) {
+		args.placeholder = renderViewlet(
+			  event = formBuilderRenderingService.getActionViewlet( action=( args.action.id ?: "" ), context="adminPlaceholder" )
+			, args  = args
+		);
+		return renderView( view="/admin/formbuilder/_workbenchFormAction", args=args );
+	}
+
+
 
 // PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
