@@ -3,7 +3,7 @@
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
-	labels       = ( structKeyExists( args, "checkboxLabel") && len( args.checkboxLabel ) )  ?  args.checkboxLabel : "";
+	labels       = args.checkboxLabel ?: "";
 	value        = event.getValue( name=inputName, defaultValue=defaultValue );
 
 	if ( not IsSimpleValue( value ) ) {

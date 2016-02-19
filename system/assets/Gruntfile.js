@@ -137,6 +137,20 @@ module.exports = function( grunt ) {
 
 						return dest + pathSplit.join( "/" );
 					}
+				},
+				{
+					expand  : true,
+					cwd     : 'css/frontend/',
+					src     : '**/*.less',
+					dest    : 'css/frontend/',
+					ext     : ".less.css",
+					rename  : function( dest, src ){
+						var pathSplit = src.split( '/' );
+
+						pathSplit[ pathSplit.length-1 ] = "$" + pathSplit[ pathSplit.length-1 ];
+
+						return dest + pathSplit.join( "/" );
+					}
 				}]
 			},
 			core: {
@@ -148,10 +162,10 @@ module.exports = function( grunt ) {
 		cssmin: {
 			all: {
 				expand : true,
-				cwd    : 'css/admin/',
+				cwd    : 'css/',
 				src    : [ '**/*.css', '!**/_*.min.css' ],
 				ext    : '.min.css',
-				dest   : 'css/admin/',
+				dest   : 'css/',
 				rename : function( dest, src ){
 					var pathSplit = src.split( '/' );
 
@@ -167,7 +181,7 @@ module.exports = function( grunt ) {
 					  src    : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/frontend/**/_*.min.js" ]
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}, {
-					  src    : "css/admin/**/_*.min.css"
+					  src    : [ "css/admin/**/_*.min.css", "css/frontend/**/_*.min.js" ]
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}]
 			},
@@ -176,7 +190,7 @@ module.exports = function( grunt ) {
 					  src    : "js/**/_*.min.js"
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}, {
-					  src    : "css/admin/**/_*.min.css"
+					  src    : ["css/admin/**/_*.min.css","css/frontend/**/_*.min.css"]
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}]
 			}
@@ -190,13 +204,13 @@ module.exports = function( grunt ) {
 			frequentChangers: {
 				files : [
 					  { src : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/frontend/**/_*.min.js" ]  }
-					, { src : "css/admin/**/_*.min.css" }
+					, { src : "css/**/**/_*.min.css" }
 				]
 			},
 			all: {
 				files : [
 					  { src : "js/**/_*.min.js"  }
-					, { src : "css/admin/**/_*.min.css" }
+					, { src : "css/**/**/_*.min.css" }
 				]
 			}
 		},
@@ -219,7 +233,7 @@ module.exports = function( grunt ) {
 
 		watch: {
 			frequentChangers: {
-				files : [ "css/admin/**/*.less", "css/admin/**/*.css", "js/admin/presidecore/*.js", "js/admin/specific/**/*.js", "js/frontend/**/*.js", "!css/admin/**/*.min.css", "!js/**/*.min.js" ],
+				files : [ "css/**/**/*.less", "css/**/**/*.css", "js/admin/presidecore/*.js", "js/admin/specific/**/*.js", "js/frontend/**/*.js", "!css/**/**/*.min.css", "!js/**/*.min.js" ],
 				tasks : [ "default" ]
 			}
 		}

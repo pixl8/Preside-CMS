@@ -9,8 +9,8 @@ component {
 			, context            = "formbuilder"
 			, id                 = args.id                ?: controlName
 			, layout             = ""
-			, labels		 	 = args.labels 	  ?: ""
-			, checkboxLabel		 = args.checkboxLabel 	  ?: ""
+			, labels		 	 = args.labels            ?: ""
+			, checkboxLabel		 = args.checkboxLabel     ?: ""
 			, defaultValue		 = 1
 			, required           = IsTrue( args.mandatory ?: "" )
 		);

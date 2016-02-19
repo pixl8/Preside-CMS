@@ -2,7 +2,7 @@ component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
-
+		event.include( assetId="/css/frontend/formbuilder/" );
 		return renderFormControl(
 			  argumentCollection = arguments
 			, name               = controlName
@@ -11,8 +11,8 @@ component {
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, step				 = 0.01
-			, class				 = "price"
+			, step               = 0.01
+			, class              = "price"
 		);
 	}
 
