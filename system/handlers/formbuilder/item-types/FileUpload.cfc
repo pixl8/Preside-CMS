@@ -32,4 +32,10 @@ component {
 			, maximumfilesize    = args.maximumfilesize   ?: ""
 		);
 	}
+
+	private array function getValidationRules( event, rc, prc, args={} ) {
+        var rules = [];
+        rules.append({ fieldname=args.name, validator="fileSize" });
+        return rules;
+    }
 }

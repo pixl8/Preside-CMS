@@ -103,4 +103,22 @@ component validationProvider=true {
 	public string function slug_js() {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
+
+	public boolean function currency( required string fieldName, string value="" ) validatorMessage="cms:validation.currency.default" {
+		return REMatchNoCase("^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$", arguments.value );
+	}
+
+	public string function currency_js() {
+		return "function( value, el, param ) {var regex = new RegExp('^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$');return regex.test(value);}";
+	}
+
+	public boolean function fileSize( required string fieldName, string value="" ,required struct data ) validatorMessage="cms:validation.fileUpload.default" {
+		var fileSize = element.files[0].size / 1024;
+		var fileSizeInMB = round( (fileSize / 1024) * 100) / 100 ;
+		return fileSizeInMB <= data.maximumfilesize;
+	}
+
+	public string function fileSize_js() {
+		return "function( value, el, param ) {var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ;return !value.length || (fileSizeInMB <= param[0]);}";
+	}
 }
