@@ -2,12 +2,12 @@
 <form i18nBaseUri="formbuilder.item-types.datePicker:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="minDate"          				control="datePicker"  required="false"  sortorder="31" />
-			<field name="maxDate"   			 		control="datePicker"  required="false"  sortorder="32" />
-			<field name="greaterThanCurrentDate" 		control="yesnoswitch" required="false"  sortorder="33" />
-			<field name="lessThanCurrentDate" 		    control="yesnoswitch" required="false"  sortorder="34" />
+			<field name="minDate"                       control="datePicker"  required="false"  sortorder="31" />
+			<field name="maxDate"                       control="datePicker"  required="false"  sortorder="32" />
+			<field name="greaterThanCurrentDate"        control="yesnoswitch" required="false"  sortorder="33" />
+			<field name="lessThanCurrentDate"           control="yesnoswitch" required="false"  sortorder="34" />
 			<field name="greaterThanDateEnteredInField" control="textinput"   required="false"  sortorder="35" />
-			<field name="lessThanDateEnteredInField" 	control="textinput"   required="false"  sortorder="36" />
+			<field name="lessThanDateEnteredInField"    control="textinput"   required="false"  sortorder="36" />
 		</fieldset>
 	</tab>
 </form>
