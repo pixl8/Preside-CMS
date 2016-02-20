@@ -20,4 +20,10 @@ component {
 		price =  args.response&' '&args.itemConfiguration.currency;
 		return price;
 	}
+
+	private array function getValidationRules( event, rc, prc, args={} ) {
+        var rules = [];
+        rules.append({ fieldname=args.name, validator="currency" });
+        return rules;
+    }
 }
