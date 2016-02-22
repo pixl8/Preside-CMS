@@ -4,7 +4,7 @@ component {
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
-		, boolean sessionManagement            = _areSessionsEnabledForRequest( arguments.statelessUrlPatterns )
+		, boolean sessionManagement            = !_isStatelessRequest( arguments.statelessUrlPatterns )
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 15
@@ -17,7 +17,6 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.scriptProtect                           = arguments.scriptProtect;
-		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -370,7 +369,7 @@ component {
 		}
 	}
 
-	private boolean function _areSessionsEnabledForRequest( required array urlPatterns ) {
+	private boolean function _isStatelessRequest( required array urlPatterns ) {
 		if ( arguments.urlPatterns.len() ) {
 			var requestData = GetHttpRequestData();
 			var requestUrl  = requestData.headers[ 'X-Original-URL' ] ?: "";
