@@ -63,6 +63,8 @@
 			.initArg( name="rootDirectory" , value=settings.tmp_uploads_directory & "/.tmp" )
 			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
+
+		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
 	}
 
 	private void function _loadExtensionConfigurations() {

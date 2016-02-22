@@ -105,9 +105,11 @@ component {
 	) {
 		var presideroot = _getPresideRoot();
 
-		this.mappings[ "/preside" ] = presideroot;
-		this.mappings[ "/coldbox" ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
-		this.mappings[ "/sticker" ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/preside"        ] = presideroot;
+		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
+		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
+		this.mappings[ "/javaloader"     ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox/system/core/javaloader"
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;

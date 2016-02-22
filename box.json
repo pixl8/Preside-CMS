@@ -27,6 +27,7 @@
     ],
     "dependencies":{
         "sticker":"github:pixl8/sticker#v1.0.2",
+        "lucee-spreadsheet":"github:cfsimplicity/lucee-spreadsheet#v0.5.11",
         "coldbox-standalone-3.8.2":"http://integration.stg.ortussolutions.com/artifacts/ortussolutions/coldbox/3.8.2/coldbox-standalone-3.8.2.zip",
         "presidecmseditor":"github:pixl8/Preside-Editor"
     },
@@ -35,6 +36,7 @@
     },
     "installPaths":{
         "sticker":"system/externals/sticker",
+        "lucee-spreadsheet":"system/externals/lucee-spreadsheet",
         "coldbox-standalone-3.8.2":"system/externals/coldbox-standalone-3.8.2",
         "testbox":"support/tests/testbox",
         "presidecmseditor":"system/assets/ckeditor"

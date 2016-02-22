@@ -26,3 +26,4 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[presidesuperclass]]
 * [[xss]]
 * [[restframework]]
+* [[spreadsheets]]
