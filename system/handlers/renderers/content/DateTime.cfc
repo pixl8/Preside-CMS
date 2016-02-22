@@ -5,7 +5,7 @@ component output=false {
 
 		if ( IsDate( data ) ) {
 			data = parseDateTime( data );
-			return dateFormat( data, "long" ) & " " & timeFormat( data, "medium" );
+			return dateFormat( data, "dd mmm yyyy" ) & " " & timeFormat( data, "hh:mm:ss tt" );
 		}
 
 		return data;

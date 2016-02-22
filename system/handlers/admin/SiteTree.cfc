@@ -39,6 +39,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.parent_page"
 			, "page.title"
 			, "page.slug"
+			, "page.main_image"
 			, "page.active"
 			, "page.page_type"
 			, "page.datecreated"
@@ -63,6 +64,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.parent_page"
 			, "page.title"
 			, "page.slug"
+			, "page.main_image"
 			, "page.active"
 			, "page.page_type"
 			, "page.datecreated"
@@ -413,7 +415,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		prc.translations = multilingualPresideObjectService.getTranslationStatus( ( prc.pageIsMultilingual ? "page" : prc.pageTypeObjectName ), pageId );
-
 		_pageCrumbtrail( argumentCollection=arguments, pageId=prc.page.id, pageTitle=prc.page.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.translatepage.breadcrumb.title", data=[ prc.language.name ] )

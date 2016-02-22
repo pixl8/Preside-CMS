@@ -1,0 +1,10 @@
+.presidecms #page-thumbnail {
+  display: none;
+  position: absolute;
+  padding: 5px;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+}
