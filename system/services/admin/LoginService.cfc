@@ -96,9 +96,9 @@ component displayName="Admin login service" {
 	 */
 	public struct function getLoggedInUserDetails() {
 		if ( !StructKeyExists( request, "__presideCmsAminUserDetails" ) ) {
-			var userId = _getSessionStorage().getVar( name=_getSessionKey(), default="" );
+			var userId = getLoggedInUserId();
 
-			if ( Len( Trim( userId ) ) ) {
+			if ( Len( Trim( userId ?: "" ) ) ) {
 				var userRecord = _getUserDao().selectData( id=userId );
 				if ( userRecord.recordCount ) {
 					for( var u in userRecord ) {
@@ -126,7 +126,9 @@ component displayName="Admin login service" {
 	 *
 	 */
 	public string function getLoggedInUserId() {
-		return _getSessionStorage().getVar( name=_getSessionKey(), default="" );
+		var userId = _getSessionStorage().getVar( name=_getSessionKey(), default="" );
+
+		return userId ?: "";
 	}
 
 	/**
@@ -333,10 +335,12 @@ component displayName="Admin login service" {
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.usr.id );
+		SessionRotate();
 	}
 
 	private void function _destroyUserSession() {
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
+		SessionRotate();
 	}
 
 	private query function _getUserByLoginId( required string loginId ) {

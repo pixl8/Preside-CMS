@@ -110,6 +110,8 @@ component singleton=true autodoc=true displayName="Website login service" {
 		recordLogout();
 
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
+		SessionRotate();
+
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
 			_deleteRememberMeCookie();
@@ -169,7 +171,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	public struct function getLoggedInUserDetails() autodoc=true {
 		var userDetails = _getSessionStorage().getVar( name=_getSessionKey(), default={} );
 
-		return IsStruct( userDetails ) ? userDetails : {};
+		return !IsNull( userDetails ) && IsStruct( userDetails ) ? userDetails : {};
 	}
 
 	/**
@@ -412,6 +414,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 	private void function _setUserSession( required struct data ) {
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
+		SessionRotate();
 	}
 
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
