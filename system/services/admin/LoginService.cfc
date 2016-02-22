@@ -387,7 +387,7 @@ component displayName="Admin login service" {
 	}
 
 	private date function _createTemporaryResetTokenExpiry() {
-		return DateAdd( "n", 60, Now() );
+		return DateAdd( "n", 2880, Now() );
 	}
 
 	private query function _getUserRecordByPasswordResetToken( required string token ) {
