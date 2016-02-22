@@ -105,6 +105,7 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test08_uninstallExtension_shouldRemoveTrackingInfoAndFiles() output=false {
 		DirectoryCreate( "/tests/resources/extensionManager/extensions/testExtension" );
+		FileWrite( "/tests/resources/extensionManager/extensions/testExtension/manifest.json", '{ "id" : "test", "title" : "test extension", "author" : "Test author", "version" : "2.5.5524", "changelog" : "Things change man" }' );
 		manager.activateExtension( "testExtension" );
 
 		super.assertEquals([
@@ -155,12 +156,15 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 	function test11_getExtensionInfo_shouldThrowInformativeErrorWhenExtensionHasNoManifest() output=false {
 		var errorThrown = false;
+		var badManager = new preside.system.services.devtools.ExtensionManagerService(
+			extensionsDirectory = "/tests/resources/extensionManager/badextensions"
+		);
 
 		try {
-			manager.getExtensionInfo( "untracked" );
+			badManager.getExtensionInfo( "nomanifest" );
 
 		} catch ( "ExtensionManager.missingManifest" e ) {
-			super.assertEquals( "The extension, [untracked], does not have a manifest file", e.message );
+			super.assertEquals( "The extension, [nomanifest], does not have a manifest file", e.message );
 			errorThrown = true;
 		} catch ( any e ){}
 
