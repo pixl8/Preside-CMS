@@ -4,6 +4,7 @@
 	canAddChildren  = prc.canAddChildren  ?: false;
 	gridFields      = prc.gridFields      ?: [];
 	cleanGridFields = prc.cleanGridFields ?: [];
+	gridFieldTitles = prc.gridFieldTitles ?: [];
 
 	objectTitle    = translateResource( uri="page-types.#pageType#:name", defaultValue=pageType );
 	addRecordTitle = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitle ) ] );
@@ -36,9 +37,7 @@
 			<thead>
 				<tr>
 					<cfloop array="#gridFields#" item="fieldName" index="i">
-						<cfset objectName = ListLen( fieldName, '.' ) gt 1 ? ListFirst( fieldName, '.' ) : pageType />
-
-						<th data-field="#cleanGridFields[ i ]#">#translateResource( uri="preside-objects.#objectName#:field.#cleanGridFields[ i ]#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#cleanGridFields[ i ]#.title" ) )#</th>
+						<th data-field="#cleanGridFields[ i ]#">#gridFieldTitles[ i ]#</th>
 					</cfloop>
 					<th>&nbsp;</th>
 				</tr>

@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="siteTreeService"                  inject="siteTreeService";
+	property name="presideObjectService"             inject="presideObjectService";
 	property name="formsService"                     inject="formsService";
 	property name="pageTypesService"                 inject="pageTypesService";
 	property name="validationEngine"                 inject="validationEngine";
@@ -842,6 +843,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.gridFields      = _getObjectFieldsForGrid( pageType );
 		prc.cleanGridFields = _cleanGridFields( prc.gridFields );
+		prc.gridFieldTitles = _getGridFieldTitles( prc.gridFields, pageType );
 		prc.parentPage      = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
 
 		if ( !Len( Trim( pageType ) ) || !pageTypesService.pageTypeExists( pageType ) || !ListFindNoCase( pageTypesService.getPageType( prc.parentPage.page_type ).getManagedChildTypes(), pageType ) ) {
@@ -1045,5 +1047,22 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		return cleanFields;
+	}
+
+	private array function _getGridFieldTitles( required array gridFields, required string pageType ) {
+		var titles = [];
+
+		for( var field in arguments.gridFields ) {
+			var objectName = ListLen( field, "." ) > 1 ? ListFirst( field, "." ) : arguments.pageType;
+			var fieldName  = ListLen( field, "." ) > 1 ? ListRest( field, "." ) : field;
+			var uriRoot    = presideObjectService.getResourceBundleUriRoot( objectName );
+
+			titles.append(
+				translateResource( uri="#uriRoot#field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )
+			);
+
+		}
+
+		return titles;
 	}
 }
