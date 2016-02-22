@@ -28,3 +28,4 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[restframework]]
 * [[formbuilder]]
 * [[spreadsheets]]
+* [[sessionmanagement]]
