@@ -9,6 +9,8 @@
 	param name="args.full_slug"                   type="string";
 	param name="args.datecreated"                 type="date";
 	param name="args.datemodified"                type="date";
+	param name="args.embargo_date"                type="any" default="";
+	param name="args.expiry_date"                 type="any" default="";
 	param name="args.active"                      type="boolean";
 	param name="args.trashed"                     type="boolean";
 	param name="args.child_count"                 type="numeric";
@@ -60,7 +62,9 @@
 		isSelected        = args.id == selected;
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
 
-		dataImage = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
+		dataImage            = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
+		usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
+		outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
 	}
 </cfscript>
 
@@ -141,7 +145,13 @@
 				</div>
 			</td>
 			<td>#pageType#</td>
-			<td>#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#</td>
+			<td>
+				#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#
+
+				<cfif usesDateRestrictions>
+					<i class="fa fa-clock-o <cfif outOfDate>red<cfelse>green</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
+				</cfif>
+			</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">
