@@ -145,7 +145,7 @@ component {
 	}
 
 	private void function _recordUserVisits( event, rc, prc ) {
-		if ( !event.isAjax() ) {
+		if ( !event.isAjax() && !ReFindNoCase( "^(assetDownload|ajaxproxy|staticAssetDownload)", event.getCurrentHandler() ) ) {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
 		}
