@@ -4,9 +4,22 @@
 		errorClass: 'help-block',
 		ignore: [],
 
-		// invalidHandler: function (event, validator) { //display error alert on form submit
-		// 	$('.alert-danger', $('.login-form')).show();
-		// },
+		invalidHandler: function (event, validator) {
+			var invalidElements = validator.invalidElements()
+			  , tabId, i, $tab;
+
+			for( i=0; i<invalidElements.length; i++ ){
+				tabId = $( invalidElements[ i ] ).closest( '.tab-pane' ).attr( 'id' );
+				$tab  = $( '.tabbable a[href="#' + tabId + '"]' );
+
+				if ( $tab.length ) {
+					$tab.closest( 'li' ).addClass( "error" );
+					if ( i == 0 ) {
+						$tab.tab( 'show' );
+					}
+				}
+			}
+		},
 
 		highlight: function (e) {
 			$(e).closest('.form-group').removeClass('has-info').addClass('has-error');
