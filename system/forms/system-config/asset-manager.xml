@@ -8,6 +8,9 @@ This form is used for configuring aspects of the asset manager
 	<tab id="default" sortorder="10">
 		<fieldset id="default" sortorder="10">
 			<field sortorder="10" name="retrieve_metadata" control="yesnoswitch" required="false" label="system-config.asset-manager:retrieve_metadata.label" help="system-config.asset-manager:retrieve_metadata.help" />
+			<field sortorder="20" name="isImageMagick" control="yesnoswitch" required="false" label="system-config.asset-manager:isImageMagick.label" help="system-config.asset-manager:isImageMagick.help" />
+			<field sortorder="30" name="pathToImageMagick" control="textinput" required="false" label="system-config.asset-manager:pathToImageMagick.label"               help="system-config.asset-manager:pathToImageMagick.help" placeholder="system-config.asset-manager:pathToImageMagick.placeholder" />
+			<field sortorder="40" name="timeout" control="spinner" required="false" label="system-config.asset-manager:timeout.label"               help="system-config.asset-manager:timeout.help" placeholder="system-config.asset-manager:timeout.placeholder" />
 		</fieldset>
 	</tab>
 </form>
