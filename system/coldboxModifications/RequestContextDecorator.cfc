@@ -276,6 +276,23 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return ReFind( "^admin\..*?action$", currentEvent );
 	}
 
+	public void function setXFrameOptionsHeader( string value ) {
+		if ( !StructKeyExists( arguments, "value" ) ) {
+			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
+			switch( setting ) {
+				case "allow":
+					return; // do not set any header
+				case "sameorigin":
+					arguments.value = "SAMEORIGIN";
+					break;
+				default:
+					arguments.value = "DENY";
+			}
+		}
+
+		getRequestContext().setHTTPHeader( name="X-Frame-Options", value=arguments.value );
+	}
+
 // FRONT END, dealing with current page
 	public void function initializePresideSiteteePage (
 		  string slug
