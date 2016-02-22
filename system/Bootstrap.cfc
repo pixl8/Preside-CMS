@@ -394,12 +394,12 @@ component {
 
 			for( var pattern in arguments.urlPatterns ) {
 				if ( requestUrl.reFindNoCase( pattern ) ) {
-					return false;
+					return true;
 				}
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 }
