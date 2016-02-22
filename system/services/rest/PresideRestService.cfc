@@ -13,11 +13,20 @@ component {
 	 * @resourceDirectories.inject  presidecms:directories:handlers/rest-apis
 	 * @controller.inject           coldbox
 	 * @configurationWrapper.inject presideRestConfigurationWrapper
+	 * @validationEngine.inject     validationEngine
 	 */
-	public any function init( required array resourceDirectories, required any controller, required any configurationWrapper ) {
-		_setApis( new PresideRestResourceReader().readResourceDirectories( arguments.resourceDirectories ) );
+	public any function init(
+		required array resourceDirectories,
+		required any   controller,
+		required any   configurationWrapper,
+		required any   validationEngine,
+	) {
+		_readResourceDirectories( arguments.resourceDirectories );
 		_setController( arguments.controller );
 		_setConfigurationWrapper( arguments.configurationWrapper );
+		_setValidationEngine( arguments.validationEngine );
+
+		_createParameterValidationRuleSets();
 
 		return this;
 	}
@@ -97,6 +106,11 @@ component {
 			args.append( extractTokensFromUri( restRequest ) );
 			args.restResponse = arguments.restResponse;
 			args.restRequest  = arguments.restRequest;
+
+			_validateRestParameters( restRequest=restRequest, restResponse=restResponse, args=args );
+			if ( arguments.restRequest.getFinished() ) {
+				return;
+			}
 
 			_announceInterception( "preInvokeRestResource", { restRequest=restRequest, restResponse=restResponse, args=args } );
 			if ( arguments.restRequest.getFinished() ) {
@@ -289,6 +303,13 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private void function _readResourceDirectories( required array resourceDirectories ) {
+		var resourceReader = new PresideRestResourceReader();
+		var apis           = resourceReader.readResourceDirectories( arguments.resourceDirectories );
+
+		_setApis( apis );
+	}
+
 	private array function _getApiList() {
 		if ( !variables.keyExists( "_apiList" ) ) {
 			_apiList = _getApis().keyArray();
@@ -352,6 +373,117 @@ component {
 		return false;
 	}
 
+	private void function _validateRestParameters(
+		  required any    restRequest
+		, required any    restResponse
+		, required struct args
+	) {
+		var resource    = arguments.restRequest.getResource();
+		var verb        = arguments.restRequest.getVerb();
+		var rulesetName = _getValidationRulesetName( resource.handler, verb );
+
+		if ( !_validationEngine.rulesetExists( rulesetName ) ) {
+			return;
+		}
+
+		var validationResult = _validationEngine.validate( rulesetName, args );
+
+		if ( validationResult.validated() ) {
+			return;
+		}
+
+		arguments.args.error = {
+			  type           = "rest.parameter.validation.error"
+			, title          = "REST Parameter Validation Error"
+			, errorCode      = 400
+			, message        = "A parameter validation error occurred within the REST API"
+			, detail         = "The request has errors in the following parameters: #validationResult.listErrorFields().toList( ', ' )#"
+			, additionalInfo = _translateValidationResultMessages( validationResult.getMessages() )
+		};
+
+		_announceInterception( "onRestRequestParameterValidationError", { restRequest=arguments.restRequest, restResponse=arguments.restResponse, args=arguments.args } );
+		if ( arguments.restRequest.getFinished() ) {
+			return;
+		}
+
+		arguments.restResponse.setError( argumentCollection=arguments.args.error );
+		arguments.restRequest.finish();
+	}
+
+	private void function _createParameterValidationRuleSets() {
+		var validator = "";
+		var apis      = _getApis();
+
+		for ( var apiRootPath in apis ) {
+			for ( var resource in apis[ apiRootPath ] ) {
+				for ( var verb in resource.verbs ) {
+					var rules = [];
+					if ( resource.requiredParameters.keyExists( verb ) ) {
+						for ( var param in resource.requiredParameters[ verb ] ) {
+							rules.append( {
+								  fieldName = param
+								, validator = "required"
+							} );
+						}
+					}
+					if ( resource.parameterTypes.keyExists( verb ) ) {
+						for ( var param in resource.parameterTypes[ verb ] ) {
+							var type      = resource.parameterTypes[verb][param];
+							var validator = "";
+
+							switch( type ) {
+								case "numeric":
+									validator = "number";
+									break;
+								case "date":
+								case "uuid":
+									validator = type;
+							}
+
+							if ( Len( validator ) ) {
+								rules.append( {
+									  fieldName = param
+									, validator = validator
+								} );
+							}
+						}
+					}
+
+					// TODO: create a 'isTypeOf' core validator
+					// TODO: support 'non-empty string' validators (it's implicit via "required" but not available for optional params)
+					// TODO: support custom validators (e.g. via cfargument annotations)
+					if (!rules.isEmpty()) {
+						_validationEngine.newRuleset(
+							  name  = _getValidationRulesetName( resource.handler, verb )
+							, rules = rules
+						);
+					}
+				}
+			}
+		}
+	}
+
+	private struct function _translateValidationResultMessages( required struct messages ) {
+		var result = {};
+
+		for ( var param in arguments.messages ) {
+
+			// TODO: support arguments.messages[param].params to be replaced in resources
+			// e.g. validation.min.default=Must be at least {1}
+
+			result[ param ] = $translateResource(
+				  uri  = arguments.messages[ param ].message
+				, data = arguments.messages[ param ].params
+			);
+		}
+
+		return result;
+	}
+
+	private string function _getValidationRulesetName( required string handler, required string verb ) {
+		return "restparamruleset.#arguments.handler#.#arguments.verb#";
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getApis() {
 		return _apis;
@@ -375,4 +507,10 @@ component {
 		_configurationWrapper = arguments.configurationWrapper;
 	}
 
+	private any function _getValidationEngine() {
+		return _validationEngine;
+	}
+	private void function _setValidationEngine( required any validationEngine ) {
+		_validationEngine = arguments.validationEngine;
+	}
 }

@@ -103,4 +103,12 @@ component validationProvider=true {
 	public string function slug_js() {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
+
+	public boolean function uuid( required string value ) validatorMessage="cms:validation.uuid.default" {
+		if ( not Len( Trim( arguments.value ) ) ) {
+			return true;
+		}
+
+		return IsValid( "uuid", arguments.value );
+	}
 }
