@@ -252,13 +252,13 @@ component displayName="Multilingual Preside Object Service" {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
 			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
 				if ( arguments.tableJoins[ i ].keyExists( "additionalClauses" ) ) {
-					 arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
+					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				} else {
-					 arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
+					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				}
 
 				if ( !$isAdminUserLoggedIn() ) {
-					 arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_active = 1";
+					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_active = 1";
 				}
 
 				arguments.tableJoins[ i ].type = "left";
