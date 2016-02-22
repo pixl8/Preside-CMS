@@ -105,20 +105,20 @@ component validationProvider=true {
 	}
 
 	public boolean function currency( required string fieldName, string value="" ) validatorMessage="cms:validation.currency.default" {
-		return REMatchNoCase("^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$", arguments.value );
+		return !arrayIsEmpty(REMatchNoCase("^(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?|\(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?\))$", arguments.value ));
 	}
-
 	public string function currency_js() {
 		return "function( value, el, param ) {var regex = new RegExp('^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$');return regex.test(value);}";
 	}
 
-	public boolean function fileSize( required string fieldName, string value="" ,required struct data ) validatorMessage="cms:validation.fileUpload.default" {
-		var fileSize = element.files[0].size / 1024;
-		var fileSizeInMB = round( (fileSize / 1024) * 100) / 100 ;
-		return fileSizeInMB <= data.maximumfilesize;
+	public boolean function fileSize( required string fieldName, string value="", required string field ) validatorMessage="cms:validation.fileUpload.default" {
+		var file = '/uploads/formbuilder#arguments.value#';
+		var fileSize = GetFileInfo( file ).size / 1024;
+		var fileSizeInMB = round( ( fileSize / 1024 ) * 100 ) / 100 ;
+		fileSizeInMB GT arguments.field                ? FileDelete(file) : "";
+		return fileSizeInMB LTE arguments.field;
 	}
-
 	public string function fileSize_js() {
-		return "function( value, el, param ) {var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ;return !value.length || (fileSizeInMB <= param[0]);}";
+		return "function( value, el, params ) { var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
 	}
 }
