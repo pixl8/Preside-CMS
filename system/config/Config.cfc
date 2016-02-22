@@ -256,7 +256,7 @@ component output=false {
 			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ] }
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
-			, formbuilder           = { enabled=true , siteTemplates=[ "*" ] }
+			, formbuilder           = { enabled=false, siteTemplates=[ "*" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ] }
