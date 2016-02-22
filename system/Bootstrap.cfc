@@ -3,8 +3,8 @@ component {
 	public void function setupApplication(
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
-		, array   skipSessionsFor              = [ "^https?://(.*?)/api/.*" ]
-		, boolean sessionManagement            = _areSessionsEnabledForRequest( arguments.skipSessionsFor )
+		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
+		, boolean sessionManagement            = _areSessionsEnabledForRequest( arguments.statelessUrlPatterns )
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 15
@@ -17,6 +17,7 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.scriptProtect                           = arguments.scriptProtect;
+		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
