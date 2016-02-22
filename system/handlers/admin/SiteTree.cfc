@@ -840,8 +840,9 @@ component extends="preside.system.base.AdminHandler" {
 		var parentId = rc.parent   ?: "";
 		var pageType = rc.pageType ?: "";
 
-		prc.gridFields = _getObjectFieldsForGrid( pageType );
-		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
+		prc.gridFields      = _getObjectFieldsForGrid( pageType );
+		prc.cleanGridFields = _cleanGridFields( prc.gridFields );
+		prc.parentPage      = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
 
 		if ( !Len( Trim( pageType ) ) || !pageTypesService.pageTypeExists( pageType ) || !ListFindNoCase( pageTypesService.getPageType( prc.parentPage.page_type ).getManagedChildTypes(), pageType ) ) {
 			event.notFound();
@@ -862,9 +863,10 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getManagedPagesForAjaxDataTables( event, rc, prc ) {
-		var parentId = rc.parent   ?: "";
-		var pageType = rc.pageType ?: "";
-		var gridFields = ListToArray( rc.gridFields );
+		var parentId        = rc.parent   ?: "";
+		var pageType        = rc.pageType ?: "";
+		var gridFields      = ListToArray( rc.gridFields );
+		var cleanGridFields = _cleanGridFields( gridFields );
 
 		prc.parentPage = _getPageAndThrowOnMissing( argumentCollection=arguments, pageId=parentId );
 
@@ -890,10 +892,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( var record in records ){
 			for( var field in gridFields ){
-				records[ field ][ records.currentRow ] = renderField( pageType, field, record[ field ], [ "adminDataTable", "admin" ] );
+				var objectName = ListLen( field, "." ) > 1 ? ListFirst( field, "." ) : pageType;
+				field = ListLen( field, "." ) > 1 ? ListRest( field, "." ) : field;
+
+				records[ field ][ records.currentRow ] = renderField( objectName, field, record[ field ], [ "adminDataTable", "admin" ] );
 			}
 			var args = record;
-			args.title 			= record[ gridFields[1] ];
+			args.title 			= record[ ListLast( gridFields[1], "." ) ];
 			args.canEdit        = _checkPermissions( argumentCollection=arguments, key="edit"        , pageId=args.id, throwOnError=false );
 			args.canDelete      = _checkPermissions( argumentCollection=arguments, key="delete"      , pageId=args.id, throwOnError=false );
 			args.canViewHistory = _checkPermissions( argumentCollection=arguments, key="viewversions", pageId=args.id, throwOnError=false );
@@ -902,9 +907,9 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		QueryAddColumn( records, "_options" , optionsCol );
-		ArrayAppend( gridFields, "_options" );
+		ArrayAppend( cleanGridFields, "_options" );
 
-		event.renderData( type="json", data=dtHelper.queryToResult( records, gridFields, results.totalRecords ) );
+		event.renderData( type="json", data=dtHelper.queryToResult( records, cleanGridFields, results.totalRecords ) );
 	}
 
 	public void function previewPage( event, rc, prc ) {
@@ -1030,5 +1035,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	private array function _getObjectFieldsForGrid( required string objectName ) {
 		return siteTreeService.listGridFields( arguments.objectName );
+	}
+
+	private array function _cleanGridFields( required array gridFields ) {
+		var cleanFields = [];
+
+		for( var field in arguments.gridFields ) {
+			cleanFields.append( ListLen( field, "." ) > 1 ? ListRest( field, "." ) : field );
+		}
+
+		return cleanFields;
 	}
 }
