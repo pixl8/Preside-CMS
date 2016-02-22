@@ -1,4 +1,4 @@
-<cfcomponent output="false" extends="mxunit.framework.TestCase" hint="An utility base class for our test cases">
+<cfcomponent output="false" extends="testbox.system.BaseSpec" hint="An utility base class for our test cases">
 
 <!--- private --->
 	<cffunction name="_getCachebox" access="private" returntype="any" output="false">
@@ -241,10 +241,7 @@
 			dbinfo type="index" table="#arguments.tableName#" name="indexes" datasource="#application.dsn#";
 
 			for( index in indexes ){
-				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name );
-				var isActuallyAnIndex = index.index_name.len();
-
-				if ( isActuallyAnIndex && !isPrimaryKeyIndex ) {
+				if ( index.index_name neq "PRIMARY" ) {
 					if ( not StructKeyExists( ixs, index.index_name ) ){
 						ixs[ index.index_name ] = {
 							  unique = not index.non_unique

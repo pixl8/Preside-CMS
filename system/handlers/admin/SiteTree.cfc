@@ -133,7 +133,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function trash( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="viewtrash" );
-		prc.treeTrash = siteTreeService.getTree( trash = true, format="nestedArray", selectFields=[ "id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
+		prc.treeTrash = siteTreeService.getTree( trash = true, format="nestedArray", selectFields=[ "page.id", "parent_page", "title", "slug", "active", "page_type", "datecreated", "datemodified", "_hierarchy_slug as full_slug", "trashed", "access_restriction" ] );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( "cms:sitetree.trash.breadcrumb" )

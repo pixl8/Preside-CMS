@@ -1,11 +1,15 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 
 	/**
 	 * @dbInfoService.inject  DbInfoService
 	 */
-	public any function init( required any dbInfoService ) output=false {
+	public any function init( required any dbInfoService ) {
 		_setDbInfoService( arguments.dbInfoService );
 		_setAdapters( {} )
 
@@ -13,7 +17,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public any function getAdapter( required string dsn ) output=false {
+	public any function getAdapter( required string dsn ) {
 		var adapters = _getAdapters();
 
 		if ( !adapters.keyExists( arguments.dsn ) ) {
@@ -22,6 +26,9 @@ component output=false singleton=true {
 			switch( dbType ) {
 				case "MySql":
 					adapters[ arguments.dsn ] = new MySqlAdapter();
+				break;
+				case "Microsoft SQL Server":
+					adapters[ arguments.dsn ] = new MsSqlAdapter();
 				break;
 
 				default:
@@ -33,7 +40,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private string function _getDbType( required string dsn ) output=false {
+	private string function _getDbType( required string dsn ) {
 		var db = QueryNew('');
 
 		try {
@@ -49,17 +56,17 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getDbInfoService() output=false {
+	private any function _getDbInfoService() {
 		return _dbInfoService;
 	}
-	private void function _setDbInfoService( required any dbInfoService ) output=false {
+	private void function _setDbInfoService( required any dbInfoService ) {
 		_dbInfoService = arguments.dbInfoService;
 	}
 
-	private any function _getAdapters() output=false {
+	private any function _getAdapters() {
 		return _adapters;
 	}
-	private void function _setAdapters( required any adapters ) output=false {
+	private void function _setAdapters( required any adapters ) {
 		_adapters = arguments.adapters;
 	}
 

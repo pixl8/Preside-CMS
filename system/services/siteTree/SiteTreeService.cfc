@@ -68,6 +68,10 @@ component singleton=true {
 			if ( format eq "nestedArray" and not args.selectFields.find( "_hierarchy_depth" ) and not args.selectFields.find( "page._hierarchy_depth" ) ) {
 				ArrayAppend( args.selectFields, "page._hierarchy_depth" );
 			}
+
+			if ( !args.selectFields.find( "page._hierarchy_sort_order" ) ) {
+				args.selectFields.append( "page._hierarchy_sort_order" );
+			}
 		}
 
 		if ( Len( Trim( arguments.rootPageId ) ) ) {

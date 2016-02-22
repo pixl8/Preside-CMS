@@ -26,6 +26,7 @@ component output=false singleton=true {
 			decorated.$methodInjector( "getDsn"         , this.getDsn          );
 			decorated.$methodInjector( "getTablename"   , this.getTablename    );
 			decorated.$methodInjector( "getName"        , this.getName         );
+			decorated.$methodInjector( "getDbAdapter"   , this.getDbAdapter    );
 			decorated.$methodInjector( "onMissingMethod", this.onMissingMethod );
 
 			StructDelete( decorated, "$methodInjector" )
@@ -65,6 +66,10 @@ component output=false singleton=true {
 
 	public string function getTablename() output=false {
 		return this._tableName;
+	}
+
+	public any function getDbAdapter() {
+		return this._presideObjectService.getDbAdapterForObject( this._objectName );
 	}
 
 	public void function $methodInjector( required string methodName, required any method ) output=false {
