@@ -2,7 +2,7 @@ component {
 	property name="assetManagerService"      inject="assetManagerService";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		fileName = listrest (args.response , '_' );
+		fileName = listlast (args.response , '/' );
 		args.response = event.buildLink(
 			fileStorageProvider = 'formBuilderStorageProvider',
 			fileStoragePath     = args.response);
@@ -35,7 +35,7 @@ component {
 
 	private array function getValidationRules( event, rc, prc, args={} ) {
         var rules = [];
-        rules.append({ fieldname=args.name, validator="fileSize" });
+        rules.append({ fieldname=args.name, validator="fileSize",params={field="#args.maximumfilesize#"} });
         return rules;
     }
 }
