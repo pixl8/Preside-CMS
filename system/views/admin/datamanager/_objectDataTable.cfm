@@ -10,6 +10,8 @@
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
+	updateSelected       = translateResource( uri="cms:datamanager.updateSelected.title" );
+	updateSelectedPrompt = translateResource( uri="cms:datamanager.updateSelected.prompt", data=[ LCase( objectTitle ) ] );
 
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
@@ -20,32 +22,32 @@
 		, allowSearch     = args.allowSearch
 	} );
 			
-		if( !structIsEmpty( args.relatedProperty ) ){
-			for(relatedField in args.relatedProperty){
-				
-				formControl.name            = relatedField;
-				formControl.object 			= relatedField;
-				formControl.type        	= "objectPicker";
-				formControl.ajax 			= false;
-				formControl.id              = args.objectName;
+	if( !structIsEmpty( args.relatedProperty ) ){
+		for( relatedField in args.relatedProperty ){
+			formControl.name            = relatedField;
+			formControl.object 			= relatedField;
+			formControl.type        	= "objectPicker";
+			formControl.ajax 			= false;
+			formControl.id              = args.objectName;
+			formControl.label           = relatedField;
 
-				if(args.relatedProperty[relatedField] == "many-to-many"){
-					formControl.multiple            = 1;
-				}
-
-				renderObject[relatedField]    = renderFormControl( argumentCollection = formControl );
+			if(args.relatedProperty[relatedField] == "many_to_many"){
+				formControl.multiple    = 1;
 			}
+			renderObject[relatedField]  = renderFormControl( argumentCollection = formControl );
+			structClear(formControl);
 		}
-</cfscript>
+	}
 
+</cfscript>		
 <cfoutput>
 	<div class="table-responsive">
 		<cfif args.useMultiActions>
 			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 				<cfif !structIsEmpty( args.relatedProperty )>
-					<cfloop collection="#renderObject#" item="getRenderObject">
-						<input type="hidden" name="relatedFieldName.#getRenderObject#" value="#getRenderObject#" />
+					<cfloop collection="#args.relatedProperty#" item="getRenderObject">
+						<input type="hidden" name="#args.relatedProperty[getRenderObject]#" value="#getRenderObject#" />
 					</cfloop>
 				</cfif>
 
@@ -75,13 +77,13 @@
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
 					<cfif !structIsEmpty( args.relatedProperty )>
-							<cfloop collection="#renderObject#" item="getRenderObject">
-								#structfind(renderObject,getRenderObject)#
-							</cfloop>
-							<button class="btn btn-info" type="submit" name="update" disabled="disabled" data-global-key="d" title="update">
-								<i class="fa fa-file-o bigger-110"></i>
-								update selected
-							</button>
+						<cfloop collection="#renderObject#" item="getRenderObject">
+							#structfind(renderObject,getRenderObject)#
+						</cfloop>
+						<button class="btn btn-success" type="submit" name="update" disabled="disabled" title="#updateSelectedPrompt#">
+							<i class="fa fa-check bigger-110"></i>
+							#updateSelected#
+						</button>
 					</cfif>
 					<cfif hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
 						<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#deleteSelectedPrompt#">
