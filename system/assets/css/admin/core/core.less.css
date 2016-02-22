@@ -14786,7 +14786,6 @@ span.presidecms .input-icon {
 }
 .presidecms .input-icon > [class*="fa-"] {
   padding: 0 3px;
-  z-index: 2;
   position: absolute;
   top: 1px;
   bottom: 1px;
@@ -15768,7 +15767,6 @@ span.presidecms .input-icon {
   border: 1px solid #c5d0dc;
   padding: 16px 12px;
   position: relative;
-  z-index: 11;
 }
 .presidecms .tab-content.no-padding {
   padding: 0;
@@ -16025,7 +16023,6 @@ span.presidecms .input-icon {
   margin-right: -1px;
   line-height: 16px;
   position: relative;
-  z-index: 11;
   border-color: #c5d0dc;
 }
 .presidecms .nav-tabs > li > a:hover {
@@ -16048,7 +16045,6 @@ span.presidecms .input-icon {
   border-top: 2px solid #4c8fbd;
   border-bottom-color: transparent;
   background-color: #FFF;
-  z-index: 12;
   line-height: 16px;
   margin-top: -1px;
   box-shadow: 0 -2px 3px 0 rgba(0, 0, 0, 0.15);
