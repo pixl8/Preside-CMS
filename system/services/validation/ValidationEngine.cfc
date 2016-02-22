@@ -1,6 +1,6 @@
 /**
  * @singleton
- *
+ * @presideservice
  */
 component {
 
@@ -15,7 +15,7 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) outut=false {
+	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) {
 		var rules       = _getRuleset( arguments.ruleset );
 		var validators  = _getValidators();
 		var validator   = _getValidators();
@@ -52,7 +52,7 @@ component {
 		return result;
 	}
 
-	public string function getJqueryValidateJs( required string ruleset ) outut=false {
+	public string function getJqueryValidateJs( required string ruleset, string jqueryReference="presideJQuery" ) {
 		var js    = "";
 		var rules = "";
 		var rulesAndMessagesJs = "";
@@ -62,13 +62,12 @@ component {
 			rulesAndMessagesJs = _generateRulesAndMessagesJs( rules )
 
 			js = "( function( $ ){ ";
-				js &= 'var translateResource = ( i18n && i18n.translateResource ) ? i18n.translateResource : function(a){ return a }; ';
 				js &= _generateCustomValidatorsJs( rules ) & " ";
 				js &= "return { ";
 					js &= "rules : { "    & Trim( rulesAndMessagesJs.rules    ) & " }, ";
 					js &= "messages : { " & Trim( rulesAndMessagesJs.messages ) & " } ";
 				js &= "}; "
-			js &= "} )( presideJQuery )";
+			js &= "} )( #jqueryReference# )";
 		}
 
 		return js;
@@ -132,6 +131,10 @@ component {
 		return rulesets[ arguments.rulesetName ];
 	}
 
+	private boolean function _rulesetExists( required string rulesetName ) {
+		return StructKeyExists( _getRulesets(), arguments.rulesetName );
+	}
+
 	private string function _generateCustomValidatorsJs( required array rules ) {
 		var validators  = _getValidators();
 		var provider    = "";
@@ -182,7 +185,7 @@ component {
 			}
 			jsRules[ rule.fieldName ] &= ' }';
 
-			jsMessages[ rule.fieldName ] = ListAppend( jsMessages[ rule.fieldName ], ' "#LCase( rule.validator )#" : translateResource( "#message#", { data : #SerializeJson( params )# } )' );
+			jsMessages[ rule.fieldName ] = ListAppend( jsMessages[ rule.fieldName ], ' "#LCase( rule.validator )#" : #SerializeJson( $translateResource( uri=message, data=params ) )#' );
 		}
 
 		for( rule in arguments.rules ){

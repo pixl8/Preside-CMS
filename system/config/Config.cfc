@@ -105,7 +105,7 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"          			);
 		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"         			);
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError"    );
-		
+
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
 		};
@@ -155,6 +155,7 @@ component output=false {
 			, "assetmanager"
 			, "datamanager"
 			, "websiteUserManager"
+			, "formbuilder"
 		];
 
 		settings.adminConfigurationMenuItems = [
@@ -192,6 +193,7 @@ component output=false {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
+			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -211,9 +213,10 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
-		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
-		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
+		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
+		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
@@ -253,6 +256,7 @@ component output=false {
 			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ] }
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
+			, formbuilder           = { enabled=false, siteTemplates=[ "*" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
 			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ] }
 			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ] }
@@ -265,6 +269,7 @@ component output=false {
 				  filter       = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )"
 				, filterParams = { "now" = { type="cf_sql_date", value=Now() } }
 			}
+			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
 		};
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
@@ -280,6 +285,8 @@ component output=false {
 			, corsEnabled = false
 			, apis        = {}
 		};
+
+		settings.formbuilder = _setupFormBuilder();
 
 		_loadConfigurationFromExtensions();
 
@@ -497,5 +504,35 @@ component output=false {
 				CreateObject( cfcPath ).configure( config=variables );
 			}
 		}
+	}
+
+	private struct function _setupFormBuilder() {
+		var fbSettings = { itemtypes={} };
+
+		fbSettings.itemTypes.standard = { sortorder=10, types={
+			  textinput    = { isFormField=true  }
+			, textarea     = { isFormField=true  }
+			, number 	   = { isFormField=true  }
+			, email		   = { isFormField=true  }
+			, submitButton = { isFormField=false }
+			, date 		   = { isFormField=true  }
+			, dateRange    = { isFormField=true  }
+			, price		   = { isFormField=true  }
+			, select	   = { isFormField=true  }
+			, checkboxList = { isFormField=true  }
+			, checkbox	   = { isFormField=true  }
+			, radio	       = { isFormField=true  }
+			, fileUpload   = { isFormField=true  }
+			, captcha      = { isFormField=false }
+			, starRating   = { isFormField=true  }
+			, matrix       = { isFormField=true  }
+		} };
+		fbSettings.itemTypes.content = { sortorder=20, types={
+			  spacer    = { isFormField=false }
+			, content   = { isFormField=false }
+		} };
+		fbSettings.actions = [ "email" ];
+
+		return fbSettings;
 	}
 }

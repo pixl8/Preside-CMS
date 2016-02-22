@@ -10860,10 +10860,12 @@ td.presidecms .visible-print {
   margin: 0 3px;
   display: inline-block;
   opacity: 0.85;
+}
+.presidecms .action-buttons a:not(.disabled) {
   -webkit-transition: all 0.1s;
   transition: all 0.1s;
 }
-.presidecms .action-buttons a:hover {
+.presidecms .action-buttons a:not(.disabled):hover {
   text-decoration: none;
   -moz-transform: scale(1.2);
   -webkit-transform: scale(1.2);
@@ -10871,6 +10873,9 @@ td.presidecms .visible-print {
   -ms-transform: scale(1.2);
   transform: scale(1.2);
   opacity: 1;
+}
+.presidecms .action-buttons a.disabled {
+  cursor: not-allowed;
 }
 .presidecms .navbar {
   margin-bottom: 0;
@@ -24088,6 +24093,12 @@ img.presidecms .editable-click:hover {
 .presidecms .nav-tabs li.error.active a {
   background-color: #ffffff;
 }
+.presidecms .accordion-header.ui-accordion-header {
+  font-size: 100%;
+  position: relative;
+  margin: 0;
+  font-weight: bold;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }
@@ -25944,8 +25955,22 @@ img.presidecms .editable-click:hover {
 .full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body iframe {
   height: 100%;
 }
+.full-screen-dialog .modal-dialog .modal-content .modal-body .modal-padding {
+  padding: 20px;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .modal-padding-horizontal {
+  padding-left: 20px;
+  padding-right: 20px;
+}
 .full-screen-dialog .modal-dialog .modal-content .modal-footer {
   margin-top: 0;
+}
+.full-screen-dialog.with-padding .modal-dialog .modal-content .modal-body {
+  padding: 20px;
+}
+.full-screen-dialog.limited-size .modal-dialog {
+  max-width: 1200px;
+  max-height: 800px;
 }
 .presidecms.iframe .page-content {
   padding-left: 0;

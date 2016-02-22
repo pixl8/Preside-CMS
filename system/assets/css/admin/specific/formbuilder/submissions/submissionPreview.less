@@ -1,0 +1,28 @@
+@import url( 'globals.less' );
+
+.presidecms {
+	.formbuilder-submission-preview {
+		.formbuilder-response {
+			float            : left;
+			display          : inline-block;
+			margin           : 0;
+			background-color : transparent;
+			width            : calc(~"100% - 1.5em");
+
+			td, th {
+				border           : none;
+				background-color : transparent !important;
+				padding          : 0;
+			}
+
+			td {
+				padding-left : 1em;
+
+				&::after {
+					content : "\2026";
+				}
+			}
+		}
+	}
+
+}

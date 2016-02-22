@@ -1,0 +1,21 @@
+.presidecms .formbuilder-item-type-picker .formbuilder-item-type-picker-category-title {
+  font-weight: normal;
+  color: #999999;
+  margin: 0 0 10px 2px;
+  font-size: 100%;
+}
+.presidecms .formbuilder-item-type-picker .formbuilder-item-type-picker-item-list {
+  margin: 0;
+}
+.presidecms .formbuilder-item-type-picker .formbuilder-item-type-picker-item-list .item-type {
+  cursor: move;
+  display: block;
+  float: left;
+  width: calc(50% - 4px);
+  padding: 10px 15px;
+  background-color: #eeeeee;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  margin: 2px;
+  font-size: 110%;
+}

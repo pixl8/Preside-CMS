@@ -59,6 +59,12 @@
 			.initArg( name="trashDirectory", value=settings.uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
 
+
+		map( "formBuilderStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="rootDirectory" , value=settings.uploads_directory & "/formbuilder" )
+			.initArg( name="trashDirectory", value=settings.uploads_directory & "/.trash" )
+			.initArg( name="rootUrl"       , value="" );
+
 		map( "tempStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory" , value=settings.tmp_uploads_directory & "/.tmp" )
 			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory & "/.trash" )

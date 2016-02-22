@@ -208,20 +208,22 @@
 
 .no-radius { .border-radius(0) !important; }
 
-
-
-
-
-
 .action-buttons a {
-  margin:0 3px;
-  display:inline-block;
-  opacity:0.85;
-   .transition(~"all 0.1s");
+	margin:0 3px;
+	display:inline-block;
+	opacity:0.85;
 
-  &:hover {
-	text-decoration:none;
-	.transform(~"scale(1.2)");
-	opacity:1;
-  }
+	&:not(.disabled) {
+		.transition(~"all 0.1s");
+
+		&:hover {
+			text-decoration:none;
+			.transform(~"scale(1.2)");
+			opacity:1;
+		}
+	}
+
+	&.disabled {
+		cursor : not-allowed;
+	}
 }
