@@ -13,7 +13,7 @@
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
-
+	value = val(minValue ?: value);
 	value = HtmlEditFormat( value );
 </cfscript>
 

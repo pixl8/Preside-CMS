@@ -119,6 +119,6 @@ component validationProvider=true {
 		return fileSizeInMB LTE arguments.field;
 	}
 	public string function fileSize_js() {
-		return "function( value, el, params ) { var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
+		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
 	}
 }
