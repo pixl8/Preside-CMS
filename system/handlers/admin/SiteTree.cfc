@@ -227,7 +227,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage", queryString="parent_page=#parent#&page_type=#rc.page_type#" ), persistStruct=persist );
 		} else {
-			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#newId#" ) );
+			if ( _isManagedPage( formData.parent_page, formData.page_type ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#formData.parent_page#&pageType=#formData.page_type#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#newId#" ) );
+			}
 		}
 	}
 
@@ -350,8 +354,11 @@ component extends="preside.system.base.AdminHandler" {
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageEdited.confirmation" ) );
 
-
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
+		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+		}
 	}
 
 	public void function translatePage( event, rc, prc ) {
