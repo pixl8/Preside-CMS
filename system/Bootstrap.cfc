@@ -17,6 +17,7 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.scriptProtect                           = arguments.scriptProtect;
+		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -355,13 +356,15 @@ component {
 		var pc           = getPageContext();
 		var resp         = pc.getResponse();
 		var cbController = _getColdboxController();
+		var allCookies   = resp.getHeaders( "Set-Cookie" );
 
-		if ( IsNull( cbController ) ) {
-			resp.setHeader( "Set-Cookie", "" );
+		if ( IsNull( cbController ) || _isStatelessRequest() ) {
+			if ( ArrayLen( allCookies ) ) {
+				resp.setHeader( "Set-Cookie", "" );
+			}
 			return;
 		}
 
-		var allCookies        = resp.getHeaders( "Set-Cookie" );
 		var httpRegex         = "(^|;|\s)HttpOnly(;|$)";
 		var secureRegex       = "(^|;|\s)Secure(;|$)";
 		var cleanedCookies    = [];
@@ -467,7 +470,7 @@ component {
 		}
 	}
 
-	private boolean function _isStatelessRequest( required array urlPatterns ) {
+	private boolean function _isStatelessRequest( array urlPatterns=( this.statelessUrlPatterns ?: [] ) ) {
 		if ( arguments.urlPatterns.len() ) {
 			var requestData = GetHttpRequestData();
 			var requestUrl  = requestData.headers[ 'X-Original-URL' ] ?: "";
