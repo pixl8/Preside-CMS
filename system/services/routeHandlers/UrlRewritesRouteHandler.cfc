@@ -17,6 +17,10 @@ component {
 
 // route handler methods
 	public boolean function match( required string path, required any event ) {
+		if ( event.isAjax() ) {
+			return false;
+		}
+
 		var path    = event.getCurrentUrl( includeQueryString=true );
 		var fullUrl = event.getBaseUrl() & path;
 
