@@ -50,7 +50,6 @@ component output=false {
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
 			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } },
-			{ class="preside.system.interceptors.RedirectsInterceptor"                , properties={} }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
