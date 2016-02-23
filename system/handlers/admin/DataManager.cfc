@@ -46,7 +46,7 @@
 
 		<cfscript>
 			var objectName   = event.getValue( name="id", default="" );
-			var relationship = "";
+			
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -59,17 +59,12 @@
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
 			prc.gridFields = _getObjectFieldsForGrid( objectName );
-
 			objectAttributes = presideObjectService.getObjectProperties(objectName);
-			
 			for(property in objectAttributes){
-				if(objectAttributes[property].relationship == "many-to-many" ){
-					prc.relatedProperty[objectAttributes[property].relatedto] = listAppend(relationship,"many_to_many");
-				}else if(objectAttributes[property].relationship == "many-to-one"){
-					prc.relatedProperty[objectAttributes[property].relatedTo] = listAppend(relationship,"many_to_one");
+				if(objectAttributes[property].control == "default"){
+					prc.fieldset[objectAttributes[property].name] = objectAttributes[property];
 				}
 			}
-			
 		</cfscript>
 	</cffunction>
 
@@ -361,61 +356,70 @@
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
-			var objectName   = rc.object        ?: "";
-			sourceIdList     = rc.id;
-			singleSelect     = rc.many_to_one   ?: "";
-			multiSelect      = rc.many_to_many  ?: "";
-			getMultiSelect   = false;
-			getSingleSelect  = false;
-			
+			var objectName      = rc.object        ?: "";
+			sourceIdList        = rc.id;
+			fieldNames          = rc.fieldnames;
+			getMultiSelect      = false;
+			getSingleSelect     = false;
+			multiSelectedValue  = "";
+			singleSelectedValue = "";
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			
-			for( sourceID in sourceIdList ) {
-				for ( multiSelectOption in multiSelect ) {
-					var multiSelectOptionValue = rc[ multiSelectOption ]   ?: "";
-					if( multiSelectOptionValue != "" ) {
-						objectAttributes = presideObjectService.getObjectProperties( multiSelectOption );
-						for( property in objectAttributes ) {
-							if( objectAttributes[ property ].relatedTo == objectName ) {
-								if( structKeyExists( objectAttributes[ property ], "relationshipKey" ) ){
-								 	multiDataColumn	= objectAttributes[ property ].relationshipKey;
-							 	} else {
-							 		multiDataColumn	= multiSelectOption;
-							 	}
-							}
-						}
-						var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName   = objectName, id = sourceID );
-						data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectOptionValue, previousData[ multiDataColumn ] ) );
-						getMultiSelect = presideObjectService.syncManyToManyData(  sourceObject   = objectName
-														        , sourceProperty = multiDataColumn
-														        , sourceId       = sourceID
-														        , targetIdList   = data[ sourceID ] );
-					}
-				}
-
-				for ( singleSelectOption in singleSelect ) {
-					var singleSelectOptionValue = rc[ singleSelectOption ]   ?: "";
-					if( singleSelectOptionValue != "" ) {
-						objectAttributes = presideObjectService.getObjectProperties( singleSelectOption );
-						for( property in objectAttributes ) {
-							if( objectAttributes[ property ].relatedTo == objectName ) {
-								if( structKeyExists( objectAttributes[ property ], "relationshipKey" ) ){
-								 	singleDataColumn	= objectAttributes[ property ].relationshipKey;
-							 	} else {
-							 		singleDataColumn	= singleSelectOption;
-							 	}
-							 
-							}
-						}
-						formData[ singleDataColumn ] = singleSelectOptionValue;
-						getSingleSelect = presideObjectService.updateData(   objectName  = objectName 
-																			, data       = formData 
-																			, id         = sourceId  );
-						structClear(formData);
-					}
-				 
+			objectAttributes = presideObjectService.getObjectProperties( objectName );
+			for( property in objectAttributes ) {
+				if( objectAttributes[ property ].control == "default" ) {
+					defaultFields[ objectAttributes[ property ].name ] = objectAttributes[ property ];
 				}
 			}
+			for( fieldName in fieldNames ) {
+				if( structKeyExists( defaultFields,fieldName ) ) {
+					for( sourceID in sourceIdList ) {
+						if( defaultFields[ fieldName ].relatedto !="none" ) {
+							getAttribute = presideObjectService.getObjectProperties( defaultFields[ fieldName ].relatedto );
+							for( property in getAttribute ) {
+								if( getAttribute[ property ].relatedTo == objectName ) {
+									if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
+									 	DataColumn	= getAttribute[ property ].relationshipKey;
+								 	} else {
+								 		DataColumn	= defaultFields[ fieldName ].relatedto;
+								 	}
+								}
+							}
+						}
+
+						if( defaultFields[ fieldName ].relationship == "many-to-many" ) {
+							multiSelectedValue = rc[ fieldName ];
+							if( multiSelectedValue != "" ) {
+								if( !structKeyExists(rc,"overwrite") ) {
+									var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
+									data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
+								}else{
+									data[ sourceID ] =  multiSelectedValue;
+								}
+									getMultiSelect = presideObjectService.syncManyToManyData(  sourceObject   = objectName
+															        , sourceProperty = DataColumn
+															        , sourceId       = sourceID
+															        , targetIdList   = data[ sourceID ] );
+
+							}
+						}else if ( defaultFields[ fieldName ].relationship == "many-to-one"){
+							singleSelectedValue    = rc[ fieldName ];
+							formData[ DataColumn ] = singleSelectedValue;
+						} else {
+							singleSelectedValue    = rc[ fieldName ];
+							formData[ fieldName ]  = singleSelectedValue;
+						}
+						
+						if(singleSelectedValue != ""){
+							getSingleSelect     = presideObjectService.updateData( objectName  = objectName 
+																		      , data       = formData 
+																		      , id         = sourceId  );
+
+							structClear(formData);
+						}
+					}
+				}
+			}
+
 			if( getMultiSelect || getSingleSelect ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordUpdated.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );

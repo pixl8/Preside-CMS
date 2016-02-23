@@ -1,7 +1,7 @@
 <cfscript>
 	objectName          = rc.id ?: "";
 	gridFields          = prc.gridFields ?: ["label","datecreated","datemodified"];
-	objectTitle         = translateResource( uri="preside-objects.#objectName#:title"      , defaultValue=objectName )
+	objectTitle         = translateResource( uri="preside-objects.#objectName#:title"      , defaultValue=objectName );
 	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
 	objectDescription   = translateResource( uri="preside-objects.#objectName#:description", defaultValue="" );
 	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
@@ -10,8 +10,8 @@
 	prc.pageIcon     = "puzzle-piece";
 	prc.pageTitle    = objectTitle;
 	prc.pageSubTitle = objectDescription;
-
-	relatedProperty  = prc.relatedProperty ?: {};
+	
+	fieldset         = prc.fieldset        ?: {};
 	canAdd           = prc.canAdd          ?: false;
 	canDelete        = prc.canDelete       ?: false;
 	canSort          = prc.canSort         ?: false;
@@ -49,7 +49,7 @@
 		  objectName      = objectName
 		, useMultiActions = canDelete
 		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
-		, relatedProperty = relatedProperty
+		, fieldset        = fieldset
 		, gridFields      = gridFields
 	} )#
 </cfoutput>

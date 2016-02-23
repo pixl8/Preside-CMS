@@ -4,7 +4,7 @@
 	param name="args.multiActionUrl"  type="string" default="";
 	param name="args.datasourceUrl"   type="string" default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#" );
 	param name="args.gridFields"      type="array";
-	param name="args.relatedProperty" type="struct" default={};
+	param name="args.fieldset"        type="struct" default={};
 	param name="args.allowSearch"     type="boolean" default=true;
 
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
@@ -20,22 +20,39 @@
 		, datasourceUrl   = args.datasourceUrl
 		, useMultiActions = args.useMultiActions
 		, allowSearch     = args.allowSearch
-	} );
-			
-	if( !structIsEmpty( args.relatedProperty ) ){
-		for( relatedField in args.relatedProperty ){
-			formControl.name            = relatedField;
-			formControl.object 			= relatedField;
-			formControl.type        	= "objectPicker";
-			formControl.ajax 			= false;
-			formControl.id              = args.objectName;
-			formControl.label           = relatedField;
-
-			if(args.relatedProperty[relatedField] == "many_to_many"){
-				formControl.multiple    = 1;
+	} );	
+	
+	if( !structIsEmpty( args.fieldset ) ){
+		for( relatedField in args.fieldset ){
+			if(args.fieldset[relatedField].relationship != "one-to-many"){
+				formControl.name       = relatedField;
+				formControl.label      = relatedField;
+				formControl.required   = args.fieldset[relatedField].required;
+				formControl.maxlength  = args.fieldset[relatedField].maxlength ?: "";
+				formControl.minlength  = args.fieldset[relatedField].minlength ?: "";
+				formControl.maxValue   = args.fieldset[relatedField].maxvalue  ?: "";
+				formControl.minValue   = args.fieldset[relatedField].minvalue  ?: "";
+				if( args.fieldset[relatedField].relationship == "many-to-many") {
+					formControl.object          = args.fieldset[relatedField].relatedto;
+					formControl.type        	= "objectPicker";
+					formControl.multiple        = 1;
+					formControl.ajax 			= false;
+				} else if( args.fieldset[relatedField].relationship == "many-to-one" ) {
+					formControl.object          = args.fieldset[relatedField].relatedto;
+					formControl.type        	= "objectPicker";
+					formControl.ajax 			= false;
+				} else if(args.fieldset[relatedField].type == "string" ){
+					formControl.type        	= "textinput";
+				} else if(args.fieldset[relatedField].type == "numeric"){
+					formControl.type        	= "number";
+				} else if(args.fieldset[relatedField].type == "boolean"){
+					formControl.type        	= "yesNoSwitch";
+				} else if(args.fieldset[relatedField].type == "date"   ){
+					formControl.type        	= "datepicker";
+				}
+				renderObject[relatedField]  = renderFormControl( argumentCollection = formControl );
+				structClear(formControl);
 			}
-			renderObject[relatedField]  = renderFormControl( argumentCollection = formControl );
-			structClear(formControl);
 		}
 	}
 
@@ -45,14 +62,7 @@
 		<cfif args.useMultiActions>
 			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
-				<cfif !structIsEmpty( args.relatedProperty )>
-					<cfloop collection="#args.relatedProperty#" item="getRenderObject">
-						<input type="hidden" name="#args.relatedProperty[getRenderObject]#" value="#getRenderObject#" />
-					</cfloop>
-				</cfif>
-
 		</cfif>
-
 		<table id="object-listing-table-#LCase( args.objectName )#" class="table table-hover object-listing-table">
 			<thead>
 				<tr>
@@ -76,7 +86,7 @@
 
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					<cfif !structIsEmpty( args.relatedProperty )>
+					<cfif !structIsEmpty( args.fieldset )>
 						<cfloop collection="#renderObject#" item="getRenderObject">
 							#structfind(renderObject,getRenderObject)#
 						</cfloop>
