@@ -88,7 +88,7 @@ component extends="testbox.system.BaseSpec"{
 						  event          = savedActions[ i ].action.submissionHandler
 						, private        = true
 						, prePostExempt  = true
-						, eventArguments = { configuration=savedActions[ i ].configuration, submissionData=submissionData }
+						, eventArguments = { args={ configuration=savedActions[ i ].configuration, submissionData=submissionData } }
 					} );
 				}
 			} );

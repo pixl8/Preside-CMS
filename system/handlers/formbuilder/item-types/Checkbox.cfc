@@ -7,10 +7,11 @@ component {
 			, name               = controlName
 			, type               = "checkbox"
 			, context            = "formbuilder"
-			, id                 = args.id ?: controlName
+			, id                 = args.id                ?: controlName
 			, layout             = ""
-			, labels		 	 = args.labels ?: ""
-			, defaultValue		 = args.values
+			, labels		 	 = args.labels            ?: ""
+			, checkboxLabel		 = args.checkboxLabel     ?: ""
+			, defaultValue		 = 1
 			, required           = IsTrue( args.mandatory ?: "" )
 		);
 	}

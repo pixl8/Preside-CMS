@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.price:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="minValue" control="spinner"   required="false" sortorder="33" defaultvalue="0" />
+			<field name="maxValue" control="spinner"   required="false" sortorder="36" defaultvalue="0" />
+			<field name="currency" control="textinput" required="true"  sortorder="39"/>
+		</fieldset>
+	</tab>
+</form>

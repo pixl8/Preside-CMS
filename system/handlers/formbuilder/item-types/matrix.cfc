@@ -12,7 +12,8 @@ component {
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
 			, rows               = replaceNoCase( args.rows, chr( 10 ), ',', 'All' )	?: "" // chr ( 10 ) means newline
-			, columns			 = replaceNoCase( args.columns, chr( 10 ), ',', 'All' )	?: ""
+			, columns            = replaceNoCase( args.columns, chr( 10 ), ',', 'All' )	?: ""
+			, options            = args.option ?: ""
 		);
 	}
 

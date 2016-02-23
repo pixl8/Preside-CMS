@@ -21,7 +21,7 @@ component output=false {
 		);
 
 		bundle.addAssets(
-			  directory   = "/css/admin"
+			  directory   = "/css"
 			, match       = function( path ){ return ReFindNoCase( "_[0-9a-f]{8}\..*?\.min.css$", arguments.path ); }
 			, idGenerator = function( path ) {
 				return ListDeleteAt( path, ListLen( path, "/" ), "/" ) & "/";

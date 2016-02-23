@@ -4,10 +4,40 @@ component  {
 
 
 	private string function default( event, rc, prc, args={} ){
-		var responses     = args.data ?: "";
-		var formId        = ( rc.formId ?: ( rc.id ?: "" ) );
-		var formItems     = formBuilderService.getFormItems( formId );
-		var rendered      = "";
+		args.responses = _preRenderResponses( argumentCollection=arguments );
+
+		if ( IsSimpleValue( args.responses ) ) {
+			return args.responses;
+		}
+
+		return renderView( view="/renderers/content/formBuilderSubmission/default", args=args );
+	}
+
+	private string function textEmail( event, rc, prc, args={} ){
+		args.responses = _preRenderResponses( argumentCollection=arguments );
+
+		if ( IsSimpleValue( args.responses ) ) {
+			return args.responses;
+		}
+
+		return Trim( renderView( view="/renderers/content/formBuilderSubmission/textEmail", args=args ) );
+	}
+
+	private string function adminDataTable( event, rc, prc, args={} ){
+		args.firstResponseOnly = true;
+		args.renderedSubmission = default( argumentCollection=arguments );
+
+		return renderView( view="/renderers/content/formBuilderSubmission/adminDataTable", args=args );
+	}
+
+
+// HELPERS
+	private any function _preRenderResponses( event, rc, prc, args={} ) {
+		var responses         = args.data ?: "";
+		var formId            = ( rc.formId ?: ( rc.id ?: ( rc.form ?: "" ) ) );
+		var formItems         = formBuilderService.getFormItems( formId );
+		var rendered          = "";
+		var renderedResponses = [];
 
 
 		if ( !IsJson( responses ) || !formItems.len() || !IsStruct( DeserializeJSON( responses ) ) ) {
@@ -15,8 +45,8 @@ component  {
 		}
 
 
-		responses = DeserializeJson( responses );
-		args.responses = [];
+		responses         = DeserializeJson( responses );
+		renderedResponses = [];
 
 		for( var item in formItems ) {
 			if ( item.type.isFormField && responses.keyExists( item.configuration.name ?: "" ) ) {
@@ -27,7 +57,7 @@ component  {
 					, inputValue = responses[ inputName ]
 				);
 
-				args.responses.append({
+				renderedResponses.append({
 					  item     = item
 					, rendered = rendered
 				});
@@ -38,14 +68,6 @@ component  {
 			}
 		}
 
-		return renderView( view="/renderers/content/formBuilderSubmission/default", args=args );
+		return renderedResponses;
 	}
-
-	private string function adminDataTable( event, rc, prc, args={} ){
-		args.firstResponseOnly = true;
-		args.renderedSubmission = default( argumentCollection=arguments );
-
-		return renderView( view="/renderers/content/formBuilderSubmission/adminDataTable", args=args );
-	}
-
 }

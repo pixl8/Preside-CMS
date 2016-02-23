@@ -2,7 +2,7 @@
 <form i18nBaseUri="formbuilder.item-types.checkboxList:">
 	<tab id="default">
 		<fieldset id="default">
-			<field name="Values"   control="textarea"   required="false" sortorder="32" defaultvalue="" />
+			<field name="Values"   control="textarea"   required="true" sortorder="32" defaultvalue="" />
 			<field name="Labels"   control="textarea"   required="false" sortorder="34" defaultvalue="" />
 		</fieldset>
 	</tab>
