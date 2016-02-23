@@ -261,7 +261,7 @@ component {
 		for( var savedAction in configuredActions ) {
 			coldbox.runEvent(
 				  event          = savedAction.action.submissionHandler
-				, eventArguments = { configuration = savedAction.configuration, submissionData=arguments.submissionData }
+				, eventArguments = { args={ configuration = savedAction.configuration, submissionData=arguments.submissionData } }
 				, private        = true
 				, prePostExempt  = true
 			);
