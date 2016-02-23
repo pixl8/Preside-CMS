@@ -198,6 +198,10 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
+	public string function getPhysicalPath() {
+		return _getRootDirectory();
+	}
+
 // GETTERS AND SETTERS
 	private string function _getRootDirectory(){
 		return _rootDirectory;
