@@ -13,6 +13,8 @@ component {
 			, required           = IsTrue( args.mandatory ?: "" )
 			, step               = 0.01
 			, class              = "price"
+			, minValue           = args.minValue
+			, maxvalue           = args.maxvalue
 		);
 	}
 

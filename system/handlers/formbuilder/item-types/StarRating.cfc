@@ -3,7 +3,7 @@ component {
 	private string function renderInput( event, rc, prc, args={} ) {
 		var controlName = args.name ?: "";
 
-		event.include( assetId="/css/admin/frontend/starRating/" );
+		event.include( assetId="/css/frontend/formbuilder/starRating/" );
 		event.include( assetId="/js/frontend/formbuilder/starRating/" );
 
 		return renderFormControl(
