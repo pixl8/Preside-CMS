@@ -3,8 +3,7 @@
 	inputId      = args.id           ?: "";
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
-	labels  	 = args.labels  	 ?: "";
-	labels  	 = HtmlEditFormat( translateResource( uri=labels, defaultValue=labels ) );
+	labels       = args.checkboxLabel ?: "";
 	value        = event.getValue( name=inputName, defaultValue=defaultValue );
 
 	if ( not IsSimpleValue( value ) ) {

@@ -16,7 +16,7 @@ component {
 			for ( fileFieldName in rc.fileFields ){
 				if( len( rc[ fileFieldName ] ) ){
 					var fileName = GetPageContext().formScope().getUploadResource( fileFieldName ).getName();
-					var uniqueFilename = '/form-'& formId & '/' & createUUID() & '_' & fileName;
+					var uniqueFilename = '/'& formId & '/' & createUUID() & '/' & fileName;
 					storageProvider.putObject( object = rc[fileFieldName], path = uniqueFilename );
 					rc[fileFieldName] = uniqueFilename;
 				}

@@ -3,6 +3,7 @@ component {
 	private string function renderInput( event, rc, prc, args={} ) {
 
 		var name = args.name   ?: "";
+		event.include( assetId="/css/admin/frontend/" );
 		event.include( assetId="/js/frontend/formbuilder/datePicker/" );
 		return renderFormControl(
 			  argumentCollection = arguments
@@ -19,7 +20,7 @@ component {
 	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
 	    var inputName = args.inputName ?: "";
 	    var dateFrom  = rc[ inputName & "_from" ] ?: "";
-	    var dateTo    = rc[ inputName & "_from" ] ?: "";
+	    var dateTo    = rc[ inputName & "_to" ] ?: "";
 
 	    if ( IsDate( dateFrom ) && IsDate( dateTo ) ) {
 	    	return SerializeJson( { from=dateFrom, to=dateTo } );
