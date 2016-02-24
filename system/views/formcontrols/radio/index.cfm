@@ -38,4 +38,5 @@
 			</label>
 		</div>
 	</cfloop>
+	<label for="#inputName#" class="error"></label>
 </cfoutput>

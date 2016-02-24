@@ -124,6 +124,14 @@ component {
 	public any function validateFormSubmission( required array formItems, required struct submissionData ) {
 		var ruleset = getRulesetForFormItems( items=arguments.formItems );
 
+		for ( item in arguments.formItems ) {
+			var field = item.configuration.name;
+			if ( ( item.type.id == 'matrix' || item.type.id == 'dateRange' ) && arguments.submissionData["#field#"] != "" ) {
+				var data  = deserializeJson(arguments.submissionData["#field#"]);
+				StructAppend(arguments.submissionData, data);
+			}
+		}
+
 		if ( ruleset.len() ) {
 			return _getValidationEngine().validate( ruleset=ruleset, data=arguments.submissionData );
 		}
