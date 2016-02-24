@@ -512,25 +512,33 @@ component output=false {
 		fbSettings.itemTypes.standard = { sortorder=10, types={
 			  textinput    = { isFormField=true  }
 			, textarea     = { isFormField=true  }
-			, number 	   = { isFormField=true  }
 			, email		   = { isFormField=true  }
-			, submitButton = { isFormField=false }
+			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
 			, dateRange    = { isFormField=true  }
 			, price		   = { isFormField=true  }
-			, select	   = { isFormField=true  }
-			, checkboxList = { isFormField=true  }
-			, checkbox	   = { isFormField=true  }
-			, radio	       = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
-			, captcha      = { isFormField=false }
 			, starRating   = { isFormField=true  }
+			, checkbox	   = { isFormField=true  }
+		} };
+
+		fbSettings.itemTypes.multipleChoice = { sortorder=20, types={
+			  select	   = { isFormField=true  }
+			, checkboxList = { isFormField=true  }
+			, radio	       = { isFormField=true  }
 			, matrix       = { isFormField=true  }
 		} };
-		fbSettings.itemTypes.content = { sortorder=20, types={
+
+		fbSettings.itemTypes.submission = { sortorder=30, types={
+			  submitButton = { isFormField=false }
+			, captcha      = { isFormField=false }
+		} };
+
+		fbSettings.itemTypes.content = { sortorder=40, types={
 			  spacer    = { isFormField=false }
 			, content   = { isFormField=false }
 		} };
+
 		fbSettings.actions = [ "email" ];
 
 		return fbSettings;
