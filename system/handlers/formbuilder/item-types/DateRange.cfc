@@ -7,8 +7,8 @@ component {
 		event.include( assetId="/js/frontend/formbuilder/datePicker/" );
 		return renderFormControl(
 			  argumentCollection = arguments
-			, name               = name&"_from"
-			, toDate   			 = name&"_to"
+			, name               = "from"
+			, toDate   			 = "to"
 			, type               = "DateRangepicker"
 			, context            = "formbuilder"
 			, fromDateID         = args.id ?: fromDate
@@ -17,10 +17,21 @@ component {
 		);
 	}
 
+	private array function getValidationRules( event, rc, prc, args={} ) {
+		var rules = [];
+		if ( IsBoolean( args.mandatory ?: "" ) && args.mandatory ) {
+			var fields = listToArray("from,to");
+	        for( var i=1; i <= fields.len(); i++ ) {
+	       		rules.append({ fieldname=fields[i], validator="required" });
+	       	}
+	    }
+	    return rules;
+	}
+
 	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
 	    var inputName = args.inputName ?: "";
-	    var dateFrom  = rc[ inputName & "_from" ] ?: "";
-	    var dateTo    = rc[ inputName & "_to" ] ?: "";
+	    var dateFrom  = rc[ "from" ] ?: "";
+	    var dateTo    = rc[ "to" ] ?: "";
 
 	    if ( IsDate( dateFrom ) && IsDate( dateTo ) ) {
 	    	return SerializeJson( { from=dateFrom, to=dateTo } );
