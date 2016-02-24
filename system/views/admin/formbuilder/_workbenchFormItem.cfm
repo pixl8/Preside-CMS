@@ -17,6 +17,7 @@
 			#args.placeholder#
 		</div>
 		<div class="pull-right">
+			<span class="item-type-name">#args.type.title#</span>
 			<div class="action-buttons btn-group">
 				<cfif args.type.requiresConfiguration>
 					<a href="##" class="edit-link">
