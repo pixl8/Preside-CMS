@@ -413,7 +413,6 @@
 							getSingleSelect     = presideObjectService.updateData( objectName  = objectName 
 																		      , data       = formData 
 																		      , id         = sourceId  );
-
 							structClear(formData);
 						}
 					}
@@ -848,9 +847,6 @@
 			}
 
 			switch( action ){
-				case "update":
-					return updateRecordAction( argumentCollection = arguments ); 
-				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
 				break;

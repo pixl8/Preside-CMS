@@ -49,6 +49,7 @@
 		  objectName      = objectName
 		, useMultiActions = canDelete
 		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
+		, updateActionUrl = event.buildAdminLink( linkTo='datamanager.updateRecordAction', querystring="object=#objectName#" )
 		, fieldset        = fieldset
 		, gridFields      = gridFields
 	} )#
