@@ -20,47 +20,45 @@
 		, datasourceUrl   = args.datasourceUrl
 		, useMultiActions = args.useMultiActions
 		, allowSearch     = args.allowSearch
-	} );	
-	
+	} );
 	if( !structIsEmpty( args.fieldset ) ){
 		for( relatedField in args.fieldset ){
 			if(args.fieldset[relatedField].relationship != "one-to-many"){
-				formControl.name       = relatedField;
-				formControl.label      = relatedField;
-				formControl.maxlength  = args.fieldset[relatedField].maxlength ?: "";
-				formControl.minlength  = args.fieldset[relatedField].minlength ?: "";
-				if( args.fieldset[relatedField].relationship == "many-to-many") {
+				formControl.name                = relatedField;
+				formControl.label               = relatedField;
+				formControl.maxlength           = args.fieldset[relatedField].maxlength ?: "";
+				formControl.minlength           = args.fieldset[relatedField].minlength ?: "";
+				if( args.fieldset[relatedField].relationship         == "many-to-many") {
 					formControl.object          = args.fieldset[relatedField].relatedto;
 					formControl.type        	= "objectPicker";
 					formControl.multiple        = 1;
 					formControl.ajax 			= false;
-				} else if( args.fieldset[relatedField].relationship == "many-to-one" ) {
+				} else if( args.fieldset[relatedField].relationship  == "many-to-one" ) {
 					formControl.object          = args.fieldset[relatedField].relatedto;
 					formControl.type        	= "objectPicker";
 					formControl.ajax 			= false;
-				} else if(args.fieldset[relatedField].type == "string" ){
+				} else if(args.fieldset[relatedField].type           == "string" ){
 					formControl.type        	= "textinput";
-				} else if(args.fieldset[relatedField].type == "numeric"){
-					formControl.maxValue   = args.fieldset[relatedField].maxvalue  ?: "";
-					formControl.minValue   = args.fieldset[relatedField].minvalue  ?: "";
-					formControl.type       = "number";
-				} else if(args.fieldset[relatedField].type == "boolean"){
+				} else if(args.fieldset[relatedField].type           == "numeric"){
+					formControl.maxValue        = args.fieldset[relatedField].maxvalue  ?: "";
+					formControl.minValue        = args.fieldset[relatedField].minvalue  ?: "";
+					formControl.type            = "number";
+				} else if(args.fieldset[relatedField].type           == "boolean"){
 					formControl.type        	= "yesNoSwitch";
-				} else if(args.fieldset[relatedField].type == "date"   ){
+				} else if(args.fieldset[relatedField].type           == "date"   ){
 					formControl.type        	= "datepicker";
 				}
 				renderObject[relatedField]  = renderFormControl( argumentCollection = formControl );
 				structClear(formControl);
-				if( args.fieldset[relatedField].relationship == "many-to-many") {
-					switchControl.name      = "overwrite";
-					switchControl.label     = "overwrite";
-					switchControl.type      = "yesNoSwitch";
-					renderSwitch            = renderFormControl( argumentCollection = switchControl );
+				if( args.fieldset[relatedField].relationship  == "many-to-many") {
+					renderSwitch            = renderFormControl( type  = "select",
+																name   = "overwrite" , 
+																values = [ "append", "	overwrite" ], 
+																labels = ["APPEND","OVERWRITE" ] );
 				}
 			}
 		}
 	}
-
 </cfscript>		
 <cfoutput>
 	<div class="table-responsive">
@@ -88,7 +86,6 @@
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
 			</tbody>
 		</table>
-
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
 					<button class="btn btn-info" disabled="disabled" data-global-key="m" data-toggle="update-object-dialog" data-target="update-object-form" data-dialog-title="#updateObjectTitle#">
@@ -110,6 +107,7 @@
 			<input type="hidden" name="id" value="" />
 			<cfloop collection="#renderObject#" item="getRenderObject">
 				#structfind(renderObject,getRenderObject)#
+				<input type="checkbox" name="checkbox_#getRenderObject#">
 			</cfloop>
 			#renderSwitch#
 		</form>

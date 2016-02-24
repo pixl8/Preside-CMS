@@ -356,13 +356,18 @@
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
-			var objectName      = rc.object        ?: "";
+			var objectName      = rc.object  ?: "";
+			var fieldNameList   = "";
 			sourceIdList        = rc.id;
-			fieldNames          = rc.fieldnames;
 			getMultiSelect      = false;
 			getSingleSelect     = false;
 			multiSelectedValue  = "";
 			singleSelectedValue = "";
+			for(checkFields in rc){
+				if(find("checkbox_", checkFields)){
+					fieldNameList  = listappend(fieldNameList,replaceNoCase(checkFields, "checkbox_", "", "all"));
+				}
+			}
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			objectAttributes = presideObjectService.getObjectProperties( objectName );
 			for( property in objectAttributes ) {
@@ -370,7 +375,7 @@
 					defaultFields[ objectAttributes[ property ].name ] = objectAttributes[ property ];
 				}
 			}
-			for( fieldName in fieldNames ) {
+			for( fieldName in fieldNameList ) {
 				if( structKeyExists( defaultFields,fieldName ) ) {
 					for( sourceID in sourceIdList ) {
 						if( defaultFields[ fieldName ].relatedto !="none" ) {
@@ -385,40 +390,35 @@
 								}
 							}
 						}
-
 						if( defaultFields[ fieldName ].relationship == "many-to-many" ) {
 							multiSelectedValue = rc[ fieldName ];
-							if( multiSelectedValue != "" ) {
-								if( !structKeyExists(rc,"overwrite") ) {
-									var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
-									data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
-								}else{
-									data[ sourceID ] =  multiSelectedValue;
-								}
-									getMultiSelect = presideObjectService.syncManyToManyData(  sourceObject   = objectName
-															        , sourceProperty = DataColumn
-															        , sourceId       = sourceID
-															        , targetIdList   = data[ sourceID ] );
-
+							if( rc.overwrite != "overwrite") {
+								var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
+								data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
+							}else{
+								data[ sourceID ] =  multiSelectedValue;
 							}
-						}else if ( defaultFields[ fieldName ].relationship == "many-to-one"){
-							singleSelectedValue    = rc[ fieldName ];
-							formData[ DataColumn ] = singleSelectedValue;
-						} else {
-							singleSelectedValue    = rc[ fieldName ];
-							formData[ fieldName ]  = singleSelectedValue;
-						}
-						
-						if(singleSelectedValue != ""){
+								getMultiSelect = presideObjectService.syncManyToManyData(  sourceObject   = objectName
+														                                 , sourceProperty = DataColumn
+														                                 , sourceId       = sourceID
+														                                 , targetIdList   = data[ sourceID ] );
+						}else {
+							if ( defaultFields[ fieldName ].relationship == "many-to-one"){
+								singleSelectedValue    = rc[ fieldName ];			
+								formData[ DataColumn ] = singleSelectedValue;
+							} else {
+								singleSelectedValue    = rc[ fieldName ];
+								formData[ fieldName ]  = singleSelectedValue;
+							}
+							
 							getSingleSelect     = presideObjectService.updateData( objectName  = objectName 
-																		      , data       = formData 
-																		      , id         = sourceId  );
+																		          , data       = formData 
+																		          , id         = sourceId  );
 							structClear(formData);
 						}
 					}
 				}
 			}
-
 			if( getMultiSelect || getSingleSelect ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordUpdated.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
@@ -529,7 +529,6 @@
 
 		<cfscript>
 			var objectName = rc.object ?: "";
-
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
