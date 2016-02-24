@@ -6,7 +6,7 @@ component {
 
 	private string function adminPlaceholder( event, rc, prc, args={} ) {
 		if ( Len( args.configuration.label ?: "" ) ) {
-			return "#args.configuration.label# (#args.type.title#)";
+			return args.configuration.label;
 		}
 		return args.type.title ?: "";
 	}

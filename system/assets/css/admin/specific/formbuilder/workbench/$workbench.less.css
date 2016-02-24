@@ -49,3 +49,8 @@
 .presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .sort-link:hover {
   cursor: move;
 }
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .item-type-name {
+  color: #999999;
+  text-transform: uppercase;
+  padding-right: 1em;
+}
