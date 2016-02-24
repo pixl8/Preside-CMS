@@ -515,7 +515,6 @@ component output=false {
 			, email		   = { isFormField=true  }
 			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
-			, dateRange    = { isFormField=true  }
 			, price		   = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
