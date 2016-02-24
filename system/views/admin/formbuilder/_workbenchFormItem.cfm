@@ -13,6 +13,7 @@
 	    data-config-title="#translateResource( uri='formbuilder:itemconfig.modal.title', data=[ args.type.title ] )#">
 
 		<div class="pull-left">
+			<i class="fa fa-fw #args.type.iconClass#"></i>&nbsp;
 			#args.placeholder#
 		</div>
 		<div class="pull-right">

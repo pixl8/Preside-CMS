@@ -15,7 +15,10 @@
 							    data-config-endpoint="#event.buildAdminLink( linkTo='formbuilder.itemConfigDialog', queryString='itemtype=#type.id#' )#"
 							    data-config-title="#translateResource( uri="formbuilder:itemconfig.modal.title", data=[ type.title ] )#">
 
-								<span>#type.title#</span>
+								<span>
+									<i class="fa fa-fw #type.iconClass#"></i>&nbsp;
+									#type.title#
+								</span>
 								<i class="pull-right fa fa-fw fa-reorder grey"></i>
 							</li>
 						</cfloop>
