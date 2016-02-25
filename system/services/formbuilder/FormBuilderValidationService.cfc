@@ -125,10 +125,12 @@ component {
 		var ruleset = getRulesetForFormItems( items=arguments.formItems );
 
 		for ( item in arguments.formItems ) {
-			var field = item.configuration.name;
-			if ( ( item.type.id == 'matrix' && arguments.submissionData["#field#"] != "" ) {
-				var data  = deserializeJson(arguments.submissionData["#field#"]);
-				StructAppend(arguments.submissionData, data);
+			if ( isdefined( "item.configuration.name" ) && isdefined( "item.type.id" ) ) {
+				var field = item.configuration.name;
+				if ( item.type.id == 'matrix' && arguments.submissionData["#field#"] != "" ) {
+					var data  = deserializeJson(arguments.submissionData["#field#"]);
+					StructAppend(arguments.submissionData, data);
+				}
 			}
 		}
 
