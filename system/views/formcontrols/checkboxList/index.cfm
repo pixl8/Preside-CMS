@@ -35,6 +35,6 @@
 				   #HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
 		  	</label>
 		</div>
-		</cfloop>
-	</select>
+	</cfloop>
+	<label for="#inputName#" class="error"></label>
 </cfoutput>

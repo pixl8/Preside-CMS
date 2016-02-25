@@ -17,6 +17,18 @@ component {
 		);
 	}
 
+	private array function getValidationRules( event, rc, prc, args={} ) {
+		var rules = [];
+		if ( IsBoolean( args.mandatory ?: "" ) && args.mandatory ) {
+	        var rows  = ListToArray( args.rows ?: "", Chr(10) & Chr(13) );
+	        for( var i=1; i <= rows.len(); i++ ) {
+	       		rules.append({ fieldname=rows[i], validator="required" });
+	       	}
+
+	    }
+	    return rules;
+	}
+
 	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
 		var inputName   = args.inputName ?: "";
 		var itemConfig  = args.itemConfiguration ?: {};
@@ -26,7 +38,7 @@ component {
 
 		for( var i=1; i <= rows.len(); i++ ) {
 			if ( Len( Trim( rows[ i ] ) ) ) {
-				var expectedInputName = inputName & "_" & rows[i];
+				var expectedInputName = rows[i];
 				var value             = rc[ expectedInputName ] ?: "";
 
 				if ( isMandatory && !Len( Trim( value ) ) ) {
