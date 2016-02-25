@@ -126,7 +126,7 @@ component {
 
 		for ( item in arguments.formItems ) {
 			var field = item.configuration.name;
-			if ( ( item.type.id == 'matrix' || item.type.id == 'dateRange' ) && arguments.submissionData["#field#"] != "" ) {
+			if ( ( item.type.id == 'matrix' && arguments.submissionData["#field#"] != "" ) {
 				var data  = deserializeJson(arguments.submissionData["#field#"]);
 				StructAppend(arguments.submissionData, data);
 			}

@@ -44,6 +44,7 @@ component {
 
 						type.id                      = typeId;
 						type.title                   = $translateResource( uri="formbuilder.item-types.#typeId#:title", defaultValue=typeId );
+						type.iconClass               = $translateResource( uri="formbuilder.item-types.#typeId#:iconclass", defaultValue="fa-square" );
 						type.isFormField             = IsBoolean( type.isFormField ?: "" ) ? type.isFormField : true;
 						type.configFormName          = "formbuilder.item-types.#typeid#";
 						type.configFormExists        = _getFormsService().formExists( type.configFormName );
