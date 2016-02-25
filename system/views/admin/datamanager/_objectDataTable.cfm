@@ -25,7 +25,6 @@
 		for( relatedField in args.fieldset ){
 			if(args.fieldset[relatedField].relationship != "one-to-many"){
 				formControl.name                = relatedField;
-				formControl.label               = relatedField;
 				formControl.maxlength           = args.fieldset[relatedField].maxlength ?: "";
 				formControl.minlength           = args.fieldset[relatedField].minlength ?: "";
 				if( args.fieldset[relatedField].relationship         == "many-to-many") {
@@ -52,9 +51,10 @@
 				structClear(formControl);
 				if( args.fieldset[relatedField].relationship  == "many-to-many") {
 					renderSwitch            = renderFormControl( type  = "select",
-																name   = "overwrite" , 
-																values = [ "append", "	overwrite" ], 
-																labels = ["APPEND","OVERWRITE" ] );
+																name   = "overwrite",
+																values = [ "append", "overwrite" ], 
+																labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
+																		  ] );
 				}
 			}
 		}
@@ -105,11 +105,25 @@
 	<div id="update-object-form" class="hide">
 		<form class="form-horizontal row" action="#args.updateActionUrl#" method="post">
 			<input type="hidden" name="id" value="" />
-			<cfloop collection="#renderObject#" item="getRenderObject">
-				#structfind(renderObject,getRenderObject)#
-				<input type="checkbox" name="checkbox_#getRenderObject#">
-			</cfloop>
-			#renderSwitch#
+			<div class="row">
+				<cfloop collection="#renderObject#" item="getRenderObject">
+					<div class="col-md-5">
+						<input type="checkbox" name="checkbox_#getRenderObject#" class="col-sm-offset-1"> 
+						<label>Change #getRenderObject#</label>
+					</div>	
+					<div class="col-md-7">
+						#structfind(renderObject,getRenderObject)#
+					</div>
+				</cfloop>
+			</div>
+			<div class="row">
+				<div class="col-md-5">
+					<label>#translateResource( uri="cms:datamanager.multiEditField.title" )#</label>
+				</div>	
+				<div class="col-md-7">
+					#renderSwitch#
+				</div>
+			</div>
 		</form>
 	</div>
 </cfoutput>
