@@ -25979,3 +25979,9 @@ img.presidecms .editable-click:hover {
 .presidecms.iframe .top-right-button-group {
   top: 13px;
 }
+.presidecms.iframe .modal-padding {
+  padding: 20px;
+}
+.presidecms.iframe .modal-padding-horizontal {
+  padding: 0 20px;
+}
