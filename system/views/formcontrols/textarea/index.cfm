@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	placeholder  = args.placeholder  ?: "";
 	placeholder = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 	defaultValue = args.defaultValue ?: "";
@@ -16,5 +15,5 @@
 </cfscript>
 
 <cfoutput>
-	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="#inputClass# form-control autosize-transition<cfif maxLength> limited</cfif>"<cfif maxLength> data-maxlength="#maxLength#"</cfif> tabindex="#getNextTabIndex()#">#value#</textarea>
+	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="form-control autosize-transition<cfif maxLength> limited</cfif>"<cfif maxLength> data-maxlength="#maxLength#"</cfif> tabindex="#getNextTabIndex()#">#value#</textarea>
 </cfoutput>
