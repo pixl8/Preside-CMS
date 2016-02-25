@@ -46,7 +46,6 @@
 
 		<cfscript>
 			var objectName   = event.getValue( name="id", default="" );
-			
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -64,7 +63,7 @@
 				if(objectAttributes[property].control == "default"){
 					prc.fieldset[objectAttributes[property].name] = objectAttributes[property];
 				}
-			}
+			}			
 		</cfscript>
 	</cffunction>
 
@@ -350,73 +349,105 @@
 			);
 		</cfscript>
 	</cffunction>
+	<cffunction name="pickFieldAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfscript>
+			var objectName   = rc.object;
+			var field        = rc.pickField;
+			fieldAttributes = presideObjectService.getObjectProperty( objectName, field);
+			formControl.name                = field;
+			formControl.label               = field;
+			formControl.maxlength           = fieldAttributes.maxlength ?: "";
+			formControl.minlength           = fieldAttributes.minlength ?: "";
+			if( fieldAttributes.relationship         == "many-to-many") {
+				formControl.object          = fieldAttributes.relatedto;
+				formControl.type        	= "objectPicker";
+				formControl.multiple        = 1;
+				formControl.ajax 			= false;
+			} else if( fieldAttributes.relationship  == "many-to-one" ) {
+				formControl.object          = fieldAttributes.relatedto;
+				formControl.type        	= "objectPicker";
+				formControl.ajax 			= false;
+			} else if(fieldAttributes.type           == "string" ){
+				formControl.type        	= "textinput";
+			} else if(fieldAttributes.type           == "numeric"){
+				formControl.maxValue        = fieldAttributes.maxvalue  ?: "";
+				formControl.minValue        = fieldAttributes.minvalue  ?: "";
+				formControl.type            = "number";
+			} else if(fieldAttributes.type           == "boolean"){
+				formControl.type        	= "yesNoSwitch";
+			} else if(fieldAttributes.type           == "date"   ){
+				formControl.type        	= "datepicker";
+			}
+			rc.renderObject                 = renderFormControl( argumentCollection = formControl );
+			structClear(formControl);
+			if( fieldAttributes.relationship  == "many-to-many") {
+				rc.renderSwitch           = renderFormControl( type  = "select",
+															name   = "overwrite",
+															values = [ "append", "overwrite" ], 
+															labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
+																	  ] );
+			}
+			event.setView( view="/admin/datamanager/pickFieldAction");
+		</cfscript>
+	</cffunction>
 
 	<cffunction name="updateRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
-			var objectName      = rc.object  ?: "";
+			var objectName      = rc.objectName  ?: "";
 			var fieldNameList   = "";
-			sourceIdList        = rc.id;
+			var field           = rc.updateField;
+			sourceIdList        = rc.sourceIds;
 			getMultiSelect      = false;
 			getSingleSelect     = false;
 			multiSelectedValue  = "";
 			singleSelectedValue = "";
-			for(checkFields in rc){
-				if(find("checkbox_", checkFields)){
-					fieldNameList  = listappend(fieldNameList,replaceNoCase(checkFields, "checkbox_", "", "all"));
-				}
-			}
-			_checkObjectExists( argumentCollection=arguments, object=objectName );
-			objectAttributes = presideObjectService.getObjectProperties( objectName );
-			for( property in objectAttributes ) {
-				if( objectAttributes[ property ].control == "default" ) {
-					defaultFields[ objectAttributes[ property ].name ] = objectAttributes[ property ];
-				}
-			}
-			for( fieldName in fieldNameList ) {
-				if( structKeyExists( defaultFields,fieldName ) ) {
-					for( sourceID in sourceIdList ) {
-						if( defaultFields[ fieldName ].relatedto !="none" ) {
-							getAttribute = presideObjectService.getObjectProperties( defaultFields[ fieldName ].relatedto );
-							for( property in getAttribute ) {
-								if( getAttribute[ property ].relatedTo == objectName ) {
-									if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
-									 	DataColumn	= getAttribute[ property ].relationshipKey;
-								 	} else {
-								 		DataColumn	= defaultFields[ fieldName ].relatedto;
-								 	}
-								}
-							}
-						}
-						if( defaultFields[ fieldName ].relationship == "many-to-many" ) {
-							multiSelectedValue = rc[ fieldName ];
-							if( rc.overwrite != "overwrite") {
-								var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
-								data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
-							}else{
-								data[ sourceID ] =  multiSelectedValue;
-							}
-								getMultiSelect = presideObjectService.syncManyToManyData(  sourceObject   = objectName
-														                                 , sourceProperty = DataColumn
-														                                 , sourceId       = sourceID
-														                                 , targetIdList   = data[ sourceID ] );
-						}else {
-							if ( defaultFields[ fieldName ].relationship == "many-to-one"){
-								singleSelectedValue    = rc[ fieldName ];			
-								formData[ DataColumn ] = singleSelectedValue;
-							} else {
-								singleSelectedValue    = rc[ fieldName ];
-								formData[ fieldName ]  = singleSelectedValue;
-							}
-							
-							getSingleSelect     = presideObjectService.updateData( objectName  = objectName 
-																		          , data       = formData 
-																		          , id         = sourceId  );
-							structClear(formData);
+			overwrite           = rc.overwrite ?: "append"
+			_checkObjectExists( argumentCollection = arguments, object = objectName );
+			fieldAttributes = presideObjectService.getObjectProperty( objectName, field );
+			for( sourceID in sourceIdList ) {
+				if( fieldAttributes.relatedto !="none" ) {
+					getAttribute = presideObjectService.getObjectProperties( fieldAttributes.relatedto );
+					for( property in getAttribute ) {
+						if( getAttribute[ property ].relatedTo == objectName ) {
+							if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
+							 	DataColumn	= getAttribute[ property ].relationshipKey;
+						 	} else {
+						 		DataColumn	= fieldAttributes.relatedto;
+						 	}
 						}
 					}
+				}
+				if( fieldAttributes.relationship == "many-to-many" ) {
+					multiSelectedValue = rc[ field ];
+					if( overwrite != "overwrite") {
+						var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
+						data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
+					}else{
+						data[ sourceID ] =  multiSelectedValue;
+					}
+						getMultiSelect   = presideObjectService.syncManyToManyData(  sourceObject   = objectName
+												                                 , sourceProperty = DataColumn
+												                                 , sourceId       = sourceID
+												                                 , targetIdList   = data[ sourceID ] );
+				}else {
+					if ( fieldAttributes.relationship == "many-to-one"){
+						singleSelectedValue    = rc[ field ];			
+						formData[ DataColumn ] = singleSelectedValue;
+					} else {
+						singleSelectedValue    = rc[ field ];
+						formData[ field ]      = singleSelectedValue;
+					}
+					
+					getSingleSelect = presideObjectService.updateData( objectName  = objectName 
+																          , data       = formData 
+																          , id         = sourceId  );
+					structClear(formData);
 				}
 			}
 			if( getMultiSelect || getSingleSelect ) {
@@ -846,6 +877,9 @@
 			}
 
 			switch( action ){
+				case "update":
+					return pickFieldAction( argumentCollection = arguments );
+				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
 				break;
