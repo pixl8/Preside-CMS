@@ -60,7 +60,7 @@
 			prc.gridFields = _getObjectFieldsForGrid( objectName );
 			objectAttributes = presideObjectService.getObjectProperties(objectName);
 			for(property in objectAttributes){
-				if(objectAttributes[property].control == "default"){
+				if(objectAttributes[property].control == "default" && objectAttributes[property].relationship != "one-to-many"){
 					prc.fieldset[objectAttributes[property].name] = objectAttributes[property];
 				}
 			}			
@@ -355,41 +355,54 @@
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
 			var objectName   = rc.object;
-			var field        = rc.pickField;
-			fieldAttributes = presideObjectService.getObjectProperty( objectName, field);
-			formControl.name                = field;
-			formControl.label               = field;
-			formControl.maxlength           = fieldAttributes.maxlength ?: "";
-			formControl.minlength           = fieldAttributes.minlength ?: "";
-			if( fieldAttributes.relationship         == "many-to-many") {
-				formControl.object          = fieldAttributes.relatedto;
-				formControl.type        	= "objectPicker";
-				formControl.multiple        = 1;
-				formControl.ajax 			= false;
-			} else if( fieldAttributes.relationship  == "many-to-one" ) {
-				formControl.object          = fieldAttributes.relatedto;
-				formControl.type        	= "objectPicker";
-				formControl.ajax 			= false;
-			} else if(fieldAttributes.type           == "string" ){
-				formControl.type        	= "textinput";
-			} else if(fieldAttributes.type           == "numeric"){
-				formControl.maxValue        = fieldAttributes.maxvalue  ?: "";
-				formControl.minValue        = fieldAttributes.minvalue  ?: "";
-				formControl.type            = "number";
-			} else if(fieldAttributes.type           == "boolean"){
-				formControl.type        	= "yesNoSwitch";
-			} else if(fieldAttributes.type           == "date"   ){
-				formControl.type        	= "datepicker";
+			var field        = rc.pickField ?: "";
+			if(rc.pickField !=""){
+				fieldAttributes = presideObjectService.getObjectProperty( objectName, field);
+				formControl.name                = field;
+				formControl.label               = field;
+				formControl.maxlength           = fieldAttributes.maxlength ?: "";
+				formControl.minlength           = fieldAttributes.minlength ?: "";
+				if( fieldAttributes.relationship         == "many-to-many") {
+					formControl.object          = fieldAttributes.relatedto;
+					formControl.type        	= "objectPicker";
+					formControl.multiple        = 1;
+					formControl.ajax 			= false;
+				} else if( fieldAttributes.relationship  == "many-to-one" ) {
+					formControl.object          = fieldAttributes.relatedto;
+					formControl.type        	= "objectPicker";
+					formControl.ajax 			= false;
+				} else if(fieldAttributes.type           == "string" ){
+					formControl.type        	= "textinput";
+				} else if(fieldAttributes.type           == "numeric"){
+					formControl.maxValue        = fieldAttributes.maxvalue  ?: "";
+					formControl.minValue        = fieldAttributes.minvalue  ?: "";
+					formControl.type            = "number";
+				} else if(fieldAttributes.type           == "boolean"){
+					formControl.type        	= "yesNoSwitch";
+				} else if(fieldAttributes.type           == "date"   ){
+					formControl.type        	= "datepicker";
+				}
+				rc.renderObject                 = renderFormControl( argumentCollection = formControl );
+				structClear(formControl);
+				if( fieldAttributes.relationship  == "many-to-many") {
+					rc.renderSwitch           = renderFormControl( type  = "select",
+																name     = "overwrite",
+																label    = "Multi Edit Behaviour",
+																required = "yes",
+																values   = [ "append", "overwrite" ], 
+																labels   = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
+																		  ] );
+				}
+			}else{
+				messageBox.error( translateResource( uri="cms:datamanager.recordUpdated.error", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 			}
-			rc.renderObject                 = renderFormControl( argumentCollection = formControl );
-			structClear(formControl);
-			if( fieldAttributes.relationship  == "many-to-many") {
-				rc.renderSwitch           = renderFormControl( type  = "select",
-															name   = "overwrite",
-															values = [ "append", "overwrite" ], 
-															labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
-																	  ] );
-			}
+			_addObjectNameBreadCrumb( event, objectName );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
+				, link  = ""
+			);
+			
 			event.setView( view="/admin/datamanager/pickFieldAction");
 		</cfscript>
 	</cffunction>

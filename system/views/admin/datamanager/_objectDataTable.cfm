@@ -1,18 +1,15 @@
 <cfscript>
 	param name="args.objectName"      type="string";
 	param name="args.useMultiActions" type="boolean" default=false;
-	param name="args.multiActionUrl"  type="string" default="";
-	param name="args.updateActionUrl" type="string" default="";
-	param name="args.datasourceUrl"   type="string" default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#" );
+	param name="args.multiActionUrl"  type="string"  default="";
 	param name="args.gridFields"      type="array";
 	param name="args.allowSearch"     type="boolean" default=true;
-	param name="renderSwitch"         type="string"  default="";
 	param name="args.fieldset"        type="struct"  default={};
+	param name="args.datasourceUrl"   type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#" );
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
 	selectFieldOption    = translateResource( uri="cms:datamanager.selectFieldOption.title" );
-	updateObjectTitle    = translateResource( uri="cms:datamanager.updateObject.title", data=[ LCase( objectTitle ) ] );
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 	event.includeData( {
@@ -50,24 +47,26 @@
 		</table>
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					<div class="col-sm-4">
-						<select class="form-control" name="pickField">
-							<option value="">Pick field</option>
-							<cfloop collection="#args.fieldset#" item="getRenderObject">
-								<option value="#getRenderObject#">#getRenderObject#</option>
-							</cfloop>
-						</select>	
+					<div class="col-md-4">
+						<div class="form-group"> 
+							<label class="col-md-3 control-label no-padding-right" for="overwrite">
+								 Pick field 
+							</label> 
+							<div class="col-md-8"> 
+								<div class="clearfix"> 
+									<select class=" object-picker " name="pickField" id="overwrite" tabindex="2" data-placeholder="" data-sortable="false" data-value="" >
+										<cfloop collection="#args.fieldset#" item="getRenderObject">
+											<option value="#getRenderObject#">#getRenderObject#</option>
+										</cfloop>
+									</select>
+								 </div>
+							</div> 
+						</div> 
 					</div>
 					<button class="btn btn-info" type="submit" name="update" disabled="disabled">
 						<i class="fa fa-check bigger-110"></i>
-						update pick field
-					</button>
-					<cfif hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
-						<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#deleteSelectedPrompt#">
-							<i class="fa fa-trash-o bigger-110"></i>
-							#deleteSelected#
-						</button>
-					</cfif>
+						#selectFieldOption#
+					</button>					
 				</div>
 			</form>
 		</cfif>
