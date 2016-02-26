@@ -1021,62 +1021,79 @@
 
 if ( typeof window.jQuery !== "undefined" ) {
 	( function( $ ){
-		$('.date-picker').each(function() {
-			var gtEnteredField = $(this).data("gt-entered-field"); // gt - greaterThan
-			var ltEnteredField = $(this).data("lt-entered-field"); // lt -lessThan
+		$('.date-picker').each( function() {
+			var $thisPicker      = $( this )
+			  , pickerConfig     = $thisPicker.data()
+			  , relativeToField  = pickerConfig.relativeToField
+			  , relativeOperator = pickerConfig.relativeOperator
+			  , conf, form, relativeField, datePicker;
 
-			if((gtEnteredField != undefined && gtEnteredField.length) || (ltEnteredField != undefined && ltEnteredField.length)){
+			conf = {
+				  autoclose : true
+				, startDate : pickerConfig.startDate || null
+				, endDate   : pickerConfig.endDate   || null
+				, onRender : function( date ){
+					var dateValue  = date.valueOf()
+					  , startDate  = this.startDate
+					  , endDate    = this.endDate
 
-				ID = $(this).attr("id");
-				enteredDateName = (gtEnteredField != undefined && gtEnteredField.length) ? gtEnteredField : ltEnteredField;
-				gtEnteredFieldID = $('input[name="'+enteredDateName+'"]')[0].id;
+					if ( typeof startDate != 'undefined' && startDate > dateValue ) {
+						return 'disabled';
+					}
 
-				// implementation of disabled form fields
-				var nowTemp = new Date();
-				var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
-				var checkin = $('#'+gtEnteredFieldID).datepicker({
-					onRender: function (date) {
-						if(gtEnteredField != undefined && gtEnteredField.length) {
-							return date.valueOf() < now.valueOf() ? 'disabled' : '';
-						} else {
-							return date.valueOf() > now.valueOf() ? 'disabled' : '';
+					if ( typeof endDate != 'undefined' && endDate < dateValue ) {
+						return 'disabled';
+					}
+
+					return '';
+				}
+			};
+
+			datePicker = $thisPicker.datepicker( conf ).data( "datepicker" );
+
+			if ( relativeToField.length || relativeOperator.length ) {
+				$form          = $thisPicker.closest( "form" );
+				$relativeField = $form.find( "[name=" + relativeToField + "]" );
+
+				if ( $relativeField.length ) {
+					var currentDate = $relativeField.val();
+
+					if ( currentDate.length ) {
+						currentDate = new Date( currentDate );
+						switch( relativeOperator ) {
+							case "lt":
+								currentDate.setDate( currentDate - 1 );
+							case "lte":
+								datePicker.setEndDate( currentDate );
+							break;
+
+							case "gt":
+								currentDate.setDate( currentDate.getDate() + 1 );
+							case "gte":
+								datePicker.setStartDate( currentDate );
+							break;
 						}
 					}
-				}).on('changeDate', function (ev) {
-					if (ev.date.valueOf() > checkout.date.valueOf()) {
-						var newDate = new Date(ev.date)
-						if(gtEnteredField != undefined && gtEnteredField.length) {
-							newDate.setDate(newDate.getDate() + 1);
-						} else {
-							newDate.setDate(newDate.getDate() - 1);
-						}
-						checkout.update(newDate);
-					}
-					checkin.hide();
-					$('#'+ID)[0].focus();
-				}).data('datepicker');
-				var checkout = $('#'+ID).datepicker({
-					onRender: function (date) {
-						if(gtEnteredField != undefined && gtEnteredField.length) {
-							return date.valueOf() <= checkin.date.valueOf() ? 'disabled' : '';
-						} else {
-							return date.valueOf() >= checkin.date.valueOf() ? 'disabled' : '';
-						}
-					}
-				}).on('changeDate', function (ev) {
-					checkout.hide();
-				}).data('datepicker');
 
-			} else {
-				$('#'+$(this).closest('input').attr('id'))
-				.datepicker( {
-					 autoclose : true
-					,startDate : $(this).data("start-date")
-    				,endDate   : $(this).data("end-date")
-					} )
-				.next().on( "click", function(){
-					$(this).prev().focus();
-				});
+					$relativeField.on( "changeDate", function( e ){
+						var newDate = new Date( e.date );
+
+						switch( relativeOperator ) {
+							case "lt":
+								newDate.setDate( newDate.getDate() - 1 );
+							case "lte":
+								datePicker.setEndDate( newDate );
+							break;
+
+							case "gt":
+								newDate.setDate( newDate.getDate() + 1 );
+							case "gte":
+								datePicker.setStartDate( newDate );
+							break;
+						}
+					} );
+
+				}
 			}
 		});
 	} )( jQuery );

@@ -121,4 +121,70 @@ component validationProvider=true {
 	public string function fileSize_js() {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
 	}
+
+	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( arguments.value >= arguments.minimumDate );
+	}
+	public string function minimumDate_js() {
+		return true;
+	}
+
+	public boolean function maximumDate( required string value, required date maximumDate ) validatorMessage="cms:validation.maximumDate.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( arguments.value <= arguments.maximumDate );
+	}
+	public string function maximumDate_js() {
+		return true;
+	}
+
+	public boolean function laterThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value > arguments.data[ arguments.field ] );
+	}
+	public string function laterThanField_js() {
+		return true;
+	}
+
+	public boolean function laterThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanOrSameAsField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value >= arguments.data[ arguments.field ] );
+	}
+	public string function laterThanOrSameAsField_js() {
+		return true;
+	}
+
+	public boolean function earlierThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value < arguments.data[ arguments.field ] );
+	}
+	public string function earlierThanField_js() {
+		return true;
+	}
+
+	public boolean function earlierThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanOrSameAsField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value <= arguments.data[ arguments.field ] );
+	}
+	public string function earlierThanOrSameAsField_js() {
+		return true;
+	}
 }
