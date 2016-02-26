@@ -104,10 +104,10 @@ component validationProvider=true {
 		return "function( value ){ return !value.length || value.match( /^[a-z0-9\-]+$/ ) !== null }";
 	}
 
-	public boolean function currency( required string fieldName, string value="" ) validatorMessage="cms:validation.currency.default" {
+	public boolean function money( required string fieldName, string value="" ) validatorMessage="cms:validation.money.default" {
 		return !arrayIsEmpty(REMatchNoCase("^(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?|\(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?\))$", arguments.value ));
 	}
-	public string function currency_js() {
+	public string function money_js() {
 		return "function( value, el, param ) {var regex = new RegExp('^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$');return regex.test(value);}";
 	}
 

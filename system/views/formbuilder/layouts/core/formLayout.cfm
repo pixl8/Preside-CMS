@@ -19,25 +19,7 @@
 				( function( $ ){
 					var $form = $('###args.id#');
 					$form.validate( #args.validationJs# );
-					$form.on('submit', function () {
-						if($form.find(".hiddencode").length) {
-							$form.validate().settings.ignore = ":hidden:not(##hiddencode)";
-							$("input##hiddencode").rules("add", {
-								required: function() {
-									if(grecaptcha.getResponse() == '') {
-										return true;
-									} else {
-										return false;
-									}
-	                    		}
-							});
-	                    }
-					});
-					<cfif Len( Trim( args.validationJs ) )>
-						if ( typeof jQuery.validator !== 'undefined' ) {
-							$form.validate( #args.validationJs# );
-						}
-					</cfif>
+
 					$form.presideFormBuilderForm();
 				} )( jQuery );
 			}
