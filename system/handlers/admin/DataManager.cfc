@@ -354,17 +354,11 @@
 			var fieldAttributes       = presideObjectService.getObjectProperty( objectName, field);
 			var fieldType             = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
 			var formControl           = {};
-			formControl.name          = field;
-			formControl.label         = field;
-			formControl.maxlength     = fieldAttributes.maxlength ?: "";
-			formControl.minlength     = fieldAttributes.minlength ?: "";
-			formControl.object        = fieldAttributes.relatedto;
-			formControl.sourceObject  = fieldAttributes.relatedto;
-			formControl.relatedto     = fieldAttributes.relatedto;
-			formControl.type          = fieldType;
-			formControl.maxValue      = fieldAttributes.maxvalue  ?: "";
-			formControl.minValue      = fieldAttributes.minvalue  ?: "";
-			prc.renderObject          = renderFormControl( argumentCollection = formControl );
+			prc.renderObject = formsService.renderFormControlForObjectField( 
+			      objectName = objectName
+			    , property   = fieldAttributes
+			    , type       = fieldType
+			);
 			if(fieldType == "manyToManySelect") {
 				prc.renderSwitch      = renderFormControl( 
 					  type   = "select"
