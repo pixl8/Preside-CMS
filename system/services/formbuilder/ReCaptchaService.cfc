@@ -14,7 +14,7 @@ component {
 // PUBLIC API METHODS
 	public boolean function validate( required string response, string remoteAddress=cgi.remote_address ) {
 		var resp      = "";
-		var secretKey = $getPresideSetting( "formbuilder", "recaptcha_secret_key" );
+		var secretKey = $getPresideSetting( "recaptcha", "secret_key" );
 
 		http url=_getValidationEndpoint() method="POST" timeout="10" result="resp" {
 			httpparam type="formfield" name="secret"   value=secretKey;

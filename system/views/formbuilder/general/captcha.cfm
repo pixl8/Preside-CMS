@@ -1,5 +1,5 @@
 <cfscript>
-	siteKey          = getSystemSetting( 'formbuilder', 'recaptcha_site_key' );
+	siteKey          = getSystemSetting( 'recaptcha', 'site_key' );
 	validationResult = rc.validationResult ?: "";
 	errorMessage     = IsSimpleValue( validationResult ) ? "" : translateResource( validationResult.getError( "recaptcha" ) );
 
