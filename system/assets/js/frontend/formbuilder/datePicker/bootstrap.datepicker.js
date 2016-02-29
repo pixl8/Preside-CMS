@@ -1021,7 +1021,7 @@
 
 if ( typeof window.jQuery !== "undefined" ) {
 	( function( $ ){
-		$('.date-picker').each( function() {
+		$('.formbuilder-date-picker').each( function() {
 			var $thisPicker      = $( this )
 			  , pickerConfig     = $thisPicker.data()
 			  , relativeToField  = pickerConfig.relativeToField
@@ -1049,7 +1049,11 @@ if ( typeof window.jQuery !== "undefined" ) {
 				}
 			};
 
-			datePicker = $thisPicker.datepicker( conf ).data( "datepicker" );
+			$thisPicker.datepicker( conf ).next().on( "click", function(){
+				$( this ).prev().focus();
+			});
+
+			datePicker = $thisPicker.data( "datepicker" );
 
 			if ( relativeToField.length || relativeOperator.length ) {
 				$form          = $thisPicker.closest( "form" );
