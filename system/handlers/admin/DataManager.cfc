@@ -358,17 +358,11 @@
 			formControl.maxlength     = fieldAttributes.maxlength ?: "";
 			formControl.minlength     = fieldAttributes.minlength ?: "";
 			formControl.object        = fieldAttributes.relatedto;
+			formControl.sourceObject  = fieldAttributes.relatedto;
+			formControl.relatedto     = fieldAttributes.relatedto;
 			formControl.type          = fieldType;
 			formControl.maxValue      = fieldAttributes.maxvalue  ?: "";
 			formControl.minValue      = fieldAttributes.minvalue  ?: "";
-			if(fieldType == "manyToManySelect"){
-				formControl.ajax 	  = false;
-				formControl.type      = "objectPicker";
-				formControl.multiple  = 1;
-			}else if (fieldType == "manyToOneSelect"){
-				formControl.ajax 	  = false;
-				formControl.type      = "objectPicker";
-			}
 			rc.renderObject           = renderFormControl( argumentCollection = formControl );
 			if(fieldType == "manyToManySelect") {
 				rc.renderSwitch           = renderFormControl( type  = "select",
@@ -383,7 +377,7 @@
 				  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 				, link  = ""
 			);
-			event.setView( view="/admin/datamanager/pickFieldAction");
+			event.setView( view="/admin/datamanager/batchEditField");
 		</cfscript>
 	</cffunction>
 
