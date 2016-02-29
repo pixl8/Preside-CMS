@@ -90,7 +90,7 @@ component output="false" singleton=true {
 		var objectAttributes = _getPresideObjectService().getObjectProperties(objectName);
 		var fields           = [];
 		for(property in objectAttributes){
-			if(StructKeyExists(objectAttributes[property],"batcheditable") && objectAttributes[property].relationship != "many-to-one" && !StructKeyExists(objectAttributes[property],"uniqueindexes")){
+			if(StructKeyExists(objectAttributes[property],"batcheditable") && objectAttributes[property].relationship != "one-to-many" && !StructKeyExists(objectAttributes[property],"uniqueindexes")){
 				arrayAppend(fields, property);
 			}
 		}
