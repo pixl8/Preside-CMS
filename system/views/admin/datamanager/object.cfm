@@ -11,12 +11,11 @@
 	prc.pageTitle       = objectTitle;
 	prc.pageSubTitle    = objectDescription;
 	
-	fieldset            = prc.fieldset        ?: {};
-	canAdd              = prc.canAdd          ?: false;
-	canDelete           = prc.canDelete       ?: false;
-	canSort             = prc.canSort         ?: false;
+	batchEditableFields = prc.batchEditableFields   ?: {};
+	canAdd              = prc.canAdd                ?: false;
+	canDelete           = prc.canDelete             ?: false;
+	canSort             = prc.canSort               ?: false;
 </cfscript>
-
 <cfoutput>
 	<div class="top-right-button-group">
 		<cfif canAdd>
@@ -46,10 +45,10 @@
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
-		  objectName      = objectName
-		, useMultiActions = canDelete
-		, multiActionUrl  = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
-		, fieldset        = fieldset
-		, gridFields      = gridFields
+		  objectName          = objectName
+		, useMultiActions     = canDelete
+		, multiActionUrl      = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
+		, batchEditableFields = batchEditableFields
+		, gridFields          = gridFields
 	} )#
 </cfoutput>

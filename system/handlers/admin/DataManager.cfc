@@ -57,13 +57,8 @@
 			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
-			prc.gridFields = _getObjectFieldsForGrid( objectName );
-			objectAttributes = presideObjectService.getObjectProperties(objectName);
-			for(property in objectAttributes){
-				if(objectAttributes[property].control == "default" && objectAttributes[property].relationship != "one-to-many"){
-					prc.fieldset[objectAttributes[property].name] = objectAttributes[property];
-				}
-			}			
+			prc.gridFields          = _getObjectFieldsForGrid( objectName );
+			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
 		</cfscript>
 	</cffunction>
 
@@ -349,121 +344,74 @@
 			);
 		</cfscript>
 	</cffunction>
-	<cffunction name="pickFieldAction" access="public" returntype="void" output="false">
+	<cffunction name="batchEditField" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
 			var objectName   = rc.object;
 			var field        = rc.pickField ?: "";
-			if(rc.pickField !=""){
-				fieldAttributes = presideObjectService.getObjectProperty( objectName, field);
-				formControl.name                = field;
-				formControl.label               = field;
-				formControl.maxlength           = fieldAttributes.maxlength ?: "";
-				formControl.minlength           = fieldAttributes.minlength ?: "";
-				if( fieldAttributes.relationship         == "many-to-many") {
-					formControl.object          = fieldAttributes.relatedto;
-					formControl.type        	= "objectPicker";
-					formControl.multiple        = 1;
-					formControl.ajax 			= false;
-				} else if( fieldAttributes.relationship  == "many-to-one" ) {
-					formControl.object          = fieldAttributes.relatedto;
-					formControl.type        	= "objectPicker";
-					formControl.ajax 			= false;
-				} else if(fieldAttributes.type           == "string" ){
-					formControl.type        	= "textinput";
-				} else if(fieldAttributes.type           == "numeric"){
-					formControl.maxValue        = fieldAttributes.maxvalue  ?: "";
-					formControl.minValue        = fieldAttributes.minvalue  ?: "";
-					formControl.type            = "number";
-				} else if(fieldAttributes.type           == "boolean"){
-					formControl.type        	= "yesNoSwitch";
-				} else if(fieldAttributes.type           == "date"   ){
-					formControl.type        	= "datepicker";
-				}
-				rc.renderObject                 = renderFormControl( argumentCollection = formControl );
-				structClear(formControl);
-				if( fieldAttributes.relationship  == "many-to-many") {
-					rc.renderSwitch           = renderFormControl( type  = "select",
-																name     = "overwrite",
-																label    = "Multi Edit Behaviour",
-																required = "yes",
-																values   = [ "append", "overwrite" ], 
-																labels   = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
-																		  ] );
-				}
-			}else{
-				messageBox.error( translateResource( uri="cms:datamanager.recordUpdated.error", data=[ objectName ] ) );
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			fieldAttributes  = presideObjectService.getObjectProperty( objectName, field);
+			fieldType        = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
+			formControl.name          = field;
+			formControl.label         = field;
+			formControl.maxlength     = fieldAttributes.maxlength ?: "";
+			formControl.minlength     = fieldAttributes.minlength ?: "";
+			formControl.object        = fieldAttributes.relatedto;
+			formControl.type          = fieldType;
+			formControl.maxValue      = fieldAttributes.maxvalue  ?: "";
+			formControl.minValue      = fieldAttributes.minvalue  ?: "";
+			if(fieldType == "manyToManySelect"){
+				formControl.ajax 	  = false;
+				formControl.type      = "objectPicker";
+				formControl.multiple  = 1;
+			}else if (fieldType == "manyToOneSelect"){
+				formControl.ajax 	  = false;
+				formControl.type      = "objectPicker";
+			}
+			rc.renderObject           = renderFormControl( argumentCollection = formControl );
+			if(fieldType == "manyToManySelect") {
+				rc.renderSwitch           = renderFormControl( type  = "select",
+															name     = "overwrite",
+															label    = "Multi Edit Behaviour",
+															values   = [ "append", "overwrite" ], 
+															labels   = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
+																	  ] );
 			}
 			_addObjectNameBreadCrumb( event, objectName );
 			event.addAdminBreadCrumb(
 				  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
 				, link  = ""
 			);
-			
 			event.setView( view="/admin/datamanager/pickFieldAction");
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="updateRecordAction" access="public" returntype="void" output="false">
+	<cffunction name="batchEditAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
-			var objectName      = rc.objectName  ?: "";
-			var fieldNameList   = "";
-			var field           = rc.updateField;
-			sourceIdList        = rc.sourceIds;
-			getMultiSelect      = false;
-			getSingleSelect     = false;
-			multiSelectedValue  = "";
-			singleSelectedValue = "";
-			overwrite           = rc.overwrite ?: "append"
-			_checkObjectExists( argumentCollection = arguments, object = objectName );
-			fieldAttributes = presideObjectService.getObjectProperty( objectName, field );
-			for( sourceID in sourceIdList ) {
-				if( fieldAttributes.relatedto !="none" ) {
-					getAttribute = presideObjectService.getObjectProperties( fieldAttributes.relatedto );
-					for( property in getAttribute ) {
-						if( getAttribute[ property ].relatedTo == objectName ) {
-							if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
-							 	DataColumn	= getAttribute[ property ].relationshipKey;
-						 	} else {
-						 		DataColumn	= fieldAttributes.relatedto;
-						 	}
-						}
+			rc.updateValue           = rc[rc.updateField];
+			fieldAttributes          = presideObjectService.getObjectProperty( rc.objectName, rc.updateField );
+			rc.attributeRelationship = fieldAttributes.relationship;
+			rc.DataColumn            = "";
+			_checkObjectExists( argumentCollection = arguments, object = rc.objectName );
+
+			if( fieldAttributes.relatedto !="none" ) {
+				getAttribute = presideObjectService.getObjectProperties( fieldAttributes.relatedto );
+				for( property in getAttribute ) {
+					if( getAttribute[ property ].relatedTo == rc.objectName ) {
+						if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
+						 	rc.DataColumn	= getAttribute[ property ].relationshipKey;
+					 	} else {
+					 		rc.DataColumn	= fieldAttributes.relatedto;
+					 	}
 					}
-				}
-				if( fieldAttributes.relationship == "many-to-many" ) {
-					multiSelectedValue = rc[ field ];
-					if( overwrite != "overwrite") {
-						var previousData = presideObjectService.getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
-						data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
-					}else{
-						data[ sourceID ] =  multiSelectedValue;
-					}
-						getMultiSelect   = presideObjectService.syncManyToManyData(  sourceObject   = objectName
-												                                 , sourceProperty = DataColumn
-												                                 , sourceId       = sourceID
-												                                 , targetIdList   = data[ sourceID ] );
-				}else {
-					if ( fieldAttributes.relationship == "many-to-one"){
-						singleSelectedValue    = rc[ field ];			
-						formData[ DataColumn ] = singleSelectedValue;
-					} else {
-						singleSelectedValue    = rc[ field ];
-						formData[ field ]      = singleSelectedValue;
-					}
-					
-					getSingleSelect = presideObjectService.updateData( objectName  = objectName 
-																          , data       = formData 
-																          , id         = sourceId  );
-					structClear(formData);
 				}
 			}
-			if( getMultiSelect || getSingleSelect ) {
+			var getResult = datamanagerService.batchSaveFieldChanges( argumentCollection = rc )
+			if( !structIsEmpty(getResult) ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordUpdated.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 			} else {
@@ -891,7 +839,7 @@
 
 			switch( action ){
 				case "update":
-					return pickFieldAction( argumentCollection = arguments );
+					return batchEditField( argumentCollection = arguments );
 				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
