@@ -15,6 +15,7 @@ component {
 	 * @formBuilderValidationService.inject formBuilderValidationService
 	 * @formsService.inject                 formsService
 	 * @validationEngine.inject             validationEngine
+	 * @recaptchaService.inject             recaptchaService
 	 * @spreadsheetLib.inject               spreadsheetLib
 	 *
 	 */
@@ -25,6 +26,7 @@ component {
 		, required any formBuilderValidationService
 		, required any formsService
 		, required any validationEngine
+		, required any recaptchaService
 		, required any spreadsheetLib
 	) {
 		_setItemTypesService( arguments.itemTypesService );
@@ -33,6 +35,7 @@ component {
 		_setFormBuilderValidationService( arguments.formBuilderValidationService );
 		_setFormsService( arguments.formsService );
 		_setValidationEngine( arguments.validationEngine );
+		_setRecaptchaService( arguments.recaptchaService );
 		_setSpreadsheetLib( arguments.spreadsheetLib );
 
 		return this;
@@ -620,12 +623,19 @@ component {
 		,          string ipAddress   = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string userAgent   = ( cgi.http_user_agent ?: "" )
 	) {
-		var formItems        = getFormItems( arguments.formId );
-		var formData         = getRequestDataForForm( arguments.formId, arguments.requestData );
-		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
+		var formConfiguration = getForm( arguments.formId );
+		var formItems         = getFormItems( arguments.formId );
+		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
+		var validationResult  = _getFormBuilderValidationService().validateFormSubmission(
 			  formItems      = formItems
 			, submissionData = formData
 		);
+
+		if ( IsBoolean( formConfiguration.use_captcha ?: "" ) && formConfiguration.use_captcha ) {
+			if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
+				validationResult.addError( fieldName="recaptcha", message="formbuilder:recaptcha.error.message" );
+			}
+		}
 
 		if ( validationResult.validated() ) {
 			formItems = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
@@ -968,6 +978,13 @@ component {
 	}
 	private void function _setFormBuilderValidationService( required any formBuilderValidationService ) {
 		_formBuilderValidationService = arguments.formBuilderValidationService;
+	}
+
+	private any function _getRecaptchaService() {
+		return _recaptchaService;
+	}
+	private void function _setRecaptchaService( required any recaptchaService ) {
+		_recaptchaService = arguments.recaptchaService;
 	}
 
 	private any function _getSpreadsheetLib() {

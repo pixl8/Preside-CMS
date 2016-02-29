@@ -624,6 +624,7 @@ component extends="testbox.system.BaseSpec"{
 				var renderedFormLayout = CreateUUId();
 				var renderedItems      = [ CreateUUId(), CreateUUId(), CreateUUId() ];
 				var idPrefix           = "fb_" & CreateUUId() & "_";
+				var formConfiguration  = QueryNew('test', 'varchar', [[CreateUUId()]] );
 				var formItems          = [{
 					  id            = CreateUUId()
 					, type          = { id="textinput" }
@@ -643,6 +644,7 @@ component extends="testbox.system.BaseSpec"{
 				coreLayoutArgs.renderedItems = renderedItems.toList( "" );
 				coreLayoutArgs.id            = idPrefix;
 				coreLayoutArgs.formItems     = formItems;
+				coreLayoutArgs.configuration = { test=formConfiguration.test };
 				formLayoutArgs.renderedForm  = renderedCoreLayout;
 
 				mockRenderingService.$( "getFormLayoutViewlet" ).$args( layout=formLayout ).$results( formViewlet );
@@ -650,6 +652,7 @@ component extends="testbox.system.BaseSpec"{
 
 				service.$( "_createIdPrefix", idPrefix );
 				service.$( "getFormItems" ).$args( id=formId ).$results( formItems );
+				service.$( "getForm" ).$args( id=formId ).$results( formConfiguration );
 				for( var i=1; i<=formItems.len(); i++ ) {
 					var item = formItems[ i ];
 					var config = Duplicate( item.configuration );
@@ -755,6 +758,7 @@ component extends="testbox.system.BaseSpec"{
 				var requestData        = { some="data" };
 				var formSubmissionData = { some="data", tests=CreateUUId() };
 				var formItems          = [ "just", "test", "data" ];
+				var formConfiguration  = QueryNew( 'use_captcha', "boolean", [ [ true ] ] );
 				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
 
 				service.$( "getRequestDataForForm" ).$args(
@@ -762,6 +766,7 @@ component extends="testbox.system.BaseSpec"{
 					, requestData = requestData
 				).$results( formSubmissionData );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
+				service.$( "getForm" ).$args( id = formId ).$results( formConfiguration );
 				service.$( "getSubmission", QueryNew('') );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
 					  formItems      = formItems
@@ -784,6 +789,7 @@ component extends="testbox.system.BaseSpec"{
 				var formId             = CreateUUId();
 				var requestData        = { some="data" };
 				var formSubmissionData = { some="data", tests=CreateUUId() };
+				var formConfiguration  = QueryNew( 'use_captcha', "boolean", [ [ true ] ] );
 				var formItems          = [ "just", "test", "data" ];
 				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
 				var userAgent          = CreateUUId();
@@ -796,6 +802,7 @@ component extends="testbox.system.BaseSpec"{
 					  formId      = formId
 					, requestData = requestData
 				).$results( formSubmissionData );
+				service.$( "getForm" ).$args( id = formId ).$results( formConfiguration );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
 				service.$( "getSubmission", QueryNew('') );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
@@ -831,6 +838,7 @@ component extends="testbox.system.BaseSpec"{
 				var formId             = CreateUUId();
 				var requestData        = { some="data" };
 				var formSubmissionData = { some="data", tests=CreateUUId() };
+				var formConfiguration  = QueryNew( 'use_captcha', "boolean", [ [ true ] ] );
 				var formItems          = [ "just", "test", "data" ];
 				var validationResult   = CreateEmptyMock( "preside.system.services.validation.ValidationResult" );
 				var userAgent          = CreateUUId();
@@ -845,6 +853,7 @@ component extends="testbox.system.BaseSpec"{
 					, requestData = requestData
 				).$results( formSubmissionData );
 				service.$( "renderResponsesForSaving", formSubmissionData );
+				service.$( "getForm" ).$args( id = formId ).$results( formConfiguration );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
 				service.$( "getSubmission" ).$args( newSubmissionId ).$results( savedSubmission );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(
@@ -1066,6 +1075,7 @@ component extends="testbox.system.BaseSpec"{
 		variables.mockFormsService                 = CreateEmptyMock( "preside.system.services.forms.FormsService" );
 		variables.mockValidationEngine             = CreateEmptyMock( "preside.system.services.validation.ValidationEngine" );
 		variables.mockFormBuilderValidationService = CreateEmptyMock( "preside.system.services.formbuilder.FormBuilderValidationService" );
+		variables.mockRecaptchaService             = CreateEmptyMock( "preside.system.services.formbuilder.RecaptchaService" );
 
 		var service = CreateMock( object=new preside.system.services.formbuilder.FormBuilderService(
 			  itemTypesService             = mockItemTypesService
@@ -1075,13 +1085,15 @@ component extends="testbox.system.BaseSpec"{
 			, formBuilderValidationService = mockFormBuilderValidationService
 			, validationEngine             = mockValidationEngine
 			, spreadsheetLib               = mockSpreadsheetLib
+			, recaptchaService             = mockRecaptchaService
 		) );
 
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
-
 		service.$( "$getColdbox", mockColdbox );
+
+		mockRecaptchaService.$( "validate", true );
 
 		return service;
 	}

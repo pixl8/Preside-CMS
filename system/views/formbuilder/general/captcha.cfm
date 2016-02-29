@@ -1,5 +1,8 @@
 <cfscript>
-	siteKey = getSystemSetting( 'formbuilder', 'recaptcha_site_key' );
+	siteKey          = getSystemSetting( 'formbuilder', 'recaptcha_site_key' );
+	validationResult = rc.validationResult ?: "";
+	errorMessage     = IsSimpleValue( validationResult ) ? "" : translateResource( validationResult.getError( "recaptcha" ) );
+
 	event.include( "recaptcha-js" );
 </cfscript>
 
@@ -8,6 +11,9 @@
 		<div class="col-md-offset-2">
 			<div class="col-md-9">
 				<div class="g-recaptcha" data-sitekey="#siteKey#" data-tabindex="#getNextTabIndex()#"></div>
+				<cfif Len( Trim( errorMessage ) )>
+					<label class="error">#errorMessage#</label>
+				</cfif>
 			</div>
 		</div>
 	</div>
