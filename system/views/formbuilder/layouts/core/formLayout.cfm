@@ -13,17 +13,14 @@
 		#args.renderedItems#
 	</form>
 
-	<cfsavecontent variable="formJs">
-		( function(){
-			if ( typeof jQuery !== 'undefined' ) {
-				( function( $ ){
-					var $form = $('###args.id#');
-					$form.validate( #args.validationJs# );
-
-					$form.presideFormBuilderForm();
-				} )( jQuery );
-			}
-		} )();
-	</cfsavecontent>
-	<cfset event.includeInlineJs( formJs ) />
+	<cfif Len( Trim( args.validationJs ) )>
+		<cfsavecontent variable="formJs">
+			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
+				executeWithFormBuilderDependencies( function( $ ){
+					$( '###args.id#' ).validate( #args.validationJs# );
+				} );
+			};
+		</cfsavecontent>
+		<cfset event.includeInlineJs( formJs ) />
+	</cfif>
 </cfoutput>
