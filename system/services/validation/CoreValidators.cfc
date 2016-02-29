@@ -1,7 +1,7 @@
 component validationProvider=true {
 
-	public boolean function required( required string fieldName, string value="", struct data={} ) validatorMessage="cms:validation.required.default" {
-		return StructKeyExists( arguments.data, fieldName ) and Len( Trim( value ) );
+	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
+		return arguments.data.keyExists( fieldName ) && !IsEmpty( value );
 	}
 
 	public boolean function minlength( required string fieldName, string value="", required numeric length, boolean list=false ) validatorMessage="cms:validation.minLength.default" {
@@ -111,12 +111,15 @@ component validationProvider=true {
 		return "function( value, el, param ) {var regex = new RegExp('^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$');return regex.test(value);}";
 	}
 
-	public boolean function fileSize( required string fieldName, string value="", required string field ) validatorMessage="cms:validation.fileUpload.default" {
-		var file = '/uploads/formbuilder#arguments.value#';
-		var fileSize = GetFileInfo( file ).size / 1024;
-		var fileSizeInMB = round( ( fileSize / 1024 ) * 100 ) / 100 ;
-		fileSizeInMB GT arguments.field                ? FileDelete(file) : "";
-		return fileSizeInMB LTE arguments.field;
+	public boolean function fileSize( required string fieldName, any value={}, required string maxSize ) validatorMessage="cms:validation.fileUpload.default" {
+		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "size" ) || !IsNumeric( arguments.value.size ) ) {
+			return true;
+		}
+
+		var fileSize     = arguments.value.size / 1024;
+		var fileSizeInMB = Round( ( fileSize / 1024 ) * 100 ) / 100 ;
+
+		return fileSizeInMB <= arguments.maxSize;
 	}
 	public string function fileSize_js() {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";

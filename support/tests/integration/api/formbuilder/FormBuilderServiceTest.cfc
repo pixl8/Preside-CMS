@@ -791,6 +791,7 @@ component extends="testbox.system.BaseSpec"{
 				var instanceId         = "TEST" & CreateUUId();
 				var userid             = CreateUUId();
 
+				service.$( "renderResponsesForSaving", formSubmissionData );
 				service.$( "getRequestDataForForm" ).$args(
 					  formId      = formId
 					, requestData = requestData
@@ -843,6 +844,7 @@ component extends="testbox.system.BaseSpec"{
 					  formId      = formId
 					, requestData = requestData
 				).$results( formSubmissionData );
+				service.$( "renderResponsesForSaving", formSubmissionData );
 				service.$( "getFormItems" ).$args( id = formId ).$results( formItems );
 				service.$( "getSubmission" ).$args( newSubmissionId ).$results( savedSubmission );
 				mockFormBuilderValidationService.$( "validateFormSubmission" ).$args(

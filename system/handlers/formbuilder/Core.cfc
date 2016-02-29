@@ -12,16 +12,7 @@ component {
 		if ( !validRequest ) {
 			event.notFound();
 		}
-		if( structKeyExists( rc, "fileFields" ) ){
-			for ( fileFieldName in rc.fileFields ){
-				if( len( rc[ fileFieldName ] ) ){
-					var fileName = GetPageContext().formScope().getUploadResource( fileFieldName ).getName();
-					var uniqueFilename = '/'& formId & '/' & createUUID() & '/' & fileName;
-					storageProvider.putObject( object = rc[fileFieldName], path = uniqueFilename );
-					rc[fileFieldName] = uniqueFilename;
-				}
-			}
-		}
+
 		var submission       = event.getCollectionWithoutSystemVars();
 		var validationResult = formBuilderService.saveFormSubmission(
 			  formId      = formId

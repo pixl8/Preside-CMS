@@ -1,8 +1,9 @@
 component {
-	property name="assetManagerService" inject="assetManagerService";
+	property name="assetManagerService"        inject="assetManagerService";
+	property name="formBuilderStorageProvider" inject="formBuilderStorageProvider";
 
 	private any function renderResponse( event, rc, prc, args={} ) {
-		var fileName = Listlast( args.response, '/\' );
+		var fileName = Listlast( args.response ?: "", '/\' );
 
 		if ( Len( Trim( fileName ) ) ) {
 			var downloadLink = event.buildLink(
@@ -14,6 +15,20 @@ component {
 		}
 
 		return translateResource( "formbuilder.item-types.fileupload:render.empty.response" );
+	}
+
+
+	private array function renderResponseForExport( event, rc, prc, args={} ) {
+		var fileName = Listlast( args.response ?: "", '/\' );
+
+		if ( Len( Trim( fileName ) ) ) {
+			return [ event.buildLink(
+				  fileStorageProvider = 'formBuilderStorageProvider'
+				, fileStoragePath     = args.response
+			) ];
+		}
+
+		return [ translateResource( "formbuilder.item-types.fileupload:render.empty.response" ) ];
 	}
 
 	private string function renderInput( event, rc, prc, args={} ) {
@@ -44,10 +59,38 @@ component {
 			rules.append( {
 				  fieldname = args.name ?: ""
 				, validator = "fileSize"
-				, params    = { field ="#args.maximumFileSize#" }
+				, params    = { maxSize = args.maximumFileSize }
 			} );
 		}
 
 		return rules;
+	}
+
+	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
+		var tmpFileDetails = runEvent(
+			  event          = "preprocessors.fileupload.index"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = { fieldName=args.inputName ?: "", preProcessorArgs={} }
+		);
+
+		return tmpFileDetails;
+	}
+
+	private any function renderResponseToPersist( event, rc, prc, args={} ) {
+		var response = args.response ?: "";
+
+		if ( IsBinary( response.binary ?: "" ) ) {
+			var savedPath = "/#( args.formId ?: '' )#/#CreateUUId()#/#( response.tempFileInfo.clientFile ?: 'uploaded.file' )#";
+
+			formBuilderStorageProvider.putObject(
+				  object = response.binary
+				, path   = savedPath
+			);
+
+			return savedPath;
+		}
+
+		return SerializeJson( response );
 	}
 }

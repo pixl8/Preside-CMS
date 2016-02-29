@@ -622,6 +622,7 @@ component {
 		);
 
 		if ( validationResult.validated() ) {
+			formItems = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
 			var submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
 				  form           = arguments.formId
 				, submitted_by   = $getWebsiteLoggedInUserId()
@@ -854,6 +855,33 @@ component {
 		}
 
 		return workbook;
+	}
+
+	public struct function renderResponsesForSaving( required string formId, required struct formData, required array formItems ) {
+		var rendererService = _getFormBuilderRenderingService();
+		var coldbox         = $getColdbox();
+
+		for( var i=1; i <= arguments.formItems.len(); i++ ) {
+			var formItem = formItems[i];
+			var itemName = formItem.configuration.name ?: "";
+
+			if ( formItem.type.isFormField && arguments.formData.keyExists( itemName ) ) {
+				var rendererViewlet = rendererService.getItemTypeViewlet(
+					  itemType = formItem.type.id
+					, context  = "responseToPersist"
+				);
+
+				if ( coldbox.viewletExists( rendererViewlet ) ) {
+					arguments.formData[ itemName ] = $renderViewlet( event=rendererViewlet, args={
+						  response      = arguments.formData[ itemName ]
+						, configuration = formItem.configuration
+						, formId        = arguments.formId
+					} );
+				}
+			}
+		}
+
+		return arguments.formData;
 	}
 
 // PRIVATE HELPERS
