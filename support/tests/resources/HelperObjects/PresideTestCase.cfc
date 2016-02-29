@@ -241,7 +241,7 @@
 			dbinfo type="index" table="#arguments.tableName#" name="indexes" datasource="#application.dsn#";
 
 			for( index in indexes ){
-				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name );
+				var isPrimaryKeyIndex = index.index_name == "PRIMARY" || ReFindNoCase( "^pk_", index.index_name ) || ReFindNoCase( "_pkey$", index.index_name );
 				var isActuallyAnIndex = index.index_name.len();
 
 				if ( isActuallyAnIndex && !isPrimaryKeyIndex ) {

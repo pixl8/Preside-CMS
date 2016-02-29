@@ -10,6 +10,19 @@ component {
 		return arguments.entityName;
 	}
 
+
+	public boolean function requiresManualCommitForTransactions(){
+		return false;
+	}
+
+	public string function getInsertReturnType(){
+		return 'info';
+	}
+
+	public string function getGeneratedKey(required any result){
+		return arguments.result.generatedKey ?: "";
+	}
+
 	public string function getColumnDefinitionSql(
 		  required string   columnName
 		, required string   dbType
@@ -123,7 +136,7 @@ component {
 			sql &= "unique ";
 		}
 
-		sql &= "index #escapeEntity( arguments.indexName)# on #escapeEntity( arguments.tableName )# (";
+		sql &= "index #escapeEntity( ensureValidIndexName ( arguments.indexName ) )# on #escapeEntity( arguments.tableName )# (";
 
 		for( field in fields ){
 			sql &= delim & " " & escapeEntity( field );
@@ -133,6 +146,13 @@ component {
 		sql &= " )";
 
 		return sql;
+	}
+
+	public string function ensureValidIndexName( required string indexName ) {
+	    if ( len(arguments.indexName) < 64 ) {
+	        return arguments.indexName;
+	    }
+	    return ReReplaceNoCase( arguments.indexName, "([ui]x_).*", "\1" & LCase( Hash( arguments.indexName ) ) );
 	}
 
 	public string function getDropIndexSql( required string indexName, required string tableName ) {
@@ -162,7 +182,7 @@ component {
 		var paramPostFix = "";
 
 		for( col in arguments.insertColumns ){
-			sql &= delim & escapeEntity( col );
+			sql &= delim & escapeEntity( lcase(col) );
 			delim = ", ";
 		}
 
@@ -285,6 +305,9 @@ component {
 		return 64;
 	}
 
+	public string function getColumnDBType( required string dataType ){
+		return arguments.dataType;
+	}
 	public string function sqlDataTypeToCfSqlDatatype( required string sqlDataType ) {
 		switch( arguments.sqlDataType ){
 			case "bigint signed":
@@ -408,6 +431,10 @@ component {
 	}
 
 	public boolean function supportsRenameInAlterColumnStatement() {
+		return true;
+	}
+	
+	public boolean function supportsCascadeUpdateDelete() {
 		return true;
 	}
 

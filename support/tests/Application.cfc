@@ -79,6 +79,8 @@ component {
 				break;
 			case "Microsoft SQL Server":
 				break;
+			case "PostgreSQL":
+				break;
 			default:
 				throw(
 					  type    = "presideTestSuite.invalidDsn"

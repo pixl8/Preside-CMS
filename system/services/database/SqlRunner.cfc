@@ -39,7 +39,7 @@ component output=false singleton=true {
 				}
 
 				if ( param.type eq 'cf_sql_bit' and not IsNumeric( param.value ) ) {
-					param.value = IsBoolean( param.value ) and param.value ? 1 : 0;
+					param.value = IsBoolean( param.value ) and param.value ? 'true' : 'false';
 				}
 
 				if ( not Len( Trim( param.value ) ) ) {

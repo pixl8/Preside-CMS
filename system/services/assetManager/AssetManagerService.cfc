@@ -1324,7 +1324,7 @@ component displayName="AssetManager Service" {
 	}
 
 	private struct function _getExcludeHiddenFilter() {
-		return { filter="hidden is null or hidden = 0" }
+		return { filter="hidden is null or hidden = '0'" }
 	}
 
 	private numeric function _getNextAssetVersionNumber( required string assetId ) {

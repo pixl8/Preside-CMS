@@ -14,6 +14,7 @@
 			var tables    = "";
 			var i         = "";
 			var columns   = "";
+			var datetimeTypeName = _getDbAdapter().getColumnDBType('datetime');
 
 			poService.dbSync();
 			tables = _getDbTables();
@@ -35,10 +36,10 @@
 				super.assertFalse( columns.label.nullable, "The label column should not be nullable" );
 
 				super.assert( StructKeyExists( columns, "datecreated" ), "The datecreated column was not created." );
-				super.assertEquals( "datetime", columns.datecreated.type_name, "The datecreated column was not a datetime field." );
+				super.assertEquals( datetimeTypeName, columns.datecreated.type_name, "The datecreated column was not a datetime field." );
 				super.assertFalse( columns.datecreated.nullable, "The datecreated column should not be nullable" );
 				super.assert( StructKeyExists( columns, "datemodified" ), "The datemodified column was not created." );
-				super.assertEquals( "datetime", columns.datemodified.type_name, "The datemodified column was not a datetime field." );
+				super.assertEquals( datetimeTypeName, columns.datemodified.type_name, "The datemodified column was not a datetime field." );
 				super.assertFalse( columns.datemodified.nullable, "The datemodified column should not be nullable" );
 			}
 		</cfscript>
@@ -71,6 +72,10 @@
 			var expectedTables = [ "test_test_1", "test_test_2", "test_3" ];
 			var table          = "";
 
+			var idTypeName = _getDbAdapter().getColumnDBType('int', 'autoIncrement');
+			var bitTypeName = _getDbAdapter().getColumnDBType('bit');
+			var datetimeTypeName = _getDbAdapter().getColumnDBType('datetime');
+
 			poService.dbSync();
 			tables = _getDbTables();
 
@@ -80,13 +85,13 @@
 				columns = _getDbTableColumns( table );
 
 				super.assert( StructKeyExists( columns, "id" ), "The id column was not created." );
-				super.assertEquals( "int", ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
+				super.assertEquals( idTypeName, ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
 				super.assertFalse( columns.id.nullable, "The id column should not be nullable" );
 				super.assert( columns.id.is_primarykey, "The id column should be the primary key" );
 				super.assert( columns.id.is_autoincrement, "The id column should be auto incrementing" );
 
 				super.assert( StructKeyExists( columns, "test_property" ), "The test_property column was not created." );
-				super.assertEquals( "bit", columns.test_property.type_name, "The test_property column was not an bit." );
+				super.assertEquals( bitTypeName, columns.test_property.type_name, "The test_property column was not an bit." );
 
 				switch( table ){
 					case "test_test_1":
@@ -97,7 +102,7 @@
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
-						super.assertEquals( "datetime", columns.some_date.type_name, "The some_date column was not an int." );
+						super.assertEquals( datetimeTypeName, columns.some_date.type_name, "The some_date column was not an int." );
 
 						if ( table eq "test_table_2" ){
 							super.assertFalse( columns.some_date.nullable, "The some_date column for table 2 was nullable." );
@@ -120,6 +125,8 @@
 			var columns        = "";
 			var expectedTables = [ "test_test_1", "test_test_2", "test_3" ];
 			var table          = "";
+			var idTypeName = _getDbAdapter().getColumnDBType('int', 'autoIncrement');
+			var bitTypeName = _getDbAdapter().getColumnDBType('bit');
 
 			poService.dbSync();
 
@@ -141,20 +148,20 @@
 				columns = _getDbTableColumns( table );
 
 				super.assert( StructKeyExists( columns, "id" ), "The id column was not created." );
-				super.assertEquals( "int", ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
+				super.assertEquals( idTypeName, ListFirst( columns.id.type_name, " " ), "The id column was not an int." );
 				super.assertFalse( columns.id.nullable, "The id column should not be nullable" );
 				super.assert( columns.id.is_primarykey, "The id column should be the primary key" );
 
 				switch( table ){
 					case "test_test_1":
 						super.assert( StructKeyExists( columns, "__deprecated__test_property" ), "The test_property column was not soft deleted." );
-						super.assertEquals( "bit", columns.__deprecated__test_property.type_name, "The test_property column was not a bit." );
+						super.assertEquals( bitTypeName, columns.__deprecated__test_property.type_name, "The test_property column was not a bit." );
 						super.assert( columns.__deprecated__test_property.nullable, "The test_property column for table 1 was not nullable." );
 					break;
 					case "test_test_2":
 					case "test_3":
 						super.assert( StructKeyExists( columns, "test_property" ), "The test_property column does not exist." );
-						super.assertEquals( "bit", columns.test_property.type_name, "The test_property column was not a bit." );
+						super.assertEquals( bitTypeName, columns.test_property.type_name, "The test_property column was not a bit." );
 						super.assert( columns.test_property.nullable, "The test_property column for table 1 was not nullable." );
 
 						super.assert( StructKeyExists( columns, "some_date" ), "The some_date column was not created." );
@@ -293,7 +300,7 @@
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
 			var constraints = "";
-			var cascadeType = _getDbAdapter().supportsRenameInAlterColumnStatement() ? "cascade" : "error";
+			var cascadeType = _getDbAdapter().supportsCascadeUpdateDelete() ? "cascade" : "error";
 			var expectedResult = {
 				"fk_9a2cb7e9423ef863c7903bb6fcd47d62" = {
 					  pk_table  = "ptest_object_a"
@@ -1908,7 +1915,7 @@
 	<cffunction name="test057_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", "_version_ptest_a_category_object__join__an_object_with_versionin", "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", left("_version_ptest_a_category_object__join__an_object_with_versioning",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();

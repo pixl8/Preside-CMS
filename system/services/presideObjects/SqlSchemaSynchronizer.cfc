@@ -480,11 +480,9 @@ component {
 		var newKey          = "";
 		var deleteSql       = "";
 		var existingKeysNotToTouch = {};
-
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			dbKeys = _getTableForeignKeys( tableName = obj.meta.tableName, dsn = obj.meta.dsn );
-
 			param name="obj.meta.relationships" default=StructNew();
 			param name="obj.sql.relationships"  default=StructNew();
 
@@ -528,6 +526,7 @@ component {
 				}
 			}
 		}
+		
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			for( key in obj.sql.relationships ){
@@ -545,8 +544,10 @@ component {
 								_runSql( sql = deleteSql, dsn = obj.meta.dsn );
 							} catch( any e ) {}
 						}
-
 						try {
+							if ( _getAdapter( obj.meta.dsn ).requiresManualCommitForTransactions() ) {
+								_runSql( sql = 'commit', dsn = obj.meta.dsn );
+							}
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
 						} catch( any e ) {
 							var message = "An error occurred while attempting to create a foreign key for the [#objName#] object.";
@@ -569,7 +570,6 @@ component {
 
 	private void function _enableFkChecks( required boolean enabled, required string dsn, required string tableName ) {
 		var adapter = _getAdapter( dsn=arguments.dsn );
-
 		if ( adapter.canToggleForeignKeyChecks() ) {
 			_runSql(
 				  dsn = arguments.dsn

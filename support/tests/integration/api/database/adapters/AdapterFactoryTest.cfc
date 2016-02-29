@@ -23,6 +23,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( GetMetaData( adapter ).name ).toBe( "preside.system.services.database.adapters.MsSqlAdapter" );
 			} );
 
+			it( "should return PostgreSQL Adapter when datasource is a PostgreSQL DB", function(){
+				var factory = _getFactory();
+
+				factory.$( "_getDbType" ).$args( dsn=application.dsn ).$results( "PostgreSQL" );
+
+				var adapter = factory.getAdapter( dsn = application.dsn );
+
+				expect( GetMetaData( adapter ).name ).toBe( "preside.system.services.database.adapters.PostgreSqlAdapter" );
+			} );
+
 			it( "should throw error when DB is not a supported engine", function(){
 				var factory = _getFactory();
 
