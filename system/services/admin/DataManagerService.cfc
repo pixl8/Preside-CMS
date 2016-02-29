@@ -87,11 +87,11 @@ component output="false" singleton=true {
 	}
 
 	public array function listBatchEditableFields( required string objectName ) output=false {
-		var objectAttributes = _getPresideObjectService().getObjectProperties(objectName);
+		var objectAttributes = _getPresideObjectService().getObjectProperties( objectName );
 		var fields           = [];
-		for(property in objectAttributes){
-			if(StructKeyExists(objectAttributes[property],"batcheditable") && objectAttributes[property].relationship != "one-to-many" && !StructKeyExists(objectAttributes[property],"uniqueindexes")){
-				arrayAppend(fields, property);
+		for( property in objectAttributes ) {
+			if( IsBoolean( objectAttributes[ property ].batcheditable ?: "" ) && objectAttributes[ property ].batcheditable == true && objectAttributes[ property ].relationship != "one-to-many" && !Len( Trim( objectAttributes[ property ].uniqueindexes ?: "" ) ) ){
+       		 		arrayAppend( fields, property );
 			}
 		}
 		return fields;
