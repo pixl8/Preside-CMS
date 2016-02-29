@@ -1,17 +1,17 @@
 <cfscript>
-	inputName          		= args.name             			?: "";
-	inputId            		= args.id               			?: "";
-	inputClass         		= args.class            			?: "";
-	placeholder        		= args.placeholder      			?: "";
-	defaultValue       		= args.defaultValue     			?: "";
-	extraClasses       		= args.extraClasses     			?: "";
-	values             		= args.values                		?: "";
-	labels             		= len( args.labels ) 				?  args.labels : args.values;
+	inputName      = args.name            ?: "";
+	inputId        = args.id              ?: "";
+	inputClass     = args.class           ?: "";
+	values         = args.values          ?: "";
+	defaultValue   = args.defaultValue    ?: "";
+	extraClasses   = args.extraClasses    ?: "";
+	values         = args.values          ?: "";
+	labels         = len( args.labels )   ?  args.labels : args.values;
 
 	if ( IsSimpleValue( values ) ) { values = ListToArray( values ); }
 	if ( IsSimpleValue( labels ) ) { labels = ListToArray( labels ); }
 
-	value = event.getValue( name=inputName, defaultValue=defaultValue );
+	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( not IsSimpleValue( value ) ) {
 		value = "";
 	}
@@ -22,18 +22,14 @@
 
 <cfoutput>
 	<cfloop array="#values#" index="i" item="selectValue">
-		<cfset selected   = ListFindNoCase( value, selectValue ) />
-		<cfset valueFound = valueFound || selected />
-		<div class="checkbox">
-		  	<label>
-		  		<input type="checkbox"
-				   class="#inputClass# #extraClasses#"
-				   name="#inputName#"
-				   id="#inputId#"
-				   tabindex="#getNextTabIndex()#"
-				   value="#HtmlEditFormat( selectValue )#" <cfif selected> checked="checked"</cfif> >
-				   #HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
-		  	</label>
+		<cfset checked   = ListFindNoCase( value, selectValue ) />
+		<cfset valueFound = valueFound || checked />
+
+		<div class="radio">
+			<label>
+				<input type="checkbox" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( selectValue )#" class="#inputClass# #extraClasses#" tabindex="#getNextTabIndex()#" <cfif checked>checked</cfif>>
+				#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
+			</label>
 		</div>
 	</cfloop>
 	<label for="#inputName#" class="error"></label>

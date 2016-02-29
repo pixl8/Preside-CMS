@@ -37,23 +37,4 @@ component {
 	private array function renderResponseForExport( event, rc, prc, args={} ) {
 		return [ renderResponse( argumentCollection=arguments ) ];
 	}
-
-	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
-		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
-		var itemConfig = args.itemConfiguration ?: {};
-		var rows       = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
-		var answers    = [];
-
-		for( var i=1; i <= rows.len(); i++ ) {
-
-			if ( Len( Trim( rows[ i ] ) ) ) {
-				answers.append( {
-					  question = rows[i]
-					, answer   = ListChangeDelims( ( response[ rows[i] ] ?: "" ), ", " )
-				} );
-			}
-		}
-
-		return answers;
-	}
 }
