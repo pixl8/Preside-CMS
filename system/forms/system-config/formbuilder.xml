@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Form builder: general settings form
+
+This form is used for managing general form builder settings
+-->
+<form i18nBaseUri="system-config.formbuilder:">
+	<tab id="recpaptcha">
+		<fieldset id="recpaptcha" sortorder="10">
+			<field name="recaptcha_site_key"   control="textinput" required="true" />
+			<field name="recaptcha_secret_key" control="textinput" required="true" />
+		</fieldset>
+	</tab>
+</form>

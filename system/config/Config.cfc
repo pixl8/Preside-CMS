@@ -519,11 +519,6 @@ component output=false {
 			, matrix       = { isFormField=true  }
 		} };
 
-		fbSettings.itemTypes.submission = { sortorder=30, types={
-			  submitButton = { isFormField=false }
-			, captcha      = { isFormField=false }
-		} };
-
 		fbSettings.itemTypes.content = { sortorder=40, types={
 			  spacer    = { isFormField=false }
 			, content   = { isFormField=false }

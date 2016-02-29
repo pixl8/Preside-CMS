@@ -409,6 +409,7 @@ component {
 		,          struct configuration    = {}
 		,          any    validationResult = ""
 	) {
+		var formConfiguration = getForm( id=arguments.formId );
 		var items             = getFormItems( id=arguments.formId );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
@@ -439,10 +440,15 @@ component {
 		coreLayoutArgs.renderedItems = renderedItems.toString();
 		coreLayoutArgs.id            = idPrefixForFields;
 		coreLayoutArgs.formItems     = items;
+		for( var f in formConfiguration ) {
+			coreLayoutArgs.configuration = f;
+		}
+
 		formLayoutArgs.renderedForm  = $renderViewlet(
 			  event = coreLayoutViewlet
 			, args  = coreLayoutArgs
 		);
+
 
 		return $renderViewlet(
 			  event = formLayoutViewlet
