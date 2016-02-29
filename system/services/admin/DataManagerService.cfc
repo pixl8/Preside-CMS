@@ -90,7 +90,7 @@ component output="false" singleton=true {
 		var objectAttributes = _getPresideObjectService().getObjectProperties(objectName);
 		var fields           = [];
 		for(property in objectAttributes){
-			if(StructKeyExists(objectAttributes[property],"batcheditable")){
+			if(StructKeyExists(objectAttributes[property],"batcheditable") && objectAttributes[property].relationship != "many-to-one" && !StructKeyExists(objectAttributes[property],"uniqueindexes")){
 				arrayAppend(fields, property);
 			}
 		}
@@ -243,37 +243,44 @@ component output="false" singleton=true {
 		, required string  sourceIds
 		, required string  updateValue
 		, required string  updateField
-		, required string  DataColumn
+		, required string  dataColumn
 		, required string  attributeRelationship
-		,          string  overwrite      = "append"
+		,          string  overwrite              = "append"
 	) output=false {
-
-		for( sourceID in sourceIds ) {
+		var formData = {};
+		var result   = {};
+		for(var sourceId in sourceIds ) {
 			if( attributeRelationship == "many-to-many" ) {
-				multiSelectedValue = updateValue;
+				var multiSelectedValue = updateValue;
 				if( overwrite != "overwrite") {
-					var previousData = _getPresideObjectService().getDeNormalizedManyToManyData( objectName = objectName, id = sourceID );
-					data[ sourceID ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ DataColumn ] ) );
+					var previousData = _getPresideObjectService().getDeNormalizedManyToManyData( 
+						objectName   = objectName, 
+						id           = sourceId 
+					);
+					data[ sourceId ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ dataColumn ] ) );
 				}else{
-					data[ sourceID ] =  multiSelectedValue;
+					data[ sourceId ] =  multiSelectedValue;
 				}
-					result.multiSelect   = _getPresideObjectService().syncManyToManyData(  sourceObject   = objectName
-											                                 , sourceProperty = DataColumn
-											                                 , sourceId       = sourceID
-											                                 , targetIdList   = data[ sourceID ] );
+				result.multiSelect   = _getPresideObjectService().syncManyToManyData( 
+					sourceObject     = objectName
+					, sourceProperty = dataColumn
+					, sourceId       = sourceId
+					, targetIdList   = data[ sourceId ] 
+				);
 			}else {
-				if ( attributeRelationship  == "many-to-one"){
-					singleSelectedValue     = updateValue;			
-					formData[ DataColumn ]  = singleSelectedValue;
+				if ( attributeRelationship  == "many-to-one" ) {
+					var singleSelectedValue  = updateValue;			
+					formData[ dataColumn ]   = singleSelectedValue;
 				} else {
-					singleSelectedValue     = updateValue;
-					formData[ updateField ] = singleSelectedValue;
+					singleSelectedValue      = updateValue;
+					formData[ updateField ]  = singleSelectedValue;
 				}
 				
-				result.singleSelect = _getPresideObjectService().updateData( objectName  = objectName 
-																            , data       = formData 
-																            , id         = sourceId  );
-				structClear(formData);
+				result.singleSelect = _getPresideObjectService().updateData( 
+					objectName   = objectName 
+					, data       = formData 
+					, id         = sourceId  
+				);
 			}
 		}
 		return result;

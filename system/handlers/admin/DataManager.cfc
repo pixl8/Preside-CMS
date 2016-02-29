@@ -349,10 +349,11 @@
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
-			var objectName   = rc.object;
-			var field        = rc.pickField ?: "";
-			fieldAttributes  = presideObjectService.getObjectProperty( objectName, field);
-			fieldType        = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
+			var objectName            = rc.object;
+			var field                 = rc.pickField ?: "";
+			var fieldAttributes       = presideObjectService.getObjectProperty( objectName, field);
+			var fieldType             = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
+			var formControl           = {};
 			formControl.name          = field;
 			formControl.label         = field;
 			formControl.maxlength     = fieldAttributes.maxlength ?: "";
@@ -363,18 +364,19 @@
 			formControl.type          = fieldType;
 			formControl.maxValue      = fieldAttributes.maxvalue  ?: "";
 			formControl.minValue      = fieldAttributes.minvalue  ?: "";
-			rc.renderObject           = renderFormControl( argumentCollection = formControl );
+			prc.renderObject          = renderFormControl( argumentCollection = formControl );
 			if(fieldType == "manyToManySelect") {
-				rc.renderSwitch           = renderFormControl( type  = "select",
-															name     = "overwrite",
-															label    = "Multi Edit Behaviour",
-															values   = [ "append", "overwrite" ], 
-															labels   = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	   translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) 
-																	  ] );
+				prc.renderSwitch      = renderFormControl( 
+					  type   = "select"
+					, name   = "overwrite"
+					, label  = "Multi Edit Behaviour"
+					, values = [ "append", "overwrite" ]
+					,labels  = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) ] 
+				);
 			}
 			_addObjectNameBreadCrumb( event, objectName );
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.editrecord.breadcrumb.title" )
+				  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, field] )
 				, link  = ""
 			);
 			event.setView( view="/admin/datamanager/batchEditField");
@@ -386,25 +388,31 @@
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfscript>
-			rc.updateValue           = rc[rc.updateField];
-			fieldAttributes          = presideObjectService.getObjectProperty( rc.objectName, rc.updateField );
-			rc.attributeRelationship = fieldAttributes.relationship;
-			rc.DataColumn            = "";
-			_checkObjectExists( argumentCollection = arguments, object = rc.objectName );
+			var updateField                     = rc.updateField;
+			var objectName                      = rc.objectName;
+			var fieldAttributes                 = presideObjectService.getObjectProperty( objectName, updateField );
+			fieldData.attributeRelationship     = fieldAttributes.relationship;
+			fieldData.updateValue               = rc[updateField];
+			fieldData.dataColumn                = "";
+			fieldData.sourceIds                 = rc.sourceIds;
+			fieldData.objectName                = objectName;
+			fieldData.updateField               = updateField;
+			fieldData.overwrite                 = rc.overwrite         ?: "append";
 
+			_checkObjectExists( argumentCollection = arguments, object = objectName );
 			if( fieldAttributes.relatedto !="none" ) {
 				getAttribute = presideObjectService.getObjectProperties( fieldAttributes.relatedto );
 				for( property in getAttribute ) {
-					if( getAttribute[ property ].relatedTo == rc.objectName ) {
+					if( getAttribute[ property ].relatedTo == objectName ) {
 						if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
-						 	rc.DataColumn	= getAttribute[ property ].relationshipKey;
+						 	fieldData.dataColumn	= getAttribute[ property ].relationshipKey;
 					 	} else {
-					 		rc.DataColumn	= fieldAttributes.relatedto;
+					 		fieldData.dataColumn	= fieldAttributes.relatedto;
 					 	}
 					}
 				}
 			}
-			var getResult = datamanagerService.batchSaveFieldChanges( argumentCollection = rc )
+			var getResult = datamanagerService.batchSaveFieldChanges( argumentCollection = fieldData );
 			if( !structIsEmpty(getResult) ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordUpdated.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
