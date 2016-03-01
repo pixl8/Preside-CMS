@@ -23,26 +23,6 @@ component {
 		);
 	}
 
-	private array function getValidationRules( event, rc, prc, args={} ) {
-		var rules     = [];
-		var inputName = args.name ?: "";
-
-		if ( IsBoolean( args.mandatory ?: "" ) && args.mandatory ) {
-			var rows = ListToArray( Trim( args.rows ?: "" ), Chr(10) & Chr(13) );
-
-			for( var question in rows ) {
-				if ( Len( Trim( question ) ) ) {
-					rules.append( {
-						  fieldname = _getQuestionInputId( inputName, question )
-						, validator = "required"
-					} );
-				}
-			}
-		}
-
-		return rules;
-	}
-
 	private string function getItemDataFromRequest( event, rc, prc, args={} ) {
 		var inputName   = args.inputName         ?: "";
 		var itemConfig  = args.itemConfiguration ?: {};
@@ -53,6 +33,10 @@ component {
 
 		for( var field in formFields ) {
 			data[ field ] = rc[ field ] ?: "";
+
+			if( isMandatory && !Len( Trim( data[ field ] ) ) ) {
+				return "";
+			}
 		}
 
 		return SerializeJson( data );
@@ -112,9 +96,11 @@ component {
 
 		for( var question in rows ) {
 			if ( Len( Trim( question ) ) ) {
+				var inputId = _getQuestionInputId( itemConfig.name ?: "", question );
+
 				answers.append( {
 					  question = question
-					, answer   = ListChangeDelims( ( response[ question ] ?: "" ), ", " )
+					, answer   = ListChangeDelims( ( response[ inputId ] ?: "" ), ", " )
 				} );
 			}
 		}
