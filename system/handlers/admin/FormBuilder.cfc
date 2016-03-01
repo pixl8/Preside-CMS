@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
 
-		if ( IsTrue( prc.form.locked ) ) {
+		if ( IsTrue( prc.form.locked ) || !hasCmsPermission( permissionKey="formbuilder.editForm" ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & prc.form.id ) );
 		}
 
@@ -77,6 +77,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function itemConfigDialog( event, rc, prc ) {
+		_permissionsCheck( "editform", event );
+
 		if ( Len( Trim( rc.itemId ?: "" ) ) ) {
 			var item = formBuilderService.getFormItem( rc.itemId );
 			if ( item.count() ) {
@@ -102,6 +104,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function validateItemConfig( event, rc, prc ) {
+		_permissionsCheck( "editform", event );
+
 		var config = event.getCollectionWithoutSystemVars();
 
 		config.delete( "formId"   );
@@ -164,6 +168,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function actionConfigDialog( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
 		if ( Len( Trim( rc.actionId ?: "" ) ) ) {
 			var action = actionsService.getFormAction( rc.actionId );
 			if ( action.count() ) {
@@ -190,6 +196,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function validateActionConfig( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
 		var config = event.getCollectionWithoutSystemVars();
 
 		config.delete( "formId"   );
@@ -330,6 +338,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function addItemAction( event, rc, prc ) {
+		_permissionsCheck( "editform", event );
+
 		var configuration = event.getCollectionWithoutSystemVars();
 
 		configuration.delete( "formId"   );
@@ -348,6 +358,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function saveItemAction( event, rc, prc ) {
+		_permissionsCheck( "editform", event );
+
 		var configuration = event.getCollectionWithoutSystemVars();
 		var itemId        = rc.id ?: "";
 
@@ -365,12 +377,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function deleteItemAction( event, rc, prc ) {
+		_permissionsCheck( "editform", event );
+
 		var deleteSuccess = formBuilderService.deleteItem( rc.id ?: "" );
 
 		event.renderData( data=deleteSuccess, type="json" );
 	}
 
 	public void function setSortOrderAction( event, rc, prc ) {
+		_permissionsCheck( "editform", event );
+
 		var itemsUpdated = formBuilderService.setItemsSortOrder( ListToArray( rc.itemIds ?: "" ) );
 		var success      = itemsUpdated > 0;
 
@@ -439,6 +455,8 @@ component extends="preside.system.base.AdminHandler" {
 
 
 	public void function addActionAction( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
 		var configuration = event.getCollectionWithoutSystemVars();
 
 		configuration.delete( "formId" );
@@ -457,6 +475,8 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function saveActionAction( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
 		var configuration = event.getCollectionWithoutSystemVars();
 		var actionId      = rc.id ?: "";
 
@@ -474,12 +494,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function deleteActionAction( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
 		var deleteSuccess = actionsService.deleteAction( rc.id ?: "" );
 
 		event.renderData( data=deleteSuccess, type="json" );
 	}
 
 	public void function setActionsSortOrderAction( event, rc, prc ) {
+		_permissionsCheck( "editformactions", event );
+
 		var itemsUpdated = actionsService.setActionsSortOrder( ListToArray( rc.itemIds ?: "" ) );
 		var success      = itemsUpdated > 0;
 
