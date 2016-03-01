@@ -1,9 +1,9 @@
 ---
 id: formbuilder-itemtypes
-title: "Working with the Form Builder: Item types"
+title: Form Builder item types
 ---
 
-Stub
+
 
 ### Anatomy of an item type
 

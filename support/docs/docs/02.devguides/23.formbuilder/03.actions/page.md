@@ -1,6 +1,6 @@
 ---
 id: formbuilder-actions
-title: "Working with the Form Builder: Actions"
+title: Form Builder actions
 ---
 
-Stub
+TODO: Fully document how to create new actions.

@@ -1,11 +1,11 @@
 ---
 id: formbuilder-overview
-title: "Working with the Form Builder: Overview"
+title: Form Builder overview
 ---
 
 As of v10.5.0, PresideCMS provides a system that enables content administrators to build input forms to gather submissions from their site's user base.
 
-![Screenshot showing a form builder form's workbench](images/screenshots/formbuilder_workbench.jpg).
+![Screenshot showing a form builder form's workbench](images/screenshots/formbuilder_workbench.jpg)
 
 ## Enabling form builder
 
@@ -32,7 +32,7 @@ component extends="preside.system.config.Config" {
 
 Forms are the base unit of the system. They can be created, configured, activated and locked by your system's content editors. Once created, they can be inserted into content using the Form Builder form widget. A form definition consists of some basic configuration and any number of ordered and individually configured items (e.g. a text input, select box and email address).
 
-![Screenshot showing a list of form builder forms](images/screenshots/formbuilder_forms.jpg).
+![Screenshot showing a list of form builder forms](images/screenshots/formbuilder_forms.jpg)
 
 Useful references for extending the core form object and associated widget:
 
