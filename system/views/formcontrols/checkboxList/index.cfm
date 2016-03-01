@@ -25,7 +25,7 @@
 		<cfset checked   = ListFindNoCase( value, selectValue ) />
 		<cfset valueFound = valueFound || checked />
 
-		<div class="radio">
+		<div class="checkbox">
 			<label>
 				<input type="checkbox" id="#inputId#" name="#inputName#" value="#HtmlEditFormat( selectValue )#" class="#inputClass# #extraClasses#" tabindex="#getNextTabIndex()#" <cfif checked>checked</cfif>>
 				#HtmlEditFormat( translateResource( labels[i] ?: "", labels[i] ?: "" ) )#
