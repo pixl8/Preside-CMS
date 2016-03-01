@@ -86,6 +86,17 @@ component output="false" singleton=true {
 		return ListToArray( fields );
 	}
 
+	public array function listBatchEditableFields( required string objectName ) output=false {
+		var objectAttributes = _getPresideObjectService().getObjectProperties( objectName );
+		var fields           = [];
+		for( property in objectAttributes ) {
+			if( IsBoolean( objectAttributes[ property ].batcheditable ?: "" ) && objectAttributes[ property ].batcheditable == true && objectAttributes[ property ].relationship != "one-to-many" && !Len( Trim( objectAttributes[ property ].uniqueindexes ?: "" ) ) ){
+       		 		arrayAppend( fields, property );
+			}
+		}
+		return fields;
+	}
+
 	public boolean function isOperationAllowed( required string objectName, required string operation ) output=false {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
@@ -227,6 +238,54 @@ component output="false" singleton=true {
 
 		return result;
 	}
+	public struct function batchSaveFieldChanges(
+		  required string  objectName
+		, required string  sourceIds
+		, required string  updateValue
+		, required string  updateField
+		, required string  dataColumn
+		, required string  attributeRelationship
+		,          string  overwrite              = "append"
+	) output=false {
+		var formData = {};
+		var result   = {};
+		for(var sourceId in sourceIds ) {
+			if( attributeRelationship == "many-to-many" ) {
+				var multiSelectedValue = updateValue;
+				if( overwrite != "overwrite") {
+					var previousData = _getPresideObjectService().getDeNormalizedManyToManyData( 
+						objectName   = objectName, 
+						id           = sourceId 
+					);
+					data[ sourceId ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ dataColumn ] ) );
+				}else{
+					data[ sourceId ] =  multiSelectedValue;
+				}
+				result.multiSelect   = _getPresideObjectService().syncManyToManyData( 
+					sourceObject     = objectName
+					, sourceProperty = updateField
+					, sourceId       = sourceId
+					, targetIdList   = data[ sourceId ] 
+				);
+			}else {
+				if ( attributeRelationship  == "many-to-one" ) {
+					var singleSelectedValue  = updateValue;			
+					formData[ dataColumn ]   = singleSelectedValue;
+				} else {
+					singleSelectedValue      = updateValue;
+					formData[ updateField ]  = singleSelectedValue;
+				}
+				
+				result.singleSelect = _getPresideObjectService().updateData( 
+					objectName   = objectName 
+					, data       = formData 
+					, id         = sourceId  
+				);
+			}
+		}
+		return result;
+	}
+
 
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName

@@ -346,6 +346,20 @@ component {
 
 		return renderedControl;
 	}
+	
+	public string function renderFormControlForObjectField( required string objectName, required struct property ) {
+	    var formControlArgs          = Duplicate( arguments.property );
+	    var fieldBaseI18n            = _getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
+	    formControlArgs.type         = arguments.type;
+	    formControlArgs.sourceObject = arguments.objectName;
+	    formControlArgs.title        = fieldBaseI18n & "field.#formControlArgs.name#.title";
+	    formControlArgs.placeholder  = fieldBaseI18n & "field.#formControlArgs.name#.placeholder";
+	    formControlArgs.help         = fieldBaseI18n & "field.#formControlArgs.name#.help";
+	    formControlArgs.object       = formControlArgs.relatedto ?: "";
+	    formControlArgs.label        = formControlArgs.name;
+	    formControlArgs.append( arguments, false );
+	    return renderFormControl( argumentCollection = formControlArgs);
+	}
 
 	public any function validateForm(
 		  required string  formName

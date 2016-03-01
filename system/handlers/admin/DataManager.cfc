@@ -45,8 +45,7 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = event.getValue( name="id", default="" );
-
+			var objectName   = event.getValue( name="id", default="" );
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -58,7 +57,8 @@
 			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
-			prc.gridFields = _getObjectFieldsForGrid( objectName );
+			prc.gridFields          = _getObjectFieldsForGrid( objectName );
+			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
 		</cfscript>
 	</cffunction>
 
@@ -344,6 +344,78 @@
 			);
 		</cfscript>
 	</cffunction>
+	<cffunction name="batchEditField" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfscript>
+			var objectName            = rc.object;
+			var field                 = rc.pickField ?: "";
+			var fieldAttributes       = presideObjectService.getObjectProperty( objectName, field);
+			var fieldType             = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
+			var formControl           = {};
+			prc.renderObject = formsService.renderFormControlForObjectField( 
+			      objectName = objectName
+			    , property   = fieldAttributes
+			    , type       = fieldType
+			);
+			if(fieldType == "manyToManySelect") {
+				prc.renderSwitch      = renderFormControl( 
+					  type   = "select"
+					, name   = "overwrite"
+					, label  = "Multi Edit Behaviour"
+					, values = [ "append", "overwrite" ]
+					,labels  = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) ] 
+				);
+			}
+			_addObjectNameBreadCrumb( event, objectName );
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, field] )
+				, link  = ""
+			);
+			event.setView( view="/admin/datamanager/batchEditField");
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="batchEditAction" access="public" returntype="void" output="false">
+		<cfargument name="event"             type="any"     required="true" />
+		<cfargument name="rc"                type="struct"  required="true" />
+		<cfargument name="prc"               type="struct"  required="true" />
+		<cfscript>
+			var updateField                     = rc.updateField;
+			var objectName                      = rc.objectName;
+			var fieldAttributes                 = presideObjectService.getObjectProperty( objectName, updateField );
+			fieldData.attributeRelationship     = fieldAttributes.relationship;
+			fieldData.updateValue               = rc[updateField];
+			fieldData.dataColumn                = "";
+			fieldData.sourceIds                 = rc.sourceIds;
+			fieldData.objectName                = objectName;
+			fieldData.updateField               = updateField;
+			fieldData.overwrite                 = rc.overwrite         ?: "append";
+
+			_checkObjectExists( argumentCollection = arguments, object = objectName );
+			if( fieldAttributes.relatedto !="none" ) {
+				getAttribute = presideObjectService.getObjectProperties( fieldAttributes.relatedto );
+				for( property in getAttribute ) {
+					if( getAttribute[ property ].relatedTo == objectName ) {
+						if( structKeyExists( getAttribute[ property ], "relationshipKey" ) ){
+						 	fieldData.dataColumn	= getAttribute[ property ].relationshipKey;
+					 	} else {
+					 		fieldData.dataColumn	= fieldAttributes.relatedto;
+					 	}
+					}
+				}
+			}
+			var getResult = datamanagerService.batchSaveFieldChanges( argumentCollection = fieldData );
+			if( !structIsEmpty(getResult) ) {
+				messageBox.info( translateResource( uri="cms:datamanager.recordUpdated.confirmation", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			} else {
+				messageBox.error( translateResource( uri="cms:datamanager.recordUpdated.error", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			}
+		</cfscript>
+	</cffunction>
 
 	<cffunction name="deleteRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
@@ -445,7 +517,6 @@
 
 		<cfscript>
 			var objectName = rc.object ?: "";
-
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
@@ -763,6 +834,9 @@
 			}
 
 			switch( action ){
+				case "update":
+					return batchEditField( argumentCollection = arguments );
+				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
 				break;
