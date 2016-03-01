@@ -1,52 +1,73 @@
-component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
+component extends="testbox.system.BaseSpec"{
 
-// TESTS
-	function test01_isFeatureEnabled_shouldReturnFalse_whenFeatureDoesNotExist() output=false {
-		var svc = _getService();
+	function run(){
+		describe( "isFeatureEnabled()", function(){
+			it( "should return false when feature does not exist", function(){
+				var svc = _getService();
+				expect( svc.isFeatureEnabled( feature="somefeature" ) ).toBe( false );
+			} );
 
-		super.assertFalse( svc.isFeatureEnabled( feature="somefeature" ) );
+			it( "should return true when feature exists and is enabled", function(){
+				var svc = _getService();
+
+				expect( svc.isFeatureEnabled( feature="datamanager" ) ).toBeTrue();
+			} );
+
+			it( "should return false when feature exists and is disabled", function(){
+				var svc = _getService();
+
+				expect( svc.isFeatureEnabled( feature="sitetree" ) ).toBeFalse();
+			} );
+
+			it( "should return false when feature is enabled but not for the passed site template", function(){
+				var svc = _getService();
+
+				expect( svc.isFeatureEnabled( feature="sites", siteTemplate="somesiteTemplate" ) ).toBeFalse();
+			} );
+
+			it( "should return true when feature has default template set and current template is blank", function(){
+				var svc = _getService();
+
+				mockSiteService.$( "getActiveSiteTemplate", "" );
+				expect( svc.isFeatureEnabled( feature="sites", siteTemplate="" ) ) .toBeTrue();
+			} );
+
+		} );
+
+		describe( "isFeatureDefined()", function(){
+			it( "should return false when feature is not defined at all", function(){
+				var svc = _getService();
+
+				mockSiteService.$( "getActiveSiteTemplate", "" );
+				expect( svc.isFeatureDefined( "somefeature" ) ).toBeFalse();
+			} );
+
+			it( "should return true when feature is defined", function(){
+				var svc = _getService();
+
+				mockSiteService.$( "getActiveSiteTemplate", "" );
+				expect( svc.isFeatureDefined( "sitetree" ) ).toBeTrue();
+			} );
+		} );
+
+		describe( "getFeatureForWidget", function(){
+			it( "should return empty string when widget does not belong to a feature", function(){
+				var svc = _getService();
+
+				expect( svc.getFeatureForWidget( "somewidget" ) ).toBe( "" );
+			} );
+
+			it( "should pass the id of the feauture to which the widget belongs", function(){
+				var svc = _getService();
+
+				expect( svc.getFeatureForWidget( "datajazzwidget" ) ).toBe( "datamanager" );
+			} );
+		} );
+
+
 	}
 
-	function test02_isFeatureEnabled_shouldReturnTrue_whenFeatureExistsAndIsEnabled() output=false {
-		var svc = _getService();
 
-		super.assert( svc.isFeatureEnabled( feature="datamanager" ) );
-	}
-
-	function test03_isFeatureEnabled_shouldReturnFalse_whenFeatureExistsAndIsDisabled() output=false {
-		var svc = _getService();
-
-		super.assertFalse( svc.isFeatureEnabled( feature="sitetree" ) );
-	}
-
-	function test04_isFeatureEnabled_shouldReturnFalse_whenFeatureIsEnabledButNotForThePassedSiteTemplate() output=false {
-		var svc = _getService();
-
-		super.assertFalse( svc.isFeatureEnabled( feature="sites", siteTemplate="somesiteTemplate" ) );
-	}
-
-	function test05_isFeatureEnabled_shouldReturnTrue_whenFeatureHasDefaultTemplateSet_andCurrentTemplateIsBlank() output=false {
-		var svc = _getService();
-
-		mockSiteService.$( "getActiveSiteTemplate", "" );
-		super.assert( svc.isFeatureEnabled( feature="sites", siteTemplate="" ) ) ;
-	}
-
-	function test06_isFeatureDefined_shouldReturnFalse_whenFeatureIsNotDefinedAtAll() {
-		var svc = _getService();
-
-		mockSiteService.$( "getActiveSiteTemplate", "" );
-		super.assertFalse( svc.isFeatureDefined( "somefeature" ) );
-	}
-
-	function test07_isFeatureDefined_shouldReturnTrue_whenFeatureIsDefined() {
-		var svc = _getService();
-
-		mockSiteService.$( "getActiveSiteTemplate", "" );
-		super.assert( svc.isFeatureDefined( "sitetree" ) );
-	}
-
-// PRIVATE HELPERS
 	private any function _getService( struct config=_getDefaultTestConfiguration() ) output=false {
 		mockSiteService = getMockBox().createEmptyMock( "preside.system.services.siteTree.SiteService" );
 		mockSiteService.$( "getActiveSiteTemplate", "default" );
@@ -63,7 +84,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, sites        = { enabled=true , siteTemplates=[ "tempate-x", "template-y", "default" ] }
 			, assetManager = { enabled=false, siteTemplates=[ "*" ] }
 			, websiteUsers = { enabled=true }
-			, datamanager  = { enabled=true,  siteTemplates=[ "*" ] }
+			, datamanager  = { enabled=true,  siteTemplates=[ "*" ], widgets=[ "datajazzwidget" ] }
 		};
 	}
 }
