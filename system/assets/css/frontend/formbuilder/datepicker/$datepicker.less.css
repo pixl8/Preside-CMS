@@ -288,3 +288,6 @@
   width: 16px;
   height: 16px;
 }
+.formbuilder-date-picker + i {
+  cursor: pointer;
+}

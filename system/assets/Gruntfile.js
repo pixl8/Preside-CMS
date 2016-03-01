@@ -181,7 +181,7 @@ module.exports = function( grunt ) {
 					  src    : [ "js/admin/specific/**/_*.min.js", "js/admin/presidecore/_*.min.js", "js/frontend/**/_*.min.js" ]
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}, {
-					  src    : [ "css/admin/**/_*.min.css", "css/frontend/**/_*.min.js" ]
+					  src    : [ "css/admin/**/_*.min.css", "css/frontend/**/_*.min.css" ]
 					, filter : function( src ){ return src.match(/[\/\\]_[a-f0-9]{8}\./) !== null; }
 				}]
 			},

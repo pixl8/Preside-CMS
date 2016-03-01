@@ -1,6 +1,7 @@
 <cfparam name="args.renderedItems" type="string" />
 <cfparam name="args.id"            type="string" />
 <cfparam name="args.validationJs"  type="string" default="" />
+<cfparam name="args.configuration" type="struct" />
 
 <cfoutput>
 	<form action="#event.buildLink( linkTo='formbuilder.core.submitAction' )#" id="#args.id#" method="post" enctype="multipart/form-data">
@@ -11,37 +12,28 @@
 		</cfloop>
 
 		#args.renderedItems#
+
+		<cfif IsTrue( args.configuration.use_captcha ?: "" )>
+			#renderView( '/formbuilder/general/captcha' )#
+		</cfif>
+
+		<div class="form-group">
+			<div class="col-md-offset-2">
+				<div class="col-md-9">
+					<button class="btn" tabindex="#getNextTabIndex()#">#( args.configuration.button_label ?: 'Submit' )#</button>
+				</div>
+			</div>
+		</div>
 	</form>
 
-	<cfsavecontent variable="formJs">
-		( function(){
-			if ( typeof jQuery !== 'undefined' ) {
-				( function( $ ){
-					var $form = $('###args.id#');
-					$form.validate( #args.validationJs# );
-					$form.on('submit', function () {
-						if($form.find(".hiddencode").length) {
-							$form.validate().settings.ignore = ":hidden:not(##hiddencode)";
-							$("input##hiddencode").rules("add", {
-								required: function() {
-									if(grecaptcha.getResponse() == '') {
-										return true;
-									} else {
-										return false;
-									}
-	                    		}
-							});
-	                    }
-					});
-					<cfif Len( Trim( args.validationJs ) )>
-						if ( typeof jQuery.validator !== 'undefined' ) {
-							$form.validate( #args.validationJs# );
-						}
-					</cfif>
-					$form.presideFormBuilderForm();
-				} )( jQuery );
-			}
-		} )();
-	</cfsavecontent>
-	<cfset event.includeInlineJs( formJs ) />
+	<cfif Len( Trim( args.validationJs ) )>
+		<cfsavecontent variable="formJs">
+			if ( typeof executeWithFormBuilderDependencies !== 'undefined' ) {
+				executeWithFormBuilderDependencies( function( $ ){
+					$( '###args.id#' ).validate( #args.validationJs# );
+				} );
+			};
+		</cfsavecontent>
+		<cfset event.includeInlineJs( formJs ) />
+	</cfif>
 </cfoutput>

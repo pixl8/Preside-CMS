@@ -6,13 +6,13 @@ component {
 		return renderFormControl(
 			  argumentCollection = arguments
 			, name               = controlName
-			, type               = "checkboxlist"
+			, type               = "checkboxList"
 			, context            = "formbuilder"
 			, id                 = args.id ?: controlName
 			, layout             = ""
 			, required           = IsTrue( args.mandatory ?: "" )
-			, values 			 = replaceNoCase( args.values, chr( 10 ), ',', 'All' ) // chr ( 10 ) means newline
-			, labels			 = replaceNoCase( args.labels, chr( 10 ), ',', 'All' )		 ?: ""
+			, values             = ListToArray( args.values ?: "", Chr(10) & Chr(13) )
+			, labels             = ListToArray( args.labels ?: "", Chr(10) & Chr(13) )
 		);
 	}
 }

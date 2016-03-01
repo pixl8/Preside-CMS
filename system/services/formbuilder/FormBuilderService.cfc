@@ -15,6 +15,7 @@ component {
 	 * @formBuilderValidationService.inject formBuilderValidationService
 	 * @formsService.inject                 formsService
 	 * @validationEngine.inject             validationEngine
+	 * @recaptchaService.inject             recaptchaService
 	 * @spreadsheetLib.inject               spreadsheetLib
 	 *
 	 */
@@ -25,6 +26,7 @@ component {
 		, required any formBuilderValidationService
 		, required any formsService
 		, required any validationEngine
+		, required any recaptchaService
 		, required any spreadsheetLib
 	) {
 		_setItemTypesService( arguments.itemTypesService );
@@ -33,6 +35,7 @@ component {
 		_setFormBuilderValidationService( arguments.formBuilderValidationService );
 		_setFormsService( arguments.formsService );
 		_setValidationEngine( arguments.validationEngine );
+		_setRecaptchaService( arguments.recaptchaService );
 		_setSpreadsheetLib( arguments.spreadsheetLib );
 
 		return this;
@@ -409,6 +412,7 @@ component {
 		,          struct configuration    = {}
 		,          any    validationResult = ""
 	) {
+		var formConfiguration = getForm( id=arguments.formId );
 		var items             = getFormItems( id=arguments.formId );
 		var renderedItems     = CreateObject( "java", "java.lang.StringBuffer" );
 		var coreLayoutArgs    = Duplicate( arguments.configuration );
@@ -439,10 +443,15 @@ component {
 		coreLayoutArgs.renderedItems = renderedItems.toString();
 		coreLayoutArgs.id            = idPrefixForFields;
 		coreLayoutArgs.formItems     = items;
+		for( var f in formConfiguration ) {
+			coreLayoutArgs.configuration = f;
+		}
+
 		formLayoutArgs.renderedForm  = $renderViewlet(
 			  event = coreLayoutViewlet
 			, args  = coreLayoutArgs
 		);
+
 
 		return $renderViewlet(
 			  event = formLayoutViewlet
@@ -614,14 +623,22 @@ component {
 		,          string ipAddress   = Trim( ListLast( cgi.remote_addr ?: "" ) )
 		,          string userAgent   = ( cgi.http_user_agent ?: "" )
 	) {
-		var formItems        = getFormItems( arguments.formId );
-		var formData         = getRequestDataForForm( arguments.formId, arguments.requestData );
-		var validationResult = _getFormBuilderValidationService().validateFormSubmission(
+		var formConfiguration = getForm( arguments.formId );
+		var formItems         = getFormItems( arguments.formId );
+		var formData          = getRequestDataForForm( arguments.formId, arguments.requestData );
+		var validationResult  = _getFormBuilderValidationService().validateFormSubmission(
 			  formItems      = formItems
 			, submissionData = formData
 		);
 
+		if ( IsBoolean( formConfiguration.use_captcha ?: "" ) && formConfiguration.use_captcha ) {
+			if ( !_getRecaptchaService().validate( arguments.requestData[ "g-recaptcha-response" ] ?: "" ) ){
+				validationResult.addError( fieldName="recaptcha", message="formbuilder:recaptcha.error.message" );
+			}
+		}
+
 		if ( validationResult.validated() ) {
+			formItems = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
 			var submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
 				  form           = arguments.formId
 				, submitted_by   = $getWebsiteLoggedInUserId()
@@ -856,6 +873,33 @@ component {
 		return workbook;
 	}
 
+	public struct function renderResponsesForSaving( required string formId, required struct formData, required array formItems ) {
+		var rendererService = _getFormBuilderRenderingService();
+		var coldbox         = $getColdbox();
+
+		for( var i=1; i <= arguments.formItems.len(); i++ ) {
+			var formItem = formItems[i];
+			var itemName = formItem.configuration.name ?: "";
+
+			if ( formItem.type.isFormField && arguments.formData.keyExists( itemName ) ) {
+				var rendererViewlet = rendererService.getItemTypeViewlet(
+					  itemType = formItem.type.id
+					, context  = "responseToPersist"
+				);
+
+				if ( coldbox.viewletExists( rendererViewlet ) ) {
+					arguments.formData[ itemName ] = $renderViewlet( event=rendererViewlet, args={
+						  response      = arguments.formData[ itemName ]
+						, configuration = formItem.configuration
+						, formId        = arguments.formId
+					} );
+				}
+			}
+		}
+
+		return arguments.formData;
+	}
+
 // PRIVATE HELPERS
 	private void function _validateFieldNameIsUniqueForFormItem(
 		  required string formId
@@ -934,6 +978,13 @@ component {
 	}
 	private void function _setFormBuilderValidationService( required any formBuilderValidationService ) {
 		_formBuilderValidationService = arguments.formBuilderValidationService;
+	}
+
+	private any function _getRecaptchaService() {
+		return _recaptchaService;
+	}
+	private void function _setRecaptchaService( required any recaptchaService ) {
+		_recaptchaService = arguments.recaptchaService;
 	}
 
 	private any function _getSpreadsheetLib() {

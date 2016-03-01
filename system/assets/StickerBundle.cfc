@@ -11,6 +11,7 @@ component output=false {
 		bundle.addAsset( id="/js/admin/lib/ace/"          , path="/js/admin/lib/ace*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/bootstrap/"    , path="/js/admin/lib/bootstrap*.min.js" );
 		bundle.addAsset( id="/js/admin/lib/plugins/"      , path="/js/admin/lib/plugins*.min.js" );
+		bundle.addAsset( id="recaptcha-js"                , url="https://www.google.com/recaptcha/api.js" );
 
 		bundle.addAssets(
 			  directory   = "/js"

@@ -515,7 +515,6 @@ component output=false {
 			, email		   = { isFormField=true  }
 			, number 	   = { isFormField=true  }
 			, date 		   = { isFormField=true  }
-			, price		   = { isFormField=true  }
 			, fileUpload   = { isFormField=true  }
 			, starRating   = { isFormField=true  }
 			, checkbox	   = { isFormField=true  }
@@ -526,11 +525,6 @@ component output=false {
 			, checkboxList = { isFormField=true  }
 			, radio	       = { isFormField=true  }
 			, matrix       = { isFormField=true  }
-		} };
-
-		fbSettings.itemTypes.submission = { sortorder=30, types={
-			  submitButton = { isFormField=false }
-			, captcha      = { isFormField=false }
 		} };
 
 		fbSettings.itemTypes.content = { sortorder=40, types={

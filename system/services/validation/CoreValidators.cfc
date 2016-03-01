@@ -1,7 +1,7 @@
 component validationProvider=true {
 
-	public boolean function required( required string fieldName, string value="", struct data={} ) validatorMessage="cms:validation.required.default" {
-		return StructKeyExists( arguments.data, fieldName ) and Len( Trim( value ) );
+	public boolean function required( required string fieldName, any value="", struct data={} ) validatorMessage="cms:validation.required.default" {
+		return arguments.data.keyExists( fieldName ) && !IsEmpty( value );
 	}
 
 	public boolean function minlength( required string fieldName, string value="", required numeric length, boolean list=false ) validatorMessage="cms:validation.minLength.default" {
@@ -112,21 +112,90 @@ component validationProvider=true {
 		return IsValid( "uuid", arguments.value );
 	}
 
-	public boolean function currency( required string fieldName, string value="" ) validatorMessage="cms:validation.currency.default" {
+	public boolean function money( required string fieldName, string value="" ) validatorMessage="cms:validation.money.default" {
 		return !arrayIsEmpty(REMatchNoCase("^(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?|\(\$?(0|[1-9]\d{0,2}(,?\d{3})?)(\.\d\d?)?\))$", arguments.value ));
 	}
-	public string function currency_js() {
+	public string function money_js() {
 		return "function( value, el, param ) {var regex = new RegExp('^[]?([1-9]{1}[0-9]{0,2}(\\,[0-9]{3})*(\\.[0-9]{0,2})?|[1-9]{1}[0-9]{0,}(\\.[0-9]{0,2})?|0(\\.[0-9]{0,2})?|(\\.[0-9]{1,2})?)$');return regex.test(value);}";
 	}
 
-	public boolean function fileSize( required string fieldName, string value="", required string field ) validatorMessage="cms:validation.fileUpload.default" {
-		var file = '/uploads/formbuilder#arguments.value#';
-		var fileSize = GetFileInfo( file ).size / 1024;
-		var fileSizeInMB = round( ( fileSize / 1024 ) * 100 ) / 100 ;
-		fileSizeInMB GT arguments.field                ? FileDelete(file) : "";
-		return fileSizeInMB LTE arguments.field;
+	public boolean function fileSize( required string fieldName, any value={}, required string maxSize ) validatorMessage="cms:validation.fileUpload.default" {
+		if ( !IsStruct( arguments.value ) || !arguments.value.keyExists( "size" ) || !IsNumeric( arguments.value.size ) ) {
+			return true;
+		}
+
+		var fileSize     = arguments.value.size / 1024;
+		var fileSizeInMB = Round( ( fileSize / 1024 ) * 100 ) / 100 ;
+
+		return fileSizeInMB <= arguments.maxSize;
 	}
 	public string function fileSize_js() {
 		return "function( value, el, params ) {if(el.files[0] != undefined) var fileSize = el.files[0].size / 1024;var fileSizeInMB = Math.round( (fileSize / 1024) * 100) / 100 ; return !value.length || (fileSizeInMB <= params[0]);}";
+	}
+
+	public boolean function minimumDate( required string value, required date minimumDate ) validatorMessage="cms:validation.minimumDate.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( arguments.value >= arguments.minimumDate );
+	}
+	public string function minimumDate_js() {
+		return true;
+	}
+
+	public boolean function maximumDate( required string value, required date maximumDate ) validatorMessage="cms:validation.maximumDate.default" {
+		if ( !IsDate( arguments.value ) ) {
+			return true;
+		}
+
+		return ( arguments.value <= arguments.maximumDate );
+	}
+	public string function maximumDate_js() {
+		return true;
+	}
+
+	public boolean function laterThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value > arguments.data[ arguments.field ] );
+	}
+	public string function laterThanField_js() {
+		return true;
+	}
+
+	public boolean function laterThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanOrSameAsField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value >= arguments.data[ arguments.field ] );
+	}
+	public string function laterThanOrSameAsField_js() {
+		return true;
+	}
+
+	public boolean function earlierThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value < arguments.data[ arguments.field ] );
+	}
+	public string function earlierThanField_js() {
+		return true;
+	}
+
+	public boolean function earlierThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanOrSameAsField.default" {
+		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+			return true;
+		}
+
+		return ( arguments.value <= arguments.data[ arguments.field ] );
+	}
+	public string function earlierThanOrSameAsField_js() {
+		return true;
 	}
 }
