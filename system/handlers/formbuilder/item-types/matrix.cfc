@@ -1,52 +1,58 @@
 component {
 
 	private string function renderInput( event, rc, prc, args={} ) {
-		var controlName = args.name ?: "";
+		var rows             = ListToArray( args.rows    ?: "", Chr( 10 ) & Chr( 13 ) );
+		var columns          = ListToArray( args.columns ?: "", Chr( 10 ) & Chr( 13 ) );
+		var questionInputIds = [];
+		var inputName        = args.name ?: "";
+
+		for( var question in rows ) {
+			questionInputIds.append( _getQuestionInputId( inputName, question ) );
+		}
 
 		return renderFormControl(
-			  argumentCollection = arguments
-			, name               = controlName
+			  argumentCollection = args
 			, type               = "matrix"
 			, context            = "formbuilder"
-			, id                 = args.id ?: controlName
+			, id                 = args.id ?: ( args.name ?: "" )
 			, layout             = ""
-			, required           = IsTrue( args.mandatory ?: "" )
-			, rows               = replaceNoCase( args.rows, chr( 10 ), ',', 'All' )	?: "" // chr ( 10 ) means newline
-			, columns            = replaceNoCase( args.columns, chr( 10 ), ',', 'All' )	?: ""
-			, options            = args.option ?: ""
+			, required           = IsTrue( args.mandatory    ?: "" )
+			, rows               = rows
+			, columns            = columns
+			, questionInputIds   = questionInputIds
 		);
 	}
 
 	private array function getValidationRules( event, rc, prc, args={} ) {
-		var rules = [];
-		if ( IsBoolean( args.mandatory ?: "" ) && args.mandatory ) {
-	        var rows  = ListToArray( args.rows ?: "", Chr(10) & Chr(13) );
-	        for( var i=1; i <= rows.len(); i++ ) {
-	       		rules.append({ fieldname=rows[i], validator="required" });
-	       	}
+		var rules     = [];
+		var inputName = args.name ?: "";
 
-	    }
-	    return rules;
+		if ( IsBoolean( args.mandatory ?: "" ) && args.mandatory ) {
+			var rows = ListToArray( Trim( args.rows ?: "" ), Chr(10) & Chr(13) );
+
+			for( var question in rows ) {
+				if ( Len( Trim( question ) ) ) {
+					rules.append( {
+						  fieldname = _getQuestionInputId( inputName, question )
+						, validator = "required"
+					} );
+				}
+			}
+		}
+
+		return rules;
 	}
 
-	private any function getItemDataFromRequest( event, rc, prc, args={} ) {
-		var inputName   = args.inputName ?: "";
+	private string function getItemDataFromRequest( event, rc, prc, args={} ) {
+		var inputName   = args.inputName         ?: "";
 		var itemConfig  = args.itemConfiguration ?: {};
+		var formFields  = getFormFields( event, rc, prc, itemConfig );
 		var rows        = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
 		var isMandatory = IsTrue( itemConfig.mandatory ?: "" );
 		var data        = {};
 
-		for( var i=1; i <= rows.len(); i++ ) {
-			if ( Len( Trim( rows[ i ] ) ) ) {
-				var expectedInputName = rows[i];
-				var value             = rc[ expectedInputName ] ?: "";
-
-				if ( isMandatory && !Len( Trim( value ) ) ) {
-					return "";
-				}
-
-				data[ rows[ i ] ] = value;
-			}
+		for( var field in formFields ) {
+			data[ field ] = rc[ field ] ?: "";
 		}
 
 		return SerializeJson( data );
@@ -83,23 +89,40 @@ component {
 		return columns;
 	}
 
+	private array function getFormFields( event, rc, prc, args={} ) {
+		var inputName = args.name ?: "";
+		var rows      = ListToArray( Trim( args.rows ?: "" ), Chr(10) & Chr(13) );
+		var fields    = [];
+
+		for( var question in rows ) {
+			if ( Len( Trim( question ) ) ) {
+				fields.append( _getQuestionInputId( inputName, question ) );
+			}
+		}
+
+		return fields;
+	}
+
 // private helpers
 	private array function _getQuestionsAndAnswers( event, rc, prc, args={} ) {
 		var response   = IsJson( args.response ?: "" ) ? DeserializeJson( args.response ) : {};
 		var itemConfig = args.itemConfiguration ?: {};
-		var rows       = ListToArray( itemConfig.rows ?: "", Chr(10) & Chr(13) );
+		var rows       = ListToArray( Trim( itemConfig.rows ?: "" ), Chr(10) & Chr(13) );
 		var answers    = [];
 
-		for( var i=1; i <= rows.len(); i++ ) {
-
-			if ( Len( Trim( rows[ i ] ) ) ) {
+		for( var question in rows ) {
+			if ( Len( Trim( question ) ) ) {
 				answers.append( {
-					  question = rows[i]
-					, answer   = ListChangeDelims( ( response[ rows[i] ] ?: "" ), ", " )
+					  question = question
+					, answer   = ListChangeDelims( ( response[ question ] ?: "" ), ", " )
 				} );
 			}
 		}
 
 		return answers;
+	}
+
+	private string function _getQuestionInputId( required string inputName, required string question ) {
+		return LCase( inputName & "-" & ReReplace( question, "\W", "-", "all" ) );
 	}
 }
