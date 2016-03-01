@@ -1,7 +1,7 @@
 component displayname="ImageMagick"  {
 
 	public any function init(
-		 required string  path
+		          string  path    = ""
 		, 		  numeric timeout = 30
 	) {
 		_setExecutablePath( arguments.path );
@@ -77,10 +77,9 @@ component displayname="ImageMagick"  {
 		, required numeric height
 		,          string  quality             = "highPerformance"
 	) output=false {
-
 		var image            = "";
 		var currentImageInfo = {};
-		arguments.fileName   = !(listlast(arguments.fileName,'.') == 'pdf') ? : replaceNoCase(arguments.fileName, ".pdf", ".jpg");
+		arguments.fileName   = !(listlast(arguments.fileName,'.') == 'pdf') ? arguments.fileName: replaceNoCase(arguments.fileName, ".pdf", ".jpg");
 		var tmpFilePath      = GetTempDirectory() & "/" & arguments.filename;
 
 		try {
@@ -139,6 +138,10 @@ component displayname="ImageMagick"  {
 		required string args
 	) {
 	    var result = "";
+
+	    // writeDump(_getExecutablePath());
+	    // writeDump(arguments.args);
+	    // writeDump(_getTimeout());abort
 		 cfexecute(
 				   name      = "#_getExecutablePath()#"
 				  ,arguments = "#arguments.args#"

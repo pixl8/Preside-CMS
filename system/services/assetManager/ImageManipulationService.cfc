@@ -3,23 +3,25 @@
  *
  * @singleton
  * @autodoc
- * @presideService true
+ * @presideservice
  *
  */
 component displayname="Image Manipulation Service" {
 
 	// CONSTRUCTOR
-	public any function init() {
-		ImageWrappers = $getPresideCategorySettings( "asset-manager" );
-
-		if ( structKeyExists( ImageWrappers , "isImageMagick" ) && val( ImageWrappers.isImageMagick ) ) {
-			ImageWrappers = new ImageMagickWrapper( ImageWrappers.pathToImageMagick , ImageWrappers.timeout );
-		} else {
-			ImageWrappers = new NativeImageWrapper();
-		}
-
-		return this;
-	}
+	/**
+     * @nativeImageImplementation.inject nativeImageService
+     * @imageMagickImplementation.inject imageMagickService
+     *
+     */
+    public any function init(
+          required any nativeImageImplementation
+        , required any imageMagickImplementation
+    ) {
+        _setNativeImageImplementation( arguments.nativeImageImplementation );
+        _setImageMagickImplementation( arguments.imageMagickImplementation );
+        return this;
+    }
 
 	public string function resize(
 		  required binary  asset
@@ -29,7 +31,7 @@ component displayname="Image Manipulation Service" {
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
 	) {
-       	return ImageWrappers.resize(argumentCollection = arguments);
+       	return _getImplementation().resize(argumentCollection = arguments);
 	}
 
 	public binary function shrinkToFit(
@@ -39,7 +41,7 @@ component displayname="Image Manipulation Service" {
 		, required numeric height
 		,          string  quality       = "highPerformance"
 	) {
-		return ImageWrappers.shrinkToFit(argumentCollection = arguments);
+		return _getImplementation().shrinkToFit(argumentCollection = arguments);
 	}
 
 	public binary function pdfPreview(
@@ -51,7 +53,7 @@ component displayname="Image Manipulation Service" {
 		,          string pages
 		,          string transparent
 	) {
-		return ImageWrappers.pdfPreview(argumentCollection = arguments);
+		return _getImplementation().pdfPreview(argumentCollection = arguments);
 	}
 
 	public struct function getImageInformation( required binary asset ) {
@@ -63,4 +65,33 @@ component displayname="Image Manipulation Service" {
 
 		return {};
 	}
+
+	private function _getImplementation() {
+	    var useImageMagick = $getPresideSetting( "asset-manager", "isImageMagick" );
+
+	    if ( IsBoolean( useImageMagick ) && useImageMagick ) {
+
+	        return _getImageMagickImplementation();
+	    }
+	    return _getNativeImageImplementation();
+	}
+
+	private any function _setNativeImageImplementation(required any nativeImageImplementation) {
+		_nativeImageImplementation = arguments.nativeImageImplementation;
+	}
+
+	private any function _setImageMagickImplementation(required any imageMagickImplementation) {
+		var path = $getPresideSetting( "asset-manager", "pathToImageMagick" );
+	    var timeout = $getPresideSetting( "asset-manager", "timeout" );
+		_imageMagickImplementation = arguments.imageMagickImplementation.init(path, timeout);
+	}
+
+	private any function _getNativeImageImplementation() {
+		return _nativeImageImplementation;
+	}
+
+	private any function _getImageMagickImplementation() {
+		return _imageMagickImplementation;
+	}
+
 }
