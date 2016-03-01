@@ -637,6 +637,15 @@ component {
 			}
 		}
 
+		$announceInterception( "preFormBuilderFormSubmission", {
+			  formData          = formData
+			, requestData       = arguments.requestData
+			, validationResult  = validationResult
+			, formId            = arguments.formId
+			, formConfiguration = formConfiguration
+			, formItems         = formItems
+		} );
+
 		if ( validationResult.validated() ) {
 			formItems = renderResponsesForSaving( formId=arguments.formId, formData=formData, formItems=formItems );
 			var submissionId = $getPresideObject( "formbuilder_formsubmission" ).insertData( data={
@@ -654,6 +663,16 @@ component {
 				  formId         = arguments.formId
 				, submissionData = submission
 			);
+
+			$announceInterception( "postFormBuilderFormSubmission", {
+				  formData          = formData
+				, requestData       = arguments.requestData
+				, formId            = arguments.formId
+				, formConfiguration = formConfiguration
+				, formItems         = formItems
+				, submissionId      = submissionId
+				, submission        = submission
+			} );
 		}
 
 		return validationResult;
