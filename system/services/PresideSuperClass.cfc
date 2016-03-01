@@ -558,4 +558,18 @@ component displayName="Preside Super Class" {
 	public any function $renderViewlet() {
 		return $getColdbox().renderViewlet( argumentCollection=arguments );
 	}
+
+	/**
+	 * Proxy to Coldbox's InterceptorService.processState() method.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * $announceInterception( "onFormBuilderFormSubmission", formSubmissionData );
+	 * ```
+	 *
+	 */
+	public any function $announceInterception() {
+		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )
+	}
 }
