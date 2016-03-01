@@ -263,7 +263,7 @@ component output="false" singleton=true {
 				}
 				result.multiSelect   = _getPresideObjectService().syncManyToManyData( 
 					sourceObject     = objectName
-					, sourceProperty = dataColumn
+					, sourceProperty = updateField
 					, sourceId       = sourceId
 					, targetIdList   = data[ sourceId ] 
 				);
