@@ -3,9 +3,15 @@
 	ids                       = rc.id                         ?: "";
 	fieldFormControl          = prc.fieldFormControl          ?: "";
 	multiEditBehaviourControl = prc.multiEditBehaviourControl ?: "";
+	batchEditWarning          = prc.batchEditWarning          ?: "";
 	cancelAction              = event.buildAdminLink( linkTo="datamanager.object", querystring='id=#object#' );
 </cfscript>
 <cfoutput>
+	<p class="alert alert-warning">
+		<i class="fa fa-fw fa-exclamation-triangle"></i>
+		#batchEditWarning#
+	</p>
+
 	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#event.buildAdminLink( linkTo='datamanager.batchEditAction')#">
 		<input type="hidden" name="sourceIds"   value="#ids#">
 		<input type="hidden" name="updateField" value="#rc.field#">
