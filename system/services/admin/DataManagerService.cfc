@@ -248,10 +248,8 @@ component output="false" singleton=true {
 	) output=false {
 		var pobjService  = _getPresideObjectService();
 		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
-		var success      = true;
 
 		if ( isMultiValue ) {
-
 			transaction {
 				for( var sourceId in sourceIds ) {
 					var existingIds  = [];
@@ -285,29 +283,23 @@ component output="false" singleton=true {
 					targetIdList = targetIdList.toList();
 					targetIdList = ListRemoveDuplicates( targetIdList );
 
-					success = pobjService.syncManyToManyData(
+					pobjService.syncManyToManyData(
 						  sourceObject   = objectName
 						, sourceProperty = updateField
 						, sourceId       = sourceId
 						, targetIdList   = targetIdList
 					);
-
-					if ( !success ) {
-						transaction action="rollback";
-
-						return false;
-					}
 				}
 			}
-
-			return true;
 		} else {
-			return pobjService.updateData(
+			pobjService.updateData(
 				  objectName = objectName
 				, data       = { "#arguments.fieldName#" = value }
 				, filter     = { id=arguments.sourceIds }
-			) > 0;
+			);
 		}
+
+		return true;
 	}
 
 

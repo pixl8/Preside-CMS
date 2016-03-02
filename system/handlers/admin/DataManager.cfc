@@ -432,10 +432,10 @@
 			);
 
 			if( success ) {
-				messageBox.info( translateResource( uri="cms:datamanager.recordUpdated.confirmation", data=[ objectName ] ) );
+				messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 			} else {
-				messageBox.error( translateResource( uri="cms:datamanager.recordUpdated.error", data=[ objectName ] ) );
+				messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 			}
 		</cfscript>
