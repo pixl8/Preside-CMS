@@ -7,7 +7,7 @@ component displayname="Form builder: form" extends="preside.system.base.SystemPr
 	property name="name"                   type="string"  dbtype="varchar" maxlength=255 required=true uniqueindexes="formname";
 	property name="button_label"           type="string"  dbtype="varchar" maxlength=255 required=true;
 	property name="form_submitted_message" type="string"  dbtype="text"                  required=true;
-	property name="use_captcha"            type="boolean" dbtype="boolean"               required=false default=false;
+	property name="use_captcha"            type="boolean" dbtype="boolean"               required=false default=true;
 	property name="description"            type="string"  dbtype="text"                  required=false;
 	property name="locked"                 type="boolean" dbtype="boolean"               required=false default=false;
 	property name="active"                 type="boolean" dbtype="boolean"               required=false default=false;
