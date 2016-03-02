@@ -238,52 +238,76 @@ component output="false" singleton=true {
 
 		return result;
 	}
-	public struct function batchSaveFieldChanges(
-		  required string  objectName
-		, required string  sourceIds
-		, required string  updateValue
-		, required string  updateField
-		, required string  dataColumn
-		, required string  attributeRelationship
-		,          string  overwrite              = "append"
+
+	public boolean function batchEditField(
+		  required string objectName
+		, required string fieldName
+		, required array  sourceIds
+		, required string value
+		,          string multiEditBehaviour = "append"
 	) output=false {
-		var formData = {};
-		var result   = {};
-		for(var sourceId in sourceIds ) {
-			if( attributeRelationship == "many-to-many" ) {
-				var multiSelectedValue = updateValue;
-				if( overwrite != "overwrite") {
-					var previousData = _getPresideObjectService().getDeNormalizedManyToManyData( 
-						objectName   = objectName, 
-						id           = sourceId 
+		var pobjService  = _getPresideObjectService();
+		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
+		var success      = true;
+
+		if ( isMultiValue ) {
+
+			transaction {
+				for( var sourceId in sourceIds ) {
+					var existingIds  = [];
+					var targetIdList = [];
+					var newChoices   = ListToArray( arguments.value );
+
+					if ( arguments.multiEditBehaviour != "overwrite" ) {
+						var previousData = pobjService.getDeNormalizedManyToManyData(
+							  objectName   = objectName
+							, id           = sourceId
+							, selectFields = [ arguments.fieldName ]
+						);
+						existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
+					}
+
+					switch( arguments.multiEditBehaviour ) {
+						case "overwrite":
+							targetIdList = newChoices;
+							break;
+						case "delete":
+							targetIdList = existingIds;
+							for( var id in newChoices ) {
+								targetIdList.delete( id )
+							}
+							break;
+						default:
+							targetIdList = existingIds;
+							targetIdList.append( newChoices, true );
+					}
+
+					targetIdList = targetIdList.toList();
+					targetIdList = ListRemoveDuplicates( targetIdList );
+
+					success = pobjService.syncManyToManyData(
+						  sourceObject   = objectName
+						, sourceProperty = updateField
+						, sourceId       = sourceId
+						, targetIdList   = targetIdList
 					);
-					data[ sourceId ] = ListRemoveDuplicates( listAppend( multiSelectedValue, previousData[ dataColumn ] ) );
-				}else{
-					data[ sourceId ] =  multiSelectedValue;
+
+					if ( !success ) {
+						transaction action="rollback";
+
+						return false;
+					}
 				}
-				result.multiSelect   = _getPresideObjectService().syncManyToManyData( 
-					sourceObject     = objectName
-					, sourceProperty = updateField
-					, sourceId       = sourceId
-					, targetIdList   = data[ sourceId ] 
-				);
-			}else {
-				if ( attributeRelationship  == "many-to-one" ) {
-					var singleSelectedValue  = updateValue;			
-					formData[ dataColumn ]   = singleSelectedValue;
-				} else {
-					singleSelectedValue      = updateValue;
-					formData[ updateField ]  = singleSelectedValue;
-				}
-				
-				result.singleSelect = _getPresideObjectService().updateData( 
-					objectName   = objectName 
-					, data       = formData 
-					, id         = sourceId  
-				);
 			}
+
+			return true;
+		} else {
+			return pobjService.updateData(
+				  objectName = objectName
+				, data       = { "#arguments.fieldName#" = value }
+				, filter     = { id=arguments.sourceIds }
+			) > 0;
 		}
-		return result;
 	}
 
 
