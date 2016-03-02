@@ -87,13 +87,32 @@ component output="false" singleton=true {
 	}
 
 	public array function listBatchEditableFields( required string objectName ) output=false {
-		var objectAttributes = _getPresideObjectService().getObjectProperties( objectName );
-		var fields           = [];
-		for( property in objectAttributes ) {
-			if( IsBoolean( objectAttributes[ property ].batcheditable ?: "" ) && objectAttributes[ property ].batcheditable == true && objectAttributes[ property ].relationship != "one-to-many" && !Len( Trim( objectAttributes[ property ].uniqueindexes ?: "" ) ) ){
-       		 		arrayAppend( fields, property );
+		var fields               = [];
+		var objectAttributes     = _getPresideObjectService().getObjectProperties( objectName );
+		var forbiddenFields      = [ "id", "datecreated", "datemodified", _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" ) ];
+		var isFieldBatchEditable = function( propertyName, attributes ) {
+			if ( forbiddenFields.findNoCase( propertyName ) ) {
+				return false
+			}
+			if ( attributes.relationship == "one-to-many" ) {
+				return false;
+			}
+			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
+				return false;
+			}
+			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		for( var property in objectAttributes ) {
+			if ( isFieldBatchEditable( property, objectAttributes[ property ] ) ) {
+       		 	ArrayAppend( fields, property );
 			}
 		}
+
 		return fields;
 	}
 
