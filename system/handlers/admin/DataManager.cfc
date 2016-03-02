@@ -45,8 +45,7 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName = event.getValue( name="id", default="" );
-
+			var objectName   = event.getValue( name="id", default="" );
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -58,7 +57,8 @@
 			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
-			prc.gridFields = _getObjectFieldsForGrid( objectName );
+			prc.gridFields          = _getObjectFieldsForGrid( objectName );
+			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
 		</cfscript>
 	</cffunction>
 
@@ -345,6 +345,102 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="batchEditField" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var object      = rc.object;
+			var field       = rc.field ?: "";
+			var formControl = {};
+			var ids         = rc.id ?: "";
+			var recordCount = ListLen( Trim( ids ) );
+			var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+			var fieldName   = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
+
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="edit", object=object );
+			if ( !recordCount ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			prc.fieldFormControl = formsService.renderFormControlForObjectField(
+			      objectName = object
+			    , fieldName  = field
+			);
+
+			if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+				prc.multiEditBehaviourControl = renderFormControl(
+					  type   = "select"
+					, name   = "multiValueBehaviour"
+					, label  = translateResource( uri="cms:datamanager.multiValueBehaviour.title" )
+					, values = [ "append", "overwrite", "delete" ]
+					, labels = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ), translateResource( uri="cms:datamanager.multiDataOverwrite.title" ), translateResource( uri="cms:datamanager.multiDataDeleteSelected.title" ) ]
+				);
+
+				prc.batchEditWarning = translateResource(
+					  uri  = "cms:datamanager.batch.edit.warning.multi.value"
+					, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				);
+			} else {
+				prc.batchEditWarning = translateResource(
+					  uri  = "cms:datamanager.batch.edit.warning"
+					, data = [ "<strong>#objectName#</strong>", "<strong>#fieldName#</strong>", "<strong>#NumberFormat( recordCount )#</strong>" ]
+				);
+			}
+
+			prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, NumberFormat( recordCount ) ] );
+			prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldName ] );
+			prc.pageIcon     = "pencil";
+
+			_addObjectNameBreadCrumb( event, object );
+
+			event.addAdminBreadCrumb(
+				  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldName ] )
+				, link  = ""
+			);
+
+			event.setView( view="/admin/datamanager/batchEditField" );
+		</cfscript>
+	</cffunction>
+
+	<cffunction name="batchEditAction" access="public" returntype="void" output="false">
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
+
+		<cfscript>
+			var updateField = rc.updateField ?: "";
+			var objectName  = rc.objectName  ?: "";
+			var sourceIds   = ListToArray( Trim( rc.sourceIds ?: "" ) );
+
+			_checkObjectExists( argumentCollection=arguments, object=objectName );
+			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
+			if ( !sourceIds.len() ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			var success = datamanagerService.batchEditField(
+				  objectName         = objectName
+				, fieldName          = updateField
+				, sourceIds          = sourceIds
+				, value              = rc[ updateField ]      ?: ""
+				, multiEditBehaviour = rc.multiValueBehaviour ?: "append"
+			);
+
+			if( success ) {
+				messageBox.info( translateResource( uri="cms:datamanager.batchedit.confirmation", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			} else {
+				messageBox.error( translateResource( uri="cms:datamanager.batchedit.error", data=[ objectName ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			}
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="deleteRecordAction" access="public" returntype="void" output="false">
 		<cfargument name="event"             type="any"     required="true" />
 		<cfargument name="rc"                type="struct"  required="true" />
@@ -445,7 +541,6 @@
 
 		<cfscript>
 			var objectName = rc.object ?: "";
-
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
@@ -763,6 +858,12 @@
 			}
 
 			switch( action ){
+				case "batchUpdate":
+					setNextEvent(
+						  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#object#&field=#( rc.field ?: '' )#" )
+						, persistStruct = { id = ids }
+					);
+				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
 				break;
