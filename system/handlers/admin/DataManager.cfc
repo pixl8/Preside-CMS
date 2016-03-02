@@ -351,17 +351,27 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName      = rc.object;
-			var field           = rc.field ?: "";
-			var formControl     = {};
+			var object      = rc.object;
+			var field       = rc.field ?: "";
+			var formControl = {};
+			var ids         = rc.id ?: "";
+			var objectName  = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
+			var fieldTitle  = translateResource( uri="preside-objects.#object#:field.#field#.title", defaultValue=field );
 
-			prc.renderObject = formsService.renderFormControlForObjectField(
-			      objectName = objectName
+			_checkObjectExists( argumentCollection=arguments, object=object );
+			_checkPermission( argumentCollection=arguments, key="edit", object=object );
+			if ( !Len( Trim( ids ) ) ) {
+				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
+			}
+
+			prc.fieldFormControl = formsService.renderFormControlForObjectField(
+			      objectName = object
 			    , fieldName  = field
 			);
 
-			if ( presideObjectService.isManyToManyProperty( objectName, field ) ) {
-				prc.renderSwitch = renderFormControl(
+			if ( presideObjectService.isManyToManyProperty( object, field ) ) {
+				prc.multiEditBehaviourControl = renderFormControl(
 					  type   = "select"
 					, name   = "overwrite"
 					, label  = "Multi Edit Behaviour"
@@ -369,12 +379,19 @@
 					,labels  = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) ]
 				);
 			}
-			_addObjectNameBreadCrumb( event, objectName );
+
+			prc.pageTitle    = translateResource( uri="cms:datamanager.batchEdit.page.title"   , data=[ objectName, ListLen( rc.id ?: "" ) ] );
+			prc.pageSubtitle = translateResource( uri="cms:datamanager.batchEdit.page.subtitle", data=[ fieldTitle ] );
+			prc.pageIcon     = "pencil";
+
+			_addObjectNameBreadCrumb( event, object );
+
 			event.addAdminBreadCrumb(
-				  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, field] )
+				  title = translateResource( uri="cms:datamanager.batchedit.breadcrumb.title", data=[ objectName, fieldTitle ] )
 				, link  = ""
 			);
-			event.setView( view="/admin/datamanager/batchEditField");
+
+			event.setView( view="/admin/datamanager/batchEditField" );
 		</cfscript>
 	</cffunction>
 

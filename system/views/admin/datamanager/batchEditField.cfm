@@ -1,32 +1,29 @@
 <cfscript>
-
-	param name="args.cancelAction"  type="string"  default=event.buildAdminLink( linkTo="datamanager.object", querystring='id=#rc.object#' );
-	object              = rc.object        ?: "";
-	renderObject        = prc.renderObject ?: "";
-	renderSwitch        = prc.renderSwitch ?: "";
-	recordLabel         = rc.field     ?: "";
-	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
-	editRecordTitle     = translateResource( uri="cms:datamanager.bulkEdit.title", data=[ LCase( objectTitleSingular ),recordLabel,ListLen(rc.id) ] );
-	saveButton          = translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] );
-	prc.pageIcon        = "pencil";
-	prc.pageTitle       = editRecordTitle;
+	object                    = rc.object                     ?: "";
+	ids                       = rc.id                         ?: "";
+	fieldFormControl          = prc.fieldFormControl          ?: "";
+	multiEditBehaviourControl = prc.multiEditBehaviourControl ?: "";
+	cancelAction              = event.buildAdminLink( linkTo="datamanager.object", querystring='id=#object#' );
 </cfscript>
 <cfoutput>
 	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#event.buildAdminLink( linkTo='datamanager.batchEditAction')#">
-		<input type="hidden" name="sourceIds"   value="#rc.id#">
+		<input type="hidden" name="sourceIds"   value="#ids#">
 		<input type="hidden" name="updateField" value="#rc.field#">
 		<input type="hidden" name="objectName"  value="#rc.object#">
-		#renderObject#
-		#renderSwitch#
+
+		#multiEditBehaviourControl#
+		#fieldFormControl#
+
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
-				<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
+				<a href="#cancelAction#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:datamanager.cancel.btn" )#
 				</a>
+
 				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
 					<i class="fa fa-check bigger-110"></i>
-					#saveButton#
+					#translateResource( "cms:save.btn" )#
 				</button>
 			</div>
 		</div>
