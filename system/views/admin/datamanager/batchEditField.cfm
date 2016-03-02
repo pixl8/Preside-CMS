@@ -4,7 +4,7 @@
 	object              = rc.object        ?: "";
 	renderObject        = prc.renderObject ?: "";
 	renderSwitch        = prc.renderSwitch ?: "";
-	recordLabel         = rc.pickField     ?: "";
+	recordLabel         = rc.field     ?: "";
 	objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object ?: "" );
 	editRecordTitle     = translateResource( uri="cms:datamanager.bulkEdit.title", data=[ LCase( objectTitleSingular ),recordLabel,ListLen(rc.id) ] );
 	saveButton          = translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] );
@@ -14,7 +14,7 @@
 <cfoutput>
 	<form class="form-horizontal" method="post" data-dirty-form="protect" action="#event.buildAdminLink( linkTo='datamanager.batchEditAction')#">
 		<input type="hidden" name="sourceIds"   value="#rc.id#">
-		<input type="hidden" name="updateField" value="#rc.pickField#">
+		<input type="hidden" name="updateField" value="#rc.field#">
 		<input type="hidden" name="objectName"  value="#rc.object#">
 		#renderObject#
 		#renderSwitch#

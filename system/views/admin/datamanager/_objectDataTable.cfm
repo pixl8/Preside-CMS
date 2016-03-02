@@ -9,7 +9,7 @@
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
-	selectFieldOption    = translateResource( uri="cms:datamanager.selectFieldOption.title" );
+	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 	event.includeData( {
@@ -18,7 +18,7 @@
 		, useMultiActions = args.useMultiActions
 		, allowSearch     = args.allowSearch
 	} );
-</cfscript>		
+</cfscript>
 <cfoutput>
 	<div class="table-responsive">
 		<cfif args.useMultiActions>
@@ -47,32 +47,33 @@
 		</table>
 		<cfif args.useMultiActions>
 				<div class="form-actions" id="multi-action-buttons">
-					<div class="col-md-4">
-						<div class="form-group"> 
-							<label class="col-md-3 control-label no-padding-right" for="pickField">
-								 Pick field 
-							</label> 
-							<div class="col-md-8"> 
-								<div class="clearfix"> 
-									<select class=" object-picker " name="pickField" id="pickField" tabindex="2" data-placeholder="" data-sortable="false" data-value="" >
-										<cfloop index="getEditableFields" array="#args.batchEditableFields#">
-											<option value="#getEditableFields#">#getEditableFields#</option>
-										</cfloop>
-									</select>
-								 </div>
-							</div> 
-						</div> 
-					</div>
-					<button class="btn btn-info" type="submit" name="update" disabled="disabled">
-						<i class="fa fa-check bigger-110"></i>
-						#selectFieldOption#
-					</button>
+					<cfif args.batchEditableFields.len()>
+						<div class="btn-group batch-update-menu">
+							<button data-toggle="dropdown" class="btn btn-info">
+								<span class="fa fa-caret-down"></span>
+								<i class="fa fa-check bigger-110"></i>
+								#batchEditTitle#
+							</button>
+
+							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+								<li><h5 class="instructions">#translateResource( uri="cms:datamanager.batchedit.choose.field")#</h5></li>
+								<cfloop array="#args.batchEditableFields#" index="i" item="field">
+									<li data-field="#HtmlEditFormat( field )#" class="field">
+										<a href="##">
+											<i class="fa fa-fw fa-pencil"></i>&nbsp;
+											#translateResource( uri="preside-objects.#args.objectName#:field.#field#.title", defaultValue=field )#
+										</a>
+									</li>
+								</cfloop>
+							</ul>
+						</div>
+					</cfif>
 					<cfif hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ args.objectName ] )>
 						<button class="btn btn-danger confirmation-prompt" type="submit" name="delete" disabled="disabled" data-global-key="d" title="#deleteSelectedPrompt#">
 							<i class="fa fa-trash-o bigger-110"></i>
 							#deleteSelected#
 						</button>
-					</cfif>		
+					</cfif>
 				</div>
 			</form>
 		</cfif>

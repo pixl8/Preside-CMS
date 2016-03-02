@@ -344,28 +344,29 @@
 			);
 		</cfscript>
 	</cffunction>
+
 	<cffunction name="batchEditField" access="public" returntype="void" output="false">
-		<cfargument name="event"             type="any"     required="true" />
-		<cfargument name="rc"                type="struct"  required="true" />
-		<cfargument name="prc"               type="struct"  required="true" />
+		<cfargument name="event" type="any"    required="true" />
+		<cfargument name="rc"    type="struct" required="true" />
+		<cfargument name="prc"   type="struct" required="true" />
 		<cfscript>
 			var objectName            = rc.object;
-			var field                 = rc.pickField ?: "";
+			var field                 = rc.field ?: "";
 			var fieldAttributes       = presideObjectService.getObjectProperty( objectName, field);
 			var fieldType             = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
 			var formControl           = {};
-			prc.renderObject = formsService.renderFormControlForObjectField( 
+			prc.renderObject = formsService.renderFormControlForObjectField(
 			      objectName = objectName
 			    , property   = fieldAttributes
 			    , type       = fieldType
 			);
 			if(fieldType == "manyToManySelect") {
-				prc.renderSwitch      = renderFormControl( 
+				prc.renderSwitch      = renderFormControl(
 					  type   = "select"
 					, name   = "overwrite"
 					, label  = "Multi Edit Behaviour"
 					, values = [ "append", "overwrite" ]
-					,labels  = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) ] 
+					,labels  = [ translateResource( uri="cms:datamanager.multiDataAppend.title" ),	translateResource( uri="cms:datamanager.multiDataOverwrite.title" ) ]
 				);
 			}
 			_addObjectNameBreadCrumb( event, objectName );
@@ -834,8 +835,11 @@
 			}
 
 			switch( action ){
-				case "update":
-					return batchEditField( argumentCollection = arguments );
+				case "batchUpdate":
+					setNextEvent(
+						  url           = event.buildAdminLink( linkTo="datamanager.batchEditField", queryString="object=#object#&field=#( rc.field ?: '' )#" )
+						, persistStruct = { id = ids }
+					);
 				break;
 				case "delete":
 					return deleteRecordAction( argumentCollection = arguments );
