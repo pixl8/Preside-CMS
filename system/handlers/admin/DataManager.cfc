@@ -349,19 +349,19 @@
 		<cfargument name="event" type="any"    required="true" />
 		<cfargument name="rc"    type="struct" required="true" />
 		<cfargument name="prc"   type="struct" required="true" />
+
 		<cfscript>
-			var objectName            = rc.object;
-			var field                 = rc.field ?: "";
-			var fieldAttributes       = presideObjectService.getObjectProperty( objectName, field);
-			var fieldType             = presideObjectService.getDefaultFormControlForPropertyAttributes( argumentCollection = 																									fieldAttributes);
-			var formControl           = {};
+			var objectName      = rc.object;
+			var field           = rc.field ?: "";
+			var formControl     = {};
+
 			prc.renderObject = formsService.renderFormControlForObjectField(
 			      objectName = objectName
-			    , property   = fieldAttributes
-			    , type       = fieldType
+			    , fieldName  = field
 			);
-			if(fieldType == "manyToManySelect") {
-				prc.renderSwitch      = renderFormControl(
+
+			if ( presideObjectService.isManyToManyProperty( objectName, field ) ) {
+				prc.renderSwitch = renderFormControl(
 					  type   = "select"
 					, name   = "overwrite"
 					, label  = "Multi Edit Behaviour"

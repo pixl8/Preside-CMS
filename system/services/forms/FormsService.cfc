@@ -346,19 +346,25 @@ component {
 
 		return renderedControl;
 	}
-	
-	public string function renderFormControlForObjectField( required string objectName, required struct property ) {
-	    var formControlArgs          = Duplicate( arguments.property );
-	    var fieldBaseI18n            = _getPresideObjectService().getResourceBundleUriRoot( arguments.objectName );
-	    formControlArgs.type         = arguments.type;
-	    formControlArgs.sourceObject = arguments.objectName;
-	    formControlArgs.title        = fieldBaseI18n & "field.#formControlArgs.name#.title";
-	    formControlArgs.placeholder  = fieldBaseI18n & "field.#formControlArgs.name#.placeholder";
-	    formControlArgs.help         = fieldBaseI18n & "field.#formControlArgs.name#.help";
-	    formControlArgs.object       = formControlArgs.relatedto ?: "";
-	    formControlArgs.label        = formControlArgs.name;
+
+	public string function renderFormControlForObjectField( required string objectName, required string fieldName ) {
+		var pobjService     = _getPresideObjectService();
+	    var fieldBaseI18n   = pobjService.getResourceBundleUriRoot( arguments.objectName );
+		var fieldAttributes = pobjService.getObjectProperty( objectName, arguments.fieldName );
+		var fieldType       = pobjService.getDefaultFormControlForPropertyAttributes( argumentCollection = fieldAttributes );
+	    var formControlArgs = Duplicate( fieldAttributes );
+	    var i18n            = _getI18n();
+
 	    formControlArgs.append( arguments, false );
-	    return renderFormControl( argumentCollection = formControlArgs);
+
+	    formControlArgs.type         = fieldType;
+	    formControlArgs.sourceObject = arguments.objectName;
+	    formControlArgs.label        = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.title"      , defaultValue=arguments.fieldName );
+	    formControlArgs.placeholder  = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.placeholder", defaultValue="" );
+	    formControlArgs.help         = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.help"       , defaultValue="" );
+	    formControlArgs.object       = formControlArgs.relatedto ?: "";
+
+	    return renderFormControl( argumentCollection = formControlArgs );
 	}
 
 	public any function validateForm(

@@ -51,7 +51,7 @@
 						<div class="btn-group batch-update-menu">
 							<button data-toggle="dropdown" class="btn btn-info">
 								<span class="fa fa-caret-down"></span>
-								<i class="fa fa-check bigger-110"></i>
+								<i class="fa fa-pencil"></i>
 								#batchEditTitle#
 							</button>
 
