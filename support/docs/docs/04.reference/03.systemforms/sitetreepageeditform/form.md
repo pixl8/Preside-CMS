@@ -1,0 +1,71 @@
+---
+id: "form-sitetreepageeditform"
+title: "Sitetree Page: edit form"
+---
+
+This form is used as the base "edit page" form for Sitetree pages. See also [[form-sitetreepageaddform]].
+
+>>> When an edit page form is rendered, it gets mixed in with any forms that are defined for the *page type* of the given page.
+
+<div class="table-responsive"><table class="table table-condensed"><tr><th>File path</th><td>/forms/preside-objects/page/edit.xml</td></tr><tr><th>Form ID</th><td>preside-objects.page.edit</td></tr></table></div>
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<form>
+    <tab id="main" sortorder="10">
+        <fieldset id="main" sortorder="10">
+            <field sortorder="5" binding="page.parent_page" control="sitetreePagePicker" required="true" />
+            <field sortorder="10" binding="page.title" />
+            <field sortorder="20" binding="page.slug" required="true" />
+            <field sortorder="30" binding="page.active" />
+            <field sortorder="40" binding="page.main_image" />
+            <field sortorder="50" binding="page.layout" />
+            <field sortorder="60" binding="page.teaser" />
+            <field sortorder="70" binding="page.main_content" />
+        </fieldset>
+    </tab>
+
+    <tab id="meta" sortorder="20">
+        <fieldset id="meta" sortorder="10">
+            <field sortorder="05" binding="page.internal_search_access" />
+            <field sortorder="10" binding="page.search_engine_access" />
+            <field sortorder="20" binding="page.browser_title" />
+            <field sortorder="30" binding="page.author" />
+            <field sortorder="40" binding="page.description" />
+        </fieldset>
+    </tab>
+
+    <tab id="dates" sortorder="30">
+        <fieldset id="dates" sortorder="10">
+            <field sortorder="10" binding="page.embargo_date" />
+            <field sortorder="20" binding="page.expiry_date"  />
+        </fieldset>
+    </tab>
+
+    <tab id="navigation" sortorder="40">
+        <fieldset id="navigation" sortorder="10">
+            <field sortorder="10" binding="page.navigation_title" control="textinput" placeholder="preside-objects.page:field.navigation_title.placeholder" />
+            <field sortorder="20" binding="page.exclude_from_navigation" />
+            <field sortorder="30" binding="page.exclude_from_sub_navigation" />
+            <field sortorder="40" binding="page.exclude_children_from_navigation" />
+            <field sortorder="50" binding="page.exclude_from_sitemap" />
+        </fieldset>
+    </tab>
+
+    <tab id="access" sortorder="50">
+        <fieldset id="access" sortorder="10">
+            <field sortorder="10" binding="page.access_restriction" />
+            <field sortorder="20" binding="page.full_login_required" />
+            <field sortorder="25" binding="page.exclude_from_navigation_when_restricted" />
+        </fieldset>
+        <fieldset id="rules" sortorder="20">
+            <field sortorder="10" binding="page.grantaccess_to_all_logged_in_users" />
+            <field sortorder="20" name="grant_access_to_benefits" control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.grant_access_to_benefits.title" help="preside-objects.page:field.grant_access_to_benefits.help" />
+            <field sortorder="30" name="deny_access_to_benefits"  control="objectPicker" object="website_benefit" multiple="true" required="false" label="preside-objects.page:field.deny_access_to_benefits.title"  help="preside-objects.page:field.deny_access_to_benefits.help"  />
+            <field sortorder="40" name="grant_access_to_users"    control="objectPicker" object="website_user"    multiple="true" required="false" label="preside-objects.page:field.grant_access_to_users.title"    help="preside-objects.page:field.grant_access_to_users.help"    />
+            <field sortorder="50" name="deny_access_to_users"     control="objectPicker" object="website_user"    multiple="true" required="false" label="preside-objects.page:field.deny_access_to_users.title"     help="preside-objects.page:field.deny_access_to_users.help"     />
+        </fieldset>
+    </tab>
+</form>
+```
