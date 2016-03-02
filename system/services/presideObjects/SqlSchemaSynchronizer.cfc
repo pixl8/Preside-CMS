@@ -301,6 +301,16 @@ component {
 					colSql = colsSql[ columnName ];
 
 					if ( column.column_name contains "__deprecated__" ) {
+
+						if ( !adapter.supportsRenameInAlterColumnStatement() ) {
+							renameSql = adapter.getRenameColumnSql(
+								  tableName     = arguments.tableName
+								, oldColumnName = column.column_name
+								, newColumnName = columnName
+							);
+							_runSql( sql=renameSql, dsn=arguments.dsn );
+						}
+
 						deDeprecateSql = adapter.getAlterColumnSql(
 							  tableName     = arguments.tableName
 							, columnName    = column.column_name
