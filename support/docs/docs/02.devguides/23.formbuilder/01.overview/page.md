@@ -55,7 +55,7 @@ See [[formbuilder-itemtypes]] for more detail.
 
 Form actions are configurable triggers that are fired once a form has been submitted. The core system comes with a single 'Email' action that allows the CMS administrator to configure email notification containing the form submission.
 
-![Screenshot showing a configuration of a date picker item](images/screenshots/formbuilder_actions.jpg)
+![Screenshot showing a form builder actions workbench](images/screenshots/formbuilder_actions.jpg)
 
 Developers can create their own custom actions that are then available to content editors to add to their forms. See [[formbuilder-actions]] for more detail.
 
