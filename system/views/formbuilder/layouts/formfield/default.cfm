@@ -6,7 +6,7 @@
 
 <cfoutput>
 	<div class="form-group">
-		<label class="col-sm-2 control-label no-padding-right" for="#args.id#">
+		<label class="col-sm-3 control-label no-padding-right" for="#args.id#">
 			#args.label#
 			<cfif IsTrue( args.mandatory )>
 				<em class="required" role="presentation">
