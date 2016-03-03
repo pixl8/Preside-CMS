@@ -39,7 +39,9 @@ component {
 
 // private helpers
 	private void function _setSecurityHeaders( event, rc, prc ) {
-		event.setXFrameOptionsHeader( "DENY" );
+		event.setXFrameOptionsHeader(
+			value = event.isAdminRequest() ? "SAMEORIGIN" : "DENY"
+		);
 	}
 
 	private void function _xssProtect( event, rc, prc ) {
