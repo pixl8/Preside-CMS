@@ -21,6 +21,16 @@
 						<div class="formbuilder-workbench-items">
 							#renderViewlet( event="admin.formbuilder.itemsManagement", args={ formId=formId } )#
 						</div>
+						<br>
+						<div class="with-padding">
+							<cfif IsTrue( theForm.use_captcha ?: "" )>
+								<p class="disabled"><em>#translateResource( 'formbuilder:protected.with.captcha' )#</em></p>
+							</cfif>
+							<br>
+							<div class="form-group">
+								<button disabled class="btn btn-disabled">#theForm.button_label ?: 'submit'#</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
