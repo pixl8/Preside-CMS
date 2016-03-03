@@ -190,3 +190,65 @@ To achieve this, you can either create a single form layout that will be used to
 </form>
 ```
 
+### Controlling behaviour in the tree
+
+There are a number of flags that you can set in your page type object files to determine how the pages can be used and viewed within the tree. 
+
+#### Limiting child and parent page types
+
+A common scenario is to limit child page and parent types to related pages, for example, **blog** and **blog post** pages. You can control this behaviour by adding `@allowedParentPageTypes` and `@allowChildPageTypes` annotations to your page type objects.
+
+For example, to create an exclusive relationship bewteen parent and child types, you would add the following metadata to your object files:
+
+```luceescript
+
+// /preside-objects/page-types/blog.cfc
+/**
+ * @allowedParentPageTypes *
+ * @allowedChildPageTypes  blog_post
+ *
+ */
+component {
+  // ...   
+}
+
+// /preside-objects/page-types/blog.cfc
+/**
+ * @allowedParentPageTypes blog
+ * @allowedChildPageTypes  none
+ *
+ */
+component {
+  // ...   
+}
+```
+
+#### Externalizing management of pages (hiding from the tree)
+
+Another common scenario is to want to manage certain page types _outside_ of the site tree. For example, if you have 10,000 article pages, managing them in the tree UI is particularly impractical. This can be achieved using the `showInSiteTree` and `sitetreeGridFields` annotations in your page type objects.
+
+Again, using a blog post page type as an example:
+
+```luceescript
+// /preside-objects/page-types/blog_post.cfc
+
+/**
+ * @allowedParentPageTypes blog
+ * @allowedChildPageTypes  none
+ * @showInSiteTree         false
+ * @sitetreeGridFields     page.title,blog_post.post_date,page.active
+ *
+ */
+component {
+  // ...   
+}
+```
+
+This results in the "Manage blog post pages..." UI in the tree as seen below:
+
+![Screenshot of a managed pages link](images/screenshots/sitetree_managedpages.jpg)
+
+And a grid view of the blog pages that appears as below:
+
+![Screenshot of a managed pages grid](images/screenshots/sitetree_managedpagesgrid.jpg)
+
