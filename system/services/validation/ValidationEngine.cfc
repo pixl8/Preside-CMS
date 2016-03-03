@@ -1,8 +1,11 @@
 /**
+ * The core API for PresideCMS's Validation Engine. See [[validation-framework]] for full usage documentation.
+ *
  * @singleton
  * @presideservice
+ * @autodoc
  */
-component {
+component displayName="Validation Engine" {
 
 // CONSTRUCTOR
 	public any function init() {
@@ -15,6 +18,19 @@ component {
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Validates the passed data struct against a
+	 * registered ruleset. Returns a [[api-validationresult]]
+	 * object that contains validation result information.
+	 * See [[validation-framework]] for full usage documentation.
+	 *
+	 * @autodoc
+	 * @ruleset.hint       Name of the ruleset to validate against
+	 * @data.hint          The data set to validate
+	 * @result.hint        Optional existing validation result to which to append validation errors
+	 * @ignoreMissing.hint Whether or not to ignore fields that are entirely missing from the passed data
+	 *
+	 */
 	public ValidationResult function validate( required string ruleset, required struct data, any result=newValidationResult(), boolean ignoreMissing=false ) {
 		var rules       = _getRuleset( arguments.ruleset );
 		var validators  = _getValidators();
@@ -52,6 +68,16 @@ component {
 		return result;
 	}
 
+	/**
+	 * Returns jQuery Validate configuration options,
+	 * as a javascript string, for the given ruleset.
+	 * See [[validation-framework]] for full usage documentation.
+	 *
+	 * @autodoc
+	 * @ruleset.hint         The name of the registered ruleset
+	 * @jQueryReference.hint Name of the global jQuery reference variable (for PresideCMS admin, this is "presideJQuery")
+	 *
+	 */
 	public string function getJqueryValidateJs( required string ruleset, string jqueryReference="presideJQuery" ) {
 		var js    = "";
 		var rules = "";
@@ -73,6 +99,14 @@ component {
 		return js;
 	}
 
+	/**
+	 * Registers a new ruleset. See [[validation-framework]] for full usage documentation.
+	 *
+	 * @autodoc
+	 * @name.hint Name for the ruleset
+	 * @rules.hint Either: an array of structs, json string evaluating to array of structs, or a filepath containing json
+	 *
+	 */
 	public array function newRuleset( required string name, any rules=[] ) {
 		var rulesets = _getRulesets();
 
@@ -81,6 +115,12 @@ component {
 		return rulesets[ arguments.name ];
 	}
 
+	/**
+	 * Registers a new Validation Provider. See [[validation-framework]] for full usage documentation.
+	 *
+	 * @autodoc
+	 * @sourceCfc.hint Instantiated CFC that contains validators
+	 */
 	public ValidationProvider function newProvider( required any sourceCfc ) {
 		var providerFactory = new ValidationProviderFactory();
 		var provider        = providerFactory.createProvider( sourceCfc = arguments.sourceCfc );
@@ -90,22 +130,47 @@ component {
 		return provider;
 	}
 
+	/**
+	 * Returns an array of registered ruleset names
+	 *
+	 * @autodoc
+	 */
 	public array function listRulesets() {
 		var ruleSets = StructKeyArray( _getRulesets() );
 		ArraySort( ruleSets, "textnocase" );
 		return ruleSets;
 	}
 
+	/**
+	 * Returns an array of registered validator names
+	 *
+	 * @autodoc
+	 */
 	public array function listValidators() {
 		var validators = StructKeyArray( _getValidators() );
 		ArraySort( validators, "textnocase" );
 		return validators;
 	}
 
+	/**
+	 * Returns a newly instantiated validation result.
+	 * This can be useful for manually building your own
+	 * validation results, prior to calling `validate()`
+	 *
+	 * @autodoc
+	 */
 	public any function newValidationResult() {
 		return new ValidationResult();
 	}
 
+	/**
+	 * Returns whether or not the passed ruleset
+	 * is already registered.
+	 *
+	 * @autodoc
+	 * @rulesetName.hint The name of the ruleset
+	 *
+	 */
 	public boolean function rulesetExists( required string rulesetName ) {
 		return StructKeyExists( _getRulesets(), arguments.rulesetName );
 	}
