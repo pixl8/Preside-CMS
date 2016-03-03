@@ -444,6 +444,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public boolean function canPageBeCached() output=false {
+		if ( getModel( "websiteLoginService" ).isLoggedIn() || this.isAdminUser() ) {
+			return false;
+		}
+
 		var accessRules = getPageAccessRules();
 
 		return ( accessRules.access_restriction ?: "none" ) == "none";
