@@ -11,7 +11,12 @@
 component displayName="Document metadata service" {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @xmpMetaReader.inject xmpMetaReader
+	 *
+	 */
+	public any function init( required any xmpMetaReader ) {
+		_setXmpMetaReader( xmpMetaReader );
 		return this;
 	}
 
@@ -44,17 +49,24 @@ component displayName="Document metadata service" {
 	}
 
 // PRIVATE HELPERS
-	private struct function _parse( required any fileContent, boolean includeMeta=true, boolean includeText=true ) {
-		var result  = {};
+	private struct function _parse( required any fileContent, boolean includeText=true ) {
+		try {
+			var meta = _getXmpMetaReader().readMeta( arguments.fileContent );
+			var exif = ImageGetEXIFMetadata( ImageReadBase64( ToBase64( arguments.fileContent ) ) );
 
-		if ( arguments.includeMeta ) {
-			try {
-				var img  = ImageReadBase64( ToBase64( arguments.fileContent ) );
+			meta.append( exif, false );
 
-				return { metadata = ImageGetEXIFMetadata( img ) };
-			} catch( any e ) {}
-		}
+			return { metadata=meta };
+		} catch( any e ) {}
 
 		return {};
+	}
+
+// GETTERS AND SETTERS
+	private any function _getXmpMetaReader() {
+		return _xmpMetaReader;
+	}
+	private void function _setXmpMetaReader( required any xmpMetaReader ) {
+		_xmpMetaReader = arguments.xmpMetaReader;
 	}
 }
