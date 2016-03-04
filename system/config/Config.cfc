@@ -49,7 +49,8 @@ component output=false {
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } },
+			{ class="preside.system.interceptors.EmailConfigurationSaveInterceptor"   , properties={} },
+			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
@@ -107,6 +108,8 @@ component output=false {
 		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
 		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
 		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
+		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()

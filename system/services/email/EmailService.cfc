@@ -68,6 +68,41 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		return _getTemplates();
 	}
 
+	/**
+	 * Validates the supplied connection settings
+	 * Returns empty string on success, detailed
+	 * server error message otherwise.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public string function validateConnectionSettings(
+		  required string  host
+		, required numeric port
+		,          string  username = ""
+		,          string  password = ""
+	) {
+
+		try {
+			var props = CreateObject( "java", "java.util.Properties" ).init();
+			props.put( "mail.smtp.starttls.enable", "true" );
+			props.put( "mail.smtp.auth", "true" );
+
+			var mailSession = CreateObject( "java", "javax.mail.Session" ).getInstance( props, NullValue() );
+			var transport   = mailSession.getTransport( "smtp" );
+
+			transport.connect( arguments.host, arguments.port, arguments.username, arguments.password );
+			transport.close();
+
+			return "";
+		} catch ( "javax.mail.AuthenticationFailedException" e ) {
+			return "authentication failure";
+		} catch( any e ) {
+			return e.message;
+		}
+
+	}
+
 // PRIVATE HELPERS
 	private void function _loadTemplates() output=false {
 		var dirs      = _getEmailTemplateDirectories();

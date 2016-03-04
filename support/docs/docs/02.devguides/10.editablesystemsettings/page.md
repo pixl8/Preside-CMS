@@ -111,3 +111,55 @@ component {
     }
 }
 ```
+
+## Interceptors and custom validation
+
+When you save the settings through the admin UI, two interception points are raised, `preSaveSystemConfig` and `postSaveSystemConfig`. These events allow your systems to perform custom validation and any other logic your need to perform once a category's settings have been saved.
+
+>>>>>> See the [ColdBox Interceptors documentation](http://wiki.coldbox.org/wiki/Interceptors.cfm) for in depth instructions on setting up interceptors.
+
+Both interception points receive `category` and `configuration` arguments in the `interceptData` struct and, in addition, the `preSaveSystemConfig` interception point receives a `validationResult` object with which to record any custom validation (see [[api-validationresult]]).
+
+For example, the core email settings form uses an interceptor to validate the email server configuration:
+
+```luceescript
+component extends="coldbox.system.Interceptor" {
+
+    property name="emailService" inject="delayedInjector:emailService";
+
+// PUBLIC
+    public void function configure() {}
+
+    public void function preSaveSystemConfig( event, interceptData ) {
+        // interception point data
+        var category         = interceptData.category         ?: "";
+        var configuration    = interceptData.configuration    ?: {};
+        var validationResult = interceptData.validationResult ?: "";
+
+        // check that we are the email category and that the
+        // form contains all the server configuration variables
+        // we need to check
+        if ( category == "email" && configuration.keyExists( "server" ) && configuration.keyExists( "port" ) && configuration.keyExists( "username" ) && configuration.keyExists( "password" ) && !IsSimpleValue( validationResult ) ) {
+            
+            var errorMessage = emailService.validateConnectionSettings(
+                  host     = configuration.server
+                , port     = configuration.port
+                , username = configuration.username
+                , password = configuration.password
+            );
+
+            if ( Len( Trim( errorMessage ) ) ) {
+                if ( errorMessage == "authentication failure" ) {
+                    // adding an error to the validation result with a 
+                    // translatable error message
+                    validationResult.addError( "username", "system-config.email:validation.server.authentication.failure" );
+                } else {
+                    // adding an error to the validation result with a 
+                    // translatable error message
+                    validationResult.addError( "server", "system-config.email:validation.server.details.invalid", [ errorMessage ] );
+                }
+            }
+        }
+    }
+}
+```
