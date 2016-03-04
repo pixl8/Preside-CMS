@@ -1,4 +1,8 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -17,7 +21,7 @@ component output=false singleton=true {
 		, required boolean autoRunScripts
 		, required boolean autoRestoreDeprecatedFields
 
-	) output=false {
+	) {
 
 		_setAdapterFactory( arguments.adapterFactory );
 		_setSqlRunner( arguments.sqlRunner );
@@ -30,7 +34,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public void function synchronize( required array dsns, required struct objects ) output=false {
+	public void function synchronize( required array dsns, required struct objects ) {
 		var versions           = _getVersionsOfDatabaseObjects( arguments.dsns );
 		var objName            = "";
 		var obj                = "";
@@ -68,7 +72,7 @@ component output=false singleton=true {
 					}
 				} elseif ( not tableVersionExists or versions.table[ obj.meta.tableName ] neq obj.sql.table.version ) {
 					try {
-						_enableFkChecks( false, obj.meta.dsn );
+						_enableFkChecks( false, obj.meta.dsn, obj.meta.tableName );
 						_updateDbTable(
 							  tableName      = obj.meta.tableName
 							, generatedSql   = obj.sql
@@ -76,7 +80,7 @@ component output=false singleton=true {
 							, indexes        = obj.meta.indexes
 							, columnVersions = IsDefined( "versions.column.#obj.meta.tableName#" ) ? versions.column[ obj.meta.tableName ] : {}
 						);
-						_enableFkChecks( true, obj.meta.dsn );
+						_enableFkChecks( true, obj.meta.dsn, obj.meta.tableName );
 					} catch( any e ) {
 						throw(
 							  type    = "presideobjectservice.dbsync.error"
@@ -146,7 +150,7 @@ component output=false singleton=true {
 		, required string dbFieldList
 		,          struct relationships = {}
 
-	) output=false {
+	) {
 		var adapter   = _getAdapter( dsn = arguments.dsn );
 		var columnSql = "";
 		var colName   = "";
@@ -229,7 +233,7 @@ component output=false singleton=true {
 		return sql;
 	}
 
-	private void function _createObjectInDb( required struct generatedSql, required string dsn ) output=false {
+	private void function _createObjectInDb( required struct generatedSql, required string dsn ) {
 		var columnName = "";
 		var column     = "";
 		var indexName  = "";
@@ -268,7 +272,7 @@ component output=false singleton=true {
 		, required string dsn
 		, required struct columnVersions
 
-	) output=false {
+	) {
 		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
 		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
 		var dbColumnNames  = ValueList( columnsFromDb.column_name );
@@ -280,8 +284,14 @@ component output=false singleton=true {
 		var index          = "";
 		var indexSql       = "";
 		var deprecateSql   = "";
+		var renameSql      = "";
 		var columnName     = "";
 		var deDeprecateSql = "";
+		var newName        = "";
+
+		// MySQL particularly can get its knickers in a twist with foreign keys.
+		// Drop all foreign keys before messing with table modifications
+		_dropAllForeignKeysForTable( columnsFromDb, arguments.tableName, arguments.dsn );
 
 		for( column in columnsFromDb ){
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
@@ -291,6 +301,16 @@ component output=false singleton=true {
 					colSql = colsSql[ columnName ];
 
 					if ( column.column_name contains "__deprecated__" ) {
+
+						if ( !adapter.supportsRenameInAlterColumnStatement() ) {
+							renameSql = adapter.getRenameColumnSql(
+								  tableName     = arguments.tableName
+								, oldColumnName = column.column_name
+								, newColumnName = columnName
+							);
+							_runSql( sql=renameSql, dsn=arguments.dsn );
+						}
+
 						deDeprecateSql = adapter.getAlterColumnSql(
 							  tableName     = arguments.tableName
 							, columnName    = column.column_name
@@ -308,9 +328,14 @@ component output=false singleton=true {
 					}
 
 					if ( not StructKeyExists( columnVersions, columnName ) or colSql.version neq columnVersions[ columnName ] ) {
-						if ( column.is_foreignkey ){
-							_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=columnName, dsn=arguments.dsn );
+
+						for( index in indexesFromDb ){
+							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
+								indexSql = indexesSql[ index ];
+								_runSql( sql=indexSql.dropSql  , dsn=arguments.dsn );
+							}
 						}
+
 						_runSql( sql=colSql.alterSql, dsn=arguments.dsn );
 						_setDatabaseObjectVersion(
 							  entityType   = "column"
@@ -319,23 +344,48 @@ component output=false singleton=true {
 							, version      = colSql.version
 							, dsn          = arguments.dsn
 						);
+
+						for( index in indexesFromDb ){
+							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
+								indexSql = indexesSql[ index ];
+								_runSql( sql=indexSql.createSql, dsn=arguments.dsn );
+							}
+						}
 					}
 				} else if ( !column.column_name contains "__deprecated__" ) {
-					deprecateSql = adapter.getAlterColumnSql(
-						  tableName     = arguments.tableName
-						, columnName    = column.column_name
-						, newName       = "__deprecated__" & column.column_name
-						, dbType        = column.type_name
-						, nullable      = true // its deprecated, must be nullable!
-						, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
-						, primaryKey    = column.is_primarykey
-						, autoIncrement = column.is_autoincrement
-					);
+					newName = "__deprecated__" & column.column_name;
+					if ( !adapter.supportsRenameInAlterColumnStatement() ) {
+						renameSql = adapter.getRenameColumnSql(
+							  tableName     = arguments.tableName
+							, oldColumnName = column.column_name
+							, newColumnName = newName
+						);
+						_runSql( sql=renameSql, dsn=arguments.dsn );
 
-					if ( column.is_foreignkey ){
-						_deleteForeignKeysForColumn( primaryTableName=column.referenced_primarykey_table, foreignTableName=arguments.tableName, foreignColumnName=column.column_name, dsn=arguments.dsn );
+						deprecateSql = adapter.getAlterColumnSql(
+							  tableName     = arguments.tableName
+							, columnName    = newName
+							, dbType        = column.type_name
+							, nullable      = true // its deprecated, must be nullable!
+							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+							, primaryKey    = column.is_primarykey
+							, autoIncrement = column.is_autoincrement
+						);
+						_runSql( sql=deprecateSql, dsn=arguments.dsn );
+					} else {
+						deprecateSql = adapter.getAlterColumnSql(
+							  tableName     = arguments.tableName
+							, columnName    = column.column_name
+							, newName       = newName
+							, dbType        = column.type_name
+							, nullable      = true // its deprecated, must be nullable!
+							, maxLength     = adapter.doesColumnTypeRequireLengthSpecification( column.type_name ) ? ( Val( IsNull( column.column_size ) ? 0 : column.column_size ) ) : 0
+							, primaryKey    = column.is_primarykey
+							, autoIncrement = column.is_autoincrement
+						);
+						_runSql( sql=deprecateSql, dsn=arguments.dsn );
 					}
-					_runSql( sql=deprecateSql, dsn=arguments.dsn );
+
 					_setDatabaseObjectVersion(
 						  entityType   = "column"
 						, parentEntity = arguments.tableName
@@ -394,7 +444,7 @@ component output=false singleton=true {
 		, required string foreignColumnName
 		, required string dsn
 
-	) output=false {
+	) {
 		var keys    = "";
 		var keyName = "";
 		var key     = "";
@@ -413,7 +463,20 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _syncForeignKeys( required struct objects ) output=false {
+	private void function _dropAllForeignKeysForTable( required query tableColumns, required string tableName, required string dsn ) {
+		for( var column in arguments.tableColumns ){
+			if ( column.is_foreignkey ){
+				_deleteForeignKeysForColumn(
+					  primaryTableName  = column.referenced_primarykey_table
+					, foreignTableName  = arguments.tableName
+					, foreignColumnName = column.column_name
+					, dsn               = arguments.dsn
+				);
+			}
+		}
+	}
+
+	private void function _syncForeignKeys( required struct objects ) {
 		var objName         = "";
 		var obj             = "";
 		var dbKeys          = "";
@@ -427,11 +490,9 @@ component output=false singleton=true {
 		var newKey          = "";
 		var deleteSql       = "";
 		var existingKeysNotToTouch = {};
-
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			dbKeys = _getTableForeignKeys( tableName = obj.meta.tableName, dsn = obj.meta.dsn );
-
 			param name="obj.meta.relationships" default=StructNew();
 			param name="obj.sql.relationships"  default=StructNew();
 
@@ -475,6 +536,7 @@ component output=false singleton=true {
 				}
 			}
 		}
+		
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			for( key in obj.sql.relationships ){
@@ -492,8 +554,10 @@ component output=false singleton=true {
 								_runSql( sql = deleteSql, dsn = obj.meta.dsn );
 							} catch( any e ) {}
 						}
-
 						try {
+							if ( _getAdapter( obj.meta.dsn ).requiresManualCommitForTransactions() ) {
+								_runSql( sql = 'commit', dsn = obj.meta.dsn );
+							}
 							_runSql( sql = obj.sql.relationships[ key ].createSql, dsn = obj.meta.dsn );
 						} catch( any e ) {
 							var message = "An error occurred while attempting to create a foreign key for the [#objName#] object.";
@@ -514,24 +578,23 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _enableFkChecks( required boolean enabled, required string dsn ) output=false {
+	private void function _enableFkChecks( required boolean enabled, required string dsn, required string tableName ) {
 		var adapter = _getAdapter( dsn=arguments.dsn );
-
 		if ( adapter.canToggleForeignKeyChecks() ) {
 			_runSql(
 				  dsn = arguments.dsn
-				, sql = adapter.getToggleForeignKeyChecks( checksEnabled=arguments.enabled )
+				, sql = adapter.getToggleForeignKeyChecks( checksEnabled=arguments.enabled, tableName=arguments.tableName )
 			);
 		}
 	}
 
-	private array function _getBuiltSqlScriptArray() output=false {
+	private array function _getBuiltSqlScriptArray() {
 		request._sqlSchemaSynchronizerSqlArray = request._sqlSchemaSynchronizerSqlArray ?: [];
 
 		return request._sqlSchemaSynchronizerSqlArray;
 	}
 
-	private array function _getVersionTableScriptArray() output=false {
+	private array function _getVersionTableScriptArray() {
 		request._sqlSchemaSynchronizerVersionSqlArray = request._sqlSchemaSynchronizerVersionSqlArray ?: [];
 
 		return request._sqlSchemaSynchronizerVersionSqlArray;
@@ -540,11 +603,11 @@ component output=false singleton=true {
 
 
 // SIMPLE PRIVATE PROXIES
-	private any function _getAdapter() output=false {
+	private any function _getAdapter() {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
 	}
 
-	private any function _runSql() output=false {
+	private any function _runSql() {
 		if ( _getAutoRunScripts() ) {
 			return _getSqlRunner().runSql( argumentCollection = arguments );
 		}
@@ -553,11 +616,11 @@ component output=false singleton=true {
 		sqlScripts.append( Duplicate( arguments ) );
 	}
 
-	private query function _getTableInfo() output=false {
+	private query function _getTableInfo() {
 		return _getDbInfoService().getTableInfo( argumentCollection = arguments );
 	}
 
-	private query function _getTableColumns() output=false {
+	private query function _getTableColumns() {
 		try {
 			return _getDbInfoService().getTableColumns( argumentCollection = arguments );
 		} catch( any e ) {
@@ -569,7 +632,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _getTableIndexes() output=false {
+	private struct function _getTableIndexes() {
 		try {
 			return _getDbInfoService().getTableIndexes( argumentCollection = arguments );
 		} catch( any e ) {
@@ -581,7 +644,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _getTableForeignKeys() output=false {
+	private struct function _getTableForeignKeys() {
 		try {
 			return _getDbInfoService().getTableForeignKeys( argumentCollection = arguments );
 		} catch( any e ) {
@@ -593,11 +656,11 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _getVersionsOfDatabaseObjects() output=false {
+	private struct function _getVersionsOfDatabaseObjects() {
 		return _getSchemaVersioningService().getVersions( argumentCollection = arguments );
 	}
 
-	private void function _setDatabaseObjectVersion() output=false {
+	private void function _setDatabaseObjectVersion() {
 		if ( _getAutoRunScripts() ) {
 			return _getSchemaVersioningService().setVersion( argumentCollection = arguments );
 		}
@@ -609,7 +672,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _ensureValidDbEntityNames( required struct objects ) output=false {
+	private void function _ensureValidDbEntityNames( required struct objects ) {
 		for( var objectName in arguments.objects ) {
 			var objMeta = arguments.objects[ objectName ].meta ?: {};
 			var adapter = _getAdapterFactory().getAdapter( objMeta.dsn ?: "" );
@@ -624,38 +687,38 @@ component output=false singleton=true {
 
 
 // GETTERS AND SETTERS
-	private any function _getAdapterFactory() output=false {
+	private any function _getAdapterFactory() {
 		return _adapterFactory;
 	}
-	private void function _setAdapterFactory( required any adapterFactory ) output=false {
+	private void function _setAdapterFactory( required any adapterFactory ) {
 		_adapterFactory = arguments.adapterFactory;
 	}
 
-	private any function _getSqlRunner() output=false {
+	private any function _getSqlRunner() {
 		return _sqlRunner;
 	}
-	private void function _setSqlRunner( required any sqlRunner ) output=false {
+	private void function _setSqlRunner( required any sqlRunner ) {
 		_sqlRunner = arguments.sqlRunner;
 	}
 
-	private any function _getDbInfoService() output=false {
+	private any function _getDbInfoService() {
 		return _dbInfoService;
 	}
-	private void function _setDbInfoService( required any dbInfoService ) output=false {
+	private void function _setDbInfoService( required any dbInfoService ) {
 		_dbInfoService = arguments.dbInfoService;
 	}
 
-	private any function _getSchemaVersioningService() output=false {
+	private any function _getSchemaVersioningService() {
 		return _schemaVersioningService;
 	}
-	private void function _setSchemaVersioningService( required any schemaVersioningService ) output=false {
+	private void function _setSchemaVersioningService( required any schemaVersioningService ) {
 		_schemaVersioningService = arguments.schemaVersioningService;
 	}
 
-	private boolean function _getAutoRunScripts() output=false {
+	private boolean function _getAutoRunScripts() {
 		return _autoRunScripts;
 	}
-	private void function _setAutoRunScripts( required boolean autoRunScripts ) output=false {
+	private void function _setAutoRunScripts( required boolean autoRunScripts ) {
 		_autoRunScripts = arguments.autoRunScripts;
 	}
 

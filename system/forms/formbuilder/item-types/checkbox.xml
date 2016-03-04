@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.checkbox:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="checkboxLabel"  control="textInput"   required="false"  sortorder="34" defaultvalue="" />
+		</fieldset>
+	</tab>
+</form>

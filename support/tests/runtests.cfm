@@ -55,9 +55,11 @@
 			}
 
 		} catch ( any e ) {
-			echo( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
 			if ( isCommandLineExecuted ) {
+				echo( "An error occurred running the tests. Message: [#e.message#], Detail: [#e.detail#]" );
 				exitCode( 1 );
+			} else {
+				rethrow;
 			}
 		}
 	}

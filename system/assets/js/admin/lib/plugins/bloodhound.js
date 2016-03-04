@@ -375,6 +375,7 @@
             }
             this.datumTokenizer = o.datumTokenizer;
             this.queryTokenizer = o.queryTokenizer;
+
             this.reset();
         }
         _.mixin(SearchIndex.prototype, {
@@ -382,22 +383,29 @@
                 this.datums = o.datums;
                 this.trie = o.trie;
             },
-            add: function(data) {
+            add: function(data,bh) {
                 var that = this;
                 data = _.isArray(data) ? data : [ data ];
                 _.each(data, function(datum) {
-                    var id, tokens;
-                    id = that.datums.push(datum) - 1;
-                    tokens = normalizeTokens(that.datumTokenizer(datum));
-                    _.each(tokens, function(token) {
-                        var node, chars, ch;
-                        node = that.trie;
-                        chars = token.split("");
-                        while (ch = chars.shift()) {
-                            node = node.children[ch] || (node.children[ch] = newNode());
-                            node.ids.push(id);
-                        }
-                    });
+                    var id, tokens, duplicate;
+
+                    _.each(that.datums, function(localDatum) {
+                        duplicate = duplicate || bh.dupDetector( datum, localDatum );
+                    } );
+
+                    if( !duplicate ) {
+                        id = that.datums.push(datum) - 1;
+                        tokens = normalizeTokens(that.datumTokenizer(datum));
+                        _.each(tokens, function(token) {
+                            var node, chars, ch;
+                            node = that.trie;
+                            chars = token.split("");
+                            while (ch = chars.shift()) {
+                                node = node.children[ch] || (node.children[ch] = newNode());
+                                node.ids.push(id);
+                            }
+                        });
+                    }
                 });
             },
             get: function get(query) {
@@ -641,7 +649,7 @@
                 return !this.initPromise || force ? this._initialize() : this.initPromise;
             },
             add: function add(data) {
-                this.index.add(data);
+                this.index.add(data,this);
             },
             get: function get(query, cb) {
                 var that = this, matches = [], cacheHit = false;

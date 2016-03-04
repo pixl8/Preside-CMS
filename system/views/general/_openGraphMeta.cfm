@@ -11,11 +11,11 @@
 
 <cfoutput>
 	<meta name="og:title" content="#XmlFormat( local.title )#" />
-	<meta name="og:url"   content="#event.getBaseUrl()##event.getCurrentUrl()#" />
+	<meta name="og:url"   content="#event.getBaseUrl()##HtmlEditFormat( event.getCurrentUrl() )#" />
 	<cfif Len( local.teaser )>
-		<meta name="og:description" content="#XmlFormat( local.teaser )#" />
+		<meta name="og:description" content="#HtmlEditFormat( local.teaser )#" />
 	</cfif>
 	<cfif Len( local.mainImage )>
-		<meta name="og:image" content="#event.getBaseUrl()##event.buildLink( assetId=local.mainImage )#" />
+		<meta name="og:image" content="#event.buildLink( assetId=local.mainImage )#" />
 	</cfif>
 </cfoutput>

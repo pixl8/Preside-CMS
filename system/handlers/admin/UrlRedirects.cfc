@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="urlRedirectsService" inject="urlRedirectsService";
 	property name="ruleDao"             inject="presidecms:object:url_redirect_rule";
+	property name="messageBox"          inject="coldbox:plugin:messageBox";
 
 // public handlers
 	public void function preHandler( event ) output=false {

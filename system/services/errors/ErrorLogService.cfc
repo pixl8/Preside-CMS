@@ -39,6 +39,7 @@ component displayName="Error Log Service" {
 		}
 		FileWrite( filePath, Trim( rendered ) );
 		_cleanupLogFiles();
+
 		_callErrorListeners( arguments.error );
 	}
 

@@ -1,4 +1,8 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -7,7 +11,7 @@ component output=false singleton=true {
 	 * @interceptorService.inject coldbox:InterceptorService
 	 * @featureService.inject     featureService
 	 */
-	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService ) output=false {
+	public any function init( required string dsn, required string tablePrefix, required any interceptorService, required any featureService ) {
 		_setDsn( arguments.dsn );
 		_setTablePrefix( arguments.tablePrefix );
 		_setInterceptorService( arguments.interceptorService );
@@ -18,7 +22,7 @@ component output=false singleton=true {
 
 
 // PUBLIC API METHODS
-	public struct function readObjects( required array objectPaths ) output=false {
+	public struct function readObjects( required array objectPaths ) {
 		var objects = {};
 
 		for( var objPath in arguments.objectPaths ){
@@ -44,7 +48,7 @@ component output=false singleton=true {
 		return objects;
 	}
 
-	public struct function readObject( required any object ) output=false {
+	public struct function readObject( required any object ) {
 		_announceInterception( "preReadPresideObject", { object=object } );
 
 		var meta          = _mergeExtendedObjectMeta( getMetaData( arguments.object ) );
@@ -58,7 +62,7 @@ component output=false singleton=true {
 		return meta;
 	}
 
-	public void function finalizeMergedObject( required any object ) output=false {
+	public void function finalizeMergedObject( required any object ) {
 		var meta = arguments.object.meta = arguments.object.meta ?: {};
 		var componentName = ListLast( meta.name, "." );
 
@@ -75,6 +79,7 @@ component output=false singleton=true {
 		_defineLabelField( meta );
 		_addDefaultsToProperties( meta.properties );
 		_mergeSystemPropertyDefaults( meta );
+		_deletePropertiesMarkedForDeletion( meta );
 		_fixOrderOfProperties( meta );
 
 		meta.dbFieldList = _calculateDbFieldList( meta.properties );
@@ -84,7 +89,7 @@ component output=false singleton=true {
 		_ensureAllPropertiesHaveName( meta.properties );
 	}
 
-	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) output=false {
+	public struct function getAutoPivotObjectDefinition( required struct sourceObject, required struct targetObject, required string pivotObjectName, required string sourcePropertyName, required string targetPropertyName ) {
 		var tmp = "";
 		var autoObject = "";
 		var objAName = LCase( ListLast( sourceObject.name, "." ) );
@@ -110,7 +115,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private struct function _mergeObjects( required struct unMergedObjects ) output=false {
+	private struct function _mergeObjects( required struct unMergedObjects ) {
 		var merged = {};
 		var merger = new Merger();
 
@@ -126,7 +131,7 @@ component output=false singleton=true {
 		return merged;
 	}
 
-	private struct function _mergeExtendedObjectMeta( required struct meta ) output=false {
+	private struct function _mergeExtendedObjectMeta( required struct meta ) {
 		var merged = {};
 		var prop   = "";
 		var systemAttribs = "extends,accessors,displayname,fullname,hashCode,hint,output,path,persistent,properties,remoteAddress,synchronized";
@@ -148,7 +153,7 @@ component output=false singleton=true {
 		return merged;
 	}
 
-	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) output=false {
+	private void function _mergeProperties( required struct meta, required array properties, required string pathToCfc ) {
 		var prop         = "";
 		var propName     = "";
 		var orderedProps = _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( pathToCfc = arguments.pathToCfc );
@@ -173,7 +178,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _mergeMethods( required struct meta, required array methods ) output=false {
+	private void function _mergeMethods( required struct meta, required array methods ) {
 		var method = "";
 
 		if ( not StructKeyExists( arguments.meta, "methods" ) ) {
@@ -188,7 +193,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _readProperty( required struct property, required struct inheritedProperty ) output=false {
+	private struct function _readProperty( required struct property, required struct inheritedProperty ) {
 		var prop = Duplicate( arguments.property );
 
 		StructAppend( prop, inheritedProperty, false );
@@ -196,7 +201,7 @@ component output=false singleton=true {
 		return prop;
 	}
 
-	private void function _addDefaultsToProperties( required struct properties ) output=false {
+	private void function _addDefaultsToProperties( required struct properties ) {
 		var defaultAttributes = {
 			  type         = "string"
 			, dbtype       = "varchar"
@@ -229,7 +234,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private string function _calculateDbFieldList( required struct properties ) output=false {
+	private string function _calculateDbFieldList( required struct properties ) {
 		var list = [];
 		for( var propName in arguments.properties ){
 			if ( ( arguments.properties[ propName ].dbtype ?: "" ) != "none" ) {
@@ -240,7 +245,7 @@ component output=false singleton=true {
 		return list.toList();
 	}
 
-	private void function _mergeSystemPropertyDefaults( required struct meta ) output=false {
+	private void function _mergeSystemPropertyDefaults( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
 		var defaults = {
@@ -279,7 +284,19 @@ component output=false singleton=true {
 		}
 	}
 
-	private struct function _discoverIndexes( required struct properties, required string objectName ) output=false {
+	private void function _deletePropertiesMarkedForDeletion( required struct meta ) {
+		for( var propertyName in meta.properties ) {
+			var prop = meta.properties[ propertyName ];
+			var markedForDeletion = IsBoolean( prop.deleted ?: "" ) && prop.deleted;
+
+			if ( markedForDeletion ) {
+				meta.properties.delete( propertyName );
+				meta.propertyNames.delete( propertyName );
+			}
+		}
+	}
+
+	private struct function _discoverIndexes( required struct properties, required string objectName ) {
 		var prop        = "";
 		var indexes     = {};
 		var propIndexes = "";
@@ -319,7 +336,7 @@ component output=false singleton=true {
 		return indexes;
 	}
 
-	private void function _fixOrderOfProperties( required struct meta ) output=false {
+	private void function _fixOrderOfProperties( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 		param name="arguments.meta.properties"    default=StructNew();
 
@@ -333,7 +350,7 @@ component output=false singleton=true {
 		arguments.meta.properties = orderedProps;
 	}
 
-	private array function _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( required string pathToCfc ) output=false {
+	private array function _getOrderedPropertiesInAHackyWayBecauseRailoGivesThemInRandomOrder( required string pathToCfc ) {
 		var cfcContent      = FileRead( arguments.pathToCfc );
 		var propertyMatches = $reSearch( 'property\s+[^;/>]*name="([a-zA-Z_\$][a-zA-Z0-9_\$]*)"', cfcContent );
 
@@ -344,7 +361,7 @@ component output=false singleton=true {
 		return [];
 	}
 
-	private struct function $reSearch( required string regex, required string text ) output=false {
+	private struct function $reSearch( required string regex, required string text ) {
 		var final 	= StructNew();
 		var pos		= 1;
 		var result	= ReFindNoCase( arguments.regex, arguments.text, pos, true );
@@ -364,7 +381,7 @@ component output=false singleton=true {
 		return final;
 	}
 
-	private void function _defineLabelField( required struct objectMeta ) output=false {
+	private void function _defineLabelField( required struct objectMeta ) {
 		// if ( arguments.objectMeta.isPageType ) {
 		// 	arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
 		// }
@@ -388,7 +405,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private any function _announceInterception() output=false {
+	private any function _announceInterception() {
 		return _getInterceptorService().processState( argumentCollection=arguments );
 	}
 
@@ -399,31 +416,31 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private string function _getDsn() output=false {
+	private string function _getDsn() {
 		return _dsn;
 	}
-	private void function _setDsn( required string dsn ) output=false {
+	private void function _setDsn( required string dsn ) {
 		_dsn = arguments.dsn;
 	}
 
-	private string function _getTablePrefix() output=false {
+	private string function _getTablePrefix() {
 		return _tablePrefix;
 	}
-	private void function _setTablePrefix( required string tablePrefix ) output=false {
+	private void function _setTablePrefix( required string tablePrefix ) {
 		_tablePrefix = arguments.tablePrefix;
 	}
 
-	private any function _getInterceptorService() output=false {
+	private any function _getInterceptorService() {
 		return _interceptorService;
 	}
-	private void function _setInterceptorService( required any interceptorService ) output=false {
+	private void function _setInterceptorService( required any interceptorService ) {
 		_interceptorService = arguments.interceptorService;
 	}
 
-	private any function _getFeatureService() output=false {
+	private any function _getFeatureService() {
 		return _featureService;
 	}
-	private void function _setFeatureService( required any featureService ) output=false {
+	private void function _setFeatureService( required any featureService ) {
 		_featureService = arguments.featureService;
 	}
 }

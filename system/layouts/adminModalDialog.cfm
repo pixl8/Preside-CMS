@@ -48,7 +48,10 @@
 								, icon     = ( prc.pageIcon     ?: "" )
 							} )#
 						</cfif>
-						#body#
+
+						<div class="modal-padding">
+							#body#
+						</div>
 					</div>
 				</div>
 			</div>

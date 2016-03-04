@@ -86,6 +86,36 @@ component output="false" singleton=true {
 		return ListToArray( fields );
 	}
 
+	public array function listBatchEditableFields( required string objectName ) output=false {
+		var fields               = [];
+		var objectAttributes     = _getPresideObjectService().getObjectProperties( objectName );
+		var forbiddenFields      = [ "id", "datecreated", "datemodified", _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" ) ];
+		var isFieldBatchEditable = function( propertyName, attributes ) {
+			if ( forbiddenFields.findNoCase( propertyName ) ) {
+				return false
+			}
+			if ( attributes.relationship == "one-to-many" ) {
+				return false;
+			}
+			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
+				return false;
+			}
+			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
+				return false;
+			}
+
+			return true;
+		}
+
+		for( var property in objectAttributes ) {
+			if ( isFieldBatchEditable( property, objectAttributes[ property ] ) ) {
+       		 	ArrayAppend( fields, property );
+			}
+		}
+
+		return fields;
+	}
+
 	public boolean function isOperationAllowed( required string objectName, required string operation ) output=false {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
@@ -227,6 +257,70 @@ component output="false" singleton=true {
 
 		return result;
 	}
+
+	public boolean function batchEditField(
+		  required string objectName
+		, required string fieldName
+		, required array  sourceIds
+		, required string value
+		,          string multiEditBehaviour = "append"
+	) output=false {
+		var pobjService  = _getPresideObjectService();
+		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
+
+		if ( isMultiValue ) {
+			transaction {
+				for( var sourceId in sourceIds ) {
+					var existingIds  = [];
+					var targetIdList = [];
+					var newChoices   = ListToArray( arguments.value );
+
+					if ( arguments.multiEditBehaviour != "overwrite" ) {
+						var previousData = pobjService.getDeNormalizedManyToManyData(
+							  objectName   = objectName
+							, id           = sourceId
+							, selectFields = [ arguments.fieldName ]
+						);
+						existingIds = ListToArray( previousData[ arguments.fieldName ] ?: "" );
+					}
+
+					switch( arguments.multiEditBehaviour ) {
+						case "overwrite":
+							targetIdList = newChoices;
+							break;
+						case "delete":
+							targetIdList = existingIds;
+							for( var id in newChoices ) {
+								targetIdList.delete( id )
+							}
+							break;
+						default:
+							targetIdList = existingIds;
+							targetIdList.append( newChoices, true );
+					}
+
+					targetIdList = targetIdList.toList();
+					targetIdList = ListRemoveDuplicates( targetIdList );
+
+					pobjService.syncManyToManyData(
+						  sourceObject   = objectName
+						, sourceProperty = updateField
+						, sourceId       = sourceId
+						, targetIdList   = targetIdList
+					);
+				}
+			}
+		} else {
+			pobjService.updateData(
+				  objectName = objectName
+				, data       = { "#arguments.fieldName#" = value }
+				, filter     = { id=arguments.sourceIds }
+			);
+		}
+
+		return true;
+	}
+
 
 	public array function getRecordsForAjaxSelect(
 		  required string  objectName

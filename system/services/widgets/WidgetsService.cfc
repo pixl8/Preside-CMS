@@ -1,4 +1,8 @@
-component singleton=true output=false {
+/**
+ * @singleton
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -7,6 +11,8 @@ component singleton=true output=false {
 	 * @coldbox.inject                 coldbox
 	 * @autoDiscoverDirectories.inject presidecms:directories
 	 * @i18nPlugin.inject              coldbox:plugin:i18n
+	 * @featureService.inject          featureService
+	 * @siteService.inject             siteService
 	 */
 	public any function init(
 		  required struct configuredWidgets
@@ -14,12 +20,16 @@ component singleton=true output=false {
 		, required any    coldbox
 		, required array  autoDiscoverDirectories
 		, required any    i18nPlugin
-	) output=false {
+		, required any    featureService
+		, required any    siteService
+	) {
 		_setFormsService( arguments.formsService );
 		_setColdbox( arguments.coldbox );
 		_setAutoDicoverDirectories( arguments.autoDiscoverDirectories );
 		_setConfiguredWidgets( arguments.configuredWidgets );
 		_setI18nPlugin( arguments.i18nPlugin );
+		_setFeatureService( arguments.featureService );
+		_setSiteService( arguments.siteService );
 
 		_autoDiscoverWidgets();
 		_loadWidgetsFromConfig();
@@ -28,21 +38,29 @@ component singleton=true output=false {
 	}
 
 // PUBLIC API
-	public struct function getWidgets() output=false {
-		return _getWidgets();
+	public struct function getWidgets() {
+		var widgets = Duplicate( _getWidgets() );
+
+		for( var widgetId in widgets ) {
+			if ( !_isWidgetEnabled( widgetId, true ) ) {
+				widgets.delete( widgetId );
+			}
+		}
+
+		return widgets;
 	}
 
-	public boolean function widgetExists( required string widgetId ) output=false {
-		return StructKeyExists( _getWidgets(), arguments.widgetId );
+	public boolean function widgetExists( required string widgetId ) {
+		return StructKeyExists( _getWidgets(), arguments.widgetId ) && _isWidgetEnabled( arguments.widgetId, true );
 	}
 
-	public struct function getWidget( required string widgetId ) output=false {
+	public struct function getWidget( required string widgetId ) {
 		var widgets = _getWidgets();
 
 		return widgets[ arguments.widgetId ] ?: {};
 	}
 
-	public string function renderWidget( required string widgetId, string configJson="", string context="", struct config={} ) output=false {
+	public string function renderWidget( required string widgetId, string configJson="", string context="", struct config={} ) {
 		if ( !widgetExists( arguments.widgetId ) ) {
 			return "";
 		}
@@ -60,7 +78,7 @@ component singleton=true output=false {
 		);
 	}
 
-	public string function renderWidgetConfigForm( required string widgetId, string configJson="", string context="container", any validationResult="" ) output=false {
+	public string function renderWidgetConfigForm( required string widgetId, string configJson="", string context="container", any validationResult="" ) {
 		var savedConfig  = "";
 
 		if ( widgetHasConfigForm( arguments.widgetId ) ) {
@@ -82,7 +100,7 @@ component singleton=true output=false {
 
 	}
 
-	public string function renderWidgetPlaceholder( required string widgetId, string configJson="" ) output=false {
+	public string function renderWidgetPlaceholder( required string widgetId, string configJson="" ) {
 		var rendered = "";
 
 		if ( !widgetExists( arguments.widgetId ) ) {
@@ -101,22 +119,22 @@ component singleton=true output=false {
 		return _getI18nPlugin().translateResource( uri=widgetTitle, defaultValue=widgetTitle );
 	}
 
-	public boolean function widgetHasConfigForm( required string widgetId ) output=false {
+	public boolean function widgetHasConfigForm( required string widgetId ) {
 		return _getFormsService().formExists( _getConfigFormForWidget( arguments.widgetId ) );
 	}
 
-	public string function getConfigFormForWidget( required string widgetId ) output=false {
+	public string function getConfigFormForWidget( required string widgetId ) {
 		return _getConfigFormForWidget( arguments.widgetId );
 	}
 
-	public any function validateWidgetConfig( required string widgetId, required struct config ) output=false {
+	public any function validateWidgetConfig( required string widgetId, required struct config ) {
 		return _getFormsService().validateForm(
 			  formName = _getConfigFormForWidget( arguments.widgetId )
 			, formData = arguments.config
 		);
 	}
 
-	public struct function deserializeConfig( required string configJson ) output=false {
+	public struct function deserializeConfig( required string configJson ) {
 		var config = {};
 
 		try {
@@ -132,13 +150,13 @@ component singleton=true output=false {
 		return config;
 	}
 
-	public void function reload( struct configuredWidgets={} ) output=false {
+	public void function reload( struct configuredWidgets={} ) {
 		_autoDiscoverWidgets();
 		_loadWidgetsFromConfig();
 	}
 
 // PRIVATE HELPERS
-	private void function _loadWidgetsFromConfig() output=false {
+	private void function _loadWidgetsFromConfig() {
 		var widgets           = _getWidgets();
 		var configuration = _getConfiguredWidgets();
 
@@ -156,8 +174,8 @@ component singleton=true output=false {
 		_setWidgets( widgets );
 	}
 
-	private void function _autoDiscoverWidgets() output=false {
-		var widgets                     = {};
+	private void function _autoDiscoverWidgets() {
+		var widgets                 = {};
 		var viewsPath               = "/views/widgets";
 		var handlersPath            = "/handlers/widgets";
 		var ids                     = {};
@@ -197,20 +215,24 @@ component singleton=true output=false {
 		}
 
 		for( var id in ids ) {
-			widgets[ id ].id                 = id;
-			widgets[ id ].configForm         = _getFormNameByConvention( id );
-			widgets[ id ].viewlet            = _getViewletEventByConvention( id );
-			widgets[ id ].placeholderViewlet = _getPlaceholderViewletEventByConvention( id );
-			widgets[ id ].icon               = _getIconByConvention( id );
-			widgets[ id ].title              = _getTitleByConvention( id );
-			widgets[ id ].description        = _getDescriptionByConvention( id );
-			widgets[ id ].siteTemplates      = _mergeSiteTemplates( siteTemplateMap[id] );
+			if ( _isWidgetEnabled( id ) ) {
+				widgets[ id ] = {
+					  id                 = id
+					, configForm         = _getFormNameByConvention( id )
+					, viewlet            = _getViewletEventByConvention( id )
+					, placeholderViewlet = _getPlaceholderViewletEventByConvention( id )
+					, icon               = _getIconByConvention( id )
+					, title              = _getTitleByConvention( id )
+					, description        = _getDescriptionByConvention( id )
+					, siteTemplates      = _mergeSiteTemplates( siteTemplateMap[id] )
+				};
+			}
 		}
 
 		_setWidgets( widgets );
 	}
 
-	private struct function _getWidget( required string widgetId ) output=false {
+	private struct function _getWidget( required string widgetId ) {
 		var widgets = _getWidgets();
 
 		if ( StructKeyExists( widgets, arguments.widgetId ) ) {
@@ -220,49 +242,49 @@ component singleton=true output=false {
 		throw( type="widgets.missingWidget", message="The widget, [#widgetId#], could not be found" );
 	}
 
-	private string function _getWidgetProperty( required string widgetId, required string propertyName ) output=false {
+	private string function _getWidgetProperty( required string widgetId, required string propertyName ) {
 		var widget = _getWidget( widgetId );
 
 		return widget[ arguments.propertyName ] ?: "";
 	}
 
-	private string function _getViewletEventForWidget( required string widgetId ) output=false {
+	private string function _getViewletEventForWidget( required string widgetId ) {
 		return _getWidgetProperty( widgetId, "viewlet" );
 	}
 
-	private string function _getPlaceholderViewletEventForWidget( required string widgetId ) output=false {
+	private string function _getPlaceholderViewletEventForWidget( required string widgetId ) {
 		return _getWidgetProperty( widgetId, "placeholderViewlet" );
 	}
 
-	private string function _getConfigFormForWidget( required string widgetId ) output=false {
+	private string function _getConfigFormForWidget( required string widgetId ) {
 		return _getWidgetProperty( widgetId, "configForm" );
 	}
 
-	private string function _getFormNameByConvention( required string widgetId ) output=false {
+	private string function _getFormNameByConvention( required string widgetId ) {
 		return "widgets." & widgetId;
 	}
 
-	private string function _getViewletEventByConvention( required string widgetId ) output=false {
+	private string function _getViewletEventByConvention( required string widgetId ) {
 		return "widgets." & widgetId;
 	}
 
-	private string function _getPlaceholderViewletEventByConvention( required string widgetId ) output=false {
+	private string function _getPlaceholderViewletEventByConvention( required string widgetId ) {
 		return "widgets." & widgetId & ".placeholder";
 	}
 
-	private string function _getIconByConvention( required string widgetId ) output=false {
+	private string function _getIconByConvention( required string widgetId ) {
 		return "widgets.#widgetId#:iconclass";
 	}
 
-	private string function _getTitleByConvention( required string widgetId ) output=false {
+	private string function _getTitleByConvention( required string widgetId ) {
 		return "widgets.#widgetId#:title";
 	}
 
-	private string function _getDescriptionByConvention( required string widgetId ) output=false {
+	private string function _getDescriptionByConvention( required string widgetId ) {
 		return "widgets.#widgetId#:description";
 	}
 
-	private string function _getSiteTemplateFromPath( required string path ) output=false {
+	private string function _getSiteTemplateFromPath( required string path ) {
 		var regex = "^.*[\\/]site-templates[\\/]([^\\/]+)$";
 
 		if ( !ReFindNoCase( regex, arguments.path ) ) {
@@ -285,47 +307,75 @@ component singleton=true output=false {
 		return merged;
 	}
 
+	private boolean function _isWidgetEnabled( required string widget, boolean includeSiteTemplate=false ) {
+		var featureService = _getFeatureService();
+		var widgetFeature  = featureService.getFeatureForWidget( arguments.widget );
+
+		if ( widgetFeature.len() ) {
+			return featureService.isFeatureEnabled(
+				  feature       = widgetFeature
+				, siteTemplate  = ( arguments.includeSiteTemplate ? _getSiteService().getActiveSiteTemplate() : NullValue() )
+			);
+		}
+
+		return true;
+	}
+
 
 // GETTERS AND SETTERS
-	private any function _getFormsService() output=false {
+	private any function _getFormsService() {
 		return _formsService;
 	}
-	private void function _setFormsService( required any formsService ) output=false {
+	private void function _setFormsService( required any formsService ) {
 		_formsService = arguments.formsService;
 	}
 
-	private any function _getColdbox() output=false {
+	private any function _getColdbox() {
 		return _coldbox;
 	}
-	private void function _setColdbox( required any coldbox ) output=false {
+	private void function _setColdbox( required any coldbox ) {
 		_coldbox = arguments.coldbox;
 	}
 
-	private struct function _getWidgets() output=false {
+	private struct function _getWidgets() {
 		return _widgets;
 	}
-	private void function _setWidgets( required struct widgets ) output=false {
+	private void function _setWidgets( required struct widgets ) {
 		_widgets = arguments.widgets;
 	}
 
-	private array function _getAutoDicoverDirectories() output=false {
+	private array function _getAutoDicoverDirectories() {
 		return _autoDicoverDirectories;
 	}
-	private void function _setAutoDicoverDirectories( required array autoDicoverDirectories ) output=false {
+	private void function _setAutoDicoverDirectories( required array autoDicoverDirectories ) {
 		_autoDicoverDirectories = arguments.autoDicoverDirectories;
 	}
 
-	private struct function _getConfiguredWidgets() output=false {
+	private struct function _getConfiguredWidgets() {
 		return _configuredWidgets;
 	}
-	private void function _setConfiguredWidgets( required struct configuredWidgets ) output=false {
+	private void function _setConfiguredWidgets( required struct configuredWidgets ) {
 		_configuredWidgets = arguments.configuredWidgets;
 	}
 
-	private any function _getI18nPlugin() output=false {
+	private any function _getI18nPlugin() {
 		return _i18nPlugin;
 	}
-	private void function _setI18nPlugin( required any i18nPlugin ) output=false {
+	private void function _setI18nPlugin( required any i18nPlugin ) {
 		_i18nPlugin = arguments.i18nPlugin;
+	}
+
+	private any function _getFeatureService() {
+		return _featureService;
+	}
+	private void function _setFeatureService( required any featureService ) {
+		_featureService = arguments.featureService;
+	}
+
+	private any function _getSiteService() {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) {
+		_siteService = arguments.siteService;
 	}
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.date:">
+	<tab id="validation">
+		<fieldset id="fixed">
+			<field name="minDate"                       control="datePicker"  required="false"  sortorder="10" />
+			<field name="maxDate"                       control="datePicker"  required="false"  sortorder="20" />
+		</fieldset>
+		<fieldset id="relative">
+			<field name="relativeOperator"      control="select"      required="false"  sortorder="10" values=" ,lt,lte,gt,gte" labels=" ,formbuilder.item-types.date:relativeOperator.lt,formbuilder.item-types.date:relativeOperator.lte,formbuilder.item-types.date:relativeOperator.gt,formbuilder.item-types.date:relativeOperator.gte" defaultValue="" />
+			<field name="relativeToCurrentDate" control="yesNoSwitch" required="false"  sortorder="20" />
+			<field name="relativeToField"       control="textinput"   required="false"  sortorder="30" />
+		</fieldset>
+	</tab>
+</form>

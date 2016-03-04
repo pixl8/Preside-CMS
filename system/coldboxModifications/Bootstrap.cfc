@@ -213,7 +213,7 @@ component extends="coldbox.system.Coldbox" output="false" {
 			interceptorService.processState( "postProcess" );
 
 			// Save Flash Scope
-			if ( cbController.getSetting( "flash" ).autoSave ) {
+			if ( areSessionsEnabled() && cbController.getSetting( "flash" ).autoSave ) {
 				cbController.getRequestService().getFlashScope().saveFlash();
 			}
 		} catch( any e ) {
@@ -300,5 +300,11 @@ component extends="coldbox.system.Coldbox" output="false" {
 	}
 	public string function getCOLDBOX_APP_MAPPING() output=false {
 		return variables.COLDBOX_APP_MAPPING;
+	}
+
+	private boolean function areSessionsEnabled() output=false {
+		var appSettings = getApplicationSettings();
+
+		return IsBoolean( appSettings.sessionManagement ?: "" ) && appSettings.sessionManagement;
 	}
 }

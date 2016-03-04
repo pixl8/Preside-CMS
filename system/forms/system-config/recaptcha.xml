@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+System config form: reCAPTCHA settings
+
+This form is used for managing settings for reCAPTCHA for protecting submission forms
+-->
+<form i18nBaseUri="system-config.recaptcha:">
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field name="site_key"   control="textinput" required="true" />
+			<field name="secret_key" control="textinput" required="true" />
+		</fieldset>
+	</tab>
+</form>

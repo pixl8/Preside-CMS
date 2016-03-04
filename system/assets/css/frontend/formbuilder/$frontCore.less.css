@@ -1,0 +1,28 @@
+.input-icon {
+  position: relative;
+  display: flex;
+}
+.input-icon > [class*="fa-"] {
+  padding: 0 3px;
+  position: absolute;
+  top: 1px;
+  line-height: 28px;
+}
+.input-icon.input-icon-right > [class*="fa-"] {
+  left: auto;
+  right: 3px;
+}
+.input-sign {
+  position: relative;
+  display: inherit;
+}
+.input-sign > [class*="sign"] {
+  padding: 0 3px;
+  position: absolute;
+  top: 1px;
+  line-height: 28px;
+}
+.input-sign.input-sign-right > [class*="sign"] {
+  right: auto;
+  right: 3px;
+}

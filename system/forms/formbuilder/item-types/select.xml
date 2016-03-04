@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.select:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="multiple"    control="yesnoswitch"             required="false" sortorder="32" />
+		</fieldset>
+	</tab>
+	<tab id="values">
+		<fieldset id="values">
+			<field name="datamanagerObject" control="dataManagerObjectPicker" required="false" sortorder="10" />
+			<field name="values"            control="textarea"                required="false" sortorder="20" defaultvalue="" />
+			<field name="labels"            control="textarea"                required="false" sortorder="30" defaultvalue="" />
+		</fieldset>
+	</tab>
+</form>

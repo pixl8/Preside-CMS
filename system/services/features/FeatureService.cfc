@@ -24,8 +24,8 @@ component singleton=true autodoc=true displayName="Feature service" {
 	 * @siteTemplate.hint current active site template - can be used to check features that can be site template specific
 	 */
 	public boolean function isFeatureEnabled( required string feature, string siteTemplate ) autodoc=true {
-		var features           = _getConfiguredFeatures();
-		var isEnabled          = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
+		var features  = _getConfiguredFeatures();
+		var isEnabled = IsBoolean( features[ arguments.feature ].enabled ?: "" ) && features[ arguments.feature ].enabled;
 
 		if ( !isEnabled ) {
 			return false;
@@ -53,8 +53,26 @@ component singleton=true autodoc=true displayName="Feature service" {
 		return features.keyExists( arguments.feature );
 	}
 
+	/**
+	 * Returns the feature that the given widget belongs to.
+	 * Returns an empty string if the widget does not belong to a feature
+	 *
+	 * @autodoc
+	 * @widget.hint ID of the widget
+	 */
+	public string function getFeatureForWidget( required string widget ) {
+		var features = _getConfiguredFeatures();
 
-// PRIVATE HELPERS
+		for( var featureName in features ) {
+			var widgets = features[ featureName ].widgets ?: [];
+
+			if ( IsArray( widgets ) && widgets.findNoCase( arguments.widget ) ) {
+				return featureName;
+			}
+		}
+
+		return "";
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredFeatures() {

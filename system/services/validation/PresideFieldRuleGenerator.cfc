@@ -120,7 +120,11 @@ component output="false" singleton=true {
 			break;
 
 			case "date":
-				ArrayAppend( rules, { fieldName=arguments.fieldName, validator=field.dbtype } );
+				if ( field.dbtype == "timestamp" ) {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator="datetime" } );
+				} else {
+					ArrayAppend( rules, { fieldName=arguments.fieldName, validator=field.dbtype } );
+				}
 			break;
 
 			case "string":

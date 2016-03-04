@@ -10,7 +10,7 @@
 	// SERVICE LAYER CFCs
 	cfcFiles         = DirectoryList( "/preside/system/services", true, "path", "*.cfc" );
 	fullPresidePath  = ExpandPath( "/preside" );
-	apiDocsPath      = "/preside/support/docs/docs/04.reference/01.api";
+	apiDocsPath      = "/preside/support/docs/docs/05.reference/01.api";
 	indexDocPath     = apiDocsPath & "/chapter.md";
 	srcToPresideDocs = new SourceToPresideDocs();
 
@@ -44,7 +44,7 @@
 	// PRESIDE OBJECTS
 	cfcFiles        = DirectoryList( "/preside/system/preside-objects", true, "path", "*.cfc" );
 	fullPresidePath = ExpandPath( "/preside" );
-	apiDocsPath     = "/preside/support/docs/docs/04.reference/02.presideobjects";
+	apiDocsPath     = "/preside/support/docs/docs/05.reference/02.presideobjects";
 	indexDocPath    = apiDocsPath & "/chapter.md";
 
 	if ( DirectoryExists( apiDocsPath ) ) {
@@ -72,7 +72,7 @@
 
 	// // FORMS
 	xmlFiles        = DirectoryList( "/preside/system/forms", true, "path", "*.xml" );
-	formsDocsPath   = "/preside/support/docs/docs/04.reference/03.systemforms";
+	formsDocsPath   = "/preside/support/docs/docs/05.reference/03.systemforms";
 	indexDocPath    = formsDocsPath & "/chapter.md";
 	createdDocs     = [];
 

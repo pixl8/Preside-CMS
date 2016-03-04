@@ -66,7 +66,26 @@ component extends="preside.system.base.AdminHandler" output=false {
 			event.notFound();
 		}
 
-		var formData = event.getCollectionForForm( prc.category.getForm() );
+		var formName         = prc.category.getForm();
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		announceInterception( "preSaveSystemConfig", {
+			  category         = categoryId
+			, configuration    = formData
+			, validationResult = validationResult
+		} );
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( uri="cms:sysconfig.validation.failed" ) );
+			var persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent(
+				  url           = event.buildAdminLink(linkTo="sysconfig.category", queryString="id=#categoryId#" )
+				, persistStruct = persist
+			);
+		}
 
 		for( var setting in formData ){
 			systemConfigurationService.saveSetting(
@@ -76,8 +95,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 			);
 		}
 
-		messageBox.info( translateResource( uri="cms:sysconfig.saved" ) );
+		announceInterception( "postSaveSystemConfig", {
+			  category         = categoryId
+			, configuration    = formData
+		} );
 
+		messageBox.info( translateResource( uri="cms:sysconfig.saved" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sysconfig.category", queryString="id=#categoryId#" ) );
 	}
 

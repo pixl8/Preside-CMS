@@ -49,62 +49,67 @@ component output=false {
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.SES"                                 , properties = { configFile = "/preside/system/config/Routes.cfm" } },
-			{ class="preside.system.interceptors.RedirectsInterceptor"                , properties={} }
+			{ class="preside.system.interceptors.EmailConfigurationSaveInterceptor"   , properties={} },
+			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {
 			  throwOnInvalidStates     = false
 			, customInterceptionPoints = []
 		};
 
-		interceptorSettings.customInterceptionPoints.append( "prePresideReload"               );
-		interceptorSettings.customInterceptionPoints.append( "postPresideReload"              );
-		interceptorSettings.customInterceptionPoints.append( "onBuildLink"                    );
-		interceptorSettings.customInterceptionPoints.append( "onCreateSelectDataCacheKey"     );
-		interceptorSettings.customInterceptionPoints.append( "postDbSyncObjects"              );
-		interceptorSettings.customInterceptionPoints.append( "postDeleteObjectData"           );
-		interceptorSettings.customInterceptionPoints.append( "postInsertObjectData"           );
-		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObject"          );
-		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObjects"         );
-		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"        );
-		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"          );
-		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"         );
-		interceptorSettings.customInterceptionPoints.append( "postRenderSiteTreePage"         );
-		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"           );
-		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"           );
-		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"          );
-		interceptorSettings.customInterceptionPoints.append( "postPrepareTableJoins"          );
-		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"               );
-		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"            );
-		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"            );
-		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObject"           );
-		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObjects"          );
-		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"         );
-		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"           );
-		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"          );
-		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"            );
-		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"            );
-		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"           );
-		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"             );
-		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"           );
-		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"          );
-		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"         );
-		interceptorSettings.customInterceptionPoints.append( "preCreateNotificationConsumer"  );
-		interceptorSettings.customInterceptionPoints.append( "postCreateNotificationConsumer" );
-		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                );
-		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                 );
-		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                 );
-		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                );
-		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                 );
-		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                );
-		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"               );
-		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                );
-		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                  );
-		interceptorSettings.customInterceptionPoints.append( "onRestError"                    );
-		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"          );
-		interceptorSettings.customInterceptionPoints.append( "onUnsupportedRestMethod"        );
-		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"          );
-		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"         );
+		interceptorSettings.customInterceptionPoints.append( "prePresideReload"                      );
+		interceptorSettings.customInterceptionPoints.append( "postPresideReload"                     );
+		interceptorSettings.customInterceptionPoints.append( "onBuildLink"                           );
+		interceptorSettings.customInterceptionPoints.append( "onCreateSelectDataCacheKey"            );
+		interceptorSettings.customInterceptionPoints.append( "postDbSyncObjects"                     );
+		interceptorSettings.customInterceptionPoints.append( "postDeleteObjectData"                  );
+		interceptorSettings.customInterceptionPoints.append( "postInsertObjectData"                  );
+		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObject"                 );
+		interceptorSettings.customInterceptionPoints.append( "postLoadPresideObjects"                );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareObjectFilter"               );
+		interceptorSettings.customInterceptionPoints.append( "postReadPresideObject"                 );
+		interceptorSettings.customInterceptionPoints.append( "postReadPresideObjects"                );
+		interceptorSettings.customInterceptionPoints.append( "postRenderSiteTreePage"                );
+		interceptorSettings.customInterceptionPoints.append( "postSelectObjectData"                  );
+		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"                  );
+		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"                 );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareTableJoins"                 );
+		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"                      );
+		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"                   );
+		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"                   );
+		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObject"                  );
+		interceptorSettings.customInterceptionPoints.append( "preLoadPresideObjects"                 );
+		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"                );
+		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"                  );
+		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"                 );
+		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"                   );
+		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
+		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"                  );
+		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"                    );
+		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"                  );
+		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"                 );
+		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"                );
+		interceptorSettings.customInterceptionPoints.append( "preCreateNotificationConsumer"         );
+		interceptorSettings.customInterceptionPoints.append( "postCreateNotificationConsumer"        );
+		interceptorSettings.customInterceptionPoints.append( "preAttemptLogin"                       );
+		interceptorSettings.customInterceptionPoints.append( "onLoginSuccess"                        );
+		interceptorSettings.customInterceptionPoints.append( "onLoginFailure"                        );
+		interceptorSettings.customInterceptionPoints.append( "preDownloadFile"                       );
+		interceptorSettings.customInterceptionPoints.append( "onDownloadFile"                        );
+		interceptorSettings.customInterceptionPoints.append( "onReturnFile304"                       );
+		interceptorSettings.customInterceptionPoints.append( "preDownloadAsset"                      );
+		interceptorSettings.customInterceptionPoints.append( "onDownloadAsset"                       );
+		interceptorSettings.customInterceptionPoints.append( "onRestRequest"                         );
+		interceptorSettings.customInterceptionPoints.append( "onRestError"                           );
+		interceptorSettings.customInterceptionPoints.append( "onMissingRestResource"                 );
+		interceptorSettings.customInterceptionPoints.append( "onUnsupportedRestMethod"               );
+		interceptorSettings.customInterceptionPoints.append( "preInvokeRestResource"                 );
+		interceptorSettings.customInterceptionPoints.append( "postInvokeRestResource"                );
+		interceptorSettings.customInterceptionPoints.append( "onRestRequestParameterValidationError" );
+		interceptorSettings.customInterceptionPoints.append( "preFormBuilderFormSubmission"          );
+		interceptorSettings.customInterceptionPoints.append( "postFormBuilderFormSubmission"         );
+		interceptorSettings.customInterceptionPoints.append( "preSaveSystemConfig"                   );
+		interceptorSettings.customInterceptionPoints.append( "postSaveSystemConfig"                  );
 
 		cacheBox = {
 			configFile = _discoverCacheboxConfigurator()
@@ -155,6 +160,7 @@ component output=false {
 			, "assetmanager"
 			, "datamanager"
 			, "websiteUserManager"
+			, "formbuilder"
 		];
 
 		settings.adminConfigurationMenuItems = [
@@ -192,6 +198,7 @@ component output=false {
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
+			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -211,9 +218,10 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin      = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
-		settings.adminRoles.contentadmin  = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*" ];
-		settings.adminRoles.contenteditor = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
+		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
+		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
@@ -243,25 +251,30 @@ component output=false {
 		};
 
 		settings.features = {
-			  sitetree              = { enabled=true , siteTemplates=[ "*" ] }
-			, sites                 = { enabled=true , siteTemplates=[ "*" ] }
-			, assetManager          = { enabled=true , siteTemplates=[ "*" ] }
-			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ] }
-			, datamanager           = { enabled=true , siteTemplates=[ "*" ] }
-			, systemConfiguration   = { enabled=true , siteTemplates=[ "*" ] }
-			, updateManager         = { enabled=true , siteTemplates=[ "*" ] }
-			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ] }
-			, errorLogs             = { enabled=true , siteTemplates=[ "*" ] }
-			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ] }
-			, multilingual          = { enabled=false, siteTemplates=[ "*" ] }
-			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ] }
-			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ] }
-			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ] }
-			, "devtools.extension"  = { enabled=false, siteTemplates=[ "*" ] }
+			  sitetree              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sites                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, assetManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, datamanager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemConfiguration   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, updateManager         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, errorLogs             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, formbuilder           = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, multilingual          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"  = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
-			livePages = { filter = "page.trashed = 0 and page.active = 1 and ( page.embargo_date is null or now() > page.embargo_date ) and ( page.expiry_date is null or now() < page.expiry_date )" }
+			livePages = {
+				  filter       = "page.trashed = '0' and page.active = 1 and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )"
+				, filterParams = { "now" = { type="cf_sql_date", value=Now() } }
+			}
+			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
 		};
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
@@ -277,6 +290,8 @@ component output=false {
 			, corsEnabled = false
 			, apis        = {}
 		};
+
+		settings.formbuilder = _setupFormBuilder();
 
 		_loadConfigurationFromExtensions();
 
@@ -440,6 +455,11 @@ component output=false {
 			, transformations = [ { method="shrinkToFit", args={ width=48, height=32 } } ]
 		};
 
+		derivatives.pageThumbnail = {
+			  permissions = "inherit"
+			, transformations = [ { method="shrinkToFit", args={ width=100, height=100 } } ]
+		};
+
 		return derivatives;
 	}
 
@@ -489,5 +509,36 @@ component output=false {
 				CreateObject( cfcPath ).configure( config=variables );
 			}
 		}
+	}
+
+	private struct function _setupFormBuilder() {
+		var fbSettings = { itemtypes={} };
+
+		fbSettings.itemTypes.standard = { sortorder=10, types={
+			  textinput    = { isFormField=true  }
+			, textarea     = { isFormField=true  }
+			, email		   = { isFormField=true  }
+			, number 	   = { isFormField=true  }
+			, date 		   = { isFormField=true  }
+			, fileUpload   = { isFormField=true  }
+			, starRating   = { isFormField=true  }
+			, checkbox	   = { isFormField=true  }
+		} };
+
+		fbSettings.itemTypes.multipleChoice = { sortorder=20, types={
+			  select	   = { isFormField=true  }
+			, checkboxList = { isFormField=true  }
+			, radio	       = { isFormField=true  }
+			, matrix       = { isFormField=true  }
+		} };
+
+		fbSettings.itemTypes.content = { sortorder=40, types={
+			  spacer    = { isFormField=false }
+			, content   = { isFormField=false }
+		} };
+
+		fbSettings.actions = [ "email" ];
+
+		return fbSettings;
 	}
 }

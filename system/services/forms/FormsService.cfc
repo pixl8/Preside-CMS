@@ -347,6 +347,26 @@ component {
 		return renderedControl;
 	}
 
+	public string function renderFormControlForObjectField( required string objectName, required string fieldName ) {
+		var pobjService     = _getPresideObjectService();
+	    var fieldBaseI18n   = pobjService.getResourceBundleUriRoot( arguments.objectName );
+		var fieldAttributes = pobjService.getObjectProperty( objectName, arguments.fieldName );
+		var fieldType       = pobjService.getDefaultFormControlForPropertyAttributes( argumentCollection = fieldAttributes );
+	    var formControlArgs = Duplicate( fieldAttributes );
+	    var i18n            = _getI18n();
+
+	    formControlArgs.append( arguments, false );
+
+	    formControlArgs.type         = fieldType;
+	    formControlArgs.sourceObject = arguments.objectName;
+	    formControlArgs.label        = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.title"      , defaultValue=arguments.fieldName );
+	    formControlArgs.placeholder  = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.placeholder", defaultValue="" );
+	    formControlArgs.help         = i18n.translateResource( uri=fieldBaseI18n & "field.#arguments.fieldName#.help"       , defaultValue="" );
+	    formControlArgs.object       = formControlArgs.relatedto ?: "";
+
+	    return renderFormControl( argumentCollection = formControlArgs );
+	}
+
 	public any function validateForm(
 		  required string  formName
 		, required struct  formData

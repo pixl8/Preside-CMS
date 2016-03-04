@@ -11,6 +11,7 @@ component {
 	}
 
 	public void function requestStart( event, rc, prc ) {
+		_setSecurityHeaders( argumentCollection = arguments );
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
@@ -37,6 +38,12 @@ component {
 	}
 
 // private helpers
+	private void function _setSecurityHeaders( event, rc, prc ) {
+		event.setXFrameOptionsHeader(
+			value = event.isAdminRequest() ? "SAMEORIGIN" : "DENY"
+		);
+	}
+
 	private void function _xssProtect( event, rc, prc ) {
 		if ( IsTrue( antiSamySettings.enabled ?: "" ) ) {
 			if ( IsFalse( antiSamySettings.bypassForAdministrators ?: "" ) || !event.isAdminUser() ) {
@@ -48,6 +55,9 @@ component {
 					}
 				}
 			}
+
+			request[ "preside.path_info"    ] = antiSamyService.clean( request[ "preside.path_info"    ] ?: "" );
+			request[ "preside.query_string" ] = antiSamyService.clean( request[ "preside.query_string" ] ?: "" );
 		}
 	}
 
@@ -142,7 +152,7 @@ component {
 	}
 
 	private void function _recordUserVisits( event, rc, prc ) {
-		if ( !event.isAjax() ) {
+		if ( !event.isAjax() && !ReFindNoCase( "^(assetDownload|ajaxproxy|staticAssetDownload)", event.getCurrentHandler() ) ) {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
 		}

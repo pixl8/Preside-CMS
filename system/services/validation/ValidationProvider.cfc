@@ -35,7 +35,7 @@ component output="false" {
 	public any function runValidator(
 		  required string name
 		,          string fieldName = ""
-		,          string value     = ""
+		,          any    value     = ""
 		,          struct data      = {}
 		,          struct params    = {}
 	) output=false {

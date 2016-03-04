@@ -1,0 +1,19 @@
+.presidecms .formbuilder-submission-preview .formbuilder-response {
+  float: left;
+  display: inline-block;
+  margin: 0;
+  background-color: transparent;
+  width: calc(100% - 1.5em);
+}
+.presidecms .formbuilder-submission-preview .formbuilder-response td,
+.presidecms .formbuilder-submission-preview .formbuilder-response th {
+  border: none;
+  background-color: transparent !important;
+  padding: 0;
+}
+.presidecms .formbuilder-submission-preview .formbuilder-response td {
+  padding-left: 1em;
+}
+.presidecms .formbuilder-submission-preview .formbuilder-response td::after {
+  content: "\2026";
+}

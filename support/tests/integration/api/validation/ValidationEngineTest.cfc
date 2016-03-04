@@ -146,13 +146,18 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, { fieldName="field3", validator="validator2", message="Really not there" }
 		];
 		var ruleset  = engine.newRuleset( name="testRuleset", rules=rules );
+		var translations = [ CreateUUId(), CreateUUId(), CreateUUId(), CreateUUId() ];
 		var result   = "";
 		var expected = "";
 
 		engine.newProvider( new tests.resources.ValidationProvider.SimpleProviderWithJsMethods() );
 
+		engine.$( "$translateResource" ).$args( uri="Not there"                     , data=[]             ).$results( translations[ 1 ] );
+		engine.$( "$translateResource" ).$args( uri="validation:another.message.key", data=[]             ).$results( translations[ 2 ] );
+		engine.$( "$translateResource" ).$args( uri=""                              , data=[true]         ).$results( translations[ 3 ] );
+		engine.$( "$translateResource" ).$args( uri="Really not there"              , data=["test",false] ).$results( translations[ 4 ] );
+
 		expected =  '( function( $ ){ ';
-			expected &= 'var translateResource = ( i18n && i18n.translateResource ) ? i18n.translateResource : function(a){ return a }; ';
 			expected &= '$.validator.addMethod( "validator3", function( value, element, params ){ return false; }, "" ); ';
 			expected &= '$.validator.addMethod( "validator2", function( value, element, params ){ return true; }, "" ); ';
 			expected &= 'return { ';
@@ -170,14 +175,14 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 				expected &= '}, ';
 				expected &= 'messages : { ';
 					expected &= '"field1" : { ';
-						expected &= '"required" : translateResource( "Not there", { data : [] } ), ';
-						expected &= '"validator3" : translateResource( "validation:another.message.key", { data : [] } ) ';
+						expected &= '"required" : "#translations[ 1 ]#", ';
+						expected &= '"validator3" : "#translations[ 2 ]#" ';
 					expected &= '}, ';
 					expected &= '"field2" : { ';
-						expected &= '"validator1" : translateResource( "", { data : [true] } ) ';
+						expected &= '"validator1" : "#translations[ 3 ]#" ';
 					expected &= '}, ';
 					expected &= '"field3" : { ';
-						expected &= '"validator2" : translateResource( "Really not there", { data : ["test",false] } ) ';
+						expected &= '"validator2" : "#translations[ 4 ]#" ';
 					expected &= '} ';
 				expected &= '} ';
 			expected &= '}; ';
@@ -188,7 +193,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 // PRIVATE
 	private function _getEngine(){
-		return new preside.system.services.validation.ValidationEngine();
+		return getMockBox().createMock( object=new preside.system.services.validation.ValidationEngine() );
 	}
 
 	private array function _listCoreValidators(){

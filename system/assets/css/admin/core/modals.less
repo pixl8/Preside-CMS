@@ -100,11 +100,33 @@
 						height : 100%;
 					}
 				}
+
+				.modal-padding {
+					padding : 20px;
+				}
+
+				.modal-padding-horizontal {
+					padding-left  : 20px;
+					padding-right : 20px;
+				}
 			}
 
 			.modal-footer {
 				margin-top : 0;
 			}
+		}
+	}
+
+	&.with-padding {
+		.modal-dialog .modal-content .modal-body {
+			padding : 20px;
+		}
+	}
+
+	&.limited-size {
+		.modal-dialog {
+			max-width  : 1200px;
+			max-height : 800px;
 		}
 	}
 }
@@ -117,5 +139,12 @@
 
 	.top-right-button-group {
 		top : 13px;
+	}
+
+	.modal-padding {
+		padding : 20px;
+	}
+	.modal-padding-horizontal {
+		padding : 0 20px;
 	}
 }

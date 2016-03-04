@@ -10860,10 +10860,12 @@ td.presidecms .visible-print {
   margin: 0 3px;
   display: inline-block;
   opacity: 0.85;
+}
+.presidecms .action-buttons a:not(.disabled) {
   -webkit-transition: all 0.1s;
   transition: all 0.1s;
 }
-.presidecms .action-buttons a:hover {
+.presidecms .action-buttons a:not(.disabled):hover {
   text-decoration: none;
   -moz-transform: scale(1.2);
   -webkit-transform: scale(1.2);
@@ -10871,6 +10873,9 @@ td.presidecms .visible-print {
   -ms-transform: scale(1.2);
   transform: scale(1.2);
   opacity: 1;
+}
+.presidecms .action-buttons a.disabled {
+  cursor: not-allowed;
 }
 .presidecms .navbar {
   margin-bottom: 0;
@@ -14786,7 +14791,6 @@ span.presidecms .input-icon {
 }
 .presidecms .input-icon > [class*="fa-"] {
   padding: 0 3px;
-  z-index: 2;
   position: absolute;
   top: 1px;
   bottom: 1px;
@@ -15768,7 +15772,6 @@ span.presidecms .input-icon {
   border: 1px solid #c5d0dc;
   padding: 16px 12px;
   position: relative;
-  z-index: 11;
 }
 .presidecms .tab-content.no-padding {
   padding: 0;
@@ -16025,7 +16028,6 @@ span.presidecms .input-icon {
   margin-right: -1px;
   line-height: 16px;
   position: relative;
-  z-index: 11;
   border-color: #c5d0dc;
 }
 .presidecms .nav-tabs > li > a:hover {
@@ -16048,7 +16050,6 @@ span.presidecms .input-icon {
   border-top: 2px solid #4c8fbd;
   border-bottom-color: transparent;
   background-color: #FFF;
-  z-index: 12;
   line-height: 16px;
   margin-top: -1px;
   box-shadow: 0 -2px 3px 0 rgba(0, 0, 0, 0.15);
@@ -24083,6 +24084,21 @@ img.presidecms .editable-click:hover {
 .presidecms .popover-content {
   min-height: 60px;
 }
+.presidecms .nav-tabs li.error {
+  font-weight: bold;
+}
+.presidecms .nav-tabs li.error a {
+  background-color: #ffeeee;
+}
+.presidecms .nav-tabs li.error.active a {
+  background-color: #ffffff;
+}
+.presidecms .accordion-header.ui-accordion-header {
+  font-size: 100%;
+  position: relative;
+  margin: 0;
+  font-weight: bold;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }
@@ -25939,8 +25955,22 @@ img.presidecms .editable-click:hover {
 .full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body iframe {
   height: 100%;
 }
+.full-screen-dialog .modal-dialog .modal-content .modal-body .modal-padding {
+  padding: 20px;
+}
+.full-screen-dialog .modal-dialog .modal-content .modal-body .modal-padding-horizontal {
+  padding-left: 20px;
+  padding-right: 20px;
+}
 .full-screen-dialog .modal-dialog .modal-content .modal-footer {
   margin-top: 0;
+}
+.full-screen-dialog.with-padding .modal-dialog .modal-content .modal-body {
+  padding: 20px;
+}
+.full-screen-dialog.limited-size .modal-dialog {
+  max-width: 1200px;
+  max-height: 800px;
 }
 .presidecms.iframe .page-content {
   padding-left: 0;
@@ -25948,4 +25978,10 @@ img.presidecms .editable-click:hover {
 }
 .presidecms.iframe .top-right-button-group {
   top: 13px;
+}
+.presidecms.iframe .modal-padding {
+  padding: 20px;
+}
+.presidecms.iframe .modal-padding-horizontal {
+  padding: 0 20px;
 }

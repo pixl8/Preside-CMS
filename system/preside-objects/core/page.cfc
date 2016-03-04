@@ -17,19 +17,20 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="trashed"      type="boolean" dbtype="boolean"                  required=false default=false control="none";
 	property name="old_slug"     type="string"  dbtype="varchar" maxLength="50"   required=false;
 
-	property name="main_image"  relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image";
-	property name="parent_page" relationship="many-to-one" relatedTo="page"                    required=false                     uniqueindexes="slug|1" control="none";
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId";
+	property name="main_image"  relationship="many-to-one" relatedTo="asset"                   required=false allowedTypes="image" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="parent_page" relationship="many-to-one" relatedTo="page"                    required=false                     uniqueindexes="slug|1" control="none"  ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="created_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"  relationship="many-to-one" relatedTo="security_user"           required=true                                             control="none" generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 
 	property name="internal_search_access"                  type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block" labels="preside-objects.page:internal_search_access.option.inherit,preside-objects.page:internal_search_access.option.allow,preside-objects.page:internal_search_access.option.deny";
 	property name="search_engine_access"                    type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|allow|block)"        control="select"          values="inherit,allow,block"       labels="preside-objects.page:search_engine_access.option.inherit,preside-objects.page:search_engine_access.option.allow,preside-objects.page:search_engine_access.option.deny";
 	property name="author"                                  type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="browser_title"                           type="string"  dbtype="varchar" maxLength="100"  required=false;
 	property name="description"                             type="string"  dbtype="varchar" maxLength="255"  required=false;
-	property name="embargo_date"                            type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
-	property name="expiry_date"                             type="date"    dbtype="datetime"                 required=false                                                               control="datetimepicker";
-	property name="access_restriction"                      type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|none|full|partial)"  control="select"          values="inherit,none,full,partial" labels="preside-objects.page:access_restriction.option.inherit,preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
+	property name="embargo_date"                            type="date"    dbtype="datetime"                 required=false                                                                   control="datetimepicker";
+	property name="expiry_date"                             type="date"    dbtype="datetime"                 required=false                                                                   control="datetimepicker";
+	property name="access_restriction"                      type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|none|full|partial)"      control="select"          values="inherit,none,full,partial"      labels="preside-objects.page:access_restriction.option.inherit,preside-objects.page:access_restriction.option.none,preside-objects.page:access_restriction.option.full,preside-objects.page:access_restriction.option.partial";
+	property name="iframe_restriction"                      type="string"  dbtype="varchar" maxLength="7"    required=false default="inherit" format="regex:(inherit|block|sameorigin|allow)" control="select"          values="inherit,block,sameorigin,allow" labels="preside-objects.page:iframe_restriction.option.inherit,preside-objects.page:iframe_restriction.option.block,preside-objects.page:iframe_restriction.option.sameorigin,preside-objects.page:iframe_restriction.option.allow";
 	property name="full_login_required"                     type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="grantaccess_to_all_logged_in_users"      type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="exclude_from_navigation"                 type="boolean" dbtype="boolean"                  required=false default=false;
@@ -61,8 +62,9 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	 * @newData.hint Struct containing the changed fields on the parent node
 	 */
 	public void function updateChildHierarchyHelpers( required query oldData, required struct newData ) autodoc=true output=false {
-		var q      = new query();
-		var sql    = "update #getTableName()# set datemodified = ?";
+		var q         = new query();
+		var sql       = "update #getTableName()# set datemodified = ?";
+		var dbAdapter = this.getDbAdapter();
 
 		q.setDatasource( getDsn() );
 		q.addParam( value=Now(), cfsqltype="timestamp" );
@@ -71,14 +73,14 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 			if ( arguments.newData.keyExists( field ) ) {
 				switch( field ) {
 					case "_hierarchy_lineage":
-						sql &= ', _hierarchy_child_selector = Concat( ?, Right( _hierarchy_child_selector, Length( _hierarchy_child_selector ) - ? ) )';
+						sql &= ', _hierarchy_child_selector = #dbAdapter.getConcatenationSql( '?', 'Right( _hierarchy_child_selector, #dbAdapter.getLengthFunctionSql( '_hierarchy_child_selector' )# - ? )')#';
 						q.addParam( value=arguments.newData[ field ]          , cfsqltype="varchar" );
 						q.addParam( value=Len( arguments.oldData[ field ][1] ), cfsqltype="integer" );
 						// deliberate no break!
 
 					case "_hierarchy_slug":
 					case "_hierarchy_sort_order":
-						sql &= ', #field# = Concat( ?, Right( #field#, Length( #field# ) - ? ) )';
+						sql &= ', #field# = #dbAdapter.getConcatenationSql( '?', 'Right( #field#, #dbAdapter.getLengthFunctionSql( field )# - ? )' )#';
 						q.addParam( value=arguments.newData[ field ]          , cfsqltype="varchar" );
 						q.addParam( value=Len( arguments.oldData[ field ][1] ), cfsqltype="integer" );
 						break;

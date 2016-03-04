@@ -1,7 +1,10 @@
 <cfscript>
-	pageType       = rc.pageType ?: "";
-	parentId       = rc.parent   ?: "";
-	canAddChildren = prc.canAddChildren ?: false;
+	pageType        = rc.pageType         ?: "";
+	parentId        = rc.parent           ?: "";
+	canAddChildren  = prc.canAddChildren  ?: false;
+	gridFields      = prc.gridFields      ?: [];
+	cleanGridFields = prc.cleanGridFields ?: [];
+	gridFieldTitles = prc.gridFieldTitles ?: [];
 
 	objectTitle    = translateResource( uri="page-types.#pageType#:name", defaultValue=pageType );
 	addRecordTitle = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitle ) ] );
@@ -11,7 +14,7 @@
 	event.includeData( {
 		  objectName      = pageType
 		, objectTitle     = LCase( objectTitle )
-		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sitetree.getManagedPagesForAjaxDataTables&parent=#parentId#&pageType=#pageType#" )
+		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sitetree.getManagedPagesForAjaxDataTables&parent=#parentId#&pageType=#pageType#&gridFields=#ArrayToList( gridFields )#" )
 		, useMultiActions = false
 		, allowSearch     = true
 	} );
@@ -33,9 +36,9 @@
 		<table id="object-listing-table-#LCase( pageType )#" class="table table-hover object-listing-table">
 			<thead>
 				<tr>
-					<th data-field="title">#translateResource( uri="preside-objects.page:field.title.title" )#</th>
-					<th data-field="active">#translateResource( uri="preside-objects.page:field.active.title" )#</th>
-					<th data-field="datecreated" data-default-sort-order="desc">#translateResource( uri="preside-objects.page:field.datecreated.title", defaultValue=translateResource( "cms:preside-objects.default.field.datecreated.title" ) )#</th>
+					<cfloop array="#gridFields#" item="fieldName" index="i">
+						<th data-field="#cleanGridFields[ i ]#">#gridFieldTitles[ i ]#</th>
+					</cfloop>
 					<th>&nbsp;</th>
 				</tr>
 			</thead>

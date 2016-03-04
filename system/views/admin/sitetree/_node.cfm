@@ -4,10 +4,13 @@
 	param name="args._hierarchy_depth"            type="string";
 	param name="args.title"                       type="string";
 	param name="args.page_type"                   type="string";
+	param name="args.main_image"                  type="string";
 	param name="args.slug"                        type="string";
 	param name="args.full_slug"                   type="string";
 	param name="args.datecreated"                 type="date";
 	param name="args.datemodified"                type="date";
+	param name="args.embargo_date"                type="any" default="";
+	param name="args.expiry_date"                 type="any" default="";
 	param name="args.active"                      type="boolean";
 	param name="args.trashed"                     type="boolean";
 	param name="args.child_count"                 type="numeric";
@@ -58,6 +61,10 @@
 		selectedAncestors = prc.selectedAncestors ?: [];
 		isSelected        = args.id == selected;
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
+
+		dataImage            = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
+		usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
+		outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
 	}
 </cfscript>
 
@@ -69,11 +76,9 @@
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
 
 				<cfif hasEditPagePermission>
-					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#">
-						#args.title#
-					</a>
+					<a class="page-title" href="#quickBuildLink( args.editPageBaseLink, {id=args.id} )#" title="#translateResource( "cms:sitetree.edit.child.page.link" )#" #dataImage#> #args.title#</a>
 				<cfelse>
-					<span class="page-title">#args.title#</span>
+					<span class="page-title" #dataImage#>#args.title#</span>
 				</cfif>
 
 				<div class="actions pull-right btn-group">
@@ -140,7 +145,13 @@
 				</div>
 			</td>
 			<td>#pageType#</td>
-			<td>#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#</td>
+			<td>
+				#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#
+
+				<cfif usesDateRestrictions>
+					<i class="fa fa-clock-o <cfif outOfDate>red<cfelse>green</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
+				</cfif>
+			</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">

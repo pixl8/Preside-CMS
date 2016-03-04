@@ -1,0 +1,56 @@
+.presidecms .formbuilder-workbench a,
+.presidecms .formbuilder-workbench .ui-accordion .ui-accordion-header,
+.presidecms .formbuilder-workbench .ui-icon {
+  color: #222222;
+}
+.presidecms .formbuilder-workbench .ui-accordion .ui-accordion-header,
+.presidecms .formbuilder-workbench .ui-accordion .ui-accordion-header.ui-state-active {
+  background-color: #eeeeee;
+  font-weight: normal;
+}
+.presidecms .formbuilder-workbench .ui-accordion .ui-accordion-content {
+  border-bottom-width: 0;
+}
+.presidecms .formbuilder-workbench .ui-accordion .group:last-child .ui-accordion-content {
+  border-bottom-width: 1px;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items {
+  position: relative;
+  padding: 20px;
+  border: 3px dashed #eeeeee;
+  border-radius: 10px;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .instructions {
+  text-align: center;
+  padding: 20px 0;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .instructions .empty-notice {
+  display: none;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .instructions.empty .empty-notice {
+  display: block;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .instructions.empty .not-empty-notice {
+  display: none;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type {
+  padding: 10px;
+  background-color: #eeeeee;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type.sortable-placeholder {
+  border: 2px dashed #dddddd;
+  min-height: 3em;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .sort-link:active,
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .sort-link:hover {
+  cursor: move;
+}
+.presidecms .formbuilder-workbench .formbuilder-workbench-items .form-items .item-type .item-type-name {
+  color: #999999;
+  text-transform: uppercase;
+  padding-right: 1em;
+}

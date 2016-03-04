@@ -106,8 +106,10 @@ component displayName="Preside REST Resource Reader" {
 	 * @autodoc true
 	 */
 	public array function readResource( required string cfcPath, required string api ) {
-		var readMeta = { verbs={} };
-		var verbs    = [ "get", "post", "put", "delete", "head", "options" ];
+		var readMeta                  = { verbs={}, requiredParameters={}, parameterTypes={} };
+		var verbs                     = [ "get", "post", "put", "delete", "head", "options" ];
+		var validatableParameterTypes = [ "string", "date", "numeric", "uuid" ];
+
 		var reader = function( meta ){
 			if ( arguments.meta.keyExists( "extends" ) ) {
 				reader( arguments.meta.extends );
@@ -118,11 +120,27 @@ component displayName="Preside REST Resource Reader" {
 			}
 
 			var functions = meta.functions ?: [];
+
 			for( var func in functions ) {
+				var verb = "";
+
 				if ( verbs.findNoCase( func.name ?: "" ) ) {
-					readMeta.verbs[ func.name ] = func.name;
+					verb = func.name;
 				} else if ( verbs.findNoCase( func.restVerb ?: "" ) ) {
-					readMeta.verbs[ func.restVerb ] = func.name;
+					verb = func.restVerb;
+				}
+				if ( Len( verb ) ) {
+					readMeta.verbs[ verb ] = func.name;
+					readMeta.requiredParameters[ verb ] = [];
+					readMeta.parameterTypes[ verb ] = {};
+					for ( var param in func.parameters ) {
+						if ( isBoolean( param.required ?: "" ) && param.required ) {
+							readMeta.requiredParameters[ verb ].append( param.name );
+						}
+						if ( validatableParameterTypes.findNoCase( param.type ?: "" ) ) {
+							readMeta.parameterTypes[ verb ][ param.name ] = param.type;
+						}
+					}
 				}
 			}
 		};
@@ -141,8 +159,10 @@ component displayName="Preside REST Resource Reader" {
 		for( var uri in uris ) {
 			var resource = readUri( uri );
 
-			resource.verbs   = readMeta.verbs;
-			resource.handler = handler;
+			resource.verbs              = readMeta.verbs;
+			resource.requiredParameters = readMeta.requiredParameters;
+			resource.parameterTypes     = readMeta.parameterTypes;
+			resource.handler            = handler;
 
 			resources.append( resource );
 		}

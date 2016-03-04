@@ -3,7 +3,9 @@ component {
 	public void function setupApplication(
 		  string  id                           = CreateUUId()
 		, string  name                         = arguments.id & ExpandPath( "/" )
-		, boolean sessionManagement            = true
+		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
+		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|baiduspider|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
+		, boolean sessionManagement            = !isStatelessRequest( _getUrl() )
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 15
@@ -16,6 +18,8 @@ component {
 		this.sessionManagement                       = arguments.sessionManagement;
 		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.scriptProtect                           = arguments.scriptProtect;
+		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
+		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -36,6 +40,12 @@ component {
 
 	public void function onRequestEnd() {
 		_invalidateSessionIfNotUsed();
+		_cleanupCookies();
+	}
+
+	public void function onAbort() {
+		_invalidateSessionIfNotUsed();
+		_cleanupCookies();
 	}
 
 	public boolean function onRequest() output=true {
@@ -54,6 +64,8 @@ component {
 		if ( StructKeyExists( arguments, "cbBootstrap" ) ) {
 			application.cbBootstrap.onSessionStart();
 		}
+
+		_preventSessionFixation();
 	}
 
 	public void function onSessionEnd( required struct sessionScope, required struct appScope ) {
@@ -95,9 +107,11 @@ component {
 	) {
 		var presideroot = _getPresideRoot();
 
-		this.mappings[ "/preside" ] = presideroot;
-		this.mappings[ "/coldbox" ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
-		this.mappings[ "/sticker" ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/preside"        ] = presideroot;
+		this.mappings[ "/coldbox"        ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox";
+		this.mappings[ "/sticker"        ] = presideroot & "/system/externals/sticker";
+		this.mappings[ "/spreadsheetlib" ] = presideroot & "/system/externals/lucee-spreadsheet";
+		this.mappings[ "/javaloader"     ] = presideroot & "/system/externals/coldbox-standalone-3.8.2/coldbox/system/core/javaloader"
 
 		this.mappings[ arguments.appMapping     ] = arguments.appPath;
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
@@ -285,33 +299,112 @@ component {
 		new preside.system.services.maintenanceMode.MaintenanceModeService().showMaintenancePageIfActive();
 	}
 
+	private void function _preventSessionFixation() {
+		SessionRotate();
+	}
+
 	private void function _invalidateSessionIfNotUsed() {
+		var applicationSettings  = getApplicationSettings();
 		var sessionIsUsed        = false;
 		var ignoreKeys           = [ "cfid", "timecreated", "sessionid", "urltoken", "lastvisit", "cftoken" ];
 		var keysToBeEmptyStructs = [ "cbStorage", "cbox_flash_scope" ];
+		var sessionsEnabled      = IsBoolean( applicationSettings.sessionManagement ) && applicationSettings.sessionManagement;
 
-		for( var key in session ) {
-			if ( ignoreKeys.findNoCase( key ) ) {
-				continue;
+		if ( sessionsEnabled ) {
+			for( var key in session ) {
+				if ( ignoreKeys.findNoCase( key ) ) {
+					continue;
+				}
+
+				if ( keysToBeEmptyStructs.findNoCase( key ) && IsStruct( session[ key ] ) && session[ key ].isEmpty() ) {
+					continue;
+				}
+
+				sessionIsUsed = true;
+				break;
 			}
-
-			if ( keysToBeEmptyStructs.findNoCase( key ) && IsStruct( session[ key ] ) && session[ key ].isEmpty() ) {
-				continue;
-			}
-
-			sessionIsUsed = true;
-			break;
 		}
 
 		if ( !sessionIsUsed ) {
-			this.sessionTimeout = CreateTimeSpan( 0, 0, 0, 1 );
+			if ( sessionsEnabled ) {
+				this.sessionTimeout = CreateTimeSpan( 0, 0, 0, 1 );
+			}
 
-			var cookies = Duplicate( cookie );
-			getPageContext().setHeader( "Set-Cookie", NullValue() );
+			_removeSessionCookies();
+		}
+	}
 
-			for( var cookieName in cookies ) {
-				if ( ![ "cfid", "cftoken", "jsessionid" ].findNoCase( cookieName ) ) {
-					cookie[ cookieName ] = cookies[ cookieName ];
+	private void function _removeSessionCookies() {
+		var pc             = getPageContext();
+		var resp           = pc.getResponse();
+		var allCookies     = resp.getHeaders( "Set-Cookie" );
+		var cleanedCookies = [];
+
+		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
+			var cooky = allCookies[ i ];
+			if ( !ReFindNoCase( "^(CFID|CFTOKEN|JSESSIONID|SESSIONID)=", cooky ) ) {
+				cleanedCookies.append( cooky );
+			}
+		}
+
+		resp.setHeader( "Set-Cookie", "" );
+		for( var i=1; i <= cleanedCookies.len(); i++ ) {
+			if ( i == 1 ) {
+				resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+			} else {
+				resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
+			}
+		}
+	}
+
+	private void function _cleanupCookies() {
+		var pc           = getPageContext();
+		var resp         = pc.getResponse();
+		var cbController = _getColdboxController();
+		var allCookies   = resp.getHeaders( "Set-Cookie" );
+
+		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
+			if ( ArrayLen( allCookies ) ) {
+				resp.setHeader( "Set-Cookie", "" );
+			}
+			return;
+		}
+
+		var httpRegex         = "(^|;|\s)HttpOnly(;|$)";
+		var secureRegex       = "(^|;|\s)Secure(;|$)";
+		var cleanedCookies    = [];
+		var anyCookiesChanged = false;
+		var site              = cbController.getRequestContext().getSite();
+		var isSecure          = ( site.protocol ?: "http" ) == "https";
+
+		for( var i=1; i <= ArrayLen( allCookies ); i++ ) {
+			var cooky = allCookies[ i ];
+			if ( !Len( Trim( cooky ) ) ) {
+				continue;
+			}
+
+			if ( !ReFindNoCase( httpRegex, cooky ) ) {
+				cooky = ListAppend( cooky, "HttpOnly", ";" );
+				anyCookiesChanged = true;
+			}
+
+			if ( isSecure && !ReFindNoCase( secureRegex, cooky ) ) {
+				cooky = ListAppend( cooky, "Secure", ";" );
+				anyCookiesChanged = true;
+			}
+
+			cleanedCookies.append( cooky );
+		}
+
+		anyCookiesChanged = _clearoutDuplicateCookies( cleanedCookies ) || anyCookiesChanged;
+
+		if ( anyCookiesChanged ) {
+			resp.setHeader( "Set-Cookie", "" );
+			for( var i=1; i <= cleanedCookies.len(); i++ ) {
+				if ( i == 1 ) {
+					resp.setHeader( "Set-Cookie", cleanedCookies[ i ] );
+				} else {
+					resp.addHeader( "Set-Cookie", cleanedCookies[ i ] );
 				}
 			}
 		}
@@ -323,6 +416,25 @@ component {
 		var dir          = GetDirectoryFromPath( thisFilePath );
 
 		return ReReplace( dir, "[\\/]system[\\/]?$", "" );
+	}
+
+	private boolean function _clearoutDuplicateCookies( required array cookieSet ) {
+		var existingCookies = {};
+		var anyCleared      = false;
+
+		for( var i=arguments.cookieSet.len(); i>0; i-- ) {
+			var cookieName = ListFirst( arguments.cookieSet[ i ], "=" );
+
+			if ( existingCookies.keyExists( cookieName ) ) {
+				arguments.cookieSet.deleteAt( i );
+				anyCleared = true;
+				continue;
+			}
+
+			existingCookies[ cookieName ] = 0;
+		}
+
+		return anyCleared;
 	}
 
 	private string function _getApplicationRoot() {
@@ -368,6 +480,51 @@ component {
 		if ( !IsNull( controller ) ) {
 			controller.getInterceptorService().processState( argumentCollection=arguments );
 		}
+	}
+
+	private boolean function isStatelessRequest( required string fullUrl ) {
+		var urlPatterns   = this.statelessUrlPatterns       ?: [];
+		var agentPatterns = this.statelessUserAgentPatterns ?: [];
+		var userAgent     = cgi.http_user_agent             ?: "";
+
+		for( var pattern in urlPatterns ) {
+			if ( arguments.fullUrl.reFindNoCase( pattern ) ) {
+				return true;
+			}
+		}
+
+		for( var pattern in agentPatterns ) {
+			if ( userAgent.reFindNoCase( pattern ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private string function _getUrl() {
+		var requestData = GetHttpRequestData();
+		var requestUrl  = requestData.headers[ 'X-Original-URL' ] ?: "";
+
+		if ( !Len( Trim( requestUrl ) ) ) {
+			requestUrl = request[ "javax.servlet.forward.request_uri" ] ?: "";
+
+			if ( !Len( Trim( requestUrl ) ) ) {
+				requestUrl = cgi.request_url;
+			} else {
+				var protocol = "http";
+
+				if( isBoolean( cgi.server_port_secure ) AND cgi.server_port_secure){
+					protocol = "https";
+				} else {
+					protocol = requestData.headers[ "x-forwarded-proto" ] ?: ( requestData.headers[ "x-scheme" ] ?: LCase( ListFirst( cgi.server_protocol, "/" ) ) );
+				}
+
+				requestUrl = protocol & "://" & cgi.http_host & requestUrl;
+			}
+		}
+
+		return requestUrl;
 	}
 
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.actions.email:">
+	<tab id="default" sortorder="10">
+		<fieldset id="default" sortorder="10">
+			<field name="subject"    control="textinput" required="true"  />
+			<field name="recipients" control="textinput" required="true"  />
+			<field name="send_from"  control="textinput" required="false" />
+		</fieldset>
+	</tab>
+</form>

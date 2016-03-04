@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="formbuilder.item-types.textarea:">
+	<tab id="default">
+		<fieldset id="default">
+			<field name="minlength" control="spinner" required="false" sortorder="33" defaultvalue="0" />
+			<field name="maxlength" control="spinner" required="false" sortorder="36" defaultvalue="0" />
+		</fieldset>
+	</tab>
+</form>
