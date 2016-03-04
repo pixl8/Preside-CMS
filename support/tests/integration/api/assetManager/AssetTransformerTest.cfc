@@ -4,8 +4,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function setup() {
 		super.setup();
 
+		mockNativeImageImplementation    =	 getMockBox().createMock( "preside.system.services.assetManager.NativeImageService" );
+		mockImageMagickImplementation    =	 getMockBox().createMock("preside.system.services.assetManager.imageMagickService");
+		mockImageManipulationService	 =	 getMockBox().createMock("preside.system.services.assetManager.imageManipulationService");
+
+		mockImageMagickImplementation.init("",30);
+
+		mockImageManipulationService.$( "$getPresideCategorySettings", {"retrieve_metadata":"","isImageMagick":false,"pathToImageMagick":"","timeout":30} );
+
 		transformer = new preside.system.services.assetManager.AssetTransformer(
-			imageManipulationService = new preside.system.services.assetManager.imageManipulationService()
+			imageManipulationService = mockImageManipulationService.init( mockNativeImageImplementation,mockImageMagickImplementation )
 		);
 	}
 
@@ -15,7 +23,12 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testfile.txt" );
 
 		try {
-			transformer.resize( assetBinary, 100, 100 );
+			transformer.resize(
+				  asset     = assetBinary
+				, width     = 100
+				, height    = 100
+				, filename  = "testlandscape.jpg"
+			);
 		} catch ( "assetTransformer.resize.notAnImage" e ) {
 			errorThrown = true;
 		} catch ( any e ) {
@@ -28,8 +41,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test02_resize_shouldReturnResizedBinaryImage_withSpecifiedWidth_whenNoHeightSpecified() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
 		var resized     = transformer.resize(
-			  asset = assetBinary
-			, width = 100
+			  asset     = assetBinary
+			, width     = 100
+			, filename  = "testlandscape.jpg"
 		);
 		var imgInfo     = ImageInfo( ImageNew( resized ) );
 
@@ -40,8 +54,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test03_resize_shouldReturnResizedBinaryImage_withSpecifiedHeight_whenNoWidthSpecified() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
 		var resized     = transformer.resize(
-			  asset  = assetBinary
-			, height = 200
+			  asset     = assetBinary
+			, height    = 200
+			, filename  = "testlandscape.jpg"
 		);
 		var imgInfo     = ImageInfo( ImageNew( resized ) );
 
@@ -52,9 +67,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test04_resize_shouldReturnResizedBinaryImage_withSpecifiedHeightAndWidth() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
 		var resized     = transformer.resize(
-			  asset  = assetBinary
-			, height = 200
-			, width  = 300
+			  asset     = assetBinary
+			, height    = 200
+			, width     = 300
+			, filename  = "testlandscape.jpg"
 		);
 		var imgInfo     = ImageInfo( ImageNew( resized ) );
 
@@ -65,9 +81,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function test05_resize_shouldReturnCroppedAndResizedBinaryImage_whenPassedHeightAndWidthThatDoNotMatchAspectRatio_andWhenMaintainAspectRatioIsSetToTrue() output=false {
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var resized     = transformer.resize(
-			  asset  = assetBinary
-			, height = 400
-			, width  = 400
+			  asset               = assetBinary
+			, height              = 400
+			, width               = 400
+			, filename            = "testlandscape.jpg"
 			, maintainAspectRatio = true
 		);
 		var imgInfo     = ImageInfo( ImageNew( resized ) );
@@ -80,9 +97,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
 		var resized     = transformer.shrinkToFit(
-			  asset  = assetBinary
-			, height = imgInfo.height + 1
-			, width  = imgInfo.width + 1
+			  asset     = assetBinary
+			, height    = imgInfo.height + 1
+			, width     = imgInfo.width + 1
+			, filename  = "testlandscape.jpg"
 		);
 		var newImgInfo  = ImageInfo( ImageNew( resized ) );
 
@@ -93,9 +111,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
 		var resized     = transformer.shrinkToFit(
-			  asset  = assetBinary
-			, height = imgInfo.height + 10
-			, width  = imgInfo.width - 10
+			  asset     = assetBinary
+			, height    = imgInfo.height + 10
+			, width     = imgInfo.width - 10
+			, filename  = "testlandscape.jpg"
 		);
 		var newImgInfo  = ImageInfo( ImageNew( resized ) );
 
@@ -107,9 +126,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
 		var resized     = transformer.shrinkToFit(
-			  asset  = assetBinary
-			, height = imgInfo.height - 10
-			, width  = imgInfo.width + 10
+			  asset     = assetBinary
+			, height    = imgInfo.height - 10
+			, width     = imgInfo.width + 10
+			, filename  = "testlandscape.jpg"
 		);
 		var newImgInfo  = ImageInfo( ImageNew( resized ) );
 
@@ -121,9 +141,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testportrait.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
 		var resized     = transformer.shrinkToFit(
-			  asset  = assetBinary
-			, height = 100
-			, width  = 100
+			  asset     = assetBinary
+			, height    = 100
+			, width     = 100
+			, filename  = "testlandscape.jpg"
 		);
 		var newImgInfo  = ImageInfo( ImageNew( resized ) );
 
@@ -135,9 +156,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var assetBinary = FileReadBinary( "/tests/resources/assetManager/testlandscape.jpg" );
 		var imgInfo     = ImageInfo( ImageNew( assetBinary ) );
 		var resized     = transformer.shrinkToFit(
-			  asset  = assetBinary
-			, height = 400
-			, width  = 400
+			  asset     = assetBinary
+			, height    = 400
+			, width     = 400
+			, filename  = "testlandscape.jpg"
 		);
 		var newImgInfo  = ImageInfo( ImageNew( resized ) );
 

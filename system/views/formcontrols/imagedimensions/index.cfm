@@ -1,7 +1,6 @@
 <cfscript>
 	inputName      = args.name           ?: "";
 	inputId        = args.id             ?: "";
-	inputClass     = args.class          ?: "";
 	placeholder    = args.placeholder    ?: "";
 	defaultValue   = args.defaultValue   ?: "";
 	maintainAspect = args.maintainAspect ?: true;
@@ -18,5 +17,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" id="#inputId#" name="#inputName#" value="#value#" class="#inputClass# image-dimension-picker" tabindex="#getNextTabIndex()#" />
+	<input type="text" id="#inputId#" name="#inputName#" value="#value#" class="image-dimension-picker" tabindex="#getNextTabIndex()#" />
 </cfoutput>
