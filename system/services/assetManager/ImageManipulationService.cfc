@@ -67,10 +67,9 @@ component displayname="Image Manipulation Service" {
 	}
 
 	private function _getImplementation() {
-	    var useImageMagick = $getPresideSetting( "asset-manager", "isImageMagick" );
+	    var useImageMagick = (!structIsEmpty( $getPresideCategorySettings( "asset-manager" ) ) && StructKeyExists( $getPresideCategorySettings( "asset-manager" ), "isImageMagick")) ? $getPresideCategorySettings( "asset-manager" ).isImageMagick : false;
 
 	    if ( IsBoolean( useImageMagick ) && useImageMagick ) {
-
 	        return _getImageMagickImplementation();
 	    }
 	    return _getNativeImageImplementation();
@@ -81,8 +80,9 @@ component displayname="Image Manipulation Service" {
 	}
 
 	private any function _setImageMagickImplementation(required any imageMagickImplementation) {
-		var path = $getPresideSetting( "asset-manager", "pathToImageMagick" );
-	    var timeout = $getPresideSetting( "asset-manager", "timeout" );
+	    var path    = !structIsEmpty( $getPresideCategorySettings( "asset-manager" ) ) ? $getPresideCategorySettings( "asset-manager" ).pathToImageMagick : "";
+	    var timeout = !structIsEmpty( $getPresideCategorySettings( "asset-manager" ) ) ? $getPresideCategorySettings( "asset-manager" ).timeout : 30;
+
 		_imageMagickImplementation = arguments.imageMagickImplementation.init(path, timeout);
 	}
 
