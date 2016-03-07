@@ -300,7 +300,11 @@ component {
 	}
 
 	private void function _preventSessionFixation() {
-		SessionRotate();
+		var appSettings = getApplicationSettings();
+
+		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+			SessionRotate();
+		}
 	}
 
 	private void function _invalidateSessionIfNotUsed() {

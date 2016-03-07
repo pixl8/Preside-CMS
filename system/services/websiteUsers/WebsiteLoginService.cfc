@@ -110,7 +110,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 		recordLogout();
 
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
-		SessionRotate();
+		_preventSessionFixation();
 
 		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
 			var cookieValue = _readRememberMeCookie();
@@ -414,7 +414,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 	private void function _setUserSession( required struct data ) {
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
-		SessionRotate();
+		_preventSessionFixation();
 	}
 
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
@@ -588,6 +588,14 @@ component singleton=true autodoc=true displayName="Website login service" {
 		}
 
 		return record;
+	}
+
+	private void function _preventSessionFixation() {
+		var appSettings = getApplicationSettings();
+
+		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+			SessionRotate();
+		}
 	}
 
 // private accessors
