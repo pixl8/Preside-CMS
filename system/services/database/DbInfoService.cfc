@@ -38,12 +38,12 @@ component output=false hint="Proxy to cfdbinfo for returning information about a
 		dbinfo type="index" table="#arguments.tableName#" name="indexes" datasource="#arguments.dsn#";
 
 		for( index in indexes ){
-			if ( index.index_name neq "PRIMARY" ) {
-				if ( not StructKeyExists( ixs, index.index_name ) ){
+			if ( Len( Trim( index.index_name ) ) && index.index_name != "PRIMARY" ) {
+				if ( !StructKeyExists( ixs, index.index_name ) ){
 					ixs[ index.index_name ] = {
-						  unique = not index.non_unique
+						  unique = !( IsBoolean( index.non_unique ) && index.non_unique )
 						, fields = ""
-					}
+					};
 				}
 
 				ixs[ index.index_name ].fields = ListAppend( ixs[ index.index_name ].fields, index.column_name );
