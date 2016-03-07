@@ -335,12 +335,12 @@ component displayName="Admin login service" {
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.usr.id );
-		SessionRotate();
+		_preventSessionFixation();
 	}
 
 	private void function _destroyUserSession() {
 		_getSessionStorage().deleteVar( name=_getSessionKey() );
-		SessionRotate();
+		_preventSessionFixation();
 	}
 
 	private query function _getUserByLoginId( required string loginId ) {
@@ -413,6 +413,14 @@ component displayName="Admin login service" {
 		}
 
 		return record;
+	}
+
+	private void function _preventSessionFixation() {
+		var appSettings = getApplicationSettings();
+
+		if ( ( appSettings.sessionType ?: "cfml" ) != "j2ee" ) {
+			SessionRotate();
+		}
 	}
 
 // GETTERS AND SETTERS
