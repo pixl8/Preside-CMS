@@ -14,7 +14,6 @@ component displayname="ImageMagick"  {
 
 	public binary function resize(
 		  required binary  asset
-		, required string  filename
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
@@ -47,7 +46,6 @@ component displayname="ImageMagick"  {
 
 	public binary function pdfPreview(
 		  required binary asset
-		, required string filename
 		,          string scale
 		,          string resolution
 		,          string format
@@ -56,20 +54,18 @@ component displayname="ImageMagick"  {
 	) {
 		var imagePrefix    = CreateUUId();
 		var tmpFilePathPDF = GetTempFile( GetTempDirectory(), "mgk" );
-		var tmpFilePathJpg = GetTempFile( GetTempDirectory(), "mgk" );
+		var tmpFilePathJpg = GetTempFile( GetTempDirectory(), "mgk" ) & ".jpg";
+		var args           = '"#tmpFilePathPDF#[0]" -density 100 -colorspace sRGB "#tmpFilePathJpg#"';
 
 		FileWrite( tmpFilePathPDF, arguments.asset );
 
-		execArgs.args = '-density 100 -colorspace rgb "#tmpFilePathPDF#[0]" "#tmpFilePathJpg#"';
-
-		_exec( argumentCollection = execArgs );
+		_exec( command="convert", args=args );
 
 		return FileReadBinary( tmpFilePathJpg );
 	}
 
 	public binary function shrinkToFit(
 		  required binary  asset
-		, required string  filename
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
