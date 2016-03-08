@@ -979,6 +979,7 @@ component displayName="AssetManager Service" {
 					  assetBinary          = assetBinary
 					, transformationMethod = transformation.method ?: ""
 					, transformationArgs   = transformation.args   ?: {}
+					, filename             = filename              ?: ""
 				);
 
 				if ( Len( Trim( transformation.outputFileType ?: "" ) ) ) {
@@ -1257,12 +1258,12 @@ component displayName="AssetManager Service" {
 		}
 	}
 
-	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs ) {
+	private binary function _applyAssetTransformation( required binary assetBinary, required string transformationMethod, required struct transformationArgs, required string filename) {
 		var args        = Duplicate( arguments.transformationArgs );
 
 		// todo, sanity check the input
+		args.asset    = arguments.assetBinary;
 
-		args.asset = arguments.assetBinary;
 		return _getAssetTransformer()[ arguments.transformationMethod ]( argumentCollection = args );
 	}
 
