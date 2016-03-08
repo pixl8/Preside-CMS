@@ -68,7 +68,11 @@
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 	        data-value="#HtmlEditFormat( value )#"
 	        <cfif IsBoolean( multiple ) && multiple>
-	        	multiple="multiple"
+	        	multiple             ="multiple"
+	        	data-selectAll       = "true"
+                data-selectAllText   = "Select all"
+                data-deselectAll     = "true"
+                data-deselectAllText = "select none"
 	        </cfif>
 	        <cfif Len( Trim( remoteUrl ) )>
 		        data-remote-url="#remoteUrl#"

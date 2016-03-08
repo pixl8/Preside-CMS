@@ -33,6 +33,10 @@
 	        data-value="#value#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
+	        	data-selectAll       = "true"
+                data-selectAllText   = "Select all"
+                data-deselectAll     = "true"
+                data-deselectAllText = "select none"
 	        </cfif>
 	>
 		<cfloop array="#values#" index="i" item="selectValue">

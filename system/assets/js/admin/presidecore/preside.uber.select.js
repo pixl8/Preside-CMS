@@ -63,6 +63,63 @@
 			this.setup();
 			this.set_up_html();
 			this.register_observers();
+			this.set_select_all( this.dropdown );
+		}
+
+		UberSelect.prototype.set_select_all = function( dropdown ){
+			var chosen    = this,
+			    $dropdown = dropdown;
+        	   if( !chosen.__customButtonsInitilized ) {
+        			chosen.__customButtonsInitilized = true;
+        			var contained = function( el ) {
+			            var container = document.createElement("ul");
+			            container.appendChild(el);
+			            return container;
+			        }
+			        var selectAllText     = this.form_field.getAttribute( "data-selectAllText" )   || 'All',
+			            selectNoneText    = this.form_field.getAttribute( "data-deselectAllText" ) || 'None';
+			       if( chosen.is_multiple ) {
+			       		var selectAllEl = document.createElement("li"),
+		                selectAllElContainer = contained(selectAllEl),
+		                selectNoneEl = document.createElement("li"),
+		                selectNoneElContainer = contained(selectNoneEl);
+		                selectAllEl.appendChild( document.createTextNode( selectAllText ) );
+            			selectNoneEl.appendChild( document.createTextNode( selectNoneText ) );
+
+            			$dropdown.prepend(selectNoneElContainer);
+            			$dropdown.prepend(selectAllElContainer);
+            			var $selectAllEl = $(selectAllEl),
+			                $selectAllElContainer = $(selectAllElContainer),
+			                $selectNoneEl = $(selectNoneEl),
+			                $selectNoneElContainer = $(selectNoneElContainer);
+
+			            $selectNoneElContainer.addClass("ui-chosen-selectNoneBtnContainer")
+			                .css("padding", "5px 8px 5px 0px")
+			                .css("overflow", "hidden");
+			            $selectAllElContainer.addClass("ui-chosen-selectAllBtnContainer")
+			                .css("padding", "5px 5px 5px 7px")
+			                .css("overflow", "hidden");
+			            $selectAllEl.on("click", function(e) {
+			                e.preventDefault();
+			                options = SelectParser.select_to_array( chosen.form_field );
+							_len    = options.length;
+							var _i  = 0;
+							for( ; _i<_len; _i++ ){
+								chosen.value.push( options[ _i ].value );
+							}
+			                chosen.form_field_jq.trigger("chosen:updated");
+			                return false;
+			            });
+			            $selectNoneEl.on("click", function(e) {
+			                e.preventDefault();
+                			chosen.hidden_field.val( "" );
+							chosen.selected = [];
+							chosen.value = [];
+			                chosen.form_field_jq.trigger("chosen:updated");
+                			return false;
+			            });
+				   }
+        		}
 		}
 
 		UberSelect.prototype.setup_preselected_value = function(){
