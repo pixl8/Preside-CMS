@@ -25,7 +25,6 @@ component displayname="ImageMagick"  {
 			return arguments.asset;
 		}
 
-		var image              = "";
 		var currentImageInfo   = {};
 		var tmpFilePath        = getTempFile( GetTempDirectory(), "mgk" );
 
@@ -76,7 +75,6 @@ component displayname="ImageMagick"  {
 			return arguments.asset;
 		}
 
-		var image             = "";
 		var tmpFilePath       = GetTempFile( GetTempDirectory(), "mgk" );
 		var shrinkToWidth     = arguments.width;
 		var shrinkToHeight    = arguments.height;
@@ -136,13 +134,20 @@ component displayname="ImageMagick"  {
 	}
 
 	public struct function getImageInformation( required binary asset ) {
-		try {
-			return ImageInfo( ImageNew( arguments.asset ) );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
+		var tmpFilePath = GetTempFile( GetTempDirectory(), "mgk" );
+
+		FileWrite( tmpFilePath, arguments.asset );
+
+		var rawInfo = Trim( _exec( command="identify", args='-format "%wx%h" "#tmpFilePath#"' ) );
+
+		if ( ReFindNoCase( "^[0-9]+x[0-9]+$", rawInfo ) ) {
+			return {
+				  width  = ListFirst( rawInfo, "x" )
+				, height = ListLast( rawInfo, "x" )
+			};
 		}
 
-		return {};
+		throw( type="AssetTransformer.shrinkToFit.notAnImage" );
 	}
 
 // PRIVATE HELPERS
