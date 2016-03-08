@@ -1,11 +1,14 @@
+/**
+ * Provides image manipulation logic using ImageMagick
+ *
+ * @autodoc
+ * @singleton
+ * @presideservice
+ *
+ */
 component displayname="ImageMagick"  {
 
-	public any function init(
-		          string  path    = ""
-		, 		  numeric timeout = 30
-	) {
-		_setExecutablePath( arguments.path );
-		_setTimeout( arguments.timeout );
+	public any function init() {
 		return this;
 	}
 
@@ -16,37 +19,30 @@ component displayname="ImageMagick"  {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
-		,          struct  assetProperties     =  {}
-	) output=false {
-		var image              = "";
-		var currentImageInfo   = {};
-		var tmpFilePath        = GetTempDirectory() & "/" & arguments.filename;
-		try {
-			image = ImageNew( arguments.asset );
-			imagewrite(image,tmpFilePath);
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.resize.notAnImage" );
-		}
-
-		currentImageInfo = ImageInfo( image );
-
-		var imageMagickFile = "";
+	) {
+		var currentImageInfo = getImageInformation( arguments.asset );
 
 		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
 			return arguments.asset;
-		} else {
-			imageMagickFile   = imageMagickResize(
-				  sourceFile      = tmpFilePath
-				, destinationFile = tmpFilePath
-				, width           = arguments.width
-				, height          = arguments.height
-				, expand          = maintainAspectRatio
-				, crop            = maintainAspectRatio
-			);
 		}
-		image = FileReadBinary( imageMagickFile );
 
-		return ImageGetBlob( image );
+		var image              = "";
+		var currentImageInfo   = {};
+		var tmpFilePath        = getTempFile( GetTempDirectory(), "mgk" );
+
+		FileWrite( tmpFilePath, arguments.asset );
+
+		imageMagickResize(
+			  sourceFile      = tmpFilePath
+			, destinationFile = tmpFilePath
+			, qualityArgs     = _cfToImQuality( arguments.quality )
+			, width           = arguments.width
+			, height          = arguments.height
+			, expand          = maintainAspectRatio
+			, crop            = maintainAspectRatio
+		);
+
+		return FileReadBinary( tmpFilePath );
 	}
 
 	public binary function pdfPreview(
@@ -57,17 +53,18 @@ component displayname="ImageMagick"  {
 		,          string format
 		,          string pages
 		,          string transparent
-		,          struct assetProperties =  {}
 	) {
-		var imagePrefix         = CreateUUId();
-		var tmpFilePathPDF      = GetTempDirectory() & "/" & imagePrefix & ".pdf";
-		file = filewrite( tmpFilePathPDF, arguments.asset );
-		arguments.fileName      = replaceNoCase(arguments.fileName, ".pdf", ".jpg");
-		var tmpFilePath         = GetTempDirectory() & "/" & arguments.filename;
-		execArgs.args           = '-density 100 -colorspace rgb "#tmpFilePathPDF#[0]" "#tmpFilePath#"';
-		arguments.sourceFile    = tmpFilePath;
-		execute( argumentCollection = execArgs );
-		return FileReadBinary( tmpFilePath );
+		var imagePrefix    = CreateUUId();
+		var tmpFilePathPDF = GetTempFile( GetTempDirectory(), "mgk" );
+		var tmpFilePathJpg = GetTempFile( GetTempDirectory(), "mgk" );
+
+		FileWrite( tmpFilePathPDF, arguments.asset );
+
+		execArgs.args = '-density 100 -colorspace rgb "#tmpFilePathPDF#[0]" "#tmpFilePathJpg#"';
+
+		_exec( argumentCollection = execArgs );
+
+		return FileReadBinary( tmpFilePathJpg );
 	}
 
 	public binary function shrinkToFit(
@@ -75,98 +72,119 @@ component displayname="ImageMagick"  {
 		, required string  filename
 		, required numeric width
 		, required numeric height
-		,          string  quality             = "highPerformance"
-	) output=false {
-		var image            = "";
-		var currentImageInfo = {};
-		arguments.fileName   = !(listlast(arguments.fileName,'.') == 'pdf') ? arguments.fileName: replaceNoCase(arguments.fileName, ".pdf", ".jpg");
-		var tmpFilePath      = GetTempDirectory() & "/" & arguments.filename;
+		,          string  quality = "highPerformance"
+	) {
+		var currentImageInfo = getImageInformation( arguments.asset );
 
-		try {
-			image = ImageNew( arguments.asset );
-			imagewrite(image,tmpFilePath);
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
-		}
-
-		currentImageInfo = ImageInfo( image );
-
-		var imageMagickFile = "";
-
-		if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
+		if ( currentImageInfo.width <= arguments.width && currentImageInfo.height <= arguments.height ) {
 			return arguments.asset;
-		} else {
-			var imageMagickFile   = imageMagickResize(
-				  sourceFile      = tmpFilePath
-				, destinationFile = tmpFilePath
-				, width           = arguments.width
-				, height          = arguments.height
-				, expand          = true
-				, crop            = false
-			);
 		}
-		image = FileReadBinary( imageMagickFile );
 
-		return ImageGetBlob( image );
+		var image             = "";
+		var tmpFilePath       = GetTempFile( GetTempDirectory(), "mgk" );
+		var shrinkToWidth     = arguments.width;
+		var shrinkToHeight    = arguments.height;
+		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
+		var heightChangeRatio = currentImageInfo.height / shrinkToHeight;
+
+		FileWrite( tmpFilePath, arguments.asset );
+
+		if ( widthChangeRatio > heightChangeRatio ) {
+			shrinkToHeight = 0;
+		} else {
+			shrinkToWidth = 0;
+		}
+
+		imageMagickResize(
+			  sourceFile      = tmpFilePath
+			, destinationFile = tmpFilePath
+			, qualityArgs      = _cfToImQuality( arguments.quality )
+			, width           = shrinkToWidth
+			, height          = shrinkToHeight
+			, expand          = true
+			, crop            = false
+		);
+
+		return FileReadBinary( tmpFilePath );
 	}
 
 	public string function imageMagickResize(
 		  required string  sourceFile
 		, required string  destinationFile
+		, required string  qualityArgs
 		, required numeric width
 		, required numeric height
 		,          boolean expand    = false
 		,          boolean crop      = false
 		,          string  gravity   = 'center'
 	) {
-		var execArgs.args    = '"#arguments.sourceFile#" -resize #arguments.width#x#arguments.height#';
+		var defaultSettings = "-unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
+		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings# -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
+		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
 
-    	if ( arguments.expand ) {
-    		if ( arguments.crop ) {
-    			execArgs.args &= "^";
-    		}
-    		execArgs.args &= " -gravity #arguments.gravity# -extent #arguments.width#x#arguments.height#";
-    	}
+		if ( arguments.expand ) {
+			if ( arguments.crop ) {
+				args &= "^";
+			}
+			args &= " -gravity #arguments.gravity# -extent #arguments.width#x#arguments.height#";
+		}
 
-    	execArgs.args &= " " & '"#arguments.destinationFile#"';
-       	execute( argumentCollection = execArgs );
+		interlace = ( IsBoolean( interlace ) && interlace ) ? "line" : "none";
+		args &= " -interlace #interlace#";
 
-    	return arguments.destinationFile;
+		args &= " " & '"#arguments.destinationFile#"';
+
+		_exec( command="convert", args=args );
+
+		return arguments.destinationFile;
 	}
 
-	private string function execute(
-		required string args
-	) {
-	    var result = "";
+	public struct function getImageInformation( required binary asset ) {
+		try {
+			return ImageInfo( ImageNew( arguments.asset ) );
+		} catch ( "java.io.IOException" e ) {
+			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
+		}
 
-	    // writeDump(_getExecutablePath());
-	    // writeDump(arguments.args);
-	    // writeDump(_getTimeout());abort
-		 cfexecute(
-				   name      = "#_getExecutablePath()#"
-				  ,arguments = "#arguments.args#"
-				  ,timeout   = "#_getTimeout()#"
-				  ,variable  = "result" );
-		 return result;
+		return {};
 	}
 
-	private string function _getExecutablePath() {
-		return _executablePath;
+// PRIVATE HELPERS
+	private string function _exec( required string command, required string args ) {
+		var result = "";
+		var config = $getPresideCategorySettings( "asset-manager" );
+		var binDir = Trim( config.imagemagick_path ?: "" );
+
+		if ( Len( binDir ) ) {
+			binDir = Replace( binDir, "\", "/", "all" );
+			binDir = ReReplace( binDir, "([^/])$", "\1/" );
+		}
+
+		execute name      = binDir & arguments.command
+				arguments = arguments.args
+				timeout   = Val( config.imagemagick_timeout ?: 30 )
+				variable  = "result";
+
+		return result;
 	}
 
-	private void function _setExecutablePath(
-		required string executablePath
-	) {
-		_executablePath = arguments.executablePath;
-	}
+	private string function _cfToImQuality( required string cfInterpolation ) {
+		switch( arguments.cfInterpolation ) {
+			case "highestQuality":
+				return "-filter lanczos -define filter:support=2 -quality 90";
 
-	private numeric function _getTimeout() {
-		return _timeout;
-	}
+			case "highQuality":
+			case "mediumPerformance":
+				return "-filter lanczos -define filter:support=2 -quality 82";
 
-	private void function _setTimeout(
-		required string timeout
-	) {
-		_timeout = arguments.timeout;
+
+			case "nearest":
+			case "bicubic":
+			case "bilinear":
+			case "highestPerformance":
+				return "-filter triangle -define filter:support=3 -quality 75";
+		}
+
+		return "-filter triangle -define filter:support=3 -quality 82";
 	}
 }
