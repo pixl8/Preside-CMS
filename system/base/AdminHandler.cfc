@@ -1,5 +1,6 @@
 <cfcomponent output="false" hint="I am a base Handler for all admin handlers. All admin handlers should extend me">
-	<cfproperty name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent" />
+
+	<cfproperty name="applicationsService" inject="applicationsService" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -8,8 +9,9 @@
 
 		<cfscript>
 			_checkLogin( event );
+			var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
-			event.setLayout( "admin" );
+			event.setLayout( applicationsService.getLayout( activeApplication ) );
 			event.setLanguage( "" );
 			event.includeData( {
 				  ajaxEndpoint = event.buildAdminLink( linkTo="ajaxProxy" )
@@ -19,7 +21,7 @@
 
 			event.addAdminBreadCrumb(
 				  title = translateResource( "cms:home.title" )
-				, link  = event.buildAdminLink( linkTo=adminDefaultEvent )
+				, link  = event.buildLink( linkTo=applicationsService.getDefaultEvent( activeApplication ) )
 			);
 		</cfscript>
 	</cffunction>
@@ -44,7 +46,7 @@
 							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
 						}
 					} else {
-						postLoginUrl = event.buildAdminLink( linkTo=adminDefaultEvent );
+						postLoginUrl = event.buildAdminLink( linkTo=applicationsService.getDefaultEvent() );
 					}
 
 				} else {

@@ -2,6 +2,7 @@ component {
 
 	property name="maintenanceModeService" inject="maintenanceModeService";
 	property name="resourceBundleService"  inject="resourceBundleService";
+	property name="applicationsService"    inject="applicationsService";
 	property name="i18n"                   inject="coldbox:plugin:i18n";
 
 	private string function siteAlerts( event, rc, prc, args={} ) {
@@ -48,5 +49,25 @@ component {
 		}
 
 		return "";
+	}
+
+	private string function applicationNav( event, rc, prc, args={} ) {
+		args.applications        = applicationsService.listApplications( limitByCurrentUser=true );
+		args.selectedApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
+
+		return renderView( view="/admin/layout/applicationNav", args=args );
+	}
+
+	private string function applicationDropdownItem( event, rc, prc, args={} ) {
+		var app = args.app ?: "";
+
+		args.append({
+			  link        = event.buildLink( linkTo=applicationsService.getDefaultEvent( app ) )
+			, title       = translateResource( uri="applications:#app#.title"      , defaultValue=app )
+			, description = translateResource( uri="applications:#app#.description", defaultValue="" )
+			, iconClass   = translateResource( uri="applications:#app#.iconClass"  , defaultValue="fa-desktop" )
+		});
+
+		return renderView( view="/admin/layout/applicationDropdownItem", args=args );
 	}
 }

@@ -155,6 +155,15 @@ component output=false {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
 
+		settings.adminApplications = [ {
+			  id                 = "cms"
+			, feature            = "cms"
+			, defaultEvent       = "admin.sitetree"
+			, accessPermission   = "cms.access"
+			, activeEventPattern = "admin\..*"
+			, layout             = "admin"
+		} ];
+
 		settings.adminSideBarItems = [
 			  "sitetree"
 			, "assetmanager"
@@ -185,7 +194,8 @@ component output=false {
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
 		settings.adminPermissions = {
-			  sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			  cms                    = [ "access" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -218,10 +228,10 @@ component output=false {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
-		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
-		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
-		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
+		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
@@ -251,7 +261,8 @@ component output=false {
 		};
 
 		settings.features = {
-			  sitetree              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			  cms                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sitetree              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, sites                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, assetManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
