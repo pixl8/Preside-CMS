@@ -40,7 +40,11 @@ component displayname="ImageMagick"  {
 			, crop            = maintainAspectRatio
 		);
 
-		return FileReadBinary( tmpFilePath );
+		var binary = FileReadBinary( tmpFilePath );
+
+		FileDelete( tmpFilePath );
+
+		return binary;
 	}
 
 	public binary function pdfPreview(
@@ -60,7 +64,12 @@ component displayname="ImageMagick"  {
 
 		_exec( command="convert", args=args );
 
-		return FileReadBinary( tmpFilePathJpg );
+		var binary = FileReadBinary( tmpFilePathJpg );
+
+		FileDelete( tmpFilePathPDF );
+		FileDelete( tmpFilePathJpg );
+
+		return binary;
 	}
 
 	public binary function shrinkToFit(
@@ -99,7 +108,11 @@ component displayname="ImageMagick"  {
 			, crop            = false
 		);
 
-		return FileReadBinary( tmpFilePath );
+		var binary = FileReadBinary( tmpFilePath );
+
+		FileDelete( tmpFilePath );
+
+		return binary;
 	}
 
 	public string function imageMagickResize(
@@ -139,6 +152,8 @@ component displayname="ImageMagick"  {
 		FileWrite( tmpFilePath, arguments.asset );
 
 		var rawInfo = Trim( _exec( command="identify", args='-format "%wx%h" "#tmpFilePath#"' ) );
+
+		FileDelete( tmpFilePath );
 
 		if ( ReFindNoCase( "^[0-9]+x[0-9]+$", rawInfo ) ) {
 			return {
