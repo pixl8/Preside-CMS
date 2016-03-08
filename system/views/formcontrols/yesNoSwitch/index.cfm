@@ -1,7 +1,6 @@
 <cfscript>
 	inputName    = args.name         ?: "";
 	inputId      = args.id           ?: "";
-	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
