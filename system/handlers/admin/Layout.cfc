@@ -52,8 +52,8 @@ component {
 	}
 
 	private string function applicationNav( event, rc, prc, args={} ) {
-		args.applications = applicationsService.listApplications( limitByCurrentUser=true );
-		args.selected     = applicationsService.getActiveApplication( event.getCurrentEvent() );
+		args.applications        = applicationsService.listApplications( limitByCurrentUser=true );
+		args.selectedApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
 		return renderView( view="/admin/layout/applicationNav", args=args );
 	}

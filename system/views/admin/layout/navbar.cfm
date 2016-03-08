@@ -15,7 +15,7 @@
 		</script>
 
 		<div class="navbar-container" id="navbar-container">
-			#renderViewlet( event="admin.layout.applicationNav", args={ selectedApplication="cms" } )#
+			#renderViewlet( event="admin.layout.applicationNav" )#
 
 			#renderViewlet( "admin.sites.sitePicker" )#
 
