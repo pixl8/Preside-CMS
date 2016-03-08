@@ -1,0 +1,1 @@
+<cfoutput>#translateResource( uri="cms:cms.title" )#</cfoutput>

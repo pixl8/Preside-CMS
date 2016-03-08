@@ -36,6 +36,35 @@
 					border-right : 1px solid @preside-bar-separator-shadow-colour;
 				}
 			}
+
+			&.application-menu {
+				border : none;
+
+				> a, > a:hover,  > a:focus, > a:active {
+					border  : none;
+					padding : 0;
+				}
+
+				.application-menu-toggle {
+					margin: 0 5px 0 -25px;
+				}
+
+				.application-list-item {
+					> a {
+						display : block;
+					}
+
+					.application-title {
+						display       : block;
+						margin-bottom : 0.5em;
+					}
+
+					.application-description {
+						display : block;
+						color   : @default-light-font-colour;
+					}
+				}
+			}
 		}
 	}
 

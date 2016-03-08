@@ -15,9 +15,7 @@
 		</script>
 
 		<div class="navbar-container" id="navbar-container">
-			<div class="navbar-header pull-left">
-				<a href="##" class="navbar-brand">#translateResource( uri="cms:cms.title" )#</a>
-			</div><!-- /.navbar-header -->
+			#renderViewlet( event="admin.layout.applicationNav", args={ selectedApplication="cms" } )#
 
 			#renderViewlet( "admin.sites.sitePicker" )#
 

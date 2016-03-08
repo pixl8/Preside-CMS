@@ -155,6 +155,8 @@ component output=false {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
 
+		settings.adminApplications = [ "cms" ];
+
 		settings.adminSideBarItems = [
 			  "sitetree"
 			, "assetmanager"
