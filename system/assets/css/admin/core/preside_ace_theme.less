@@ -50,7 +50,8 @@
 				}
 
 				.application-list-item {
-					> a {
+
+					.application-link {
 						display : block;
 					}
 
@@ -60,8 +61,26 @@
 					}
 
 					.application-description {
-						display : block;
-						color   : @default-light-font-colour;
+						display       : block;
+						color         : @default-light-font-colour;
+						margin-left   : 2.5em;
+					}
+
+					.application-listing {
+						padding : 0 1em 1em 0;
+						border-bottom : 1px solid @default-separator-border-colour;
+					}
+
+					&:first-child {
+						.application-listing {
+							padding-top : 0;
+						}
+					}
+
+					&:last-child {
+						.application-listing {
+							border-bottom : none;
+						}
 					}
 				}
 			}
