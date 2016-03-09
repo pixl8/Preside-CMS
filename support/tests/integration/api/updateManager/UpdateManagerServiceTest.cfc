@@ -1,4 +1,4 @@
-component output="false" extends="mxunit.framework.TestCase" {
+component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
 
 // SETUP, TEARDOWN, ETC.
 	function setup() {
@@ -108,9 +108,16 @@ component output="false" extends="mxunit.framework.TestCase" {
 
 // PRIVATE HELPERS
 	private any function _getAdapter( repositoryUrl="", presidePath="/tests/resources/updateManager" ) output=false  {
+		var cacheBox = _getCachebox( forceNewInstance=true );
+
 		mockSettingsService = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 		mockApplicationReloadService = getMockBox().createEmptyMock( "preside.system.services.devtools.ApplicationReloadService" );
-		adapter = new preside.system.services.updateManager.UpdateManagerService( argumentCollection=arguments, systemConfigurationService=mockSettingsService, applicationReloadService=mockApplicationReloadService );
+		adapter = new preside.system.services.updateManager.UpdateManagerService(
+			  argumentCollection         = arguments
+			, systemConfigurationService = mockSettingsService
+			, applicationReloadService   = mockApplicationReloadService
+			, lookupCache                = cachebox.getCache( "DefaultQueryCache" )
+		);
 
 		return getMockBox().createMock( object=adapter );
 	}
