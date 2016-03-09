@@ -4,13 +4,20 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 	function setup() {
 		super.setup();
 
-		mockNativeImageImplementation    =	 getMockBox().createMock( "preside.system.services.assetManager.NativeImageService" );
-		mockImageMagickImplementation    =	 getMockBox().createMock("preside.system.services.assetManager.imageMagickService");
-		mockImageManipulationService	 =	 getMockBox().createMock("preside.system.services.assetManager.imageManipulationService");
+		mockNativeImageImplementation = getMockBox().createMock( "preside.system.services.assetManager.NativeImageService" );
+		mockImageMagickImplementation = getMockBox().createMock("preside.system.services.assetManager.imageMagickService");
+		mockImageManipulationService  = getMockBox().createMock("preside.system.services.assetManager.imageManipulationService");
 
 		mockImageMagickImplementation.init("",30);
 
-		mockImageManipulationService.$( "$getPresideCategorySettings", {"retrieve_metadata":"","isImageMagick":false,"pathToImageMagick":"","timeout":30} );
+		mockImageManipulationService.$( "$getPresideCategorySettings", {
+			  retrieve_metadata     = false
+			, use_imagemagick       = false
+			, imagemagick_path      = ""
+			, imagemagick_timeout   = 30
+			, imagemagick_interlace = false
+		} );
+		mockImageManipulationService.$( "$getPresideSetting" ).$args( "asset-manager", "use_imagemagick" ).$results( false );
 
 		transformer = new preside.system.services.assetManager.AssetTransformer(
 			imageManipulationService = mockImageManipulationService.init( mockNativeImageImplementation,mockImageMagickImplementation )
