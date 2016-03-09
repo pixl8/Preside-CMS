@@ -116,37 +116,7 @@ component extends="BaseAdapter" {
 		sql &= " add constraint #escapeEntity( arguments.constraintName )#";
 		sql &= " foreign key ( #escapeEntity( arguments.sourceColumn )# )";
 		sql &= " references #escapeEntity( arguments.foreignTable )# ( #escapeEntity( arguments.foreignColumn )# )";
-		if(sourceTable == foreignTable) {
-			sql &= " on delete no action";
-		}
-		else {
-			switch( arguments.onDelete ) {
-				case 'error':
-					break;
-				case 'cascade':
-					sql &= " on delete cascade";
-					break;
-				case 'cascade-if-no-cycle-check':
-				case 'no action':
-					sql &= " on delete no action";
-					break;
-				default:
-					sql &= " on delete no action";
-			}
-			switch( arguments.onUpdate ) {
-				case 'error':
-					break;
-				case 'cascade':
-					sql &= " on update cascade";
-					break;
-				case 'cascade-if-no-cycle-check':
-				case 'no action':
-					sql &= " on update no action";
-					break;
-				default:
-					sql &= " on update no action";
-			}
-		}
+		sql &= " on delete no action";
 		return sql;
 	}
 
