@@ -28,7 +28,6 @@ component {
 // APPLICATION LIFECYCLE EVENTS
 	public boolean function onRequestStart( required string targetPage ) {
 		_maintenanceModeCheck();
-		_setupInjectedDatasource();
 		_readHttpBodyNowBecauseRailoSeemsToBeSporadicallyBlankingItFurtherDownTheRequest();
 
 		if ( _reloadRequired() ) {
@@ -204,24 +203,31 @@ component {
 
 	private void function _setupInjectedDatasource() {
 		var config      = application.injectedConfig ?: {};
-		var dsnInjected = Len( Trim( config[ "datasource.user" ] ?: "" ) ) && Len( Trim( config[ "datasource.database_name" ] ?: "" ) ) && Len( Trim( config[ "datasource.host" ] ?: "" ) ) && Len( Trim( config[ "datasource.password" ] ?: "" ) );
+		var dsnInjected = Len( Trim( config[ "datasource.user" ] ?: "" ) ) && Len( Trim( config[ "datasource.database_name" ] ?: "" ) ) && Len( Trim( config[ "datasource.host" ] ?: "" ) );
 
 		if ( dsnInjected ) {
-			var dsn        = config[ "datasource.name" ] ?: "preside";
-			var useUnicode = config[ "datasource.character_encoding" ] ?: true;
+			var dsn                = config[ "datasource.name" ] ?: "preside";
+			var host               = config[ "datasource.host" ];
+			var port               = config[ "datasource.port" ] ?: 3306;
+			var dbName             = config[ "datasource.database_name" ];
+			var encoding           = config[ "datasource.character_encoding" ] ?: "UTF-8";
+			var username           = config[ "datasource.user"     ];
+			var password           = config[ "datasource.password" ] ?: "";
+			var luceeAdminPassword = config[ "lucee.admin.password" ] ?: "";
 
-			this.datasources[ dsn ] = {
-				  type     : 'MySQL'
-				, port     : config[ "datasource.port"          ] ?: 3306
-				, host     : config[ "datasource.host"          ]
-				, database : config[ "datasource.database_name" ]
-				, username : config[ "datasource.user"          ]
-				, password : config[ "datasource.password"      ]
-				, custom   : {
-					  characterEncoding : config[ "datasource.character_encoding" ] ?: "UTF-8"
-					, useUnicode        : ( IsBoolean( useUnicode ) && useUnicode )
-				  }
-			};
+			// use cfadmin tag here; using this.datasources proving to be unreliable
+			admin action     = "updateDatasource"
+			      type       = "web"
+			      classname  = "org.gjt.mm.mysql.Driver"
+			      dsn        = "jdbc:mysql://#host#:#port#/#dbName#?useUnicode=true&characterEncoding=#encoding#&useLegacyDatetimeCode=true"
+			      name       = dsn
+			      newName    = dsn
+			      host       = host
+			      database   = dbname
+			      port       = port
+			      dbusername = username
+			      dbpassword = password
+			      password   = luceeAdminPassword;
 		}
 	}
 
