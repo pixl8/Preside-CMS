@@ -32,6 +32,18 @@ component output="false" singleton=true {
 		} );
 	}
 
+	public query function getAuditLog(
+		  string detail
+		, string source
+		, string action
+		, string type
+		, string instance
+		, string userId
+	) output=false {
+		var logs = _getDao().selectData( );
+		return logs;
+	}
+
 // PRIVATE GETTERS AND SETTERS
 	private any function _getDao() output=false {
 		return _dao;

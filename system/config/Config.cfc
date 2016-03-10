@@ -170,6 +170,7 @@ component output=false {
 			, "updateManager"
 			, "urlRedirects"
 			, "errorLogs"
+			, "auditTrail"
 			, "maintenanceMode"
 		];
 
@@ -260,6 +261,7 @@ component output=false {
 			, updateManager         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, auditTrail            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder           = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
