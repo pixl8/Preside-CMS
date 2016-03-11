@@ -2,8 +2,8 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="loginService"          inject="loginService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
+	property name="applicationsService"   inject="applicationsService";
 	property name="sessionStorage"        inject="coldbox:plugin:sessionStorage";
-	property name="adminDefaultEvent"     inject="coldbox:setting:adminDefaultEvent";
 	property name="messageBox"            inject="coldbox:plugin:messageBox";
 	property name="i18n"                  inject="coldbox:plugin:i18n";
 
@@ -19,7 +19,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( event.isAdminUser() ){
-			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		if ( loginService.isUserDatabaseNotConfigured() ) {
@@ -50,7 +50,7 @@ component extends="preside.system.base.AdminHandler" {
 				sessionStorage.deleteVar( "_unsavedFormData", {} );
 				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
 			} else {
-				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+				_redirectToDefaultAdminEvent( event );
 			}
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkto="login" ), persistStruct={
@@ -111,7 +111,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function forgottenPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
-			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		event.setView( "/admin/login/forgottenPassword" );
@@ -131,7 +131,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function resetPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
-			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		if ( !loginService.validateResetPasswordToken( rc.token ?: "" ) ) {
@@ -200,5 +200,13 @@ component extends="preside.system.base.AdminHandler" {
 		cleaned = ReReplace( cleaned, "^(https?://.*?)//", "\1/" );
 
 		return cleaned;
+	}
+
+	private void function _redirectToDefaultAdminEvent( required any event ) {
+		var defaultLink = event.buildLink(
+			linkTo = applicationsService.getDefaultEvent()
+		);
+
+		setNextEvent( url=defaultLink );
 	}
 }

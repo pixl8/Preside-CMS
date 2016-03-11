@@ -46,7 +46,7 @@
 							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
 						}
 					} else {
-						postLoginUrl = event.buildAdminLink( linkTo=applicationsService.getDefaultEvent() );
+						postLoginUrl = "";
 					}
 
 				} else {
