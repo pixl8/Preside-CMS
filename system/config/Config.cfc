@@ -200,6 +200,7 @@ component output=false {
 			, maintenanceMode        = [ "configure" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, auditTrail             = [ "navigate" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -223,6 +224,7 @@ component output=false {
 		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
 		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
+		settings.adminRoles.auditTrailmanager  = [ "auditTrail.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]

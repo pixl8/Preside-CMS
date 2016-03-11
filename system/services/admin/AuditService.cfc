@@ -32,16 +32,13 @@ component output="false" singleton=true {
 		} );
 	}
 
-	public query function getAuditLog(
-		  string detail
-		, string source
-		, string action
-		, string type
-		, string instance
-		, string userId
-	) output=false {
-		var logs = _getDao().selectData( );
-		return logs;
+	public query function getAuditLog() output=false {
+		var records = _getDao().selectData(
+			  selectFields = [ "audit_log.type", "audit_log.datecreated", "audit_log.action", "security_user.email_address", "security_user.known_as"  ]
+			, orderby    = "audit_log.datecreated desc"
+			);
+
+		return records;
 	}
 
 // PRIVATE GETTERS AND SETTERS

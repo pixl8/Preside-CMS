@@ -11,10 +11,10 @@
                 <div class="message-inner">
                     <div class="message-head clearfix">
                         <div class="avatar pull-left">
-                            <img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( event.getAdminUserDetails().email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( event.getAdminUserDetails().known_as )#" />
+                            <img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( known_as )#" />
                         </div>
                         <div class="user-detail">
-                            <h5 >#type#</h5>
+                            <h5>#known_as#</h5>
                             <div class="post-meta">
                                 <span>#datetimeformat(datecreated,"medium")#</span>
                             </div>
