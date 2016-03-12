@@ -37,7 +37,7 @@
 
 			if ( !loginExcempt ) {
 				var isAdminUser     = event.isAdminUser();
-				var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired();
+				var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() );
 
 				if ( !isAuthenticated ) {
 
@@ -51,7 +51,7 @@
 								getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
 							}
 						} else {
-							postLoginUrl = event.buildAdminLink( linkTo=adminDefaultEvent );
+							postLoginUrl = event.buildAdminLink( linkTo="" );
 						}
 
 					} else {

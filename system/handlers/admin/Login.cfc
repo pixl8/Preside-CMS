@@ -46,10 +46,9 @@ component extends="preside.system.base.AdminHandler" {
 				, instance = user.id
 			);
 
-			if ( loginService.twoFactorAuthenticationRequired() ) {
+			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
 				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
 			}
-
 
 			if ( Len( Trim( postLoginUrl ) ) ) {
 				sessionStorage.deleteVar( "_unsavedFormData", {} );
@@ -69,8 +68,8 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
 		}
-		if ( !loginService.twoFactorAuthenticationRequired() ) {
-			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ) );
+		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		prc.loginLayoutClass = "two-col";
@@ -88,14 +87,16 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
 		}
-		if ( !loginService.twoFactorAuthenticationRequired() ) {
-			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ) );
+		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		var postLoginUrl  = event.getValue( name="postLoginUrl", defaultValue="" );
 		var unsavedData   = sessionStorage.getVar( "_unsavedFormData", {} );
 		var authenticated = loginService.attemptTwoFactorAuthentication(
-			token = ( rc.oneTimeToken ?: "" )
+			  token = ( rc.oneTimeToken ?: "" )
+			, ipAddress = event.getClientIp()
+			, userAgent = event.getUserAgent()
 		);
 
 		if ( authenticated ) {
@@ -103,7 +104,7 @@ component extends="preside.system.base.AdminHandler" {
 				sessionStorage.deleteVar( "_unsavedFormData", {} );
 				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
 			} else {
-				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+				_redirectToDefaultAdminEvent( event );
 			}
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={
