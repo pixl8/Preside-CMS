@@ -3,6 +3,7 @@
  * CMS admin login and user sessions. See [[cmspermissioning]]
  * for a full guide to CMS admin users.
  *
+ * @presideService
  * @singleton
  * @autodoc
  */
@@ -336,6 +337,33 @@ component displayName="Admin login service" {
 		} );
 	}
 
+
+	/**
+	 * Returns whether or not two factor authentication is required
+	 * for the current user. This is a combination of whether or not
+	 * the feature is enabled, whether or not authentication is enabled
+	 * for the admin, whether or not authentication is enforced or enabled
+	 * by the user and whether or not the user is already authenticated.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function twoFactorAuthenticationRequired() {
+		if ( !$isFeatureEnabled( "twoFactorAuthentication" ) ) {
+			return false;
+		}
+
+		if ( isTwoFactorAuthenticated() ) {
+			return false;
+		}
+
+		var configuration = $getPresideCategorySettings( "two-factor-auth" );
+		var adminEnabled  = IsBoolean( configuration.admin_enabled  ?: "" ) && configuration.admin_enabled;
+		var adminEnforced = IsBoolean( configuration.admin_enforced ?: "" ) && configuration.admin_enforced;
+
+		return adminEnabled && adminEnforced; // we don't have user configurable 2FA yet, so only true if enforced
+	}
+
 	/**
 	 * Returns whether or not the logged in user
 	 * has been authenticated with two factor
@@ -422,6 +450,7 @@ component displayName="Admin login service" {
 		var authenticated = _getGoogleAuthenticator().verifyGoogleToken(
 			  base32Secret = key
 			, userValue    = arguments.token
+			, grace        = 1
 		);
 
 		if ( authenticated ) {

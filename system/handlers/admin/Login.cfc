@@ -46,6 +46,11 @@ component extends="preside.system.base.AdminHandler" {
 				, instance = user.id
 			);
 
+			if ( loginService.twoFactorAuthenticationRequired() ) {
+				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+			}
+
+
 			if ( Len( Trim( postLoginUrl ) ) ) {
 				sessionStorage.deleteVar( "_unsavedFormData", {} );
 				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
@@ -64,7 +69,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
 		}
-		if ( event.isAdminUserTwoFactorAuthenticated() ) {
+		if ( !loginService.twoFactorAuthenticationRequired() ) {
 			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ) );
 		}
 
@@ -83,7 +88,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !event.isAdminUser() ){
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
 		}
-		if ( event.isAdminUserTwoFactorAuthenticated() ) {
+		if ( !loginService.twoFactorAuthenticationRequired() ) {
 			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ) );
 		}
 

@@ -1,5 +1,6 @@
 <cfcomponent output="false" hint="I am a base Handler for all admin handlers. All admin handlers should extend me">
 	<cfproperty name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent" />
+	<cfproperty name="loginService" inject="loginService" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -34,8 +35,8 @@
 			var postLoginUrl = "";
 
 			if ( !loginExcempt ) {
-				var isAdminUser = event.isAdminUser();
-				var isAuthenticated = isAdminUser && ( !isFeatureEnabled( "twoFactorAuthentication" ) || event.isAdminUserTwoFactorAuthenticated() );
+				var isAdminUser     = event.isAdminUser();
+				var isAuthenticated = isAdminUser && !loginService.twoFactorAuthenticationRequired();
 
 				if ( !isAuthenticated ) {
 
