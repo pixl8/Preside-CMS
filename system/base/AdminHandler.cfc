@@ -33,25 +33,35 @@
 			var loginExcempt = event.getCurrentEvent() contains 'admin.login' or event.getCurrentEvent() contains 'admin.ajaxProxy'; // ajaxProxy does its own login handling...
 			var postLoginUrl = "";
 
-			if ( not loginExcempt and not event.isAdminUser() ) {
-				if ( event.isActionRequest() ) {
-					if ( Len( Trim( cgi.http_referer ) ) ) {
-						postLoginUrl = cgi.http_referer;
-						if ( event.getHttpMethod() eq "POST" ) {
-							getPlugin( "sessionStorage" ).setVar( "_unsavedFormData", Duplicate( form ) );
-							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.saveddata.warning" ) );
+			if ( !loginExcempt ) {
+				var isAdminUser = event.isAdminUser();
+				var isAuthenticated = isAdminUser && ( !isFeatureEnabled( "twoFactorAuthentication" ) || event.isAdminUserTwoFactorAuthenticated() );
+
+				if ( !isAuthenticated ) {
+
+					if ( event.isActionRequest() ) {
+						if ( Len( Trim( cgi.http_referer ) ) ) {
+							postLoginUrl = cgi.http_referer;
+							if ( event.getHttpMethod() eq "POST" ) {
+								getPlugin( "sessionStorage" ).setVar( "_unsavedFormData", Duplicate( form ) );
+								getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.saveddata.warning" ) );
+							} else {
+								getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
+							}
 						} else {
-							getPlugin( "MessageBox" ).warn( translateResource( uri="cms:loggedout.noactiontaken.warning" ) );
+							postLoginUrl = event.buildAdminLink( linkTo=adminDefaultEvent );
 						}
+
 					} else {
-						postLoginUrl = event.buildAdminLink( linkTo=adminDefaultEvent );
+						postLoginUrl = event.getCurrentUrl();
 					}
 
-				} else {
-					postLoginUrl = event.getCurrentUrl();
+					if ( isAdminUser ) {
+						setNextEvent( url=event.buildAdminLink( "login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+					} else {
+						setNextEvent( url=event.buildAdminLink( "login" ), persistStruct={ postLoginUrl = postLoginUrl } );
+					}
 				}
-
-				setNextEvent( url=event.buildAdminLink( "login" ), persistStruct={ postLoginUrl = postLoginUrl } );
 			}
 		</cfscript>
 	</cffunction>

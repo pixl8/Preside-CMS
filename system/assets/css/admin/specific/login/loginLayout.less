@@ -22,6 +22,10 @@ html.presidecms {
 				height      : 48px;
 				text-indent : -999px;
 				background : url( ../../../../images/logos/preside-logo-for-login.png ) no-repeat center center;
+
+				&.pulled-left {
+					background-position : left center;
+				}
 			}
 		}
 
@@ -32,6 +36,37 @@ html.presidecms {
 
 			.admin-locale-picker-link:hover {
 				text-decoration: none;
+			}
+		}
+
+		&.two-col {
+			.login-container {
+				width : 750px;
+			}
+
+			.widget-box, .widget-box, .widget-main {
+				background-color : @white;
+			}
+
+			.widget-box .widget-main {
+				padding-left  : 18px;
+				padding-right : 18px;
+			}
+
+			.left-col {
+				padding-right : 18px;
+				border-right : 1px solid @default-separator-border-colour;
+			}
+
+			.login-help-title {
+				height         : 35px;
+				font-size      : 2em;
+				margin-top     : 23px;
+			}
+
+			.login-help-image {
+				display : block;
+				margin  : 15px auto;
 			}
 		}
 	}

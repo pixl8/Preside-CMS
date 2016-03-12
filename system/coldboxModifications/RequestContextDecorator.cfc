@@ -165,6 +165,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return loginSvc.isLoggedIn();
 	}
 
+	public boolean function isAdminUserTwoFactorAuthenticated() output=false {
+		var loginSvc = getModel( "loginService" );
+
+		return loginSvc.isTwoFactorAuthenticated();
+	}
+
 	public struct function getAdminUserDetails() output=false {
 		return getModel( "loginService" ).getLoggedInUserDetails();
 	}

@@ -60,6 +60,56 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function twoStep( event, rc, prc ) {
+		if ( !event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+		if ( event.isAdminUserTwoFactorAuthenticated() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ) );
+		}
+
+		prc.loginLayoutClass = "two-col";
+		prc.twoFactorSetup = loginService.isTwoFactorAuthenticationSetupForUser();
+		if ( !prc.twoFactorSetup ) {
+			prc.authenticationKey = loginService.getTwoFactorAuthenticationKey();
+
+			if ( !Len( Trim( prc.authenticationKey ) ) ) {
+				prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
+			}
+		}
+	}
+
+	public void function twoStepAuthenticateAction( event, rc, prc ) {
+		if ( !event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+		if ( event.isAdminUserTwoFactorAuthenticated() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ) );
+		}
+
+		var postLoginUrl  = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData   = sessionStorage.getVar( "_unsavedFormData", {} );
+		var authenticated = loginService.attemptTwoFactorAuthentication(
+			token = ( rc.oneTimeToken ?: "" )
+		);
+
+		if ( authenticated ) {
+			if ( Len( Trim( postLoginUrl ) ) ) {
+				sessionStorage.deleteVar( "_unsavedFormData", {} );
+				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			}
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={
+				  postLoginUrl = postLoginUrl
+				, message      = "AUTH_FAILED"
+			} );
+		}
+
+	}
+
+
 	public void function firstTimeUserSetupAction( event, rc, prc ) {
 		var emailAddress         = rc.email_address ?: "";
 		var password             = rc.password ?: "";
