@@ -60,15 +60,15 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			if ( Len( Trim( site.id ?: "" ) ) ) {
 				_getSiteService().setActiveAdminSite( site.id );
 			}
-		}
 
-		if ( site.isEmpty() ) {
-			throw(
-				  type      = "presidecms.site.not.found"
-				, message   = "There is no PresideCMS site configured with the current domain, [#super.getCGIElement( 'server_name', event )#]"
-				, detail    = "If you are the system administrator, and expect the domain to work, please update the site's main domain either in the database or through the administrator if accessible."
-				, errorCode = 404
-			);
+			if ( site.isEmpty() ) {
+				throw(
+					  type      = "presidecms.site.not.found"
+					, message   = "There is no PresideCMS site configured with the current domain, [#super.getCGIElement( 'server_name', event )#]"
+					, detail    = "If you are the system administrator, and expect the domain to work, please update the site's main domain either in the database or through the administrator if accessible."
+					, errorCode = 404
+				);
+			}
 		}
 
 		event.setSite( site );

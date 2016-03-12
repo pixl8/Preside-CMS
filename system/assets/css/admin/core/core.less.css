@@ -25585,6 +25585,53 @@ img.presidecms .editable-click:hover {
 .presidecms .preside-theme .ace-nav > li.open:last-child > a {
   border-right: 1px solid #273b4c;
 }
+.presidecms .preside-theme .ace-nav > li.application-menu,
+.presidecms .preside-theme .ace-nav > li.open.application-menu {
+  border: none;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu > a,
+.presidecms .preside-theme .ace-nav > li.open.application-menu > a,
+.presidecms .preside-theme .ace-nav > li.application-menu > a:hover,
+.presidecms .preside-theme .ace-nav > li.open.application-menu > a:hover,
+.presidecms .preside-theme .ace-nav > li.application-menu > a:focus,
+.presidecms .preside-theme .ace-nav > li.open.application-menu > a:focus,
+.presidecms .preside-theme .ace-nav > li.application-menu > a:active,
+.presidecms .preside-theme .ace-nav > li.open.application-menu > a:active {
+  border: none;
+  padding: 0;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-menu-toggle,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-menu-toggle {
+  margin: 0 5px 0 -25px;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-list-item .application-link,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-list-item .application-link {
+  display: block;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-list-item .application-title,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-list-item .application-title {
+  display: block;
+  margin-bottom: 0.5em;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-list-item .application-description,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-list-item .application-description {
+  display: block;
+  color: #999999;
+  margin-left: 2.5em;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-list-item .application-listing,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-list-item .application-listing {
+  padding: 0 1em 1em 0;
+  border-bottom: 1px solid #eeeeee;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-list-item:first-child .application-listing,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-list-item:first-child .application-listing {
+  padding-top: 0;
+}
+.presidecms .preside-theme .ace-nav > li.application-menu .application-list-item:last-child .application-listing,
+.presidecms .preside-theme .ace-nav > li.open.application-menu .application-list-item:last-child .application-listing {
+  border-bottom: none;
+}
 .presidecms .preside-theme .nav-list > li.active:after {
   border-right: 2px solid #f5962d;
 }
