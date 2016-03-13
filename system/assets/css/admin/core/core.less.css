@@ -55,12 +55,13 @@ html.presidecms .outer-container {
  */
   /*! normalize.css v2.1.0 | MIT License | git.io/normalize */
   /*!
- *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
+ *  Font Awesome 4.5.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
  */
   /* FONT PATH
  * -------------------------- */
   /* makes the font 33% larger relative to the icon container */
+  /* Deprecated as of 4.4.0 */
   /* Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen
    readers do not read off random characters that represent icons */
   /*! jQuery UI - v1.10.3 - 2013-07-07
@@ -6171,11 +6172,8 @@ td.presidecms .visible-print {
 }
 .presidecms .fa {
   display: inline-block;
-  font-family: PresideFontAwesome;
+  font: normal normal normal 14px/1 PresideFontAwesome;
   font-size: inherit;
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -6198,7 +6196,7 @@ td.presidecms .visible-print {
   font-size: 5em;
 }
 .presidecms .fa-fw {
-  width: 1.28571429em !important;
+  width: 1.28571429em;
   text-align: center;
 }
 .presidecms .fa-ul {
@@ -6224,6 +6222,18 @@ td.presidecms .visible-print {
   border: solid 0.08em #eeeeee;
   border-radius: .1em;
 }
+.presidecms .fa-pull-left {
+  float: left;
+}
+.presidecms .fa-pull-right {
+  float: right;
+}
+.presidecms .fa.fa-pull-left {
+  margin-right: .3em;
+}
+.presidecms .fa.fa-pull-right {
+  margin-left: .3em;
+}
 .presidecms .pull-right {
   float: right;
 }
@@ -6238,17 +6248,11 @@ td.presidecms .visible-print {
 }
 .presidecms .fa-spin {
   -webkit-animation: fa-spin 2s infinite linear;
-  -moz-animation: fa-spin 2s infinite linear;
-  -o-animation: fa-spin 2s infinite linear;
   animation: fa-spin 2s infinite linear;
 }
-@-moz-keyframes fa-spin {
-  0% {
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    -moz-transform: rotate(359deg);
-  }
+.presidecms .fa-pulse {
+  -webkit-animation: fa-spin 1s infinite steps(8);
+  animation: fa-spin 1s infinite steps(8);
 }
 @-webkit-keyframes fa-spin {
   0% {
@@ -6257,14 +6261,7 @@ td.presidecms .visible-print {
   }
   100% {
     -webkit-transform: rotate(359deg);
-  }
-}
-@-o-keyframes spin {
-  0% {
-    -o-transform: rotate(0deg);
-  }
-  100% {
-    -o-transform: rotate(359deg);
+    transform: rotate(359deg);
   }
 }
 @keyframes fa-spin {
@@ -6280,41 +6277,31 @@ td.presidecms .visible-print {
 .presidecms .fa-rotate-90 {
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
   -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
   -ms-transform: rotate(90deg);
-  -o-transform: rotate(90deg);
   transform: rotate(90deg);
 }
 .presidecms .fa-rotate-180 {
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);
   -webkit-transform: rotate(180deg);
-  -moz-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
-  -o-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 .presidecms .fa-rotate-270 {
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
   -webkit-transform: rotate(270deg);
-  -moz-transform: rotate(270deg);
   -ms-transform: rotate(270deg);
-  -o-transform: rotate(270deg);
   transform: rotate(270deg);
 }
 .presidecms .fa-flip-horizontal {
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1);
   -webkit-transform: scale(-1, 1);
-  -moz-transform: scale(-1, 1);
   -ms-transform: scale(-1, 1);
-  -o-transform: scale(-1, 1);
   transform: scale(-1, 1);
 }
 .presidecms .fa-flip-vertical {
   filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1);
   -webkit-transform: scale(1, -1);
-  -moz-transform: scale(1, -1);
   -ms-transform: scale(1, -1);
-  -o-transform: scale(1, -1);
   transform: scale(1, -1);
 }
 .presidecms :root .fa-rotate-90,
@@ -6795,6 +6782,7 @@ td.presidecms .visible-print {
 .presidecms .fa-twitter:before {
   content: "\f099";
 }
+.presidecms .fa-facebook-f:before,
 .presidecms .fa-facebook:before {
   content: "\f09a";
 }
@@ -6807,6 +6795,7 @@ td.presidecms .visible-print {
 .presidecms .fa-credit-card:before {
   content: "\f09d";
 }
+.presidecms .fa-feed:before,
 .presidecms .fa-rss:before {
   content: "\f09e";
 }
@@ -7444,7 +7433,8 @@ td.presidecms .visible-print {
 .presidecms .fa-male:before {
   content: "\f183";
 }
-.presidecms .fa-gittip:before {
+.presidecms .fa-gittip:before,
+.presidecms .fa-gratipay:before {
   content: "\f184";
 }
 .presidecms .fa-sun-o:before {
@@ -7687,6 +7677,8 @@ td.presidecms .visible-print {
 .presidecms .fa-git:before {
   content: "\f1d3";
 }
+.presidecms .fa-y-combinator-square:before,
+.presidecms .fa-yc-square:before,
 .presidecms .fa-hacker-news:before {
   content: "\f1d4";
 }
@@ -7854,6 +7846,398 @@ td.presidecms .visible-print {
 }
 .presidecms .fa-meanpath:before {
   content: "\f20c";
+}
+.presidecms .fa-buysellads:before {
+  content: "\f20d";
+}
+.presidecms .fa-connectdevelop:before {
+  content: "\f20e";
+}
+.presidecms .fa-dashcube:before {
+  content: "\f210";
+}
+.presidecms .fa-forumbee:before {
+  content: "\f211";
+}
+.presidecms .fa-leanpub:before {
+  content: "\f212";
+}
+.presidecms .fa-sellsy:before {
+  content: "\f213";
+}
+.presidecms .fa-shirtsinbulk:before {
+  content: "\f214";
+}
+.presidecms .fa-simplybuilt:before {
+  content: "\f215";
+}
+.presidecms .fa-skyatlas:before {
+  content: "\f216";
+}
+.presidecms .fa-cart-plus:before {
+  content: "\f217";
+}
+.presidecms .fa-cart-arrow-down:before {
+  content: "\f218";
+}
+.presidecms .fa-diamond:before {
+  content: "\f219";
+}
+.presidecms .fa-ship:before {
+  content: "\f21a";
+}
+.presidecms .fa-user-secret:before {
+  content: "\f21b";
+}
+.presidecms .fa-motorcycle:before {
+  content: "\f21c";
+}
+.presidecms .fa-street-view:before {
+  content: "\f21d";
+}
+.presidecms .fa-heartbeat:before {
+  content: "\f21e";
+}
+.presidecms .fa-venus:before {
+  content: "\f221";
+}
+.presidecms .fa-mars:before {
+  content: "\f222";
+}
+.presidecms .fa-mercury:before {
+  content: "\f223";
+}
+.presidecms .fa-intersex:before,
+.presidecms .fa-transgender:before {
+  content: "\f224";
+}
+.presidecms .fa-transgender-alt:before {
+  content: "\f225";
+}
+.presidecms .fa-venus-double:before {
+  content: "\f226";
+}
+.presidecms .fa-mars-double:before {
+  content: "\f227";
+}
+.presidecms .fa-venus-mars:before {
+  content: "\f228";
+}
+.presidecms .fa-mars-stroke:before {
+  content: "\f229";
+}
+.presidecms .fa-mars-stroke-v:before {
+  content: "\f22a";
+}
+.presidecms .fa-mars-stroke-h:before {
+  content: "\f22b";
+}
+.presidecms .fa-neuter:before {
+  content: "\f22c";
+}
+.presidecms .fa-genderless:before {
+  content: "\f22d";
+}
+.presidecms .fa-facebook-official:before {
+  content: "\f230";
+}
+.presidecms .fa-pinterest-p:before {
+  content: "\f231";
+}
+.presidecms .fa-whatsapp:before {
+  content: "\f232";
+}
+.presidecms .fa-server:before {
+  content: "\f233";
+}
+.presidecms .fa-user-plus:before {
+  content: "\f234";
+}
+.presidecms .fa-user-times:before {
+  content: "\f235";
+}
+.presidecms .fa-hotel:before,
+.presidecms .fa-bed:before {
+  content: "\f236";
+}
+.presidecms .fa-viacoin:before {
+  content: "\f237";
+}
+.presidecms .fa-train:before {
+  content: "\f238";
+}
+.presidecms .fa-subway:before {
+  content: "\f239";
+}
+.presidecms .fa-medium:before {
+  content: "\f23a";
+}
+.presidecms .fa-yc:before,
+.presidecms .fa-y-combinator:before {
+  content: "\f23b";
+}
+.presidecms .fa-optin-monster:before {
+  content: "\f23c";
+}
+.presidecms .fa-opencart:before {
+  content: "\f23d";
+}
+.presidecms .fa-expeditedssl:before {
+  content: "\f23e";
+}
+.presidecms .fa-battery-4:before,
+.presidecms .fa-battery-full:before {
+  content: "\f240";
+}
+.presidecms .fa-battery-3:before,
+.presidecms .fa-battery-three-quarters:before {
+  content: "\f241";
+}
+.presidecms .fa-battery-2:before,
+.presidecms .fa-battery-half:before {
+  content: "\f242";
+}
+.presidecms .fa-battery-1:before,
+.presidecms .fa-battery-quarter:before {
+  content: "\f243";
+}
+.presidecms .fa-battery-0:before,
+.presidecms .fa-battery-empty:before {
+  content: "\f244";
+}
+.presidecms .fa-mouse-pointer:before {
+  content: "\f245";
+}
+.presidecms .fa-i-cursor:before {
+  content: "\f246";
+}
+.presidecms .fa-object-group:before {
+  content: "\f247";
+}
+.presidecms .fa-object-ungroup:before {
+  content: "\f248";
+}
+.presidecms .fa-sticky-note:before {
+  content: "\f249";
+}
+.presidecms .fa-sticky-note-o:before {
+  content: "\f24a";
+}
+.presidecms .fa-cc-jcb:before {
+  content: "\f24b";
+}
+.presidecms .fa-cc-diners-club:before {
+  content: "\f24c";
+}
+.presidecms .fa-clone:before {
+  content: "\f24d";
+}
+.presidecms .fa-balance-scale:before {
+  content: "\f24e";
+}
+.presidecms .fa-hourglass-o:before {
+  content: "\f250";
+}
+.presidecms .fa-hourglass-1:before,
+.presidecms .fa-hourglass-start:before {
+  content: "\f251";
+}
+.presidecms .fa-hourglass-2:before,
+.presidecms .fa-hourglass-half:before {
+  content: "\f252";
+}
+.presidecms .fa-hourglass-3:before,
+.presidecms .fa-hourglass-end:before {
+  content: "\f253";
+}
+.presidecms .fa-hourglass:before {
+  content: "\f254";
+}
+.presidecms .fa-hand-grab-o:before,
+.presidecms .fa-hand-rock-o:before {
+  content: "\f255";
+}
+.presidecms .fa-hand-stop-o:before,
+.presidecms .fa-hand-paper-o:before {
+  content: "\f256";
+}
+.presidecms .fa-hand-scissors-o:before {
+  content: "\f257";
+}
+.presidecms .fa-hand-lizard-o:before {
+  content: "\f258";
+}
+.presidecms .fa-hand-spock-o:before {
+  content: "\f259";
+}
+.presidecms .fa-hand-pointer-o:before {
+  content: "\f25a";
+}
+.presidecms .fa-hand-peace-o:before {
+  content: "\f25b";
+}
+.presidecms .fa-trademark:before {
+  content: "\f25c";
+}
+.presidecms .fa-registered:before {
+  content: "\f25d";
+}
+.presidecms .fa-creative-commons:before {
+  content: "\f25e";
+}
+.presidecms .fa-gg:before {
+  content: "\f260";
+}
+.presidecms .fa-gg-circle:before {
+  content: "\f261";
+}
+.presidecms .fa-tripadvisor:before {
+  content: "\f262";
+}
+.presidecms .fa-odnoklassniki:before {
+  content: "\f263";
+}
+.presidecms .fa-odnoklassniki-square:before {
+  content: "\f264";
+}
+.presidecms .fa-get-pocket:before {
+  content: "\f265";
+}
+.presidecms .fa-wikipedia-w:before {
+  content: "\f266";
+}
+.presidecms .fa-safari:before {
+  content: "\f267";
+}
+.presidecms .fa-chrome:before {
+  content: "\f268";
+}
+.presidecms .fa-firefox:before {
+  content: "\f269";
+}
+.presidecms .fa-opera:before {
+  content: "\f26a";
+}
+.presidecms .fa-internet-explorer:before {
+  content: "\f26b";
+}
+.presidecms .fa-tv:before,
+.presidecms .fa-television:before {
+  content: "\f26c";
+}
+.presidecms .fa-contao:before {
+  content: "\f26d";
+}
+.presidecms .fa-500px:before {
+  content: "\f26e";
+}
+.presidecms .fa-amazon:before {
+  content: "\f270";
+}
+.presidecms .fa-calendar-plus-o:before {
+  content: "\f271";
+}
+.presidecms .fa-calendar-minus-o:before {
+  content: "\f272";
+}
+.presidecms .fa-calendar-times-o:before {
+  content: "\f273";
+}
+.presidecms .fa-calendar-check-o:before {
+  content: "\f274";
+}
+.presidecms .fa-industry:before {
+  content: "\f275";
+}
+.presidecms .fa-map-pin:before {
+  content: "\f276";
+}
+.presidecms .fa-map-signs:before {
+  content: "\f277";
+}
+.presidecms .fa-map-o:before {
+  content: "\f278";
+}
+.presidecms .fa-map:before {
+  content: "\f279";
+}
+.presidecms .fa-commenting:before {
+  content: "\f27a";
+}
+.presidecms .fa-commenting-o:before {
+  content: "\f27b";
+}
+.presidecms .fa-houzz:before {
+  content: "\f27c";
+}
+.presidecms .fa-vimeo:before {
+  content: "\f27d";
+}
+.presidecms .fa-black-tie:before {
+  content: "\f27e";
+}
+.presidecms .fa-fonticons:before {
+  content: "\f280";
+}
+.presidecms .fa-reddit-alien:before {
+  content: "\f281";
+}
+.presidecms .fa-edge:before {
+  content: "\f282";
+}
+.presidecms .fa-credit-card-alt:before {
+  content: "\f283";
+}
+.presidecms .fa-codiepie:before {
+  content: "\f284";
+}
+.presidecms .fa-modx:before {
+  content: "\f285";
+}
+.presidecms .fa-fort-awesome:before {
+  content: "\f286";
+}
+.presidecms .fa-usb:before {
+  content: "\f287";
+}
+.presidecms .fa-product-hunt:before {
+  content: "\f288";
+}
+.presidecms .fa-mixcloud:before {
+  content: "\f289";
+}
+.presidecms .fa-scribd:before {
+  content: "\f28a";
+}
+.presidecms .fa-pause-circle:before {
+  content: "\f28b";
+}
+.presidecms .fa-pause-circle-o:before {
+  content: "\f28c";
+}
+.presidecms .fa-stop-circle:before {
+  content: "\f28d";
+}
+.presidecms .fa-stop-circle-o:before {
+  content: "\f28e";
+}
+.presidecms .fa-shopping-bag:before {
+  content: "\f290";
+}
+.presidecms .fa-shopping-basket:before {
+  content: "\f291";
+}
+.presidecms .fa-hashtag:before {
+  content: "\f292";
+}
+.presidecms .fa-bluetooth:before {
+  content: "\f293";
+}
+.presidecms .fa-bluetooth-b:before {
+  content: "\f294";
+}
+.presidecms .fa-percent:before {
+  content: "\f295";
 }
 .presidecms .ui-helper-hidden {
   display: none;
