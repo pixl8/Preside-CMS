@@ -54,7 +54,7 @@
 		#topJs#
 	</head>
 
-	<body class="preside-theme">
+	<body class="preside-theme no-skin">
 		<div class="outer-container">
 			#navbar#
 			#siteAlerts#
@@ -64,15 +64,11 @@
 					try{ace.settings.check('main-container' , 'fixed')}catch(e){}
 				</script>
 
-				<div class="main-container-inner">
-					<a class="menu-toggler" id="menu-toggler" href="##">
-						<span class="menu-text"></span>
-					</a>
-					#breadcrumbs#
+						#breadcrumbs#
+				#sideBarNav#
 
-					#sideBarNav#
-					<div class="main-content">
-
+				<div class="main-content">
+					<div class="main-content-inner">
 						<div class="page-content">
 							#renderView( view="admin/general/pageTitle", args={
 								  title    = ( prc.pageTitle    ?: "" )

@@ -1,3 +1,5 @@
+.enable_plugin_nestable_list() when(@enable-plugin-nestable-list = true) {
+
 .dd {
 	position: relative;
 	display: block;
@@ -120,7 +122,7 @@
 
 	border: 0;
 	background: transparent;
-	font-size: 12px;
+	font-size: @base-font-size - 1;
 
 	line-height: 1;
 	text-align: center;
@@ -132,7 +134,8 @@
 	color:#707070;
  }
 .dd-item > button:before {
-	font-family:@icon-font;
+	font-family: PresideFontAwesome;
+
 	content: '\f067';
 
 	display: block;
@@ -142,8 +145,8 @@
 	text-align: center;
 	text-indent: 0;
 
-	font-weight:normal;
-	font-size:14px;
+	font-weight: normal;
+	font-size: @base-font-size + 1;
 }
 .dd-item > button[data-action="collapse"]:before {
 	content: '\f068';
@@ -279,3 +282,10 @@
 .dd-dragel > .dd-item > .dd2-handle .normal-icon {
 	display:none;
 }
+
+
+
+
+}
+
+.enable_plugin_nestable_list();
