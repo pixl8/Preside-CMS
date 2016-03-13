@@ -10,14 +10,14 @@
 	<li<cfif args.active> class="active"</cfif>>
 		<cfif Len( Trim( args.subMenu ) ) or args.subMenuItems.len()>
 			<a class="dropdown-toggle" href="##">
-				<i class="fa fa-fw #args.icon#"></i>
+				<i class="menu-icon fa fa-fw #args.icon#"></i>
 				<span class="menu-text">#args.title#</span>
 				<b class="arrow fa fa-angle-down"></b>
 			</a>
 		<cfelse>
 			<a href="#args.link#"<cfif Len( Trim( args.gotoKey ) )> data-goto-key="#args.gotoKey#"</cfif>>
 
-				<i class="fa fa-fw #args.icon#"></i>
+				<i class="menu-icon fa fa-fw #args.icon#"></i>
 				<span class="menu-text">#args.title#</span>
 			</a>
 		</cfif>
