@@ -29167,6 +29167,13 @@ td.presidecms .visible-print {
   margin: 0;
   font-weight: bold;
 }
+.presidecms .tabs-left .tab-content,
+.presidecms .tabs-right .tab-content {
+  overflow: hidden;
+}
+.presidecms .tab-content .form-actions {
+  margin-bottom: -20px;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }
