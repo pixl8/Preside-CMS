@@ -30665,6 +30665,7 @@ td.presidecms .visible-print {
 }
 .presidecms .preside-theme .nav-list li.active > a:after {
   border-right-color: #f5962d;
+  -moz-border-right-colors: #f5962d;
 }
 .presidecms .preside-theme .sitewide-alert {
   margin-bottom: 0;
