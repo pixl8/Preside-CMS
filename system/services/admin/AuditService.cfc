@@ -32,10 +32,15 @@ component output="false" singleton=true {
 		} );
 	}
 
-	public query function getAuditLog() output=false {
+	public query function getAuditLog(
+		  numeric startRow = 1
+		, numeric maxRows  = 0
+		) output=false {
 		var records = _getDao().selectData(
-			  selectFields = [ "audit_log.type", "audit_log.datecreated", "audit_log.action", "security_user.email_address", "security_user.known_as"  ]
-			, orderby    = "audit_log.datecreated desc"
+				selectFields = [ "audit_log.type", "audit_log.datecreated", "audit_log.action", "security_user.email_address", "security_user.known_as"  ]
+				, orderby    = "audit_log.datecreated desc"
+				, startRow   = arguments.startRow
+				, maxRows    = arguments.maxRows
 			);
 
 		return records;
