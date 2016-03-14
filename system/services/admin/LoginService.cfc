@@ -64,6 +64,24 @@ component displayName="Admin login service" {
 	}
 
 	/**
+	 * Validates the logged in user's password
+	 *
+	 * @autodoc
+	 * @password.hint the user provided password
+	 */
+	public boolean function isPasswordCorrect( required string password ) {
+		var userId = getLoggedInUserId();
+
+		if ( !userId.len() ) {
+			return false;
+		}
+
+		var usr = _getUserDao().selectData( id=userId, selectFields=[ "password" ] );
+
+		return usr.recordCount && _getBCryptService().checkPw( arguments.password, usr.password );
+	}
+
+	/**
 	 * Logs the currently logged in user session
 	 * out of the CMS admin. See [[cmspermissioning]]
 	 * for a full guide to CMS admin users.
