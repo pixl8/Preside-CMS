@@ -4,10 +4,14 @@
 @accordion-header-hover-bg:#F1F8FD;
 @accordion-active-bg:#EEF4F9;
 
+
+.enable_tabs() when(@enable-tabs = true) {
+
 .tab-content {
- border:1px solid @tab-border;
- padding:16px 12px;
- position:relative;
+ border: 1px solid @tab-border;
+ padding: 16px 12px;
+ position: relative;
+ //z-index:11;
 }
 .tab-content.no-padding {
  padding:0;
@@ -26,7 +30,7 @@
 }
 
 
-.nav-tabs {
+.nav.nav-tabs {
  .navtab-paddingX (@index) when (@index > 0) {
 	&.padding-@{index} { padding-left:unit(@index,px); }
 	.tabs-right > &.padding-@{index} , .tabs-left > &.padding-@{index} { padding-left:0; padding-top:unit(@index,px); }
@@ -37,32 +41,33 @@
 
 
 .nav-tabs {
-  border-color:#C5D0DC;
-  margin-bottom:0;
-  margin-left:0;
-  position:relative;
-  top:1px;
+  border-color: #C5D0DC;
+  margin-bottom: 0 !important;//to override .rtl's
+  margin-left: 0;
+  position: relative;
+  top: 1px;
 
   > li {
     > a {
-		padding:8px 12px;
+		padding: 7px 12px 8px;
 
 		&,&:focus {
-			border-radius:0 !important;
+			border-radius: 0 !important;
+			border-color: @tab-border;
 
-			background-color:#F9F9F9;
-			color:#999;
+			background-color: #F9F9F9;
+			color: #999;
 
-			margin-right:-1px;
-			line-height:16px;
+			margin-right: -1px;
+			line-height: 18px;
 
 			position:relative;
-			border-color:@tab-border;
+			//z-index:11;
 		}
 		&:hover {
-			background-color:#FFF;
-			color:@tab-hover-color;
-			border-color:@tab-border;
+			background-color: #FFF;
+			color: @tab-hover-color;
+			border-color: @tab-border;
 		}
 		&:active, &:focus {
 			outline:none !important;
@@ -75,14 +80,15 @@
 
 	&.active > a{
 		&,&:hover,&:focus {
-			color:@tab-active-color;
-			border-color:@tab-border;
-			border-top:2px solid @tab-active-border;
-			border-bottom-color:transparent;
-			background-color:#FFF;
+			color: @tab-active-color;
+			border-color: @tab-border;
+			border-top: 2px solid @tab-active-border;
+			border-bottom-color: transparent;
+			background-color: #FFF;
 
-			line-height:16px;
-			margin-top:-1px;
+			z-index: 1;
+			line-height: 18px;
+			margin-top: -1px;
 
 			box-shadow: 0 -2px 3px 0 rgba(0,0,0,0.15);
 		}
@@ -91,6 +97,7 @@
    }
 
 
+   .enable_tab_positions() when(@enable-tab-positions = true) {
 	.tabs-below > & {
 	   /* tabs below */
 		top:auto;
@@ -118,14 +125,14 @@
 				}
 			}
 		}
-	}
+	 }
 
 
-	.tabs-left > & > li > a, .tabs-right > & > li > a {
-		/* tabs left */
+	 .tabs-left > & > li > a, .tabs-right > & > li > a {
+		//tabs left
 		min-width:60px;
-	}
-	.tabs-left > & {
+	 }
+	 .tabs-left > & {
 		top:auto;
 		 margin-bottom:0;
 		 border-color:@tab-border;
@@ -133,7 +140,7 @@
 		 float: left;
 
 		 > li {
-			float: none;
+			float: none !important;//to override .rtl's
 
 			> a {
 				&,&:focus,&:hover {
@@ -151,17 +158,17 @@
 						border-right-color: transparent;
 						margin: 0 -1px 0 -1px;
 
-						.box-shadow(~"-2px 0 3px 0 rgba(0,0,0,0.15)");
+						.box-shadow(~"-2px 0 3px 0 rgba(0,0,0,0.15)") !important;//to override .rtl's
 					}
 				}
 			}
 		 }
-	}
+	 }
 
 
 
-	.tabs-right > & {
-		/* tabs right */
+	 .tabs-right > & {
+		//tabs right
 		top:auto;
 		margin-bottom: 0;
 		border-color: @tab-border;
@@ -169,7 +176,7 @@
 		float: right;
 
 		 > li {
-			float: none;
+			float: none !important;//to override RTL's
 
 			> a {
 				&,&:focus,&:hover {
@@ -187,33 +194,38 @@
 						border-left-color: transparent;
 						margin: 0 -2px 0 -1px;
 
-						.box-shadow(~"2px 0 3px 0 rgba(0,0,0,0.15)");
+						.box-shadow(~"2px 0 3px 0 rgba(0,0,0,0.15)");//to override .rtl's
 					}
 				}
 			}
 		}
+	 }
 	}
+	.enable_tab_positions();
 
 
 
 	> li > a {
-		/* icon and badges */
-		> .badge {
-			padding:0 4px;
-			line-height:15px;
-			opacity:0.7;
+		//icon and badges
+		.badge {
+			padding: 1px 5px;
+			line-height: 15px;
+			opacity: 0.75;
+			vertical-align: initial;
 		}
 
-		> [class*="fa-"] { opacity:0.75; }
+		.@{icon} {
+			opacity: 0.75;
+		}
 	}
 
 	> li.active > a {
-		> .badge , > [class*="fa-"] {
-			opacity:1;
+		.badge , .@{icon} {
+			opacity: 1;
 		}
 	}
 
-	li [class*=" fa-"] , li [class^="fa-"]{
+	li .@{icon} {
 		 width:1.25em;
 		 display:inline-block;
 		 text-align:center;
@@ -222,12 +234,12 @@
 
 
 	> li.open .dropdown-toggle {
-		/* dropdown in tabs */
+		//dropdown in tabs
 		background-color: #4F99C6;
 		border-color: #4F99C6;
 		color: #FFF;
 
-		> [class*="fa-"] {
+		> .@{icon} {
 			color:#FFF !important;
 		}
 	}
@@ -243,17 +255,17 @@
 	background-color: #4F99C6;
 	border-color: #4F99C6;
 	color: #FFFFFF;
-	> [class*="fa-"] {
+	> .@{icon} {
 		color:#FFF !important;
 	}
 }
 
 
-
+.enable_tab_options() when (@enable-tab-options = true) {
 
 
 /* bigger tab buttons */
-.nav-tabs > li:not(.active):not(.open) > a:not(:hover) > [class*="fa-"]:first-child.disabled {
+.nav-tabs > li:not(.active):not(.open) > a:not(:hover) > .@{icon}:first-child.disabled {
  color:#909090 !important;
 }
 
@@ -262,7 +274,7 @@
 	padding-left:14px;
 	padding-right:14px;
 
-	> [class*="fa-"]:first-child {
+	> .@{icon}:first-child {
 		display:block;
 		margin-bottom:6px;
 		width:auto;
@@ -272,33 +284,32 @@
 
 
 
-
 //some tab customizations
 
-/* spaced tabs (top & bottom) */
+//spaced tabs (top & bottom)
 .nav-tabs.tab-space-1 > li > a {
-	margin-right:1px;
+	margin-right: 1px;
 }
 .nav-tabs.tab-space-2 > li > a {
-	margin-right:2px;
+	margin-right: 2px;
 }
 .nav-tabs.tab-space-3 > li > a {
-	margin-right:3px;
+	margin-right: 3px;
 }
 .nav-tabs.tab-space-4 > li > a {
-	margin-right:4px;
+	margin-right: 4px;
 }
 
 
-/* colored tabs*/
+//colored tabs
 
 @tab-color-blue:#7DB4D8;
 
 .nav-tabs[class*="tab-color-"] > li > a {
  & , &:focus, &:hover {
-	color:#FFF;
-	border-color:transparent;
-	margin-right:3px;
+	color: #FFF;
+	border-color: transparent;
+	margin-right: 3px;
  }
 
  > .badge {
@@ -312,7 +323,7 @@
 		border-color:rgba(0,0,0,0.15);
 		border-bottom-color:transparent;
 	}
-	> [class*="fa-"]:first-child{
+	> .@{icon}:first-child{
 		color:#FFF !important;
 	}
 	> .badge{
@@ -332,7 +343,7 @@
 	& , &:focus, &:hover {
 		background-color:#FFF;
 		color:darken(desaturate(@tab-color-blue, 20%), 20%);
-		box-shadow:none;
+		.box-shadow(none) !important;
 	}
 }
 
@@ -368,9 +379,19 @@
 	border-bottom-color:#C5D0DC;
 }
 
+}
+.enable_tab_options();
 
 
-/** accordion */
+}
+.enable_tabs();
+
+
+
+
+
+//accordion
+.enable_accordion() when(@enable-accordion = true) {
 .accordion-style1.panel-group {
  .panel {
 	border-radius: 0;
@@ -405,8 +426,8 @@
 	position:relative;
 	font-weight:bold;
 
-	font-size:13px;
-	line-height:1;
+	font-size: @font-size-accordion-toggle;
+	line-height: 1;
 
 	padding: 10px;
 	display:block;
@@ -429,10 +450,10 @@
 	}
 
 
-	> [class*="fa-"]:first-child {
+	> .@{icon}:first-child {
 		width:16px;
 	}
-	&:hover > [class*="fa-"]:first-child{
+	&:hover > .@{icon}:first-child{
 		text-decoration:none;
 	}
  }
@@ -453,6 +474,7 @@
 
 
 //style2, used in faq, etc...
+.enable_accordion_style_2() when (@enable-accordion-style-2 = true) {
 .accordion-style2.panel-group {
  .panel {
 	border-width:0;
@@ -502,7 +524,7 @@
 
 
 
-/* nested questions */
+//nested questions
 .accordion-style2.panel-group .accordion-style2.panel-group {
  .panel  {
 	border-bottom:1px dotted #D9D9D9;
@@ -511,17 +533,20 @@
 	}
 
 	.panel-heading , .panel-heading .accordion-toggle {
-		background-color:transparent;
-		border-width:0;
-		font-size:13px;
+		background-color: transparent;
+		border-width: 0;
+		font-size: @font-size-accordion-toggle;
 
-		padding-top:6px;
-		padding-bottom:8px;
+		padding-top: 6px;
+		padding-bottom: 8px;
 	}
 	.panel-heading {
 		padding-top:0; padding-bottom:0;
 	}
  }
 }
+}
+.enable_accordion_style_2();
 
-
+}
+.enable_accordion();

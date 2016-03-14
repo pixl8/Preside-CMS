@@ -5,6 +5,9 @@ html.presidecms {
   -o-background-size: cover;
   background-size: cover;
 }
+.presidecms .login-layout {
+  background-color: transparent;
+}
 .presidecms .login-layout .widget-box,
 .presidecms .login-layout .widget-box,
 .presidecms .login-layout .widget-main {
