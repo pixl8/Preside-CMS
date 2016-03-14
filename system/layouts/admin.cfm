@@ -6,6 +6,12 @@
 	sideBarNav       = renderView( 'admin/layout/sideBarNavigation' );
 	notifications    = renderView( 'admin/general/notifications' );
 	footer           = renderViewlet( 'admin.general.footer' );
+	secondaryNav     = prc.secondaryNav ?: "";
+	pageHeader       = renderView( view="admin/general/pageTitle", args={
+		  title    = ( prc.pageTitle    ?: "" )
+		, subTitle = ( prc.pageSubTitle ?: "" )
+		, icon     = ( prc.pageIcon     ?: "" )
+	} );
 
 	currentHandler = event.getCurrentHandler();
 	currentAction  = event.getCurrentAction();
@@ -64,17 +70,15 @@
 					try{ace.settings.check('main-container' , 'fixed')}catch(e){}
 				</script>
 
-						#breadcrumbs#
+				#breadcrumbs#
 				#sideBarNav#
 
 				<div class="main-content">
 					<div class="main-content-inner">
+						#secondaryNav#
+
 						<div class="page-content">
-							#renderView( view="admin/general/pageTitle", args={
-								  title    = ( prc.pageTitle    ?: "" )
-								, subTitle = ( prc.pageSubTitle ?: "" )
-								, icon     = ( prc.pageIcon     ?: "" )
-							} )#
+							#pageHeader#
 
 							<div class="row">
 								<div class="col-xs-12">
