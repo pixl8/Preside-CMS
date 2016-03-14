@@ -13,7 +13,9 @@
                                     <img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( known_as )#" />
                                 </div>
                                 <div class="user-detail">
-                                    <h5>#known_as#</h5>
+                                    <h5>
+                                        <a href="#event.buildAdminLink( linkTo='auditTrail.viewAuditTrail', queryString='id=#logs.id#')#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.viewAuditTrail' )#" data-modal-class="full-screen-dialog limited-size">#known_as#</a>
+                                    </h5>
                                     <div class="post-meta">
                                         <span>#datetimeformat(datecreated,"medium")#</span>
                                     </div>

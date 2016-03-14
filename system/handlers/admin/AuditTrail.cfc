@@ -32,4 +32,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 			event.adminAccessDenied();
 		}
 	}
+
+	public void function viewAuditTrail( event, rc, prc ) {
+		prc.auditTrail = getModel( "AuditService" ).getAuditTrail( rc.id ?: "" );
+
+		if ( !prc.auditTrail.recordCount ) {
+			event.adminNotFound();
+		}
+		event.nolayout();
+	}
 }
