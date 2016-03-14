@@ -64,7 +64,9 @@
 		<cfreturn getSingleton( "notificationService" ).renderNotification( argumentCollection = arguments ) />
 	</cffunction>
 
-
+	<cffunction name="renderLogDetails" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "AuditService" ).renderLogDetails( argumentCollection = arguments ) />
+	</cffunction>
 
 <!--- WIDGETS --->
 	<cffunction name="renderWidget" access="public" returntype="any" output="false">

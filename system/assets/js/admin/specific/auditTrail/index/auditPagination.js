@@ -5,7 +5,7 @@
 
            var $link            = $( this )
              , $container       = $link.parents( '.load-more:first' )
-             , remoteUrl        = $link.attr( 'href' )
+             , remoteUrl        = $link.attr( 'data-href' )
              , $targetContainer = $( '#' + $link.attr( 'data-load-more-target' ) ).first()
              , start            = 11
              , preloaded, loadMore, preloadMore, disableLoadMore, enableLoadMore, noMore;

@@ -1,5 +1,4 @@
 <cfparam name="args" type="struct"/>
-<cfset args = deserializeJSON(args.data)>
 <cfoutput>
 	<table class="table formbuilder-response table-striped">
 		<tr>

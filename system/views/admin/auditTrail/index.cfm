@@ -31,8 +31,8 @@
         <cfelse>
             <p><em>#translateResource( uri='cms:auditTrail.noData' )#</em></p>
         </cfif>
-        <div class="load-more">
-            <a class="load-more btn btn-primary pull-right" data-load-more-target="audit-trail" href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='start=' )#">#translateResource( uri='cms:auditTrail.loadMore' )#</a>
+        <div class="load-more text-center">
+            <a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='start=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
         </div>
     </div>
 </cfoutput>

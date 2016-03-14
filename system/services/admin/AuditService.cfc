@@ -7,9 +7,15 @@ component output="false" singleton=true {
 // CONSTRUCTOR
 	/**
 	 * @dao.inject presidecms:object:audit_log
+	 * @coldboxController.inject  coldbox
 	 */
-	public any function init( required any dao ) output=false {
+	public any function init(
+		  required any dao
+		, required any coldboxController
+	 ) output=false {
+
 		_setDao( arguments.dao );
+		_setColdboxController( arguments.coldboxController );
 
 		return this;
 	}
@@ -63,11 +69,33 @@ component output="false" singleton=true {
 		);
 	}
 
+	/**
+	* Renders the given notification topic
+	*
+	* @data.hint    Data associated with the audit log
+	* @context.hint Context of the audit log
+	*/
+	public string function renderLogDetails( required struct data, required string context ) autodoc=true {
+		var viewletEvent = "renderers.content.auditLogEntry." & arguments.context;
+		if ( _getColdboxController().viewletExists( viewletEvent ) ) {
+			return _getColdboxController().renderViewlet(
+				  event = viewletEvent
+				, args  = arguments.data);
+		}
+		return "";
+	}
+
 // PRIVATE GETTERS AND SETTERS
 	private any function _getDao() output=false {
 		return _dao;
 	}
 	private void function _setDao( required any dao ) output=false {
 		_dao = arguments.dao;
+	}
+	private any function _getColdboxController() {
+		return _coldboxController;
+	}
+	private void function _setColdboxController( required any coldboxController ) {
+		_coldboxController = arguments.coldboxController;
 	}
 }

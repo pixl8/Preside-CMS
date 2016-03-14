@@ -9,6 +9,6 @@
 <cfoutput>
 	<div class="modal-padding-horizontal">
 		<h2 class="blue">#translateResource( "cms:auditTrail.logTitle" )#</h2>
-		#renderField( 'audit_log', 'detail', serializeJSON(auditTrailData ))#
+		#renderLogDetails( data=auditTrailData, context='loginSuccess' )#
 	</div>
 </cfoutput>
