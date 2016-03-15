@@ -9,6 +9,6 @@
 <cfoutput>
 	<div class="modal-padding-horizontal">
 		<h2 class="blue">#translateResource( "cms:auditTrail.logTitle" )#</h2>
-		#renderLogDetails( data=auditTrailData, context='loginSuccess' )#
+		#renderLogDetails( data=auditTrailData, context=auditTrailData.Action )#
 	</div>
 </cfoutput>
