@@ -186,4 +186,22 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			, persistStruct = { validationResult = validationResult }
 		);
 	}
+
+	function disableTwoFactorAuthenticationAction( event, rc, prc ) {
+		if ( !loginService.isTwoFactorAuthenticationEnabled() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
+		}
+
+		var enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) );
+		if ( enforced ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
+		}
+
+		loginService.disableTwoFactorAuthenticationForUser();
+
+		if ( IsTrue( rc.reset ?: "" ) ) {
+			setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication", queryString="setup=true" ) );
+		}
+		setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
+	}
 }

@@ -599,6 +599,25 @@ component displayName="Admin login service" {
 		}
 	}
 
+	/**
+	 * Disables 2FA for the logged in user
+	 *
+	 * @autodoc
+	 *
+	 */
+	public void function disableTwoFactorAuthenticationForUser() {
+		var userId = getLoggedInUserId();
+
+		if ( userId.len() ) {
+			_getUserDao().updateData( id=userId, data={
+				  two_step_auth_enabled     = false
+				, two_step_auth_key         = ""
+				, two_step_auth_key_created = ""
+				, two_step_auth_key_in_use  = ""
+			} );
+		}
+	}
+
 // PRIVATE HELPERS
 	private void function _persistUserSession( required query usr ) {
 		request.delete( "__presideCmsAminUserDetails" );

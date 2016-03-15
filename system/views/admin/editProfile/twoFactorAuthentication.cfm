@@ -9,7 +9,25 @@
 
 <cfoutput>
 	<cfif !enforced>
-		<cfif !enabled>
+		<cfif enabled>
+			<p class="alert alert-success">
+				<i class="fa fa-fw fa-check green"></i>&nbsp;
+				#translateResource( "cms:editProfile.twofactorauthentication.enabled.message" )#
+			</p>
+
+			<div class="form-actions row">
+				<a href="#event.buildAdminLink( linkTo='editProfile.disableTwoFactorAuthenticationAction' )#" class="btn btn-danger confirmation-prompt" title="#HtmlEditFormat( translateResource( "cms:editProfile.twofactorauthentication.disable.prompt" ) )#">
+					<i class="fa fa-ban bigger-110"></i>
+					#translateResource( "cms:editProfile.twofactorauthentication.disable.btn" )#
+				</a>
+
+				<a href="#event.buildAdminLink( linkTo='editProfile.disableTwoFactorAuthenticationAction', queryString='reset=true' )#" class="btn btn-info confirmation-prompt" title="#HtmlEditFormat( translateResource( "cms:editProfile.twofactorauthentication.reset.prompt" ) )#">
+					<i class="fa fa-refresh bigger-110"></i>
+					#translateResource( "cms:editProfile.twofactorauthentication.reset.btn" )#
+				</a>
+			</div>
+
+		<cfelse>
 			<cfif doSetup>
 				<p class="alert alert-info">#translateResource( "cms:editProfile.twofactorauthentication.setup.introduction" )#</p>
 
