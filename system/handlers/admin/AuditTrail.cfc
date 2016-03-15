@@ -13,14 +13,24 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	public void function index( event, rc, prc ) output=false {
-		prc.logs         = getModel( "AuditService" ).getAuditLog(1,10);
+		prc.logs         = getModel( "AuditService" ).getAuditTrailLog(1,10);
 		prc.pageTitle    = translateResource( "cms:auditTrail.page.title" );
 		prc.pageSubTitle = translateResource( "cms:auditTrail.page.subtitle" );
 	}
 
 	public any function loadMore(event, rc, prc) output=false {
-		prc.logs         = getModel( "AuditService" ).getAuditLog(rc.start,10);
+		var page = val(val( rc.page ?: 2 )-1)*10+1;
+		prc.logs = getModel( "AuditService" ).getAuditTrailLog(page,10);
 		event.noLayout();
+	}
+
+	public void function viewLog( event, rc, prc ) {
+		prc.auditTrail = getModel( "AuditService" ).getAuditLog( rc.id ?: "" );
+
+		if ( !prc.auditTrail.recordCount ) {
+			event.adminNotFound();
+		}
+		event.nolayout();
 	}
 
 	// PRIVATE UTILITY
@@ -31,14 +41,5 @@ component extends="preside.system.base.AdminHandler" output=false {
 		if ( !permitted ) {
 			event.adminAccessDenied();
 		}
-	}
-
-	public void function viewAuditTrail( event, rc, prc ) {
-		prc.auditTrail = getModel( "AuditService" ).getAuditTrail( rc.id ?: "" );
-
-		if ( !prc.auditTrail.recordCount ) {
-			event.adminNotFound();
-		}
-		event.nolayout();
 	}
 }

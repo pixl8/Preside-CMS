@@ -11,7 +11,7 @@
                     </div>
                     <div class="user-detail">
                          <h5>
-                            <a href="#event.buildAdminLink( linkTo='auditTrail.viewAuditTrail', queryString='id=#logs.id#')#" data-toggle="bootbox-modal" data-title="View Audit Trail Details" data-modal-class="full-screen-dialog limited-size">#known_as#</a>
+                            <a href="#event.buildAdminLink( linkTo='auditTrail.viewLog', queryString='id=#logs.id#')#" data-toggle="bootbox-modal" data-title="View Audit Trail Details" data-modal-class="full-screen-dialog limited-size">#known_as#</a>
                         </h5>
                         <div class="post-meta">
                             <span>#datetimeformat(datecreated,"medium")#</span>

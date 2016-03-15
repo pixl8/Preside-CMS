@@ -7,16 +7,9 @@ component output="false" singleton=true {
 // CONSTRUCTOR
 	/**
 	 * @dao.inject presidecms:object:audit_log
-	 * @coldboxController.inject  coldbox
 	 */
-	public any function init(
-		  required any dao
-		, required any coldboxController
-	 ) output=false {
-
+	public any function init( required any dao ) {
 		_setDao( arguments.dao );
-		_setColdboxController( arguments.coldboxController );
-
 		return this;
 	}
 
@@ -42,16 +35,16 @@ component output="false" singleton=true {
 		} );
 	}
 
-	public query function getAuditLog(
+	public query function getAuditTrailLog(
 		  numeric startRow = 1
 		, numeric maxRows  = 0
-		) output=false {
+	) {
 		var records = _getDao().selectData(
-				selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "security_user.email_address", "security_user.known_as"  ]
-				, orderby    = "audit_log.datecreated desc"
-				, startRow   = arguments.startRow
-				, maxRows    = arguments.maxRows
-			);
+			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "security_user.email_address", "security_user.known_as"  ]
+			, orderby      = "audit_log.datecreated desc"
+			, startRow     = arguments.startRow
+			, maxRows      = arguments.maxRows
+		);
 
 		return records;
 	}
@@ -60,12 +53,12 @@ component output="false" singleton=true {
 	 * Returns the auditTrail record matching the given ID
 	 *
 	 * @autodoc
-	 * @auditTrailId.hint The ID of the auditTrail you wish to get
+	 * @auditLogId.hint The ID of the audit log you wish to get
 	 *
 	 */
-	public query function getAuditTrail( required string auditTrailId ) {
+	public query function getAuditLog( required string auditLogId ) {
 		return $getPresideObject( "audit_log" ).selectData(
-			filter = { id=auditTrailId }
+			filter = { id=auditLogId }
 		);
 	}
 
@@ -75,10 +68,10 @@ component output="false" singleton=true {
 	* @data.hint    Data associated with the audit log
 	* @context.hint Context of the audit log
 	*/
-	public string function renderLogDetails( required struct data, required string context ) autodoc=true {
+	public string function renderAuditLog( required struct data, required string context ) autodoc=true {
 		var viewletEvent = "renderers.content.auditLogEntry." & arguments.context;
-		if ( _getColdboxController().viewletExists( viewletEvent ) ) {
-			return _getColdboxController().renderViewlet(
+		if ( $getColdbox().viewletExists( viewletEvent ) ) {
+			return $getColdbox().renderViewlet(
 				  event = viewletEvent
 				, args  = arguments.data);
 		}
@@ -91,11 +84,5 @@ component output="false" singleton=true {
 	}
 	private void function _setDao( required any dao ) output=false {
 		_dao = arguments.dao;
-	}
-	private any function _getColdboxController() {
-		return _coldboxController;
-	}
-	private void function _setColdboxController( required any coldboxController ) {
-		_coldboxController = arguments.coldboxController;
 	}
 }

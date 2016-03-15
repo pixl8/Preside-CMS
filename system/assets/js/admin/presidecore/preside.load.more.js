@@ -7,7 +7,7 @@
              , $container       = $link.parents( '.load-more:first' )
              , remoteUrl        = $link.attr( 'data-href' )
              , $targetContainer = $( '#' + $link.attr( 'data-load-more-target' ) ).first()
-             , start            = 11
+             , page             = 1
              , preloaded, loadMore, preloadMore, disableLoadMore, enableLoadMore, noMore;
 
 
@@ -20,9 +20,10 @@
            };
 
            preloadMore = function(){
+               page++;
                disableLoadMore();
                $.ajax( {
-                     url : remoteUrl + start
+                     url : remoteUrl + page
                    , success : function( html ){ $.trim( html ).length ? enableLoadMore( html ) : noMore(); }
                    , error : function( error ){ noMore(); }
                } );
@@ -34,7 +35,6 @@
            };
 
            enableLoadMore = function( html ){
-               start+=10;
                preloaded = $.trim( html );
                $container.removeClass( "hide" );
                $container.fadeIn( 200 );
@@ -43,7 +43,6 @@
            noMore = function(){
                $container.remove();
            };
-
            preloadMore();
            $link.click( function( e ){
                e.preventDefault();

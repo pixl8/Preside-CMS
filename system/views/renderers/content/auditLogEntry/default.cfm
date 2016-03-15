@@ -14,7 +14,7 @@
 			<td>#args.detail#</td>
 		</tr>
 		<tr>
-			<th>#translateResource( "cms:auditTrail.Date&Time" )#</th>
+			<th>#translateResource( "cms:auditTrail.dateAndTime" )#</th>
 			<td>#datetimeformat(args.datecreated,"medium")#</td>
 		</tr>
 	</table>

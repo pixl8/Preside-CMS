@@ -14,7 +14,7 @@
                                 </div>
                                 <div class="user-detail">
                                     <h5>
-                                        <a href="#event.buildAdminLink( linkTo='auditTrail.viewAuditTrail', queryString='id=#logs.id#')#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.viewAuditTrail' )#" data-modal-class="full-screen-dialog limited-size">#known_as#</a>
+                                        <a href="#event.buildAdminLink( linkTo='auditTrail.viewLog', queryString='id=#logs.id#')#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.viewAuditTrail' )#" data-modal-class="full-screen-dialog limited-size">#known_as#</a>
                                     </h5>
                                     <div class="post-meta">
                                         <span>#datetimeformat(datecreated,"medium")#</span>
@@ -32,7 +32,7 @@
             <p><em>#translateResource( uri='cms:auditTrail.noData' )#</em></p>
         </cfif>
         <div class="load-more text-center">
-            <a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='start=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
+            <a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='page=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
         </div>
     </div>
 </cfoutput>
