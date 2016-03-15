@@ -15,7 +15,7 @@ component output="false" singleton=true {
 
 // PUBLIC METHODS
 	public void function log(
-		  required string detail
+		  required any    detail
 		, required string source
 		, required string action
 		, required string type
@@ -23,7 +23,7 @@ component output="false" singleton=true {
 		, required string userId
 	) output=false {
 		_getDao().insertData( {
-			  detail     = arguments.detail
+			  detail     = SerializeJSON( arguments.detail )
 			, source     = arguments.source
 			, action     = arguments.action
 			, type       = arguments.type
@@ -69,13 +69,16 @@ component output="false" singleton=true {
 	* @context.hint Context of the audit log
 	*/
 	public string function renderAuditLog( required struct data, required string context ) autodoc=true {
-		var viewletEvent = "renderers.content.auditLogEntry." & arguments.context;
+		var viewletEvent = "renderers.auditLog.auditLogEntry." & arguments.context;
 		if ( $getColdbox().viewletExists( viewletEvent ) ) {
 			return $getColdbox().renderViewlet(
 				  event = viewletEvent
 				, args  = arguments.data);
+		} else {
+			return $getColdbox().renderViewlet(
+				  event = "renderers.content.auditLogEntry.default"
+				, args  = arguments.data);
 		}
-		return "";
 	}
 
 // PRIVATE GETTERS AND SETTERS

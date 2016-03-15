@@ -2,7 +2,7 @@
  * The audit log object is used to store audit trail logs that are triggered by user actions in the administrator (or any other actions you wish to track).
  */
 component output="false" extends="preside.system.base.SystemPresideObject" labelfield="detail" versioned=false displayname="Audit log" {
-	property name="detail"     type="string"  dbtype="varchar" maxLength="200" required=true;
+	property name="detail"     type="string"  dbtype="text"                    required=true;
 	property name="source"     type="string"  dbtype="varchar" maxLength="100" required=true;
 	property name="action"     type="string"  dbtype="varchar" maxLength="100" required=true;
 	property name="type"       type="string"  dbtype="varchar" maxLength="100" required=true;
