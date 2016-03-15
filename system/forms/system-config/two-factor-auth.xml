@@ -13,12 +13,4 @@ This form is used for managing settings two factor authentication
 			<field name="admin_trust_period" control="spinner"     required="false" defaultvalue="7" />
 		</fieldset>
 	</tab>
-	<tab id="web" feature="websiteUsers">
-		<fieldset id="web" sortorder="10">
-			<field name="web_enabled"      control="yesNoSwitch" required="false" />
-			<field name="web_app_name"     control="textinput"   required="false" />
-			<field name="web_enforced"     control="yesNoSwitch" required="false" />
-			<field name="web_trust_period" control="spinner"     required="false" defaultvalue="7" />
-		</fieldset>
-	</tab>
 </form>
