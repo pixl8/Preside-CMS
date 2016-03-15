@@ -46,6 +46,10 @@ component extends="preside.system.base.AdminHandler" {
 				, instance = user.id
 			);
 
+			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+			}
+
 			if ( Len( Trim( postLoginUrl ) ) ) {
 				sessionStorage.deleteVar( "_unsavedFormData", {} );
 				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
@@ -59,6 +63,60 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 	}
+
+	public void function twoStep( event, rc, prc ) {
+		if ( !event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+			_redirectToDefaultAdminEvent( event );
+		}
+
+		prc.loginLayoutClass = "two-col";
+		prc.twoFactorSetup = loginService.isTwoFactorAuthenticationSetupForUser();
+		if ( !prc.twoFactorSetup ) {
+			prc.authenticationKey = loginService.getTwoFactorAuthenticationKey();
+
+			if ( !Len( Trim( prc.authenticationKey ) ) ) {
+				prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
+			}
+
+			prc.qrCode = loginService.getTwoFactorAuthenticationQrCodeImage( key=prc.authenticationKey, size=200 );
+		}
+	}
+
+	public void function twoStepAuthenticateAction( event, rc, prc ) {
+		if ( !event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+			_redirectToDefaultAdminEvent( event );
+		}
+
+		var postLoginUrl  = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData   = sessionStorage.getVar( "_unsavedFormData", {} );
+		var authenticated = loginService.attemptTwoFactorAuthentication(
+			  token = ( rc.oneTimeToken ?: "" )
+			, ipAddress = event.getClientIp()
+			, userAgent = event.getUserAgent()
+		);
+
+		if ( authenticated ) {
+			if ( Len( Trim( postLoginUrl ) ) ) {
+				sessionStorage.deleteVar( "_unsavedFormData", {} );
+				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
+			} else {
+				_redirectToDefaultAdminEvent( event );
+			}
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={
+				  postLoginUrl = postLoginUrl
+				, message      = "AUTH_FAILED"
+			} );
+		}
+
+	}
+
 
 	public void function firstTimeUserSetupAction( event, rc, prc ) {
 		var emailAddress         = rc.email_address ?: "";

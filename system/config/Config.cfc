@@ -261,23 +261,24 @@ component output=false {
 		};
 
 		settings.features = {
-			  cms                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sitetree              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sites                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, assetManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, datamanager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, systemConfiguration   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, updateManager         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, errorLogs             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, formbuilder           = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
-			, multilingual          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"  = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			  cms                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sitetree                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sites                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, assetManager            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteUsers            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, datamanager             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemConfiguration     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {

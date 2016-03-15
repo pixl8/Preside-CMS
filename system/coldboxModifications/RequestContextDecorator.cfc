@@ -558,7 +558,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		getRequestContext().setValue( name="_presideCmsEditPageLink", value=arguments.editPageLink, private=true );
 	}
 
-<!--- FRONT END - Multilingual helpers --->
+// FRONT END - Multilingual helpers
 	public string function getLanguage() output=false {
 		return getRequestContext().getValue( name="_language", defaultValue="", private=true );
 	}
@@ -566,7 +566,19 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
 	}
 
-<!--- status codes --->
+// HTTP Header helpers
+	public string function getClientIp() output=false {
+		var httpHeaders = getHttpRequestData().headers;
+		var clientIp    = httpHeaders[ "x-real-ip" ] ?: ( httpHeader[ "x-forwarded-for"] ?: cgi.remote_addr );
+
+		return Trim( ListFirst( clientIp ) );
+	}
+
+	public string function getUserAgent() output=false {
+		return cgi.http_user_agent;
+	}
+
+// status codes
 	public void function notFound() output=false {
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
@@ -579,7 +591,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 	}
 
-<!--- private helpers --->
+// private helpers
 	public string function _structToQueryString( required struct inputStruct ) output=false {
 		var qs    = "";
 		var delim = "";
