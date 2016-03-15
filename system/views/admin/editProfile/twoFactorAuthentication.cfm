@@ -8,7 +8,19 @@
 </cfscript>
 
 <cfoutput>
-	<cfif !enforced>
+	<cfif enforced>
+		<p class="alert alert-success">
+			<i class="fa fa-fw fa-check green"></i>&nbsp;
+			#translateResource( "cms:editProfile.twofactorauthentication.enabled.message" )#
+		</p>
+
+		<div class="form-actions row">
+			<a href="#event.buildAdminLink( linkTo='editProfile.disableTwoFactorAuthenticationAction', queryString='reset=true' )#" class="btn btn-info confirmation-prompt" title="#HtmlEditFormat( translateResource( "cms:editProfile.twofactorauthentication.reset.enforced.prompt" ) )#">
+				<i class="fa fa-refresh bigger-110"></i>
+				#translateResource( "cms:editProfile.twofactorauthentication.reset.enforced.btn" )#
+			</a>
+		</div>
+	<cfelse>
 		<cfif enabled>
 			<p class="alert alert-success">
 				<i class="fa fa-fw fa-check green"></i>&nbsp;

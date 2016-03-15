@@ -197,13 +197,13 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 
 		var enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) );
-		if ( enforced ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
-		}
 
 		loginService.disableTwoFactorAuthenticationForUser();
 
-		if ( IsTrue( rc.reset ?: "" ) ) {
+		if ( enforced || IsTrue( rc.reset ?: "" ) ) {
+			if ( enforced ) {
+				runEvent( "admin.login.logout" );
+			}
 			setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication", queryString="setup=true" ) );
 		}
 		setNextEvent( url = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
