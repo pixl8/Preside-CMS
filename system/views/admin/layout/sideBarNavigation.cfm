@@ -16,7 +16,7 @@
 			</cfloop>
 		</ul>
 
-		<div class="sidebar-collapse" id="sidebar-collapse">
+		<div class="sidebar-collapse sidebar-toggle" id="sidebar-collapse">
 			<i class="fa fa-angle-double-left" data-icon1="fa fa-angle-double-left" data-icon2="fa fa-angle-double-right"></i>
 		</div>
 
