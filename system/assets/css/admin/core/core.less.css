@@ -30764,6 +30764,9 @@ td.presidecms .visible-print {
 .presidecms .preside-theme .breadcrumbs {
   z-index: 2;
 }
+.presidecms .preside-theme .list-extra-line-height > li {
+  margin-bottom: 1em;
+}
 .presidecms .preside-loading-sheen {
   position: absolute;
   top: 0;

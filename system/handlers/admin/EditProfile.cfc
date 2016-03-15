@@ -23,7 +23,21 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			, title  = translateResource( uri="cms:editProfile.password.secondary.nav.title" )
 			, icon   = "fa-key"
 		});
+		if ( loginService.isTwoFactorAuthenticationEnabled() ) {
+			secondaryNavItems.append({
+				  active = currentEvent == "admin.editProfile.twoFactorAuthentication"
+				, link   = event.buildAdminLink( "editProfile.twofactorauthentication" )
+				, title  = translateResource( uri="cms:editProfile.twoFactorAuthentication.secondary.nav.title" )
+				, icon   = "fa-user-secret"
+			});
+		}
+
 		prc.secondaryNav = renderView( view="/admin/layout/secondaryNavigation", args={ items=secondaryNavItems } );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:editProfile.page.title" )
+			, link  = event.buildAdminLink( linkTo="editProfile" )
+		);
 	}
 
 	function index( event, rc, prc ) {
@@ -38,10 +52,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
 		}
 
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:editProfile.page.title" )
-			, link  = event.buildAdminLink( linkTo="editProfile" )
-		);
+
 	}
 
 	function editProfileAction( event, rc, prc ) {
@@ -75,6 +86,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		if ( Len( Trim( passwordPolicy.message ?: "" ) ) ) {
 			prc.policyMessage = renderContent( "richeditor", passwordPolicy.message );
 		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:editProfile.password.page.title" )
+			, link  = event.buildAdminLink( linkTo="editProfile.updatePassword" )
+		);
 	}
 
 	function updatePasswordAction( event, rc, prc ) {
@@ -103,5 +119,71 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		messageBox.info( translateResource( uri="cms:editProfile.password.updated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
+	}
+
+	function twoFactorAuthentication( event, rc, prc ) {
+		if ( !loginService.isTwoFactorAuthenticationEnabled() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
+		}
+
+		prc.pageIcon     = "user-secret";
+		prc.pageTitle    = translateResource( uri="cms:editProfile.twofactorauthentication.page.title" );
+		prc.pageSubtitle = translateResource( uri="cms:editProfile.twofactorauthentication.page.subTitle" );
+
+		prc.enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) )
+		prc.enabled  = prc.enforced || loginService.isTwoFactorAuthenticationEnabledForUser();
+
+		if ( !prc.enforced && !prc.enabled ) {
+			prc.doSetup = IsTrue( rc.setup ?: "" );
+			if ( prc.doSetup ) {
+				prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
+				prc.qrCode            = loginService.getTwoFactorAuthenticationQrCodeImage( key=prc.authenticationKey, size=300 );
+			}
+		}
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:editProfile.twofactorauthentication.page.title" )
+			, link  = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" )
+		);
+	}
+
+	function completeTwoFactorAuthSetupAction( event, rc, prc ) {
+		if ( !loginService.isTwoFactorAuthenticationEnabled() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
+		}
+
+		var enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) )
+		var enabled  = enforced || loginService.isTwoFactorAuthenticationEnabledForUser();
+
+		if ( enforced || enabled ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication" ) );
+		}
+
+		var formName         = "two-factor-auth.confirm.setup";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+		var authToken        = formData.oneTimeToken ?: "";
+
+		if ( validationResult.validated() ) {
+			var authVerified = loginService.attemptTwoFactorAuthentication(
+				  token     = authToken
+				, ipAddress = event.getClientIp()
+				, userAgent = event.getUserAgent()
+			);
+
+			if ( authVerified ) {
+				loginService.enableTwoFactorAuthenticationForUser();
+				messagebox.info( translateResource( "cms:editProfile.twofactorauthentication.setup.complete.confirmation" ) );
+				setNextEvent( url=event.buildAdminLink( "editProfile.twoFactorAuthentication" ) );
+			}
+
+			validationResult.addError( "oneTimeToken", translateResource( "cms:editProfile.twofactorauthentication.setup.invalid.auth.code" ) );
+			messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+		}
+
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="editProfile.twoFactorAuthentication", queryString="setup=true" )
+			, persistStruct = { validationResult = validationResult }
+		);
 	}
 }

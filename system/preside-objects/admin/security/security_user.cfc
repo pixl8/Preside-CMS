@@ -12,6 +12,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="known_as
 	property name="reset_password_token"            type="string"   dbtype="varchar" maxLength="35"  required=false indexes="resettoken";
 	property name="reset_password_key"              type="string"   dbtype="varchar" maxLength="60"  required=false;
 	property name="reset_password_token_expiry"     type="datetime" dbtype="datetime"                required=false;
+	property name="two_step_auth_enabled"           type="boolean"  dbtype="boolean"                 required=false default=false;
 	property name="two_step_auth_key"               type="string"   dbtype="varchar" maxLength="255" required=false;
 	property name="two_step_auth_key_created"       type="datetime" dbtype="datetime"                required=false;
 	property name="two_step_auth_key_in_use"        type="boolean"  dbtype="boolean"                 required=false default=false;

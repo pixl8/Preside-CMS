@@ -17,6 +17,7 @@ component displayName="Admin login service" {
 	 * @userDao.inject             presidecms:object:security_user
 	 * @emailService.inject        emailService
 	 * @googleAuthenticator.inject googleAuthenticator
+	 * @qrCodeGenerator.inject     qrCodeGenerator
 	 */
 	public any function init(
 		  required any    sessionStorage
@@ -25,6 +26,7 @@ component displayName="Admin login service" {
 		, required any    userDao
 		, required any    emailService
 		, required any    googleAuthenticator
+		, required any    qrCodeGenerator
 		,          string sessionKey      = "admin_user"
 		,          string twoFaSessionKey = "admin_user_authenticated_with_2fa"
 	) {
@@ -36,6 +38,7 @@ component displayName="Admin login service" {
 		_setTwoFaSessionKey( arguments.twoFaSessionKey );
 		_setGoogleAuthenticator( arguments.googleAuthenticator );
 		_setEmailService( arguments.emailService );
+		_setQrCodeGenerator( arguments.qrCodeGenerator )
 
 		return this;
 	}
@@ -368,11 +371,11 @@ component displayName="Admin login service" {
 	 * @userAgent.hint The originating user agent of the request
 	 */
 	public boolean function twoFactorAuthenticationRequired( required string ipAddress, required string userAgent ) {
-		if ( !$isFeatureEnabled( "twoFactorAuthentication" ) ) {
+		if ( isTwoFactorAuthenticated( argumentCollection=arguments ) ) {
 			return false;
 		}
 
-		if ( isTwoFactorAuthenticated( argumentCollection=arguments ) ) {
+		if ( !$isFeatureEnabled( "twoFactorAuthentication" ) ) {
 			return false;
 		}
 
@@ -380,7 +383,7 @@ component displayName="Admin login service" {
 		var adminEnabled  = IsBoolean( configuration.admin_enabled  ?: "" ) && configuration.admin_enabled;
 		var adminEnforced = IsBoolean( configuration.admin_enforced ?: "" ) && configuration.admin_enforced;
 
-		return adminEnabled && adminEnforced; // we don't have user configurable 2FA yet, so only true if enforced
+		return adminEnabled && ( adminEnforced || isTwoFactorAuthenticationEnabledForUser() );
 	}
 
 	/**
@@ -455,6 +458,33 @@ component displayName="Admin login service" {
 	}
 
 	/**
+	 * Returns whether or not two factor authentication
+	 * is enabled for the admin
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function isTwoFactorAuthenticationEnabled() {
+		var adminEnabled = $getPresideSetting( "two-factor-auth", "admin_enabled" );
+
+		return $isFeatureEnabled( "twoFactorAuthentication" ) && IsBoolean( adminEnabled ) && adminEnabled;
+	}
+
+	/**
+	 * Returns whether or not two factor authentication
+	 * is enabled for the logged in user specifically
+	 *
+	 * @autodoc
+	 *
+	 */
+	public boolean function isTwoFactorAuthenticationEnabledForUser() {
+		var details = getLoggedInUserDetails();
+
+		return IsBoolean( details.two_step_auth_enabled ?: "" ) && details.two_step_auth_enabled;
+	}
+
+
+	/**
 	 * Generates, saves and returns a new two factor authentication
 	 * key for the logged in user
 	 *
@@ -476,6 +506,31 @@ component displayName="Admin login service" {
 		} );
 
 		return key;
+	}
+
+	/**
+	 * Returns base64 encoded image of QR code for the given authentication key
+	 *
+	 * @audotoc
+	 * @key.hint  Private authenticator key
+	 * @size.hint Size of the image (pixels)
+	 */
+	public string function getTwoFactorAuthenticationQrCodeImage( required string key, numeric size=125 ) {
+		var userDetails     = getLoggedInUserDetails()
+		var applicationName = $getPresideSetting( "two-factor-auth", "admin_app_name" );
+
+		if ( !Len( Trim( applicationName ) ) ) {
+			applicationName = "PresideCMS";
+		}
+
+		var qrCodeUrl = _getGoogleAuthenticator().getOtpUrl(
+			  applicationName = applicationName
+			, email           = userDetails.email_address ?: ""
+			, key             = arguments.key
+		);
+
+		return toBase64( _getQrCodeGenerator().generateQrCode( input=qrCodeUrl, size=arguments.size ) );
+
 	}
 
 	/**
@@ -528,6 +583,20 @@ component displayName="Admin login service" {
 		_getSessionStorage().setVar( name=_getTwoFaSessionKey(), value=authenticated );
 
 		return authenticated;
+	}
+
+	/**
+	 * Enables 2FA for the logged in user
+	 *
+	 * @autodoc
+	 *
+	 */
+	public void function enableTwoFactorAuthenticationForUser() {
+		var userId = getLoggedInUserId();
+
+		if ( userId.len() ) {
+			_getUserDao().updateData( id=userId, data={ two_step_auth_enabled=true } );
+		}
 	}
 
 // PRIVATE HELPERS
@@ -678,6 +747,13 @@ component displayName="Admin login service" {
 	}
 	private void function _setGoogleAuthenticator( required any googleAuthenticator ) {
 		_googleAuthenticator = arguments.googleAuthenticator;
+	}
+
+	private any function _getQrCodeGenerator() {
+		return _qrCodeGenerator;
+	}
+	private void function _setQrCodeGenerator( required any qrCodeGenerator ) {
+		_qrCodeGenerator = arguments.qrCodeGenerator;
 	}
 
 }

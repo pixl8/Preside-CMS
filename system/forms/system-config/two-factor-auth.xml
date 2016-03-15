@@ -8,6 +8,7 @@ This form is used for managing settings two factor authentication
 	<tab id="admin">
 		<fieldset id="admin" sortorder="10">
 			<field name="admin_enabled"      control="yesNoSwitch" required="false" />
+			<field name="admin_app_name"     control="textinput"   required="false" />
 			<field name="admin_enforced"     control="yesNoSwitch" required="false" />
 			<field name="admin_trust_period" control="spinner"     required="false" defaultvalue="7" />
 		</fieldset>
@@ -15,6 +16,7 @@ This form is used for managing settings two factor authentication
 	<tab id="web" feature="websiteUsers">
 		<fieldset id="web" sortorder="10">
 			<field name="web_enabled"      control="yesNoSwitch" required="false" />
+			<field name="web_app_name"     control="textinput"   required="false" />
 			<field name="web_enforced"     control="yesNoSwitch" required="false" />
 			<field name="web_trust_period" control="spinner"     required="false" defaultvalue="7" />
 		</fieldset>

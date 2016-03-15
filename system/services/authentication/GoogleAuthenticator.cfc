@@ -61,11 +61,12 @@ component singleton=true {
 	/**
 	* Returns a URL that can be used in a QR code with the Google Authenticator app
 	*
+	* @param applicationName application name to appear
 	* @param email the email address of the user account
 	* @param key the Base32 encoded secret key to use in the code
 	*/
-	public string function getOtpUrl( required string email, required string key ) {
-		return 'otpauth://totp/#arguments.email#?secret=#arguments.key#';
+	public string function getOtpUrl( required string applicationName, required string email, required string key ) {
+		return 'otpauth://totp/#UrlEncodedFormat( arguments.applicationName )#:#arguments.email#?secret=#arguments.key#';
 	}
 
 	/**
