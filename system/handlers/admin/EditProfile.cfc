@@ -136,8 +136,12 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		if ( !prc.enforced && !prc.enabled ) {
 			prc.doSetup = IsTrue( rc.setup ?: "" );
 			if ( prc.doSetup ) {
-				prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
-				prc.qrCode            = loginService.getTwoFactorAuthenticationQrCodeImage( key=prc.authenticationKey, size=300 );
+				prc.authenticationKey = loginService.getTwoFactorAuthenticationKey();
+				if ( !Len( Trim( prc.authenticationKey ) ) ) {
+					prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
+				}
+
+				prc.qrCode = loginService.getTwoFactorAuthenticationQrCodeImage( key=prc.authenticationKey, size=300 );
 			}
 		}
 
