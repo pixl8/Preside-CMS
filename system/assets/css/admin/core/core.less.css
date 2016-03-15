@@ -29174,6 +29174,9 @@ td.presidecms .visible-print {
 .presidecms .tab-content .form-actions {
   margin-bottom: -20px;
 }
+.presidecms input.ace[type="checkbox"] {
+  z-index: 12;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }
