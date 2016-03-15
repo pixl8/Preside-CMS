@@ -126,9 +126,9 @@ component extends="testbox.system.BaseSpec"{
 		describe( "getOtpUrl", function(){
 
 			it( "should return a URL that can be used in a QR code with the Google Authenticator app", function(){
-				var otpUrl = authenticator.getOtpUrl( "test@example.com", "D5NJOIFNXEB4DL7M" );
+				var otpUrl = authenticator.getOtpUrl( "My app", "test@example.com", "D5NJOIFNXEB4DL7M" );
 
-				expect( otpUrl ).toBe( "otpauth://totp/test@example.com?secret=D5NJOIFNXEB4DL7M" );
+				expect( otpUrl ).toBe( "otpauth://totp/My%20app:test@example.com?secret=D5NJOIFNXEB4DL7M" );
 			} );
 
 		} );
