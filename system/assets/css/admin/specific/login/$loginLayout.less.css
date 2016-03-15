@@ -45,9 +45,8 @@ html.presidecms {
   padding-left: 18px;
   padding-right: 18px;
 }
-.presidecms .login-layout.two-col .left-col {
-  padding-right: 18px;
-  border-right: 1px solid #eeeeee;
+.presidecms .login-layout.two-col .right-col {
+  border-left: 1px solid #eeeeee;
 }
 .presidecms .login-layout.two-col .login-help-title {
   height: 35px;

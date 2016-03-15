@@ -3,6 +3,7 @@
 	message           = rc.message ?: "";
 	twoFactorSetup    = IsTrue( prc.twoFactorSetup ?: "" );
 	authenticationKey = prc.authenticationKey ?: "";
+	qrCode            = prc.qrCode ?: "";
 </cfscript>
 
 <cfoutput>
@@ -58,8 +59,8 @@
 								</form>
 							</div>
 						</div>
-						<div class="col-md-6">
-							<div class="login-help-box right-col">
+						<div class="col-md-6 right-col">
+							<div class="login-help-box">
 								<cfif twoFactorSetup>
 									<h4 class="login-help-title grey">#translateResource( 'cms:login.two.factor.auth.help.title' )#</h4>
 									<p class="grey">#translateResource( 'cms:login.two.factor.auth.help.first.para' )#</p>
@@ -68,12 +69,28 @@
 
 									<p class="grey">#translateResource( 'cms:login.two.factor.auth.help.gethelp.para' )#</p>
 								<cfelse>
-									<h4 class="login-help-title grey">#translateResource( 'cms:login.two.factor.auth.setup.title' )#</h4>
-									<p class="grey">#translateResource( 'cms:login.two.factor.auth.setup.first.para' )#</p>
+									<div class="text-center">
+										<img src="data:image/gif;base64,#qrCode#">
+									</div>
 
-									<p class="alert alert-warning center">#authenticationKey#</p>
+									<p>#translateResource( uri="cms:editProfile.twofactorauthentication.qrcode.instruction", data=[ '<a href="##two-factor-private-key" data-toggle="collapse">#translateResource( 'cms:editProfile.twoFactorAuthentication.show.key.link')#</a>'] )#</p>
 
-									<p class="grey">#translateResource( 'cms:login.two.factor.auth.setup.second.para' )#</p>
+									<p id="two-factor-private-key" class="alert alert-warning collapse text-center">#authenticationKey#</p>
+
+									<p>
+										<a href="##more-help" data-toggle="collapse">
+											<i class="fa fa-fw fa-caret-right"></i>
+											#translateResource( "cms:login.two.factor.auth.setup.read.more" )#
+										</a>
+									</p>
+									<div class="collapse" id="more-help">
+										<ol class="list-extra-line-height">
+											<li>#translateResource( "cms:editProfile.twofactorauthentication.setup.instructions.step1" )#</li>
+											<li>#translateResource( "cms:editProfile.twofactorauthentication.setup.instructions.step2" )#</li>
+											<li>#translateResource( "cms:editProfile.twofactorauthentication.setup.instructions.step3" )#</li>
+										</ol>
+
+									</div>
 								</cfif>
 							</div>
 						</div>

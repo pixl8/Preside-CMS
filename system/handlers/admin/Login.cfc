@@ -80,6 +80,8 @@ component extends="preside.system.base.AdminHandler" {
 			if ( !Len( Trim( prc.authenticationKey ) ) ) {
 				prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
 			}
+
+			prc.qrCode = loginService.getTwoFactorAuthenticationQrCodeImage( key=prc.authenticationKey, size=200 );
 		}
 	}
 

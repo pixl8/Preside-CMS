@@ -36,7 +36,7 @@
 		#topJs#
 	</head>
 
-	<body class="login-layout #layoutClass#">
+	<body class="login-layout #layoutClass# preside-theme">
 		<div class="main-container">
 			<div class="main-content">
 				<div class="row">
