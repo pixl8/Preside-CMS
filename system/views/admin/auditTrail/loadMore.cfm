@@ -6,7 +6,7 @@
         <cfscript>
             auditTrailData.Action      = logs.Action;
             auditTrailData.Type        = logs.Type;
-            auditTrailData.Detail      = DeserializeJSON( logs.Detail );
+            auditTrailData.Detail      = isJson( logs.Detail ) ? DeserializeJSON( logs.Detail ) : logs.Detail;
             auditTrailData.datecreated = logs.datecreated;
             auditTrailData.id          = logs.id;
         </cfscript>

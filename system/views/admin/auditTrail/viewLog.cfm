@@ -2,7 +2,7 @@
 <cfscript>
 	auditTrailData.Action      = prc.auditTrail.Action;
 	auditTrailData.Type        = prc.auditTrail.Type;
-	auditTrailData.Detail      = deserializeJSON( prc.auditTrail.Detail );
+	auditTrailData.Detail      = isJson( prc.auditTrail.Detail ) ? DeserializeJSON( prc.auditTrail.Detail ) : prc.auditTrail.Detail
 	auditTrailData.datecreated = prc.auditTrail.datecreated;
 	auditTrailData.id          = prc.auditTrail.id
 </cfscript>
