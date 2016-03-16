@@ -68,11 +68,13 @@ component output="false" singleton=true {
 		if ( $getColdbox().viewletExists( viewletEvent ) ) {
 			return $getColdbox().renderViewlet(
 				  event = viewletEvent
-				, args  = arguments.log);
+				, args  = arguments.log
+			);
 		} else {
 			return $getColdbox().renderViewlet(
 				  event = "renderers.content.auditLogEntry.default"
-				, args  = arguments.log);
+				, args  = arguments.log
+			);
 		}
 	}
 
