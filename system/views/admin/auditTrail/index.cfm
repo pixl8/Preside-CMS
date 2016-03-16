@@ -6,6 +6,13 @@
         <cfif val(logs.recordcount)>
             <div id="audit-trail">
                 <cfoutput query="logs">
+                    <cfscript>
+                        auditTrailData.Action      = logs.Action;
+                        auditTrailData.Type        = logs.Type;
+                        auditTrailData.Detail      = DeserializeJSON( logs.Detail );
+                        auditTrailData.datecreated = logs.datecreated;
+                        auditTrailData.id          = logs.id;
+                    </cfscript>
                     <div class="message-item">
                         <div class="message-inner">
                             <div class="message-head clearfix">
@@ -14,7 +21,7 @@
                                 </div>
                                 <div class="user-detail">
                                     <h5>
-                                        <a href="#event.buildAdminLink( linkTo='auditTrail.viewLog', queryString='id=#logs.id#')#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.viewAuditTrail' )#" data-modal-class="full-screen-dialog limited-size">#known_as#</a>
+                                        #known_as#
                                     </h5>
                                     <div class="post-meta">
                                         <span>#datetimeformat(datecreated,"medium")#</span>
@@ -22,7 +29,7 @@
                                 </div>
                             </div>
                             <div>
-                                #action#
+                                #renderLogMessage( log=auditTrailData )#
                             </div>
                         </div>
                     </div>

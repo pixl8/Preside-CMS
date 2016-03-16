@@ -40,7 +40,7 @@ component output="false" singleton=true {
 		, numeric maxRows  = 0
 	) {
 		var records = _getDao().selectData(
-			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "security_user.email_address", "security_user.known_as"  ]
+			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "audit_log.detail" , "security_user.email_address", "security_user.known_as"  ]
 			, orderby      = "audit_log.datecreated desc"
 			, startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows
@@ -62,22 +62,17 @@ component output="false" singleton=true {
 		);
 	}
 
-	/**
-	* Renders the given notification topic
-	*
-	* @data.hint    Data associated with the audit log
-	* @context.hint Context of the audit log
-	*/
-	public string function renderAuditLog( required struct data, required string context ) autodoc=true {
-		var viewletEvent = "renderers.auditLog.auditLogEntry." & arguments.context;
+	public any function renderLogMessage(  required struct log ) {
+
+		var viewletEvent = "renderers.auditLog.auditLogEntry." & arguments.log.action;
 		if ( $getColdbox().viewletExists( viewletEvent ) ) {
 			return $getColdbox().renderViewlet(
 				  event = viewletEvent
-				, args  = arguments.data);
+				, args  = arguments.log);
 		} else {
 			return $getColdbox().renderViewlet(
 				  event = "renderers.content.auditLogEntry.default"
-				, args  = arguments.data);
+				, args  = arguments.log);
 		}
 	}
 
