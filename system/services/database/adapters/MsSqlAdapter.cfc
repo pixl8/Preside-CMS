@@ -252,6 +252,8 @@ component extends="BaseAdapter" {
 				if ( !containsAggregateFunctions( sql ) ) {
 					sql &= ", row_number() over (order by " & arguments.orderBy & ") as _rownumber ";
 				}
+			} else {
+				sql &= ", row_number() over ( order by (SELECT 1) ) as _rownumber ";
 			}
 		}
 
@@ -284,11 +286,7 @@ component extends="BaseAdapter" {
 		}
 
 		if ( arguments.maxRows ) {
-			if ( Len( Trim ( arguments.orderBy ) ) ) {
-				sql = "select * from ( " & sql & " ) as recordset where _rownumber between #( arguments.startRow )# and #( ( arguments.startRow + arguments.maxRows ) - 1 )#";
-			} else {
-				sql = Replace(sql, "select", "select top #arguments.maxRows#", "one");
-			}
+			sql = "select * from ( " & sql & " ) as recordset where _rownumber between #( arguments.startRow )# and #( ( arguments.startRow + arguments.maxRows ) - 1 )#";
 		}
 
 		return sql;
@@ -366,7 +364,7 @@ component extends="BaseAdapter" {
 	public boolean function supportsCascadeUpdateDelete() {
 		return false;
 	}
-	
+
 	public boolean function supportsRenameInAlterColumnStatement() {
 		return false;
 	}
