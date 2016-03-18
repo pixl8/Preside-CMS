@@ -1,0 +1,9 @@
+( function( $ ){
+
+	$( "body" ).on( "click", 'button[data-bb-handler="ok"]', function( e ){
+		e.preventDefault();
+		var $form = $("form");
+		$form.submit();
+	} );
+
+} )( presideJQuery );

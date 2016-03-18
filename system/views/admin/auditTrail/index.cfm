@@ -1,8 +1,38 @@
 <cfscript>
-    logs    = prc.logs ?: [];
+    logs = prc.logs ?: [];
 </cfscript>
 <cfoutput>
-    <div class="container">
+<div class="container">
+    <div class="col-sm-5 col-md-4 col-lg-4">
+        <div class="btn-group pull-right">
+            <button data-toggle="dropdown" class="btn btn-success">
+                <span class="fa fa-caret-down"></span>
+                <i class="fa fa-plus"></i>
+                #translateResource( uri='cms:auditTrail.addFilter' )#
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <li data-field="DateRange" class="date">
+                    <a href="#event.buildAdminLink( linkTo='auditTrail.getFilters', queryString='type=DateRange' )#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.dateRange' )#">
+                        <i class="fa fa-calendar"></i>&nbsp;
+                        #translateResource( uri='cms:auditTrail.dateRange' )#
+                    </a>
+                </li>
+                <li data-field="activity" class="field">
+                    <a href="#event.buildAdminLink( linkTo='auditTrail.getFilters', queryString='type=Action' )#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.action' )#">
+                        <i class="fa fa-cogs"></i>&nbsp;
+                        #translateResource( uri='cms:auditTrail.action' )#
+                    </a>
+                </li>
+                <li data-field="user" class="field">
+                    <a href="#event.buildAdminLink( linkTo='auditTrail.getFilters', queryString='type=User' )#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.user' )#">
+                        <i class="fa fa-user"></i>&nbsp;
+                        #translateResource( uri='cms:auditTrail.user' )#
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-sm-7 col-md-8 col-lg-8">
         <cfif val(logs.recordcount)>
             <div id="audit-trail">
                 <cfoutput query="logs">
@@ -24,7 +54,7 @@
                                         #known_as#
                                     </h5>
                                     <div class="post-meta">
-                                        <span>#datetimeformat(datecreated,"medium")#</span>
+                                        <span>#datetimeformat( datecreated,"medium" )#</span>
                                     </div>
                                 </div>
                             </div>
@@ -39,7 +69,9 @@
             <p><em>#translateResource( uri='cms:auditTrail.noData' )#</em></p>
         </cfif>
         <div class="load-more text-center">
-            <a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='page=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
+            <a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='filterType=#prc.filterType#&filterValue=#prc.filterValue#&page=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
         </div>
     </div>
+</div>
+
 </cfoutput>
