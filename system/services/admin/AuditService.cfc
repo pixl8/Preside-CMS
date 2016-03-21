@@ -39,6 +39,7 @@ component output="false" singleton=true {
 		  numeric startRow = 1
 		, numeric maxRows  = 0
 		, struct  filter   = {}
+		, array   extraFilters = []
 	) {
 		var records = _getDao().selectData(
 			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "audit_log.detail" , "security_user.email_address", "security_user.known_as","audit_log.user"  ]
@@ -46,10 +47,10 @@ component output="false" singleton=true {
 			, startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows
 			, filter       = arguments.filter
+			, extraFilters = arguments.extraFilters
 		);
 		return records;
 	}
-
 	/**
 	 * Returns the auditTrail record matching the given ID
 	 *

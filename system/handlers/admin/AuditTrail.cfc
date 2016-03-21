@@ -13,28 +13,18 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	public void function index( event, rc, prc ) output=false {
-		prc.filterType  = StructKeyExists( rc,'filterType' )  ? rc.filterType  : "";
-		prc.filterValue = StructKeyExists( rc,'filterValue' ) ? rc.filterValue : "";
-		var filter      = { "#prc.filterType#" = prc.filterValue };
-
-		if( len( prc.filterType ) ) {
-			prc.logs         = getModel( "AuditService" ).getAuditTrailLog( 1, 10, filter );
-		} else {
-			prc.logs         = getModel( "AuditService" ).getAuditTrailLog( 1, 10 );
-		}
-		prc.pageTitle    = translateResource( "cms:auditTrail.page.title" );
-		prc.pageSubTitle = translateResource( "cms:auditTrail.page.subtitle" );
+		prc.filterType    = StructKeyExists( rc,'filterType' )  ? rc.filterType  : "";
+		prc.filterValue   = StructKeyExists( rc,'filterValue' ) ? rc.filterValue : "";
+		var filterDetails = _getFilterAndExtraFilters( prc.filterType, prc.filterValue);
+		prc.logs          = getModel( "AuditService" ).getAuditTrailLog( 1, 10, filterDetails.filter , filterDetails.extraFilters );
+		prc.pageTitle     = translateResource( "cms:auditTrail.page.title" );
+		prc.pageSubTitle  = translateResource( "cms:auditTrail.page.subtitle" );
 	}
 
 	public any function loadMore( event, rc, prc ) output=false {
-		var filter      = { "#rc.filterType#" = rc.filterValue };
-		var page        = val( val ( rc.page ?: 2 ) - 1 ) * 10 + 1;
-
-		if( len( rc.filterType ) ) {
-			prc.logs    = getModel( "AuditService" ).getAuditTrailLog( page, 10, filter );
-		} else {
-			prc.logs    = getModel( "AuditService" ).getAuditTrailLog( page, 10 );
-		}
+		var page          = val( val ( rc.page ?: 2 ) - 1 ) * 10 + 1;
+		var filterDetails = _getFilterAndExtraFilters( rc.filterType, rc.filterValue);
+		prc.logs          = getModel( "AuditService" ).getAuditTrailLog( page, 10, filterDetails.filter, filterDetails.extraFilters );
 		event.noLayout();
 	}
 
@@ -64,7 +54,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 				for( date in dateType ) {
 					prc.filterControl[date] = renderFormControl(
 						 type             = "datepicker"
-						, name            = "date"
+						, name            = "datecreated"
 						, label           = date &" "&"Date"
 					);
 				}
@@ -110,4 +100,25 @@ component extends="preside.system.base.AdminHandler" output=false {
 			event.adminAccessDenied();
 		}
 	}
+
+	private struct function _getFilterAndExtraFilters( required string type, required any value ) {
+		var filterObject.filter       = {};
+		var filterObject.extraFilters = [];
+		var fromDate                  = listToArray( listFirst( arguments.value ), '-' );
+		var toDate                    = listToArray( listLast( arguments.value ), '-' );
+
+		if( len( arguments.type ) && arguments.type != 'datecreated') {
+		   filterObject.filter  = { "#arguments.Type#" = arguments.value };
+		}
+
+		if(arguments.type == 'datecreated' && !ArrayIsEmpty( fromDate ) and !ArrayIsEmpty( toDate )) {
+			filterObject.extraFilters.append({
+				  filter       = "audit_log.datecreated between :From and :To"
+				, filterParams = { From = { type="cf_sql_varchar", value="#datetimeformat( createdate( fromDate[1], fromDate[2], fromDate[3]),' yyyy-mm-dd HH:nn:ss ')#" } , To = { type="cf_sql_varchar", value="#datetimeformat(createdate(toDate[1],toDate[2],toDate[3]),'yyyy-mm-dd HH:nn:ss')#" } }
+			});
+		}
+
+		return filterObject;
+	}
+
 }
