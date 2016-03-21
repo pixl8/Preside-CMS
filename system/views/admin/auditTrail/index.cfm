@@ -1,5 +1,8 @@
 <cfscript>
-    logs = prc.logs ?: [];
+    logs         = prc.logs               ?: [];
+    filterValue  = prc.filterLabel.value  ?: "";
+    filterType   = prc.filterLabel.type   ?: "";
+    filterIcon   = prc.filterLabel.icon   ?: "";
 </cfscript>
 <cfoutput>
 <div class="container">
@@ -31,6 +34,12 @@
                 </li>
             </ul>
         </div>
+        <div class="clearfix"></div>&nbsp;
+        <cfif len(filterValue)>
+            <div class="alert alert-info">
+                <i class="#filterIcon#"></i>&nbsp;#filterValue#
+            </div>
+        </cfif>
     </div>
     <div class="col-sm-7 col-md-8 col-lg-8">
         <cfif val(logs.recordcount)>

@@ -15,8 +15,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 	public void function index( event, rc, prc ) output=false {
 		prc.filterType    = StructKeyExists( rc,'filterType' )  ? rc.filterType  : "";
 		prc.filterValue   = StructKeyExists( rc,'filterValue' ) ? rc.filterValue : "";
-		var filterDetails = _getFilterAndExtraFilters( prc.filterType, prc.filterValue);
+		var filterDetails = _getFilterAndExtraFilters( prc.filterType, prc.filterValue );
 		prc.logs          = getModel( "AuditService" ).getAuditTrailLog( 1, 10, filterDetails.filter , filterDetails.extraFilters );
+		prc.filterLabel   = _getfilterLabel( prc.filterType, prc.filterValue );
 		prc.pageTitle     = translateResource( "cms:auditTrail.page.title" );
 		prc.pageSubTitle  = translateResource( "cms:auditTrail.page.subtitle" );
 	}
@@ -119,6 +120,31 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		return filterObject;
+	}
+
+	private struct function _getfilterLabel( required string type, required any value ) {
+		var filterData  = {};
+		switch( arguments.type ){
+			case "datecreated":
+				var filterData.type  = arguments.type;
+				var filterData.value = "Date created after" & " " &dateFormat(listfirst(arguments.value), "dd mmm yyyy");
+				var filterData.icon  = "fa fa-calendar";
+			break;
+			case "Action":
+				var filterData.type  = arguments.type;
+				var filterData.value = "Action:" & " "&arguments.value;
+				var filterData.icon  = "fa fa-cogs";
+			break;
+			case "User":
+				var filterData.type  = arguments.type;
+				var filter           = { user = "#arguments.value#" };
+				var auditTrail       = getModel( "AuditService" ).getAuditTrailLog( filter = filter );
+				var filterData.value = "User:" & " "& auditTrail.known_as;
+				var filterData.icon  = "fa fa-user";
+			break;
+		}
+		
+		return filterData;
 	}
 
 }
