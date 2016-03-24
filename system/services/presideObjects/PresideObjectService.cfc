@@ -322,7 +322,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			);
 
 			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType() );
-			
+
 			if ( adapter.requiresManualCommitForTransactions() ){
 				_runSql( sql='commit', dsn=obj.dsn );
 			}
@@ -711,9 +711,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 		}
 
-		if ( not Len( Trim( selectDataArgs.orderBy ) ) ) {
-			var relatedVia = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			if ( Len( Trim( relatedVia ) ) ) {
+		if ( !Len( Trim( selectDataArgs.orderBy ) ) ) {
+			var relatedVia   = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
+			var hasSortOrder = Len( Trim( relatedVia ) ) && getObjectProperties( relatedTo ).keyExists( "sort_order" );
+			if ( hasSortOrder ) {
 				selectDataArgs.orderBy = relatedVia & ".sort_order"
 			}
 		}
@@ -757,16 +758,22 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		if ( Len( Trim( pivotTable ) ) and Len( Trim( targetObject ) ) ) {
 			var newRecords      = ListToArray( arguments.targetIdList );
 			var anythingChanged = false;
+			var hasSortOrder    = getObjectProperties( pivotTable ).keyExists( "sort_order" );
+			var currentSelect   = [ "#targetFk# as targetId" ];
+
+			if ( hasSortOrder ) {
+				currentSelect.append( "sort_order" );
+			}
 
 			transaction {
 				var currentRecords = selectData(
 					  objectName   = pivotTable
-					, selectFields = [ "#targetFk# as targetId", "sort_order" ]
+					, selectFields = currentSelect
 					, filter       = { "#sourceFk#" = arguments.sourceId }
 				);
 
 				for( var record in currentRecords ) {
-					if ( newRecords.find( record.targetId ) && newRecords.find( record.targetId ) == record.sort_order ) {
+					if ( newRecords.find( record.targetId ) && ( !hasSortOrder || newRecords.find( record.targetId ) == record.sort_order ) ) {
 						ArrayDelete( newRecords, record.targetId );
 					} else {
 						anythingChanged = true;
@@ -786,8 +793,8 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					for( var i=1; i <=newRecords.len(); i++ ) {
 						insertData(
 							  objectName    = pivotTable
-							, data          = { "#sourceFk#" = arguments.sourceId, "#targetFk#" = newRecords[i], sort_order=i }
 							, useVersioning = false
+							, data          = { "#sourceFk#"=arguments.sourceId, "#targetFk#"=newRecords[i], sort_order=i }
 						);
 					}
 				}
