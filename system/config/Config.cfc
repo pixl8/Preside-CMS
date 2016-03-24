@@ -1,6 +1,6 @@
-component output=false {
+component {
 
-	public void function configure() output=false {
+	public void function configure() {
 		settings = {};
 
 		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
@@ -302,7 +302,7 @@ component output=false {
 	}
 
 // ENVIRONMENT SPECIFIC
-	public void function local() output=false {
+	public void function local() {
 		settings.showErrors = true;
 		settings.autoSyncDb = true;
 
@@ -311,7 +311,7 @@ component output=false {
 	}
 
 // PRIVATE UTILITY
-	private array function _getUdfFiles() output=false {
+	private array function _getUdfFiles() {
 		var udfs     = DirectoryList( "/preside/system/helpers", true, false, "*.cfm" );
 		var siteUdfs = ArrayNew(1);
 		var udf      = "";
@@ -342,14 +342,14 @@ component output=false {
 		return udfs;
 	}
 
-	private string function _getMappedPathFromFull( required string fullPath, required string mapping ) output=false {
+	private string function _getMappedPathFromFull( required string fullPath, required string mapping ) {
 		var expandedMapping       = ExpandPath( arguments.mapping );
 		var pathRelativeToMapping = Replace( arguments.fullPath, expandedMapping, "" );
 
 		return arguments.mapping & Replace( pathRelativeToMapping, "\", "/", "all" );
 	}
 
-	private string function _discoverWireboxBinder() output=false {
+	private string function _discoverWireboxBinder() {
 		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.WireBox";
 		}
@@ -357,7 +357,7 @@ component output=false {
 		return 'preside.system.config.WireBox';
 	}
 
-	private string function _discoverCacheboxConfigurator() output=false {
+	private string function _discoverCacheboxConfigurator() {
 		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.Cachebox";
 		}
@@ -365,7 +365,7 @@ component output=false {
 		return "preside.system.config.Cachebox";
 	}
 
-	private array function _loadExtensions() output=false {
+	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
 			  appMapping          = settings.appMapping
 			, extensionsDirectory = "#settings.appMapping#/extensions"
@@ -423,7 +423,7 @@ component output=false {
 		return types;
 	}
 
-	private string function _typesToExtensions( required struct types ) output=false {
+	private string function _typesToExtensions( required struct types ) {
 		var extensions = [];
 		for( var cat in arguments.types ) {
 			for( var ext in arguments.types[ cat ] ) {
@@ -434,7 +434,7 @@ component output=false {
 		return extensions.toList();
 	}
 
-	private struct function _getConfiguredAssetDerivatives() output=false {
+	private struct function _getConfiguredAssetDerivatives() {
 		var derivatives  = {};
 
 		derivatives.adminthumbnail = {
@@ -463,7 +463,7 @@ component output=false {
 		return derivatives;
 	}
 
-	private struct function _getCkEditorToolbarConfig() output=false {
+	private struct function _getCkEditorToolbarConfig() {
 		return {
 			full     =  'Maximize,-,Source,-,Preview'
 					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
@@ -487,7 +487,7 @@ component output=false {
 
 	}
 
-	private string function _getCookieEncryptionKey() output=false {
+	private string function _getCookieEncryptionKey() {
 		var cookieKeyFile = "#settings.appMapping#/config/.cookieEncryptionKey";
 		if ( FileExists( cookieKeyFile ) ) {
 			try {
@@ -501,7 +501,7 @@ component output=false {
 		return key;
 	}
 
-	private void function _loadConfigurationFromExtensions() output=false {
+	private void function _loadConfigurationFromExtensions() {
 		for( var ext in settings.activeExtensions ){
 			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
 				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
