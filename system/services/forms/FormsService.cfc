@@ -509,7 +509,9 @@ component {
 	}
 
 	private boolean function _registerForm( required string formName, required struct formDefinition ) {
-		if ( _formDoesNotBelongToDisabledFeature( arguments.formDefinition ) ) {
+		if ( !_itemBelongsToDisabledFeature( arguments.formDefinition ) ) {
+			_stripDisabledFeatures( arguments.formDefinition );
+
 			var forms   = _getForms();
 			var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#", rules=_getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition ) );
 
@@ -577,7 +579,7 @@ component {
 								field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
 							}
 
-							_bindAttributesFromPresideObjectField( field );
+							_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
 							field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
 
 							ArrayAppend( fieldset.fields, field );
@@ -594,7 +596,7 @@ component {
 		return theForm;
 	}
 
-	private void function _bindAttributesFromPresideObjectField( required struct field ) {
+	private void function _bindAttributesFromPresideObjectField( required struct field, boolean throwOnMissingObject=true ) {
 		var property    = "";
 		var boundObject = "";
 		var boundField  = "";
@@ -612,17 +614,25 @@ component {
 			boundField  = ListRest( field.binding, "." );
 			boundObject = ListFirst( field.binding, "." );
 
-			if ( not pobjService.objectExists( boundObject ) ) {
-				throw(
-					  type = "FormsService.BadBinding"
-					, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
-				);
+			if ( !pobjService.objectExists( boundObject ) ) {
+				if ( arguments.throwOnMissingObject ) {
+					throw(
+						  type = "FormsService.BadBinding"
+						, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
+					);
+				}
+
+				return;
 			}
-			if ( not pobjService.fieldExists( boundObject, boundField ) ){
-				throw(
-					  type = "FormsService.BadBinding"
-					, message = "The field, [#boundField#], referred to in the form field binding, [#field.binding#], could not be found in Preside Object, [#boundObject#]"
-				);
+			if ( !pobjService.fieldExists( boundObject, boundField ) ){
+				if ( arguments.throwOnMissingObject ) {
+					throw(
+						  type = "FormsService.BadBinding"
+						, message = "The field, [#boundField#], referred to in the form field binding, [#field.binding#], could not be found in Preside Object, [#boundObject#]"
+					);
+				}
+
+				return;
 			}
 
 			property = _getPresideObjectService().getObjectProperty( boundObject, boundField );
@@ -953,8 +963,33 @@ component {
 		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
-	private boolean function _formDoesNotBelongToDisabledFeature( required struct formDefinition ) {
-		return !Len( Trim( formDefinition.feature ?: "" ) ) || _getFeatureService().isFeatureEnabled( Trim( formDefinition.feature ) );
+	private boolean function _itemBelongsToDisabledFeature( required struct itemDefinition ) {
+		return Len( Trim( itemDefinition.feature ?: "" ) ) && !_getFeatureService().isFeatureEnabled( Trim( itemDefinition.feature ) );
+	}
+
+	private void function _stripDisabledFeatures( required struct formDefinition ) {
+		var tabs = arguments.formDefinition.tabs ?: [];
+
+		for( var i=tabs.len(); i>0; i-- ) {
+			if ( _itemBelongsToDisabledFeature( tabs[ i ] ) ) {
+				tabs.deleteAt( i );
+			}
+
+			var fieldsets = tabs[ i ].fieldSets ?: [];
+			for( var n=fieldsets.len(); n>0; n-- ) {
+				if ( _itemBelongsToDisabledFeature( fieldsets[ n ] ) ) {
+					fieldsets.deleteAt( n );
+				}
+
+				var fields = fieldsets[ n ].fields ?: [];
+
+				for( var x=fields.len(); x>0; x-- ) {
+					if ( _itemBelongsToDisabledFeature( fields[ x ] ) ) {
+						fields.deleteAt( x );
+					}
+				}
+			}
+		}
 	}
 
 	private string function _getDefaultI18nBaseUriForForm( required string formName ) {

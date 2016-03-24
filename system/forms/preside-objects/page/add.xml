@@ -46,7 +46,7 @@ This form is used as the base "add page" form for Sitetree pages. See also [[for
 		</fieldset>
 	</tab>
 
-	<tab id="access" sortorder="50">
+	<tab id="access" sortorder="50" feature="websiteUsers">
 		<fieldset id="access" sortorder="10">
 			<field sortorder="10" binding="page.access_restriction" />
 			<field sortorder="20" binding="page.full_login_required" />
