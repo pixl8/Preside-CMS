@@ -148,7 +148,6 @@ component {
 		settings.serverErrorLayout           = "Main";
 		settings.serverErrorViewlet          = "errors.serverError";
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
-		settings.cookieEncryptionKey         = _getCookieEncryptionKey();
 		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics          = [];
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
@@ -485,20 +484,6 @@ component {
 			bolditaliconly = 'Bold,Italic'
 		};
 
-	}
-
-	private string function _getCookieEncryptionKey() {
-		var cookieKeyFile = "#settings.appMapping#/config/.cookieEncryptionKey";
-		if ( FileExists( cookieKeyFile ) ) {
-			try {
-				return FileRead( cookieKeyFile );
-			} catch( any e ) {}
-		}
-
-		var key = GenerateSecretKey( "AES" );
-		FileWrite( cookieKeyFile, key );
-
-		return key;
 	}
 
 	private void function _loadConfigurationFromExtensions() {
