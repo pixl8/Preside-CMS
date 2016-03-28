@@ -131,10 +131,10 @@ component displayName="Admin permissions service" {
 		var groups = _getUserDao().selectManyToManyData(
 			  propertyName = "groups"
 			, id           = arguments.userId
-			, selectFields = [ "security_group" ]
+			, selectFields = [ "groups.id" ]
 		);
 
-		return ValueArray( groups.security_group );
+		return ValueArray( groups.id );
 	}
 
 	public struct function getContextPermissions(
