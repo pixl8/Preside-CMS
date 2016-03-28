@@ -40,7 +40,6 @@
 				<exclude name=".twgit*"                        />
 				<exclude name=".zanata-cache/**"               />
 				<exclude name="zanata.xml"                     />
-				<exclude name="box.json"                       />
 			</zipfileset>
 		</zip>
 
