@@ -161,8 +161,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		var expected = [];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["security_group"], propertyName="groups", id="testuser" )
-			.$results( QueryNew('security_group' ) );
+			.$args( selectFields=["groups.id"], propertyName="groups", id="testuser" )
+			.$results( QueryNew('id' ) );
 
 		actual = permsService.listPermissionKeys( user="testuser" );
 
@@ -189,8 +189,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		];
 
 		mockUserDao.$( "selectManyToManyData" )
-			.$args( selectFields=["security_group"], propertyName="groups", id="me" )
-			.$results( QueryNew('security_group', 'varchar', [['testgroup'],['testgroup2']] ) );
+			.$args( selectFields=["groups.id"], propertyName="groups", id="me" )
+			.$results( QueryNew('id', 'varchar', [['testgroup'],['testgroup2']] ) );
 
 		mockGroupDao.$( "selectData" )
 			.$args( selectFields=["roles"], id="testgroup" )
