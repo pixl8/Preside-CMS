@@ -21,7 +21,7 @@ component output="false" singleton=true {
 		, required string type
 		, required string instance
 		, required string userId
-	) output=false {
+	) {
 		_getDao().insertData( {
 			  detail     = SerializeJSON( arguments.detail )
 			, source     = arguments.source
@@ -81,10 +81,10 @@ component output="false" singleton=true {
 	}
 
 // PRIVATE GETTERS AND SETTERS
-	private any function _getDao() output=false {
+	private any function _getDao() {
 		return _dao;
 	}
-	private void function _setDao( required any dao ) output=false {
+	private void function _setDao( required any dao ) {
 		_dao = arguments.dao;
 	}
 }
