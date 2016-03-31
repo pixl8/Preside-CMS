@@ -5,7 +5,8 @@ component output=false {
 
 		if ( IsDate( data ) ) {
 			data = parseDateTime( data );
-			return dateFormat( data, "dd mmm yyyy" ) & " " & timeFormat( data, "hh:mm:ss tt" );
+			SetLocale(cookie.defaultlocale);
+			return LSDateFormat( data ) & " " & LSTimeFormat( data );
 		}
 
 		return data;

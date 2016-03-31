@@ -826,6 +826,32 @@
 			months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
 			monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 			today: "Today"
+		},
+
+		fr: {
+			days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+			daysShort: ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+			daysMin: ["d", "l", "ma", "me", "j", "v", "s"],
+			months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+			monthsShort: ["janv.", "févr.", "mars", "avril", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+			today: "Aujourd'hui",
+			monthsTitle: "Mois",
+			clear: "Effacer",
+			weekStart: 1,
+			format: "dd/mm/yyyy"
+		},
+
+		de: {
+			days: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+			daysShort: ["Son", "Mon", "Die", "Mit", "Don", "Fre", "Sam"],
+			daysMin: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+			months: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+			monthsShort: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
+			today: "Heute",
+			monthsTitle: "Monate",
+			clear: "Löschen",
+			weekStart: 1,
+			format: "dd.mm.yyyy"
 		}
 	};
 
