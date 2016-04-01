@@ -17,7 +17,7 @@
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control datetimepicker" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
+		<input name="#inputName#" placeholder="#placeholder#" data-date-language="#cookie.defaultlocale#" class="#inputClass# form-control datetimepicker" id="#inputId#" type="text" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#" />
 		<i class="fa fa-calendar"></i>
 	</span>
 </cfoutput>
