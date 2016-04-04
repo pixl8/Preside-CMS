@@ -13,8 +13,8 @@ component output=false {
 	}
 
 	private string function _getLocaleStringFromAbbr( required string localeAbbr ) {
-		var languageRef = { en:  'english (united kingdom)', de : 'german', fr : 'french' };
-		return structKeyExists(languageRef,arguments.localeAbbr) ?  languageRef[ arguments.localeAbbr ] : languageRef[ 'en' ];
+		var languageRef = getSetting( "languageRef" );
+		return structKeyExists( languageRef,arguments.localeAbbr ) ?  languageRef[ arguments.localeAbbr ] : languageRef[ 'en' ];
 	}
 
 }
