@@ -713,9 +713,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 		if ( !Len( Trim( selectDataArgs.orderBy ) ) ) {
 			var relatedVia   = getObjectPropertyAttribute( arguments.objectName, arguments.propertyName, "relatedVia", "" );
-			var hasSortOrder = Len( Trim( relatedVia ) ) && getObjectProperties( relatedTo ).keyExists( "sort_order" );
+			var hasSortOrder = Len( Trim( relatedVia ) ) && getObjectProperties( relatedVia ).keyExists( "sort_order" );
 			if ( hasSortOrder ) {
-				selectDataArgs.orderBy = relatedVia & ".sort_order"
+				selectDataArgs.orderBy = relatedVia & ".sort_order";
 			}
 		}
 
