@@ -56,6 +56,10 @@
 		<cfreturn getController().renderViewlet( event="renderers.link.default", args=arguments ) />
 	</cffunction>
 
+	<cffunction name="getLinkUrl" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "linksService" ).getLinkUrl( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
