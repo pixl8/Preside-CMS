@@ -17,7 +17,7 @@ component output=false {
 		if( localeAbbr == 'en' ){
 			return 'english (united kingdom)';
 		} else if( localeAbbr == 'de' ){
-			return 'dutch';
+			return 'german';
 		} else if( localeAbbr == 'fr' ){
 			return 'french';
 		}
