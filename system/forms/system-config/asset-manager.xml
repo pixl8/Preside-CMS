@@ -13,10 +13,11 @@ This form is used for configuring aspects of the asset manager
 
 	<tab id="imagemagick" sortorder="10">
 		<fieldset id="imagemagick" sortorder="10">
-			<field sortorder="10" name="use_imagemagick"       control="yesnoswitch" required="false" />
-			<field sortorder="20" name="imagemagick_path"      control="textinput"   required="false" />
-			<field sortorder="30" name="imagemagick_timeout"   control="spinner"     required="false" defaultvalue="10" />
-			<field sortorder="40" name="imagemagick_interlace" control="yesnoswitch" required="false" />
+			<field sortorder="10" name="use_imagemagick"         control="yesnoswitch" required="false" />
+			<field sortorder="20" name="imagemagick_path"        control="textinput"   required="false" />
+			<field sortorder="30" name="imagemagick_timeout"     control="spinner"     required="false" defaultvalue="10" />
+			<field sortorder="40" name="imagemagick_interlace"   control="yesnoswitch" required="false" />
+			<field sortorder="50" name="imagemagick_concurrency" control="spinner"     required="false" defaultvalue="5" />
 		</fieldset>
 	</tab>
 </form>
