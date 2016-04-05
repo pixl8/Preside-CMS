@@ -15,6 +15,7 @@ component {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
+		SetLocale( _getLocaleStringFromAbbr( cookie.defaultlocale ) );
 	}
 
 	public void function notFound( event, rc, prc ) {
@@ -156,5 +157,10 @@ component {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
 		}
+	}
+
+	private string function _getLocaleStringFromAbbr( required string localeAbbr ) {
+		var languageRef = getSetting( "languageRef" );
+		return structKeyExists( languageRef,arguments.localeAbbr ) ?  languageRef[ arguments.localeAbbr ] : languageRef[ 'en' ];
 	}
 }

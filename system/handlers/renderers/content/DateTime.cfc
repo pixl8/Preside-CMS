@@ -5,16 +5,9 @@ component output=false {
 
 		if ( IsDate( data ) ) {
 			data = parseDateTime( data );
-			SetLocale( _getLocaleStringFromAbbr( cookie.defaultlocale ) );
 			return LSDateFormat( data ) & " " & LSTimeFormat( data );
 		}
 
 		return data;
 	}
-
-	private string function _getLocaleStringFromAbbr( required string localeAbbr ) {
-		var languageRef = getSetting( "languageRef" );
-		return structKeyExists( languageRef,arguments.localeAbbr ) ?  languageRef[ arguments.localeAbbr ] : languageRef[ 'en' ];
-	}
-
 }
