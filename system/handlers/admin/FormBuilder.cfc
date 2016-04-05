@@ -53,7 +53,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( "formbuilder" ) );
 		}
 
-		if ( IsTrue( prc.form.locked ) || !hasCmsPermission( permissionKey="formbuilder.editForm" ) ) {
+		if ( IsTrue( prc.form.locked ) || !hasCmsPermission( permissionKey="formbuilder.editform" ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="formbuilder.submissions", queryString="id=" & prc.form.id ) );
 		}
 
