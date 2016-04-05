@@ -9,6 +9,9 @@
 component displayname="ImageMagick"  {
 
 	public any function init() {
+		_setActiveOperations( {} );
+		_setActiveOperationsLockName( "imageMagickActiveOperationsLock_" & CreateUUId() );
+
 		return this;
 	}
 
@@ -31,20 +34,25 @@ component displayname="ImageMagick"  {
 
 		FileWrite( tmpSourceFilePath, arguments.asset );
 
-		imageMagickResize(
-			  sourceFile      = tmpSourceFilePath
-			, destinationFile = tmpDestFilePath
-			, qualityArgs     = _cfToImQuality( arguments.quality )
-			, width           = arguments.width
-			, height          = arguments.height
-			, expand          = maintainAspectRatio
-			, crop            = maintainAspectRatio
-		);
+		try {
+			imageMagickResize(
+				  sourceFile      = tmpSourceFilePath
+				, destinationFile = tmpDestFilePath
+				, qualityArgs     = _cfToImQuality( arguments.quality )
+				, width           = arguments.width
+				, height          = arguments.height
+				, expand          = maintainAspectRatio
+				, crop            = maintainAspectRatio
+			);
 
-		var binary = FileReadBinary( tmpDestFilePath );
-
-		FileDelete( tmpSourceFilePath );
-		FileDelete( tmpDestFilePath   );
+			var binary = FileReadBinary( tmpDestFilePath );
+		} catch ( any e ) {
+			$raiseError( e );
+			rethrow;
+		} finally {
+			FileDelete( tmpSourceFilePath );
+			FileDelete( tmpDestFilePath   );
+		}
 
 		return binary;
 	}
@@ -101,20 +109,25 @@ component displayname="ImageMagick"  {
 			shrinkToWidth = 0;
 		}
 
-		imageMagickResize(
-			  sourceFile      = tmpSourceFilePath
-			, destinationFile = tmpDestFilePath
-			, qualityArgs      = _cfToImQuality( arguments.quality )
-			, width           = shrinkToWidth
-			, height          = shrinkToHeight
-			, expand          = true
-			, crop            = false
-		);
+		try {
+			imageMagickResize(
+				  sourceFile      = tmpSourceFilePath
+				, destinationFile = tmpDestFilePath
+				, qualityArgs      = _cfToImQuality( arguments.quality )
+				, width           = shrinkToWidth
+				, height          = shrinkToHeight
+				, expand          = true
+				, crop            = false
+			);
 
-		var binary = FileReadBinary( tmpDestFilePath );
-
-		FileDelete( tmpSourceFilePath );
-		FileDelete( tmpDestFilePath   );
+			var binary = FileReadBinary( tmpDestFilePath );
+		} catch ( any e ) {
+			$raiseError( e );
+			rethrow;
+		} finally {
+			FileDelete( tmpSourceFilePath );
+			FileDelete( tmpDestFilePath   );
+		}
 
 		return binary;
 	}
@@ -147,6 +160,8 @@ component displayname="ImageMagick"  {
 
 		_exec( command="convert", args=args );
 
+		_checkResize( argumentCollection=arguments );
+
 		return arguments.destinationFile;
 	}
 
@@ -171,21 +186,45 @@ component displayname="ImageMagick"  {
 
 // PRIVATE HELPERS
 	private string function _exec( required string command, required string args ) {
-		var result = "";
-		var config = $getPresideCategorySettings( "asset-manager" );
-		var binDir = Trim( config.imagemagick_path ?: "" );
+		var result      = "";
+		var config      = $getPresideCategorySettings( "asset-manager" );
+		var timeout     = Val( config.imagemagick_timeout     ?: 30 );
+		var concurrency = Val( config.imagemagick_concurrency ?: 5  );
+		var binDir      = Trim( config.imagemagick_path ?: "" );
+		var start       = getTickCount();
 
-		if ( Len( binDir ) ) {
-			binDir = Replace( binDir, "\", "/", "all" );
-			binDir = ReReplace( binDir, "([^/])$", "\1/" );
+		if ( concurrency > 0 ) {
+			while( concurrency <= _getActiveOperationCount() ) {
+				sleep( 100 );
+				if ( getTickCount() - start > timeout * 1000 ) {
+					throw( type="imagemagick.too.busy", message="Giving up attempting image operation because too many active image operations", detail="Command: [#arguments.command# #arguments.args#]" );
+				}
+			}
 		}
 
-		execute name      = binDir & arguments.command
-				arguments = arguments.args
-				timeout   = Val( config.imagemagick_timeout ?: 30 )
-				variable  = "result";
+		if ( concurrency > 0 ) {
+			var operationKey = _registerOperation( timeout );
+		}
 
-		return result;
+		try {
+			if ( Len( binDir ) ) {
+				binDir = Replace( binDir, "\", "/", "all" );
+				binDir = ReReplace( binDir, "([^/])$", "\1/" );
+			}
+
+			execute name      = binDir & arguments.command
+			        arguments = arguments.args
+			        timeout   = Val( config.imagemagick_timeout ?: 30 )
+			        variable  = "result";
+
+			return result;
+		} catch ( any e ) {
+			rethrow;
+		} finally {
+			if ( concurrency > 0 ) {
+				_deRegisterOperation( operationKey );
+			}
+		}
 	}
 
 	private string function _cfToImQuality( required string cfInterpolation ) {
@@ -207,4 +246,73 @@ component displayname="ImageMagick"  {
 
 		return "-filter triangle -define filter:support=3 -quality 82";
 	}
+
+	private void function _checkResize( required string destinationFile, required numeric width, required numeric height ) {
+		var rawInfo    = Trim( _exec( command="identify", args='-format "%wx%h" "#arguments.destinationFile#"' ) );
+		var dimensions = {};
+		var failure    = false;
+
+		if ( ReFindNoCase( "^[0-9]+x[0-9]+$", rawInfo ) ) {
+			dimensions = {
+				  width  = ListFirst( rawInfo, "x" )
+				, height = ListLast( rawInfo, "x" )
+			};
+
+			if ( ( arguments.width && dimensions.width != arguments.width ) || ( arguments.height && dimensions.height != arguments.height ) ) {
+				throw( type="imagemagick.resize.failure",  message="Image resize operation failed. Expected dimensions [#arguments.width#x#arguments.height#]. Received dimensions: [#rawInfo#]" );
+			}
+		} else {
+			throw( type="imagemagick.resize.failure",  message="Image resize operation failed. Expected dimensions [#arguments.width#x#arguments.height#]. Generated image dimensions could not be read, received instead [#rawInfo#]" );
+		}
+	}
+
+	private string function _registerOperation( required numeric timeoutInSeconds ) {
+		lock name=_getActiveOperationsLockName() type="exclusive" timeout=1 {
+			var operations = _getActiveOperations();
+			var key        = CreateUUId();
+
+			operations[ key ] = GetTickCount() + ( timeoutInSeconds * 1000 );
+
+			return key;
+		}
+	}
+
+	private void function _deRegisterOperation( required string key ) {
+		lock name=_getActiveOperationsLockName() type="exclusive" timeout=1 {
+			var operations = _getActiveOperations();
+
+			operations.delete( arguments.key );
+		}
+	}
+
+	private numeric function _getActiveOperationCount() {
+		lock name=_getActiveOperationsLockName() type="readonly" timeout=1 {
+			var operations = _getActiveOperations();
+			var ticksNow   = GetTickCount();
+
+			for ( var key in operations ) {
+				if ( operations[ key ] < ticksNow ) {
+					operations.delete[ key ];
+				}
+			}
+
+			return operations.count();
+		}
+	}
+
+// GETTERS AND SETTERS
+	private struct function _getActiveOperations() {
+		return _activeOperations;
+	}
+	private void function _setActiveOperations( required struct activeOperations ) {
+		_activeOperations = arguments.activeOperations;
+	}
+
+	private string function _getActiveOperationsLockName() {
+		return _activeOperationsLockName;
+	}
+	private void function _setActiveOperationsLockName( required string activeOperationsLockName ) {
+		_activeOperationsLockName = arguments.activeOperationsLockName;
+	}
+
 }
