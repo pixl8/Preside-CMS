@@ -25,14 +25,15 @@ component displayname="ImageMagick"  {
 			return arguments.asset;
 		}
 
-		var currentImageInfo   = {};
-		var tmpFilePath        = getTempFile( GetTempDirectory(), "mgk" );
+		var currentImageInfo  = {};
+		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
+		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
 
-		FileWrite( tmpFilePath, arguments.asset );
+		FileWrite( tmpSourceFilePath, arguments.asset );
 
 		imageMagickResize(
-			  sourceFile      = tmpFilePath
-			, destinationFile = tmpFilePath
+			  sourceFile      = tmpSourceFilePath
+			, destinationFile = tmpDestFilePath
 			, qualityArgs     = _cfToImQuality( arguments.quality )
 			, width           = arguments.width
 			, height          = arguments.height
@@ -40,9 +41,10 @@ component displayname="ImageMagick"  {
 			, crop            = maintainAspectRatio
 		);
 
-		var binary = FileReadBinary( tmpFilePath );
+		var binary = FileReadBinary( tmpDestFilePath );
 
-		FileDelete( tmpFilePath );
+		FileDelete( tmpSourceFilePath );
+		FileDelete( tmpDestFilePath   );
 
 		return binary;
 	}
@@ -84,13 +86,14 @@ component displayname="ImageMagick"  {
 			return arguments.asset;
 		}
 
-		var tmpFilePath       = GetTempFile( GetTempDirectory(), "mgk" );
+		var tmpSourceFilePath = getTempFile( GetTempDirectory(), "mgk" );
+		var tmpDestFilePath   = getTempFile( GetTempDirectory(), "mgk" );
 		var shrinkToWidth     = arguments.width;
 		var shrinkToHeight    = arguments.height;
 		var widthChangeRatio  = currentImageInfo.width / shrinkToWidth;
 		var heightChangeRatio = currentImageInfo.height / shrinkToHeight;
 
-		FileWrite( tmpFilePath, arguments.asset );
+		FileWrite( tmpSourceFilePath, arguments.asset );
 
 		if ( widthChangeRatio > heightChangeRatio ) {
 			shrinkToHeight = 0;
@@ -99,8 +102,8 @@ component displayname="ImageMagick"  {
 		}
 
 		imageMagickResize(
-			  sourceFile      = tmpFilePath
-			, destinationFile = tmpFilePath
+			  sourceFile      = tmpSourceFilePath
+			, destinationFile = tmpDestFilePath
 			, qualityArgs      = _cfToImQuality( arguments.quality )
 			, width           = shrinkToWidth
 			, height          = shrinkToHeight
@@ -108,9 +111,10 @@ component displayname="ImageMagick"  {
 			, crop            = false
 		);
 
-		var binary = FileReadBinary( tmpFilePath );
+		var binary = FileReadBinary( tmpDestFilePath );
 
-		FileDelete( tmpFilePath );
+		FileDelete( tmpSourceFilePath );
+		FileDelete( tmpDestFilePath   );
 
 		return binary;
 	}
