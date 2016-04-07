@@ -3,20 +3,24 @@
  * for managing the installed version of core Preside
  * for your application.
  *
+ * @singleton
+ *
  */
-component singleton=true {
+component {
 
 // constructor
 	/**
 	 * @repositoryUrl.inject              coldbox:setting:updateRepositoryUrl
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @applicationReloadService.inject   applicationReloadService
+	 * @lookupCache.inject                cachebox:DefaultQueryCache
 	 *
 	 */
 	public any function init(
 		  required string repositoryUrl
 		, required any    systemConfigurationService
 		, required any    applicationReloadService
+		, required any    lookupCache
 		,          string presidePath="/preside"
 
 	) {
@@ -24,6 +28,7 @@ component singleton=true {
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setApplicationReloadService( arguments.applicationReloadService );
 		_setPresidePath( arguments.presidePath );
+		_setLookupCache( arguments.lookupCache );
 		_setActiveDownloads( {} );
 
 		return this;
@@ -85,6 +90,14 @@ component singleton=true {
 	}
 
 	public array function listAvailableVersions() {
+		var cache    = _getLookupCache();
+		var cacheKey = "UpdateManagerService.listAvailableVersions";
+		var cached   = cache.get( cacheKey );
+
+		if ( !IsNull( cached ) ) {
+			return cached;
+		}
+
 		var s3Listing         = "";
 
 		try {
@@ -119,6 +132,8 @@ component singleton=true {
 				versions.append( versionInfo );
 			}
 		}
+
+		cache.set( cacheKey, versions );
 
 		return versions;
 	}
@@ -312,7 +327,7 @@ component singleton=true {
 			return { version="unknown" };
 		}
 
-		
+
 	}
 
 	private string function _getRemoteBranchPath() {
@@ -473,6 +488,13 @@ component singleton=true {
 	}
 	private void function _setActiveDownloads( required struct activeDownloads ) {
 		_activeDownloads = arguments.activeDownloads;
+	}
+
+	private any function _getLookupCache() {
+		return _lookupCache;
+	}
+	private void function _setLookupCache( required any lookupCache ) {
+		_lookupCache = arguments.lookupCache;
 	}
 
 }

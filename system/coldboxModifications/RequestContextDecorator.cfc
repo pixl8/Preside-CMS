@@ -179,7 +179,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		announceInterception( "onAccessDenied" , arguments );
 
 		event.setView( view="/admin/errorPages/accessDenied" );
-		event.setLayout( "admin" );
+		// event.setLayout( "admin" );
 
 		event.setHTTPHeader( statusCode="401" );
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
@@ -220,25 +220,30 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return _getSticker().includeData( argumentCollection = arguments );
 	}
 
-	public string function renderIncludes( string type ) output=false {
+	public string function renderIncludes( string type, string group="default" ) output=false {
 		var rendered      = _getSticker().renderIncludes( argumentCollection = arguments );
-		var inlineJsArray = "";
 
-		if ( not StructKeyExists( arguments, "type" ) or arguments.type eq "js" ) {
-			var inlineJsArray = getRequestContext().getValue( name="__presideInlineJsArray", defaultValue=[], private=true );
-			rendered &= ArrayToList( inlineJsArray, Chr(10) );
-			getRequestContext().setValue( name="__presideInlineJsArray", value=[], private=true );
+		if ( !arguments.keyExists( "type" ) || arguments.type == "js" ) {
+			var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
+			var stack    = inlineJs[ arguments.group ] ?: [];
+
+			rendered &= ArrayToList( stack, Chr(10) );
+
+			inlineJs[ arguments.group ] = [];
+
+			getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
 		}
 
 		return rendered;
 	}
 
-	public void function includeInlineJs( required string js ) output=false {
-		var inlineJsArray = getRequestContext().getValue( name="__presideInlineJsArray", defaultValue=[], private=true );
+	public void function includeInlineJs( required string js, string group="default" ) output=false {
+		var inlineJs = getRequestContext().getValue( name="__presideInlineJs", defaultValue={}, private=true );
 
-		ArrayAppend( inlineJsArray, "<script type=""text/javascript"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
+		inlineJs[ arguments.group ] = inlineJs[ arguments.group ] ?: [];
+		inlineJs[ arguments.group ].append( "<script type=""text/javascript"">" & Chr(10) & arguments.js & Chr(10) & "</script>" );
 
-		getRequestContext().setValue( name="__presideInlineJsArray", value=inlineJsArray, private=true );
+		getRequestContext().setValue( name="__presideInlineJs", value=inlineJs, private=true );
 	}
 
 // private helpers

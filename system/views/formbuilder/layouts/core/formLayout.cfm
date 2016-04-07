@@ -18,7 +18,7 @@
 		</cfif>
 
 		<div class="form-group">
-			<div class="col-md-offset-2">
+			<div class="col-md-offset-3">
 				<div class="col-md-9">
 					<button class="btn" tabindex="#getNextTabIndex()#">#( args.configuration.button_label ?: 'Submit' )#</button>
 				</div>
