@@ -179,7 +179,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		announceInterception( "onAccessDenied" , arguments );
 
 		event.setView( view="/admin/errorPages/accessDenied" );
-		event.setLayout( "admin" );
 
 		event.setHTTPHeader( statusCode="401" );
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
