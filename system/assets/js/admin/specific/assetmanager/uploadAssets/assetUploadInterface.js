@@ -13,9 +13,17 @@
 		  , uploadFilesHandler
 		  , uploadProgressHandler
 		  , totalUploadProgressHandler
+		  , queueCompleteHandler
 		  , errorHandler
 		  , toggleFeaturesOnFileListPopulation
-		  , thumbnailGeneratedHandler;
+		  , thumbnailGeneratedHandler
+		  , getUploadResultStatus
+		  , batchOptions
+		  , failedUploads     = 0
+		  , successfulUploads = 0
+		  , SUCCESS           = 0
+		  , PARTIALSUCCESS    = 1
+		  , FAILURE           = 2;
 
 		$uploadTemplate.remove();
 
@@ -59,6 +67,10 @@
 			  , $previewContainer, $input, filename, i, progressBarWidth=0;
 
 			if ( files.length ) {
+				batchOptions      = $form.serializeObject();
+				failedUploads     = 0;
+				successfulUploads = 0;
+
 				dropzone.enqueueFiles( files );
 
 				for( i=0; i<files.length; i++ ) {
@@ -76,14 +88,13 @@
 					);
 				}
 
-
-				$form.find( ".upload-options" ).fadeOut( 500, function(){
-					$( this ).remove();
-					$form.find( ".upload-next-steps" ).removeClass( "hide" );
-				} );
-
 				$form.find( "li[data-step='1']" ).addClass( "complete" ).removeClass( "active" );
 				$form.find( "li[data-step='2']" ).addClass( "active" );
+
+				$form.find( ".upload-options" ).fadeOut( 200, function(){
+					$( this ).remove();
+					$form.find( ".upload-progress" ).removeClass( "hide" );
+				} );
 			}
 
 			return false;
@@ -102,16 +113,22 @@
 			$progressBar.width( progress + "%" );
 		};
 
-		errorHandler = function( file, message ) {
+		errorHandler = function( file, message, xhr ) {
 			var $previewContainer = $( file.previewElement )
 			  , $detail           = $previewContainer.find( ".upload-detail" );
 
-			$detail.html( 'TODO: Produce meaningfull error message here' );
+			failedUploads++;
+
+			$detail.html( i18n.translateResource( "cms:assetmanager.upload.failure.http.message", { data : [ xhr.status + ' ' + xhr.statusText ] } ) );
 			$previewContainer.addClass( "upload-error" );
 
 			$previewContainer.find( ".action-buttons" ).html(
 				'<i class="fa fa-fw fa-ban bigger-130 red"></i>'
 			);
+		};
+
+		successHandler = function( file, message ) {
+			successfulUploads++;
 		};
 
 		toggleFeaturesOnFileListPopulation = function(){
@@ -124,7 +141,45 @@
 			}
 		};
 
-		dropzone = new Dropzone( document.body, {
+		queueCompleteHandler = function(){
+			$form.find( ".upload-progress" ).fadeOut( 200, function(){
+				$( this ).remove();
+
+				var assetFolder    = typeof batchOptions.asset_folder !== "undefined" ? batchOptions.asset_folder : ""
+				  , uploadStatus   = getUploadResultStatus()
+				  , deleteMessages = [ ".complete-success", ".partial-success", ".complete-failure" ]
+				  , $returnLink    = $form.find( ".return-to-folder-link" )
+				  , $startOverLink = $form.find( ".start-over-link"       )
+				  , i;
+
+				deleteMessages.splice( uploadStatus, 1 );
+				for( i=0; i<deleteMessages.length; i++ ) {
+					$form.find( deleteMessages[ i ] ).remove();
+				}
+
+				$returnLink.attr( "href", $returnLink.attr( "href" ) + assetFolder );
+				$startOverLink.attr( "href", $startOverLink.attr( "href" ) + assetFolder );
+
+				$form.find( ".upload-results" ).removeClass( "hide" );
+			} );
+
+			$form.find( "li[data-step='2']" ).addClass( "complete" ).removeClass( "active" );
+			$form.find( "li[data-step='3']" ).addClass( "active" );
+		};
+
+		getUploadResultStatus = function(){
+			if ( failedUploads > 0 && successfulUploads > 0 ) {
+				return PARTIALSUCCESS;
+			}
+
+			if ( successfulUploads > 0 ) {
+				return SUCCESS;
+			}
+
+			return FAILURE;
+		};
+
+		dropzone = new Dropzone( $( "body" ).get(0), {
 			  url                 : $form.attr( "action" )
 			, thumbnailWidth      : 50
 			, thumbnailHeight     : 50
@@ -135,6 +190,7 @@
 			, thumbnail           : thumbnailGeneratedHandler
 			, uploadprogress      : uploadProgressHandler
 			, totaluploadprogress : totalUploadProgressHandler
+			, queuecomplete       : queueCompleteHandler
 			, error               : errorHandler
 		} );
 

@@ -20,6 +20,16 @@
 .presidecms .table tbody > tr.asset-preview > td.upload-actions {
   text-align: right;
 }
+.presidecms .table tbody > tr.asset-preview.upload-error > td {
+  background-color: #f2dede;
+  border-color: #eed3d7;
+  color: #b94a48;
+}
+.presidecms .table tbody > tr.asset-preview.upload-success > td {
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+  color: #468847;
+}
 .presidecms .progress {
   height: 30px;
 }
