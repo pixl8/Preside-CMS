@@ -7,6 +7,7 @@
 	var $searchBox          = $( '#nav-search-input' )
 	  , $sidebar            = $( '#sidebar' )
 	  , $mainContainer      = $( '#main-container' )
+	  , ctrlKey             = false
 	  , gotoMode            = false
 	  , devConsoleToggleKey = parseInt( typeof cfrequest.devConsoleToggleKeyCode === "undefined" ? 96 : cfrequest.devConsoleToggleKeyCode )
 	  , processArrows
@@ -32,6 +33,7 @@
 	  , getTerminal
 	  , terminalIsActive
 	  , disableTerminal
+	  , disableCtrl
 	  , toggleTerminal;
 
 	registerHotkeys = function(){
@@ -46,7 +48,8 @@
 		         .keydown( 'left'   , function( e ){ if( !userIsTyping() ) { processArrows( e, 'left'  ) } } )
 		         .keydown( 'right'  , function( e ){ if( !userIsTyping() ) { processArrows( e, 'right' ) } } )
 		         .keypress( function( e ){ if ( e.which === devConsoleToggleKey ){ toggleTerminal(e) } } ) // cannot use jquery hotkeys for ` key mapping due to browser / keyboard inconsistencies
-		         .keydown( genericKeyHandler );
+		         .keydown( genericKeyHandler )
+		         .keyup( disableCtrl );
 	};
 
 	setupNavLists = function(){
@@ -217,7 +220,12 @@
 			setTimeout( toggleGotoMode, 1000 );
 		}
 	};
-
+	
+	disableCtrl = function( e ) {
+		if( e.keyCode == 17 ) {
+			ctrlKey = false;
+		}
+	};
 	genericKeyHandler = function( e ){
 		var chr      = String.fromCharCode( e.keyCode ).toLowerCase()
 		  , $focused = $(':focus')
@@ -233,8 +241,10 @@
 			}
 			return; // don't do any key handling when user is typing!
 		}
-
-		if ( chr.match( /^[a-z]$/ ) !== null ) {
+		if( e.keyCode == 17 ) {
+			ctrlKey = true;
+		}
+		if ( !ctrlKey && chr.match( /^[a-z]$/ ) !== null ) {
 			if ( gotoMode ) {
 				gotoAccessKeyLink( chr );
 				return;
