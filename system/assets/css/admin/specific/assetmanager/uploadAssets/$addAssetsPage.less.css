@@ -7,6 +7,12 @@
   font-size: 13px;
   font-weight: 700;
 }
+.presidecms .no-files-chosen-message {
+  border: 3px dashed #dddddd;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 30px;
+  margin: 8px;
+}
 .presidecms .table tbody > tr.asset-preview > td {
   vertical-align: middle;
   min-height: 50px;

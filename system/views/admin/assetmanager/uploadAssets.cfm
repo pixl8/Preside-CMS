@@ -72,7 +72,7 @@
 
 							<a class="btn btn-default start-over-link" href="#event.buildAdminLink( linkTo='assetmanager.uploadAssets', queryString='folder=' )#">
 								<i class="fa fa-mail-reply bigger-110"></i>
-								#translateResource( "cms:assetManager.uplaod.restart" )#
+								#translateResource( "cms:assetManager.upload.restart" )#
 							</a>
 						</div>
 					</div>
@@ -83,8 +83,8 @@
 					<table class="table table-hover">
 						<thead>
 							<tr>
-								<th style="width:75px;">Preview</th>
-								<th colspan="4">Details</th>
+								<th style="width:75px;">#translateResource( "cms:assetmanager.file.preview.table.header.preview" )#</th>
+								<th colspan="4">#translateResource( "cms:assetmanager.file.preview.table.header.details" )#</th>
 							</tr>
 						</thead>
 						<tbody id="upload-previews">
@@ -92,7 +92,12 @@
 					</table>
 
 					<p class="no-files-chosen-message text-center grey">
-						<em>Choose files to begin</em>
+						<a class="btn btn-info choose-files-trigger" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-plus bigger-110"></i>
+							#translateResource( "cms:assetManager.dropzone.choose.files.button" )#
+						</a>
+						<br><br>
+						<em class="drag-drop-instructions">#translateResource( "cms:assetManager.dropzone.drag.drop.instructions" )#</em>
 					</p>
 				</div>
 			</div>

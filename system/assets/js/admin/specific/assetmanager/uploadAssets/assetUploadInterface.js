@@ -11,6 +11,7 @@
 		  , fileRemovedHandler
 		  , cancelFileHandler
 		  , uploadFilesHandler
+		  , sendingHandler
 		  , uploadProgressHandler
 		  , totalUploadProgressHandler
 		  , queueCompleteHandler
@@ -66,27 +67,12 @@
 
 		uploadFilesHandler = function(){
 			var files = dropzone.getFilesWithStatus( Dropzone.ADDED )
-			  , $previewContainer, $input, filename, i, progressBarWidth=0;
+
 
 			if ( files.length ) {
 				batchOptions      = $form.serializeObject();
 				failedUploads     = 0;
 				successfulUploads = 0;
-
-				for( i=0; i<files.length; i++ ) {
-					$previewContainer = $( files[ i ].previewElement );
-					$input = $previewContainer.find( "input[ name='asset-title' ]" );
-					filename = $input.val();
-					progressBarWidth = progressBarWidth || $input.width();
-
-					if ( !$.trim( filename ).length ) {
-						filename = files[ i ].name;
-					}
-
-					$previewContainer.find( ".upload-detail" ).html(
-						'<div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:' + progressBarWidth + 'px;"><span class="progress-bar-placeholder">' + filename + '</span><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>'
-					);
-				}
 
 				dropzone.enqueueFiles( files );
 
@@ -100,6 +86,26 @@
 			}
 
 			return false;
+		};
+
+		sendingHandler = function( file, xhr, formData ){
+			var $previewContainer = $( file.previewElement )
+			  , $input            = $previewContainer.find( "input[ name='asset-title' ]" )
+			  , title             = $input.val()
+			  , progressBarWidth  = progressBarWidth || $input.width()
+			  , i;
+
+			if ( !$.trim( title ).length ) {
+				title = file.name;
+			}
+			formData.append( "title", title );
+			for( var key in batchOptions ) {
+				formData.append( key, batchOptions[ key ] );
+			}
+
+			$previewContainer.find( ".upload-detail" ).html(
+				'<div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:' + progressBarWidth + 'px;"><span class="progress-bar-placeholder">' + title + '</span><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>'
+			);
 		};
 
 		uploadProgressHandler = function( file, progress, bytesSent ){
@@ -220,6 +226,7 @@
 			, clickable           : ".choose-files-trigger"
 			, addedfile           : fileAddedHandler
 			, thumbnail           : thumbnailGeneratedHandler
+			, sending             : sendingHandler
 			, uploadprogress      : uploadProgressHandler
 			, totaluploadprogress : totalUploadProgressHandler
 			, queuecomplete       : queueCompleteHandler
