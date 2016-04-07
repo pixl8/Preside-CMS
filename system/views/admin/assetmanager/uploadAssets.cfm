@@ -13,4 +13,7 @@
 </cfscript>
 
 
-<cfoutput>#renderView( "admin/assetmanager/assetDropZone" )#</cfoutput>
+<cfoutput>
+	#renderView( view="/admin/assetmanager/_uploadSteps", args={ activeStep=1 } )#
+	#renderView( view="/admin/assetmanager/assetDropZone" )#
+</cfoutput>
