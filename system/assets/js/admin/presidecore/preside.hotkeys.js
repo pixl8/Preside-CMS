@@ -7,7 +7,6 @@
 	var $searchBox          = $( '#nav-search-input' )
 	  , $sidebar            = $( '#sidebar' )
 	  , $mainContainer      = $( '#main-container' )
-	  , ctrlKey             = false
 	  , gotoMode            = false
 	  , devConsoleToggleKey = parseInt( typeof cfrequest.devConsoleToggleKeyCode === "undefined" ? 96 : cfrequest.devConsoleToggleKeyCode )
 	  , processArrows
@@ -33,23 +32,26 @@
 	  , getTerminal
 	  , terminalIsActive
 	  , disableTerminal
-	  , disableCtrl
-	  , toggleTerminal;
+	  , toggleTerminal
+	  , isModifierPressed;
 
 	registerHotkeys = function(){
-		$('body').keydown( 'g'      , function( e ){ if( !userIsTyping() ) { toggleGotoMode( e );   } } )
-		         .keyup  ( '/'      , function( e ){ if( !userIsTyping() ) { focusInSearchBox( e ); } } )
+		$('body').keydown( 'g'      , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleGotoMode( e );   } } )
+		         .keyup  ( '/'      , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { focusInSearchBox( e ); } } )
 		         .keydown( 'esc'    , escapeFeatures )
-		         .keydown( 'comma'  , function( e ){ if( !userIsTyping() ) { toggleSidebar( e );    } } )
-		         .keydown( 'period' , function( e ){ if( !userIsTyping() ) { toggleFixedWidth( e ); } } )
-		         .keydown( 't'      , function( e ){ if( !userIsTyping() ) { switchUiTabs( e );     } } )
-		         .keydown( 'up'     , function( e ){ if( !userIsTyping() ) { processArrows( e, 'up'    ) } } )
-		         .keydown( 'down'   , function( e ){ if( !userIsTyping() ) { processArrows( e, 'down'  ) } } )
-		         .keydown( 'left'   , function( e ){ if( !userIsTyping() ) { processArrows( e, 'left'  ) } } )
-		         .keydown( 'right'  , function( e ){ if( !userIsTyping() ) { processArrows( e, 'right' ) } } )
+		         .keydown( 'comma'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleSidebar( e );    } } )
+		         .keydown( 'period' , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { toggleFixedWidth( e ); } } )
+		         .keydown( 't'      , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { switchUiTabs( e );     } } )
+		         .keydown( 'up'     , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'up'    ) } } )
+		         .keydown( 'down'   , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'down'  ) } } )
+		         .keydown( 'left'   , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'left'  ) } } )
+		         .keydown( 'right'  , function( e ){ if( !userIsTyping() && !isModifierPressed( e ) ) { processArrows( e, 'right' ) } } )
 		         .keypress( function( e ){ if ( e.which === devConsoleToggleKey ){ toggleTerminal(e) } } ) // cannot use jquery hotkeys for ` key mapping due to browser / keyboard inconsistencies
-		         .keydown( genericKeyHandler )
-		         .keyup( disableCtrl );
+		         .keydown( genericKeyHandler );
+	};
+
+	isModifierPressed = function( e ) {
+		return e.altKey || e.ctrlKey || e.metaKey || e.shiftKey;
 	};
 
 	setupNavLists = function(){
@@ -220,19 +222,14 @@
 			setTimeout( toggleGotoMode, 1000 );
 		}
 	};
-	
-	disableCtrl = function( e ) {
-		if( e.keyCode == 17 ) {
-			ctrlKey = false;
-		}
-	};
+
 	genericKeyHandler = function( e ){
 		var chr      = String.fromCharCode( e.keyCode ).toLowerCase()
 		  , $focused = $(':focus')
 		  , $container
 		  , $target;
 
-		if ( userIsTyping() ) {
+		if ( userIsTyping() || isModifierPressed( e ) ) {
 			if ( e.keyCode === 27 ) { // escape key
 				if ( terminalIsActive() ) {
 					disableTerminal();
@@ -241,10 +238,8 @@
 			}
 			return; // don't do any key handling when user is typing!
 		}
-		if( e.keyCode == 17 ) {
-			ctrlKey = true;
-		}
-		if ( !ctrlKey && chr.match( /^[a-z]$/ ) !== null ) {
+
+		if ( chr.match( /^[a-z]$/ ) !== null ) {
 			if ( gotoMode ) {
 				gotoAccessKeyLink( chr );
 				return;
