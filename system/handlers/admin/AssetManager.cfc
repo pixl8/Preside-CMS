@@ -526,6 +526,12 @@ component extends="preside.system.base.AdminHandler" {
 		event.includeData( folderRestrictions );
 	}
 
+	function uploadAssetAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
+
+		event.renderData( data={ success=true, message='Successfully uploaded <a href="" target="_blank">myfile.jpg</a>' }, type="json" );
+	}
+
 	function uploadTempFileAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 

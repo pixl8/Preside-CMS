@@ -19,6 +19,8 @@
 		  , thumbnailGeneratedHandler
 		  , getUploadResultStatus
 		  , batchOptions
+		  , markSuccess
+		  , markFailure
 		  , failedUploads     = 0
 		  , successfulUploads = 0
 		  , SUCCESS           = 0
@@ -71,8 +73,6 @@
 				failedUploads     = 0;
 				successfulUploads = 0;
 
-				dropzone.enqueueFiles( files );
-
 				for( i=0; i<files.length; i++ ) {
 					$previewContainer = $( files[ i ].previewElement );
 					$input = $previewContainer.find( "input[ name='asset-title' ]" );
@@ -87,6 +87,8 @@
 						'<div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:' + progressBarWidth + 'px;"><span class="progress-bar-placeholder">' + filename + '</span><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>'
 					);
 				}
+
+				dropzone.enqueueFiles( files );
 
 				$form.find( "li[data-step='1']" ).addClass( "complete" ).removeClass( "active" );
 				$form.find( "li[data-step='2']" ).addClass( "active" );
@@ -114,21 +116,51 @@
 		};
 
 		errorHandler = function( file, message, xhr ) {
+			if ( typeof message == "object" && typeof message.message != "undefined" ) {
+				markFailure( file, message.message );
+			} else {
+				markFailure( file, i18n.translateResource( "cms:assetmanager.upload.failure.http.message", { data : [ xhr.status + ' ' + xhr.statusText ] } ) );
+			}
+		};
+
+		successHandler = function( file, message ) {
+			if ( typeof message == "object" && typeof message.success != "undefined" ) {
+				if ( message.success ) {
+					markSuccess( file, message.message );
+				} else {
+					markFailure( file, message.message );
+				}
+			} else {
+				markFailure( file, i18n.translateResource( "cms:assetmanager.upload.failure.http.message", { data : [ "200 OK" ] } ) );
+			}
+		};
+
+		markSuccess = function( file, message ) {
+			var $previewContainer = $( file.previewElement )
+			  , $detail           = $previewContainer.find( ".upload-detail" );
+
+			successfulUploads++;
+
+			$detail.html( message );
+			$previewContainer.addClass( "upload-success" );
+
+			$previewContainer.find( ".action-buttons" ).html(
+				'<i class="fa fa-fw fa-check bigger-130 green"></i>'
+			);
+		};
+
+		markFailure = function( file, message ) {
 			var $previewContainer = $( file.previewElement )
 			  , $detail           = $previewContainer.find( ".upload-detail" );
 
 			failedUploads++;
 
-			$detail.html( i18n.translateResource( "cms:assetmanager.upload.failure.http.message", { data : [ xhr.status + ' ' + xhr.statusText ] } ) );
+			$detail.html( message );
 			$previewContainer.addClass( "upload-error" );
 
 			$previewContainer.find( ".action-buttons" ).html(
 				'<i class="fa fa-fw fa-ban bigger-130 red"></i>'
 			);
-		};
-
-		successHandler = function( file, message ) {
-			successfulUploads++;
 		};
 
 		toggleFeaturesOnFileListPopulation = function(){
@@ -192,6 +224,7 @@
 			, totaluploadprogress : totalUploadProgressHandler
 			, queuecomplete       : queueCompleteHandler
 			, error               : errorHandler
+			, success             : successHandler
 		} );
 
 		$form.on( "click", ".cancel-file-trigger", cancelFileHandler );

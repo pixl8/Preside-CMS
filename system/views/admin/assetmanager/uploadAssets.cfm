@@ -14,7 +14,7 @@
 </cfscript>
 
 <cfoutput>
-	<form id="add-assets-form" class="form-horizontal batch-add-assets-form" action="#event.buildAdminLink( linkto="assetmanager.addAssetsAction" )#" method="post">
+	<form id="add-assets-form" class="form-horizontal batch-add-assets-form" action="#event.buildAdminLink( linkto="assetmanager.uploadAssetAction" )#" method="post">
 		#renderView( view="/admin/assetmanager/_uploadSteps", args={ activeStep=1 } )#
 
 		<div class="row">
@@ -65,7 +65,6 @@
 					</div>
 					<div class="form-actions row">
 						<div class="col-md-offset-2">
-
 							<a class="btn btn-success return-to-folder-link" href="#event.buildAdminLink( linkTo='assetmanager', queryString='folder=' )#">
 								<i class="fa fa-check bigger-110"></i>
 								#translateResource( "cms:assetManager.upload.back.to.folder" )#
