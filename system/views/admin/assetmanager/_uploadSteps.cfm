@@ -4,8 +4,6 @@
 	steps = [
 		  translateResource( "cms:assetmanager.upload.steps.one"   )
 		, translateResource( "cms:assetmanager.upload.steps.two"   )
-		, translateResource( "cms:assetmanager.upload.steps.three" )
-		, translateResource( "cms:assetmanager.upload.steps.four"  )
 	];
 </cfscript>
 
