@@ -5,7 +5,7 @@
 <cfoutput>
 	<li>
 		<a href="#args.link#"<cfif Len( Trim( args.gotoKey ) )> data-goto-key="#args.gotoKey#"</cfif>>
-			<i class="fa fa-angle-double-right"></i>
+			<i class="menu-icon fa fa-angle-double-right"></i>
 			#args.title#
 		</a>
 	</li>
