@@ -293,10 +293,9 @@ component autodoc=true displayName="Notification Service" {
 	 *
 	 * @notificationIds.hint Array of notification IDs to dismissed
 	 */
-	public numeric function dismiss( required array notificationIds, required string userId ) autodoc=true {
-		return _getConsumerDao().deleteData(
-			filter = { admin_notification=arguments.notificationIds, security_user=arguments.userId }
-		);
+	public numeric function dismiss( required array notificationIds ) autodoc=true {
+		_getConsumerDao().deleteData( filter = { admin_notification=arguments.notificationIds } );
+		return _getNotificationDao().deleteData( filter = { id=arguments.notificationIds } );
 	}
 
 	/**

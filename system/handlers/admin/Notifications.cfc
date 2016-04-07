@@ -88,7 +88,7 @@ component extends="preside.system.base.AdminHandler" {
 		var notifications = ListToArray( rc.id ?: "" );
 
 		if ( notifications.len() ) {
-			notificationService.dismiss( notifications, event.getAdminUserId() );
+			notificationService.dismiss( notifications );
 		}
 
 		setNextEvent( url=event.buildAdminLink( linkTo="notifications" ) );
