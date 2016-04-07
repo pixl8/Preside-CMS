@@ -66,23 +66,24 @@
 		};
 
 		uploadFilesHandler = function(){
-			var files = dropzone.getFilesWithStatus( Dropzone.ADDED )
+			if ( $form.valid() ) {
+				var files = dropzone.getFilesWithStatus( Dropzone.ADDED )
 
+				if ( files.length ) {
+					batchOptions      = $form.serializeObject();
+					failedUploads     = 0;
+					successfulUploads = 0;
 
-			if ( files.length ) {
-				batchOptions      = $form.serializeObject();
-				failedUploads     = 0;
-				successfulUploads = 0;
+					dropzone.enqueueFiles( files );
 
-				dropzone.enqueueFiles( files );
+					$form.find( "li[data-step='1']" ).addClass( "complete" ).removeClass( "active" );
+					$form.find( "li[data-step='2']" ).addClass( "active" );
 
-				$form.find( "li[data-step='1']" ).addClass( "complete" ).removeClass( "active" );
-				$form.find( "li[data-step='2']" ).addClass( "active" );
-
-				$form.find( ".upload-options" ).fadeOut( 200, function(){
-					$( this ).remove();
-					$form.find( ".upload-progress" ).removeClass( "hide" );
-				} );
+					$form.find( ".upload-options" ).fadeOut( 200, function(){
+						$( this ).remove();
+						$form.find( ".upload-progress" ).removeClass( "hide" );
+					} );
+				}
 			}
 
 			return false;
