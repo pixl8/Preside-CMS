@@ -19,7 +19,16 @@ component {
 
 	public void function notFound( event, rc, prc ) {
 		var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="errors.notFound" );
-		var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+
+		if ( event.isAdminRequest() && event.getCurrentLayout() != "" ) {
+			var notFoundLayout  = replace(event.getCurrentLayout(), ".cfm", "");
+		}
+		else if ( event.isAdminRequest() ) {
+			var notFoundLayout  = "admin";
+		}
+		else {
+			var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+		}
 
 		event.setLayout( notFoundLayout );
 		event.setView( view="/core/simpleBodyRenderer" );

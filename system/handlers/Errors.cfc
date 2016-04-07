@@ -11,7 +11,7 @@ component {
 			if ( !event.isAdminUser() ) {
 				setNextEvent( url=event.buildAdminLink( "login" ) );
 			}
-			event.setLayout( "admin" );
+			// event.setLayout( "admin" );
 			return renderView( view="/admin/errorPages/notFound" )
 		}
 		event.initializePresideSiteteePage( systemPage="notFound" );
