@@ -9,7 +9,7 @@ that have been uploaded.
 <form>
 	<tab id="standard" sortorder="10">
 		<fieldset id="standard" sortorder="10">
-			<field sortorder="10" binding="asset.asset_folder" quickAdd="true" />
+			<field sortorder="10" binding="asset.asset_folder" control="assetFolderPicker" quickAdd="true" />
 			<field sortorder="20" binding="asset.author" control="textinput" />
 		</fieldset>
 	</tab>

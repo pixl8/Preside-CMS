@@ -529,7 +529,53 @@ component extends="preside.system.base.AdminHandler" {
 	function uploadAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		event.renderData( data={ success=true, message='Successfully uploaded <a href="" target="_blank">myfile.jpg</a>' }, type="json" );
+		rc.file = runEvent(
+			  event          = "preprocessors.FileUpload.index"
+			, eventArguments = { fieldName="file" }
+			, private        = true
+			, prePostExempt  = true
+		);
+
+		var result   = { success=true, message="" };
+		var fileName = rc.file.tempFileInfo.clientFile ?: "";
+
+		if ( !Len( Trim( fileName ) ) ) {
+			result.success = false;
+			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.file" );
+		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
+			result.success = false;
+			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
+		} else {
+			var assetData = event.getCollectionWithoutSystemVars();
+
+			assetData.delete( "asset_folder" );
+			assetData.delete( "file" );
+			assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
+
+			try {
+				var assetId = assetManagerService.addAsset(
+					  fileBinary = rc.file.binary
+					, folder     = rc.asset_folder ?: ""
+					, fileName   = filename
+					, assetData  = assetData
+				);
+				var assetEditUrl = event.buildAdminLink( linkto="assetmanager.editasset", queryString="asset=" & assetId );
+				var editLink     = '<a href="#assetEditUrl#" target="_blank"><i class="fa fa-fw fa-external-link"></i> #filename#</a>';
+
+				result.message = editLink;
+			} catch ( any e ) {
+				result.success = false;
+
+				if ( ReFindNoCase( e.type ?: "", "^PresideCMS\.AssetManager" ) ) {
+					result.message = translateResource( ReReplace( e.type, "^PresideCMS\.", "cms:" ) );
+				} else {
+					logError( e );
+					rethrow;
+				}
+			}
+		}
+
+		event.renderData( data=result, type="json" );
 	}
 
 	function uploadTempFileAction( event, rc, prc ) {
@@ -796,6 +842,16 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.renderData( type="json", data=processedRecords );
+	}
+
+	function getFoldersForAjaxSelectControl( event, rc, prc ) {
+		var records = assetManagerService.getFoldersForSelectList(
+			  maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
 	}
 
 	function assetsForListingGrid( event, rc, prc ) {

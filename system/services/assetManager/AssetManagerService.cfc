@@ -2,6 +2,7 @@
  * Provides APIs for programatically interacting with the Asset Manager (see [[assetmanager]] for more details)
  *
  * @singleton
+ * @presideService
  * @autodoc
  */
 component displayName="AssetManager Service" {
@@ -257,7 +258,30 @@ component displayName="AssetManager Service" {
 		return true;
 	}
 
-	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
+	public array function getFoldersForSelectList(
+		  numeric maxRows              = 1000
+		, string  searchQuery          = ""
+		, array   ids                  = []
+		, string  parentString         = "/ "
+		, string  parentFolder         = ""
+		, array   foldersForSelectList = []
+	) {
+		var folderPassesCriteria = function( id, label ){
+			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
+		};
+
+		if ( arguments.parentFolder == "" && !arguments.foldersForSelectList.len() ) {
+			var rootFolderName = $translateResource( "cms:assetmanager.root.folder", "" );
+			var rootFolderId   = getRootFolderId();
+
+			if ( folderPassesCriteria( rootFolderId, rootFolderName ) ) {
+				arguments.foldersForSelectList.append({
+					  text  = rootFolderName
+					, value = rootFolderId
+				});
+			}
+		}
+
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, orderBy      = "label"
@@ -267,17 +291,37 @@ component displayName="AssetManager Service" {
 			  }
 		);
 
-		if ( !StructKeyExists( arguments, "finalQuery" ) ) {
-			arguments.finalQuery = QueryNew( 'id,label' );
-		}
-
 		for ( var folder in folders ) {
-			QueryAddRow( finalQuery, { id=folder.id, label=parentString & folder.label } );
+			var label = parentString & folder.label;
 
-			finalQuery = getAllFoldersForSelectList( parentString & folder.label & " / ", folder.id, finalQuery );
+			if ( folderPassesCriteria( folder.id, label ) ) {
+				foldersForSelectList.append( {
+					  text = label
+					, value = folder.id
+				} );
+			}
+
+			if ( foldersForSelectList.len() >= maxRows ) {
+				break;
+			}
+
+			foldersForSelectList = getFoldersForSelectList(
+				  argumentCollection   = arguments
+				, parentString         = parentString & folder.label & " / "
+				, parentFolder         = folder.id
+				, foldersForSelectList = foldersForSelectList
+			);
 		}
 
-		return finalQuery;
+		return foldersForSelectList;
+	}
+
+	public string function getAssetFolderPrefetchCachebusterForAjaxSelect() {
+		var records = _getFolderDao().selectData(
+			selectFields = [ "Max( datemodified ) as lastmodified" ]
+		);
+
+		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
