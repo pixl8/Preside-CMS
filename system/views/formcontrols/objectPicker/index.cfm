@@ -18,7 +18,7 @@
 	selectedTemplate    	= args.selectedTemplate ?: "{{text}}";
 	disabledValues      	= args.disabledValues   ?: "";
 	quickAdd            	= args.quickAdd         ?: false;
-	quickAddUrl         	= args.quickAddUrl      ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#" );
+	quickAddUrl         	= args.quickAddUrl      ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#&multiple=#IsTrue( multiple )#" );
 	quickAddModalTitle  	= translateResource( args.quickAddModalTitle ?: "cms:datamanager.quick.add.modal.title" );
 	quickEdit           	= args.quickEdit        					 ?: false;
 	removeObjectPickerClass	= args.removeObjectPickerClass     			 ?: false;
