@@ -79,66 +79,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.trashCount    = assetManagerService.getTrashCount();
 	}
 
-	function addAssets( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileIds = ListToArray( rc.fileId ?: "" );
-		var getMeta = IsTrue( getSystemSetting( "asset-manager", "retrieve_metadata" ) );
-
-		prc.tempFileDetails = {};
-		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, getMeta );
-		}
-	}
-
-	function addAssetAction( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileId           = rc.fileId ?: "";
-		var folder           = rc.folder ?: assetManagerService.getRootFolderId();
-		var formName         = "preside-objects.asset.admin.add";
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = "";
-
-		formData.asset_folder = folder;
-
-		validationResult = validateForm( formName, formData );
-
-		if ( validationResult.validated() ) {
-			try {
-				var assetId = assetManagerService.saveTemporaryFileAsAsset(
-					  tmpId     = fileId
-					, folder    = folder
-					, assetData = formData
-				);
-
-				event.renderData( type="json", data={
-					  success = true
-					, title   = ( rc.title ?: "" )
-					, id      = assetId
-				} );
-			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
-				validationResult.addError( fieldname="folder", message=translateResource( uri="cms:assetmanager.folder.type.restriction.validation.message" ) );
-			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
-				validationResult.addError( fieldname="folder", message=translateResource( uri="cms:assetmanager.folder.size.restriction.validation.message" ) );
-			} catch ( any e ) {
-				logError( e );
-				event.renderData( data={
-					  success = false
-					, title   = translateResource( "cms:assetmanager.add.asset.unexpected.error.title" )
-					, message = translateResource( "cms:assetmanager.add.asset.unexpected.error.message" )
-				}, type="json" );
-			}
-		}
-
-		if ( !validationResult.validated() ) {
-			event.renderData( data={
-				  success          = false
-				, validationResult = translateValidationMessages( validationResult )
-			}, type="json" );
-		}
-	}
-
 	function addAssetsInPicker( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
