@@ -501,7 +501,7 @@ component extends="preside.system.base.AdminHandler" {
 					, ensureUniqueTitle = true
 				);
 				var assetEditUrl = event.buildAdminLink( linkto="assetmanager.editasset", queryString="asset=" & assetId );
-				var editLink     = '<a href="#assetEditUrl#" target="_blank"><i class="fa fa-fw fa-external-link"></i> #filename#</a>';
+				var editLink     = '<a href="#assetEditUrl#" target="_blank"><i class="fa fa-fw fa-external-link"></i> #assetData.title#</a>';
 
 				result.message = editLink;
 			} catch ( any e ) {
