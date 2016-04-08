@@ -494,10 +494,11 @@ component extends="preside.system.base.AdminHandler" {
 
 			try {
 				var assetId = assetManagerService.addAsset(
-					  fileBinary = rc.file.binary
-					, folder     = rc.asset_folder ?: ""
-					, fileName   = filename
-					, assetData  = assetData
+					  fileBinary        = rc.file.binary
+					, folder            = rc.asset_folder ?: ""
+					, fileName          = filename
+					, assetData         = assetData
+					, ensureUniqueTitle = true
 				);
 				var assetEditUrl = event.buildAdminLink( linkto="assetmanager.editasset", queryString="asset=" & assetId );
 				var editLink     = '<a href="#assetEditUrl#" target="_blank"><i class="fa fa-fw fa-external-link"></i> #filename#</a>';
@@ -506,7 +507,7 @@ component extends="preside.system.base.AdminHandler" {
 			} catch ( any e ) {
 				result.success = false;
 
-				if ( ReFindNoCase( e.type ?: "", "^PresideCMS\.AssetManager" ) ) {
+				if ( ReFindNoCase( "^PresideCMS\.AssetManager", e.type ?: "" ) ) {
 					result.message = translateResource( ReReplace( e.type, "^PresideCMS\.", "cms:" ) );
 				} else {
 					logError( e );
