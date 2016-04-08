@@ -222,7 +222,7 @@
 			  url                 : $form.attr( "action" )
 			, thumbnailWidth      : 50
 			, thumbnailHeight     : 50
-			, parallelUploads     : 1
+			, parallelUploads     : 50
 			, autoQueue           : false
 			, clickable           : ".choose-files-trigger"
 			, addedfile           : fileAddedHandler
