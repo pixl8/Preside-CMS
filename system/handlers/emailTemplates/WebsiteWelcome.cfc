@@ -3,7 +3,7 @@ component output=false {
 	private struct function prepareMessage( event, rc, prc, args={} ) output=false {
 
 		args.resetLink = event.buildLink(
-			  linkto      = "login.resetpassword"
+			  page        = "reset_password"
 			, querystring = "token=" & ( args.resetToken ?: "" )
 		);
 		args.websiteName  = args.websiteName ?: event.getSite().domain;
