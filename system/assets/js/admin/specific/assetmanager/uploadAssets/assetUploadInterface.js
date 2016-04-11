@@ -3,7 +3,7 @@
 	var $form           = $( "#add-assets-form" )
 	  , $uploadTemplate = $( "#file-preview-template" );
 
-	if ( $form.length && $uploadTemplate ) {
+	if ( $form.length && $uploadTemplate.length ) {
 		var filePreviewTemplate = $uploadTemplate.get(0).innerHTML
 		  , $previewsContainer  = $( "#upload-previews" )
 		  , dropzone
@@ -16,12 +16,16 @@
 		  , totalUploadProgressHandler
 		  , queueCompleteHandler
 		  , errorHandler
+		  , successHandler
+		  , maxFilesReachedHandler
 		  , toggleFeaturesOnFileListPopulation
 		  , thumbnailGeneratedHandler
 		  , getUploadResultStatus
 		  , batchOptions
 		  , markSuccess
 		  , markFailure
+		  , queueTriggered    = false
+		  , uploadedIds       = []
 		  , failedUploads     = 0
 		  , successfulUploads = 0
 		  , SUCCESS           = 0
@@ -60,6 +64,8 @@
 
 			if ( typeof file !== "undefined" ) {
 				dropzone.removeFile( file );
+				$form.find( ".choose-files-trigger" ).prop( "disabled", false ).removeClass( "disabled" );
+				toggleFeaturesOnFileListPopulation();
 			}
 
 			return false;
@@ -67,13 +73,14 @@
 
 		uploadFilesHandler = function(){
 			if ( $form.valid() ) {
-				var files = dropzone.getFilesWithStatus( Dropzone.ADDED )
+				var files = dropzone.getFilesWithStatus( Dropzone.ADDED );
 
 				if ( files.length ) {
 					batchOptions      = $form.serializeObject();
 					failedUploads     = 0;
 					successfulUploads = 0;
 
+					queueTriggered = true;
 					dropzone.enqueueFiles( files );
 
 					$form.find( "li[data-step='1']" ).addClass( "complete" ).removeClass( "active" );
@@ -125,6 +132,9 @@
 		errorHandler = function( file, message, xhr ) {
 			if ( typeof message == "object" && typeof message.message != "undefined" ) {
 				markFailure( file, message.message );
+			} else if ( typeof xhr === "undefined" ) {
+				markFailure( file, message );
+				toggleFeaturesOnFileListPopulation();
 			} else {
 				markFailure( file, i18n.translateResource( "cms:assetmanager.upload.failure.http.message", { data : [ xhr.status + ' ' + xhr.statusText ] } ) );
 			}
@@ -133,7 +143,7 @@
 		successHandler = function( file, message ) {
 			if ( typeof message == "object" && typeof message.success != "undefined" ) {
 				if ( message.success ) {
-					markSuccess( file, message.message );
+					markSuccess( file, message.message, message.id );
 				} else {
 					markFailure( file, message.message );
 				}
@@ -142,10 +152,11 @@
 			}
 		};
 
-		markSuccess = function( file, message ) {
+		markSuccess = function( file, message, id ) {
 			var $previewContainer = $( file.previewElement )
 			  , $detail           = $previewContainer.find( ".upload-detail" );
 
+			uploadedIds.push( id );
 			successfulUploads++;
 
 			$detail.html( message );
@@ -171,7 +182,9 @@
 		};
 
 		toggleFeaturesOnFileListPopulation = function(){
-			if ( $previewsContainer.find( "tr.asset-preview" ).length ) {
+			var files = dropzone.getFilesWithStatus( Dropzone.ADDED );
+
+			if ( files.length ) {
 				$form.find( ".no-files-chosen-message" ).hide();
 				$form.find( ".upload-files-trigger" ).removeAttr( "disabled" );
 			} else {
@@ -181,29 +194,37 @@
 		};
 
 		queueCompleteHandler = function(){
-			$form.find( ".upload-progress" ).fadeOut( 200, function(){
-				$( this ).remove();
+			if ( queueTriggered ) {
+				$form.trigger( "assetsUploaded" );
 
-				var assetFolder    = typeof batchOptions.asset_folder !== "undefined" ? batchOptions.asset_folder : ""
-				  , uploadStatus   = getUploadResultStatus()
-				  , deleteMessages = [ ".complete-success", ".partial-success", ".complete-failure" ]
-				  , $returnLink    = $form.find( ".return-to-folder-link" )
-				  , $startOverLink = $form.find( ".start-over-link"       )
-				  , i;
+				$form.find( ".upload-progress" ).fadeOut( 200, function(){
+					$( this ).remove();
 
-				deleteMessages.splice( uploadStatus, 1 );
-				for( i=0; i<deleteMessages.length; i++ ) {
-					$form.find( deleteMessages[ i ] ).remove();
-				}
+					var assetFolder    = typeof batchOptions.asset_folder !== "undefined" ? batchOptions.asset_folder : ""
+					  , uploadStatus   = getUploadResultStatus()
+					  , deleteMessages = [ ".complete-success", ".partial-success", ".complete-failure" ]
+					  , $returnLink    = $form.find( ".return-to-folder-link" )
+					  , $startOverLink = $form.find( ".start-over-link"       )
+					  , i;
 
-				$returnLink.attr( "href", $returnLink.attr( "href" ) + assetFolder );
-				$startOverLink.attr( "href", $startOverLink.attr( "href" ) + assetFolder );
+					deleteMessages.splice( uploadStatus, 1 );
+					for( i=0; i<deleteMessages.length; i++ ) {
+						$form.find( deleteMessages[ i ] ).remove();
+					}
 
-				$form.find( ".upload-results" ).removeClass( "hide" );
-			} );
+					$returnLink.attr( "href", $returnLink.attr( "href" ) + assetFolder );
+					$startOverLink.attr( "href", $startOverLink.attr( "href" ) + assetFolder );
 
-			$form.find( "li[data-step='2']" ).addClass( "complete" ).removeClass( "active" );
-			$form.find( "li[data-step='3']" ).addClass( "active" );
+					$form.find( ".upload-results" ).removeClass( "hide" );
+				} );
+
+				$form.find( "li[data-step='2']" ).addClass( "complete" ).removeClass( "active" );
+				$form.find( "li[data-step='3']" ).addClass( "active" );
+			}
+		};
+
+		maxFilesReachedHandler = function(){
+			$form.find( ".choose-files-trigger" ).prop( "disabled", true ).addClass( "disabled" );
 		};
 
 		getUploadResultStatus = function(){
@@ -219,24 +240,43 @@
 		};
 
 		dropzone = new Dropzone( $( "body" ).get(0), {
-			  url                 : $form.attr( "action" )
-			, thumbnailWidth      : 50
-			, thumbnailHeight     : 50
-			, parallelUploads     : 50
-			, autoQueue           : false
-			, clickable           : ".choose-files-trigger"
-			, addedfile           : fileAddedHandler
-			, thumbnail           : thumbnailGeneratedHandler
-			, sending             : sendingHandler
-			, uploadprogress      : uploadProgressHandler
-			, totaluploadprogress : totalUploadProgressHandler
-			, queuecomplete       : queueCompleteHandler
-			, error               : errorHandler
-			, success             : successHandler
+			  url                          : $form.attr( "action" )
+			, thumbnailWidth               : 50
+			, thumbnailHeight              : 50
+			, parallelUploads              : 50
+			, autoQueue                    : false
+			, clickable                    : ".choose-files-trigger"
+			, maxFilesize                  : cfrequest.maxFileSize || 5
+			, maxFiles                     : cfrequest.maxFiles    || null
+			, acceptedFiles                : cfrequest.allowedExtensions || ''
+			, addedfile                    : fileAddedHandler
+			, thumbnail                    : thumbnailGeneratedHandler
+			, sending                      : sendingHandler
+			, uploadprogress               : uploadProgressHandler
+			, totaluploadprogress          : totalUploadProgressHandler
+			, queuecomplete                : queueCompleteHandler
+			, error                        : errorHandler
+			, success                      : successHandler
+			, maxfilesreached              : maxFilesReachedHandler
+			, dictDefaultMessage           : i18n.translateResource( "cms:assetmanager.uploader.messages.dictDefaultMessage"           )
+			, dictFallbackMessage          : i18n.translateResource( "cms:assetmanager.uploader.messages.dictFallbackMessage"          )
+			, dictFallbackText             : i18n.translateResource( "cms:assetmanager.uploader.messages.dictFallbackText"             )
+			, dictFileTooBig               : i18n.translateResource( "cms:assetmanager.uploader.messages.dictFileTooBig"               )
+			, dictInvalidFileType          : i18n.translateResource( "cms:assetmanager.uploader.messages.dictInvalidFileType"          )
+			, dictResponseError            : i18n.translateResource( "cms:assetmanager.uploader.messages.dictResponseError"            )
+			, dictCancelUpload             : i18n.translateResource( "cms:assetmanager.uploader.messages.dictCancelUpload"             )
+			, dictCancelUploadConfirmation : i18n.translateResource( "cms:assetmanager.uploader.messages.dictCancelUploadConfirmation" )
+			, dictRemoveFile               : i18n.translateResource( "cms:assetmanager.uploader.messages.dictRemoveFile"               )
+			, dictRemoveFileConfirmation   : i18n.translateResource( "cms:assetmanager.uploader.messages.dictRemoveFileConfirmation"   )
+			, dictMaxFilesExceeded         : i18n.translateResource( "cms:assetmanager.uploader.messages.dictMaxFilesExceeded"         )
 		} );
 
 		$form.on( "click", ".cancel-file-trigger", cancelFileHandler );
 		$form.on( "click", ".upload-files-trigger", uploadFilesHandler );
+
+		$form.data( "presdideUploader", {
+			getUploadedAssetIds : function(){ return uploadedIds }
+		} );
 	}
 
 } )( presideJQuery );

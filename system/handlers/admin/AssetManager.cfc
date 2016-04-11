@@ -482,7 +482,7 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 		);
 
-		var result   = { success=true, message="" };
+		var result   = { success=true, message="",  id="" };
 		var fileName = rc.file.tempFileInfo.clientFile ?: "";
 
 		if ( !Len( Trim( fileName ) ) ) {
@@ -509,6 +509,7 @@ component extends="preside.system.base.AdminHandler" {
 				var assetEditUrl = event.buildAdminLink( linkto="assetmanager.editasset", queryString="asset=" & assetId );
 				var editLink     = '<a href="#assetEditUrl#" target="_blank"><i class="fa fa-fw fa-external-link"></i> #assetData.title#</a>';
 
+				result.id      = assetId;
 				result.message = editLink;
 			} catch ( any e ) {
 				result.success = false;
@@ -765,8 +766,10 @@ component extends="preside.system.base.AdminHandler" {
 			event.includeData( { maxFiles : 1 } );
 		}
 
+		prc.uploadCompleteView = '/admin/assetmanager/_batchUploadCompleteMessagingForAssetPicker';
+
 		event.setLayout( "adminModalDialog" );
-		event.setView( "admin/assetmanager/assetPickerUploader" );
+		event.setView( "admin/assetmanager/uploadAssets" );
 	}
 
 	function ajaxSearchAssets( event, rc, prc ) {

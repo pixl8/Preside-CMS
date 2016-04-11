@@ -1,3 +1,10 @@
+<cfscript>
+	uploadCompleteView = prc.uploadCompleteView ?: '/admin/assetmanager/_batchUploadCompleteMessaging';
+
+	event.include( "/js/admin/specific/assetmanager/uploadassets/"  )
+	     .include( "/css/admin/specific/assetmanager/uploadassets/" );
+</cfscript>
+
 <cfoutput>
 	<form id="add-assets-form" class="form-horizontal batch-add-assets-form" action="#event.buildAdminLink( linkto="assetmanager.uploadAssetAction" )#" method="post">
 		#renderView( view="/admin/assetmanager/_uploadSteps", args={ activeStep=1 } )#
@@ -15,7 +22,7 @@
 					#renderView( '/admin/assetmanager/_batchUploadProgressBar' )#
 				</div>
 				<div class="hide upload-results">
-					#renderView( '/admin/assetmanager/_batchUploadCompleteMessaging' )#
+					#renderView( uploadCompleteView )#
 				</div>
 			</div>
 			<div class="col-md-7">
