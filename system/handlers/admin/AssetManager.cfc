@@ -79,21 +79,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.trashCount    = assetManagerService.getTrashCount();
 	}
 
-	function addAssetsInPicker( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileIds = ListToArray( rc.fileId ?: "" );
-		var getMeta = IsTrue( getSystemSetting( "asset-manager", "retrieve_metadata" ) );
-
-		prc.tempFileDetails = {};
-		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, getMeta );
-		}
-
-		event.setLayout( "adminModalDialog" );
-		event.setView( "admin/assetManager/addAssetsInPicker" );
-	}
-
 	function trashAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
 
@@ -524,54 +509,6 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.renderData( data=result, type="json" );
-	}
-
-	function uploadTempFileAction( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		if ( event.valueExists( "file" ) ) {
-			var temporaryFileId = assetManagerService.uploadTemporaryFile( fileField="file" );
-
-			if ( Len( Trim( temporaryFileId ) ) ) {
-				event.renderData( data={ fileid=temporaryFileId }, type="json" );
-			} else {
-				event.renderData( data=translateResource( "cms:assetmanager.file.upload.error" ), type="text", statusCode=500 );
-			}
-		} else {
-			event.renderData( data=translateResource( "cms:assetmanager.file.upload.error" ), type="text", statusCode=500 );
-		}
-	}
-
-	function deleteTempFile( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		try {
-			assetManagerService.deleteTemporaryFile( tmpId=rc.fileId ?: "" );
-		} catch( any e ) {
-			// problems are inconsequential - temp files will be cleaned up later anyway
-		}
-
-		event.renderData( data={ success=true }, type="json" );
-	}
-
-	function previewTempFile( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileId          = rc.tmpId ?: "";
-		var fileDetails     = assetManagerService.getTemporaryFileDetails( fileId );
-		var fileTypeDetails = "";
-
-		// TODO: make this much smarter - thumbnail generation for images - preview for pdfs, etc.
-		if ( StructCount( fileDetails ) ) {
-			fileTypeDetails = assetManagerService.getAssetType( filename=filedetails.name );
-
-			if ( ( fileTypeDetails.groupName ?: "" ) eq "image" ) {
-				// brutal for now - no thumbnail generation, just spit out the file
-				content reset="true" variable="#assetManagerService.getTemporaryFileBinary( fileId )#" type="#fileTypeDetails.mimeType#";abort;
-			}
-		}
-
-		event.renderData( data="not found", type="text", statusCode=404 );
 	}
 
 	function editAsset( event, rc, prc ) {

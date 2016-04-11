@@ -20,7 +20,6 @@ component implements="iRouteHandler" output=false singleton=true {
 	public void function translate( required string path, required any event ) output=false {
 		var assetId        = UrlDecode( ReReplace( arguments.path, "^/asset/(.*?)/.*$", "\1" ) );
 		var versionId      = ListLen( assetId, "." ) > 1 ? ListRest( assetId, "." ) : "";
-		var isTempAsset    = Left( assetId, 1 ) == "_";
 		var isTrashedAsset = Left( assetId, 1 ) == "$";
 		var derivativeId   = "";
 		var urlParam       = "";
@@ -31,7 +30,7 @@ component implements="iRouteHandler" output=false singleton=true {
 		event.setValue( "assetId"  , assetId );
 		event.setValue( "isTrashed", isTrashedAsset );
 		event.setValue( "versionId", versionId );
-		event.setValue( _getEventName(), "core.AssetDownload." & ( isTempAsset ? "tempFile" : "asset" ) );
+		event.setValue( _getEventName(), "core.AssetDownload.asset" );
 
 		if ( ReFind( "^/asset/.*?/(.*?)/.*$", arguments.path ) ) {
 			derivativeId = UrlDecode( ReReplace( arguments.path, "^/asset/.*?/(.*?)/.*$", "\1" ) );
@@ -62,10 +61,6 @@ component implements="iRouteHandler" output=false singleton=true {
 			if ( Len( Trim( signature ) ) ) {
 				link &= "#UrlEncodedFormat( signature )#/";
 			}
-		}
-
-		if ( buildArgs.isTemporaryAsset ?: false ) {
-			link = ReReplace( link, "^/asset/", "/asset/_" );
 		}
 
 		if ( trashed ) {
