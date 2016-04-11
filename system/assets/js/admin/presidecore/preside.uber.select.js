@@ -98,8 +98,8 @@
 
 		            $selectNoneElContainer.addClass("chosen-results");
 		            $selectAllElContainer.addClass("chosen-results");
-		            $selectAllEl.addClass("active-result");
-		            $selectNoneEl.addClass("active-result");
+		            $selectAllEl.addClass("active-result text-primary");
+		            $selectNoneEl.addClass("active-result text-primary");
 		            $selectAllEl.bind('mouseover.chosen', function(evt) {
 						chosen.search_results_mouseover(evt);
 					});
