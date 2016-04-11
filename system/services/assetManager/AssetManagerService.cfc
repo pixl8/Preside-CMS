@@ -2,6 +2,7 @@
  * Provides APIs for programatically interacting with the Asset Manager (see [[assetmanager]] for more details)
  *
  * @singleton
+ * @presideService
  * @autodoc
  */
 component displayName="AssetManager Service" {
@@ -257,7 +258,30 @@ component displayName="AssetManager Service" {
 		return true;
 	}
 
-	public query function getAllFoldersForSelectList( string parentString="/ ", string parentFolder="", query finalQuery ) {
+	public array function getFoldersForSelectList(
+		  numeric maxRows              = 1000
+		, string  searchQuery          = ""
+		, array   ids                  = []
+		, string  parentString         = "/ "
+		, string  parentFolder         = ""
+		, array   foldersForSelectList = []
+	) {
+		var folderPassesCriteria = function( id, label ){
+			return ( !ids.len() || ids.findNoCase( arguments.id ) ) && ( !Len( Trim( searchQuery ) ) || arguments.label.findNoCase( searchQuery ) );
+		};
+
+		if ( arguments.parentFolder == "" && !arguments.foldersForSelectList.len() ) {
+			var rootFolderName = $translateResource( "cms:assetmanager.root.folder", "" );
+			var rootFolderId   = getRootFolderId();
+
+			if ( folderPassesCriteria( rootFolderId, rootFolderName ) ) {
+				arguments.foldersForSelectList.append({
+					  text  = rootFolderName
+					, value = rootFolderId
+				});
+			}
+		}
+
 		var folders = _getFolderDao().selectData(
 			  selectFields = [ "id", "label" ]
 			, orderBy      = "label"
@@ -267,17 +291,37 @@ component displayName="AssetManager Service" {
 			  }
 		);
 
-		if ( !StructKeyExists( arguments, "finalQuery" ) ) {
-			arguments.finalQuery = QueryNew( 'id,label' );
-		}
-
 		for ( var folder in folders ) {
-			QueryAddRow( finalQuery, { id=folder.id, label=parentString & folder.label } );
+			var label = parentString & folder.label;
 
-			finalQuery = getAllFoldersForSelectList( parentString & folder.label & " / ", folder.id, finalQuery );
+			if ( folderPassesCriteria( folder.id, label ) ) {
+				foldersForSelectList.append( {
+					  text = label
+					, value = folder.id
+				} );
+			}
+
+			if ( foldersForSelectList.len() >= maxRows ) {
+				break;
+			}
+
+			foldersForSelectList = getFoldersForSelectList(
+				  argumentCollection   = arguments
+				, parentString         = parentString & folder.label & " / "
+				, parentFolder         = folder.id
+				, foldersForSelectList = foldersForSelectList
+			);
 		}
 
-		return finalQuery;
+		return foldersForSelectList;
+	}
+
+	public string function getAssetFolderPrefetchCachebusterForAjaxSelect() {
+		var records = _getFolderDao().selectData(
+			selectFields = [ "Max( datemodified ) as lastmodified" ]
+		);
+
+		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
 	public array function getFolderTree( string parentFolder="", string parentRestriction="none", permissionContext=[] ) {
@@ -572,13 +616,20 @@ component displayName="AssetManager Service" {
 	 * location for the given folder.
 	 *
 	 * @autodoc
-	 * @fileBinary.hint Binary data of the file
-	 * @fileName.hint   Uploaded filename (asset type information will be retrieved from here)
-	 * @folder.hint     Either folder ID or name of a configured system folder
-	 * @assetData.hint  Structure of additional data that can be saved against the [[presideobject-asset]] record
+	 * @fileBinary.hint        Binary data of the file
+	 * @fileName.hint          Uploaded filename (asset type information will be retrieved from here)
+	 * @folder.hint            Either folder ID or name of a configured system folder
+	 * @assetData.hint         Structure of additional data that can be saved against the [[presideobject-asset]] record
+	 * @ensureUniqueTitle.hint If set to true (default is false), asset titles will be made unique should name conflicts exist
 	 *
 	 */
-	public string function addAsset( required binary fileBinary, required string fileName, required string folder, struct assetData={} ) {
+	public string function addAsset(
+		  required binary  fileBinary
+		, required string  fileName
+		, required string  folder
+		,          struct  assetData         = {}
+		,          boolean ensureUniqueTitle = false
+	) {
 		var fileTypeInfo = getAssetType( filename=arguments.fileName, throwOnMissing=true );
 		var newFileName  = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var asset        = Duplicate( arguments.assetData );
@@ -595,6 +646,10 @@ component displayName="AssetManager Service" {
 			, folderId   = asset.asset_folder
 			, throwIfNot = true
 		);
+
+		if ( arguments.ensureUniqueTitle ) {
+			asset.title = _ensureUniqueTitle( asset.title, asset.asset_folder );
+		}
 
 		_getStorageProviderForFolder( asset.asset_folder ).putObject(
 			  object = arguments.fileBinary
@@ -1462,6 +1517,30 @@ component displayName="AssetManager Service" {
 			storageProvider.restoreObject( derivative.trashed_path, derivative.storage_path );
 			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="" } );
 		}
+	}
+
+	private string function _ensureUniqueTitle( required string title, required string folder, string existingId="" ) {
+		var filter        = "title = :title and asset_folder = :asset_folder";
+		var params        = { title=title, asset_folder=arguments.folder };
+		var assetDao      = _getAssetDao();
+		var maxLength     = Val( $getPresideObjectService().getObjectPropertyAttribute( "asset", "title", "maxLength", 150 ) );
+		var originalTitle = arguments.title;
+		var counter       = 0;
+
+		if ( Len( Trim( arguments.existingId ) ) ) {
+			filter &= " and id != :id";
+			params.id = arguments.existingId;
+		}
+
+		while( assetDao.dataExists( filter=filter, filterParams=params ) ) {
+			params.title = originalTitle & ++counter;
+
+			if ( Len( params.title ) > maxLength ) {
+				params.title = Left( originalTitle, maxLength-Len( counter ) ) & counter;
+			}
+		}
+
+		return params.title;
 	}
 
 // GETTERS AND SETTERS

@@ -69,27 +69,6 @@ component output=false {
 
 	}
 
-	public function tempFile( event, rc, prc ) output=false {
-		var tmpId           = rc.assetId ?: "";
-		var fileDetails     = assetManagerService.getTemporaryFileDetails( tmpId );
-		var fileTypeDetails = "";
-
-		if ( StructCount( fileDetails ) ) {
-			fileTypeDetails = assetManagerService.getAssetType( filename=filedetails.name );
-
-			if ( ( fileTypeDetails.groupName ?: "" ) eq "image" ) {
-				// brutal for now - no thumbnail generation, just spit out the file
-				content reset=true variable="#assetManagerService.getTemporaryFileBinary( tmpId )#" type="#fileTypeDetails.mimeType#";abort;
-			} else {
-				var iconFile = "/preside/system/assets/images/asset-type-icons/48px/#ListLast( fileDetails.name, "." )#.png";
-				content reset=true file="#iconFile#" deleteFile=false type="image/png";abort;
-			}
-		}
-
-		event.renderData( data="404 not found", type="text", statusCode=404 );
-	}
-
-
 // private helpers
 	private string function _doBrowserEtagLookup( required string etag ) output=false {
 		if ( ( cgi.http_if_none_match ?: "" ) == arguments.etag ) {

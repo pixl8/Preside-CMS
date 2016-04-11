@@ -79,81 +79,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.trashCount    = assetManagerService.getTrashCount();
 	}
 
-	function addAssets( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileIds = ListToArray( rc.fileId ?: "" );
-		var getMeta = IsTrue( getSystemSetting( "asset-manager", "retrieve_metadata" ) );
-
-		prc.tempFileDetails = {};
-		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, getMeta );
-		}
-	}
-
-	function addAssetAction( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileId           = rc.fileId ?: "";
-		var folder           = rc.folder ?: assetManagerService.getRootFolderId();
-		var formName         = "preside-objects.asset.admin.add";
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = "";
-
-		formData.asset_folder = folder;
-
-		validationResult = validateForm( formName, formData );
-
-		if ( validationResult.validated() ) {
-			try {
-				var assetId = assetManagerService.saveTemporaryFileAsAsset(
-					  tmpId     = fileId
-					, folder    = folder
-					, assetData = formData
-				);
-
-				event.renderData( type="json", data={
-					  success = true
-					, title   = ( rc.title ?: "" )
-					, id      = assetId
-				} );
-			} catch( "PresideCMS.AssetManager.asset.wrong.type.for.folder" e ) {
-				validationResult.addError( fieldname="folder", message=translateResource( uri="cms:assetmanager.folder.type.restriction.validation.message" ) );
-			} catch( "PresideCMS.AssetManager.asset.too.big.for.folder" e ) {
-				validationResult.addError( fieldname="folder", message=translateResource( uri="cms:assetmanager.folder.size.restriction.validation.message" ) );
-			} catch ( any e ) {
-				logError( e );
-				event.renderData( data={
-					  success = false
-					, title   = translateResource( "cms:assetmanager.add.asset.unexpected.error.title" )
-					, message = translateResource( "cms:assetmanager.add.asset.unexpected.error.message" )
-				}, type="json" );
-			}
-		}
-
-		if ( !validationResult.validated() ) {
-			event.renderData( data={
-				  success          = false
-				, validationResult = translateValidationMessages( validationResult )
-			}, type="json" );
-		}
-	}
-
-	function addAssetsInPicker( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileIds = ListToArray( rc.fileId ?: "" );
-		var getMeta = IsTrue( getSystemSetting( "asset-manager", "retrieve_metadata" ) );
-
-		prc.tempFileDetails = {};
-		for( var fileId in fileIds ){
-			prc.tempFileDetails[ fileId ] = assetManagerService.getTemporaryFileDetails( fileId, getMeta );
-		}
-
-		event.setLayout( "adminModalDialog" );
-		event.setView( "admin/assetManager/addAssetsInPicker" );
-	}
-
 	function trashAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.delete" );
 
@@ -521,57 +446,69 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var folderId           = rc.folder ?: "";
-		var folderRestrictions = assetManagerService.getFolderRestrictions( id=folderId );
 
-		event.includeData( folderRestrictions );
+		prc.pageIcon     = "picture";
+		prc.pageTitle    = translateResource( "cms:assetManager" );
+		prc.pageSubTitle = translateResource( "cms:assetmanager.upload.assets.title" );
+
+		event.addAdminBreadCrumb(
+			  title = prc.pageSubTitle
+			, link  = event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString="folder=#folderId#" )
+		);
 	}
 
-	function uploadTempFileAction( event, rc, prc ) {
+	function uploadAssetAction( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
-		if ( event.valueExists( "file" ) ) {
-			var temporaryFileId = assetManagerService.uploadTemporaryFile( fileField="file" );
+		rc.file = runEvent(
+			  event          = "preprocessors.FileUpload.index"
+			, eventArguments = { fieldName="file" }
+			, private        = true
+			, prePostExempt  = true
+		);
 
-			if ( Len( Trim( temporaryFileId ) ) ) {
-				event.renderData( data={ fileid=temporaryFileId }, type="json" );
-			} else {
-				event.renderData( data=translateResource( "cms:assetmanager.file.upload.error" ), type="text", statusCode=500 );
-			}
+		var result   = { success=true, message="",  id="" };
+		var fileName = rc.file.tempFileInfo.clientFile ?: "";
+
+		if ( !Len( Trim( fileName ) ) ) {
+			result.success = false;
+			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.file" );
+		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
+			result.success = false;
+			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
 		} else {
-			event.renderData( data=translateResource( "cms:assetmanager.file.upload.error" ), type="text", statusCode=500 );
-		}
-	}
+			var assetData = event.getCollectionWithoutSystemVars();
 
-	function deleteTempFile( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
+			assetData.delete( "asset_folder" );
+			assetData.delete( "file" );
+			assetData.title = Len( Trim( assetData.title ?: "" ) ) ? assetData.title : fileName;
 
-		try {
-			assetManagerService.deleteTemporaryFile( tmpId=rc.fileId ?: "" );
-		} catch( any e ) {
-			// problems are inconsequential - temp files will be cleaned up later anyway
-		}
+			try {
+				var assetId = assetManagerService.addAsset(
+					  fileBinary        = rc.file.binary
+					, folder            = rc.asset_folder ?: ""
+					, fileName          = filename
+					, assetData         = assetData
+					, ensureUniqueTitle = true
+				);
+				var assetEditUrl = event.buildAdminLink( linkto="assetmanager.editasset", queryString="asset=" & assetId );
+				var editLink     = '<a href="#assetEditUrl#" target="_blank"><i class="fa fa-fw fa-external-link"></i> #assetData.title#</a>';
 
-		event.renderData( data={ success=true }, type="json" );
-	}
+				result.id      = assetId;
+				result.message = editLink;
+			} catch ( any e ) {
+				result.success = false;
 
-	function previewTempFile( event, rc, prc ) {
-		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
-
-		var fileId          = rc.tmpId ?: "";
-		var fileDetails     = assetManagerService.getTemporaryFileDetails( fileId );
-		var fileTypeDetails = "";
-
-		// TODO: make this much smarter - thumbnail generation for images - preview for pdfs, etc.
-		if ( StructCount( fileDetails ) ) {
-			fileTypeDetails = assetManagerService.getAssetType( filename=filedetails.name );
-
-			if ( ( fileTypeDetails.groupName ?: "" ) eq "image" ) {
-				// brutal for now - no thumbnail generation, just spit out the file
-				content reset="true" variable="#assetManagerService.getTemporaryFileBinary( fileId )#" type="#fileTypeDetails.mimeType#";abort;
+				if ( ReFindNoCase( "^PresideCMS\.AssetManager", e.type ?: "" ) ) {
+					result.message = translateResource( ReReplace( e.type, "^PresideCMS\.", "cms:" ) );
+				} else {
+					logError( e );
+					rethrow;
+				}
 			}
 		}
 
-		event.renderData( data="not found", type="text", statusCode=404 );
+		event.renderData( data=result, type="json" );
 	}
 
 	function editAsset( event, rc, prc ) {
@@ -766,8 +703,10 @@ component extends="preside.system.base.AdminHandler" {
 			event.includeData( { maxFiles : 1 } );
 		}
 
+		prc.uploadCompleteView = '/admin/assetmanager/_batchUploadCompleteMessagingForAssetPicker';
+
 		event.setLayout( "adminModalDialog" );
-		event.setView( "admin/assetmanager/assetPickerUploader" );
+		event.setView( "admin/assetmanager/uploadAssets" );
 	}
 
 	function ajaxSearchAssets( event, rc, prc ) {
@@ -790,6 +729,16 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.renderData( type="json", data=processedRecords );
+	}
+
+	function getFoldersForAjaxSelectControl( event, rc, prc ) {
+		var records = assetManagerService.getFoldersForSelectList(
+			  maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
 	}
 
 	function assetsForListingGrid( event, rc, prc ) {
