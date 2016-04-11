@@ -24,6 +24,7 @@
 		  , batchOptions
 		  , markSuccess
 		  , markFailure
+		  , getNextTabIndex
 		  , queueTriggered    = false
 		  , uploadedIds       = []
 		  , failedUploads     = 0
@@ -36,9 +37,10 @@
 
 		fileAddedHandler = function( file ) {
 			file.previewElement = $( Mustache.render( filePreviewTemplate, {
-				  name : file.name
-				, size : dropzone.filesize( file.size )
-				, type : file.type
+				  name     : file.name
+				, size     : dropzone.filesize( file.size )
+				, type     : file.type
+				, tabindex : getNextTabIndex()
 			} ) ).get( 0 );
 
 			$previewsContainer.append( file.previewElement );
@@ -237,6 +239,18 @@
 			}
 
 			return FAILURE;
+		};
+
+		getNextTabIndex = function(){
+			var max = 0;
+			$( "[tabindex]" ).each( function(){
+				var ix = parseInt( $(this).attr( 'tabindex' ) );
+				if ( !isNaN( ix ) && ix > max ) {
+					max = ix;
+				}
+			} );
+
+			return max+1;
 		};
 
 		dropzone = new Dropzone( $( "body" ).get(0), {

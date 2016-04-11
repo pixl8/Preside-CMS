@@ -3,7 +3,7 @@
 	<td class="upload-type">{{{type}}}</td>
 	<td class="upload-size">{{{size}}}</td>
 	<td class="upload-detail">
-		<input type="text" name="asset-title" value="{{name}}" class="form-control">
+		<input type="text" name="asset-title" value="{{name}}" tabindex="{{tabindex}}" class="form-control">
 	</td>
 	<td class="upload-actions">
 		<div class="action-buttons">
