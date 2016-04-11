@@ -580,6 +580,7 @@
 
 		<cfscript>
 			var object = rc.object ?: "";
+			var args   = {};
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_checkPermission( argumentCollection=arguments, key="add", object=object );
