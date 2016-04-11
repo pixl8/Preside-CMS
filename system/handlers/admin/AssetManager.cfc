@@ -461,9 +461,15 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="assets.upload" );
 
 		var folderId           = rc.folder ?: "";
-		var folderRestrictions = assetManagerService.getFolderRestrictions( id=folderId );
 
-		event.includeData( folderRestrictions );
+		prc.pageIcon     = "picture";
+		prc.pageTitle    = translateResource( "cms:assetManager" );
+		prc.pageSubTitle = translateResource( "cms:assetmanager.upload.assets.title" );
+
+		event.addAdminBreadCrumb(
+			  title = prc.pageSubTitle
+			, link  = event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString="folder=#folderId#" )
+		);
 	}
 
 	function uploadAssetAction( event, rc, prc ) {
