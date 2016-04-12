@@ -8,7 +8,7 @@ component {
 		, boolean sessionManagement            = !isStatelessRequest( _getUrl() )
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
-		, numeric applicationReloadLockTimeout = 15
+		, numeric applicationReloadLockTimeout = 0
 		, string  scriptProtect                = "none"
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
