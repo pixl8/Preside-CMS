@@ -2,7 +2,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="updateManagerService" inject="updateManagerService";
 	property name="messageBox"           inject="coldbox:plugin:messageBox";
-		
+
+
 // LIFECYCLE EVENTS
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -48,7 +49,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		event.setView( "/admin/updateManager/index" );
-	}	
+	}
 
 	function editSettings( event, rc, prc ) output=false {
 		prc.pageTitle    = translateResource( "cms:updateManager.editSettings" );
