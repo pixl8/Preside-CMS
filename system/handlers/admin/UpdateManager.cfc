@@ -2,8 +2,8 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="updateManagerService" inject="updateManagerService";
 	property name="messageBox"           inject="coldbox:plugin:messageBox";
-
-
+	property name="DbInfoService"      inject="DbInfoService";
+		
 // LIFECYCLE EVENTS
 	function preHandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
@@ -49,6 +49,31 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 
 		event.setView( "/admin/updateManager/index" );
+	}
+
+	function version( event, rc, prc ) {
+			
+		var dbresult           = DbInfoService.getDatabaseVersion( getSetting('dsn') );
+		var productName        = server.coldfusion.productname    ?: "";
+		var productVersion     = server.coldfusion.productversion ?: "";
+		var javaVersion        = server.java.version              ?: "";
+		var osName             = server.os.name                   ?: "";
+		var osVersion          = server.os.version                ?: "";
+		var databaseName       = dbresult.database_productname    ?: "";
+		var databaseVersion    = dbresult.database_version        ?: "";
+
+		prc.pageTitle          = translateResource( "cms:version" );
+		prc.downloadedVersions = updateManagerService.listDownloadedVersions();
+
+		prc.applicationServer  = productName & '(' & productVersion & ')';
+		prc.java               = javaVersion;
+		prc.os                 = osName & ' (' & osVersion & ')';
+		prc.dataBase           = databaseName & ' (' & databaseVersion & ')';
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( "cms:version" )
+			, link  = event.buildAdminLink( linkTo="updateManager" )
+		);
 	}
 
 	function editSettings( event, rc, prc ) output=false {
