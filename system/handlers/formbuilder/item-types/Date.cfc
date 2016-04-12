@@ -13,13 +13,15 @@ component {
 
 			switch( args.relativeOperator ) {
 				case "lt":
-					args.maxDate = DateAdd( 'd', -1, Now() );
+					var diff = val(args.offset) ? val(-args.offset) : -1;
+					args.maxDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "lte":
 					args.maxDate = Now()
 				break;
 				case "gt":
-					args.minDate = DateAdd( 'd', 1, Now() );
+					var diff = val(args.offset) ? val(args.offset) : 1;
+					args.minDate = DateAdd( 'd', diff, Now() );
 				break;
 				case "gte":
 					args.minDate = Now()
