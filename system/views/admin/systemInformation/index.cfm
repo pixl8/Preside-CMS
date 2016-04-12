@@ -1,12 +1,12 @@
 <cfscript>
 	pageTitle          = prc.pageTitle          ?: "";
-	downloadedVersions = prc.downloadedVersions ?: [];
+	presideCmsVersion  = prc.presideCmsVersion  ?: "";
 	applicationServer  = prc.applicationServer  ?: "";
 	java               = prc.java               ?: "";
 	os                 = prc.os                 ?: "";
 	dataBase           = prc.dataBase           ?: "";
 </cfscript>
-	
+
 <cfoutput>
 	<div class="tab-content">
 		<div class="tab-pane in active">
@@ -22,7 +22,7 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td>#downloadedVersions[1].version#</td>
+						<td>#presideCmsVersion#</td>
 						<td>#applicationServer#</td>
 						<td>#dataBase#</td>
 						<td>#java#</td>
