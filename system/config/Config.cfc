@@ -179,6 +179,7 @@ component {
 			, "urlRedirects"
 			, "errorLogs"
 			, "maintenanceMode"
+			, "systemInformation"
 		];
 
 		settings.storageProviders = {
@@ -206,6 +207,7 @@ component {
 			, systemConfiguration    = [ "manage" ]
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
+			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, presideobject          = {
@@ -227,7 +229,7 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*" ];
 		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
@@ -270,6 +272,7 @@ component {
 			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
