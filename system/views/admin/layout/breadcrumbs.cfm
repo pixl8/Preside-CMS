@@ -1,6 +1,7 @@
 <cfscript>
-	crumbs  = event.getAdminBreadCrumbs();
-	nCrumbs = ArrayLen( crumbs );
+	crumbs      = event.getAdminBreadCrumbs();
+	nCrumbs     = ArrayLen( crumbs );
+	environment = controller.getSetting( "environment" );	
 </cfscript>
 
 <cfoutput>
@@ -9,6 +10,11 @@
 			try{ace.settings.check('breadcrumbs' , 'fixed')}catch(e){}
 		</script>
 
+		<cfif environment NEQ "live">
+			<div class="row">
+				<p class="text-center alert alert-danger">#translateResource( "cms:environment.alert" )#</p>
+			</div>
+		</cfif>
 		<ul class="breadcrumb">
 			<cfloop from="1" to="#nCrumbs#" index="i">
 				<li<cfif i eq nCrumbs> class="active"</cfif>>
