@@ -8,9 +8,13 @@
 	aCurrentClass           = args.aCurrentClass           ?: 'active';
 	aHasChildrenClass       = args.aHasChildrenClass       ?: '';
 	aHasChildrenAttributes  = args.aHasChildrenAttributes  ?: '';
+	environment             = controller.getSetting( "environment" );
 </cfscript>
 
 <cfoutput>
+	<cfif environment NEQ "live">
+		<li class="alert alert-danger">#translateResource( "cms:environment.alert" )#</li>
+	</cfif>
 	<cfloop array="#menuItems#" index="i" item="item">
 		<cfset hasChildren = item.children.len() />
 		<li class="<cfif item.active>#liCurrentClass#</cfif><cfif hasChildren> #liHasChildrenClass#</cfif>" <cfif hasChildren>#liHasChildrenAttributes#</cfif>>
