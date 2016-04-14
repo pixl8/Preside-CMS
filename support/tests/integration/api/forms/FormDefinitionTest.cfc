@@ -47,6 +47,50 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "deleteTab()", function(){
+
+			it( "should remove tab definition found by ID", function(){
+				var definition = _getFormDefinition();
+
+				definition.addTab( id="anotherTab" )
+				          .addTab( id="mytab" )
+				          .addTab( id="tab2" )
+				          .addTab( id="tabtab" );
+
+				definition.deleteTab( "anotherTab" );
+				definition.deleteTab( "tabtab" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[{ id="myTab", fieldsets=[] },{ id="tab2", fieldsets=[] }] } );
+			} );
+
+			it( "should do nothing when the passed tab does not exist in the form", function(){
+				var definition = _getFormDefinition();
+
+				definition.addTab( id="anotherTab" )
+				          .addTab( id="mytab" )
+				          .addTab( id="tab2" )
+				          .addTab( id="tabtab" );
+
+				definition.deleteTab( "whatever" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="anotherTab", fieldsets=[] }
+					, { id="mytab", fieldsets=[] }
+					, { id="tab2", fieldsets=[] }
+					, { id="tabtab", fieldsets=[] }
+				] } );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.addTab( id="mytab" )
+				                           .deleteTab( "mytab" );
+
+				expect( result ).toBe( definition );
+			} );
+
+		} );
+
 	}
 
 	private any function _getFormDefinition( struct rawDefinition ) {

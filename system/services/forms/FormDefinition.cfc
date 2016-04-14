@@ -50,6 +50,24 @@ component {
 		return this;
 	}
 
+	/**
+	 * Deletes a tab from the form that matches
+	 * the given id
+	 *
+	 * @id.hint ID of the tab you wish to delete
+	 *
+	 */
+	public any function deleteTab( required string id ) {
+		var raw  = _getRawDefinition();
+		var args = arguments;
+
+		raw.tabs = ( raw.tabs ?: [] ).filter( function( tab ){
+			return ( tab.id ?: "" ) != args.id;
+		} );
+
+		return this;
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getRawDefinition() {
