@@ -4,6 +4,7 @@
  * an API abstraction for adding/modifying and removing fields, fieldsets
  * and tabs
  *
+ * @autodoc
  */
 component {
 
@@ -13,6 +14,15 @@ component {
 		return this;
 	}
 
+	/**
+	 * Returns the raw structure of the form definition.
+	 * This is used by the core [[api-formsservice|Forms Service]], though
+	 * you may wish to use it in your own code should you
+	 * require low level access to a form definition
+	 *
+	 * @autodoc
+	 *
+	 */
 	public struct function getRawDefinition() {
 		return _getRawDefinition();
 	}
