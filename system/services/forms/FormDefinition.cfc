@@ -68,6 +68,27 @@ component {
 		return this;
 	}
 
+	/**
+	 * Modifies a tab definition. Any arguments are merged with the tab attributes
+	 * for the tab matching the passed id.
+	 *
+	 * @id.hint ID of the tab you wish to modify
+	 *
+	 */
+	public any function modifyTab( required string id ) {
+		var raw = _getRawDefinition();
+
+		raw.tabs = raw.tabs ?: [];
+
+		for( var tab in raw.tabs ) {
+			if ( tab.id == arguments.id ) {
+				tab.append( arguments );
+				return this;
+			}
+		}
+
+		throw( type="formdefinition.tab.not.found", message="The tab, [#arguments.id#], could not be found in the form definition." );
+	}
 
 // GETTERS AND SETTERS
 	private any function _getRawDefinition() {

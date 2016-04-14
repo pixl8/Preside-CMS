@@ -91,6 +91,51 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "modifyTab", function(){
+
+			it( "should alter the given tab (by id) by appending the passed arguments to the tab", function(){
+				var definition = _getFormDefinition();
+
+				definition.addTab( id="anotherTab" )
+				          .addTab( id="mytab" )
+				          .addTab( id="tab2" )
+				          .addTab( id="tabtab" );
+
+				definition.modifyTab( id="tab2", title="Test", description="Test description" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="anotherTab", fieldsets=[] }
+					, { id="mytab", fieldsets=[] }
+					, { id="tab2", fieldsets=[], title="Test", description="Test description" }
+					, { id="tabtab", fieldsets=[] }
+				] } );
+			} );
+
+			it( "should throw an informative error when the tab does not exist", function(){
+				var definition = _getFormDefinition();
+
+				definition.addTab( id="anotherTab" )
+				          .addTab( id="mytab" )
+				          .addTab( id="tab2" )
+				          .addTab( id="tabtab" );
+
+				expect( function(){
+					definition.modifyTab( id="non existant" & CreateUUId(), title="Test", description="Test description" );
+
+				} ).toThrow( "formdefinition.tab.not.found" );
+			} );
+
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.addTab( id="mytab" )
+				                           .modifyTab( id="mytab", title="Hello?" );
+
+				expect( result ).toBe( definition );
+			} );
+
+		} );
+
 	}
 
 	private any function _getFormDefinition( struct rawDefinition ) {
