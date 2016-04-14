@@ -198,7 +198,8 @@ component {
 		,          string  fieldNameSuffix      = ""
 		,          array   suppressFields       = []
 	) {
-		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
+		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
+		var frm               = getForm( mergedFormName );
 		var coldbox           = _getColdbox();
 		var i18n              = _getI18n();
 		var renderedTabs      = CreateObject( "java", "java.lang.StringBuffer" );
@@ -290,6 +291,7 @@ component {
 
 		return coldbox.renderViewlet( event=arguments.formLayout, args={
 			  formId             = arguments.formId
+			, formName           = mergedFormName
 			, content            = renderedTabs.toString()
 			, tabs               = tabs
 			, validationResult   = arguments.validationResult
