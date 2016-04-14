@@ -19,6 +19,34 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "addTab()", function(){
+
+			it( "should append a basic tab definition to the end of the forms tab array", function(){
+				var definition = _getFormDefinition();
+
+				definition.addTab( id="mytab" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[{ id="myTab", fieldsets=[] }] } );
+			} );
+
+			it( "should include any arguments passed in the tab definition", function(){
+				var definition = _getFormDefinition();
+				var args       = { id="mytab", title="My tab title", fieldsets=[ { id="myfieldset", fields=[] } ] };
+
+				definition.addTab( argumentCollection=args );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[ args ] } );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.addTab( id="mytab" );
+
+				expect( result ).toBe( definition );
+			} );
+
+		} );
+
 	}
 
 	private any function _getFormDefinition( struct rawDefinition ) {

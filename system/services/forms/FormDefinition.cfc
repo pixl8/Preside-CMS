@@ -27,6 +27,29 @@ component {
 		return _getRawDefinition();
 	}
 
+	/**
+	 * Adds a tab to the form. Any arguments passed
+	 * will be treated as attributes on the tab within
+	 * the form
+	 *
+	 * @id.hint Unique ID of the tab
+	 */
+	public any function addTab( required string id ) {
+		var raw = _getRawDefinition();
+		var tabDefinition = {};
+
+		for( var key in arguments ) {
+			tabDefinition[ key ] = IsSimpleValue( arguments[ key ] ) ? arguments[ key ] : Duplicate( arguments[ key ] );
+		}
+
+		tabDefinition.fieldSets = tabDefinition.fieldSets ?: [];
+
+		raw.tabs = raw.tabs ?: [];
+		raw.tabs.append( tabDefinition );
+
+		return this;
+	}
+
 
 // GETTERS AND SETTERS
 	private any function _getRawDefinition() {
