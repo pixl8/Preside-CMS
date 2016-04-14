@@ -70,7 +70,8 @@ component {
 
 	/**
 	 * Modifies a tab definition. Any arguments are merged with the tab attributes
-	 * for the tab matching the passed id.
+	 * for the tab matching the passed id. If the tab does not already exist, it is
+	 * created.
 	 *
 	 * @id.hint ID of the tab you wish to modify
 	 *
@@ -87,7 +88,7 @@ component {
 			}
 		}
 
-		throw( type="formdefinition.tab.not.found", message="The tab, [#arguments.id#], could not be found in the form definition." );
+		return addTab( argumentCollection=arguments );
 	}
 
 // GETTERS AND SETTERS

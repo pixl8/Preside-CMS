@@ -111,7 +111,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				] } );
 			} );
 
-			it( "should throw an informative error when the tab does not exist", function(){
+			it( "should create the tab when it does not exist", function(){
 				var definition = _getFormDefinition();
 
 				definition.addTab( id="anotherTab" )
@@ -119,10 +119,15 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				          .addTab( id="tab2" )
 				          .addTab( id="tabtab" );
 
-				expect( function(){
-					definition.modifyTab( id="non existant" & CreateUUId(), title="Test", description="Test description" );
+				definition.modifyTab( id="non existant", title="Test", description="Test description" );
 
-				} ).toThrow( "formdefinition.tab.not.found" );
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="anotherTab", fieldsets=[] }
+					, { id="mytab", fieldsets=[] }
+					, { id="tab2", fieldsets=[] }
+					, { id="tabtab", fieldsets=[] }
+					, { id="non existant", fieldsets=[], title="Test", description="Test description" }
+				] } );
 			} );
 
 
