@@ -10,6 +10,13 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( definition ).toBe( { tabs=[] } );
 			} );
 
+			it( "should return the structure passed to the object's constructor when no modifying actions made", function(){
+				var raw        = { tabs=[ { id="test", fieldsets=[] } ] };
+				var definition = _getFormDefinition( raw ).getRawDefinition();
+
+				expect( definition ).toBe( raw );
+			} );
+
 		} );
 
 	}
