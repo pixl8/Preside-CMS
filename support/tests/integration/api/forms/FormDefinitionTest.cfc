@@ -141,6 +141,44 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "addFieldset()", function(){
+
+			it( "should append a basic fieldset definition to the end of the given tab's fieldset array", function(){
+				var definition = _getFormDefinition( { tabs=[ { id="test", fieldsets=[] } ] } );
+
+				definition.addFieldset( id="myfieldset", tab="test" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[{ id="test", fieldsets=[{ id="myfieldset", fields=[] }] }] } );
+			} );
+
+			it( "should include any arguments passed in the fieldset definition", function(){
+				var definition = _getFormDefinition( { tabs=[ { id="test", fieldsets=[] } ] } );
+				var args       = { id="myfieldset", tab="test", title="My fieldset title", fields=[ { name="myfield" } ] };
+				var expectedFieldset = Duplicate( args );
+
+				expectedFieldset.delete( "tab" );
+
+				definition.addFieldset( argumentCollection=args );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[ { id="test", fieldsets=[ expectedFieldset ] } ] } );
+			} );
+
+			it( "should create the tab if it does not already exist", function(){
+				var definition = _getFormDefinition();
+
+				definition.addFieldset( id="myfieldset", tab="newtab" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[{ id="newtab", fieldsets=[{ id="myfieldset", fields=[] }] }] } );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.addFieldset( id="myfieldset", tab="sometab" );
+
+				expect( result ).toBe( definition );
+			} );
+		} );
+
 	}
 
 	private any function _getFormDefinition( struct rawDefinition ) {

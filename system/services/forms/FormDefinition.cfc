@@ -77,18 +77,54 @@ component {
 	 *
 	 */
 	public any function modifyTab( required string id ) {
+		var tab = _getTab( id=arguments.id, createIfNotExists=true );
+
+		tab.append( arguments );
+
+		return this;
+	}
+
+	/**
+	 * Adds a fieldset to the given tab. If the tab does not exist, it is created.
+	 * Any arguments other than id and tab are uses as attributes for the fieldset
+	 * definition.
+	 *
+	 * @id.hint  ID of the fieldset to create
+	 * @tab.hint ID of the tab to append the fieldset to
+	 *
+	 */
+	public any function addFieldset( required string id, required string tab ) {
+		var tab = _getTab( id=arguments.tab, createIfNotExists=true );
+		var fieldset = {};
+
+		for( var key in arguments ) {
+			if ( key != "tab" ) {
+				fieldset[ key ] = IsSimpleValue( arguments[ key ] ) ? arguments[ key ] : Duplicate( arguments[ key ] );
+			}
+		}
+		fieldset.fields = fieldset.fields ?: [];
+
+		tab.fieldsets = tab.fieldsets ?: [];
+		tab.fieldsets.append( fieldset );
+
+		return this;
+	}
+
+// PRIVATE HELPERS
+	private struct function _getTab( required string id, required boolean createIfNotExists ) {
 		var raw = _getRawDefinition();
 
 		raw.tabs = raw.tabs ?: [];
 
 		for( var tab in raw.tabs ) {
-			if ( tab.id == arguments.id ) {
-				tab.append( arguments );
-				return this;
+			if ( ( tab.id ?: "" ) == arguments.id ) {
+				return tab;
 			}
 		}
 
-		return addTab( argumentCollection=arguments );
+		addTab( id=arguments.id );
+
+		return raw.tabs[ raw.tabs.len() ];
 	}
 
 // GETTERS AND SETTERS
