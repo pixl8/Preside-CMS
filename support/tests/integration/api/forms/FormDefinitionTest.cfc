@@ -91,7 +91,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
-		describe( "modifyTab", function(){
+		describe( "modifyTab()", function(){
 
 			it( "should alter the given tab (by id) by appending the passed arguments to the tab", function(){
 				var definition = _getFormDefinition();
@@ -174,6 +174,102 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			it( "should return self so that methods can be chained", function(){
 				var definition = _getFormDefinition();
 				var result     = definition.addFieldset( id="myfieldset", tab="sometab" );
+
+				expect( result ).toBe( definition );
+			} );
+		} );
+
+		describe( "deleteFieldset()", function(){
+
+			it( "should remove the given fieldset that lives in the given tab", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+
+				definition.deleteFieldset( id="testfieldset2", tab="testtab2" );
+
+				expect( definition.getRawDefinition() ).toBe({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[]}
+				]});
+			} );
+
+			it( "should do nothing if the tab is not found", function(){
+				var raw = { tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]};
+				var definition = _getFormDefinition( raw );
+
+				definition.deleteFieldset( id="testfieldset2", tab="non.existing" );
+
+				expect( definition.getRawDefinition() ).toBe( raw );
+			} );
+
+			it( "should do nothing if the fieldset is not found within the tab", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+
+				definition.deleteFieldset( id="nonexisting", tab="testtab2" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+				var result = definition.deleteFieldset( id="myfieldset", tab="whatever" );
+
+				expect( result ).toBe( definition );
+			} );
+
+		} );
+
+		describe( "modifyFieldset()", function(){
+
+			it( "should alter the given fieldset (by id and tab) by appending the passed arguments to the fieldset", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+
+				definition.modifyFieldset( id="testfieldset2", tab="testtab2", title="test fieldset title", fields=[ { name="testfield" } ] );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", title="test fieldset title", fields=[{ name="testfield" }]}]}
+				]} );
+			} );
+
+			it( "should create both the tab and fieldset if neither exist", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+
+				definition.modifyFieldset( id="newfieldset", tab="newtab", title="test fieldset title", fields=[ { name="testfield" } ] );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+					, { id="newtab", fieldsets=[{id="newfieldset", title="test fieldset title", fields=[{ name="testfield" }]}]}
+				]} );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[]}]}
+				]});
+				var result = definition.modifyFieldset( id="newfieldset", tab="newtab", title="test fieldset title", fields=[ { name="testfield" } ] );
 
 				expect( result ).toBe( definition );
 			} );

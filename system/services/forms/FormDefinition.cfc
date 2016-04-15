@@ -110,6 +110,49 @@ component {
 		return this;
 	}
 
+	/**
+	 * Deletes the given fieldset beneath the given tab.
+	 * Does nothing if the fieldset is not found
+	 *
+	 * @id.hint  ID of the fieldset to delete
+	 * @tab.hint ID of the tab that the fieldset belongs to
+	 */
+	public any function deleteFieldset( required string id, required string tab ) {
+		var tab  = _getTab( id=arguments.tab, createIfNotExists=false );
+		var args = arguments;
+
+		if ( tab.count() ) {
+			tab.fieldsets = tab.fieldsets.filter( function( fieldset ){
+				return ( fieldset.id ?: "" ) != args.id;
+			} );
+		}
+
+		return this;
+	}
+
+	/**
+	 * Modifies the given fieldset, appending all arguments
+	 * to the fieldset's definition (with the exception of the id
+	 * and tab arguments).
+	 *
+	 * @id.hint  Id of the fieldset to modify
+	 * @tab.hint Tab in which the fieldset belongs
+	 */
+	public any function modifyFieldset( required string id, required string tab ) {
+		var fieldset = _getFieldset( id=arguments.id, tab=arguments.tab, createIfNotExists=true );
+		var args     = {};
+
+		for( var key in arguments ) {
+			if ( key != "tab" ) {
+				args[ key ] = arguments[ key ];
+			}
+		}
+
+		fieldset.append( args );
+
+		return this;
+	}
+
 // PRIVATE HELPERS
 	private struct function _getTab( required string id, required boolean createIfNotExists ) {
 		var raw = _getRawDefinition();
@@ -122,9 +165,33 @@ component {
 			}
 		}
 
-		addTab( id=arguments.id );
+		if ( arguments.createIfNotExists ) {
+			addTab( id=arguments.id );
 
-		return raw.tabs[ raw.tabs.len() ];
+			return raw.tabs[ raw.tabs.len() ];
+		}
+
+		return {};
+	}
+
+	private struct function _getFieldset( required string id, required string tab, required boolean createIfNotExists ) {
+		var tab = _getTab( id=arguments.tab, createIfNotExists=arguments.createIfNotExists );
+
+		tab.fieldsets = tab.fieldsets ?: [];
+
+		for( var fieldset in tab.fieldsets ) {
+			if ( ( fieldset.id ?: "" ) == arguments.id ) {
+				return fieldset;
+			}
+		}
+
+		if ( arguments.createIfNotExists ) {
+			addFieldset( id=arguments.id, tab=arguments.tab );
+
+			return tab.fieldsets[ tab.fieldsets.len() ];
+		}
+
+		return {};
 	}
 
 // GETTERS AND SETTERS
