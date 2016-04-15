@@ -566,6 +566,86 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( theForm ).toBe( { tabs=[] } );
 			} );
 
+			it( "should pass an empty form definition to the passed 'generator' argument (a closure) so that calling code can build the form definition", function(){
+				var service     = _getFormsService( "" );
+				var newFormName = service.createForm( generator=function( definition ){
+					definition.addField( name="testfield", fieldset="default", tab="default" );
+				} );
+
+				expect( service.getForm( newFormName ) ).toBe( { tabs=[
+					{ id="default", fieldsets=[
+						{ id="default", fields=[
+							{ name="testfield" }
+						] }
+					] }
+				] } );
+			} );
+
+			it( "should create a new form definition based on the form matching the passed 'basedOn' argument (if supplied)", function(){
+				var service     = _getFormsService( "/tests/resources/formsService/forms1" );
+				var newFormName = service.createForm( basedOn="test.form", generator=function( formDefinition ){
+					formDefinition.addField( name="myfield", fieldset="default", tab="default", control="mycontrol" );
+				} );
+
+				expect( service.getForm( newFormName ) ).toBe( {
+					tabs = [{
+						title="{forms:tab1.title}",
+						description="{forms:tab1.description}",
+						id="",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[{
+								name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+							},{
+								name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+							}]
+						}]
+
+					},{
+						title="{forms:tab2.title}",
+						description="{forms:tab2.description}",
+						id="",
+						fieldsets=[{
+							title="{test:test.fieldset.title}",
+							description="",
+							id="",
+							fields=[{
+								name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+							}]
+						},{
+							title="{test:test.fieldset2.title}",
+							description="{test:test.fieldset2.description}",
+							id="",
+							fields=[{
+								name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
+									  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
+									, { validator="sameAs", params={field="somefield1"} }
+								]
+							}]
+						}]
+					},{
+						id="default",
+						fieldsets=[{
+							id="default",
+							fields=[{
+								name="myfield", control="mycontrol"
+							}]
+						}]
+					}]
+				} );
+			} );
+
+			it( "should use the supplied form name when non-empty", function(){
+				var service     = _getFormsService( "" );
+				var newFormName = service.createForm( formName="mynewform", generator=function( definition ){
+					definition.addField( name="testfield", fieldset="default", tab="default" );
+				} );
+
+				expect( newFormName ).toBe( "mynewform" );
+			} );
+
 		} );
 	}
 
