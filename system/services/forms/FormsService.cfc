@@ -457,6 +457,16 @@ component {
 		return mergedName;
 	}
 
+	public string function createForm() {
+		var formDefinition = new FormDefinition();
+		var rawDefinition  = formDefinition.getRawDefinition();
+		var formName       = _generateFormNameFromDefinition( rawDefinition );
+
+		_registerForm( formName, rawDefinition );
+
+		return formName;
+	}
+
 	public void function reload() {
 		_loadForms();
 	}
@@ -1024,6 +1034,10 @@ component {
 				}
 			}
 		}
+	}
+
+	private string function _generateFormNameFromDefinition( required struct definition ) {
+		return "dynamicform-" & LCase( Hash( SerializeJson( arguments.definition ) ) );
 	}
 
 // GETTERS AND SETTERS

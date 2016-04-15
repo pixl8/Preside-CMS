@@ -555,6 +555,18 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 		} );
+
+		describe( "createForm()", function(){
+
+			it( "should create an empty form and return the new form name if no arguments passed", function(){
+				var service     = _getFormsService( "" );
+				var newFormName = service.createForm();
+				var theForm     = service.getForm( newFormName );
+
+				expect( theForm ).toBe( { tabs=[] } );
+			} );
+
+		} );
 	}
 
 	private any function _getFormsService(
