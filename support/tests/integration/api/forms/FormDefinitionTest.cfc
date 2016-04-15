@@ -311,8 +311,41 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "deleteField()", function(){
 
-			it( "should do rad shizzle", function(){
-				fail( "not yet implemented" );
+			it( "should remove the given field that lives in the given fieldset and tab", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field1" }, { name="field2" } ]}]}
+				]});
+
+				definition.deleteField( name="field1", fieldset="testfieldset2", tab="testtab2" );
+
+				expect( definition.getRawDefinition() ).toBe({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field2" } ]}]}
+				]});
+			} );
+
+			it( "should do nothing when either the tab, fieldset or field do not exist", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field1" }, { name="field2" } ]}]}
+				]});
+
+				definition.deleteField( name="field1", fieldset="testfieldset2", tab="blah" );
+				definition.deleteField( name="testfield", fieldset="nonsense", tab="test" );
+				definition.deleteField( name="whatever", fieldset="test", tab="test" );
+
+				expect( definition.getRawDefinition() ).toBe({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field1" }, { name="field2" } ]}]}
+				]});
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.deleteField( name="field1", fieldset="testfieldset2", tab="blah" );
+
+				expect( result ).toBe( definition );
 			} );
 
 		} );

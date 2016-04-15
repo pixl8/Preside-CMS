@@ -187,6 +187,27 @@ component {
 		return this;
 	}
 
+	/**
+	 * Deletes the given field. Does nothing if the field does not exist.
+	 *
+	 * @autodoc
+	 * @name.hint     The name of the field to delete
+	 * @fieldset.hint The ID of the fieldset in which the field lives
+	 * @tab.hint      The ID of the tab in which the field lives
+	 *
+	 */
+	public any function deleteField( required string name, required string fieldset, required string tab ) {
+		var fieldset  = _getFieldset( id=arguments.fieldset, tab=arguments.tab, createIfNotExists=false );
+		var args = arguments;
+
+		if ( fieldset.count() ) {
+			fieldset.fields = fieldset.fields.filter( function( field ){
+				return ( field.name ?: "" ) != args.name;
+			} );
+		}
+
+		return this;
+	}
 
 // PRIVATE HELPERS
 	private struct function _getTab( required string id, required boolean createIfNotExists ) {
