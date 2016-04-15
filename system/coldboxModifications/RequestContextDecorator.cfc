@@ -114,16 +114,26 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return collection;
 	}
 
-	public struct function getCollectionForForm( required string formName ) output=false {
-		var formFields = getModel( "formsService" ).listFields( arguments.formName );
-		var collection = {};
-		var rc         = getRequestContext().getCollection();
+	public struct function getCollectionForForm( string formName="" ) output=false {
+		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
+		var formsService = getModel( "formsService" );
+		var rc           = getRequestContext().getCollection();
+		var collection   = {};
 
-		for( var field in formFields ){
-			collection[ field ] = ( rc[ field ] ?: "" );
+		for( var name in formNames ) {
+			var formFields = formsService.listFields( name );
+			for( var field in formFields ){
+				collection[ field ] = ( rc[ field ] ?: "" );
+			}
 		}
 
 		return collection;
+	}
+
+	public array function getSubmittedPresideForms() output=false {
+		var rc = getRequestContext().getCollection();
+
+		return ListToArray( Trim( rc[ "$presideform" ] ?: "" ) );
 	}
 
 // Admin specific

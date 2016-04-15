@@ -198,7 +198,8 @@ component {
 		,          string  fieldNameSuffix      = ""
 		,          array   suppressFields       = []
 	) {
-		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
+		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
+		var frm               = getForm( mergedFormName );
 		var coldbox           = _getColdbox();
 		var i18n              = _getI18n();
 		var renderedTabs      = CreateObject( "java", "java.lang.StringBuffer" );
@@ -290,6 +291,7 @@ component {
 
 		var formArgs = {
 			  formId             = arguments.formId
+			, formName           = mergedFormName
 			, content            = renderedTabs.toString()
 			, tabs               = tabs
 			, validationResult   = arguments.validationResult
@@ -457,6 +459,42 @@ component {
 		}
 
 		return mergedName;
+	}
+
+	/**
+	 * Creates and registers a new dynamic form. Supply a 'generator closure'
+	 * to add code to help generate the form definition. Closure accepts a [[api-formdefinition]] argument
+	 * as the first argument. e.g.
+	 * \n
+	 * ```luceescript\n
+	 * createForm( function( formDefinition ){\n
+	 *     formDefinition.addField( name="myfield", fieldset="default", tab="default" );\n
+	 * } );\n
+	 * ```\n
+	 *
+	 * @autodoc
+	 * @generator.hint Closure that accepts as its first argument a [[api-formdefinition]] object so that calling code can build the form definition.
+	 * @basedOn.hint   Name of the form to base the new dynamic form on. Generator closure will take the full definition of the original form so that it can then make modifications and additions that it needs
+	 * @formName.hint  If supplied, specifies the name of the form that will be registered. If not supplied, a name will be generated based on the unique full definition of the form. Warning, if using this argument, ensure that the name will be unique for each distinct form definition.
+	 *
+	 */
+	public string function createForm( any generator, string basedOn="", string formName ) {
+		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
+		var formDefinition = new FormDefinition( basedOnDef );
+
+		if ( arguments.keyExists( "generator" ) ) {
+			arguments.generator( formDefinition );
+		}
+
+		var rawDefinition = formDefinition.getRawDefinition();
+
+		if ( !Len( Trim( arguments.formName ) ) ) {
+			arguments.formName = _generateFormNameFromDefinition( rawDefinition );
+		}
+
+		_registerForm( arguments.formName, rawDefinition );
+
+		return arguments.formName;
 	}
 
 	public void function reload() {
@@ -1079,6 +1117,10 @@ component {
 				}
 			}
 		}
+	}
+
+	private string function _generateFormNameFromDefinition( required struct definition ) {
+		return "dynamicform-" & LCase( Hash( SerializeJson( arguments.definition ) ) );
 	}
 
 // GETTERS AND SETTERS

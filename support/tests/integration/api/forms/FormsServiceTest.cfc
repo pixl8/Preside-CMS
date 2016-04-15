@@ -1,606 +1,686 @@
-<cfcomponent output="false" extends="tests.resources.HelperObjects.PresideTestCase">
+component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
-<!--- tests --->
-	<cffunction name="test01_formExists_shouldReturnTrue_whenPassedFormId_matchesFileNameOfAFormInTheConfiguredFormDirectories_minusTheFileExtension" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+	function run(){
+		describe( "init()", function(){
 
-			super.assert( formsSvc.formExists( "test.form" ) );
-		</cfscript>
-	</cffunction>
+			it( "should throw informative error when form field binding is malforrmed", function(){
+				var errorThrown = false;
 
-	<cffunction name="test02_formExists_shouldReturnFalse_whenPassedFormId_doesNotMatchAForm" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+				try {
+					_getFormsService( "/tests/resources/formsService/malformedBinding" );
+				} catch ( "FormsService.MalformedBinding" e ) {
+					expect( e.message ).toBe( "The binding [malformed] was malformed. Bindings should take the form, [presideObjectName.fieldName]" );
+					errorThrown = true;
+				}
 
-			super.assertFalse( formsSvc.formExists( "test.form.that.does.not.exist" ) );
-		</cfscript>
-	</cffunction>
+				expect( errorThrown ).toBeTrue();
+			} );
 
-	<cffunction name="test03_formExists_shouldReturnTrue_whenFormExistsInOneOfManyFolders" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+			it( "should throw informative error when object refered to in binding does not exist", function(){
+				var errorThrown = false;
 
-			super.assert( formsSvc.formExists( "test.form.unique.to.set3" ) );
-		</cfscript>
-	</cffunction>
+				try {
+					_getFormsService( "/tests/resources/formsService/bindingWithMissingObject" );
+				} catch ( "FormsService.BadBinding" e ) {
+					expect( e.message ).toBe( "The preside object, [missingObject], referred to in the form field binding, [missingObject.id], could not be found. Valid objects are #SerializeJson( poService.listObjects() )#" );
+					errorThrown = true;
+				}
 
-	<cffunction name="test04_formExists_shouldReturnTrue_whenFormExistsInManyOfManyFolders" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+				expect( errorThrown ).toBeTrue();
+			} );
 
-			super.assert( formsSvc.formExists( "test.form" ) );
-		</cfscript>
-	</cffunction>
+			it( "should throw informative error when field refered to in binding does not exist", function(){
+				var errorThrown = false;
 
-	<cffunction name="test05_formExists_shouldReturnFalse_whenFormDoesNotExistInAnyOfManyFolders" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+				try {
+					_getFormsService( "/tests/resources/formsService/bindingWithMissingField" );
+				} catch ( "FormsService.BadBinding" e ) {
+					expect( e.message ).toBe( "The field, [missingField], referred to in the form field binding, [page.missingField], could not be found in Preside Object, [page]" );
+					errorThrown = true;
+				}
 
-			super.assertFalse( formsSvc.formExists( "test.form.that.does.not.exist" ) );
-		</cfscript>
-	</cffunction>
+				expect( errorThrown ).toBeTrue();
+			} );
 
-	<cffunction name="test06_getForm_shouldReturnStructureOfFormDefinitionAsDefinedInXml" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
-			var result   = formsSvc.getForm( "test.form" );
-			var expected = {
-				tabs = [{
-					title="{forms:tab1.title}",
-					description="{forms:tab1.description}",
-					id="",
-					fieldsets=[{
-						title="",
-						description="",
+		} );
+
+		describe( "formExists()", function(){
+
+			it( "should return true when passed form ID that maps to the file name of a form in the configured directories", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+
+				expect( formsSvc.formExists( "test.form" ) ).toBeTrue();
+			} );
+
+			it( "should return false when passed a form ID that does not map to any forms in the configured directories", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+
+				expect( formsSvc.formExists( "test.form.that.does.not.exist" ) ).toBeFalse();
+			} );
+
+			it( "should return true when the form exists in one of many folders", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+
+				expect( formsSvc.formExists( "test.form.unique.to.set3" ) ).toBeTrue();
+			} );
+
+			it( "should return true when form exists in many of many folders", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+
+				expect( formsSvc.formExists( "test.form" ) ).toBeTrue();
+			} );
+
+			it( "should return false when form does not exst in any of many folders", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+
+				expect( formsSvc.formExists( "test.form.that.does.not.exist" ) ).toBeFalse();
+			} );
+
+		} );
+
+		describe( "getForm()", function(){
+
+			it( "should return structure of form definition as defined in XML", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+				var result   = formsSvc.getForm( "test.form" );
+				var expected = {
+					tabs = [{
+						title="{forms:tab1.title}",
+						description="{forms:tab1.description}",
 						id="",
-						fields=[{
-							name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[{
+								name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+							},{
+								name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+							}]
+						}]
+
+					},{
+						title="{forms:tab2.title}",
+						description="{forms:tab2.description}",
+						id="",
+						fieldsets=[{
+							title="{test:test.fieldset.title}",
+							description="",
+							id="",
+							fields=[{
+								name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+							}]
 						},{
-							name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+							title="{test:test.fieldset2.title}",
+							description="{test:test.fieldset2.description}",
+							id="",
+							fields=[{
+								name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
+									  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
+									, { validator="sameAs", params={field="somefield1"} }
+								]
+							}]
 						}]
 					}]
+				};
 
-				},{
-					title="{forms:tab2.title}",
-					description="{forms:tab2.description}",
-					id="",
-					fieldsets=[{
-						title="{test:test.fieldset.title}",
+				expect( result ).toBe( expected );
+			} );
+
+			it( "should return default form for preside object when form does not exist and first part of form name is a valid preside object", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+				var result   = formsSvc.getForm( "preside-objects.security_group.add.form" );
+				var expected = {
+					tabs = [{
+						id="default",
+						title="preside-objects.security_group:tab.default.title",
+						description="preside-objects.security_group:tab.default.description",
+						iconClass="preside-objects.security_group:tab.default.iconClass",
+						autoGeneratedAttributes=["title","description","iconClass"],
+						fieldsets=[{
+							id="default",
+							title="preside-objects.security_group:fieldset.default.title",
+							description="preside-objects.security_group:fieldset.default.description",
+							autoGeneratedAttributes=["title","description"],
+							fields=[{
+								name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group", label="preside-objects.security_group:field.label.title", help="preside-objects.security_group:field.label.help", placeholder="preside-objects.security_group:field.label.placeholder"
+							},{
+								name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder"
+							},{
+								name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder"
+							}]
+						}]
+					}]
+				};
+
+				expect( result ).toBe( expected );
+			} );
+
+			it( "should throw informative error when form does not exist", function(){
+				var formsSvc    = _getFormsService( "/tests/resources/formsService/forms1" );
+				var errorThrown = false;
+
+				try {
+					formsSvc.getForm( "someform.that.does.not.exist" );
+				} catch( "FormsService.MissingForm" e ) {
+					expect( e.message, "The form, [someform.that.does.not.exist], could not be found" );
+					errorThrown = true;
+				} catch( any e ) {
+					fail( "The wrong kind of error was thrown. Expected [FormsService.MissingForm], but received, [#e.type#]")
+				}
+
+				expect( errorThrown ).toBeTrue();
+			} );
+
+			it( "should return a merged form definition when the given form name is defined in two or more of the base source folders", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/automerging/folder1,/tests/resources/formsService/automerging/folder2" );
+				var result   = formsSvc.getForm( "someForm" );
+				var expected = {
+					tabs = [{
+						title="A new title",
 						description="",
-						id="",
-						fields=[{
-							name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+						id = "sometab",
+						fieldsets=[{
+							title="Another new title",
+							description="A description",
+							id="somefieldset",
+							fields=[
+								{ name="anotherfield", rules=[], sortorder=5 },
+								{ name="somename", control="overridenControl", required="false", rules=[], sortorder=10 }
+							]
+						},{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="meh", required=false, rules=[] }
+							]
+						},{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="meh2", blah="blah", rules=[] }
+							]
+						}]
+
+					},{
+						title="",
+						description="",
+						id = "",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="mehsomemore", required="false", rules=[] }
+							]
 						}]
 					},{
-						title="{test:test.fieldset2.title}",
-						description="{test:test.fieldset2.description}",
-						id="",
-						fields=[{
-							name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
-								  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
-								, { validator="sameAs", params={field="somefield1"} }
+						title="",
+						description="",
+						id = "",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="intab3", required="false", rules=[] }
 							]
 						}]
 					}]
-				}]
-			};
+				};
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+				expect( result ).toBe( expected );
+			} );
 
-	<cffunction name="test08_readForm_shouldReturnInformativeError_whenFormIsMalformedXml" returntype="void">
-		<cfscript>
-			var errorThrown = false;
+			it( "should NOT return a merged form when the extra definition is defined in a site template that is not active for the request", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/site-templates/mysite/forms" );
+				var result   = formsSvc.getForm( "test.form" );
+				var expected = {
+					tabs = [{
+						title="{forms:tab1.title}",
+						description="{forms:tab1.description}",
+						id="",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[{
+								name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+							},{
+								name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+							}]
+						}]
 
-			try {
-				_getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms3,/tests/resources/formsService/badForm" );
-			} catch ( "FormsService.BadFormXml" e ) {
-				super.assertEquals( "The form definition file, [bad.form.xml], does not contain valid XML", e.message );
-				super.assertEquals( "XML document structures must start and end within the same entity.", e.detail );
-				errorThrown = true;
-			}
+					},{
+						title="{forms:tab2.title}",
+						description="{forms:tab2.description}",
+						id="",
+						fieldsets=[{
+							title="{test:test.fieldset.title}",
+							description="",
+							id="",
+							fields=[{
+								name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+							}]
+						},{
+							title="{test:test.fieldset2.title}",
+							description="{test:test.fieldset2.description}",
+							id="",
+							fields=[{
+								name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
+									  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
+									, { validator="sameAs", params={field="somefield1"} }
+								]
+							}]
+						}]
+					}]
+				};
 
-			super.assert( errorThrown, "An informative error was not thrown" );
-		</cfscript>
-	</cffunction>
+				expect( result ).toBe( expected );
+			} );
 
-	<cffunction name="test09_readForm_shouldMergeFieldDefinitionsFromComponentFields_whenFieldsSpecifyComponentBindings_withFormFieldDefinitionsTakingPrecidence" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
-			var result   = formsSvc.getForm( "event.cms.add" );
-			var expected = {
-				feature = "enabled-feature",
-				tabs = [{
-					title       = "",
-					description = "",
-					id="",
-					fieldsets   = [{
+			it( "should return a merged form when extra definition defined in a site template that is active for the request", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/site-templates/mysite/forms", "mysite" );
+				var result   = formsSvc.getForm( "test.form" );
+				var expected = {
+					tabs = [{
+						title="{forms:tab1.title}",
+						description="{forms:tab1.description}",
+						id="",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[{
+								name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+							},{
+								name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+							}]
+						}]
+
+					},{
+						title="{forms:tab2.title}",
+						description="{forms:tab2.description}",
+						id="",
+						fieldsets=[{
+							title="{test:test.fieldset.title}",
+							description="",
+							id="",
+							fields=[{
+								name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+							}]
+						},{
+							title="{test:test.fieldset2.title}",
+							description="{test:test.fieldset2.description}",
+							id="",
+							fields=[{
+								name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
+									  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
+									, { validator="sameAs", params={field="somefield1"} }
+								]
+							}]
+						}]
+					},{
+						title="",
+						description="",
+						id="",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[{ name="test", rules=[] }]
+						}]
+
+					}]
+				};
+
+				result = formsSvc.getForm( "test.form" );
+
+				expect( result ).toBe( expected );
+			} );
+
+		} );
+
+		describe( "readForm()", function(){
+
+			it( "should throw informative error when form definition file contains malformed XML", function(){
+				var errorThrown = false;
+
+				try {
+					_getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms3,/tests/resources/formsService/badForm" );
+				} catch ( "FormsService.BadFormXml" e ) {
+					expect( e.message ).toBe( "The form definition file, [bad.form.xml], does not contain valid XML" );
+					expect( e.detail ).toBe( "XML document structures must start and end within the same entity." );
+					errorThrown = true;
+				}
+
+				expect( errorThrown ).toBeTrue();
+			} );
+
+
+			it( "should merge field definitions from preside object fields when form fields specify object bindings, form field definitions taking precidence over imported attributes" , function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/forms2,/tests/resources/formsService/forms3,/tests/resources/formsService/forms4" );
+				var result   = formsSvc.getForm( "event.cms.add" );
+				var expected = {
+					feature = "enabled-feature",
+					tabs = [{
 						title       = "",
 						description = "",
 						id="",
-						fields=[ {
-							  name         = "known_as"
-							, type         = "string"
-							, dbtype       = "varchar"
-							, maxLength    = "50"
-							, required     = "false"
-							, control      = "overridenControl"
-							, generator    = "none"
-							, relatedto    = "none"
-							, relationship = "none"
-							, sourceObject = "security_user"
-							, binding      = "security_user.known_as"
-							, rules        = []
-							, label        = "preside-objects.security_user:field.known_as.title"
-							, placeholder  = "preside-objects.security_user:field.known_as.placeholder"
-							, help         = "preside-objects.security_user:field.known_as.help"
-						} ]
+						fieldsets   = [{
+							title       = "",
+							description = "",
+							id          = "",
+							fields      = [ {
+								  name         = "known_as"
+								, type         = "string"
+								, dbtype       = "varchar"
+								, maxLength    = "50"
+								, required     = "false"
+								, control      = "overridenControl"
+								, generator    = "none"
+								, relatedto    = "none"
+								, relationship = "none"
+								, sourceObject = "security_user"
+								, binding      = "security_user.known_as"
+								, rules        = []
+								, label        = "preside-objects.security_user:field.known_as.title"
+								, placeholder  = "preside-objects.security_user:field.known_as.placeholder"
+								, help         = "preside-objects.security_user:field.known_as.help"
+							} ]
+						}]
+
 					}]
+				};
 
-				}]
-			};
+				expect( result ).toBe( expected );
+			} );
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+		} );
 
-	<cffunction name="test10_init_shouldThrowInformativeError_whenFormFieldBindingIsMalformed" returntype="void">
-		<cfscript>
-			var errorThrown = false;
+		describe( "getDefaultFormForPresideObject()", function(){
 
-			try {
-				_getFormsService( "/tests/resources/formsService/malformedBinding" );
-			} catch ( "FormsService.MalformedBinding" e ) {
-				super.assertEquals( "The binding [malformed] was malformed. Bindings should take the form, [presideObjectName.fieldName]", e.message );
-				errorThrown = true;
-			}
-
-			super.assert( errorThrown, "An informative error was not thrown" );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test11_init_shouldThrownInformativeError_whenObjectReferedToInBindingDoesNotExist" returntype="void">
-		<cfscript>
-			var errorThrown = false;
-
-			try {
-				_getFormsService( "/tests/resources/formsService/bindingWithMissingObject" );
-			} catch ( "FormsService.BadBinding" e ) {
-				super.assertEquals( "The preside object, [missingObject], referred to in the form field binding, [missingObject.id], could not be found. Valid objects are #SerializeJson( poService.listObjects() )#", e.message );
-				errorThrown = true;
-			}
-
-			super.assert( errorThrown, "An informative error was not thrown" );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test12_init_shouldThrowInformativeError_whenFieldReferedToInBindingDoesNotExist" returntype="void">
-		<cfscript>
-			var errorThrown = false;
-
-			try {
-				_getFormsService( "/tests/resources/formsService/bindingWithMissingField" );
-			} catch ( "FormsService.BadBinding" e ) {
-				super.assertEquals( "The field, [missingField], referred to in the form field binding, [page.missingField], could not be found in Preside Object, [page]", e.message );
-				errorThrown = true;
-			}
-
-			super.assert( errorThrown, "An informative error was not thrown" );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test13_getDefaultFormForPresideObject_shouldReturnAFormWithOneTabAndOneFieldsetContainingAllFieldsFormTheGivenPresideObject" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms4" );
-			var result   = formsSvc.getDefaultFormForPresideObject( objectName="security_group" );
-			var expected = {
-				tabs = [{
-					id="default",
-					title="preside-objects.security_group:tab.default.title",
-					description="preside-objects.security_group:tab.default.description",
-					iconclass="preside-objects.security_group:tab.default.iconclass",
-					autoGeneratedAttributes=["title","description","iconclass"],
-					fieldsets=[{
+			it( "should return a form with one tab and one fieldset containing all fields from the given preside object", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms4" );
+				var result   = formsSvc.getDefaultFormForPresideObject( objectName="security_group" );
+				var expected = {
+					tabs = [{
 						id="default",
-						title="preside-objects.security_group:fieldset.default.title",
-						description="preside-objects.security_group:fieldset.default.description",
-						autoGeneratedAttributes=["title","description"],
-						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group", label="preside-objects.security_group:field.label.title", help="preside-objects.security_group:field.label.help", placeholder="preside-objects.security_group:field.label.placeholder"
-						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder"
-						},{
-							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder"
+						title="preside-objects.security_group:tab.default.title",
+						description="preside-objects.security_group:tab.default.description",
+						iconClass="preside-objects.security_group:tab.default.iconClass",
+						autoGeneratedAttributes=["title","description","iconClass"],
+						fieldsets=[{
+							id="default",
+							title="preside-objects.security_group:fieldset.default.title",
+							description="preside-objects.security_group:fieldset.default.description",
+							autoGeneratedAttributes=["title","description"],
+							fields=[{
+								name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group", label="preside-objects.security_group:field.label.title", help="preside-objects.security_group:field.label.help", placeholder="preside-objects.security_group:field.label.placeholder"
+							},{
+								name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder"
+							},{
+								name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder"
+							}]
 						}]
 					}]
-				}]
-			};
+				};
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+				expect( result ).toBe( expected );
+			} );
 
-	<cffunction name="test14_listForms_shouldReturnEmptyArray_whenNoFormsRegistered" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/idonotexist" );
-			var result   = formsSvc.listForms();
+		} );
 
-			super.assertEquals( [], result );
-		</cfscript>
-	</cffunction>
+		describe( "listForms()", function(){
 
-	<cffunction name="test15_listForms_shouldReturnArrayOfRegisteredFormNames" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms4" );
-			var expected = [ "event.cms.add", "event.cms.edit" ];
-			var result   = formsSvc.listForms();
+			it( "should return an empty array when no forms registered", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/idonotexist" );
+				var result   = formsSvc.listForms();
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+				expect( result ).toBe( [] );
+			} );
 
-	<cffunction name="test17_listFields_shouldReturnArrayOfFieldNamesInTheForm" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
-			var result   = formsSvc.listFields( "test.form" );
-			var expected = [ "somefield1", "somefield2", "somefield3", "somefield4" ];
+			it( "should return array of registered form names", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms4" );
+				var expected = [ "event.cms.add", "event.cms.edit" ];
+				var result   = formsSvc.listForms();
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+				expect( result ).toBe( expected );
+			} );
 
-	<cffunction name="test18_getForm_shouldReturnDefaultFormForPresideObject_whenFormDoesNotExistAndFirstPartOfFormNameIsAValidComponent" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
-			var result   = formsSvc.getForm( "preside-objects.security_group.add.form" );
-			var expected = {
-				tabs = [{
-					id="default",
-					title="preside-objects.security_group:tab.default.title",
-					description="preside-objects.security_group:tab.default.description",
-					iconClass="preside-objects.security_group:tab.default.iconClass",
-					autoGeneratedAttributes=["title","description","iconClass"],
-					fieldsets=[{
-						id="default",
-						title="preside-objects.security_group:fieldset.default.title",
-						description="preside-objects.security_group:fieldset.default.description",
-						autoGeneratedAttributes=["title","description"],
-						fields=[{
-							name="label", control="textinput", type="string", dbtype="varchar", maxLength="250", uniqueindexes="role_name", relationship="none", relatedTo="none", generator="none", required="true", sourceObject="security_group", label="preside-objects.security_group:field.label.title", help="preside-objects.security_group:field.label.help", placeholder="preside-objects.security_group:field.label.placeholder"
+		} );
+
+		describe( "listFields()", function(){
+
+			it( "should return an array of field names in the given form", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+				var result   = formsSvc.listFields( "test.form" );
+				var expected = [ "somefield1", "somefield2", "somefield3", "somefield4" ];
+
+				expect( result ).toBe( expected );
+			} );
+
+		} );
+
+		describe( "getFormField()", function(){
+
+			it( "should return specified field from form", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
+				var result   = formsSvc.getFormField( formName="test.form", fieldName="somefield3" );
+				var expected = { name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[] };
+
+				expect( result ).toBe( expected );
+			} );
+
+			it( "should throw informative error when field does not exist", function(){
+				var formsSvc    = _getFormsService( "/tests/resources/formsService/forms1" );
+				var errorThrown = false;
+
+				try {
+					formsSvc.getFormField( formName="test.form", fieldName="Does not exist" );
+				} catch( "FormsService.MissingField" e ) {
+					expect( e.message ).toBe( "The form field, [Does not exist], could not be found in the form, [test.form]" );
+					errorThrown = true;
+				} catch( any e ) {
+					fail( "The wrong kind of error was thrown. Expected [FormsService.MissingField], but received, [#e.type#]" )
+				}
+
+				expect( errorThrown ).toBe( true );
+			} );
+
+		} );
+
+		describe( "mergeForms()", function(){
+
+			it( "should return a single form definition composed of two form definitions", function(){
+				var formsSvc = _getFormsService( "/tests/resources/formsService/merging" );
+				var result   = formsSvc.mergeForms( "form1", "form2" );
+				var expected = {
+					tabs = [{
+						title="A new title",
+						description="",
+						id = "sometab",
+						fieldsets=[{
+							title="Another new title",
+							description="A description",
+							id="somefieldset",
+							fields=[
+								{ name="anotherfield", rules=[], sortorder=5 },
+								{ name="somename", control="overridenControl", required="false", rules=[], sortorder=10 }
+							]
 						},{
-							name="description", control="default", type="string", dbtype="varchar", maxLength="200", required="false", relationship="none", relatedTo="none", generator="none", sourceObject="security_group", label="preside-objects.security_group:field.description.title", help="preside-objects.security_group:field.description.help", placeholder="preside-objects.security_group:field.description.placeholder"
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="meh", required=false, rules=[] }
+							]
 						},{
-							name="roles", control="rolepicker", multiple="true", type="string", dbtype="varchar", maxLength="1000", relationship="none", relatedTo="none", generator="none", required="false", sourceObject="security_group", label="preside-objects.security_group:field.roles.title", help="preside-objects.security_group:field.roles.help", placeholder="preside-objects.security_group:field.roles.placeholder"
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="meh2", blah="blah", rules=[] }
+							]
 						}]
-					}]
-				}]
-			};
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test19_getForm_shouldThrowSuitableError_whenFormDoesNotExist" returntype="void">
-		<cfscript>
-			var formsSvc    = _getFormsService( "/tests/resources/formsService/forms1" );
-			var errorThrown = false;
-
-			try {
-				formsSvc.getForm( "someform.that.does.not.exist" );
-			} catch( "FormsService.MissingForm" e ) {
-				super.assertEquals( "The form, [someform.that.does.not.exist], could not be found", e.message );
-				errorThrown = true;
-			} catch( any e ) {
-				super.fail( "The wrong kind of error was thrown. Expected [FormsService.MissingForm], but received, [#e.type#]")
-			}
-
-			super.assert( errorThrown, "A suitable error was not thrown" );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test20_getFormField_shouldReturnSpecifiedFieldFromForm" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1" );
-			var result   = formsSvc.getFormField( formName="test.form", fieldName="somefield3" );
-			var expected = { name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[] };
-
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test21_getFormField_shouldThrowSuitableError_whenFieldDoesNotExist" returntype="void">
-		<cfscript>
-			var formsSvc    = _getFormsService( "/tests/resources/formsService/forms1" );
-			var errorThrown = false;
-
-			try {
-				formsSvc.getFormField( formName="test.form", fieldName="Does not exist" );
-			} catch( "FormsService.MissingField" e ) {
-				super.assertEquals( "The form field, [Does not exist], could not be found in the form, [test.form]", e.message );
-				errorThrown = true;
-			} catch( any e ) {
-				super.fail( "The wrong kind of error was thrown. Expected [FormsService.MissingField], but received, [#e.type#]")
-			}
-
-			super.assert( errorThrown, "A suitable error was not thrown" );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test22_mergeForms_shouldReturnASingleFormComposedOfTwoForms" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/merging" );
-			var result   = formsSvc.mergeForms( "form1", "form2" );
-			var expected = {
-				tabs = [{
-					title="A new title",
-					description="",
-					id = "sometab",
-					fieldsets=[{
-						title="Another new title",
-						description="A description",
-						id="somefieldset",
-						fields=[
-							{ name="anotherfield", rules=[], sortorder=5 },
-							{ name="somename", control="overridenControl", required="false", rules=[], sortorder=10 }
-						]
 					},{
 						title="",
 						description="",
-						id="",
-						fields=[
-							{ name="meh", required=false, rules=[] }
-						]
-					},{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="meh2", blah="blah", rules=[] }
-						]
-					}]
-
-				},{
-					title="",
-					description="",
-					id = "",
-					fieldsets=[{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="mehsomemore", required="false", rules=[] }
-						]
-					}]
-				},{
-					title="",
-					description="",
-					id = "",
-					fieldsets=[{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="intab3", required="false", rules=[] }
-						]
-					}]
-				}]
-			};
-
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test23_formsFromDifferentSourceFoldersButWithSameName_shouldBeAutomaticallyMerged" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/automerging/folder1,/tests/resources/formsService/automerging/folder2" );
-			var result   = formsSvc.getForm( "someForm" );
-			var expected = {
-				tabs = [{
-					title="A new title",
-					description="",
-					id = "sometab",
-					fieldsets=[{
-						title="Another new title",
-						description="A description",
-						id="somefieldset",
-						fields=[
-							{ name="anotherfield", rules=[], sortorder=5 },
-							{ name="somename", control="overridenControl", required="false", rules=[], sortorder=10 }
-						]
-					},{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="meh", required=false, rules=[] }
-						]
-					},{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="meh2", blah="blah", rules=[] }
-						]
-					}]
-
-				},{
-					title="",
-					description="",
-					id = "",
-					fieldsets=[{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="mehsomemore", required="false", rules=[] }
-						]
-					}]
-				},{
-					title="",
-					description="",
-					id = "",
-					fieldsets=[{
-						title="",
-						description="",
-						id="",
-						fields=[
-							{ name="intab3", required="false", rules=[] }
-						]
-					}]
-				}]
-			};
-
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test24_formsInSiteTemplates_shouldNotBeMerged_whenTheSiteTemplateIsNotActiveForTheRequest" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/site-templates/mysite/forms" );
-			var result   = formsSvc.getForm( "test.form" );
-			var expected = {
-				tabs = [{
-					title="{forms:tab1.title}",
-					description="{forms:tab1.description}",
-					id="",
-					fieldsets=[{
-						title="",
-						description="",
-						id="",
-						fields=[{
-							name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
-						},{
-							name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
-						}]
-					}]
-
-				},{
-					title="{forms:tab2.title}",
-					description="{forms:tab2.description}",
-					id="",
-					fieldsets=[{
-						title="{test:test.fieldset.title}",
-						description="",
-						id="",
-						fields=[{
-							name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+						id = "",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="mehsomemore", required="false", rules=[] }
+							]
 						}]
 					},{
-						title="{test:test.fieldset2.title}",
-						description="{test:test.fieldset2.description}",
-						id="",
-						fields=[{
-							name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
-								  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
-								, { validator="sameAs", params={field="somefield1"} }
+						title="",
+						description="",
+						id = "",
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[
+								{ name="intab3", required="false", rules=[] }
 							]
 						}]
 					}]
-				}]
-			};
+				};
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+				expect( result ).toBe( expected );
+			} );
 
-	<cffunction name="test25_formsInSiteTemplates_shouldNotBeMerged_whenTheSiteTemplateIsNotActiveForTheRequest" returntype="void">
-		<cfscript>
-			var formsSvc = _getFormsService( "/tests/resources/formsService/forms1,/tests/resources/formsService/site-templates/mysite/forms", "mysite" );
-			var result   = formsSvc.getForm( "test.form" );
-			var expected = {
-				tabs = [{
-					title="{forms:tab1.title}",
-					description="{forms:tab1.description}",
-					id="",
-					fieldsets=[{
-						title="",
-						description="",
+		} );
+
+		describe( "createForm()", function(){
+
+			it( "should create an empty form and return the new form name if no arguments passed", function(){
+				var service     = _getFormsService( "" );
+				var newFormName = service.createForm();
+				var theForm     = service.getForm( newFormName );
+
+				expect( theForm ).toBe( { tabs=[] } );
+			} );
+
+			it( "should pass an empty form definition to the passed 'generator' argument (a closure) so that calling code can build the form definition", function(){
+				var service     = _getFormsService( "" );
+				var newFormName = service.createForm( generator=function( definition ){
+					definition.addField( name="testfield", fieldset="default", tab="default" );
+				} );
+
+				expect( service.getForm( newFormName ) ).toBe( { tabs=[
+					{ id="default", fieldsets=[
+						{ id="default", fields=[
+							{ name="testfield" }
+						] }
+					] }
+				] } );
+			} );
+
+			it( "should create a new form definition based on the form matching the passed 'basedOn' argument (if supplied)", function(){
+				var service     = _getFormsService( "/tests/resources/formsService/forms1" );
+				var newFormName = service.createForm( basedOn="test.form", generator=function( formDefinition ){
+					formDefinition.addField( name="myfield", fieldset="default", tab="default", control="mycontrol" );
+				} );
+
+				expect( service.getForm( newFormName ) ).toBe( {
+					tabs = [{
+						title="{forms:tab1.title}",
+						description="{forms:tab1.description}",
 						id="",
-						fields=[{
-							name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
-						},{
-							name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+						fieldsets=[{
+							title="",
+							description="",
+							id="",
+							fields=[{
+								name="somefield1", control="testcontrol", required="true", maxLength="50", label="{forms:some.field.label}", hint="{forms.some.field.hint}", rules=[]
+							},{
+								name="somefield2", control="spinner", step="2", minValue="0", maxValue="10", required="false", label="{forms:some.field2.label}", hint="{forms.some.field2.hint}", rules=[]
+							}]
 						}]
-					}]
 
-				},{
-					title="{forms:tab2.title}",
-					description="{forms:tab2.description}",
-					id="",
-					fieldsets=[{
-						title="{test:test.fieldset.title}",
-						description="",
+					},{
+						title="{forms:tab2.title}",
+						description="{forms:tab2.description}",
 						id="",
-						fields=[{
-							name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+						fieldsets=[{
+							title="{test:test.fieldset.title}",
+							description="",
+							id="",
+							fields=[{
+								name="somefield3", control="spinner", step="3", minValue="0", maxValue="10", required="false", label="{forms:some.field3.label}", hint="{forms.some.field3.hint}", rules=[]
+							}]
+						},{
+							title="{test:test.fieldset2.title}",
+							description="{test:test.fieldset2.description}",
+							id="",
+							fields=[{
+								name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
+									  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
+									, { validator="sameAs", params={field="somefield1"} }
+								]
+							}]
 						}]
 					},{
-						title="{test:test.fieldset2.title}",
-						description="{test:test.fieldset2.description}",
-						id="",
-						fields=[{
-							name="somefield4", control="spinner", step="5", minValue="0", maxValue="100", required="false", default="10", rules=[
-								  { validator="required", serverCondition="${somefield3} gt 10", clientCondition="${somefield3}.val() > 10", params={} }
-								, { validator="sameAs", params={field="somefield1"} }
-							]
+						id="default",
+						fieldsets=[{
+							id="default",
+							fields=[{
+								name="myfield", control="mycontrol"
+							}]
 						}]
 					}]
-				},{
-					title="",
-					description="",
-					id="",
-					fieldsets=[{
-						title="",
-						description="",
-						id="",
-						fields=[{ name="test", rules=[] }]
-					}]
+				} );
+			} );
 
-				}]
-			};
+			it( "should use the supplied form name when non-empty", function(){
+				var service     = _getFormsService( "" );
+				var newFormName = service.createForm( formName="mynewform", generator=function( definition ){
+					definition.addField( name="testfield", fieldset="default", tab="default" );
+				} );
 
-			result = formsSvc.getForm( "test.form" );
+				expect( newFormName ).toBe( "mynewform" );
+			} );
 
-			super.assertEquals( expected, result );
-		</cfscript>
-	</cffunction>
+		} );
+	}
 
-<!--- private --->
-	<cffunction name="_getFormsService" access="private" returntype="any" output="false">
-		<cfargument name="formDirectories"    type="string" required="true" />
-		<cfargument name="activeSiteTemplate" type="string" required="false" default="" />
+	private any function _getFormsService(
+		  required string formDirectories
+		,          string activeSiteTemplate = ""
+	) {
+		mockI18nPlugin              = createMock( "preside.system.coldboxModifications.plugins.i18n" );
+		mockColdBox                 = createMock( "preside.system.coldboxModifications.Controller" );
+		mockSiteService             = createMock( "preside.system.services.siteTree.SiteService" );
+		mockValidationRuleGenerator = createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
+		mockFeatureService          = createEmptyMock( "preside.system.services.features.FeatureService" );
+		poService                   = _getPresideObjectService();
 
-		<cfscript>
-			mockI18nPlugin              = getMockBox().createMock( "preside.system.coldboxModifications.plugins.i18n" );
-			mockColdBox                 = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
-			mockSiteService             = getMockBox().createMock( "preside.system.services.siteTree.SiteService" );
-			mockValidationRuleGenerator = getMockBox().createEmptyMock( "preside.system.services.validation.PresideFieldRuleGenerator" );
-			mockFeatureService          = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
-			poService                   = _getPresideObjectService();
+		mockSiteService.$( "getActiveSiteTemplate", arguments.activeSiteTemplate );
+		mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
 
-			mockSiteService.$( "getActiveSiteTemplate", arguments.activeSiteTemplate );
-			mockValidationRuleGenerator.$( "generateRulesFromPresideForm", [] );
+		mockFeatureService.$( "isFeatureEnabled" ).$args( "enabled-feature" ).$results( true );
+		mockFeatureService.$( "isFeatureEnabled" ).$args( "disabled-feature" ).$results( false );
+		mockFeatureService.$( "isFeatureEnabled", true );
 
-			mockFeatureService.$( "isFeatureEnabled" ).$args( "enabled-feature" ).$results( true );
-			mockFeatureService.$( "isFeatureEnabled" ).$args( "disabled-feature" ).$results( false );
-			mockFeatureService.$( "isFeatureEnabled", true );
-
-			return new preside.system.services.forms.FormsService(
-				  presideObjectService = poService
-				, siteService          = mockSiteService
-				, logger               = _getTestLogger()
-				, formDirectories      = ListToArray( arguments.formDirectories )
-				, validationEngine     = new preside.system.services.validation.ValidationEngine()
-				, i18n                 = mockI18nPlugin
-				, coldbox              = mockColdBox
-				, presideFieldRuleGenerator = mockValidationRuleGenerator
-				, defaultContextName   = "index"
-				, configuredControls   = {}
-				, featureService       = mockFeatureService
-			);
-		</cfscript>
-	</cffunction>
-
-</cfcomponent>
+		return new preside.system.services.forms.FormsService(
+			  presideObjectService = poService
+			, siteService          = mockSiteService
+			, logger               = _getTestLogger()
+			, formDirectories      = ListToArray( arguments.formDirectories )
+			, validationEngine     = new preside.system.services.validation.ValidationEngine()
+			, i18n                 = mockI18nPlugin
+			, coldbox              = mockColdBox
+			, presideFieldRuleGenerator = mockValidationRuleGenerator
+			, defaultContextName   = "index"
+			, configuredControls   = {}
+			, featureService       = mockFeatureService
+		);
+	}
+}
