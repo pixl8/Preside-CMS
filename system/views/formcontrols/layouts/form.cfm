@@ -1,5 +1,4 @@
 <cfscript>
-<<<<<<< HEAD
 	tabs               = args.tabs          ?: [];
 	content            = args.content       ?: "";
 	formName           = args.formName      ?: "";
