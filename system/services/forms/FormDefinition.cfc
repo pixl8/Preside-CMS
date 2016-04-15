@@ -28,6 +28,22 @@ component {
 	}
 
 	/**
+	 * Sets any passed arguments as attributes of the main form
+	 * definition itslef. e.g. `formDefinition.setAttributes( i18nbaseUri='forms.my-form:' );`
+	 *
+	 * @autodoc
+	 */
+	public any function setAttributes() {
+		var raw = _getRawDefinition();
+
+		for( var key in arguments ) {
+			raw[ key ] = IsSimpleValue( arguments[ key ] ) ? arguments[ key ] : Duplicate( arguments[ key ] );
+		}
+
+		return this;
+	}
+
+	/**
 	 * Adds a tab to the form. Any arguments passed
 	 * will be treated as attributes on the tab within
 	 * the form

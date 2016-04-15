@@ -19,6 +19,25 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "setAttributes()", function(){
+
+			it( "should set any arguments passed as attributes of the main form element", function(){
+				var definition = _getFormDefinition();
+
+				definition.setAttributes( i18nBaseUri="something:", color="blue" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[], i18nBaseUri="something:", color="blue" } );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.setAttributes( i18nBaseUri="something:", color="blue" );
+
+				expect( result ).toBe( definition );
+			} );
+
+		} );
+
 		describe( "addTab()", function(){
 
 			it( "should append a basic tab definition to the end of the forms tab array", function(){
