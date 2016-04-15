@@ -32,6 +32,7 @@ component {
 	 * will be treated as attributes on the tab within
 	 * the form
 	 *
+	 * @autodoc
 	 * @id.hint Unique ID of the tab
 	 */
 	public any function addTab( required string id ) {
@@ -54,6 +55,7 @@ component {
 	 * Deletes a tab from the form that matches
 	 * the given id
 	 *
+	 * @autodoc
 	 * @id.hint ID of the tab you wish to delete
 	 *
 	 */
@@ -73,6 +75,7 @@ component {
 	 * for the tab matching the passed id. If the tab does not already exist, it is
 	 * created.
 	 *
+	 * @autodoc
 	 * @id.hint ID of the tab you wish to modify
 	 *
 	 */
@@ -89,6 +92,7 @@ component {
 	 * Any arguments other than id and tab are uses as attributes for the fieldset
 	 * definition.
 	 *
+	 * @autodoc
 	 * @id.hint  ID of the fieldset to create
 	 * @tab.hint ID of the tab to append the fieldset to
 	 *
@@ -114,6 +118,7 @@ component {
 	 * Deletes the given fieldset beneath the given tab.
 	 * Does nothing if the fieldset is not found
 	 *
+	 * @autodoc
 	 * @id.hint  ID of the fieldset to delete
 	 * @tab.hint ID of the tab that the fieldset belongs to
 	 */
@@ -135,6 +140,7 @@ component {
 	 * to the fieldset's definition (with the exception of the id
 	 * and tab arguments).
 	 *
+	 * @autodoc
 	 * @id.hint  Id of the fieldset to modify
 	 * @tab.hint Tab in which the fieldset belongs
 	 */
