@@ -153,6 +153,35 @@ component {
 		return this;
 	}
 
+	/**
+	 * Adds a field to the given fieldset (and tab). Any additional
+	 * arguments will be appended to the field definition. If the
+	 * given tab and fieldset do not exist, they will be created.
+	 *
+	 * @autodoc
+	 * @name.hint     Name of the field
+	 * @fieldset.hint ID of the fieldset to append to
+	 * @tab.hint      ID of the tab in which the fieldset lives
+	 *
+	 */
+	public any function addField( required string name, required string fieldset, required string tab ) {
+		var fieldset = _getFieldset( id=arguments.fieldset, tab=arguments.tab, createIfNotExists=true );
+		var field    = {};
+
+		fieldset.fields = fieldset.fields ?: [];
+
+		for( var key in arguments ) {
+			if ( ![ "fieldset", "tab" ].findNoCase( key ) ) {
+				field[ key ] = IsSimpleValue( arguments[ key ] ) ? arguments[ key ] : Duplicate( arguments[ key ] );
+			}
+		}
+
+		fieldset.fields.append( field );
+
+		return this;
+	}
+
+
 // PRIVATE HELPERS
 	private struct function _getTab( required string id, required boolean createIfNotExists ) {
 		var raw = _getRawDefinition();

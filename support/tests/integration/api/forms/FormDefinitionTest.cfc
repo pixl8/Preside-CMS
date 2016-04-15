@@ -275,6 +275,56 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "addField()", function(){
+
+			it( "should append a basic field definition to the end of the given fieldset's field array", function(){
+				var definition = _getFormDefinition( { tabs=[ { id="test", fieldsets=[{id="testfieldset", fields=[]}] } ] } );
+
+				definition.addField( name="testfield", fieldset="testfieldset", tab="test" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[ { id="test", fieldsets=[{id="testfieldset", fields=[ { name="testfield" } ] }] } ] } );
+			} );
+
+			it( "should create the tab and fieldset if they do not already exist", function(){
+				var definition = _getFormDefinition();
+
+				definition.addField( name="testfield", fieldset="testfieldset", tab="test" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[ { id="test", fieldsets=[{id="testfieldset", fields=[ { name="testfield" } ] }] } ] } );
+			} );
+
+			it( "should append any passed arguments other than 'tab' and 'fieldset' to the created field", function(){
+				var definition = _getFormDefinition();
+
+				definition.addField( name="testfield", fieldset="testfieldset", tab="test", rules=[{ myRule="test" }, label="mylabel", control="richeditor" ] );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[ { id="test", fieldsets=[{id="testfieldset", fields=[ { name="testfield", rules=[{ myRule="test" }, label="mylabel", control="richeditor" ] } ] }] } ] } );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.addField( name="testfield", fieldset="testfieldset", tab="test", rules=[{ myRule="test" }, label="mylabel", control="richeditor" ] );
+
+				expect( result ).toBe( definition );
+			} );
+		} );
+
+		describe( "deleteField()", function(){
+
+			it( "should do rad shizzle", function(){
+				fail( "not yet implemented" );
+			} );
+
+		} );
+
+		describe( "modifyField()", function(){
+
+			it( "should do rad shizzle", function(){
+				fail( "not yet implemented" );
+			} );
+
+		} );
+
 	}
 
 	private any function _getFormDefinition( struct rawDefinition ) {
