@@ -475,7 +475,7 @@ component {
 	 *
 	 */
 	public string function createForm( any generator, string basedOn="", string formName ) {
-		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? getForm( arguments.basedOn ) : { tabs=[] };
+		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
 		var formDefinition = new FormDefinition( basedOnDef );
 
 		if ( arguments.keyExists( "generator" ) ) {
