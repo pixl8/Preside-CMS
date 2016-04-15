@@ -352,8 +352,38 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "modifyField()", function(){
 
-			it( "should do rad shizzle", function(){
-				fail( "not yet implemented" );
+			it( "should alter the given field (by name, fieldset and tab) by appending the passed arguments to the field", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field1" }, { name="field2" } ]}]}
+				]});
+
+				definition.modifyField( name="field2", fieldset="testfieldset2", tab="testtab2", title="test fieldset title", control="objectpicker", object="test" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field1" }, { name="field2", title="test fieldset title", control="objectpicker", object="test" } ]}]}
+				]} );
+			} );
+
+			it( "should should create tab, fieldset and field if they do not already exist", function(){
+				var definition = _getFormDefinition({ tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+				]});
+
+				definition.modifyField( name="field2", fieldset="testfieldset2", tab="testtab2", title="test fieldset title", control="objectpicker", object="test" );
+
+				expect( definition.getRawDefinition() ).toBe( { tabs=[
+					  { id="test", fieldsets=[{id="test", fields=[{ name="testfield" }, { name="another.test" }]}]}
+					, { id="testtab2", fieldsets=[{id="testfieldset2", fields=[ { name="field2", title="test fieldset title", control="objectpicker", object="test" } ]}]}
+				]} );
+			} );
+
+			it( "should return self so that methods can be chained", function(){
+				var definition = _getFormDefinition();
+				var result     = definition.modifyField( name="field2", fieldset="testfieldset2", tab="testtab2", title="test fieldset title", control="objectpicker", object="test" );
+
+				expect( result ).toBe( definition );
 			} );
 
 		} );

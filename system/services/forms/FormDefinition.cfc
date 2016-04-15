@@ -150,7 +150,7 @@ component {
 
 		for( var key in arguments ) {
 			if ( key != "tab" ) {
-				args[ key ] = arguments[ key ];
+				args[ key ] = IsSimpleValue( arguments[ key ] ) ? arguments[ key ] : Duplicate( arguments[ key ] );
 			}
 		}
 
@@ -209,6 +209,31 @@ component {
 		return this;
 	}
 
+	/**
+	 * Modifies the given field. Creates the field (including fieldset and tab) if it doesn't already exists.
+	 * Additional arguments to the function will be appended to the field's definition
+	 *
+	 * @autodoc
+	 * @name.hint     The name of the field to modify
+	 * @fieldset.hint The ID of the fieldset in which the field lives
+	 * @tab.hint      The ID of the tab in which the field lives
+	 *
+	 */
+	public any function modifyField( required string name, required string fieldset, required string tab ) {
+		var field  = _getField( name=arguments.name, fieldset=arguments.fieldset, tab=arguments.tab, createIfNotExists=true );
+		var args   = {};
+
+		for( var key in arguments ) {
+			if ( ![ "tab", "fieldset" ].findNoCase( key ) ) {
+				args[ key ] = IsSimpleValue( arguments[ key ] ) ? arguments[ key ] : Duplicate( arguments[ key ] );
+			}
+		}
+
+		field.append( args );
+
+		return this;
+	}
+
 // PRIVATE HELPERS
 	private struct function _getTab( required string id, required boolean createIfNotExists ) {
 		var raw = _getRawDefinition();
@@ -245,6 +270,26 @@ component {
 			addFieldset( id=arguments.id, tab=arguments.tab );
 
 			return tab.fieldsets[ tab.fieldsets.len() ];
+		}
+
+		return {};
+	}
+
+	private struct function _getField( required string name, required string fieldset, required string tab, required boolean createIfNotExists ) {
+		var fieldset = _getFieldset( id=arguments.fieldset, tab=arguments.tab, createIfNotExists=arguments.createIfNotExists );
+
+		fieldset.fields = fieldset.fields ?: [];
+
+		for( var field in fieldset.fields ) {
+			if ( ( field.name ?: "" ) == arguments.name ) {
+				return field;
+			}
+		}
+
+		if ( arguments.createIfNotExists ) {
+			addField( name=arguments.name, fieldset=arguments.fieldset, tab=arguments.tab );
+
+			return fieldset.fields[ fieldset.fields.len() ];
 		}
 
 		return {};
