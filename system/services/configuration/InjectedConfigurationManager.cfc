@@ -18,17 +18,19 @@ component output=false singleton=true {
 
 // public api methods
 	public struct function getConfig() output=false {
-		var configuration = _fetchConfigFromRemoteServerAndWriteToLocalFile();
+		var config = new EnvironmentVariablesReader().getConfigFromEnvironmentVariables();
+		config.append( _fetchConfigFromRemoteServer() );
 
-		if ( configuration.isEmpty() ) {
+		if ( config.isEmpty() ) {
 			return _readConfigFromLocalFile();
 		}
 
-		return configuration;
+		_writeConfigToLocalFile( config );
+		return config;
 	}
 
 // private helpers
-	private struct function _fetchConfigFromRemoteServerAndWriteToLocalFile() output=false {
+	private struct function _fetchConfigFromRemoteServer() output=false {
 		var app              = _getApp();
 		var applicationId    = app.PRESIDE_APPLICATION_ID             ?: _getEnvironmentVariable( "PRESIDE_APPLICATION_ID"             );
 		var serverManagerUrl = app.PRESIDE_SERVER_MANAGER_URL         ?: _getEnvironmentVariable( "PRESIDE_SERVER_MANAGER_URL"         );
