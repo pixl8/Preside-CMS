@@ -6,6 +6,14 @@ component {
 	property name="antiSamyService"           inject="delayedInjector:antiSamyService";
 
 	public void function applicationStart( event, rc, prc ) {
+		admin  action="getCompilerSettings" returnVariable="luceeCompilerSettings";
+		if (luceeCompilerSettings.DotNotationUpperCase){
+			admin action="updateCompilerSettings" DotNotationUpperCase="false"
+			suppressWSBeforeArg=luceeCompilerSettings.suppressWSBeforeArg
+			nullSupport=luceeCompilerSettings.nullSupport
+			templateCharset=luceeCompilerSettings.templateCharset;
+		}
+
 		prc._presideReloaded = true;
 		announceInterception( "onApplicationStart" );
 	}
