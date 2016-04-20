@@ -57,8 +57,10 @@
 			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
-			prc.gridFields          = _getObjectFieldsForGrid( objectName );
-			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
+			prc.gridFields                = _getObjectFieldsForGrid( objectName );
+			prc.batchEditableFields       = dataManagerService.listBatchEditableFields( objectName );	
+			prc.isMultilingual            = multilingualPresideObjectService.isMultilingual( objectName );	
+			prc.isTranslationStatusColumn = presideObjectService.isTranslationStatusColumn( objectName );			
 		</cfscript>
 	</cffunction>
 
@@ -77,9 +79,11 @@
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = {
-					  object          = objectName
-					, useMultiActions = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
-					, gridFields      = ( rc.gridFields ?: 'label,datecreated,datemodified' )
+					  object              = objectName
+					, useMultiActions     = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
+					, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
+					, isMultilingual      = ( rc.isMultilingual      ?: 'false' )
+					, isTranslationColumn = ( rc.isTranslationColumn ?: 'false' )
 				}
 			);
 		</cfscript>
@@ -1159,14 +1163,16 @@
 
 <!--- private events for sharing --->
 	<cffunction name="_getObjectRecordsForAjaxDataTables" access="private" returntype="void" output="false">
-		<cfargument name="event"           type="any"     required="true" />
-		<cfargument name="rc"              type="struct"  required="true" />
-		<cfargument name="prc"             type="struct"  required="true" />
-		<cfargument name="object"          type="string"  required="false" default="#( rc.id ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
-		<cfargument name="actionsView"     type="string"  required="false" default="" />
-		<cfargument name="filter"          type="struct"  required="false" default="#StructNew()#" />
-		<cfargument name="useMultiActions" type="boolean" required="false" default="true" />
+		<cfargument name="event"               type="any"     required="true" />
+		<cfargument name="rc"                  type="struct"  required="true" />
+		<cfargument name="prc"                 type="struct"  required="true" />
+		<cfargument name="object"              type="string"  required="false" default="#( rc.id ?: '' )#" />
+		<cfargument name="gridFields"          type="string"  required="false" default="#( rc.gridFields ?: 'label,datecreated,_version_author' )#" />
+		<cfargument name="actionsView"         type="string"  required="false" default="" />
+		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
+		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
+		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
+		<cfargument name="isTranslationColumn" type="boolean" required="false" default="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1174,6 +1180,9 @@
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var checkboxCol         = [];
 			var optionsCol          = [];
+			var translateStatusCol  = [];
+			var translations        = [];
+			var translateUrlBase    = "";
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var results             = dataManagerService.getRecordsForGridListing(
 				  objectName  = object
@@ -1185,7 +1194,6 @@
 				, searchQuery = dtHelper.getSearchQuery()
 			);
 			var records = Duplicate( results.records );
-
 			for( var record in records ){
 				for( var field in gridFields ){
 					records[ field ][ records.currentRow ] = renderField( object, field, record[ field ], [ "adminDataTable", "admin" ] );
@@ -1214,8 +1222,21 @@
 						, objectName        = object
 					} ) );
 				}
+
+				if ( isMultilingual && isTranslationColumn ) {
+					translations     = multilingualPresideObjectService.getTranslationStatus( object, record.id );
+					translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&language=" );
+					ArrayAppend( translateStatusCol, renderView( view="/admin/datamanager/_listingTranslations", args={
+						  translations     = translations
+						, translateUrlBase = translateUrlBase
+					} ) );
+				}
 			}
 
+			if ( isMultilingual && isTranslationColumn ) {
+				QueryAddColumn( records, "_translateStatus" , translateStatusCol );
+				ArrayAppend( gridFields, "_translateStatus" );
+			}
 			if ( useMultiActions ) {
 				QueryAddColumn( records, "_checkbox", checkboxCol );
 				ArrayPrepend( gridFields, "_checkbox" );
