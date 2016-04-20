@@ -50,6 +50,16 @@ input[type="checkbox"], input[type="radio"] {
 	}
 }
 
+input.ace.ace-switch[type="checkbox"] + .lbl {
+	vertical-align : middle;
+}
+
+.form-horizontal {
+	input.ace.ace-switch[type="checkbox"] + .lbl {
+		top : 7px;
+	}
+}
+
 .gritter-item {
 	a, a:visited {
 		color : @default-font-inverse;
@@ -106,6 +116,10 @@ input[type="color"] {
 	&:focus {
 		border-color : @default-selected-input-border-colour;
 	}
+}
+
+span.input-icon {
+	display : inline;
 }
 
 .chosen-container {

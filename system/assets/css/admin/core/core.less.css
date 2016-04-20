@@ -29038,6 +29038,12 @@ td.presidecms .visible-print {
 .presidecms input[type="radio"].ace.ace-checkbox-2:focus + .lbl::before {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
 }
+.presidecms input.ace.ace-switch[type="checkbox"] + .lbl {
+  vertical-align: middle;
+}
+.presidecms .form-horizontal input.ace.ace-switch[type="checkbox"] + .lbl {
+  top: 7px;
+}
 .presidecms .gritter-item a,
 .presidecms .gritter-item a:visited {
   color: #eeeeee;
@@ -29081,6 +29087,9 @@ td.presidecms .visible-print {
 .presidecms input[type="tel"]:focus,
 .presidecms input[type="color"]:focus {
   border-color: #6fb3e0;
+}
+.presidecms span.input-icon {
+  display: inline;
 }
 .presidecms .chosen-container {
   width: 100% !important;
