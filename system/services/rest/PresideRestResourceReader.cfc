@@ -28,7 +28,7 @@ component displayName="Preside REST Resource Reader" {
 				var mappedPath = Replace( resourcehandler, fullRootDir, "" );
 				var apiPath    = ListDeleteAt( mappedPath, ListLen( mappedPath, "/\" ), "/\" );
 
-				apiPath = replace(apiPath, "\", "/", "all");
+				apiPath = Replace( apiPath, "\", "/", "all" );
 
 				if ( !Len( Trim( apiPath ) ) ) {
 					apiPath = "/";
