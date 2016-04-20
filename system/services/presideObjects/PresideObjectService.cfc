@@ -603,14 +603,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		preparedFilter = _prepareFilter(
-			  objectName        = arguments.objectName
-			, id                = arguments.id ?: NullValue()
-			, filter            = arguments.filter
-			, filterParams      = arguments.filterParams
-			, extraFilters      = arguments.extraFilters
-			, savedFilters      = arguments.savedFilters
-			, adapter           = adapter
+			  adapter           = adapter
 			, columnDefinitions = obj.properties
+			, argumentCollection = arguments
 		);
 
 		sql = adapter.getDeleteSql(
