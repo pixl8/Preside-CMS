@@ -631,11 +631,13 @@
 
     var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
     function localeMonths (m) {
+        this._months = [ i18n.translateResource( "cms:months.jan" ), i18n.translateResource( "cms:months.feb" ), i18n.translateResource( "cms:months.mar" ), i18n.translateResource( "cms:months.apr" ), i18n.translateResource( "cms:months.may" ), i18n.translateResource( "cms:months.jun" ), i18n.translateResource( "cms:months.jul" ), i18n.translateResource( "cms:months.aug" ), i18n.translateResource( "cms:months.sep" ), i18n.translateResource( "cms:months.oct" ), i18n.translateResource( "cms:months.nov" ), i18n.translateResource( "cms:months.dec" ) ];
         return this._months[m.month()];
     }
 
     var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
     function localeMonthsShort (m) {
+        this._monthsShort = [ i18n.translateResource( "cms:monthsShort.jan" ), i18n.translateResource( "cms:monthsShort.feb" ), i18n.translateResource( "cms:monthsShort.mar" ), i18n.translateResource( "cms:monthsShort.apr" ), i18n.translateResource( "cms:monthsShort.may" ), i18n.translateResource( "cms:monthsShort.jun" ), i18n.translateResource( "cms:monthsShort.jul" ), i18n.translateResource( "cms:monthsShort.aug" ), i18n.translateResource( "cms:monthsShort.sep" ), i18n.translateResource( "cms:monthsShort.oct" ), i18n.translateResource( "cms:monthsShort.nov" ), i18n.translateResource( "cms:monthsShort.dec" ) ];
         return this._monthsShort[m.month()];
     }
 
@@ -2251,16 +2253,20 @@
 
     var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
     function localeWeekdays (m) {
+        this._weekdays = [ i18n.translateResource( "cms:days.sun" ), i18n.translateResource( "cms:days.mon" ), i18n.translateResource( "cms:days.tue" ), i18n.translateResource( "cms:days.wed" ), i18n.translateResource( "cms:days.thu" ), i18n.translateResource( "cms:days.fri" ), i18n.translateResource( "cms:days.sat" ), i18n.translateResource( "cms:days.sun" ) ];
         return this._weekdays[m.day()];
     }
 
     var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
     function localeWeekdaysShort (m) {
+        this._weekdaysShort = [ i18n.translateResource( "cms:daysShort.sun" ), i18n.translateResource( "cms:daysShort.mon" ), i18n.translateResource( "cms:daysShort.tue" ), i18n.translateResource( "cms:daysShort.wed" ), i18n.translateResource( "cms:daysShort.thu" ), i18n.translateResource( "cms:daysShort.fri" ), i18n.translateResource( "cms:daysShort.sat" ), i18n.translateResource( "cms:daysShort.sun" ) ];
         return this._weekdaysShort[m.day()];
     }
 
     var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
+
     function localeWeekdaysMin (m) {
+        this._weekdaysMin = [ i18n.translateResource( "cms:daysMin.sun" ), i18n.translateResource( "cms:daysMin.mon" ), i18n.translateResource( "cms:daysMin.tue" ), i18n.translateResource( "cms:daysMin.wed" ), i18n.translateResource( "cms:daysMin.thu" ), i18n.translateResource( "cms:daysMin.fri" ), i18n.translateResource( "cms:daysMin.sat" ), i18n.translateResource( "cms:daysMin.sun" ) ];
         return this._weekdaysMin[m.day()];
     }
 

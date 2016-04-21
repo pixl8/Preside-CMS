@@ -30,7 +30,7 @@
 
 <cfoutput>
 	<span class="block input-icon input-icon-right">
-		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control #datePickerClass# datetime" id="#inputId#" type="text" data-relative-to-field="#relativeToField#" data-date-language="#cookie.defaultlocale#" data-relative-operator="#relativeOperator#" data-date-format="yyyy-mm-dd" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#"<cfif Len( Trim( startDate ) )> data-start-date="#startDate#"</cfif><cfif Len( Trim( endDate ) )> data-end-date="#endDate#"</cfif> autocomplete="off" />
+		<input name="#inputName#" placeholder="#placeholder#" class="#inputClass# form-control #datePickerClass# datetime" id="#inputId#" type="text" data-relative-to-field="#relativeToField#" data-relative-operator="#relativeOperator#" data-date-format="yyyy-mm-dd" value="#HtmlEditFormat( value )#" tabindex="#getNextTabIndex()#"<cfif Len( Trim( startDate ) )> data-start-date="#startDate#"</cfif><cfif Len( Trim( endDate ) )> data-end-date="#endDate#"</cfif> autocomplete="off" />
 		<i class="fa fa-calendar"></i>
 	</span>
 </cfoutput>

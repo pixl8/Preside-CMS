@@ -41,7 +41,7 @@ component output=false {
 		bundle.asset( "/js/admin/lib/jquery-ui/" ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
 		bundle.asset( "/js/admin/lib/bootstrap/" ).dependsOn( "/js/admin/lib/jquery/", "/js/admin/lib/jquery-for-ie/" );
 		bundle.asset( "/js/admin/lib/ace/"       ).dependsOn( "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" );
-		bundle.asset( "/js/admin/lib/plugins/"   ).dependsOn( "/js/admin/lib/bootstrap/" );
+		bundle.asset( "/js/admin/lib/plugins/"   ).dependsOn( "/js/admin/lib/bootstrap/" ).after( "i18n-resource-bundle" );
 		bundle.asset( "/js/admin/presidecore/"   ).dependsOn( "/js/admin/lib/ace/", "/js/admin/lib/plugins/", "/js/admin/lib/bootstrap/", "/js/admin/lib/jquery-ui/" )
 			                                      .after    ( "i18n-resource-bundle", "ckeditor" )
 			                                      .before   ( "/js/admin/specific/*", "/js/admin/devtools/*", "/js/admin/frontend/*", "/js/admin/flot/*" );
