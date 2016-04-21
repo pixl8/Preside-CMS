@@ -37,6 +37,12 @@
 
 					dataTable && dataTable.fnPageChange( 'first' );
 				}
+				, beforeSend: function() {
+					$listingTable.presideLoadingSheen( true );
+				}
+				, complete: function() {
+					$listingTable.presideLoadingSheen( false );
+				}
 			});
 
 		}
@@ -127,7 +133,7 @@
 		fnServerParams: function ( aoData ) {
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
-		bProcessing   : false,
+		processing   : true,
 		bStateSave    : false,
 		bPaginate     : false,
 		bLengthChange : false,
@@ -157,13 +163,15 @@
 			sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [assets], defaultValue : "" } ),
 			sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [assets], defaultValue : "" } ),
 			sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [assets], defaultValue : "" } ),
-			sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [assets], defaultValue : "" } ),
+			sProcessing : $listingTable.presideLoadingSheen( true ),
 			sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [assets], defaultValue : "" } ),
 			sSearch : '',
 			sUrl : '',
 			sInfoPostFix : ''
 		}
-	} );
+	}).on( 'draw.dt', function () {
+        $listingTable.presideLoadingSheen( false );
+    });
 
 	setupCheckboxBehaviour();
 	setupMultiActionButtons();
