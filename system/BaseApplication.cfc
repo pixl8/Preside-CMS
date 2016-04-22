@@ -12,8 +12,9 @@ component extends="Bootstrap" {
 	this.sessionTimeout    = CreateTimeSpan( 0, 0, 40, 0 );
 	this.scriptProtect     = "none";
 
-	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 15;
+	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 0;
 	this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = 1200;
+	this.COLDBOX_RELOAD_PASSWORD                 = true;
 
 	_setupMappings();
 	_setupDefaultTagAttributes();
