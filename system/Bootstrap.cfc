@@ -11,6 +11,7 @@ component {
 		, numeric applicationReloadLockTimeout = 0
 		, string  scriptProtect                = "none"
 		, string  reloadPassword               = "true"
+		, boolean showDbSyncScripts            = false
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
@@ -22,6 +23,7 @@ component {
 		this.scriptProtect                           = arguments.scriptProtect;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
+		this.showDbSyncScripts                       = arguments.showDbSyncScripts
 
 		_setupMappings( argumentCollection=arguments );
 		_setupDefaultTagAttributes();
@@ -303,6 +305,7 @@ component {
 				FileWrite( _getSqlUpgradeScriptFilePath(), exception.detail ?: "" );
 			} catch( any e ) {}
 
+			var showScript = IsBoolean( this.showDbSyncScripts ?: "" ) && this.showDbSyncScripts;
 			header statuscode=503;content reset=true;
 			include template="/preside/system/views/errors/sqlRebuild.cfm";
 			return true;
@@ -321,7 +324,8 @@ component {
 				return true;
 			}
 
-			var exception = { detail=FileRead( sqlUpgradeFile ) };
+			var exception  = { detail=FileRead( sqlUpgradeFile ) };
+			var showScript = false;
 			header statuscode=503;content reset=true;
 			include template="/preside/system/views/errors/sqlRebuild.cfm";
 			abort;
