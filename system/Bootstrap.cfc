@@ -10,10 +10,12 @@ component {
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 0
 		, string  scriptProtect                = "none"
+		, string  reloadPassword               = "true"
 	)  {
 		this.PRESIDE_APPLICATION_ID                  = arguments.id;
 		this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = arguments.applicationReloadLockTimeout;
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
+		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
 		this.name                                    = arguments.name
 		this.sessionManagement                       = arguments.sessionManagement;
 		this.sessionTimeout                          = arguments.sessionTimeout;
@@ -191,7 +193,11 @@ component {
 	}
 
 	private boolean function _reloadRequired() {
-		return !application.keyExists( "cbBootstrap" ) || application.cbBootStrap.isfwReinit();
+		if ( !application.keyExists( "cbBootstrap" ) ) {
+			return _preventReloadsWhenExistingUpgradeScriptGenerated();
+		}
+
+		return application.cbBootStrap.isfwReinit();
 	}
 
 	private void function _fetchInjectedSettings() {
@@ -293,12 +299,35 @@ component {
 				).raiseError( attributes.e );
 			}
 
-			header statuscode=500;content reset=true;
+			try {
+				FileWrite( _getSqlUpgradeScriptFilePath(), exception.detail ?: "" );
+			} catch( any e ) {}
+
+			header statuscode=503;content reset=true;
 			include template="/preside/system/views/errors/sqlRebuild.cfm";
 			return true;
 		}
 
 		return false;
+	}
+
+	private boolean function _preventReloadsWhenExistingUpgradeScriptGenerated() {
+		var reloadDemanded = ( url.fwreinit ?: "" ) == this.COLDBOX_RELOAD_PASSWORD;
+		var sqlUpgradeFile = _getSqlUpgradeScriptFilePath();
+
+		if ( FileExists( sqlUpgradeFile ) ) {
+			if ( reloadDemanded ) {
+				FileDelete( sqlUpgradeFile );
+				return true;
+			}
+
+			var exception = { detail=FileRead( sqlUpgradeFile ) };
+			header statuscode=503;content reset=true;
+			include template="/preside/system/views/errors/sqlRebuild.cfm";
+			abort;
+		}
+
+		return true;
 	}
 
 	private void function _maintenanceModeCheck() {
@@ -535,6 +564,10 @@ component {
 		}
 
 		return requestUrl;
+	}
+
+	private string function _getSqlUpgradeScriptFilePath() {
+		return ExpandPath( request._presideMappings.logsMapping ?: "/logs" ) & "/sqlupgrade.sql";
 	}
 
 }
