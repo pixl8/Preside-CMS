@@ -1,6 +1,7 @@
 component {
-
 	public void function configure() {
+		var applicationSettings = getApplicationSettings();
+
 		settings = {};
 
 		settings.appMapping    = request._presideMappings.appMapping    ?: "/app";
@@ -19,7 +20,7 @@ component {
 			, debugMode                 = false
 			, defaultEvent              = "general.index"
 			, customErrorTemplate       = ""
-			, reinitPassword            = "true"
+			, reinitPassword            = ( applicationSettings.COLDBOX_RELOAD_PASSWORD ?: "true" )
 			, handlerCaching            = true
 			, eventCaching              = true
 			, requestContextDecorator   = "preside.system.coldboxModifications.RequestContextDecorator"

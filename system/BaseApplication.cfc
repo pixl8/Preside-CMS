@@ -14,6 +14,7 @@ component extends="Bootstrap" {
 
 	this.PRESIDE_APPLICATION_RELOAD_LOCK_TIMEOUT = 0;
 	this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = 1200;
+	this.COLDBOX_RELOAD_PASSWORD                 = true;
 
 	_setupMappings();
 	_setupDefaultTagAttributes();
