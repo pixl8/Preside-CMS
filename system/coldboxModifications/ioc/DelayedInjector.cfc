@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 // CONSTRUCTOR
 	public any function init(
@@ -6,7 +6,7 @@ component output=false {
 		, required any    targetObject
 		,          string name = ""
 		,          string dsl  = ""
-	) output=false {
+	) {
 		var injectorArgs = { targetObject = arguments.targetObject };
 		if ( Len( Trim( arguments.name ) ) ) {
 			injectorArgs.name = arguments.name;
@@ -21,27 +21,40 @@ component output=false {
 	}
 
 // PUBLIC API METHODS
-	public any function get() output=false {
-		return _getInjector().getInstance( argumentCollection=_getInjectorArgs() );
+	public any function get() {
+		var instance = _getInstance();
+		if ( IsNull( instance ) ) {
+			instance = _getInjector().getInstance( argumentCollection=_getInjectorArgs() );
+			_setInstance( instance );
+		}
+
+		return instance;
 	}
 
-	public any function onMissingMethod( required string missingMethodName, struct missingmethodArguments={} ) output=false {
+	public any function onMissingMethod( required string missingMethodName, struct missingmethodArguments={} ) {
 		var instance = get();
 		return instance[ arguments.missingMethodName ]( argumentCollection=arguments.missingMethodArguments );
 	}
 
 // GETTERS AND SETTERS
-	private any function _getInjector() output=false {
+	private any function _getInjector() {
 		return _injector;
 	}
-	private void function _setInjector( required any injector ) output=false {
+	private void function _setInjector( required any injector ) {
 		_injector = arguments.injector;
 	}
 
-	private struct function _getInjectorArgs() output=false {
+	private struct function _getInjectorArgs() {
 		return _injectorArgs;
 	}
-	private void function _setInjectorArgs( required struct injectorArgs ) output=false {
+	private void function _setInjectorArgs( required struct injectorArgs ) {
 		_injectorArgs = arguments.injectorArgs;
+	}
+
+	private any function _getInstance() {
+		return _instance ?: NullValue();
+	}
+	private void function _setInstance( required any instance ) {
+		_instance = arguments.instance;
 	}
 }
