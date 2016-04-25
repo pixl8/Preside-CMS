@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // constructor
 	/**
@@ -6,32 +6,62 @@ component output=false singleton=true {
 	 * @presideContentRenderer.inject ContentRendererService
 	 * @coldboxRenderer.inject        coldbox:plugin:Renderer
 	 * @cacheProvider.inject          cachebox:PresideObjectViewCache
+	 * @cachebox.inject               cachebox
 	 */
 	public any function init(
 		  required any presideObjectService
 		, required any presideContentRenderer
 		, required any coldboxRenderer
 		, required any cacheProvider
+		, required any cachebox
 
-	) output=false {
-		_setPresideObjectService  ( arguments.presideObjectService );
+	) {
+		_setPresideObjectService  ( arguments.presideObjectService   );
 		_setPresideContentRenderer( arguments.presideContentRenderer );
-		_setColdboxRenderer       ( arguments.coldboxRenderer );
-		_setCacheProvider         ( arguments.cacheProvider );
+		_setColdboxRenderer       ( arguments.coldboxRenderer        );
+		_setCacheProvider         ( arguments.cacheProvider          );
+		_setCacheBox              ( arguments.cachebox               );
 	}
 
 // public api methods
-	public any function renderView( required string presideObject, required string view, string returntype="string", struct args={} ) output=false {
+	public any function renderView(
+		  required string  presideObject
+		, required string  view
+		,          string  returntype   = "string"
+		,          struct  args         = {}
+		,          boolean cache        = false
+		,          boolean cacheAutoKey = true
+		,          numeric cacheTimeout
+		,          numeric cacheLastAccessTimeout
+		,          string  cacheSuffix
+		,          string  cacheProvider = "template"
+	) {
+		if ( arguments.cache ) {
+			var cacheKey = _generateCacheKey( argumentCollection=arguments );
+			var cached   = _getFromCache( cacheProvider=arguments.cacheProvider, cacheKey=cacheKey );
+
+			if ( !IsNull( cached ) ) {
+				return cached;
+			}
+		}
+
 		var viewFilePath   = _getColdboxRenderer().locateView( arguments.view ) & ".cfm";
 		var viewDetails    = _readView( arguments.presideObject, viewFilePath );
 		var selectDataArgs = Duplicate( arguments );
 		var data           = "";
 		var record         = "";
 		var rendered       = CreateObject( "java", "java.lang.StringBuffer" );
+		var result         = "";
 
-		StructDelete( selectDataArgs, "presideObject" );
-		StructDelete( selectDataArgs, "view"   );
-		StructDelete( selectDataArgs, "layout" );
+		StructDelete( selectDataArgs, "presideObject"          );
+		StructDelete( selectDataArgs, "view"                   );
+		StructDelete( selectDataArgs, "layout"                 );
+		StructDelete( selectDataArgs, "cache"                  );
+		StructDelete( selectDataArgs, "cacheAutoKey"           );
+		StructDelete( selectDataArgs, "cacheLastAccessTimeout" );
+		StructDelete( selectDataArgs, "cacheProvider"          );
+		StructDelete( selectDataArgs, "cacheSuffix"            );
+		StructDelete( selectDataArgs, "cacheTimeout"           );
 
 		selectDataArgs.objectName   = arguments.presideObject
 		selectDataArgs.selectFields = viewDetails.selectFields
@@ -50,20 +80,25 @@ component output=false singleton=true {
 		}
 
 		if ( arguments.returntype == "struct" ) {
-			return {
+			result = {
 				  recordcount = data.getrecordcount()
 				, rendered    = rendered.toString()
 				, data        = data
 				, columnlist  = data.getColumnlist(false)
 			}
-		}else{
-			return rendered.toString();
+		} else {
+			result = rendered.toString();
 		}
 
+		if ( arguments.cache ) {
+			_saveToCache( argumentCollection=arguments, value=result, cacheKey=cacheKey );
+		}
+
+		return result;
 	}
 
 // private helpers
-	private struct function _readView( required string object, required string viewPath ) output=false {
+	private struct function _readView( required string object, required string viewPath ) {
 		var cacheKey = "PresideObjectService._readView() cache for object [#arguments.object#] and view path [#arguments.viewPath#]";
 		var args     = Duplicate( arguments );
 
@@ -75,7 +110,7 @@ component output=false singleton=true {
 		} );
 	}
 
-	private struct function _parseFieldsFromViewFile( required string objectName, required string filePath ) output=false {
+	private struct function _parseFieldsFromViewFile( required string objectName, required string filePath ) {
 		var fields          = { selectFields=[], fieldOptions={} };
 		var fileContent     = FileExists( arguments.filePath ) ? FileRead( arguments.filePath ) : "";
 		var regexes         = [ '<' & '(?:cfparam|cf_presideparam)\s[^>]*?name\s*=\s*"args\.(.*?)".*?>', 'param\s[^;]*?name\s*=\s*"args\.(.*?)".*?;' ];
@@ -126,7 +161,7 @@ component output=false singleton=true {
 		return fields;
 	}
 
-	private struct function _renderFields( required string objectName, required struct record, required struct fieldOptions ) output=false {
+	private struct function _renderFields( required string objectName, required struct record, required struct fieldOptions ) {
 		var rendererSvc = _getPresideContentRenderer();
 		var poService   = _getPresideObjectService();
 
@@ -170,7 +205,7 @@ component output=false singleton=true {
 		return record;
 	}
 
-	private struct function _getPresideObjectPropertyBasedOnFieldSql( required string objectName, required string fieldSql ) output=false {
+	private struct function _getPresideObjectPropertyBasedOnFieldSql( required string objectName, required string fieldSql ) {
 		var objName   = ListLen( arguments.fieldSql, "." ) > 1 ? ListFirst( arguments.fieldSql, "." ) : arguments.objectName;
 		var propName  = ListLen( arguments.fieldSql, "." ) > 1 ? ListRest( arguments.fieldSql, "." ) : arguments.fieldSql;
 		var poService = _getPresideObjectService();
@@ -185,36 +220,101 @@ component output=false singleton=true {
 		return prop;
 	}
 
-	private string function _stripCfComments( content ) output=false {
+	private string function _stripCfComments( content ) {
 		return ReReplace( content, "<!---(.*?)--->", "\1", "all" );
 	}
 
+	private any function _getFromCache( required string cacheKey, required string cacheProvider ) {
+		return _getCacheBox().getCache( arguments.cacheProvider ).get( arguments.cacheKey );
+	}
+
+	private void function _saveToCache(
+		  required string  cacheKey
+		, required any     value
+		, required string  cacheProvider = "template"
+		,          numeric cacheTimeout
+		,          numeric cacheLastAccessTimeout
+	) {
+		var cache    = _getCacheBox().getCache( arguments.cacheProvider );
+
+		cache.set(
+			  objectKey         = arguments.cacheKey
+			, object            = arguments.value
+			, timeout           = arguments.cacheTimeout           ?: NullValue()
+			, lastAccessTimeout = arguments.cacheLastAccessTimeout ?: NullValue()
+		);
+	}
+
+	private string function _generateCacheKey(
+		  required string  presideObject
+		, required string  view
+		, required boolean cacheAutoKey
+		,          numeric cacheTimeout
+		,          numeric cacheLastAccessTimeout
+		,          string  cacheSuffix
+		,          string  cacheProvider = "template"
+
+	) {
+		var cacheKey = "cachedPresideObjectView-#arguments.presideObject#-#arguments.view#-#arguments.cacheSuffix#";
+
+		if ( !arguments.cacheAutoKey ) {
+			return cacheKey;
+		}
+
+		var keyArgs        = Duplicate( arguments );
+		var selectDataArgs = Duplicate( arguments );
+
+		keyArgs.delete( "cacheAutoKey"           );
+		keyArgs.delete( "cacheTimeout"           );
+		keyArgs.delete( "cacheLastAccessTimeout" );
+		keyArgs.delete( "cacheSuffix"            );
+		keyArgs.delete( "cacheProvider"          );
+		keyArgs.delete( "value"                  );
+
+
+		selectDataArgs.objectName   = arguments.presideObject
+		selectDataArgs.selectFields = [ "Max( #arguments.presideobject#.datemodified ) as datemodified" ];
+
+		var lastRecordModified = _getPresideObjectService().selectData( argumentCollection=selectDataArgs );
+
+		cacheKey &= Hash( SerializeJson( keyArgs ) & ( lastRecordModified.datemodified ?: "" ) );
+
+		return cacheKey;
+
+	}
 
 // getters and setters
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
 	}
 
-	private any function _getPresideContentRenderer() output=false {
+	private any function _getPresideContentRenderer() {
 		return _presideContentRenderer;
 	}
-	private void function _setPresideContentRenderer( required any presideContentRenderer ) output=false {
+	private void function _setPresideContentRenderer( required any presideContentRenderer ) {
 		_presideContentRenderer = arguments.presideContentRenderer;
 	}
 
-	private any function _getColdboxRenderer() output=false {
+	private any function _getColdboxRenderer() {
 		return _coldboxRenderer;
 	}
-	private void function _setColdboxRenderer( required any coldboxRenderer ) output=false {
+	private void function _setColdboxRenderer( required any coldboxRenderer ) {
 		_coldboxRenderer = arguments.coldboxRenderer;
 	}
-	private any function _getCacheProvider() output=false {
+	private any function _getCacheProvider() {
 		return _CacheProvider;
 	}
-	private void function _setCacheProvider( required any CacheProvider ) output=false {
+	private void function _setCacheProvider( required any CacheProvider ) {
 		_CacheProvider = arguments.CacheProvider;
+	}
+
+	private any function _getCacheBox() {
+		return _cacheBox;
+	}
+	private void function _setCacheBox( required any cacheBox ) {
+		_cacheBox = arguments.cacheBox;
 	}
 }
