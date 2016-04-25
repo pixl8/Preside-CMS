@@ -14,6 +14,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
  *
  */
 
+
+
 // URL related
 	public void function setSite( required struct site ) output=false {
 		getRequestContext().setValue(
@@ -247,6 +249,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 // private helpers
+	private any function _simpleRequestCache( required string key, required any generator ) output=false {
+		request._simpleRequestCache = request._simpleRequestCache ?: {};
+
+		if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+			request._simpleRequestCache[ arguments.key ] = arguments.generator();
+		}
+
+		return request._simpleRequestCache[ arguments.key ];
+	}
+
 	public any function _getSticker() output=false {
 		return getController().getPlugin(
 			  plugin       = "StickerForPreside"
@@ -255,6 +267,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService" ];
+
+		if ( singletons.findNoCase( arguments.beanName ) ) {
+			var args = arguments;
+			return _simpleRequestCache( "getSingleton" & arguments.beanName, function(){
+				return getController().getWireBox().getInstance( args.beanName );
+			} );
+		}
+
 		return getController().getWireBox().getInstance( arguments.beanName );
 	}
 
