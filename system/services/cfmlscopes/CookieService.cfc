@@ -120,7 +120,11 @@ component {
 	}
 
 	private string function _decryptIt( required string decValue ) {
-		return Decrypt( arguments.decValue, _getEncryptionKey(), "AES", "HEX" );
+		try {
+			return Decrypt( arguments.decValue, _getEncryptionKey(), "AES", "HEX" );
+		} catch( any e ) {
+			return "";
+		}
 	}
 
 // GETTERS AND SETTERS
