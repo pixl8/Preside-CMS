@@ -1558,6 +1558,7 @@
 			poService.dbSync();
 			poService.insertData( objectName="object_2", data={ label="some label" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data = poService.selectData( argumentCollection = selectDataArgs );
@@ -1570,7 +1571,7 @@
 
 			report = cache.getStoreMetadataReport();
 			super.assert( StructKeyExists( report, cacheKeys[1] ) );
-			super.assertEquals( 3, report[ cachekeys[1] ].hits, "The cache was not hit the predicted number of times" );
+			super.assertEquals( 2, report[ cachekeys[1] ].hits, "The cache was not hit the predicted number of times" );
 		</cfscript>
 	</cffunction>
 
@@ -1640,6 +1641,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1730,6 +1732,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1778,6 +1781,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
