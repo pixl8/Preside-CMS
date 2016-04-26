@@ -135,6 +135,14 @@ component output="false" singleton=true {
 		return IsBoolean( sortable ) && sortable;
 	}
 
+	public string function defaultSortOrder( required string objectName) {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerSortOrders"
+			, defaultValue  = ""
+		);
+	}
+
 	public string function getSortField( required string objectName ) output=false {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
@@ -183,7 +191,7 @@ component output="false" singleton=true {
 			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
-			, orderBy          = arguments.orderBy
+			, orderBy          = len( arguments.orderBy ) ? arguments.orderBy : defaultSortOrder( arguments.objectName )
 			, filter           = arguments.filter
 			, filterParams     = arguments.filterParams
 			, extraFilters     = []

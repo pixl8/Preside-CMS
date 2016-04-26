@@ -46,6 +46,11 @@
 
 		<cfscript>
 			var objectName   = event.getValue( name="id", default="" );
+			if(structKeyExists(rc, "defaultSort") && rc.defaultsort ){
+				var cookieName = 'SpryMedia_DataTables_object-listing-table-'&objectName&'_';
+				cookie[cookieName] = { value="",expires="now",domain="127.0.0.1",preserveCase="yes"};
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
+			}
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -53,9 +58,10 @@
 
 			_addObjectNameBreadCrumb( event, objectName );
 
-			prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
-			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
-			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
+			prc.defaultsort = len( datamanagerService.defaultSortOrder( objectName )) ? true : false;
+			prc.canAdd      = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
+			prc.canDelete   = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+			prc.canSort     = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
 			prc.gridFields          = _getObjectFieldsForGrid( objectName );
 			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
