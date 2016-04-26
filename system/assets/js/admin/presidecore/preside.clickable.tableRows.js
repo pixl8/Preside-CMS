@@ -6,7 +6,9 @@
 	};
 
 	$( "body" ).on( "click", "tr.clickable", function( e ){
-		if ( !linkWasClicked( e.target ) ) {
+		var checkBoxOrNot = e.target.previousElementSibling != null && typeof e.target.previousElementSibling.type !== "undefined" && e.target.previousElementSibling.type == 'checkbox';
+
+		if ( !linkWasClicked( e.target ) && !checkBoxOrNot ) {
 			var $firstLink = $( this ).find( 'a:first' );
 
 			if ( $firstLink.length ) {
