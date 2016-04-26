@@ -103,7 +103,7 @@ component {
 				key = GenerateSecretKey( "AES" );
 			}
 
-			$getSystemConfigurationService().saveSetting( "system", "cookie_encrypt_key", key );
+			$getSystemConfigurationService().saveSetting( "system", "cookie_encryption_key", key );
 
 			if ( FileExists( legacyCookieKeyFile ) ) {
 				FileDelete( legacyCookieKeyFile );
