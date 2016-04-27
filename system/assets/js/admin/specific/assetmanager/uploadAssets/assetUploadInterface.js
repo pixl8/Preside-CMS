@@ -260,7 +260,7 @@
 			, parallelUploads              : 50
 			, autoQueue                    : false
 			, clickable                    : ".choose-files-trigger"
-			, maxFilesize                  : cfrequest.maxFileSize || 5
+			, maxFilesize                  : cfrequest.maxFileSize || 100
 			, maxFiles                     : cfrequest.maxFiles    || null
 			, acceptedFiles                : cfrequest.allowedExtensions || ''
 			, addedfile                    : fileAddedHandler
