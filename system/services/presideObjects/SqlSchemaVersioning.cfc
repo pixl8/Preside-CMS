@@ -1,4 +1,4 @@
-component output=false singleton=true {
+component singleton=true {
 
 // CONSTRUCTOR
 	/**
@@ -6,7 +6,7 @@ component output=false singleton=true {
 	 * @sqlRunner.inject      SqlRunner
 	 * @dbInfoService.inject  DbInfoService
 	 */
-	public any function init( required any adapterFactory, required any sqlRunner, required any dbInfoService ) output=false {
+	public any function init( required any adapterFactory, required any sqlRunner, required any dbInfoService ) {
 		_setAdapterFactory( arguments.adapterFactory );
 		_setSqlRunner( arguments.sqlRunner );
 		_setDbInfoService( arguments.dbInfoService );
@@ -15,7 +15,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public struct function getVersions( required array dsns ) output=false {
+	public struct function getVersions( required array dsns ) {
 		var dsn            = "";
 		var versions       = {};
 		var versionRecords = "";
@@ -55,7 +55,7 @@ component output=false singleton=true {
 		, required string version
 		,          string parentEntity
 
-	) output=false {
+	) {
 		var deleteSql    = "delete from _preside_generated_entity_versions where entity_type = ? and entity_name = ? and parent_entity_name ";
 		var insertSql    = "insert into _preside_generated_entity_versions( entity_type, entity_name, version_hash, date_modified";
 		var ts           = DateFormat( Now(), "yyyy-mm-dd " ) & TimeFormat( Now(), "HH:mm:ss" );
@@ -90,7 +90,7 @@ component output=false singleton=true {
 		, required string entityName
 		, required string version
 		,          string parentEntity
-	) output=false {
+	) {
 		var deleteSql    = "delete from _preside_generated_entity_versions where entity_type = '#arguments.entityType#' and entity_name = '#arguments.entityName#' and parent_entity_name ";
 		var insertSql    = "insert into _preside_generated_entity_versions( entity_type, entity_name, version_hash, date_modified";
 		var insertValues = "'#arguments.entityType#', '#arguments.entityName#', '#arguments.version#', Now()";
@@ -111,7 +111,7 @@ component output=false singleton=true {
 		]
 	}
 
-	public array function cleanupDbVersionTableEntries( required struct versionEntries, required struct objects, required string dsn, boolean execute=false ) output=false {
+	public array function cleanupDbVersionTableEntries( required struct versionEntries, required struct objects, required string dsn, boolean execute=false ) {
 		var validTables     = {};
 		var tablesToDelete  = [];
 		var columnsToDelete = [];
@@ -169,7 +169,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private void function _checkVersionsTableExistance( required string dsn ) output=false {
+	private void function _checkVersionsTableExistance( required string dsn ) {
 		var versionTable  = "_preside_generated_entity_versions";
 		var existingTable = _getTableInfo(
 			  tableName = versionTable
@@ -181,7 +181,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _createVersionTable( required string dsn ) output=false {
+	private void function _createVersionTable( required string dsn ) {
 		var adapter = _getAdapter( arguments.dsn );
 		var columnDefs = "";
 		var tableSql = "";
@@ -232,38 +232,38 @@ component output=false singleton=true {
 		_runSql( sql=tableSql, dsn=arguments.dsn );
 	}
 
-	private any function _getAdapter() output=false {
+	private any function _getAdapter() {
 		return _getAdapterFactory().getAdapter( argumentCollection = arguments );
 	}
 
-	private any function _runSql() output=false {
+	private any function _runSql() {
 		return _getSqlRunner().runSql( argumentCollection = arguments );
 	}
 
-	private query function _getTableInfo() output=false {
+	private query function _getTableInfo() {
 		return _getDbInfoService().getTableInfo( argumentCollection = arguments );
 	}
 
 
 // GETTERS AND SETTERS
-	private any function _getAdapterFactory() output=false {
+	private any function _getAdapterFactory() {
 		return _adapterFactory;
 	}
-	private void function _setAdapterFactory( required any adapterFactory ) output=false {
+	private void function _setAdapterFactory( required any adapterFactory ) {
 		_adapterFactory = arguments.adapterFactory;
 	}
 
-	private any function _getSqlRunner() output=false {
+	private any function _getSqlRunner() {
 		return _sqlRunner;
 	}
-	private void function _setSqlRunner( required any sqlRunner ) output=false {
+	private void function _setSqlRunner( required any sqlRunner ) {
 		_sqlRunner = arguments.sqlRunner;
 	}
 
-	private any function _getDbInfoService() output=false {
+	private any function _getDbInfoService() {
 		return _dbInfoService;
 	}
-	private void function _setDbInfoService( required any dbInfoService ) output=false {
+	private void function _setDbInfoService( required any dbInfoService ) {
 		_dbInfoService = arguments.dbInfoService;
 	}
 }
