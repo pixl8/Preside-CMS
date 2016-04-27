@@ -477,21 +477,26 @@ component {
 	}
 
 	private void function _syncForeignKeys( required struct objects ) {
-		var objName         = "";
-		var obj             = "";
-		var dbKeys          = "";
-		var dbKeyName       = "";
-		var dbKey           = "";
-		var key             = "";
-		var foreignObjName  = "";
-		var foreignObj      = "";
-		var shouldBeDeleted = false;
-		var oldKey          = "";
-		var newKey          = "";
-		var deleteSql       = "";
+		var objName                = "";
+		var obj                    = "";
+		var dbKeys                 = "";
+		var dbKeyName              = "";
+		var dbKey                  = "";
+		var key                    = "";
+		var foreignObjName         = "";
+		var foreignObj             = "";
+		var shouldBeDeleted        = false;
+		var deleteSql              = "";
+		var adapter                = "";
+		var onDelete               = "";
+		var onUpdate               = "";
+		var cascadingSupported     = "";
+		var relationship           = "";
 		var existingKeysNotToTouch = {};
+
 		for( objName in objects ) {
 			obj = objects[ objName ];
+			adapter = _getAdapter( obj.meta.dsn );
 			dbKeys = _getTableForeignKeys( tableName = obj.meta.tableName, dsn = obj.meta.dsn );
 			param name="obj.meta.relationships" default=StructNew();
 			param name="obj.sql.relationships"  default=StructNew();
@@ -506,11 +511,26 @@ component {
 						param name="foreignObj.meta.relationships" default=StructNew();
 
 						if ( StructKeyExists( foreignObj.meta.relationships, dbKeyName ) ){
+							onDelete           = foreignObj.meta.relationships[ dbkeyname ].on_delete ?: "";
+							onUpdate           = foreignObj.meta.relationships[ dbkeyname ].on_update ?: "";
+							cascadingSupported = adapter.supportsCascadeUpdateDelete();
+							relationship       = Duplicate( foreignObj.meta.relationships[ dbKeyName ] );
 
-							oldKey = SerializeJson( dbKey );
-							newKey = SerializeJson( foreignObj.meta.relationships[ dbKeyName ] );
+							if ( onDelete == "cascade-if-no-cycle-check" ) {
+								relationship.on_delete = cascadingSupported ? "cascade" : "no action";
+							}
+							if ( onUpdate == "cascade-if-no-cycle-check" ) {
+								relationship.on_update = cascadingSupported ? "cascade" : "no action";
+							}
 
-							shouldBeDeleted = oldKey != newKey;
+							shouldBeDeleted = false;
+							for( var param in dbKey ) {
+								if ( !relationship.keyExists( param ) || dbKey[ param ] != relationship[ param ] ) {
+									shouldBeDeleted = true;
+									break;
+								}
+							}
+
 							if ( !shouldBeDeleted ) {
 								existingKeysNotToTouch[ foreignObjName ] = ListAppend( existingKeysNotToTouch[ foreignObjName ] ?: "", dbKeyName );
 							}
@@ -520,7 +540,7 @@ component {
 				}
 
 				if ( shouldBeDeleted ) {
-					deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
+					deleteSql = adapter.getDropForeignKeySql(
 						  foreignKeyName = dbKeyName
 						, tableName      = dbKey.fk_table
 					);
@@ -536,7 +556,7 @@ component {
 				}
 			}
 		}
-		
+
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			for( key in obj.sql.relationships ){
