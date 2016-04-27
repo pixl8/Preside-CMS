@@ -385,14 +385,6 @@ component {
 						);
 						_runSql( sql=deprecateSql, dsn=arguments.dsn );
 					}
-
-					_setDatabaseObjectVersion(
-						  entityType   = "column"
-						, parentEntity = arguments.tableName
-						, entityName   = column.column_name
-						, version      = "DEPRECATED"
-						, dsn          = arguments.dsn
-					);
 				}
 			}
 		}
