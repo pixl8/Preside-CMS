@@ -273,27 +273,29 @@ component {
 		, required struct columnVersions
 
 	) {
-		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
-		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
-		var dbColumnNames  = ValueList( columnsFromDb.column_name );
-		var colsSql        = arguments.generatedSql.columns;
-		var indexesSql     = arguments.generatedSql.indexes;
-		var adapter        = _getAdapter( arguments.dsn );
-		var column         = "";
-		var colSql         = "";
-		var index          = "";
-		var indexSql       = "";
-		var deprecateSql   = "";
-		var renameSql      = "";
-		var columnName     = "";
-		var deDeprecateSql = "";
-		var newName        = "";
+		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var indexesFromDb   = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
+		var dbColumnNames   = ValueList( columnsFromDb.column_name );
+		var colsSql         = arguments.generatedSql.columns;
+		var indexesSql      = arguments.generatedSql.indexes;
+		var adapter         = _getAdapter( arguments.dsn );
+		var column          = "";
+		var colSql          = "";
+		var index           = "";
+		var indexSql        = "";
+		var deprecateSql    = "";
+		var renameSql       = "";
+		var columnName      = "";
+		var deDeprecateSql  = "";
+		var wasDeDeprecated = false;
+		var newName         = "";
 
 		// MySQL particularly can get its knickers in a twist with foreign keys.
 		// Drop all foreign keys before messing with table modifications
 		_dropAllForeignKeysForTable( columnsFromDb, arguments.tableName, arguments.dsn );
 
 		for( column in columnsFromDb ){
+			wasDeDeprecated = false;
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
 				columnName = Replace( column.column_name, "__deprecated__", "" );
 
@@ -322,12 +324,13 @@ component {
 							, autoIncrement = column.is_autoincrement
 						);
 
-						dbColumnNames = Replace( dbColumnNames, column.column_name, columnName );
+						dbColumnNames   = Replace( dbColumnNames, column.column_name, columnName );
+						wasDeDeprecated = true;
 
 						_runSql( sql=deDeprecateSql, dsn=arguments.dsn );
 					}
 
-					if ( not StructKeyExists( columnVersions, columnName ) or colSql.version neq columnVersions[ columnName ] ) {
+					if ( !wasDeDeprecated && ( !StructKeyExists( columnVersions, columnName ) || colSql.version != columnVersions[ columnName ] ) ) {
 
 						for( index in indexesFromDb ){
 							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
