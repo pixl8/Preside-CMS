@@ -1060,6 +1060,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return IsBoolean( objMeta.isPageType ?: "" ) && objMeta.isPageType;
 	}
 
+	public boolean function isTranslationStatusColumn( required string objectName ) {
+		var objMeta = _getObject( arguments.objectName ).meta;
+
+		return IsBoolean( objMeta.showTranslationStatusColumn ?: "" ) && objMeta.showTranslationStatusColumn;
+	}
+
 	public string function getResourceBundleUriRoot( required string objectName ) {
 		if ( objectExists( arguments.objectName ) ) {
 			return ( isPageType( arguments.objectName ) ? "page-types" : "preside-objects" ) & ".#arguments.objectName#:";
