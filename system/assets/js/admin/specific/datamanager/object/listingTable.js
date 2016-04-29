@@ -14,7 +14,6 @@
 	  , datasourceUrl       = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 	  , useMultiActions     = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
 	  , isMultilingual      = cfrequest.isMultilingual      || false
-	  , isTranslationColumn = cfrequest.isTranslationColumn || false
 	  , object              = cfrequest.objectName  || ""
 	  , objectTitle         = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 	  , enabledContextHotkeys;
@@ -40,7 +39,7 @@
 				defaultSort.push( [ i, $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) ]);
 			}
 		}
-		if( isMultilingual && isTranslationColumn) {
+		if( isMultilingual ) {
 			colConfig.push( {
 				sClass    : "center",
 				bSortable : false,
@@ -48,7 +47,7 @@
 				sWidth    : "12em"
 			} );
 		}
-		
+
 		colConfig.push( {
 			sClass    : "center",
 			bSortable : false,

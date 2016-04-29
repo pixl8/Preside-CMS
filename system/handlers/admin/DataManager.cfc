@@ -57,10 +57,9 @@
 			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
 			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
-			prc.gridFields                = _getObjectFieldsForGrid( objectName );
-			prc.batchEditableFields       = dataManagerService.listBatchEditableFields( objectName );	
-			prc.isMultilingual            = multilingualPresideObjectService.isMultilingual( objectName );	
-			prc.isTranslationStatusColumn = presideObjectService.isTranslationStatusColumn( objectName );			
+			prc.gridFields          = _getObjectFieldsForGrid( objectName );
+			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
+			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( objectName );
 		</cfscript>
 	</cffunction>
 
@@ -83,7 +82,6 @@
 					, useMultiActions     = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 					, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
 					, isMultilingual      = ( rc.isMultilingual      ?: 'false' )
-					, isTranslationColumn = ( rc.isTranslationColumn ?: 'false' )
 				}
 			);
 		</cfscript>
@@ -1172,7 +1170,6 @@
 		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
-		<cfargument name="isTranslationColumn" type="boolean" required="false" default="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1223,7 +1220,7 @@
 					} ) );
 				}
 
-				if ( isMultilingual && isTranslationColumn ) {
+				if ( isMultilingual ) {
 					translations     = multilingualPresideObjectService.getTranslationStatus( object, record.id );
 					translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&language=" );
 					ArrayAppend( translateStatusCol, renderView( view="/admin/datamanager/_listingTranslations", args={
@@ -1233,7 +1230,7 @@
 				}
 			}
 
-			if ( isMultilingual && isTranslationColumn ) {
+			if ( isMultilingual ) {
 				QueryAddColumn( records, "_translateStatus" , translateStatusCol );
 				ArrayAppend( gridFields, "_translateStatus" );
 			}

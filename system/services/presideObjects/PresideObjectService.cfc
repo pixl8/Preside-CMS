@@ -322,7 +322,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			);
 
 			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType() );
-			
+
 			if ( adapter.requiresManualCommitForTransactions() ){
 				_runSql( sql='commit', dsn=obj.dsn );
 			}
@@ -1058,12 +1058,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var objMeta = _getObject( arguments.objectName ).meta;
 
 		return IsBoolean( objMeta.isPageType ?: "" ) && objMeta.isPageType;
-	}
-
-	public boolean function isTranslationStatusColumn( required string objectName ) {
-		var objMeta = _getObject( arguments.objectName ).meta;
-
-		return IsBoolean( objMeta.showTranslationStatusColumn ?: "" ) && objMeta.showTranslationStatusColumn;
 	}
 
 	public string function getResourceBundleUriRoot( required string objectName ) {

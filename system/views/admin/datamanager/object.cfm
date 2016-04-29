@@ -14,8 +14,7 @@
 	canAdd              = prc.canAdd                    ?: false;
 	canDelete           = prc.canDelete                 ?: false;
 	canSort             = prc.canSort                   ?: false;
-	isMultilingual      = prc.isMultilingual            ?: false;	
-	isTranslationColumn = prc.isTranslationStatusColumn ?: false;
+	isMultilingual      = prc.isMultilingual            ?: false;
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -52,6 +51,5 @@
 		, batchEditableFields = batchEditableFields
 		, gridFields          = gridFields
 		, isMultilingual      = isMultilingual
-		, isTranslationColumn = isTranslationColumn
 	} )#
 </cfoutput>

@@ -2,12 +2,11 @@
 	param name="args.objectName"          type="string";
 	param name="args.useMultiActions"     type="boolean" default=false;
 	param name="args.isMultilingual"      type="boolean" default=false;
-	param name="args.isTranslationColumn" type="boolean" default=false;
 	param name="args.multiActionUrl"      type="string"  default="";
 	param name="args.gridFields"          type="array";
 	param name="args.allowSearch"         type="boolean" default=true;
 	param name="args.batchEditableFields" type="array"   default=[];
-	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#&isTranslationColumn=#args.isTranslationColumn#" );
+	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#" );
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
@@ -20,8 +19,7 @@
 		, useMultiActions     = args.useMultiActions
 		, allowSearch         = args.allowSearch
 		, isMultilingual      = args.isMultilingual
-		, isTranslationColumn = args.isTranslationColumn
-	} );	
+	} );
 
 </cfscript>
 <cfoutput>
@@ -44,7 +42,7 @@
 					<cfloop array="#args.gridFields#" index="fieldName">
 						<th data-field="#fieldName#">#translateResource( uri="preside-objects.#args.objectName#:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
 					</cfloop>
-					<cfif args.isMultilingual AND args.isTranslationColumn>
+					<cfif args.isMultilingual>
 						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
 					<cfelse>
 						<th>&nbsp;</th>
