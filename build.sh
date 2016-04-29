@@ -34,8 +34,13 @@ echo "";
 
 ./test.sh || exit 1;
 
+if [[ $TRAVIS_JDK_VERSION == 'openjdk7' ]] ; then
+	echo "Finished (only run tests on JDK 7, builds performed in the JDK8 environment)."
+	exit 0;
+fi
+
 if  [[ $TRAVIS_PULL_REQUEST == 'true' ]] ; then
-	echo "Finished. (not packaging up docs or source due to running in a pull request)."
+	echo "Finished (not packaging up docs or source due to running in a pull request)."
 	exit 0;
 fi
 
