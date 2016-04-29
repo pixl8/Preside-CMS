@@ -1,14 +1,15 @@
 ( function( $ ){
 	var linkWasClicked = function( eventTarget ){
+		var $target = $( eventTarget );
+
 		return $.inArray( eventTarget.nodeName, ['A','INPUT','BUTTON','TEXTAREA','SELECT'] ) >= 0
-		    || $( eventTarget ).parents( 'a:first,input:first,button:first,textarea:first,select:first' ).length
-		    || $( eventTarget ).data( 'toggle' );
+		    || $target.parents( 'a:first,input:first,button:first,textarea:first,select:first' ).length
+		    || $target.data( 'toggle' )
+		    || ( $target.hasClass( 'lbl' ) && $target.prev( 'input' ).length )
 	};
 
 	$( "body" ).on( "click", "tr.clickable", function( e ){
-		var checkBoxOrNot = e.target.previousElementSibling != null && typeof e.target.previousElementSibling.type !== "undefined" && e.target.previousElementSibling.type == 'checkbox';
-
-		if ( !linkWasClicked( e.target ) && !checkBoxOrNot ) {
+		if ( !linkWasClicked( e.target ) ) {
 			var $firstLink = $( this ).find( 'a:first' );
 
 			if ( $firstLink.length ) {
