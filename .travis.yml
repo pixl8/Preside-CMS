@@ -5,9 +5,10 @@ jdk:
   - oraclejdk8
   - openjdk7
 sudo: required
+addons:
+  mariadb: '10.1'
 services:
   - docker
-  - mysql
 env:
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
@@ -22,7 +23,7 @@ install:
 - sed -i "s/java_args='-client'/java_args='-Xmx512m -client'/" /tmp/bin/box
 - gem install s3_website
 before_script:
-- mysql -e 'create database preside_test;'
+- mysql -u root -e 'create database preside_test;'
 script:
 - "./build.sh"
 
