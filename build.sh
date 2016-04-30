@@ -70,7 +70,7 @@ if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
 	fi
 
 	docker build -t pixl8/preside-cms:$DOCKER_TAG ./support/build
-	docker login -u $DOCKER_USER -p $DOCKER_PASS
+	docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
 	docker push pixl8/preside-cms:$DOCKER_TAG
 
 	if [[ $TRAVIS_TAG == v* ]] ; then
