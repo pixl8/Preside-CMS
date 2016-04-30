@@ -23,7 +23,8 @@ install:
 - sed -i "s/java_args='-client'/java_args='-Xmx512m -client'/" /tmp/bin/box
 - gem install s3_website
 before_script:
-- mysql -e 'create database preside_test;'
+- mysql -u root -e 'create database preside_test;'
+- mysql -u root -e 'grant all privileges on preside_test.* to travis@localhost;'
 script:
 - "./build.sh"
 
