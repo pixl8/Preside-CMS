@@ -151,6 +151,7 @@ component {
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
 
 					_clearExistingApplication();
+					_ensureCaseSensitiveStructSettingsAreActive();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
 					_initColdBox();
@@ -192,6 +193,17 @@ component {
 
 	private boolean function _reloadRequired() {
 		return !application.keyExists( "cbBootstrap" ) || application.cbBootStrap.isfwReinit();
+	}
+
+	private void function _ensureCaseSensitiveStructSettingsAreActive() {
+		admin  action="getCompilerSettings" returnVariable="luceeCompilerSettings";
+
+		if ( luceeCompilerSettings.DotNotationUpperCase ){
+			admin action="updateCompilerSettings" DotNotationUpperCase="false"
+			suppressWSBeforeArg=luceeCompilerSettings.suppressWSBeforeArg
+			nullSupport=luceeCompilerSettings.nullSupport
+			templateCharset=luceeCompilerSettings.templateCharset;
+		}
 	}
 
 	private void function _fetchInjectedSettings() {
