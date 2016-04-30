@@ -32,7 +32,7 @@
         "presidecmseditor":"github:pixl8/Preside-Editor#4.5.8"
     },
     "devDependencies":{
-        "testbox":"2.2.0"
+        "testbox":"2.3.0+00044"
     },
     "installPaths":{
         "sticker":"system/externals/sticker",
