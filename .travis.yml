@@ -3,7 +3,6 @@ rvm:
   - 1.9.3
 jdk:
   - oraclejdk8
-  - openjdk7
 sudo: required
 addons:
   mariadb: '10.1'
