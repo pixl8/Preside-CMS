@@ -291,8 +291,8 @@ component output=false {
 			, apis        = {}
 		};
 
-		settings.formbuilder = _setupFormBuilder();
-
+		settings.formbuilder        = _setupFormBuilder();
+		settings.environmentMessage = "";
 		_loadConfigurationFromExtensions();
 
 		environments = {
@@ -303,13 +303,18 @@ component output=false {
 
 // ENVIRONMENT SPECIFIC
 	public void function local() output=false {
-		settings.showErrors = true;
-		settings.autoSyncDb = true;
-
+		settings.showErrors         = true;
+		settings.autoSyncDb         = true;
+		settings.environmentMessage = "LOCAL";
 		settings.features[ "devtools.new"       ].enabled=true;
 		settings.features[ "devtools.extension" ].enabled=true;
 	}
-
+	public void function development() {
+		settings.environmentMessage = "DEV";
+	}
+	public void function staging() {
+		settings.environmentMessage = "STAGING";
+	}
 // PRIVATE UTILITY
 	private array function _getUdfFiles() output=false {
 		var udfs     = DirectoryList( "/preside/system/helpers", true, false, "*.cfm" );

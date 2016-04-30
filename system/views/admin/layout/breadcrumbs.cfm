@@ -1,7 +1,7 @@
 <cfscript>
-	crumbs      = event.getAdminBreadCrumbs();
-	nCrumbs     = ArrayLen( crumbs );
-	environment = controller.getSetting( "environment" );	
+	crumbs           = event.getAdminBreadCrumbs();
+	nCrumbs          = ArrayLen( crumbs );
+	environmentAlert = getSetting("environmentMessage");
 </cfscript>
 
 <cfoutput>
@@ -10,9 +10,9 @@
 			try{ace.settings.check('breadcrumbs' , 'fixed')}catch(e){}
 		</script>
 
-		<cfif environment NEQ "live">
+		<cfif len( trim( environmentAlert ) )>
 			<div class="row">
-				<p class="text-center alert alert-danger">#translateResource( "cms:environment.alert" )#</p>
+				<p class="text-center alert alert-danger">#translateResource( uri="cms:environment.alert" , data=[ environmentAlert ] )#</p>
 			</div>
 		</cfif>
 		<ul class="breadcrumb">

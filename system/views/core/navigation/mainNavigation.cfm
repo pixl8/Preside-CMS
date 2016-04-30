@@ -8,12 +8,12 @@
 	aCurrentClass           = args.aCurrentClass           ?: 'active';
 	aHasChildrenClass       = args.aHasChildrenClass       ?: '';
 	aHasChildrenAttributes  = args.aHasChildrenAttributes  ?: '';
-	environment             = controller.getSetting( "environment" );
+	environmentAlert        = getSetting("environmentMessage");
 </cfscript>
 
 <cfoutput>
-	<cfif environment NEQ "live">
-		<li class="alert alert-danger">#translateResource( "cms:environment.alert" )#</li>
+	<cfif len( trim( environmentAlert ) )>
+		<li class="alert alert-danger">#translateResource( uri="cms:environment.alert" , data=[ environmentAlert ] )#</li>
 	</cfif>
 	<cfloop array="#menuItems#" index="i" item="item">
 		<cfset hasChildren = item.children.len() />
