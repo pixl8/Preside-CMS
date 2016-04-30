@@ -7,6 +7,7 @@ jdk:
 sudo: required
 services:
   - docker
+  - mysql
 env:
   global:
   - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
