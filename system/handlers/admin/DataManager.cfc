@@ -46,11 +46,6 @@
 
 		<cfscript>
 			var objectName   = event.getValue( name="id", default="" );
-			if(structKeyExists(rc, "defaultSort") && rc.defaultsort ){
-				var cookieName = 'SpryMedia_DataTables_object-listing-table-'&objectName&'_';
-				cookie[cookieName] = { value="",expires="now",domain="127.0.0.1",preserveCase="yes"};
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
-			}
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
