@@ -9,6 +9,13 @@ title: Anatomy of a Preside form definition file
 
 All forms must have a root `form` element that contains one or more `tab` elements. 
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="system-config.sentry:" tabsPlacement="left">
+    ...
+</form>
+```
+
 #### Attributes
 
 <div class="table-responsive">
@@ -31,6 +38,20 @@ All forms must have a root `form` element that contains one or more `tab` elemen
 
 The tab element defines a tab pane. In the admin interface, tabs will appear using a twitter bootstrap tabs UI; how tabs appear in your application's front end is up to you. All forms must have at least one tab element; a form with only a single tab will be displayed without any tabs UI.
 
+A tab element must contain one or more `fieldset` elements.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="system-config.sentry:" tabsPlacement="left">
+    <tab id="auth" sortorder="10">
+        ...
+    </tab>
+    <tab id="advanced" sortorder="20">
+        ...
+    </tab>
+</form>
+```
+
 #### Attributes
 
 All attributes below are optional, although `id` is strongly advised. `title` and `description` attributes can be left out and defined using convention in i18n `.properties` file (see the `i18nBaseUri` form attribute above).
@@ -44,7 +65,7 @@ All attributes below are optional, although `id` is strongly advised. `title` an
             </tr>
             <tr>
                 <th>sortorder</td>
-                <td>A value to determine the order in which the tab will be displayed</td>
+                <td>A value to determine the order in which the tab will be displayed. The lower the number, the earlier the tab will be displayed.</td>
             </tr>
             <tr>
                 <th>title</td>
@@ -62,72 +83,106 @@ All attributes below are optional, although `id` is strongly advised. `title` an
     </table>
 </div>
 
+### Fieldset elements
 
+A fieldset element can be used to group associated form elements together and for providing some visual indication of that grouping.
 
-### Fieldsets
-Fieldsets can be used to group associated form elements together and for styling these elements e.g. two column layout or multiple elements on a sinlge row.
+A fieldset must contain one or more `field` elements.
 
 ```xml
-<form>
-	<tab id="addresses" title="system-config.email:addresses.tab.title">
-		<fieldset id="addresses">
-		    ...
-		</fieldset>
-	</tab>
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="system-config.sentry:" tabsPlacement="left">
+    <tab id="auth" sortorder="10">
+        <fieldset id="authbasic" sortorder="10">
+            ...
+        </fieldset>
+        <fieldset id="authadvanced" sortorder="10">
+            ...
+        </fieldset>
+    </tab>
+    ...
 </form>
 ```
 
-#### Available attributes
+#### Attributes
+
 <div class="table-responsive">
     <table class="table">
-        <thead>
-            <tr>
-                <th>Attribute</th>
-                <th>Description</th>
-            </tr>
-        </thead>
         <tbody>
-            <tr><td>id</td><td>A unique identifier value for the fieldset, e.g. "main"</td></tr>
-            <tr><td>title</td><td>A value that will be used for the fieldset title text</td></tr>
-            <tr><td>decription</td><td>A value that will be used for the fieldset and generally output within the fieldset content section</td></tr>
-            <tr><td>sortorder</td><td>A value to determine the order in which the fieldset will be output</td></tr>
-            <tr><td>deleted</td><td>A boolean value to determine whether or not to display the fieldset based on the id value</td></tr>
+            <tr>
+                <th>id</th>
+                <td>A unique identifier value for the fieldset, e.g. "main"</td>
+            </tr>
+            <tr>
+                <th>title</th>
+                <td>A value or i18n resource URI that will be used for the fieldset title text</td>
+            </tr>
+            <tr>
+                <th>decription</th>
+                <td>A value or i18n resource URI that will be used for the fieldsets description that will be displayed before any form fields in the fieldset</td>
+            </tr>
+            <tr>
+                <th>sortorder</th>
+                <td>A value to determine the order in which the fieldset will be displayed within the parent tab. The lower the number, the earlier the fieldset will be displayed.</td>
+            </tr>
         </tbody>
     </table>
 </div>
 
-You can also specify a custom layouts for your fieldsets, see below for detail on using layouts.
+### Field elements
 
-### Fields
+`Field` elements define an input field for your form. The attributes required for the field will vary depending on the form control defined (see [[presideforms-controls]]).
+
+A `field` element can have zero or more `rule` child elements for defining customized validation rules.
 
 ```xml
-<form>
-	<tab id="addresses" title="system-config.email:addresses.tab.title">
-        <field  name="groups_from_address"
-                sortorder="10"
-                control="textinput"
-                required="false"
-                label="system-config.email:groups_from_address.label"
-                help="system-config.email:groups_from_address.help"
-                placeholder="system-config.email:groups_from_address.placeholder"
-        />
-
-        <field  name="allow_users_access"
-                sortorder="10"
-                control="objectPicker"
-                object="website_user"
-                multiple="true"
-                required="false"
-                label="preside-objects.asset:field.allow_users_access.title"
-                help="preside-objects.asset:field.allow_users_access.help"
-        />
-
-        <field sortorder="20" binding="page.slug" control="autoslug" required="true" basedOn="title" />
-
-        <field sortorder="10" binding="page.parent_page" control="sitetreePagePicker" required="true" />
-
-        <field binding="password_policy.min_strength" control="passwordStrengthPicker" />
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="system-config.sentry:" tabsPlacement="left">
+    <tab id="auth" sortorder="10">
+        <fieldset id="authbasic" sortorder="10">
+            <field name="api_token" control="password" maxLength="50" />
+            <field name="repeat_api_token" control="password">
+                <rule validator="sameAs">
+                    <param name="field" value="api_token" message="system-config.sentry:api_token.match.validation.message" />
+                </rule>
+            </field>
+            <field binding="sentry.configuration_option" />
+        </fieldset>
+        ...
     </tab>
+    ...
 </form>
 ```
 
+#### Attributes
+
+<div class="table-responsive">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>name</th>
+                <td>Unique name of the form field. Required if binding is not used. </td>
+            </tr>
+            <tr>
+                <th>binding</th>
+                <td>Defines a preside object property from which to derive the field definition. Required if name is not used. See [[presideforms-presideobjects]] for further details.</td>
+            </tr>
+            <tr>
+                <th>label</th>
+                <td>A label for the field</td>
+            </tr>
+            <tr>
+                <th>placeholder</th>
+                <td>Placeholder text for the field. Relevant for form controls that use a placeholder (text inputs and textareas)</td>
+            </tr>
+            <tr>
+                <th>help</th>
+                <td>Help text to be displayed in help tooltip for the field</td>
+            </tr>
+            <tr>
+                <th>sortorder</th>
+                <td>A value to determine the order in which the field will be displayed within the parent fieldset. The lower the number, the earlier the field will be displayed.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
