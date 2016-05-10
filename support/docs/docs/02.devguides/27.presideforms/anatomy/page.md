@@ -69,15 +69,15 @@ All attributes below are optional, although `id` is strongly advised. `title` an
             </tr>
             <tr>
                 <th>title</td>
-                <td>A value that will be used for the tab title text.</td>
+                <td>A value that will be used for the tab title text. If not supplied, this will default to {i18nBaseUrl}tab.{tabID}.title (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>iconClass</td>
-                <td>Class to use to render an icon for the tab, e.g. "fa-calendar" (we use Font Awesome for icons)</td>
+                <td>Class to use to render an icon for the tab, e.g. "fa-calendar" (we use Font Awesome for icons). If not supplied, this will default to {i18nBaseUrl}tab.{tabID}.iconClass (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>decription</td>
-                <td>A value that will be used for the tab and generally output within the tab content section</td>
+                <td>A value that will be used for the tab and generally output within the tab content section. If not supplied, this will default to {i18nBaseUrl}tab.{tabID}.description (see [[presideforms-i18n]] for more details).</td>
             </tr>
         </tbody>
     </table>
@@ -115,11 +115,11 @@ A fieldset must contain one or more `field` elements.
             </tr>
             <tr>
                 <th>title</th>
-                <td>A value or i18n resource URI that will be used for the fieldset title text</td>
+                <td>A value or i18n resource URI that will be used for the fieldset title text. If not supplied, this will default to {i18nBaseUrl}fieldset.{fieldsetID}.title (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>decription</th>
-                <td>A value or i18n resource URI that will be used for the fieldsets description that will be displayed before any form fields in the fieldset</td>
+                <td>A value or i18n resource URI that will be used for the fieldsets description that will be displayed before any form fields in the fieldset. If not supplied, this will default to {i18nBaseUrl}fieldset.{fieldsetID}.description (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>sortorder</th>
@@ -141,11 +141,6 @@ A `field` element can have zero or more `rule` child elements for defining custo
     <tab id="auth" sortorder="10">
         <fieldset id="authbasic" sortorder="10">
             <field name="api_token" control="password" maxLength="50" />
-            <field name="repeat_api_token" control="password">
-                <rule validator="sameAs">
-                    <param name="field" value="api_token" message="system-config.sentry:api_token.match.validation.message" />
-                </rule>
-            </field>
             <field binding="sentry.configuration_option" />
         </fieldset>
         ...
@@ -169,19 +164,62 @@ A `field` element can have zero or more `rule` child elements for defining custo
             </tr>
             <tr>
                 <th>label</th>
-                <td>A label for the field</td>
+                <td>A label for the field. If not supplied, this will default to {i18nBaseUrl}field.{fieldName}.title (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>placeholder</th>
-                <td>Placeholder text for the field. Relevant for form controls that use a placeholder (text inputs and textareas)</td>
+                <td>Placeholder text for the field. Relevant for form controls that use a placeholder (text inputs and textareas). If not supplied, this will default to {i18nBaseUrl}field.{fieldName}.placeholder (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>help</th>
-                <td>Help text to be displayed in help tooltip for the field</td>
+                <td>Help text to be displayed in help tooltip for the field. If not supplied, this will default to {i18nBaseUrl}field.{fieldName}.help (see [[presideforms-i18n]] for more details).</td>
             </tr>
             <tr>
                 <th>sortorder</th>
                 <td>A value to determine the order in which the field will be displayed within the parent fieldset. The lower the number, the earlier the field will be displayed.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+### Rule elements
+
+A `rule` element must live beneath a `field` element and can contain zero or more `param` attributes. A rule represents a validation rule and deeply integrates with the [[validation-framework]]. See [[presideforms-validation]] for full details of validation with preside forms.
+
+```xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<form i18nBaseUri="system-config.sentry:" tabsPlacement="left">
+    <tab id="auth" sortorder="10">
+        <fieldset id="authbasic" sortorder="10">
+            <field name="api_token" control="password" maxLength="50" />
+            <field name="repeat_api_token" control="password">
+                <rule validator="sameAs" message="system-config.sentry:api_token.match.validation.message">
+                    <param name="field" value="api_token" />
+                </rule>
+            </field>
+            <field binding="sentry.configuration_option" />
+        </fieldset>
+        ...
+    </tab>
+    ...
+</form>
+```
+
+Param elements consist of a name and value pair and will differ for each validator.
+
+#### Attributes
+
+<div class="table-responsive">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>validator</th>
+                <td>ID of the validator to use (see [[validation-framework]] for full details on validators) </td>
+            </tr>
+            <tr>
+                <th>message</th>
+                <td>Message to display for validation errors. Can be an i18n resource URI for translatable validation messages.</td>
             </tr>
         </tbody>
     </table>

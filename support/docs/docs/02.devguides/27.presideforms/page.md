@@ -39,6 +39,7 @@ An example admin render of a form with multiple tabs and fields might look like 
 * [[presideforms-controls]]
 * [[presideforms-i18n]]
 * [[presideforms-rendering]]
+* [[presideforms-validation]]
 * [[presideforms-processing]]
 * [[presideforms-merging]]
 * [[presideforms-dynamic]]
