@@ -163,6 +163,10 @@ A `field` element can have zero or more `rule` child elements for defining custo
                 <td>Defines a preside object property from which to derive the field definition. Required if name is not used. See [[presideforms-presideobjects]] for further details.</td>
             </tr>
             <tr>
+                <th>control</th>
+                <td>Form control to use for the field (see [[presideforms-controls]]). If not supplied and a preside object property binding is defined, then the system will automatically select the appropriate control for the field. If not supplied and no binding is defined, then a default of "textinput" will be used.</td>
+            </tr>
+            <tr>
                 <th>label</th>
                 <td>A label for the field. If not supplied, this will default to {i18nBaseUrl}field.{fieldName}.title (see [[presideforms-i18n]] for more details).</td>
             </tr>
