@@ -15,7 +15,6 @@ System provided form controls for the [[formcontrol-presideforms]]:
 * [[formcontrol-datePicker]]
 * [[formcontrol-datetimepicker]]
 * [[formcontrol-derivativePicker]]
-* [[formcontrol-email]]
 * [[formcontrol-emailInput]]
 * [[formcontrol-fileTypePicker]]
 * [[formcontrol-fileupload]]
