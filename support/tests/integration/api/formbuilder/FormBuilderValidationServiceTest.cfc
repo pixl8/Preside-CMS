@@ -52,11 +52,11 @@ component extends="testbox.system.BaseSpec"{
 				] );
 			} );
 
-			it( "should return an array containing a maxValue rule when there is a maxValue attribute that has a greater-than-zero value", function(){
+			it( "should return an array containing a 'max' rule when there is a maxValue attribute that has a greater-than-zero value", function(){
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, maxValue=30 ) ).toBe( [
-					{ fieldName="testfield", validator="maxValue", params={ max=30 } }
+					{ fieldName="testfield", validator="max", params={ max=30 } }
 				] );
 			} );
 
@@ -66,11 +66,11 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getStandardRulesForFormField( name="testfield", maxValue=0 ) ).toBe( [] );
 			} );
 
-			it( "should return an array containing a minValue rule when there is a minValue attribute that has a greater-than-zero value", function(){
+			it( "should return an array containing a 'min' rule when there is a minValue attribute that has a greater-than-zero value", function(){
 				var service = getService();
 
 				expect( service.getStandardRulesForFormField( name="testfield", mandatory=false, minValue=5 ) ).toBe( [
-					{ fieldName="testfield", validator="minValue", params={ min=5 } }
+					{ fieldName="testfield", validator="min", params={ min=5 } }
 				] );
 			} );
 
