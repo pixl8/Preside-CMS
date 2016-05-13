@@ -37,7 +37,6 @@ System provided form controls for the [[presideforms]]:
 * [[formcontrol-siteTemplatePicker]]
 * [[formcontrol-siteTreePagePicker]]
 * [[formcontrol-spinner]]
-* [[formcontrol-starRating]]
 * [[formcontrol-textarea]]
 * [[formcontrol-textInput]]
 * [[formcontrol-timePicker]]
