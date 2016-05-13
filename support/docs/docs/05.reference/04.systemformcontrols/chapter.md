@@ -3,7 +3,7 @@ id: systemformcontrols
 title: System form controls
 ---
 
-System provided form controls for the [[formcontrol-presideforms]]:
+System provided form controls for the [[presideforms]]:
 
 * [[formcontrol-assetFolderPicker]]
 * [[formcontrol-assetPicker]]
