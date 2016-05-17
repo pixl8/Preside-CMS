@@ -29,3 +29,4 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[formbuilder]]
 * [[spreadsheets]]
 * [[sessionmanagement]]
+* [[presideforms]]

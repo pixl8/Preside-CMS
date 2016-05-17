@@ -1,7 +1,8 @@
 /**
- * @singleton true
+ * @singleton
+ * @autodoc
  */
-component {
+component displayName="Forms service" {
 
 // CONSTRUCTOR
 	/**
@@ -45,6 +46,13 @@ component {
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Returns an array of form names that are indexed
+	 * by the service.
+	 *
+	 * @autodoc
+	 *
+	 */
 	public array function listForms() {
 		var forms = StructKeyArray( _getForms() );
 
@@ -53,12 +61,27 @@ component {
 		return forms;
 	}
 
+	/**
+	 * Returns whether or not the given form exists.
+	 *
+	 * @autodoc
+	 * @formName.hint           The name of the form to check
+	 * @checkSiteTemplates.hint Whether or not to check within the current active site template
+	 *
+	 */
 	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) {
 		var forms = _getForms();
 
 		return StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
 	}
 
+	/**
+	 * Returns the raw structural definition of the given form
+	 *
+	 * @autodoc
+	 * @formName.hint          The name of the form to get
+	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
+	 */
 	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) {
 		var forms        = _getForms();
 		var objectName   = "";
@@ -92,6 +115,15 @@ component {
 		);
 	}
 
+	/**
+	 * Merges the definitions of two forms, register the new form and
+	 * and returns the raw structure of the merged form as the result.
+	 *
+	 * @autodoc
+	 * @formName.hint          Name of the source form
+	 * @mergeWithFormName.hint Name of the form to merge with
+	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
+	 */
 	public struct function mergeForms( required string formName, required string mergeWithFormName, boolean autoMergeSiteForm=true ) {
 		var mergedName = getMergedFormName( arguments.formName, arguments.mergeWithFormName, false );
 
@@ -109,6 +141,15 @@ component {
 		return merged;
 	}
 
+	/**
+	 * Returns the raw definition of the given field
+	 * within the given form.
+	 *
+	 * @autodoc
+	 * @formName.hint  Name of the form in which the field is defined
+	 * @fieldName.hint Name of the field to get
+	 *
+	 */
 	public struct function getFormField( required string formName, required string fieldName ) {
 		var frm = getForm( arguments.formName );
 
@@ -128,7 +169,13 @@ component {
 		);
 	}
 
-	public any function listFields( required string formName ) {
+	/**
+	 * Returns an array of the field names defined in the form.
+	 *
+	 * @autodoc
+	 * @formName.hint Name of the form who's fields you wish to list.
+	 */
+	public array function listFields( required string formName ) {
 		var frm    = getForm( arguments.formName );
 		var fields = [];
 
@@ -151,6 +198,14 @@ component {
 		return fields;
 	}
 
+	/**
+	 * Returns a default form definition for the given
+	 * Preside object name
+	 *
+	 * @autodoc
+	 * @objectName.hint Name of the object who's definition you wish to get
+	 *
+	 */
 	public struct function getDefaultFormForPresideObject( required string objectName ) {
 		var fields = _getPresideObjectService().getObjectProperties( objectName = arguments.objectName );
 		var formLayout = {
@@ -181,6 +236,26 @@ component {
 		return formLayout;
 	}
 
+	/**
+	 * Renders the given form
+	 *
+	 * @autodoc
+	 * @formName.hint            Name of the form to render
+	 * @mergeWithFormName.hint   Name of a secondary form to merge with the primary form
+	 * @context.hint             Context in which to render the form, e.g. 'admin' or 'website'. See [[presideforms-rendering]] for more details.
+	 * @fieldLayout.hint         Viewlet for rendering a field layout. See [[presideforms-rendering]] for more details.
+	 * @fieldsetLayout.hint      Viewlet for rendering a fieldset layout. See [[presideforms-rendering]] for more details.
+	 * @tabLayout.hint           Viewlet for rendering a tab layout. See [[presideforms-rendering]] for more details.
+	 * @formLayout.hint          Viewlet for rendering an overall form layout. See [[presideforms-rendering]] for more details.
+	 * @formId.hint              HTML ID of the wrapping form element. This is used for the js validation logic if generated.
+	 * @validationResult.hint    An existing validation result object with which to display errors in the form (see [[validation-framework]] and [[presideforms-validation]] for more details)
+	 * @includeValidationJs.hint Whether or not to generate and include validation javascript with the form
+	 * @savedData.hint           Structure of pre-existing data with which to pre-populate values in the form
+	 * @fieldNamePrefix.hint     A prefix to add to each field name
+	 * @fieldNameSuffix.hint     A suffix to add to each field name
+	 * @suppressFields.hint      An array of field names to hide from the rendering
+	 *
+	 */
 	public string function renderForm(
 		  required string  formName
 		,          string  mergeWithFormName    = ""
@@ -303,6 +378,23 @@ component {
 		return coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
 	}
 
+	/**
+	 * Renders an individual form control. If in doubt, you should
+	 * use `renderForm` instead of rendering individual form controls.
+	 *
+	 * @autodoc
+	 * @name.hint         The name of the field to use
+	 * @type.hint         The control type, e.g. 'richeditor'
+	 * @context.hint      The context
+	 * @id.hint           The HTML ID to use for the rendered form control
+	 * @label.hint        The label for the control. Can be an i18n resource URI.
+	 * @defaultValue.hint The default value to prepopulate the control with (e.g. a saved value from the database)
+	 * @help.hint         Help text to accompany the control. Can be an i18n resource URI.
+	 * @savedData.hint    Structure of saved data for the entire form that is being rendered.
+	 * @error.hint        Error string to display with the control
+	 * @required.hint     Whether or not the form field is required
+	 * @layout.hint       Viewlet to use to render the field's layout
+	 */
 	public string function renderFormControl(
 		  required string  name
 		, required string  type
@@ -353,6 +445,15 @@ component {
 		return renderedControl;
 	}
 
+	/**
+	 * Renders a form control suitable for the given object and object field name (property name).
+	 * Supplied arguments will be passed on to the [[formsservice-renderformcontrol]] method along
+	 * with the calculated form control type and any other arguments.
+	 *
+	 * @autodoc
+	 * @objectName.hint Name of the object who's field you wish to get a form control for
+	 * @fieldName.hint  Name of the field (property) on the object that you wish to get a form control for
+	 */
 	public string function renderFormControlForObjectField( required string objectName, required string fieldName ) {
 		var pobjService     = _getPresideObjectService();
 	    var fieldBaseI18n   = pobjService.getResourceBundleUriRoot( arguments.objectName );
@@ -373,6 +474,17 @@ component {
 	    return renderFormControl( argumentCollection = formControlArgs );
 	}
 
+	/**
+	 * Validates the given form using the [[validation-framework]].
+	 * Returns a [[api-validationresult|validation result]] object.
+	 *
+	 * @autodoc
+	 * @formName.hint         Name of the form to validate
+	 * @formData.hint         Data from the form submission
+	 * @preProcessData.hint   Whether or not to _preprocess_ form submissions (see [[validation-engine]])
+	 * @ignoreMissing.hint    Whether or not to ignore entirely missing fields in the supplied data
+	 * @validationResult.hint A pre-existing validation result to which to add any errors found during validation
+	 */
 	public any function validateForm(
 		  required string  formName
 		, required struct  formData
@@ -402,6 +514,14 @@ component {
 		);
 	}
 
+	/**
+	 * Returns raw javascript validation logic for the given form.
+	 *
+	 * @autodoc
+	 * @formName          Name of the form definition from which to generate the validation js
+	 * @mergeWithFormName Secondary form name for merging with the primary form
+	 *
+	 */
 	public any function getValidationJs( required string formName, string mergeWithFormName="" ) {
 		var validationFormName = Len( Trim( mergeWithFormName ) ) ? getMergedFormName( formName, mergeWithFormName ) : formName;
 
@@ -410,6 +530,16 @@ component {
 		);
 	}
 
+	/**
+	 * Pre-processes an entire form submission (runs any mapped preprocessors
+	 * for each field to get a generated value prior to validation and/or
+	 * persisting to the database).
+	 *
+	 * @autodoc
+	 * @formName         Name of the form
+	 * @formData         Submitted form data
+	 * @validationResult A pre-existing validation result to which to append any errors found during preprocessing
+	 */
 	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult() ) {
 		var formFields       = listFields( arguments.formName );
 		var fieldValue       = "";
@@ -435,6 +565,17 @@ component {
 		return validationResult;
 	}
 
+	/**
+	 * Pre-processes an individual field's data submission (runs any mapped preprocessors
+	 * for each field to get a generated value prior to validation and/or
+	 * persisting to the database).
+	 *
+	 * @autodoc
+	 * @formName   The name of the form in which the field is defined
+	 * @fieldName  The name of the field
+	 * @fieldValue The submitted value that will be pre-processed
+	 *
+	 */
 	public any function preProcessFormField( required string formName, required string fieldName, required string fieldValue ) {
 		var field        = getFormField( formName = arguments.formName, fieldName = arguments.fieldName );
 		var preProcessor = _getPreProcessorForField( argumentCollection = field );
@@ -451,6 +592,14 @@ component {
 		return arguments.fieldValue;
 	}
 
+	/**
+	 * Returns the resultant form name that is generated when merging two form definitions
+	 *
+	 * @autodoc
+	 * @formName.hint          Name of the source form
+	 * @mergeWithFormName.hint Name of the form that is merged with the source form
+	 * @createIfNotExists.hint Whether or not to create and register the form definition if it does not already exist.
+	 */
 	public string function getMergedFormName( required string formName, required string mergeWithFormName, boolean createIfNotExists=true ) {
 		var mergedName = formName & ".merged.with." & mergeWithFormName;
 
@@ -497,6 +646,12 @@ component {
 		return arguments.formName;
 	}
 
+	/**
+	 * Reloads the form definitions from source directories
+	 *
+	 * @autodoc
+	 *
+	 */
 	public void function reload() {
 		_loadForms();
 	}
