@@ -172,6 +172,7 @@ component {
 			, "updateManager"
 			, "urlRedirects"
 			, "errorLogs"
+			, "auditTrail"
 			, "maintenanceMode"
 		];
 
@@ -201,6 +202,7 @@ component {
 			, maintenanceMode        = [ "configure" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, auditTrail             = [ "navigate" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -220,7 +222,7 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
+		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "auditTrail.*" ];
 		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
 		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
@@ -262,6 +264,7 @@ component {
 			, updateManager         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, auditTrail            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder           = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
