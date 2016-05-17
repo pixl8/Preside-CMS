@@ -44,37 +44,38 @@
             </cfif>
         </div>
         <div class="col-sm-7 col-md-8 col-lg-8">
-            <cfif val(logs.recordcount)>
+            <cfif logs.recordcount>
                 <div id="audit-trail">
-                    <cfoutput query="logs">
-                        <cfscript>
-                            auditTrailData.Action      = logs.Action;
-                            auditTrailData.Type        = logs.Type;
-                            auditTrailData.Detail      = isJson( logs.Detail ) ? DeserializeJSON( logs.Detail ) : logs.Detail;
-                            auditTrailData.datecreated = logs.datecreated;
-                            auditTrailData.id          = logs.id;
-                        </cfscript>
-                        <div class="message-item">
-                            <div class="message-inner">
-                                <div class="message-head clearfix">
-                                    <div class="avatar pull-left">
-                                        <img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( known_as )#" />
-                                    </div>
-                                    <div class="user-detail">
-                                        <h5>
-                                            #known_as#
-                                        </h5>
-                                        <div class="post-meta">
-                                            <span>#datetimeformat( datecreated,"medium" )#</span>
-                                        </div>
-                                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-10 col-sm-offset-1">
+                            <div class="timeline-container">
+                                <div class="timeline-label">
+                                    <span class="label label-primary arrowed-in-right label-lg">
+                                        <b>Today</b>
+                                    </span>
                                 </div>
-                                <div>
-                                    #renderLogMessage( log=auditTrailData )#
+                                <div class="timeline-items">
+                                    <cfloop query="logs">
+                                        <cfscript>
+                                            auditTrailData = QueryRowToStruct( logs, logs.currentRow );
+                                            if ( IsJson( auditTrailData.detail ) ) {
+                                                auditTrailData.detail = DeserializeJson( auditTrailData.detail );
+                                            }
+                                        </cfscript>
+                                        <div class="timeline-item clearfix">
+                                            <div class="timeline-info">
+                                                <img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( known_as )#" />
+                                                <span class="label label-info label-sm">#TimeFormat( datecreated, "HH:mm" )#</span>
+                                            </div>
+                                            <div class="widget-box transparent">
+                                                #renderLogMessage( log=auditTrailData )#
+                                            </div>
+                                        </div>
+                                    </cfloop>
                                 </div>
                             </div>
                         </div>
-                    </cfoutput>
+                    </div>
                 </div>
             <cfelse>
                 <p><em>#translateResource( uri='cms:auditTrail.noData' )#</em></p>

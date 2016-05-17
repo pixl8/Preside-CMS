@@ -1,6 +1,6 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="AuditService"     inject="AuditService";
+	property name="auditService" inject="auditService";
 
 	public void function preHandler( event ) {
 		super.preHandler( argumentCollection = arguments );
@@ -19,7 +19,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.action        = StructKeyExists( rc,'action' )        ? rc.action      : "";
 		prc.dateFilters   = structKeyExists( rc,'dateFilters' )   ? rc.dateFilters : "";
 		var filterDetails = _getFilterAndExtraFilters( prc.user, prc.action, prc.dateFilters );
-		prc.logs          = AuditService.getAuditTrailLog( 1, 10, filterDetails.filter , filterDetails.extraFilters );
+		prc.logs          = auditService.getAuditTrailLog( 1, 10, filterDetails.filter , filterDetails.extraFilters );
 		prc.filterLabel   = _getfilterLabel( prc.user, prc.action, prc.dateFilters );
 		prc.pageTitle     = translateResource( "cms:auditTrail.page.title" );
 		prc.pageSubTitle  = translateResource( "cms:auditTrail.page.subtitle" );
@@ -28,12 +28,12 @@ component extends="preside.system.base.AdminHandler" {
 	public any function loadMore( event, rc, prc ) {
 		var page          = val( val ( rc.page ?: 2 ) - 1 ) * 10 + 1;
 		var filterDetails = _getFilterAndExtraFilters( rc.user, rc.action, rc.dateFilters );
-		prc.logs          = AuditService.getAuditTrailLog( page, 10, filterDetails.filter, filterDetails.extraFilters );
+		prc.logs          = auditService.getAuditTrailLog( page, 10, filterDetails.filter, filterDetails.extraFilters );
 		event.noLayout();
 	}
 
 	public void function viewLog( event, rc, prc ) {
-		prc.auditTrail = AuditService.getAuditLog( rc.id ?: "" );
+		prc.auditTrail = auditService.getAuditLog( rc.id ?: "" );
 
 		if ( !prc.auditTrail.recordCount ) {
 			event.adminNotFound();
@@ -47,7 +47,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.dateFilter     = rc.dateFilters ?: '';
 		prc.filterType     = rc.type        ?: "";
 		prc.filterValue    = rc.value       ?: "";
-		prc.logs           = AuditService.getAuditTrailLog();
+		prc.logs           = auditService.getAuditTrailLog();
 		prc.userLists      = ListRemoveDuplicates( valueList( prc.logs.known_as ) );
 		prc.users          = listToArray( prc.userLists );
 		prc.userIdLists    = ListRemoveDuplicates( valueList( prc.logs.user ) );
@@ -168,7 +168,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		if( len( arguments.user ) ) {
 			var filter           = { user = "#arguments.user#" };
-			var auditTrail       = AuditService.getAuditTrailLog( filter = filter );
+			var auditTrail       = auditService.getAuditTrailLog( filter = filter );
 			filtersData.append({
 				  type  = "User"
 				, value = "User:" & " " & auditTrail.known_as
