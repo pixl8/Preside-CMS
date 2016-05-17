@@ -3,9 +3,10 @@
  * and return meaningful configuration for preside.
  *
  * @singleton
+ * @autodoc
  *
  */
-component {
+component displayName="Environment Variables Reader" {
 
 // CONSTRUCTOR
 	public any function init() {
@@ -17,6 +18,21 @@ component {
 	/**
 	 * Reads configuration form system environment variables and returns them
 	 * as a struct.
+	 * \n
+	 * Any environment variables who's name begins with PRESIDE_
+	 * will be treated as an environment variable intended to be read by the
+	 * Preside application. The PRESIDE_ prefix will be stripped from the variable
+	 * name before being used. Some examples of environment variable names that
+	 * could be used:
+	 * \n
+	 * ```
+	 * PRESIDE_datasource.host=mydb.hostname
+	 * PRESIDE_datasource.port=3306
+	 * PRESIDE_showerrors=true
+	 * PRESIDE_autosyncdb=true
+	 * ```
+	 *
+	 * @autodoc
 	 *
 	 */
 	public struct function getConfigFromEnvironmentVariables() {
