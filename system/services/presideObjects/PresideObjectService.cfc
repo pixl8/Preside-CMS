@@ -322,7 +322,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			);
 
 			result = _runSql( sql=sql[1], dsn=obj.dsn, params=params, returnType=adapter.getInsertReturnType() );
-			
+
 			if ( adapter.requiresManualCommitForTransactions() ){
 				_runSql( sql='commit', dsn=obj.dsn );
 			}
@@ -451,17 +451,18 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			cleanedData.datemodified = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
 		}
 
-		joinTargets = _extractForeignObjectsFromArguments( objectName=arguments.objectName, filter=arguments.filter, data=cleanedData );
-		if ( ArrayLen( joinTargets ) ) {
-			joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets );
-			joins = _convertObjectJoinsToTableJoins( joins );
-		}
-
 		preparedFilter = _prepareFilter(
 			  adapter            = adapter
 			, columnDefinitions  = obj.properties
 			, argumentCollection = arguments
 		);
+
+		joinTargets = _extractForeignObjectsFromArguments( argumentCollection=arguments, data=cleanedData, preparedFilter=preparedFilter );
+		if ( ArrayLen( joinTargets ) ) {
+			joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets );
+			joins = _convertObjectJoinsToTableJoins( joins );
+		}
+
 
 		transaction {
 			if ( requiresVersioning ) {
@@ -1337,15 +1338,16 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 	private array function _extractForeignObjectsFromArguments(
 		  required string objectName
-		,          any    filter       = {}
-		,          struct data         = {}
-		,          array  selectFields = []
-		,          string orderBy      = ""
+		,          struct preparedFilter = {}
+		,          struct data           = {}
+		,          array  selectFields   = []
+		,          string orderBy        = ""
 
 	) {
+		var filter     = arguments.preparedFilter.filter ?: "";
 		var key        = "";
 		var cache      = _getCache();
-		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( arguments.filter ) ? StructKeyList( arguments.filter ) : arguments.filter#"
+		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#"
 		var objects    = cache.get( cacheKey );
 
 		if ( not IsNull( objects ) ) {
@@ -1360,8 +1362,8 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 		objects = {}
 
-		if ( IsStruct( arguments.filter ) ) {
-			StructAppend( all, arguments.filter );
+		if ( IsStruct( filter ) ) {
+			StructAppend( all, filter );
 		}
 
 		for( key in all ) {
@@ -1386,8 +1388,8 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				}
 			}
 		}
-		if ( isSimpleValue( arguments.filter ) ) {
-			matches = _reSearch( fieldRegex, arguments.filter );
+		if ( isSimpleValue( filter ) ) {
+			matches = _reSearch( fieldRegex, filter );
 			if ( StructKeyExists( matches, "$2" ) ) {
 				for( match in matches.$2 ){
 					objects[ match ] = 1;
@@ -1625,7 +1627,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 			entities = StructKeyList( entities, "|" );
 
-			_aliasedFieldRegex = "(^|\s|,|\(,\))((#entities#)(\$(#entities#))*)\.([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,)";
+			_aliasedFieldRegex = "(^|\s|,|\(,\)|`|\[)((#entities#)(\$(#entities#))*)[`\]]?\.[`\[]?([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,|`|\])";
 		}
 
 		return _aliasedFieldRegex;
