@@ -231,6 +231,13 @@ component displayName="Forms service" {
 			}
 		}
 
+		formLayout.tabs[1].fieldsets[1].fields.sort( function( field1, field2 ){
+			var order1 = Val( field1.sortOrder ?: 999999999 );
+			var order2 = Val( field2.sortOrder ?: 999999999 );
+
+			return order1 == order2 ? 0 : ( order1 > order2 ? 1 : -1 );
+		} );
+
 		_applyDefaultLabellingToForm( formName="preside-objects.#objectName#.default", frm=formLayout );
 
 		return formLayout;
