@@ -24,7 +24,6 @@ component output=false singleton=true {
 		_getLogger().debug( arguments.sql );
 
 		q.setDatasource( arguments.dsn );
-		q.setSQL( arguments.sql );
 
 		if ( StructKeyExists( arguments, "params" ) ) {
 			for( param in arguments.params ){
@@ -44,6 +43,8 @@ component output=false singleton=true {
 
 				if ( not Len( Trim( param.value ) ) ) {
 					param.null = true;
+					arguments.sql = ReplaceNoCase( arguments.sql, " != :#param.name#", " is not :#param.name#", "all" );
+					arguments.sql = ReplaceNoCase( arguments.sql, " = :#param.name#", " is :#param.name#", "all" );
 				}
 
 				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
@@ -51,6 +52,7 @@ component output=false singleton=true {
 				q.addParam( argumentCollection = param );
 			}
 		}
+		q.setSQL( arguments.sql );
 		result = q.execute();
 
 		if ( arguments.returntype eq "info" ) {
