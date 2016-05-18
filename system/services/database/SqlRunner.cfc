@@ -43,8 +43,7 @@ component output=false singleton=true {
 
 				if ( not Len( Trim( param.value ) ) ) {
 					param.null = true;
-					arguments.sql = ReplaceNoCase( arguments.sql, " != :#param.name#", " is not :#param.name#", "all" );
-					arguments.sql = ReplaceNoCase( arguments.sql, " = :#param.name#", " is :#param.name#", "all" );
+					arguments.sql = _transformNullClauses( arguments.sql, param.name );
 				}
 
 				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
@@ -60,6 +59,23 @@ component output=false singleton=true {
 		} else {
 			return result.getResult();
 		}
+	}
+
+// PRIVATE UTILITY
+	private string function _transformNullClauses( required string sql, required string paramName ) {
+		var hasClause = arguments.sql.reFindNoCase( "\swhere\s" );
+
+		if ( !hasClause ) {
+			return arguments.sql;
+		}
+
+		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
+		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
+
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not :#arguments.paramName#", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is :#arguments.paramName#", "all" );
+
+		return preClause & postClause
 	}
 
 // GETTERS AND SETTERS
