@@ -163,7 +163,19 @@ Each of the fields fetch from the database for your view will be pre-rendered us
 <cf_presideparam name="args.comment_count" field="Count( comments.id )" renderer="myNumberFormatter" />
 ```
 
+## Caching
 
+You can opt to cache your preside data object views by passing in caching arguments to the [[presideobjectviewservice-renderView]] method. A minimal example:
 
+```luceescript
+rendered = renderView(
+      view          = "event/detail"
+    , presideObject = "event"
+    , id            = eventId
+    , cache         = true     // cache with sensible default settings
+);
+```
+
+See the [[presideobjectviewservice-renderView]] method documentation for details on all the possible arguments.
 
 

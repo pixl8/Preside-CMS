@@ -1,4 +1,12 @@
-component singleton=true {
+/**
+ * Service that provides logic for rendering
+ * [[presidedataobjectviews]].
+ *
+ * @autodoc
+ * @singleton
+ *
+ */
+component displayName="Preside Object View Service" {
 
 // constructor
 	/**
@@ -24,6 +32,27 @@ component singleton=true {
 	}
 
 // public api methods
+	/**
+	 * Renders a view using data from the Preside Object layer.
+	 * See [[presidedataobjectviews]] for a full guide.
+	 * \n
+	 * >>> The method will accept any _extra_ arguments not defined
+	 * here and use them in its call to [[presideobjectservice-selectdata]].
+	 * Any arguments valid for the [[presideobjectservice-selectdata]]
+	 * method are valid here.
+	 *
+	 * @autodoc
+	 * @presideObject.hint          The name of the object from which to select data for the view
+	 * @view.hint                   The view path (a regular coldbox view path)
+	 * @returntype.hint             Either "struct" or "string". If "struct", the method will return additional information about the recordset used to render the view. If "String", just the rendered view will be returned.
+	 * @args.hint                   A data struct that will be passed to the view
+	 * @cache.hint                  Whether or not to cache the result
+	 * @cacheAutoKey.hint           When caching, whether or not to automatically generate a suitable cache key that attempts to be invalidated when the source data changes.
+	 * @cacheTimeout.hint           Optional numeric cache timeout. See [Cachebox documentation](https://www.gitbook.com/book/ortus/cachebox-documentation/details) for more details on cache timeouts, etc.
+	 * @cacheLastAccessTimeout.hint Optional numeric cache last access timeout. See [Cachebox documentation](https://www.gitbook.com/book/ortus/cachebox-documentation/details) for more details on cache timeouts, etc.
+	 * @cacheSuffix.hint            Optional manual cache key suffix. This is an alternative to using the 'cacheAutoKey' argument. If using this argument, ensure unique cache suffixes for distinct calls to this method.
+	 * @cacheProvider.hint          Optional specific alternative cache provider in which to store the cached view. Defaults to the standard ColdBox "template" cache. Optional numeric cache timeout. See [Cachebox documentation](https://www.gitbook.com/book/ortus/cachebox-documentation/details) for more details on cache providers, etc.
+	 */
 	public any function renderView(
 		  required string  presideObject
 		, required string  view
