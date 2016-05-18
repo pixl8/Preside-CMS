@@ -117,7 +117,7 @@ component displayName="Admin permissions service" {
 		}
 
 
-		return listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
+		return listPermissionKeys( user=arguments.userId ).findNoCase( arguments.permissionKey );
 	}
 
 	/**
@@ -177,7 +177,7 @@ component displayName="Admin permissions service" {
 		if ( arguments.includeDefaults ) {
 			for( key in contextPerms ) {
 				_getDefaultGroupsForPermission( permissionKey=key ).each( function( group ){
-					if ( !contextPerms[ key ].granted.find( group ) ) {
+					if ( !contextPerms[ key ].granted.findNoCase( group ) ) {
 						contextPerms[ key ].granted.append( group );
 					}
 				} );
@@ -248,7 +248,7 @@ component displayName="Admin permissions service" {
 		}
 		for( var role in ListToArray( roles.roles ) ){
 			_getRolePermissions( role ).each( function( perm ){
-				if ( !perms.find( perm ) ) {
+				if ( !perms.findNoCase( perm ) ) {
 					perms.append( perm );
 				}
 			} );
@@ -263,7 +263,7 @@ component displayName="Admin permissions service" {
 
 		for( var group in groups ){
 			_getGroupPermissions( group ).each( function( perm ){
-				if ( !perms.find( perm ) ) {
+				if ( !perms.findNoCase( perm ) ) {
 					perms.append( perm );
 				}
 			} );
@@ -412,7 +412,7 @@ component displayName="Admin permissions service" {
 		var groups        = [];
 
 		for( var role in roles ){
-			if ( roles[ role ].find( arguments.permissionKey ) ) {
+			if ( roles[ role ].findNoCase( arguments.permissionKey ) ) {
 				rolesWithPerm[ role ] = 1;
 			}
 		}

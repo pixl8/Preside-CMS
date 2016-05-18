@@ -118,7 +118,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		permsService.$( "listPermissionKeys" ).$args( user=testUserId ).$results( [ "key.a", "key.b", "key.c" ] );
 		mockWebsiteLoginService.$( "getLoggedInUserId", testUserId );
 
-		super.assert( permsService.hasPermission( "key.c" ) );
+		super.assert( permsService.hasPermission( "key.C" ) );
 	}
 
 	function test06_hasPermission_shouldReturnFalse_whenLoggedInUserDoesNotHaveAGrantToPassedPermissionKey_andDoesNotHaveAnyContextPerms() output=false {
