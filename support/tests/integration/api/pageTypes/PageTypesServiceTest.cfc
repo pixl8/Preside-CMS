@@ -38,7 +38,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( "casestudy"                                          , pageTypeBean.getId()                 );
 		super.assertEquals( "page-types.casestudy:name"                          , pageTypeBean.getName()               );
 		super.assertEquals( "page-types.casestudy:description"                   , pageTypeBean.getDescription()        );
-		super.assertEquals( "page-types.casestudy"                               , pageTypeBean.getViewlet()            );
+		super.assertEquals( "page-types.casestudy.index"                         , pageTypeBean.getViewlet()            );
 		super.assertEquals( "page-types.casestudy.add"                           , pageTypeBean.getAddForm()            );
 		super.assertEquals( "page-types.casestudy.edit"                          , pageTypeBean.getEditForm()           );
 		super.assertEquals( "casestudy,blog,event,some_page_type,page,teammember", pageTypeBean.getAllowedChildTypes()  );
