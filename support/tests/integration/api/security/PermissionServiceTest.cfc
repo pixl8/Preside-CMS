@@ -233,7 +233,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 		permsService.$( "listPermissionKeys" ).$args( user="me" ).$results( [ "some.key", "another.key" ] );
 
-		super.assert( permsService.hasPermission( permissionKey="another.key" ), "Should have permission, yet returned that I don't :(" );
+		super.assert( permsService.hasPermission( permissionKey="another.Key" ), "Should have permission, yet returned that I don't :(" );
 	}
 
 	function test14_hasPermission_shouldReturnTrue_whenPassedUserIsSystemUser(){
