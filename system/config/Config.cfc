@@ -306,8 +306,8 @@ component {
 			, apis        = {}
 		};
 
-		settings.formbuilder = _setupFormBuilder();
-
+		settings.formbuilder        = _setupFormBuilder();
+		settings.environmentMessage = "";
 		_loadConfigurationFromExtensions();
 
 		environments = {
