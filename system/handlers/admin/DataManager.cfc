@@ -803,20 +803,17 @@
 			var version          = rc.version ?: "";
 			var formData         = event.getCollectionForForm( formName );
 			var objectName       = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var existingTranslation = multilingualPresideObjectService.selectTranslation(
-				  objectName   = object
-				, id           = id
-				, languageId   = languageId
-				, selectFields = [ "id" ]
-			);
 
 			var obj              = "";
 			var persist          = "";
 
 			formData._translation_language = languageId;
-			if ( existingTranslation.recordCount ) {
-				formData.id = existingTranslation.id;
-			}
+			formData.id = multilingualPresideObjectService.getExistingTranslationId(
+				  objectName   = object
+				, id           = id
+				, languageId   = languageId
+			);
+
 			var validationResult = validateForm( formName=formName, formData=formData );
 
 			if ( not validationResult.validated() ) {
