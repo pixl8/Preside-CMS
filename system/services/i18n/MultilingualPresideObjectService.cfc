@@ -413,18 +413,13 @@ component displayName="Multilingual Preside Object Service" {
 
 		transaction {
 			var translationObjectName = getTranslationObjectName( arguments.objectName );
-			var existingTranslation = selectTranslation(
-				  objectName   = arguments.objectName
-				, id           = arguments.id
-				, languageId   = arguments.languageId
-				, selectFields = [ "id" ]
-			);
+			var existingId            = getExistingTranslationId( argumentCollection=arguments );
 
-			if ( existingTranslation.recordCount ) {
-				returnValue = existingTranslation.id;
+			if ( existingId.len() ) {
+				returnValue = existingId;
 				$getPresideObjectService().updateData(
 					  objectName              = translationObjectName
-					, id                      = existingTranslation.id
+					, id                      = existingId
 					, data                    = arguments.data
 					, updateManyToManyRecords = true
 				);
@@ -442,6 +437,21 @@ component displayName="Multilingual Preside Object Service" {
 		}
 
 		return returnValue;
+	}
+
+	public string function getExistingTranslationId(
+		  required string objectName
+		, required string id
+		, required string languageId
+	) {
+		var existing = selectTranslation(
+			  objectName   = arguments.objectName
+			, id           = arguments.id
+			, languageId   = arguments.languageId
+			, selectFields = [ "id" ]
+		);
+
+		return existing.id ?: "";
 	}
 
 // PRIVATE HELPERS
