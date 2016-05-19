@@ -10,11 +10,11 @@
 	prc.pageIcon        = "puzzle-piece";
 	prc.pageTitle       = objectTitle;
 	prc.pageSubTitle    = objectDescription;
-	
-	batchEditableFields = prc.batchEditableFields   ?: {};
-	canAdd              = prc.canAdd                ?: false;
-	canDelete           = prc.canDelete             ?: false;
-	canSort             = prc.canSort               ?: false;
+	batchEditableFields = prc.batchEditableFields       ?: {};
+	canAdd              = prc.canAdd                    ?: false;
+	canDelete           = prc.canDelete                 ?: false;
+	canSort             = prc.canSort                   ?: false;
+	isMultilingual      = prc.isMultilingual            ?: false;
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -50,5 +50,6 @@
 		, multiActionUrl      = event.buildAdminLink( linkTo='datamanager.multiRecordAction', querystring="object=#objectName#" )
 		, batchEditableFields = batchEditableFields
 		, gridFields          = gridFields
+		, isMultilingual      = isMultilingual
 	} )#
 </cfoutput>

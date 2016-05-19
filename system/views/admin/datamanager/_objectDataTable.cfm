@@ -1,11 +1,12 @@
 <cfscript>
-	param name="args.objectName"            type="string";
-	param name="args.useMultiActions"       type="boolean" default=false;
-	param name="args.multiActionUrl"        type="string"  default="";
-	param name="args.gridFields"            type="array";
-	param name="args.allowSearch"           type="boolean" default=true;
-	param name="args.batchEditableFields"   type="array"   default=[];
-	param name="args.datasourceUrl"   type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#" );
+	param name="args.objectName"          type="string";
+	param name="args.useMultiActions"     type="boolean" default=false;
+	param name="args.isMultilingual"      type="boolean" default=false;
+	param name="args.multiActionUrl"      type="string"  default="";
+	param name="args.gridFields"          type="array";
+	param name="args.allowSearch"         type="boolean" default=true;
+	param name="args.batchEditableFields" type="array"   default=[];
+	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#" );
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
 	deleteSelected       = translateResource( uri="cms:datamanager.deleteSelected.title" );
 	deleteSelectedPrompt = translateResource( uri="cms:datamanager.deleteSelected.prompt", data=[ LCase( objectTitle ) ] );
@@ -13,11 +14,13 @@
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
 	event.includeData( {
-		  objectName      = args.objectName
-		, datasourceUrl   = args.datasourceUrl
-		, useMultiActions = args.useMultiActions
-		, allowSearch     = args.allowSearch
+		  objectName          = args.objectName
+		, datasourceUrl       = args.datasourceUrl
+		, useMultiActions     = args.useMultiActions
+		, allowSearch         = args.allowSearch
+		, isMultilingual      = args.isMultilingual
 	} );
+
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
@@ -39,7 +42,11 @@
 					<cfloop array="#args.gridFields#" index="fieldName">
 						<th data-field="#fieldName#">#translateResource( uri="preside-objects.#args.objectName#:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
 					</cfloop>
-					<th>&nbsp;</th>
+					<cfif args.isMultilingual>
+						<th>#translateResource( uri="cms:datamanager.translate.column.status" )#</th>
+					<cfelse>
+						<th>&nbsp;</th>
+					</cfif>
 				</tr>
 			</thead>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr<cfif args.useMultiActions> > td :checkbox<cfelse> a:nth-of-type(1)</cfif>">
