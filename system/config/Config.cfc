@@ -265,6 +265,7 @@ component {
 			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder           = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
 			, multilingual          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, multilingualUrls      = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
@@ -292,6 +293,10 @@ component {
 			, corsEnabled = false
 			, apis        = {}
 		};
+
+		settings.multilingual = {
+			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
+		}
 
 		settings.formbuilder = _setupFormBuilder();
 

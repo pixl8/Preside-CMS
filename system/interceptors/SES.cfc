@@ -1,5 +1,9 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
+	property name="featureService"                   inject="delayedInjector:featureService";
+	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
+	property name="multilingualIgnoredUrlPatterns"   inject="coldbox:setting:multilingual.ignoredUrlPatterns";
+
 	public void function configure() output=false {
 		instance.presideRoutes = [];
 
@@ -10,11 +14,13 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	public void function onRequestCapture( event, interceptData ) output=false {
 		_checkRedirectDomains( argumentCollection=arguments );
 		_detectIncomingSite( argumentCollection=arguments );
+		_detectLanguage( argumentCollection=arguments );
 
 		if ( !_routePresideSESRequest( argumentCollection = arguments ) ) {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
 	}
+
 
 	public void function onBuildLink( event, interceptData ) output=false {
 		for( var route in instance.presideRoutes ){
@@ -72,6 +78,25 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		}
 
 		event.setSite( site );
+	}
+
+	private void function _detectLanguage( event, interceptor ) output=false {
+		if ( featureService.isFeatureEnabled( "multilingualUrls" ) ) {
+			var path = super.getCGIElement( "path_info", event );
+
+			if ( ! _getAdminRouteHandler().match( path, event ) ) {
+				var localeSlug = Trim( ListFirst( path.reReplace( "^/", "" ), "/" ) );
+				var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
+
+				if ( language.recordCount ) {
+					if ( language.slug != localeSlug ) {
+						WriteDump("TODO: redirect to /#language.slug#"); abort;
+					}
+
+					event.setLanguage( language.id );
+				}
+			}
+		}
 	}
 
 	private boolean function _routePresideSESRequest( event, interceptData ) output=false {

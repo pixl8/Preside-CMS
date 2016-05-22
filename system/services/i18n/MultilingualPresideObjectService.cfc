@@ -3,18 +3,20 @@
  * translations of standard preside objects possible in a transparent way. Note: You are
  * unlikely to need to deal with this API directly.
  *
- * @autodoc        true
- * @singleton      true
- * @presideService true
+ * @autodoc
+ * @singleton
+ * @presideService
  */
 component displayName="Multilingual Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @relationshipGuidance.inject       relationshipGuidance
+	 * @relationshipGuidance.inject relationshipGuidance
+	 * @cookieService.inject        cookieService
 	 */
-	public any function init( required any relationshipGuidance ) {
+	public any function init( required any relationshipGuidance, required any cookieService ) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
+		_setCookieService( arguments.cookieService );
 		_setMultiLingualObjectReference( {} );
 
 		return this;
@@ -370,6 +372,8 @@ component displayName="Multilingual Preside Object Service" {
 	 * for the given object record (object name and id)
 	 * and language
 	 *
+	 * @autodoc
+	 *
 	 */
 	public query function selectTranslation( required string objectName, required string id, required string languageId, array selectFields=[], string version="", boolean useCache=true ) {
 		var translationObjectName = getTranslationObjectName( arguments.objectName );
@@ -397,6 +401,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * Saves a translation record for a given preside object
 	 * and record ID
 	 *
+	 * @autodoc
 	 * @objectName.hint Name of the object who's record we are to save the translation for
 	 * @id.hint         ID of the record we are to save the translation for
 	 * @languageId.hint ID of the language that the translation is for
@@ -452,6 +457,54 @@ component displayName="Multilingual Preside Object Service" {
 		);
 
 		return existing.id ?: "";
+	}
+
+	/**
+	 * Returns a query record for the detected language
+	 * for this request.
+	 *
+	 * @autodoc
+	 * @localeSlug.hint locale detected in URL
+	 *
+	 */
+	public query function getDetectedRequestLanguage( required string localeSlug ) {
+		var languageObj = $getPresideObject( "multilingual_language" );
+
+		if ( Len( Trim( arguments.localeSlug ) ) ) {
+			var languageFromSlug = languageObj.selectData( filter={ slug=arguments.localeSlug } );
+
+			if ( languageFromSlug.recordCount ) {
+				return languageFromSlug;
+			}
+		}
+
+		var languageFromCookie = _getCookieService().getVar( "_preside_language" );
+		if ( Len( Trim( languageFromCookie ) ) ) {
+			languageFromCookie = languageObj.selectData( id=languageFromCookie );
+			if ( languageFromCookie.recordCount ) {
+				return languageFromCookie;
+			}
+		}
+
+		var languageFromAcceptHeader = ListToArray( cgi.http_accept_language ?: "", ";" );
+		if ( languageFromAcceptHeader.len() ) {
+			for( var isoCode in languageFromAcceptHeader ) {
+				if ( !isNumeric( isoCode ) ) {
+					var languageFromIsoCode = languageObj.selectData( filter={ iso_code = isoCode } );
+					if ( languageFromIsoCode.recordCount ) {
+						return languageFromIsoCode;
+					}
+				}
+			}
+		}
+
+		var defaultLanguage = $getPresideSetting( "multilingual", "default_language" );
+		if ( defaultLanguage.len() ) {
+			return languageObj.selectData( id=defaultLanguage );
+		}
+
+		return QueryNew('id,slug');
+
 	}
 
 // PRIVATE HELPERS
@@ -550,5 +603,12 @@ component displayName="Multilingual Preside Object Service" {
 	}
 	private void function _setRelationshipGuidance( required any relationshipGuidance ) {
 		_relationshipGuidance = arguments.relationshipGuidance;
+	}
+
+	private any function _getCookieService() {
+		return _cookieService;
+	}
+	private void function _setCookieService( required any cookieService ) {
+		_cookieService = arguments.cookieService;
 	}
 }
