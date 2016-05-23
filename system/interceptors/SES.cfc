@@ -84,27 +84,43 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	}
 
 	private void function _detectLanguage( event, interceptor ) output=false {
-		if ( featureService.isFeatureEnabled( "multilingualUrls" ) ) {
+		if ( !_skipLanguageDetection( argumentCollection=arguments ) ) {
 			var path = super.getCGIElement( "path_info", event );
+			var localeSlug = Trim( ListFirst( path.reReplace( "^/", "" ), "/" ) );
+			var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
 
-			if ( ! _getAdminRouteHandler().match( path, event ) ) {
-				var localeSlug = Trim( ListFirst( path.reReplace( "^/", "" ), "/" ) );
-				var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
+			if ( language.recordCount ) {
+				event.setLanguage( language.id );
+				event.setLanguageSlug( language.slug );
 
-				if ( language.recordCount ) {
-					event.setLanguage( language.id );
-					event.setLanguageSlug( language.slug );
+				if ( language.slug != localeSlug ) {
+					var site        = event.getSite();
+					var qs          = Len( Trim( request[ "preside.query_string" ] ?: "" ) ) ? "?#request[ "preside.query_string" ]#" : "";
+					var redirectUrl = path.replaceNoCase( site.path, site.path & language.slug & "/" ) & qs;
 
-					if ( language.slug != localeSlug ) {
-						var site        = event.getSite();
-						var qs          = Len( Trim( request[ "preside.query_string" ] ?: "" ) ) ? "?#request[ "preside.query_string" ]#" : "";
-						var redirectUrl = path.replaceNoCase( site.path, site.path & language.slug & "/" ) & qs;
-
-						location url=redirectUrl addtoken=false;
-					}
+					location url=redirectUrl addtoken=false;
 				}
 			}
 		}
+	}
+
+	private boolean function _skipLanguageDetection( event, interceptor ) output=false {
+		if ( !featureService.isFeatureEnabled( "multilingualUrls" ) ) {
+			return true;
+		}
+
+		var path = super.getCGIElement( "path_info", event );
+		if ( _getAdminRouteHandler().match( path, event ) ) {
+			return true;
+		}
+
+		for( var pattern in multilingualIgnoredUrlPatterns) {
+			if ( path.reFindNoCase( pattern ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void function _setPresideUrlPath( event, interceptor ) output=false {
@@ -113,10 +129,10 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		var languageSlug = event.getLanguageSlug();
 
 		if ( Len( Trim( languageSlug ) ) ) {
-			path = path & languageSlug;
+			path = path & languageSlug & "/";
 		}
 
-		path = super.getCGIElement( "path_info", event ).replaceNoCase( path, "" );
+		path = "/" & super.getCGIElement( "path_info", event ).replaceNoCase( path, "" );
 
 		event.setCurrentPresideUrlPath( path );
 	}
