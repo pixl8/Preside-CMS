@@ -46,7 +46,6 @@
 	addRouteHandler( getModel( "assetRouteHandler" ) );
 	addRouteHandler( getModel( "plainStoredFileRouteHandler" ) );
 	addRouteHandler( getModel( "staticAssetRouteHandler" ) );
-	addRouteHandler( getModel( "urlRewritesRouteHandler" ) );
 	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
 	addRouteHandler( getModel( "restRouteHandler" ) );
 	addRouteHandler( getModel( "standardRouteHandler" ) );

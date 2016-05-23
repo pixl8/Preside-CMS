@@ -1,6 +1,7 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
 	property name="featureService"                   inject="delayedInjector:featureService";
+	property name="urlRedirectsService"              inject="delayedInjector:urlRedirectsService";
 	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
 	property name="multilingualIgnoredUrlPatterns"   inject="coldbox:setting:multilingual.ignoredUrlPatterns";
 
@@ -13,6 +14,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 // the interceptor method
 	public void function onRequestCapture( event, interceptData ) output=false {
 		_checkRedirectDomains( argumentCollection=arguments );
+		_checkUrlRedirects( argumentCollection=arguments );
 		_detectIncomingSite( argumentCollection=arguments );
 		_detectLanguage( argumentCollection=arguments );
 
@@ -128,6 +130,20 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 			rc[ instance.eventName ] = evName;
 		}
+	}
+
+	private void function _checkUrlRedirects( event, interceptData ) output=false {
+		if ( event.isAjax() ) {
+			return;
+		}
+
+		var path    = event.getCurrentUrl( includeQueryString=true );
+		var fullUrl = event.getBaseUrl() & path;
+
+		urlRedirectsService.redirectOnMatch(
+			  path    = path
+			, fullUrl = fullUrl
+		);
 	}
 
 	private void function _checkRedirectDomains( event, interceptData ) output=false {
