@@ -14,11 +14,12 @@ component extends="coldbox.system.interceptors.SES" output=false {
 // the interceptor method
 	public void function onRequestCapture( event, interceptData ) output=false {
 		_checkRedirectDomains( argumentCollection=arguments );
-		_checkUrlRedirects( argumentCollection=arguments );
-		_detectIncomingSite( argumentCollection=arguments );
-		_detectLanguage( argumentCollection=arguments );
+		_checkUrlRedirects   ( argumentCollection=arguments );
+		_detectIncomingSite  ( argumentCollection=arguments );
+		_detectLanguage      ( argumentCollection=arguments );
+		_setPresideUrlPath   ( argumentCollection=arguments );
 
-		if ( !_routePresideSESRequest( argumentCollection = arguments ) ) {
+		if ( !_routePresideSESRequest( argumentCollection=arguments ) ) {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
 	}
@@ -91,18 +92,37 @@ component extends="coldbox.system.interceptors.SES" output=false {
 				var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
 
 				if ( language.recordCount ) {
-					if ( language.slug != localeSlug ) {
-						WriteDump("TODO: redirect to /#language.slug#"); abort;
-					}
-
 					event.setLanguage( language.id );
+					event.setLanguageSlug( language.slug );
+
+					if ( language.slug != localeSlug ) {
+						var site        = event.getSite();
+						var qs          = Len( Trim( request[ "preside.query_string" ] ?: "" ) ) ? "?#request[ "preside.query_string" ]#" : "";
+						var redirectUrl = path.replaceNoCase( site.path, site.path & language.slug & "/" ) & qs;
+
+						location url=redirectUrl addtoken=false;
+					}
 				}
 			}
 		}
 	}
 
+	private void function _setPresideUrlPath( event, interceptor ) output=false {
+		var site         = event.getSite();
+		var path         = site.path;
+		var languageSlug = event.getLanguageSlug();
+
+		if ( Len( Trim( languageSlug ) ) ) {
+			path = path & languageSlug;
+		}
+
+		path = super.getCGIElement( "path_info", event ).replaceNoCase( path, "" );
+
+		event.setCurrentPresideUrlPath( path );
+	}
+
 	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
-		var path = super.getCGIElement( "path_info", event );
+		var path = event.getCurrentPresideUrlPath();
 
 		for( var route in instance.presideRoutes ){
 			if ( route.match( path=path, event=event ) ) {
