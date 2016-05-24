@@ -1,0 +1,36 @@
+{
+    "name":"PresideCMS",
+    "version":"10.6.0",
+    "author":"Pixl8 Interactive",
+    "createPackageDirectory":true,
+    "packageDirectory":"preside",
+    "homepage":"https://www.presidecms.com",
+    "documentation":"https://docs.presidecms.com",
+    "repository":{
+        "type":"github",
+        "URL":"https://github.com/pixl8/Preside-CMS"
+    },
+    "bugs":"https://presidecms.atlassian.net",
+    "slug":"presidecms",
+    "shortDescription":"The PresideCMS platform by Pixl8 Interactive",
+    "description":"",
+    "instructions":"https://docs.presidecms.com/quickstart.html",
+    "changelog":"https://www.presidecms.com/release-notes.html",
+    "keywords":"CMS,ColdBox,FOSS",
+    "private":false,
+    "projectURL":"https://www.presidecms.com",
+    "license":[
+        {
+            "type":"LGPLv2",
+            "URL":"https://github.com/pixl8/Preside-CMS/blob/stable/LICENSE.txt"
+        }
+    ],
+    "ignore":[
+        ".git/*",
+        ".gitignore",
+        ".travis.yml",
+        ".twgit_features_subject",
+        "build.sh",
+        "test.sh"
+    ]
+}

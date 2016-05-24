@@ -241,7 +241,7 @@ component output=false singleton=true {
 		return "page-types.#arguments.id#:description";
 	}
 	private string function _getConventionsBasePageTypeViewlet( required string id ) output=false {
-		return "page-types.#arguments.id#";
+		return "page-types.#arguments.id#.index";
 	}
 	private string function _getConventionsBasePageTypeDefaultForm( required string id ) output=false {
 		return "page-types.#arguments.id#";

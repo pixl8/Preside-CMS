@@ -12,7 +12,7 @@
 	<cfelse>
 		<p>#translateResource( 'cms:notifications.configure.description' )#</p>
 
-		<div class="tabbable">
+		<div class="tabbable tabs-left">
 			<ul class="nav nav-tabs">
 				<cfloop array="#topics#" index="i" item="topicId">
 					<li<cfif selectedTopic eq topicId> class="active"</cfif>>

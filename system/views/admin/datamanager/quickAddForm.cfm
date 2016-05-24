@@ -20,8 +20,8 @@
 			, validationResult = args.validationResult
 		)#
 
-		<div class="form-actions row">
-			<cfif args.allowAddAnotherSwitch>
+		<cfif args.allowAddAnotherSwitch>
+			<div class="form-actions row">
 				#renderFormControl(
 					  type         = "yesNoSwitch"
 					, context      = "admin"
@@ -31,7 +31,7 @@
 					, defaultValue = true
 					, label        = translateResource( uri="cms:datamanager.quick.add.another", data=[ objectTitleSingular ] )
 				)#
-			</cfif>
-		</div>
+			</div>
+		</cfif>
 	</form>
 </cfoutput>

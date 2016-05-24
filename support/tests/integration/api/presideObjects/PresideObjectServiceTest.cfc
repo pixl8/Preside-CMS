@@ -1125,6 +1125,39 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test030_1_selectData_shouldAutomaticallyJoinRelevantTables_whenJoinsIntimatedInSavedFilters" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
+			var result         = "";
+			var field          = "";
+			var i              = 0;
+			var aId            = "";
+			var bId            = "";
+			var cId            = "";
+			var dId            = "";
+			var eId            = "";
+			var fId            = "";
+
+			poService.dbSync();
+
+			aId = poService.insertData( objectName="object_a", data={ label="label 1" } );
+			eId = poService.insertData( objectName="object_e", data={ label="label 2" } );
+			dId = poService.insertData( objectName="object_d", data={ label="label 3", object_e=eId } );
+			bId = poService.insertData( objectName="object_b", data={ label="label 4", related_to_a=aId, object_d=dId } );
+			cId = poService.insertData( objectName="object_c", data={ label="label 5", object_b=bId } );
+			fId = poService.insertData( objectName="object_f", data={ label="label 4", object_c=cId } );
+
+			mockFilterService.$( "getFilter" ).$args( "testfilter" ).$results( { filter={ "object_c$object_b.label" = "label 4" } } );
+
+			result = poService.selectData(
+				  objectname   = "object_f"
+				, savedFilters = [ "testfilter" ]
+			);
+
+			super.assertEquals( 1, result.recordCount, "Expected 1 record to be returned" );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test031_selectData_shouldSelectDataUsingFilters" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithAutoJoinableRelationships/" ] );
@@ -1558,6 +1591,7 @@
 			poService.dbSync();
 			poService.insertData( objectName="object_2", data={ label="some label" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data = poService.selectData( argumentCollection = selectDataArgs );
@@ -1570,7 +1604,7 @@
 
 			report = cache.getStoreMetadataReport();
 			super.assert( StructKeyExists( report, cacheKeys[1] ) );
-			super.assertEquals( 3, report[ cachekeys[1] ].hits, "The cache was not hit the predicted number of times" );
+			super.assertEquals( 2, report[ cachekeys[1] ].hits, "The cache was not hit the predicted number of times" );
 		</cfscript>
 	</cffunction>
 
@@ -1640,6 +1674,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1730,6 +1765,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );
@@ -1778,6 +1814,7 @@
 			poService.insertData( objectName="object_3", data={ label="labels 1" } );
 			poService.insertData( objectName="object_3", data={ label="labels 2" } );
 
+			request.delete( "__cacheboxRequestCache" );
 			super.assertEquals( 0, ArrayLen( cache.getKeys() ), "The cache is not empty, aborting test" );
 
 			data.set1 = poService.selectData( objectName="object_1", filter={ id = objId } );

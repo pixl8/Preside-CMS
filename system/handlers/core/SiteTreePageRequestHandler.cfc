@@ -36,8 +36,16 @@ component output=false {
 			viewlet = pageType.getViewlet();
 			view    = Replace( pageType.getViewlet(), ".", "/", "all" );
 		} else {
-			viewlet = pageType.getViewlet() & "." & layout;
+			viewlet = pageType.getViewlet();
 			view    = "page-types/#pageType.getId()#/#layout#";
+
+			if ( viewlet.reFindNoCase( "\.index$" ) ) {
+				if ( layout != "index" ) {
+					 viewlet = viewlet.reReplaceNoCase( "index$", layout );
+				}
+			} else {
+				viewlet = viewlet & "." & layout;
+			}
 		}
 
 		if ( pageType.hasHandler() && getController().handlerExists( viewlet ) ) {

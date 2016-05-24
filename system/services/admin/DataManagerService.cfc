@@ -390,18 +390,19 @@ component output="false" singleton=true {
 
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
-		var sqlFields          = Duplicate( arguments.gridFields );
-		var field              = "";
-		var i                  = "";
-		var props              = _getPresideObjectService().getObjectProperties( arguments.objectName );
-		var prop               = "";
-		var objName            = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
-		var labelField         = _getPresideObjectService().getObjectAttribute( objName, "labelField", "label" );
-		var replacedLabelField = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
+		var sqlFields                = Duplicate( arguments.gridFields );
+		var field                    = "";
+		var i                        = "";
+		var props                    = _getPresideObjectService().getObjectProperties( arguments.objectName );
+		var prop                     = "";
+		var objName                  = arguments.versionTable ? "vrsn_" & arguments.objectName : arguments.objectName;
+		var labelField               = _getPresideObjectService().getObjectAttribute( objName, "labelField", "label" );
+		var labelFieldIsRelationship = ( props[ labelField ].relationship ?: "" ) contains "-to-";
+		var replacedLabelField       = !Find( ".", labelField ) ? "#objName#.${labelfield} as #ListLast( labelField, '.' )#" : "${labelfield} as #labelField#";
 
 		sqlFields.delete( "id" );
 		sqlFields.append( "#objName#.id" );
-		if ( sqlFields.find( labelField ) ) {
+		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
@@ -441,7 +442,6 @@ component output="false" singleton=true {
 				sqlFields.append( objName & "._version_number" );
 			}
 		}
-
 		return sqlFields;
 	}
 

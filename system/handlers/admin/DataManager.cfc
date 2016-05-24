@@ -582,11 +582,14 @@
 
 		<cfscript>
 			var object = rc.object ?: "";
+			var args   = {};
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_checkPermission( argumentCollection=arguments, key="add", object=object );
 
-			event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog" );
+			args.allowAddAnotherSwitch = IsTrue( rc.multiple ?: "" );
+
+			event.setView( view="/admin/datamanager/quickAddForm", layout="adminModalDialog", args=args );
 		</cfscript>
 	</cffunction>
 

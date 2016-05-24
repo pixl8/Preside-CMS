@@ -3,6 +3,7 @@
 	var $tree  = $( ".preside-tree-nav" )
 	  , $nodes = $tree.find( ".tree-node" )
 	  , $listingTable     = $( '#asset-listing-table' )
+	  , $listingForm      = $( '.asset-manager-listing-form' ).first()
 	  , $tableHeaders     = $listingTable.find( 'thead > tr > th')
 	  , $titleAndActions  = $( '.title-and-actions-container' ).first()
 	  , $pageSubtitle     = $( '.page-subtitle' ).first()
@@ -36,6 +37,14 @@
 					$multiActions.html( $( data.multiActions ).html() );
 
 					dataTable && dataTable.fnPageChange( 'first' );
+				}
+				, beforeSend: function() {
+					$listingForm.presideLoadingSheen( true );
+				}
+				, complete: function() {
+					setTimeout( function(){
+						$listingForm.presideLoadingSheen( false );
+					}, 400 );
 				}
 			});
 
@@ -127,7 +136,7 @@
 		fnServerParams: function ( aoData ) {
 	    	aoData.push( { name : "folder", value : activeFolder } );
 		},
-		bProcessing   : false,
+		processing    : true,
 		bStateSave    : false,
 		bPaginate     : false,
 		bLengthChange : false,
@@ -157,13 +166,17 @@
 			sInfoThousands : i18n.translateResource( "cms:datatables.infoThousands", { data : [assets], defaultValue : "" } ),
 			sLengthMenu : i18n.translateResource( "cms:datatables.lengthMenu", { data : [assets], defaultValue : "" } ),
 			sLoadingRecords : i18n.translateResource( "cms:datatables.loadingRecords", { data : [assets], defaultValue : "" } ),
-			sProcessing : i18n.translateResource( "cms:datatables.processing", { data : [assets], defaultValue : "" } ),
+			sProcessing : $listingForm.presideLoadingSheen( true ),
 			sZeroRecords : i18n.translateResource( "cms:datatables.zeroRecords", { data : [assets], defaultValue : "" } ),
 			sSearch : '',
 			sUrl : '',
 			sInfoPostFix : ''
 		}
-	} );
+	}).on( 'draw.dt', function () {
+		setTimeout( function(){
+			$listingForm.presideLoadingSheen( false );
+		}, 400 );
+    });
 
 	setupCheckboxBehaviour();
 	setupMultiActionButtons();

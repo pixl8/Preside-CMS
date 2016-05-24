@@ -273,27 +273,29 @@ component {
 		, required struct columnVersions
 
 	) {
-		var columnsFromDb  = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
-		var indexesFromDb  = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
-		var dbColumnNames  = ValueList( columnsFromDb.column_name );
-		var colsSql        = arguments.generatedSql.columns;
-		var indexesSql     = arguments.generatedSql.indexes;
-		var adapter        = _getAdapter( arguments.dsn );
-		var column         = "";
-		var colSql         = "";
-		var index          = "";
-		var indexSql       = "";
-		var deprecateSql   = "";
-		var renameSql      = "";
-		var columnName     = "";
-		var deDeprecateSql = "";
-		var newName        = "";
+		var columnsFromDb   = _getTableColumns( tableName=arguments.tableName, dsn=arguments.dsn );
+		var indexesFromDb   = _getTableIndexes( tableName=arguments.tableName, dsn=arguments.dsn );
+		var dbColumnNames   = ValueList( columnsFromDb.column_name );
+		var colsSql         = arguments.generatedSql.columns;
+		var indexesSql      = arguments.generatedSql.indexes;
+		var adapter         = _getAdapter( arguments.dsn );
+		var column          = "";
+		var colSql          = "";
+		var index           = "";
+		var indexSql        = "";
+		var deprecateSql    = "";
+		var renameSql       = "";
+		var columnName      = "";
+		var deDeprecateSql  = "";
+		var wasDeDeprecated = false;
+		var newName         = "";
 
 		// MySQL particularly can get its knickers in a twist with foreign keys.
 		// Drop all foreign keys before messing with table modifications
 		_dropAllForeignKeysForTable( columnsFromDb, arguments.tableName, arguments.dsn );
 
 		for( column in columnsFromDb ){
+			wasDeDeprecated = false;
 			if ( _getAutoRestoreDeprecatedFields() || !column.column_name contains "__deprecated__" ) {
 				columnName = Replace( column.column_name, "__deprecated__", "" );
 
@@ -322,12 +324,13 @@ component {
 							, autoIncrement = column.is_autoincrement
 						);
 
-						dbColumnNames = Replace( dbColumnNames, column.column_name, columnName );
+						dbColumnNames   = Replace( dbColumnNames, column.column_name, columnName );
+						wasDeDeprecated = true;
 
 						_runSql( sql=deDeprecateSql, dsn=arguments.dsn );
 					}
 
-					if ( not StructKeyExists( columnVersions, columnName ) or colSql.version neq columnVersions[ columnName ] ) {
+					if ( !wasDeDeprecated && ( !StructKeyExists( columnVersions, columnName ) || colSql.version != columnVersions[ columnName ] ) ) {
 
 						for( index in indexesFromDb ){
 							if ( StructKeyExists( arguments.indexes, index ) AND !findNoCase("id", column.column_name) AND listFindNoCase(indexesFromDb[index].fields, column.column_name) ) {
@@ -385,14 +388,6 @@ component {
 						);
 						_runSql( sql=deprecateSql, dsn=arguments.dsn );
 					}
-
-					_setDatabaseObjectVersion(
-						  entityType   = "column"
-						, parentEntity = arguments.tableName
-						, entityName   = column.column_name
-						, version      = "DEPRECATED"
-						, dsn          = arguments.dsn
-					);
 				}
 			}
 		}
@@ -477,21 +472,26 @@ component {
 	}
 
 	private void function _syncForeignKeys( required struct objects ) {
-		var objName         = "";
-		var obj             = "";
-		var dbKeys          = "";
-		var dbKeyName       = "";
-		var dbKey           = "";
-		var key             = "";
-		var foreignObjName  = "";
-		var foreignObj      = "";
-		var shouldBeDeleted = false;
-		var oldKey          = "";
-		var newKey          = "";
-		var deleteSql       = "";
+		var objName                = "";
+		var obj                    = "";
+		var dbKeys                 = "";
+		var dbKeyName              = "";
+		var dbKey                  = "";
+		var key                    = "";
+		var foreignObjName         = "";
+		var foreignObj             = "";
+		var shouldBeDeleted        = false;
+		var deleteSql              = "";
+		var adapter                = "";
+		var onDelete               = "";
+		var onUpdate               = "";
+		var cascadingSupported     = "";
+		var relationship           = "";
 		var existingKeysNotToTouch = {};
+
 		for( objName in objects ) {
 			obj = objects[ objName ];
+			adapter = _getAdapter( obj.meta.dsn );
 			dbKeys = _getTableForeignKeys( tableName = obj.meta.tableName, dsn = obj.meta.dsn );
 			param name="obj.meta.relationships" default=StructNew();
 			param name="obj.sql.relationships"  default=StructNew();
@@ -506,11 +506,26 @@ component {
 						param name="foreignObj.meta.relationships" default=StructNew();
 
 						if ( StructKeyExists( foreignObj.meta.relationships, dbKeyName ) ){
+							onDelete           = foreignObj.meta.relationships[ dbkeyname ].on_delete ?: "";
+							onUpdate           = foreignObj.meta.relationships[ dbkeyname ].on_update ?: "";
+							cascadingSupported = adapter.supportsCascadeUpdateDelete();
+							relationship       = Duplicate( foreignObj.meta.relationships[ dbKeyName ] );
 
-							oldKey = SerializeJson( dbKey );
-							newKey = SerializeJson( foreignObj.meta.relationships[ dbKeyName ] );
+							if ( onDelete == "cascade-if-no-cycle-check" ) {
+								relationship.on_delete = cascadingSupported ? "cascade" : "no action";
+							}
+							if ( onUpdate == "cascade-if-no-cycle-check" ) {
+								relationship.on_update = cascadingSupported ? "cascade" : "no action";
+							}
 
-							shouldBeDeleted = oldKey != newKey;
+							shouldBeDeleted = false;
+							for( var param in dbKey ) {
+								if ( !relationship.keyExists( param ) || dbKey[ param ] != relationship[ param ] ) {
+									shouldBeDeleted = true;
+									break;
+								}
+							}
+
 							if ( !shouldBeDeleted ) {
 								existingKeysNotToTouch[ foreignObjName ] = ListAppend( existingKeysNotToTouch[ foreignObjName ] ?: "", dbKeyName );
 							}
@@ -520,7 +535,7 @@ component {
 				}
 
 				if ( shouldBeDeleted ) {
-					deleteSql = _getAdapter( obj.meta.dsn ).getDropForeignKeySql(
+					deleteSql = adapter.getDropForeignKeySql(
 						  foreignKeyName = dbKeyName
 						, tableName      = dbKey.fk_table
 					);
@@ -536,7 +551,7 @@ component {
 				}
 			}
 		}
-		
+
 		for( objName in objects ) {
 			obj = objects[ objName ];
 			for( key in obj.sql.relationships ){

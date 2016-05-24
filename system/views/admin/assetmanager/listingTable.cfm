@@ -9,7 +9,7 @@
 </cfscript>
 
 <cfoutput>
-	<form action="#event.buildAdminLink( linkTo='assetManager.multiRecordAction' )#" method="post" id="multi-action-form">
+	<form action="#event.buildAdminLink( linkTo='assetManager.multiRecordAction' )#" method="post" id="multi-action-form" class="asset-manager-listing-form">
 		<input type="hidden" name="multiAction" value="">
 		<table id="asset-listing-table" class="table table-hover table-striped asset-listing-table">
 			<thead>

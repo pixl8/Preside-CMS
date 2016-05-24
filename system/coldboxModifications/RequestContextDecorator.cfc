@@ -14,6 +14,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
  *
  */
 
+
+
 // URL related
 	public void function setSite( required struct site ) output=false {
 		getRequestContext().setValue(
@@ -138,16 +140,26 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return collection;
 	}
 
-	public struct function getCollectionForForm( required string formName ) output=false {
-		var formFields = getModel( "formsService" ).listFields( arguments.formName );
-		var collection = {};
-		var rc         = getRequestContext().getCollection();
+	public struct function getCollectionForForm( string formName="" ) output=false {
+		var formNames    = Len( Trim( arguments.formName ) ) ? [ arguments.formName ] : this.getSubmittedPresideForms();
+		var formsService = getModel( "formsService" );
+		var rc           = getRequestContext().getCollection();
+		var collection   = {};
 
-		for( var field in formFields ){
-			collection[ field ] = ( rc[ field ] ?: "" );
+		for( var name in formNames ) {
+			var formFields = formsService.listFields( name );
+			for( var field in formFields ){
+				collection[ field ] = ( rc[ field ] ?: "" );
+			}
 		}
 
 		return collection;
+	}
+
+	public array function getSubmittedPresideForms() output=false {
+		var rc = getRequestContext().getCollection();
+
+		return ListToArray( Trim( rc[ "$presideform" ] ?: "" ) );
 	}
 
 // Admin specific
@@ -195,7 +207,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		announceInterception( "onAccessDenied" , arguments );
 
 		event.setView( view="/admin/errorPages/accessDenied" );
-		event.setLayout( "admin" );
 
 		event.setHTTPHeader( statusCode="401" );
 		event.setHTTPHeader( name="X-Robots-Tag"    , value="noindex" );
@@ -263,6 +274,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 // private helpers
+	private any function _simpleRequestCache( required string key, required any generator ) output=false {
+		request._simpleRequestCache = request._simpleRequestCache ?: {};
+
+		if ( !request._simpleRequestCache.keyExists( arguments.key ) ) {
+			request._simpleRequestCache[ arguments.key ] = arguments.generator();
+		}
+
+		return request._simpleRequestCache[ arguments.key ];
+	}
+
 	public any function _getSticker() output=false {
 		return getController().getPlugin(
 			  plugin       = "StickerForPreside"
@@ -271,6 +292,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService" ];
+
+		if ( singletons.findNoCase( arguments.beanName ) ) {
+			var args = arguments;
+			return _simpleRequestCache( "getSingleton" & arguments.beanName, function(){
+				return getController().getWireBox().getInstance( args.beanName );
+			} );
+		}
+
 		return getController().getWireBox().getInstance( arguments.beanName );
 	}
 
@@ -574,7 +604,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		getRequestContext().setValue( name="_presideCmsEditPageLink", value=arguments.editPageLink, private=true );
 	}
 
-<!--- FRONT END - Multilingual helpers --->
+// FRONT END - Multilingual helpers
 	public string function getLanguage() output=false {
 		return getRequestContext().getValue( name="_language", defaultValue="", private=true );
 	}
@@ -589,7 +619,19 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		getRequestContext().setValue( name="_languageSlug", value=arguments.languageSlug, private=true );
 	}
 
-<!--- status codes --->
+// HTTP Header helpers
+	public string function getClientIp() output=false {
+		var httpHeaders = getHttpRequestData().headers;
+		var clientIp    = httpHeaders[ "x-real-ip" ] ?: ( httpHeader[ "x-forwarded-for"] ?: cgi.remote_addr );
+
+		return Trim( ListFirst( clientIp ) );
+	}
+
+	public string function getUserAgent() output=false {
+		return cgi.http_user_agent;
+	}
+
+// status codes
 	public void function notFound() output=false {
 		announceInterception( "onNotFound" );
 		getController().runEvent( "general.notFound" );
@@ -602,7 +644,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 	}
 
-<!--- private helpers --->
+// private helpers
 	public string function _structToQueryString( required struct inputStruct ) output=false {
 		var qs    = "";
 		var delim = "";

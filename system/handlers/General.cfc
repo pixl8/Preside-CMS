@@ -1,5 +1,6 @@
 component {
 	property name="applicationReloadService"  inject="applicationReloadService";
+	property name="applicationsService"       inject="applicationsService";
 	property name="websiteLoginService"       inject="websiteLoginService";
 	property name="adminLoginService"         inject="loginService";
 	property name="antiSamySettings"          inject="coldbox:setting:antiSamy";
@@ -19,7 +20,15 @@ component {
 
 	public void function notFound( event, rc, prc ) {
 		var notFoundViewlet = getSetting( name="notFoundViewlet", defaultValue="errors.notFound" );
-		var notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+		var notFoundLayout  = "";
+
+		if ( event.isAdminRequest() ) {
+			var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
+
+			notFoundLayout = applicationsService.getLayout( activeApplication );
+		} else {
+			notFoundLayout  = getSetting( name="notFoundLayout" , defaultValue="Main" );
+		}
 
 		event.setLayout( notFoundLayout );
 		event.setView( view="/core/simpleBodyRenderer" );

@@ -1,21 +1,30 @@
 ( function( $ ){
+
+	var $form = $( "#add-assets-form" );
+
 	window.assetUploader = {
-		nextStep : function(){
-			var $form = $( '.asset-picker-upload-form:first' )
-			  , dz;
+		getUploaded : function(){
+			var uploader = $form.length && $form.data( "presdideUploader" );
 
-			if ( $form.length ) {
-				dz = $form.data( 'dropzone' );
-
-				if ( typeof dz !== "undefined" ) {
-					if ( dz.getAcceptedFiles().length ) {
-						$( '.asset-picker-upload-form:first' ).submit();
-					}
-				}
-			}
-
-		},
-		checkLastStep : function(){}
+			return uploader === "undefined" ? [] : uploader.getUploadedAssetIds();
+		}
 	};
+
+	if ( $form.length ) {
+		$form.on( "assetsUploaded", function(){
+			if ( typeof uberAssetSelect !== "undefined" ) {
+				var modal = uberAssetSelect.uploadIframeModal;
+				$( modal.modal ).find( ".ok-button" ).prop( "disabled", false );
+			}
+		} );
+
+		$form.on( "click", ".select-assets-link", function( e ){
+			e.preventDefault();
+
+			if ( typeof uberAssetSelect !== "undefined" ) {
+				uberAssetSelect.processUploadOk();
+			}
+		} );
+	}
 
 } )( presideJQuery );

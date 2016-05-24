@@ -6,14 +6,22 @@
 'use strict';
 
 ( function( $ ) {
+
+	var $window      = $( window )
+	  , dialogWidth  = $window.width()  - 100
+	  , dialogHeight = $window.height() - 200;
+
+	if ( dialogWidth  < 900 ) { dialogWidth  = 900; }
+	if ( dialogHeight < 500 ) { dialogHeight = 500; }
+
 	CKEDITOR.dialog.add( 'imagepicker', function( editor ) {
 		var lang = editor.lang.imagepicker
 		  , associatedWidget;
 
 		return {
 			title: lang.title,
-			minWidth: 900,
-			minHeight: 500,
+			minWidth: dialogWidth,
+			minHeight: dialogHeight,
 			onShow:function(){
 				this.disableButton( "ok" );
 			},
@@ -25,8 +33,8 @@
 					elements: [{
 						type   : 'iframe',
 						src    : "",
-						width  : '900px',
-						height : '500px',
+						width  : dialogWidth + 'px',
+						height : dialogHeight + 'px',
 						setup  : function( widget ) {
 							var params = {}
 							  , dlg    = this;

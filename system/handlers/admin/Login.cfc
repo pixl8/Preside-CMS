@@ -2,8 +2,8 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="loginService"          inject="loginService";
 	property name="passwordPolicyService" inject="passwordPolicyService";
+	property name="applicationsService"   inject="applicationsService";
 	property name="sessionStorage"        inject="coldbox:plugin:sessionStorage";
-	property name="adminDefaultEvent"     inject="coldbox:setting:adminDefaultEvent";
 	property name="messageBox"            inject="coldbox:plugin:messageBox";
 	property name="i18n"                  inject="coldbox:plugin:i18n";
 
@@ -19,7 +19,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( event.isAdminUser() ){
-			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		if ( loginService.isUserDatabaseNotConfigured() ) {
@@ -46,11 +46,15 @@ component extends="preside.system.base.AdminHandler" {
 				, instance = user.id
 			);
 
+			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
+			}
+
 			if ( Len( Trim( postLoginUrl ) ) ) {
 				sessionStorage.deleteVar( "_unsavedFormData", {} );
 				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
 			} else {
-				setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+				_redirectToDefaultAdminEvent( event );
 			}
 		} else {
 			setNextEvent( url=event.buildAdminLink( linkto="login" ), persistStruct={
@@ -59,6 +63,60 @@ component extends="preside.system.base.AdminHandler" {
 			} );
 		}
 	}
+
+	public void function twoStep( event, rc, prc ) {
+		if ( !event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+			_redirectToDefaultAdminEvent( event );
+		}
+
+		prc.loginLayoutClass = "two-col";
+		prc.twoFactorSetup = loginService.isTwoFactorAuthenticationSetupForUser();
+		if ( !prc.twoFactorSetup ) {
+			prc.authenticationKey = loginService.getTwoFactorAuthenticationKey();
+
+			if ( !Len( Trim( prc.authenticationKey ) ) ) {
+				prc.authenticationKey = loginService.generateTwoFactorAuthenticationKey();
+			}
+
+			prc.qrCode = loginService.getTwoFactorAuthenticationQrCodeImage( key=prc.authenticationKey, size=200 );
+		}
+	}
+
+	public void function twoStepAuthenticateAction( event, rc, prc ) {
+		if ( !event.isAdminUser() ){
+			setNextEvent( url=event.buildAdminLink( linkTo="login" ) );
+		}
+		if ( !loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
+			_redirectToDefaultAdminEvent( event );
+		}
+
+		var postLoginUrl  = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData   = sessionStorage.getVar( "_unsavedFormData", {} );
+		var authenticated = loginService.attemptTwoFactorAuthentication(
+			  token = ( rc.oneTimeToken ?: "" )
+			, ipAddress = event.getClientIp()
+			, userAgent = event.getUserAgent()
+		);
+
+		if ( authenticated ) {
+			if ( Len( Trim( postLoginUrl ) ) ) {
+				sessionStorage.deleteVar( "_unsavedFormData", {} );
+				setNextEvent( url=_cleanPostLoginUrl( postLoginUrl ), persistStruct=unsavedData );
+			} else {
+				_redirectToDefaultAdminEvent( event );
+			}
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={
+				  postLoginUrl = postLoginUrl
+				, message      = "AUTH_FAILED"
+			} );
+		}
+
+	}
+
 
 	public void function firstTimeUserSetupAction( event, rc, prc ) {
 		var emailAddress         = rc.email_address ?: "";
@@ -111,7 +169,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function forgottenPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
-			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		event.setView( "/admin/login/forgottenPassword" );
@@ -131,7 +189,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function resetPassword( event, rc, prc ) {
 		if ( event.isAdminUser() ){
-			setNextEvent( url=event.buildAdminLink( linkto=adminDefaultEvent ) );
+			_redirectToDefaultAdminEvent( event );
 		}
 
 		if ( !loginService.validateResetPasswordToken( rc.token ?: "" ) ) {
@@ -200,5 +258,13 @@ component extends="preside.system.base.AdminHandler" {
 		cleaned = ReReplace( cleaned, "^(https?://.*?)//", "\1/" );
 
 		return cleaned;
+	}
+
+	private void function _redirectToDefaultAdminEvent( required any event ) {
+		var defaultLink = event.buildLink(
+			linkTo = applicationsService.getDefaultEvent()
+		);
+
+		setNextEvent( url=defaultLink );
 	}
 }

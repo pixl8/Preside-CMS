@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Asset folder: Quick add form
+
+This form is used for adding asset folders in a quick add popover
+-->
+<form>
+	<tab id="basic" sortorder="10" title="preside-objects.asset_folder:basic.tab.title">
+		<fieldset id="basic" sortorder="10">
+			<field sortorder="10" binding="asset_folder.parent_folder" control="assetFolderPicker" />
+			<field sortorder="20" binding="asset_folder.label" />
+		</fieldset>
+	</tab>
+</form>
