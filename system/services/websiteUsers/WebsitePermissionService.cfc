@@ -97,7 +97,7 @@ component displayName="Website permissions service" {
 			}
 		}
 
-		return arguments.forceGrantByDefault || listPermissionKeys( user=arguments.userId ).find( arguments.permissionKey );
+		return arguments.forceGrantByDefault || listPermissionKeys( user=arguments.userId ).findNoCase( arguments.permissionKey );
 	}
 
 	/**
@@ -124,7 +124,7 @@ component displayName="Website permissions service" {
 		do {
 			comboFound = false;
 			for( var comboBenefit in comboBenefits ){
-				if ( userBenefits.find( comboBenefit.id ) ) {
+				if ( userBenefits.findNoCase( comboBenefit.id ) ) {
 					continue;
 				}
 
@@ -132,12 +132,12 @@ component displayName="Website permissions service" {
 				var hasComboBenefit = !inclusive;
 				for( var benefitId in ListToArray( comboBenefit.combined_benefits ) ){
 					if ( inclusive ) {
-						if ( userBenefits.find( benefitId ) ) {
+						if ( userBenefits.findNoCase( benefitId ) ) {
 							hasComboBenefit = true;
 							break;
 						}
 					} else {
-						if ( !userBenefits.find( benefitId ) ) {
+						if ( !userBenefits.findNoCase( benefitId ) ) {
 							hasComboBenefit = false;
 							break;
 						}
@@ -322,7 +322,7 @@ component displayName="Website permissions service" {
 
 			for ( var perm in benefitPerms ) {
 				if ( perm.granted ) {
-					if ( !perms.find( perm.permission_key ) ) {
+					if ( !perms.findNoCase( perm.permission_key ) ) {
 						perms.append( perm.permission_key );
 					}
 				} else {
@@ -340,7 +340,7 @@ component displayName="Website permissions service" {
 
 		for ( var perm in userPerms ) {
 			if ( perm.granted ) {
-				if ( !perms.find( perm.permission_key ) ) {
+				if ( !perms.findNoCase( perm.permission_key ) ) {
 					perms.append( perm.permission_key );
 				}
 			} else {
@@ -481,7 +481,7 @@ component displayName="Website permissions service" {
 		var benefits        = [];
 
 		for( var role in roles ){
-			if ( roles[ role ].find( arguments.permissionKey ) ) {
+			if ( roles[ role ].findNoCase( arguments.permissionKey ) ) {
 				rolesWithPerm[ role ] = 1;
 			}
 		}

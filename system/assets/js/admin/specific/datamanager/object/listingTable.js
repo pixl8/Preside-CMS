@@ -9,12 +9,13 @@
 	  , setupDatatable
 	  , setupCheckboxBehaviour
 	  , setupTableRowFocusBehaviour
-	  , object          = cfrequest.objectName || ""
-	  , allowSearch     = cfrequest.allowSearch
-	  , datasourceUrl   = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
-	  , useMultiActions = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
-	  , object          = cfrequest.objectName || ""
-	  , objectTitle     = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
+	  , object              = cfrequest.objectName || ""
+	  , allowSearch         = cfrequest.allowSearch
+	  , datasourceUrl       = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
+	  , useMultiActions     = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
+	  , isMultilingual      = cfrequest.isMultilingual      || false
+	  , object              = cfrequest.objectName  || ""
+	  , objectTitle         = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 	  , enabledContextHotkeys;
 
 	setupDatatable = function(){
@@ -38,6 +39,15 @@
 				defaultSort.push( [ i, $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) ]);
 			}
 		}
+		if( isMultilingual ) {
+			colConfig.push( {
+				sClass    : "center",
+				bSortable : false,
+				mData     : "_translateStatus",
+				sWidth    : "12em"
+			} );
+		}
+
 		colConfig.push( {
 			sClass    : "center",
 			bSortable : false,

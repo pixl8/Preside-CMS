@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+  <Service name="Catalina">
+    <Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" maxThreads="750" />
+    <Engine name="Catalina" defaultHost="127.0.0.1">
+      <Valve className="org.apache.catalina.valves.RemoteIpValve"  />
+      <Host name="127.0.0.1" appBase="webapps" autoDeploy="false">
+        <Context path="" docBase="/var/www" />
+      </Host>
+    </Engine>
+  </Service>
+</Server>

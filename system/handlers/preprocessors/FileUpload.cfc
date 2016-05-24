@@ -10,10 +10,11 @@ component output=false {
 
 		try {
 			uploadResult = FileUpload( tempFile, arguments.fieldName );
-		} catch ( any e ) {}
+		} catch ( any e ) {
+			logError( e );
+		}
 
 		if ( ! ( uploadResult.fileWasSaved ?: false ) ) {
-			// todo, something more useful here (logging, i18n message, etc.)
 			throw( message="Failed to upload file." );
 		}
 

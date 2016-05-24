@@ -336,6 +336,14 @@ component singleton=true {
 			args.filterParams[ "page.title" ] = "%" & arguments.searchQuery & "%";
 		}
 
+		if ( ListLen( args.orderBy, "." ) == 1 ) {
+			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( args.orderBy ) ) {
+				args.orderBy = "#arguments.pageType#.#args.orderBy#";
+			} else {
+				args.orderBy = "page.#args.orderBy#";
+			}
+		}
+
 		result.records = _getPresideObjectService().selectData( argumentCollection = args );
 
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {

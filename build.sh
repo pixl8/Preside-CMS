@@ -23,7 +23,7 @@ echo "";
 echo "Installing dependencies via box.json...";
 echo "";
 
-box install --force
+box install --force save=false
 rm -rf ./system/externals/lucee-spreadsheet/javaLoader
 rm -rf ./system/externals/lucee-spreadsheet/test
 
@@ -34,8 +34,13 @@ echo "";
 
 ./test.sh || exit 1;
 
+if [[ $TRAVIS_JDK_VERSION == 'openjdk7' ]] ; then
+	echo "Finished (only run tests on JDK 7, builds performed in the JDK8 environment)."
+	exit 0;
+fi
+
 if  [[ $TRAVIS_PULL_REQUEST == 'true' ]] ; then
-	echo "Finished. (not packaging up docs or source due to running in a pull request)."
+	echo "Finished (not packaging up docs or source due to running in a pull request)."
 	exit 0;
 fi
 
@@ -48,11 +53,29 @@ else
 	echo "Skipping docs build, not on a release tag in a travis build. To build the docs yourself, run ./support/docs/build.sh"
 fi
 if [[ $TRAVIS_TAG == v* ]] || [[ $TRAVIS_BRANCH == release* ]] ; then
-	echo "Packaging up as zip file...";
+	echo "Packaging application...";
 	echo "";
 	echo "";
 
 	ant -f support/build/build.xml -Dbranch=$TRAVIS_BRANCH -Dtag=$TRAVIS_TAG
+
+	echo "";
+	echo "";
+	echo "Creating and registering docker image";
+
+	if [[ $TRAVIS_TAG == v* ]] ; then
+		DOCKER_TAG=${TRAVIS_TAG:1}
+	else
+		DOCKER_TAG=bleeding-edge
+	fi
+
+	docker build -t pixl8/preside-cms:$DOCKER_TAG ./support/build
+	docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+	docker push pixl8/preside-cms:$DOCKER_TAG
+
+	if [[ $TRAVIS_TAG == v* ]] ; then
+		docker push pixl8/preside-cms:latest
+	fi
 else
 	echo "Skipping packaging, not on stable or release branch in a travis build. To package preside yourself, run ant -f ./support/build/build.xml"
 fi

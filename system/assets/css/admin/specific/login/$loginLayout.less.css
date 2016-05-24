@@ -5,6 +5,9 @@ html.presidecms {
   -o-background-size: cover;
   background-size: cover;
 }
+.presidecms .login-layout {
+  background-color: transparent;
+}
 .presidecms .login-layout .widget-box,
 .presidecms .login-layout .widget-box,
 .presidecms .login-layout .widget-main {
@@ -19,6 +22,9 @@ html.presidecms {
   text-indent: -999px;
   background: url(../../../../images/logos/preside-logo-for-login.png ) no-repeat center center;
 }
+.presidecms .login-layout .widget-box .cms-brand.pulled-left {
+  background-position: left center;
+}
 .presidecms .login-layout .admin-locale-picker-container {
   position: absolute;
   top: 10px;
@@ -26,6 +32,30 @@ html.presidecms {
 }
 .presidecms .login-layout .admin-locale-picker-container .admin-locale-picker-link:hover {
   text-decoration: none;
+}
+.presidecms .login-layout.two-col .login-container {
+  width: 750px;
+}
+.presidecms .login-layout.two-col .widget-box,
+.presidecms .login-layout.two-col .widget-box,
+.presidecms .login-layout.two-col .widget-main {
+  background-color: #ffffff;
+}
+.presidecms .login-layout.two-col .widget-box .widget-main {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+.presidecms .login-layout.two-col .right-col {
+  border-left: 1px solid #eeeeee;
+}
+.presidecms .login-layout.two-col .login-help-title {
+  height: 35px;
+  font-size: 2em;
+  margin-top: 23px;
+}
+.presidecms .login-layout.two-col .login-help-image {
+  display: block;
+  margin: 15px auto;
 }
 .presidecms .admin-locale-picker-container .locale-flag {
   margin-right: 0.2em;

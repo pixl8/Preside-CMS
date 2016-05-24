@@ -1,17 +1,21 @@
-component implements="iRouteHandler" output=false singleton=true {
+/**
+ * @singleton
+ *
+ */
+component implements="iRouteHandler" output=false {
 
 // constructor
 	/**
-	 * @adminPath.inject         coldbox:setting:preside_admin_path
-	 * @sysConfigService.inject  SystemConfigurationService
-	 * @eventName.inject         coldbox:setting:eventName
-	 * @defaultEvent.inject      coldbox:setting:adminDefaultEvent
-	 * @controller.inject        coldbox
+	 * @adminPath.inject           coldbox:setting:preside_admin_path
+	 * @eventName.inject           coldbox:setting:eventName
+	 * @sysConfigService.inject    delayedInjector:systemConfigurationService
+	 * @applicationsService.inject delayedInjector:applicationsService
+	 * @controller.inject          coldbox
 	 */
-	public any function init( required string adminPath, required string eventName, required string defaultEvent, required any sysConfigService, required any controller ) output=false {
+	public any function init( required string adminPath, required string eventName, required any applicationsService, required any sysConfigService, required any controller ) {
 		_setAdminPath( arguments.adminPath );
 		_setEventName( arguments.eventName );
-		_setDefaultEvent( arguments.defaultEvent );
+		_setApplicationsService( arguments.applicationsService );
 		_setSysConfigService( arguments.sysConfigService );
 		_setController( arguments.controller );
 
@@ -28,7 +32,7 @@ component implements="iRouteHandler" output=false singleton=true {
 
 		translated = ListChangeDelims( translated, ".", "/" );
 		if ( translated == "admin" ) {
-			translated = ListAppend( translated, _getDefaultEvent(), "." );
+			translated = _getDefaultEvent();
 		}
 
 		if ( !_getController().handlerExists( translated ) ) {
@@ -52,41 +56,46 @@ component implements="iRouteHandler" output=false singleton=true {
 		return event.getSiteUrl( includePath=false ) & link;
 	}
 
+// private helpers
+	private string function _getDefaultEvent() {
+		return _getApplicationsService().getDefaultEvent();
+	}
+
 // private getters and setters
-	private string function _getAdminPath() output=false {
+	private string function _getAdminPath() {
 		var fromSysConfig = _getSysConfigService().getSetting( "general", "admin_url" );
 
 		return Len( Trim( fromSysConfig ) ) ? fromSysConfig : _adminPath;
 	}
-	private void function _setAdminPath( required string adminPath ) output=false {
+	private void function _setAdminPath( required string adminPath ) {
 		_adminPath = arguments.adminPath;
 	}
 
-	private string function _getEventName() output=false {
+	private string function _getEventName() {
 		return _eventName;
 	}
-	private void function _setEventName( required string eventName ) output=false {
+	private void function _setEventName( required string eventName ) {
 		_eventName = arguments.eventName;
 	}
 
-	private any function _getSysConfigService() output=false {
+	private any function _getSysConfigService() {
 		return _sysConfigService;
 	}
-	private void function _setSysConfigService( required any sysConfigService ) output=false {
+	private void function _setSysConfigService( required any sysConfigService ) {
 		_sysConfigService = arguments.sysConfigService;
 	}
 
-	private any function _getController() output=false {
+	private any function _getController() {
 		return _controller;
 	}
-	private void function _setController( required any controller ) output=false {
+	private void function _setController( required any controller ) {
 		_controller = arguments.controller;
 	}
 
-	private string function _getDefaultEvent() output=false {
-		return _defaultEvent;
+	private any function _getApplicationsService() {
+		return _applicationsService;
 	}
-	private void function _setDefaultEvent( required string defaultEvent ) output=false {
-		_defaultEvent = arguments.defaultEvent;
+	private void function _setApplicationsService( required any applicationsService ) {
+		_applicationsService = arguments.applicationsService;
 	}
 }

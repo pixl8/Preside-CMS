@@ -1,5 +1,5 @@
 <cfscript>
-	postLoginUrl = event.getValue( name="postLoginUrl", defaultValue=event.buildAdminLink( linkto=getSetting( "adminDefaultEvent" ) ) );
+	postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
 	message      = rc.message ?: "";
 </cfscript>
 

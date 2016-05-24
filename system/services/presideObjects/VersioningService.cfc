@@ -67,7 +67,7 @@ component output=false singleton=true {
 
 	public numeric function saveVersionForUpdate(
 		  required string  objectName
-		, required string  id
+		,          string  id
 		, required any     filter
 		, required struct  filterParams
 		, required struct  data
@@ -77,7 +77,7 @@ component output=false singleton=true {
 		,          string  versionAuthor = _getLoggedInUserId()
 	) output=false {
 		var poService              = _getPresideObjectService();
-		var existingRecords        = poService.selectData( objectName = arguments.objectName, id=arguments.id, filter=arguments.filter, filterParams=arguments.filterParams );
+		var existingRecords        = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
 		var newData                = Duplicate( arguments.data );
 
 		StructDelete( newData, "datecreated" );

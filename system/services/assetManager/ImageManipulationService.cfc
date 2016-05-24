@@ -3,131 +3,46 @@
  *
  * @singleton
  * @autodoc
+ * @presideservice
  *
  */
 component displayname="Image Manipulation Service" {
 
-// CONSTRUCTOR
-	public any function init() {
-		return this;
-	}
-
-// PUBLIC API METHODS
+	// CONSTRUCTOR
 	/**
-	 * Resizes an image
-	 *
-	 * @autodoc
-	 * @asset.hint               Binary of the image to resize
-	 * @width.hint               New width, in pixels
-	 * @height.hint              New height, in pixels
-	 * @quality.hint             Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
-	 * @maintainAspectRatio.hint Whether or not maintain the aspect ratio of the image (if true, an autocrop may be applied if the aspect ratio of the resize differs from the source image)
-	 *
-	 */
-	public binary function resize(
+     * @nativeImageImplementation.inject nativeImageService
+     * @imageMagickImplementation.inject imageMagickService
+     *
+     */
+    public any function init(
+          required any nativeImageImplementation
+        , required any imageMagickImplementation
+    ) {
+        _setNativeImageImplementation( arguments.nativeImageImplementation );
+        _setImageMagickImplementation( arguments.imageMagickImplementation );
+
+        return this;
+    }
+
+	public string function resize(
 		  required binary  asset
 		,          numeric width               = 0
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
 	) {
-		var image              = "";
-		var interpolation      = arguments.quality
-		var targetAspectRatio  = 0;
-		var currentImageInfo   = {};
-		var currentAspectRatio = 0;
-
-		try {
-			image = ImageNew( arguments.asset );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.resize.notAnImage" );
-		}
-
-		currentImageInfo = ImageInfo( image );
-
-		if ( !arguments.height ) {
-			if ( currentImageInfo.width == arguments.width ) {
-				return arguments.asset;
-			}
-			ImageScaleToFit( image, arguments.width, "", interpolation );
-		} else if ( !arguments.width ) {
-			if ( currentImageInfo.height == arguments.height ) {
-				return arguments.asset;
-			}
-			ImageScaleToFit( image, "", arguments.height, interpolation );
-		} else if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return arguments.asset;
-		} else {
-			if ( maintainAspectRatio ) {
-				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
-				targetAspectRatio  = arguments.width / arguments.height;
-			}
-
-			if ( not maintainAspectRatio or targetAspectRatio eq currentAspectRatio ) {
-				ImageResize( image, arguments.width, arguments.height, interpolation );
-			} else {
-				if ( currentAspectRatio gt targetAspectRatio ) {
-					ImageScaleToFit( image, "", arguments.height, interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, Int( ( scaledImgInfo.width - arguments.width ) / 2 ), 0, arguments.width, arguments.height );
-				} else {
-					ImageScaleToFit( image, arguments.width, "", interpolation );
-					var scaledImgInfo = ImageInfo( image );
-					ImageCrop( image, 0, Int( ( scaledImgInfo.height - arguments.height ) / 2 ), arguments.width, arguments.height );
-				}
-			}
-		}
-
-		return ImageGetBlob( image );
+       	return _getImplementation().resize( argumentCollection = arguments);
 	}
 
-	/**
-	 * Shrinks an image to fit within a given width and height, without changing
-	 * the images aspect ratio.
-	 *
-	 * @autodoc
-	 * @asset.hint   Binary of the image to transorm
-	 * @width.hint   Maximum width for the image, in pixels
-	 * @height.hint  Maximum height for the image, in pixels
-	 * @quality.hint Resize algorithm quality. Options are: highestQuality, highQuality, mediumQuality, highestPerformance, highPerformance and mediumPerformance
-	 *
-	 */
 	public binary function shrinkToFit(
 		  required binary  asset
 		, required numeric width
 		, required numeric height
 		,          string  quality = "highPerformance"
 	) {
-		var image         = "";
-		var imageInfo     = "";
-		var interpolation = arguments.quality;
-
-		try {
-			image = ImageNew( arguments.asset );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
-		}
-
-		imageInfo = ImageInfo( image );
-		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
-				ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
-		}
-
-		return ImageGetBlob( image );
+		return _getImplementation().shrinkToFit( argumentCollection = arguments);
 	}
 
-	/**
-	 * Generates an image from the first page of the provided PDF binary
-	 *
-	 * @autodoc
-	 * @asset.hint       Binary of the PDF
-	 * @scale.hint       Size of the thumbnail relative to the source page. The value represents a percentage from 1 through 100.
-	 * @resolution.hint  Image quality used to generate thumbnail images
-	 * @format.hint      File type of thumbnail image output
-	 * @pages.hint       Page or pages in the source PDF document on which to perform the action. You can specify multiple pages and page ranges as follows: "1,6-9,56-89,100, 110-120".
-	 * @transparent.hint (format="png" only) Specifies whether the image background is transparent or opaque
-	 *
-	 */
 	public binary function pdfPreview(
 		  required binary asset
 		,          string scale
@@ -136,41 +51,36 @@ component displayname="Image Manipulation Service" {
 		,          string pages
 		,          string transparent
 	) {
-		var imagePrefix = CreateUUId();
-		var tmpFilePath = GetTempDirectory() & "/" & imagePrefix & "_page_" & arguments.page & ".jpg";
-		var allowedArgs = [ "scale", "resolution", "format", "pages", "transparent", "maxscale", "maxlength", "maxbreadth" ];
-		var pdfAttributes = {
-			  action      = "thumbnail"
-			, source      = asset
-			, destination = GetTempDirectory()
-			, imagePrefix = imagePrefix
-		};
-
-		for( var arg in allowedArgs ) {
-			if ( StructKeyExists( arguments, arg ) ) {
-				pdfAttributes[ arg ] = arguments[ arg ];
-			}
-		}
-
-		pdf attributeCollection=pdfAttributes;
-
-		return FileReadBinary( tmpFilePath );
+		return _getImplementation().pdfPreview( argumentCollection = arguments );
 	}
 
-	/**
-	 * Retrieves a structure of information about the image (e.g. height and width).
-	 *
-	 * @autodoc
-	 * @asset.hint Binary of the image from which to extract the info
-	 *
-	 */
 	public struct function getImageInformation( required binary asset ) {
-		try {
-			return ImageInfo( ImageNew( arguments.asset ) );
-		} catch ( "java.io.IOException" e ) {
-			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
-		}
-
-		return {};
+		return _getImplementation().getImageInformation( argumentCollection = arguments );
 	}
+
+	private function _getImplementation() {
+	    var useImageMagick = $getPresideSetting( "asset-manager", "use_imagemagick" );
+
+	    if ( IsBoolean( useImageMagick ) && useImageMagick ) {
+	        return _getImageMagickImplementation();
+	    }
+
+	    return _getNativeImageImplementation();
+	}
+
+
+	private any function _getNativeImageImplementation() {
+		return _nativeImageImplementation;
+	}
+	private void function _setNativeImageImplementation( required any nativeImageImplementation ) {
+		_nativeImageImplementation = arguments.nativeImageImplementation;
+	}
+
+	private any function _getImageMagickImplementation() {
+		return _imageMagickImplementation;
+	}
+	private void function _setImageMagickImplementation( required any imageMagickImplementation ) {
+		_imageMagickImplementation = arguments.imageMagickImplementation;
+	}
+
 }

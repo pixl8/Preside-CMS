@@ -18,6 +18,8 @@
 
 	header name="cache-control" value="no-cache, no-store";
 	header name="expires"       value="Fri, 20 Nov 2015 00:00:00 GMT";
+
+	layoutClass = prc.loginLayoutClass ?: "";
 </cfscript>
 
 <cfoutput><!DOCTYPE html>
@@ -34,7 +36,7 @@
 		#topJs#
 	</head>
 
-	<body class="login-layout">
+	<body class="login-layout #layoutClass# preside-theme">
 		<div class="main-container">
 			<div class="main-content">
 				<div class="row">

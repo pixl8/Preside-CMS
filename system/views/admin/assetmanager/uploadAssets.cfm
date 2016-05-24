@@ -1,16 +1,37 @@
 <cfscript>
-	prc.pageIcon     = "picture";
-	prc.pageTitle    = translateResource( "cms:assetManager" );
-	prc.pageSubTitle = translateResource( "cms:assetmanager.upload.assets.title" );
+	uploadCompleteView = prc.uploadCompleteView ?: '/admin/assetmanager/_batchUploadCompleteMessaging';
 
-	folderQS = 'folder=#( rc.folder ?: "" )#';
-
-	event.addAdminBreadCrumb(
-		  title = prc.pageSubTitle
-		, link  = event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString=folderQS )
-	);
-
+	event.include( "/js/admin/specific/assetmanager/uploadassets/"  )
+	     .include( "/css/admin/specific/assetmanager/uploadassets/" );
 </cfscript>
 
+<cfoutput>
+	<form id="add-assets-form" class="form-horizontal batch-add-assets-form" action="#event.buildAdminLink( linkto="assetmanager.uploadAssetAction" )#" method="post">
+		#renderView( view="/admin/assetmanager/_uploadSteps", args={ activeStep=1 } )#
 
-<cfoutput>#renderView( "admin/assetmanager/assetDropZone" )#</cfoutput>
+		<div class="row">
+			<div class="col-md-5">
+				<h3 class="upload-options-title">
+					#translateResource( "cms:assetmanager.upload.steps.batch.upload.options.title")#
+				</h3>
+
+				<div class="upload-options">
+					#renderView( '/admin/assetmanager/_batchUploadForm' )#
+				</div>
+				<div class="hide upload-progress">
+					#renderView( '/admin/assetmanager/_batchUploadProgressBar' )#
+				</div>
+				<div class="hide upload-results">
+					#renderView( uploadCompleteView )#
+				</div>
+			</div>
+			<div class="col-md-7">
+				#renderView( '/admin/assetmanager/_uploadTableAndDropzone' )#
+			</div>
+		</div>
+
+		<script type="text/template" id="file-preview-template">
+			#renderView( "/admin/assetmanager/_uploadPreviewTemplate" )#
+		</script>
+	</form>
+</cfoutput>

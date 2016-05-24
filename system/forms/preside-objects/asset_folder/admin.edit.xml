@@ -17,7 +17,7 @@ This form is used for editing folders in the asset manager section of the admini
 			<field sortorder="20" binding="asset_folder.max_filesize_in_mb" />
 		</fieldset>
 	</tab>
-	<tab id="permissions" sortorder="30" title="preside-objects.asset_folder:permissions.tab.title">
+	<tab id="permissions" sortorder="30" title="preside-objects.asset_folder:permissions.tab.title" feature="websiteUsers">
 		<fieldset id="permissions" sortorder="10">
 			<field sortorder="10" binding="asset_folder.access_restriction"                 />
 			<field sortorder="20" binding="asset_folder.full_login_required"                />
