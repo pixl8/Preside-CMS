@@ -85,8 +85,15 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private void function _detectLanguage( event, interceptor ) output=false {
 		if ( !_skipLanguageDetection( argumentCollection=arguments ) ) {
-			var path = super.getCGIElement( "path_info", event );
-			var localeSlug = Trim( ListFirst( path.reReplace( "^/", "" ), "/" ) );
+			var path     = super.getCGIElement( "path_info", event );
+			var site     = event.getSite();
+			var sitePath = site.path.reReplace( "/$", "" );
+
+			if ( sitePath.len() ) {
+				path = path.replaceNoCase( sitePath, "" );
+			}
+
+			var localeSlug = Trim( ListFirst( path, "/" ) );
 			var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
 
 			if ( language.recordCount ) {
@@ -94,9 +101,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 				event.setLanguageSlug( language.slug );
 
 				if ( language.slug != localeSlug ) {
-					var site        = event.getSite();
 					var qs          = Len( Trim( request[ "preside.query_string" ] ?: "" ) ) ? "?#request[ "preside.query_string" ]#" : "";
-					var redirectUrl = path.replaceNoCase( site.path, site.path & language.slug & "/" ) & qs;
+					var redirectUrl = sitePath & "/" & language.slug & path & qs;
 
 					location url=redirectUrl addtoken=false;
 				}
@@ -125,14 +131,18 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private void function _setPresideUrlPath( event, interceptor ) output=false {
 		var site         = event.getSite();
-		var path         = site.path;
+		var path         = site.path.reReplace( "/$", "" );
 		var languageSlug = event.getLanguageSlug();
 
 		if ( Len( Trim( languageSlug ) ) ) {
-			path = path & languageSlug & "/";
+			path = path & "/" & languageSlug & "/";
 		}
+		if ( path.len() ) {
+			path = "/" & super.getCGIElement( "path_info", event ).replaceNoCase( path, "" );
 
-		path = "/" & super.getCGIElement( "path_info", event ).replaceNoCase( path, "" );
+		} else {
+			path = super.getCGIElement( "path_info", event );
+		}
 
 		event.setCurrentPresideUrlPath( path );
 	}

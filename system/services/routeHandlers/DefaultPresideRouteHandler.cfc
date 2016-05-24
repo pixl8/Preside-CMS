@@ -48,22 +48,13 @@ component implements="iRouteHandler" output=false singleton=true {
 		var params        = "";
 		var rc            = event.getCollection();
 		var prc           = event.getCollection( private=true );
-		var site          = event.getSite();
-		var pathMinusSite = arguments.path;
 
-		if ( Len( site.path ?: "" ) > 1 ) {
-			pathMinusSite = Right( pathMinusSite, Len( pathMinusSite ) - Len( site.path ) );
-			if ( Left( pathMinusSite, 1 ) != "/" ) {
-				pathMinusSite = "/" & pathMinusSite;
-			}
-		}
-
-		if ( pathMinusSite eq "/index.cfm" or pathMinusSite eq "/" ) {
+		if ( arguments.path eq "/index.cfm" or arguments.path eq "/" ) {
 			slug      = "/";
 		} else {
-			slug      = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
-			subaction = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
-			id        = ReReplaceNoCase( pathMinusSite, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
+			slug      = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\1/" );
+			subaction = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\3" );
+			id        = ReReplaceNoCase( arguments.path, "^(.*?)(_(.*?))?(\.(.*?))?\.html", "\5" );
 		}
 
 		if ( Find( "!", slug ) ) {
