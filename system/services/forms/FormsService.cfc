@@ -1,7 +1,8 @@
 /**
- * @singleton true
+ * @singleton
+ * @autodoc
  */
-component {
+component displayName="Forms service" {
 
 // CONSTRUCTOR
 	/**
@@ -45,6 +46,13 @@ component {
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Returns an array of form names that are indexed
+	 * by the service.
+	 *
+	 * @autodoc
+	 *
+	 */
 	public array function listForms() {
 		var forms = StructKeyArray( _getForms() );
 
@@ -53,12 +61,27 @@ component {
 		return forms;
 	}
 
+	/**
+	 * Returns whether or not the given form exists.
+	 *
+	 * @autodoc
+	 * @formName.hint           The name of the form to check
+	 * @checkSiteTemplates.hint Whether or not to check within the current active site template
+	 *
+	 */
 	public boolean function formExists( required string formName, boolean checkSiteTemplates=true ) {
 		var forms = _getForms();
 
 		return StructKeyExists( forms, arguments.formName ) || ( arguments.checkSiteTemplates && StructKeyExists( forms, _getSiteTemplatePrefix() & arguments.formName ) );
 	}
 
+	/**
+	 * Returns the raw structural definition of the given form
+	 *
+	 * @autodoc
+	 * @formName.hint          The name of the form to get
+	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
+	 */
 	public struct function getForm( required string formName, boolean autoMergeSiteForm=true ) {
 		var forms        = _getForms();
 		var objectName   = "";
@@ -92,6 +115,15 @@ component {
 		);
 	}
 
+	/**
+	 * Merges the definitions of two forms, register the new form and
+	 * and returns the raw structure of the merged form as the result.
+	 *
+	 * @autodoc
+	 * @formName.hint          Name of the source form
+	 * @mergeWithFormName.hint Name of the form to merge with
+	 * @autoMergeSiteForm.hint Whether or not to automatically merge any matching form definitions in the current active site template
+	 */
 	public struct function mergeForms( required string formName, required string mergeWithFormName, boolean autoMergeSiteForm=true ) {
 		var mergedName = getMergedFormName( arguments.formName, arguments.mergeWithFormName, false );
 
@@ -109,6 +141,15 @@ component {
 		return merged;
 	}
 
+	/**
+	 * Returns the raw definition of the given field
+	 * within the given form.
+	 *
+	 * @autodoc
+	 * @formName.hint  Name of the form in which the field is defined
+	 * @fieldName.hint Name of the field to get
+	 *
+	 */
 	public struct function getFormField( required string formName, required string fieldName ) {
 		var frm = getForm( arguments.formName );
 
@@ -128,7 +169,13 @@ component {
 		);
 	}
 
-	public any function listFields( required string formName ) {
+	/**
+	 * Returns an array of the field names defined in the form.
+	 *
+	 * @autodoc
+	 * @formName.hint Name of the form who's fields you wish to list.
+	 */
+	public array function listFields( required string formName ) {
 		var frm    = getForm( arguments.formName );
 		var fields = [];
 
@@ -151,6 +198,14 @@ component {
 		return fields;
 	}
 
+	/**
+	 * Returns a default form definition for the given
+	 * Preside object name
+	 *
+	 * @autodoc
+	 * @objectName.hint Name of the object who's definition you wish to get
+	 *
+	 */
 	public struct function getDefaultFormForPresideObject( required string objectName ) {
 		var fields = _getPresideObjectService().getObjectProperties( objectName = arguments.objectName );
 		var formLayout = {
@@ -176,11 +231,38 @@ component {
 			}
 		}
 
+		formLayout.tabs[1].fieldsets[1].fields.sort( function( field1, field2 ){
+			var order1 = Val( field1.sortOrder ?: 999999999 );
+			var order2 = Val( field2.sortOrder ?: 999999999 );
+
+			return order1 == order2 ? 0 : ( order1 > order2 ? 1 : -1 );
+		} );
+
 		_applyDefaultLabellingToForm( formName="preside-objects.#objectName#.default", frm=formLayout );
 
 		return formLayout;
 	}
 
+	/**
+	 * Renders the given form
+	 *
+	 * @autodoc
+	 * @formName.hint            Name of the form to render
+	 * @mergeWithFormName.hint   Name of a secondary form to merge with the primary form
+	 * @context.hint             Context in which to render the form, e.g. 'admin' or 'website'. See [[presideforms-rendering]] for more details.
+	 * @fieldLayout.hint         Viewlet for rendering a field layout. See [[presideforms-rendering]] for more details.
+	 * @fieldsetLayout.hint      Viewlet for rendering a fieldset layout. See [[presideforms-rendering]] for more details.
+	 * @tabLayout.hint           Viewlet for rendering a tab layout. See [[presideforms-rendering]] for more details.
+	 * @formLayout.hint          Viewlet for rendering an overall form layout. See [[presideforms-rendering]] for more details.
+	 * @formId.hint              HTML ID of the wrapping form element. This is used for the js validation logic if generated.
+	 * @validationResult.hint    An existing validation result object with which to display errors in the form (see [[validation-framework]] and [[presideforms-validation]] for more details)
+	 * @includeValidationJs.hint Whether or not to generate and include validation javascript with the form
+	 * @savedData.hint           Structure of pre-existing data with which to pre-populate values in the form
+	 * @fieldNamePrefix.hint     A prefix to add to each field name
+	 * @fieldNameSuffix.hint     A suffix to add to each field name
+	 * @suppressFields.hint      An array of field names to hide from the rendering
+	 *
+	 */
 	public string function renderForm(
 		  required string  formName
 		,          string  mergeWithFormName    = ""
@@ -198,7 +280,8 @@ component {
 		,          string  fieldNameSuffix      = ""
 		,          array   suppressFields       = []
 	) {
-		var frm               = Len( Trim( arguments.mergeWithFormName ) ) ? mergeForms( arguments.formName, arguments.mergeWithFormName) : getForm( arguments.formName );
+		var mergedFormName    = Len( Trim( arguments.mergeWithFormName ) ) ? getMergedFormName( arguments.formName, arguments.mergeWithFormName ) : arguments.formName;
+		var frm               = getForm( mergedFormName );
 		var coldbox           = _getColdbox();
 		var i18n              = _getI18n();
 		var renderedTabs      = CreateObject( "java", "java.lang.StringBuffer" );
@@ -288,15 +371,37 @@ component {
 			activeTab = false;
 		}
 
-		return coldbox.renderViewlet( event=arguments.formLayout, args={
+		var formArgs = {
 			  formId             = arguments.formId
+			, formName           = mergedFormName
 			, content            = renderedTabs.toString()
 			, tabs               = tabs
 			, validationResult   = arguments.validationResult
 			, validationJs       = arguments.includeValidationJs ? getValidationJs( arguments.formName, arguments.mergeWithFormName ) : ""
-		} );
+		};
+
+		formArgs.append( frm, false );
+
+		return coldbox.renderViewlet( event=arguments.formLayout, args=formArgs );
 	}
 
+	/**
+	 * Renders an individual form control. If in doubt, you should
+	 * use `renderForm` instead of rendering individual form controls.
+	 *
+	 * @autodoc
+	 * @name.hint         The name of the field to use
+	 * @type.hint         The control type, e.g. 'richeditor'
+	 * @context.hint      The context
+	 * @id.hint           The HTML ID to use for the rendered form control
+	 * @label.hint        The label for the control. Can be an i18n resource URI.
+	 * @defaultValue.hint The default value to prepopulate the control with (e.g. a saved value from the database)
+	 * @help.hint         Help text to accompany the control. Can be an i18n resource URI.
+	 * @savedData.hint    Structure of saved data for the entire form that is being rendered.
+	 * @error.hint        Error string to display with the control
+	 * @required.hint     Whether or not the form field is required
+	 * @layout.hint       Viewlet to use to render the field's layout
+	 */
 	public string function renderFormControl(
 		  required string  name
 		, required string  type
@@ -347,6 +452,15 @@ component {
 		return renderedControl;
 	}
 
+	/**
+	 * Renders a form control suitable for the given object and object field name (property name).
+	 * Supplied arguments will be passed on to the [[formsservice-renderformcontrol]] method along
+	 * with the calculated form control type and any other arguments.
+	 *
+	 * @autodoc
+	 * @objectName.hint Name of the object who's field you wish to get a form control for
+	 * @fieldName.hint  Name of the field (property) on the object that you wish to get a form control for
+	 */
 	public string function renderFormControlForObjectField( required string objectName, required string fieldName ) {
 		var pobjService     = _getPresideObjectService();
 	    var fieldBaseI18n   = pobjService.getResourceBundleUriRoot( arguments.objectName );
@@ -367,6 +481,17 @@ component {
 	    return renderFormControl( argumentCollection = formControlArgs );
 	}
 
+	/**
+	 * Validates the given form using the [[validation-framework]].
+	 * Returns a [[api-validationresult|validation result]] object.
+	 *
+	 * @autodoc
+	 * @formName.hint         Name of the form to validate
+	 * @formData.hint         Data from the form submission
+	 * @preProcessData.hint   Whether or not to _preprocess_ form submissions (see [[validation-engine]])
+	 * @ignoreMissing.hint    Whether or not to ignore entirely missing fields in the supplied data
+	 * @validationResult.hint A pre-existing validation result to which to add any errors found during validation
+	 */
 	public any function validateForm(
 		  required string  formName
 		, required struct  formData
@@ -396,6 +521,14 @@ component {
 		);
 	}
 
+	/**
+	 * Returns raw javascript validation logic for the given form.
+	 *
+	 * @autodoc
+	 * @formName          Name of the form definition from which to generate the validation js
+	 * @mergeWithFormName Secondary form name for merging with the primary form
+	 *
+	 */
 	public any function getValidationJs( required string formName, string mergeWithFormName="" ) {
 		var validationFormName = Len( Trim( mergeWithFormName ) ) ? getMergedFormName( formName, mergeWithFormName ) : formName;
 
@@ -404,6 +537,16 @@ component {
 		);
 	}
 
+	/**
+	 * Pre-processes an entire form submission (runs any mapped preprocessors
+	 * for each field to get a generated value prior to validation and/or
+	 * persisting to the database).
+	 *
+	 * @autodoc
+	 * @formName         Name of the form
+	 * @formData         Submitted form data
+	 * @validationResult A pre-existing validation result to which to append any errors found during preprocessing
+	 */
 	public any function preProcessForm( required string formName, required struct formData, any validationResult=_getValidationEngine().newValidationResult() ) {
 		var formFields       = listFields( arguments.formName );
 		var fieldValue       = "";
@@ -429,6 +572,17 @@ component {
 		return validationResult;
 	}
 
+	/**
+	 * Pre-processes an individual field's data submission (runs any mapped preprocessors
+	 * for each field to get a generated value prior to validation and/or
+	 * persisting to the database).
+	 *
+	 * @autodoc
+	 * @formName   The name of the form in which the field is defined
+	 * @fieldName  The name of the field
+	 * @fieldValue The submitted value that will be pre-processed
+	 *
+	 */
 	public any function preProcessFormField( required string formName, required string fieldName, required string fieldValue ) {
 		var field        = getFormField( formName = arguments.formName, fieldName = arguments.fieldName );
 		var preProcessor = _getPreProcessorForField( argumentCollection = field );
@@ -445,6 +599,14 @@ component {
 		return arguments.fieldValue;
 	}
 
+	/**
+	 * Returns the resultant form name that is generated when merging two form definitions
+	 *
+	 * @autodoc
+	 * @formName.hint          Name of the source form
+	 * @mergeWithFormName.hint Name of the form that is merged with the source form
+	 * @createIfNotExists.hint Whether or not to create and register the form definition if it does not already exist.
+	 */
 	public string function getMergedFormName( required string formName, required string mergeWithFormName, boolean createIfNotExists=true ) {
 		var mergedName = formName & ".merged.with." & mergeWithFormName;
 
@@ -455,6 +617,48 @@ component {
 		return mergedName;
 	}
 
+	/**
+	 * Creates and registers a new dynamic form. Supply a 'generator closure'
+	 * to add code to help generate the form definition. Closure accepts a [[api-formdefinition]] argument
+	 * as the first argument. e.g.
+	 * \n
+	 * ```luceescript\n
+	 * createForm( function( formDefinition ){\n
+	 *     formDefinition.addField( name="myfield", fieldset="default", tab="default" );\n
+	 * } );\n
+	 * ```\n
+	 *
+	 * @autodoc
+	 * @generator.hint Closure that accepts as its first argument a [[api-formdefinition]] object so that calling code can build the form definition.
+	 * @basedOn.hint   Name of the form to base the new dynamic form on. Generator closure will take the full definition of the original form so that it can then make modifications and additions that it needs
+	 * @formName.hint  If supplied, specifies the name of the form that will be registered. If not supplied, a name will be generated based on the unique full definition of the form. Warning, if using this argument, ensure that the name will be unique for each distinct form definition.
+	 *
+	 */
+	public string function createForm( any generator, string basedOn="", string formName ) {
+		var basedOnDef     = Len( Trim( arguments.basedOn ) ) ? Duplicate( getForm( arguments.basedOn ) ) : { tabs=[] };
+		var formDefinition = new FormDefinition( basedOnDef );
+
+		if ( arguments.keyExists( "generator" ) ) {
+			arguments.generator( formDefinition );
+		}
+
+		var rawDefinition = formDefinition.getRawDefinition();
+
+		if ( !Len( Trim( arguments.formName ) ) ) {
+			arguments.formName = _generateFormNameFromDefinition( rawDefinition );
+		}
+
+		_registerForm( arguments.formName, rawDefinition );
+
+		return arguments.formName;
+	}
+
+	/**
+	 * Reloads the form definitions from source directories
+	 *
+	 * @autodoc
+	 *
+	 */
 	public void function reload() {
 		_loadForms();
 	}
@@ -505,7 +709,9 @@ component {
 	}
 
 	private boolean function _registerForm( required string formName, required struct formDefinition ) {
-		if ( _formDoesNotBelongToDisabledFeature( arguments.formDefinition ) ) {
+		if ( !_itemBelongsToDisabledFeature( arguments.formDefinition ) ) {
+			_stripDisabledFeatures( arguments.formDefinition );
+
 			var forms   = _getForms();
 			var ruleset = _getValidationEngine().newRuleset( name="PresideForm.#formName#", rules=_getPresideFieldRuleGenerator().generateRulesFromPresideForm( formDefinition ) );
 
@@ -573,7 +779,7 @@ component {
 								field[ key ] = Duplicate( tabs[i].fieldset[n].field[x].xmlAttributes[ key ] );
 							}
 
-							_bindAttributesFromPresideObjectField( field );
+							_bindAttributesFromPresideObjectField( field=field, throwOnMissingObject=!_itemBelongsToDisabledFeature( tab ) && !_itemBelongsToDisabledFeature( fieldset ) && !_itemBelongsToDisabledFeature( field ) );
 							field.rules = _parseRules( field = tabs[i].fieldset[n].field[x] );
 
 							ArrayAppend( fieldset.fields, field );
@@ -590,7 +796,7 @@ component {
 		return theForm;
 	}
 
-	private void function _bindAttributesFromPresideObjectField( required struct field ) {
+	private void function _bindAttributesFromPresideObjectField( required struct field, boolean throwOnMissingObject=true ) {
 		var property    = "";
 		var boundObject = "";
 		var boundField  = "";
@@ -608,17 +814,25 @@ component {
 			boundField  = ListRest( field.binding, "." );
 			boundObject = ListFirst( field.binding, "." );
 
-			if ( not pobjService.objectExists( boundObject ) ) {
-				throw(
-					  type = "FormsService.BadBinding"
-					, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
-				);
+			if ( !pobjService.objectExists( boundObject ) ) {
+				if ( arguments.throwOnMissingObject ) {
+					throw(
+						  type = "FormsService.BadBinding"
+						, message = "The preside object, [#boundObject#], referred to in the form field binding, [#field.binding#], could not be found. Valid objects are #SerializeJson( pobjService.listObjects() )#"
+					);
+				}
+
+				return;
 			}
-			if ( not pobjService.fieldExists( boundObject, boundField ) ){
-				throw(
-					  type = "FormsService.BadBinding"
-					, message = "The field, [#boundField#], referred to in the form field binding, [#field.binding#], could not be found in Preside Object, [#boundObject#]"
-				);
+			if ( !pobjService.fieldExists( boundObject, boundField ) ){
+				if ( arguments.throwOnMissingObject ) {
+					throw(
+						  type = "FormsService.BadBinding"
+						, message = "The field, [#boundField#], referred to in the form field binding, [#field.binding#], could not be found in Preside Object, [#boundObject#]"
+					);
+				}
+
+				return;
 			}
 
 			property = _getPresideObjectService().getObjectProperty( boundObject, boundField );
@@ -783,6 +997,14 @@ component {
 			}
 		}
 
+		if ( Len( Trim( tabOrFieldset.iconClass ?: "" ) ) ) {
+			if ( i18n.isValidResourceUri( tabOrFieldset.iconClass ) ) {
+				attributes.iconClass = i18n.translateResource( uri=tabOrFieldset.iconClass, defaultValue="" );
+			} else {
+				attributes.iconClass = tabOrFieldset.iconClass;
+			}
+		}
+
 		return attributes;
 	}
 
@@ -815,6 +1037,12 @@ component {
 	}
 
 	private struct function _mergeForms( required struct form1, required struct form2 ) {
+		for( var attrib in form2 ) {
+			if ( IsSimpleValue( form2[ attrib ] ) ) {
+				form1[ attrib ] = form2[ attrib ];
+			}
+		}
+
 		for( var tab in form2.tabs ){
 			var matchingTab = {};
 			if ( Len( Trim( tab.id ?: "" ) ) ) {
@@ -935,8 +1163,33 @@ component {
 		return Len( Trim( siteTemplate ) ) ? ( "site-template::" & sitetemplate & "." ) : "";
 	}
 
-	private boolean function _formDoesNotBelongToDisabledFeature( required struct formDefinition ) {
-		return !Len( Trim( formDefinition.feature ?: "" ) ) || _getFeatureService().isFeatureEnabled( Trim( formDefinition.feature ) );
+	private boolean function _itemBelongsToDisabledFeature( required struct itemDefinition ) {
+		return Len( Trim( itemDefinition.feature ?: "" ) ) && !_getFeatureService().isFeatureEnabled( Trim( itemDefinition.feature ) );
+	}
+
+	private void function _stripDisabledFeatures( required struct formDefinition ) {
+		var tabs = arguments.formDefinition.tabs ?: [];
+
+		for( var i=tabs.len(); i>0; i-- ) {
+			if ( _itemBelongsToDisabledFeature( tabs[ i ] ) ) {
+				tabs.deleteAt( i );
+			}
+
+			var fieldsets = tabs[ i ].fieldSets ?: [];
+			for( var n=fieldsets.len(); n>0; n-- ) {
+				if ( _itemBelongsToDisabledFeature( fieldsets[ n ] ) ) {
+					fieldsets.deleteAt( n );
+				}
+
+				var fields = fieldsets[ n ].fields ?: [];
+
+				for( var x=fields.len(); x>0; x-- ) {
+					if ( _itemBelongsToDisabledFeature( fields[ x ] ) ) {
+						fields.deleteAt( x );
+					}
+				}
+			}
+		}
 	}
 
 	private string function _getDefaultI18nBaseUriForForm( required string formName ) {
@@ -976,6 +1229,10 @@ component {
 					if ( !Len( Trim( tab.description ?: "" ) ) ) {
 						tab.description = baseI18nUri & "tab.#tab.id#.description";
 						tab.autoGeneratedAttributes.append( "description" );
+					}
+					if ( !Len( Trim( tab.iconClass ?: "" ) ) ) {
+						tab.iconClass = baseI18nUri & "tab.#tab.id#.iconClass";
+						tab.autoGeneratedAttributes.append( "iconClass" );
 					}
 				}
 			}
@@ -1022,6 +1279,10 @@ component {
 				}
 			}
 		}
+	}
+
+	private string function _generateFormNameFromDefinition( required struct definition ) {
+		return "dynamicform-" & LCase( Hash( SerializeJson( arguments.definition ) ) );
 	}
 
 // GETTERS AND SETTERS

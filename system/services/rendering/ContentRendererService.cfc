@@ -38,10 +38,10 @@ component singleton=true output="false" {
 		}
 	}
 
-	public string function renderLabel( required string objectName, required string recordId ) {
+	public string function renderLabel( required string objectName, required string recordId, string keyField="id" ) {
 		var record = _getPresideObjectService().selectData(
 			  objectName   = arguments.objectName
-			, filter       = { id=arguments.recordId }
+			, filter       = { "#keyField#"=arguments.recordId }
 			, selectFields = [ "${labelfield} as label" ]
 		);
 

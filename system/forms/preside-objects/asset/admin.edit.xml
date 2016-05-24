@@ -13,7 +13,7 @@ This form is used when editing assets in the asset manager section of the admini
 		</fieldset>
 	</tab>
 
-	<tab id="permissions" sortorder="20" title="preside-objects.asset:permissions.tab.title">
+	<tab id="permissions" sortorder="20" title="preside-objects.asset:permissions.tab.title" feature="websiteUsers">
 		<fieldset id="permissions" sortorder="10">
 			<field sortorder="10" binding="asset.access_restriction"                 />
 			<field sortorder="20" binding="asset.full_login_required"                />

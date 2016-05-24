@@ -1,5 +1,8 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
+	property name="siteService"       inject="delayedInjector:siteService";
+	property name="adminRouteHandler" inject="delayedInjector:adminRouteHandler";
+
 	public void function configure() output=false {
 		instance.presideRoutes = [];
 
@@ -50,25 +53,25 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		var pathInfo = super.getCGIElement( "path_info", event );
 		var site     = "";
 
-		if ( _getAdminRouteHandler().match( pathInfo, event ) && event.isAdminUser() ) {
-			site = _getSiteService().getActiveAdminSite();
+		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
+			site = siteService.getActiveAdminSite();
 		} else {
-			site = _getSiteService().matchSite(
+			site = siteService.matchSite(
 				  domain = super.getCGIElement( "server_name", event )
 				, path   = pathInfo
 			);
 			if ( Len( Trim( site.id ?: "" ) ) ) {
-				_getSiteService().setActiveAdminSite( site.id );
+				siteService.setActiveAdminSite( site.id );
 			}
-		}
 
-		if ( site.isEmpty() ) {
-			throw(
-				  type      = "presidecms.site.not.found"
-				, message   = "There is no PresideCMS site configured with the current domain, [#super.getCGIElement( 'server_name', event )#]"
-				, detail    = "If you are the system administrator, and expect the domain to work, please update the site's main domain either in the database or through the administrator if accessible."
-				, errorCode = 404
-			);
+			if ( site.isEmpty() ) {
+				throw(
+					  type      = "presidecms.site.not.found"
+					, message   = "There is no PresideCMS site configured with the current domain, [#super.getCGIElement( 'server_name', event )#]"
+					, detail    = "If you are the system administrator, and expect the domain to work, please update the site's main domain either in the database or through the administrator if accessible."
+					, errorCode = 404
+				);
+			}
 		}
 
 		event.setSite( site );
@@ -107,7 +110,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private void function _checkRedirectDomains( event, interceptData ) output=false {
 		var domain       = super.getCGIElement( "server_name", event );
-		var redirectSite = _getSiteService().getRedirectSiteForDomain( domain );
+		var redirectSite = siteService.getRedirectSiteForDomain( domain );
 
 		if ( redirectSite.recordCount && redirectSite.domain != domain ) {
 			var path        = super.getCGIElement( 'path_info', event );
@@ -119,21 +122,5 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			}
 			getController().setNextEvent( url=redirectUrl, statusCode=301 );
 		}
-	}
-
-	private any function _getSiteService() output=false {
-		if ( not StructKeyExists( variables, "_siteService" ) ) {
-			_siteService = getModel( "siteService" );
-		}
-
-		return _siteService;
-	}
-
-	private any function _getAdminRouteHandler() output=false {
-		if ( not StructKeyExists( variables, "_adminRouteHandler" ) ) {
-			_adminRouteHandler = getModel( "adminRouteHandler" );
-		}
-
-		return _adminRouteHandler;
 	}
 }

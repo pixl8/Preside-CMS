@@ -24,7 +24,6 @@ component output=false singleton=true {
 		_getLogger().debug( arguments.sql );
 
 		q.setDatasource( arguments.dsn );
-		q.setSQL( arguments.sql );
 
 		if ( StructKeyExists( arguments, "params" ) ) {
 			for( param in arguments.params ){
@@ -44,6 +43,7 @@ component output=false singleton=true {
 
 				if ( not Len( Trim( param.value ) ) ) {
 					param.null = true;
+					arguments.sql = _transformNullClauses( arguments.sql, param.name );
 				}
 
 				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
@@ -51,6 +51,7 @@ component output=false singleton=true {
 				q.addParam( argumentCollection = param );
 			}
 		}
+		q.setSQL( arguments.sql );
 		result = q.execute();
 
 		if ( arguments.returntype eq "info" ) {
@@ -58,6 +59,23 @@ component output=false singleton=true {
 		} else {
 			return result.getResult();
 		}
+	}
+
+// PRIVATE UTILITY
+	private string function _transformNullClauses( required string sql, required string paramName ) {
+		var hasClause = arguments.sql.reFindNoCase( "\swhere\s" );
+
+		if ( !hasClause ) {
+			return arguments.sql;
+		}
+
+		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
+		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
+
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not :#arguments.paramName#", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is :#arguments.paramName#", "all" );
+
+		return preClause & postClause
 	}
 
 // GETTERS AND SETTERS

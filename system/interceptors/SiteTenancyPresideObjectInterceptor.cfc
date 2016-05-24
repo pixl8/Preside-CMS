@@ -1,9 +1,11 @@
-component extends="coldbox.system.Interceptor" output=false {
+component extends="coldbox.system.Interceptor" {
+
+	property name="presideObjectService" inject="delayedInjector:presideObjectService";
 
 // PUBLIC
-	public void function configure() output=false {}
+	public void function configure() {}
 
-	public void function postReadPresideObject( event, interceptData ) output=false {
+	public void function postReadPresideObject( event, interceptData ) {
 		var objectMeta = interceptData.objectMeta ?: {};
 
 		objectMeta.siteTemplates = objectMeta.siteTemplates ?: _getSiteTemplateForObject( objectMeta.name );
@@ -14,21 +16,21 @@ component extends="coldbox.system.Interceptor" output=false {
 		}
 	}
 
-	public void function prePrepareObjectFilter( event, interceptData ) output=false {
+	public void function prePrepareObjectFilter( event, interceptData ) {
 		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
 			interceptData.extraFilters = interceptData.extraFilters ?: [];
 			interceptData.extraFilters.append( { filter = { "#interceptData.objectName#.site" = event.getSiteId() } } );
 		}
 	}
 
-	public void function onCreateSelectDataCacheKey( event, interceptData ) output=false {
+	public void function onCreateSelectDataCacheKey( event, interceptData ) {
 		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
 			interceptData.cacheKey = interceptData.cacheKey ?: "";
 			interceptData.cacheKey &= "_" & event.getSiteId();
 		}
 	}
 
-	public void function preInsertObjectData( event, interceptData ) output=false {
+	public void function preInsertObjectData( event, interceptData ) {
 		if ( _objectIsUsingSiteTenancy( interceptData.objectName ?: "" ) ) {
 			interceptData.data      = interceptData.data      ?: {};
 			interceptData.data.site = interceptData.data.site ?: event.getSiteId();
@@ -36,7 +38,7 @@ component extends="coldbox.system.Interceptor" output=false {
 	}
 
 // PRIVATE HELPERS
-	private string function _getSiteTemplateForObject( required string objectPath ) output=false {
+	private string function _getSiteTemplateForObject( required string objectPath ) {
 		var regex = "^.*?\.site-templates\.([^\.]+)\.preside-objects\..+$";
 
 		if ( !ReFindNoCase( regex, arguments.objectPath ) ) {
@@ -46,19 +48,17 @@ component extends="coldbox.system.Interceptor" output=false {
 		return ReReplaceNoCase( arguments.objectPath, regex, "\1" );
 	}
 
-	private boolean function _objectIsUsingSiteTenancy( required string objectName ) output=false {
-		var objService = getModel( "presideObjectService" );
-
-		if ( !objService.objectExists( arguments.objectName ) ) {
+	private boolean function _objectIsUsingSiteTenancy( required string objectName ) {
+		if ( !presideObjectService.objectExists( arguments.objectName ) ) {
 			return false;
 		}
 
-		var usingSiteTenancy = objService.getObjectAttribute( arguments.objectName, "siteFiltered", false );
+		var usingSiteTenancy = presideObjectService.getObjectAttribute( arguments.objectName, "siteFiltered", false );
 
 		return IsBoolean( usingSiteTenancy ) && usingSiteTenancy;
 	}
 
-	private void function _injectSiteTenancyFields( required struct meta ) output=false {
+	private void function _injectSiteTenancyFields( required struct meta ) {
 		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none" };
 		var indexNames           = [];
 

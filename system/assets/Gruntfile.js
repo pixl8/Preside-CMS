@@ -153,6 +153,10 @@ module.exports = function( grunt ) {
 					}
 				}]
 			},
+			ace:{
+				src  : 'css/admin/ace/ace.less',
+				dest : 'css/admin/ace/ace-for-preside.less'
+			},
 			core: {
 				src  : 'css/admin/core/core.less',
 				dest : 'css/admin/core/core.less.css'

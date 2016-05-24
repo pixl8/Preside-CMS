@@ -56,6 +56,10 @@
 		<cfreturn getController().renderViewlet( event="renderers.link.default", args=arguments ) />
 	</cffunction>
 
+	<cffunction name="getLinkUrl" access="public" returntype="any" output="false">
+		<cfreturn getSingleton( "linksService" ).getLinkUrl( argumentCollection = arguments ) />
+	</cffunction>
+
 	<cffunction name="renderAsset" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "assetRendererService" ).renderAsset( argumentCollection = arguments ) />
 	</cffunction>
@@ -87,6 +91,28 @@
 
 	<cffunction name="validateForm" access="public" returntype="any" output="false">
 		<cfreturn getSingleton( "formsService" ).validateForm( argumentCollection=arguments ) />
+	</cffunction>
+
+	<cffunction name="validateForms" access="public" returntype="any" output="false">
+		<cfscript>
+			var formsService     = getSingleton( "formsService" );
+			var validationResult = getSingleton( "validationEngine" ).newValidationResult();
+			var event            = getController().getRequestContext();
+			var formNames        = event.getSubmittedPresideForms();
+
+			for( var formName in formNames ) {
+				var formData = event.getCollectionForForm( formName );
+
+				validationResult = formsService.validateForm(
+					  argumentCollection = arguments
+					, formName           = formName
+					, formData           = formData
+					, validationResult   = validationResult
+				);
+			}
+
+			return validationResult;
+		</cfscript>
 	</cffunction>
 
 	<cffunction name="preProcessForm" access="public" returntype="any" output="false">

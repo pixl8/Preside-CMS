@@ -1,5 +1,5 @@
 component extends="coldbox.system.Interceptor" output=false {
-	property name="adminDefaultEvent" inject="coldbox:setting:adminDefaultEvent";
+	property name="applicationsService"   inject="delayedInjector:applicationsService";
 
 // PUBLIC
 	public void function configure() output=false {}
@@ -20,7 +20,7 @@ component extends="coldbox.system.Interceptor" output=false {
 			}
 
 			// TODO, something better here!
-			setNextEvent( url=event.buildAdminLink( linkTo=adminDefaultEvent ), persistStruct=persist );
+			setNextEvent( url=event.buildLink( linkTo=applicationsService.getDefaultEvent() ), persistStruct=persist );
 		}
 	}
 

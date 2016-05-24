@@ -8,7 +8,8 @@
 		<fieldset id="relative">
 			<field name="relativeOperator"      control="select"      required="false"  sortorder="10" values=" ,lt,lte,gt,gte" labels=" ,formbuilder.item-types.date:relativeOperator.lt,formbuilder.item-types.date:relativeOperator.lte,formbuilder.item-types.date:relativeOperator.gt,formbuilder.item-types.date:relativeOperator.gte" defaultValue="" />
 			<field name="relativeToCurrentDate" control="yesNoSwitch" required="false"  sortorder="20" />
-			<field name="relativeToField"       control="textinput"   required="false"  sortorder="30" />
+			<field name="offset"                control="spinner"     required="false"  sortorder="30" />
+			<field name="relativeToField"       control="textinput"   required="false"  sortorder="40" />
 		</fieldset>
 	</tab>
 </form>

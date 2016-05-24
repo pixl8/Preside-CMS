@@ -57,10 +57,10 @@
 							  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
 							, className : "btn-default"
 						},
-						next : {
-							  label     : '<i class="fa fa-arrow-circle-o-right"></i> ' + i18n.translateResource( "cms:next.btn" )
-							, className : "btn-primary"
-							, callback  : function(){ return uberAssetSelect.processUploadNextButton(); }
+						ok : {
+							  label     : '<i class="fa fa-arrow-circle-o-right"></i> ' + i18n.translateResource( "cms:ok.btn" )
+							, className : "btn-primary ok-button"
+							, callback  : function(){ return uberAssetSelect.processUploadOk(); }
 						}
 					}
 				}
@@ -68,9 +68,7 @@
 			  		onLoad : function( iframe ) {
 			  			iframe.uberAssetSelect = uberAssetSelect;
 						uberAssetSelect.uploadIframe = iframe;
-						if ( typeof iframe.assetUploader !== "undefined" ) {
-							iframe.assetUploader.checkLastStep();
-						}
+						$( uberAssetSelect.uploadIframeModal.modal ).find( ".ok-button" ).prop( "disabled", true );
 					}
 			    };
 
@@ -99,38 +97,21 @@
 			return true;
 		};
 
-		UberAssetSelect.prototype.processUploadNextButton = function(){
-			var uploadIframe = this.getUploadIframe();
-
-			if ( typeof uploadIframe.assetUploader !== "undefined" ) {
-				$( uploadIframe ).focus();
-				uploadIframe.assetUploader.nextStep();
-
-				return false;
-			}
-
-			return true;
-		};
-
-		UberAssetSelect.prototype.uploadStepsFinished = function(){
+		UberAssetSelect.prototype.processUploadOk = function(){
 			var uploadIframe = this.getUploadIframe()
 			  , selectedAssets = uploadIframe.assetUploader.getUploaded()
 			  , i=0, len = selectedAssets.length;
 
+
+			if ( len === 0 ) {
+				alert( "Warning, no assets uploaded..." );
+
+			}
 			for( ; i<len; i++ ){
 				this.uberSelect.select( selectedAssets[i] );
 			}
 
 			this.uploadIframeModal.close();
-		};
-
-		UberAssetSelect.prototype.enteredLastStep = function(){
-			var $modal      = this.uploadIframeModal.getModal()
-			  , $nextButton = $modal.length && $modal.find( "button[data-bb-handler='next']" );
-
-			if ( $nextButton.length ) {
-				$nextButton.html( '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:done.btn" ) );
-			}
 		};
 
 		UberAssetSelect.prototype.getPickerIframe = function(){

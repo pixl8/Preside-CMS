@@ -1,5 +1,4 @@
 component {
-
 	public void function configure() {
 		var applicationSettings = getApplicationSettings();
 
@@ -150,12 +149,20 @@ component {
 		settings.serverErrorLayout           = "Main";
 		settings.serverErrorViewlet          = "errors.serverError";
 		settings.maintenanceModeViewlet      = "errors.maintenanceMode";
-		settings.cookieEncryptionKey         = _getCookieEncryptionKey();
 		settings.injectedConfig              = Duplicate( application.injectedConfig ?: {} );
 		settings.notificationTopics          = [];
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
+
+		settings.adminApplications = [ {
+			  id                 = "cms"
+			, feature            = "cms"
+			, defaultEvent       = "admin.sitetree"
+			, accessPermission   = "cms.access"
+			, activeEventPattern = "admin\..*"
+			, layout             = "admin"
+		} ];
 
 		settings.adminSideBarItems = [
 			  "sitetree"
@@ -173,6 +180,7 @@ component {
 			, "urlRedirects"
 			, "errorLogs"
 			, "maintenanceMode"
+			, "systemInformation"
 		];
 
 		settings.storageProviders = {
@@ -187,7 +195,8 @@ component {
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
 		settings.adminPermissions = {
-			  sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			  cms                    = [ "access" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
@@ -199,6 +208,7 @@ component {
 			, systemConfiguration    = [ "manage" ]
 			, notifications          = [ "configure" ]
 			, maintenanceMode        = [ "configure" ]
+			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
 			, presideobject          = {
@@ -220,10 +230,10 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*"  ];
-		settings.adminRoles.contentadmin       = [ "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
-		settings.adminRoles.contenteditor      = [ "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
-		settings.adminRoles.formbuildermanager = [ "formbuilder.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*" ];
+		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
+		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
+		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
 
 		settings.websitePermissions = {
 			  pages  = [ "access" ]
@@ -253,22 +263,25 @@ component {
 		};
 
 		settings.features = {
-			  sitetree              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, sites                 = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, assetManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, websiteUsers          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, datamanager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, systemConfiguration   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, updateManager         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, cmsUserManager        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, errorLogs             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, passwordPolicyManager = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, formbuilder           = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
-			, multilingual          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.reload"     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.cache"      = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.new"        = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
-			, "devtools.extension"  = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			  cms                     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sitetree                = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, sites                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, assetManager            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteUsers            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, datamanager             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemConfiguration     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
+			, multilingual            = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, twoFactorAuthentication = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.reload"       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.cache"        = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.new"          = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
+			, "devtools.extension"    = { enabled=false, siteTemplates=[ "*" ], widgets=[] }
 		};
 
 		settings.filters = {
@@ -293,8 +306,8 @@ component {
 			, apis        = {}
 		};
 
-		settings.formbuilder = _setupFormBuilder();
-
+		settings.formbuilder        = _setupFormBuilder();
+		settings.environmentMessage = "";
 		_loadConfigurationFromExtensions();
 
 		environments = {
@@ -304,7 +317,7 @@ component {
 	}
 
 // ENVIRONMENT SPECIFIC
-	public void function local() output=false {
+	public void function local() {
 		settings.showErrors = true;
 		settings.autoSyncDb = true;
 
@@ -313,7 +326,7 @@ component {
 	}
 
 // PRIVATE UTILITY
-	private array function _getUdfFiles() output=false {
+	private array function _getUdfFiles() {
 		var udfs     = DirectoryList( "/preside/system/helpers", true, false, "*.cfm" );
 		var siteUdfs = ArrayNew(1);
 		var udf      = "";
@@ -344,14 +357,14 @@ component {
 		return udfs;
 	}
 
-	private string function _getMappedPathFromFull( required string fullPath, required string mapping ) output=false {
+	private string function _getMappedPathFromFull( required string fullPath, required string mapping ) {
 		var expandedMapping       = ExpandPath( arguments.mapping );
 		var pathRelativeToMapping = Replace( arguments.fullPath, expandedMapping, "" );
 
 		return arguments.mapping & Replace( pathRelativeToMapping, "\", "/", "all" );
 	}
 
-	private string function _discoverWireboxBinder() output=false {
+	private string function _discoverWireboxBinder() {
 		if ( FileExists( "#settings.appMapping#/config/WireBox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.WireBox";
 		}
@@ -359,7 +372,7 @@ component {
 		return 'preside.system.config.WireBox';
 	}
 
-	private string function _discoverCacheboxConfigurator() output=false {
+	private string function _discoverCacheboxConfigurator() {
 		if ( FileExists( "#settings.appMapping#/config/Cachebox.cfc" ) ) {
 			return "#settings.appMappingPath#.config.Cachebox";
 		}
@@ -367,7 +380,7 @@ component {
 		return "preside.system.config.Cachebox";
 	}
 
-	private array function _loadExtensions() output=false {
+	private array function _loadExtensions() {
 		return new preside.system.services.devtools.ExtensionManagerService(
 			  appMapping          = settings.appMapping
 			, extensionsDirectory = "#settings.appMapping#/extensions"
@@ -425,7 +438,7 @@ component {
 		return types;
 	}
 
-	private string function _typesToExtensions( required struct types ) output=false {
+	private string function _typesToExtensions( required struct types ) {
 		var extensions = [];
 		for( var cat in arguments.types ) {
 			for( var ext in arguments.types[ cat ] ) {
@@ -436,7 +449,7 @@ component {
 		return extensions.toList();
 	}
 
-	private struct function _getConfiguredAssetDerivatives() output=false {
+	private struct function _getConfiguredAssetDerivatives() {
 		var derivatives  = {};
 
 		derivatives.adminthumbnail = {
@@ -465,7 +478,7 @@ component {
 		return derivatives;
 	}
 
-	private struct function _getCkEditorToolbarConfig() output=false {
+	private struct function _getCkEditorToolbarConfig() {
 		return {
 			full     =  'Maximize,-,Source,-,Preview'
 					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
@@ -489,21 +502,7 @@ component {
 
 	}
 
-	private string function _getCookieEncryptionKey() output=false {
-		var cookieKeyFile = "#settings.appMapping#/config/.cookieEncryptionKey";
-		if ( FileExists( cookieKeyFile ) ) {
-			try {
-				return FileRead( cookieKeyFile );
-			} catch( any e ) {}
-		}
-
-		var key = GenerateSecretKey( "AES" );
-		FileWrite( cookieKeyFile, key );
-
-		return key;
-	}
-
-	private void function _loadConfigurationFromExtensions() output=false {
+	private void function _loadConfigurationFromExtensions() {
 		for( var ext in settings.activeExtensions ){
 			if ( FileExists( ext.directory & "/config/Config.cfc" ) ) {
 				var cfcPath = ReReplace( ListChangeDelims( ext.directory & "/config/Config", ".", "/" ), "^\.", "" );
