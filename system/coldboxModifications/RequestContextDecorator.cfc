@@ -292,7 +292,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -610,6 +610,9 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 	public void function setLanguage( required string language ) output=false {
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
+		getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+
+
 	}
 
 	public string function getLanguageSlug() output=false {

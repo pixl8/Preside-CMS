@@ -478,7 +478,7 @@ component displayName="Multilingual Preside Object Service" {
 			}
 		}
 
-		var languageFromCookie = _getCookieService().getVar( "_preside_language" );
+		var languageFromCookie = _getCookieService().getVar( "_preside_language", "" );
 		if ( Len( Trim( languageFromCookie ) ) ) {
 			languageFromCookie = languageObj.selectData( id=languageFromCookie );
 			if ( languageFromCookie.recordCount ) {
@@ -505,6 +505,19 @@ component displayName="Multilingual Preside Object Service" {
 
 		return QueryNew('id,slug');
 
+	}
+
+	/**
+	 * Persists the user's language choice so that it can be used
+	 * as the default language when it is unclear from the request
+	 * what language to use.
+	 *
+	 * @autodoc
+	 * @languageId.hint The ID of the language to persist
+	 *
+	 */
+	public void function persistUserLanguage( required string languageId ) {
+		_getCookieService().setVar( name="_preside_language", value=arguments.languageId );
 	}
 
 // PRIVATE HELPERS

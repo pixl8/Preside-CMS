@@ -118,7 +118,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		}
 
 		var path = super.getCGIElement( "path_info", event );
-		if ( _getAdminRouteHandler().match( path, event ) ) {
+		if ( adminRouteHandler.match( path, event ) ) {
 			return true;
 		}
 
