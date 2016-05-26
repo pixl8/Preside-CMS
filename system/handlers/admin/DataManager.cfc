@@ -727,9 +727,10 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object                = rc.object   ?: "";
-			var id                    = rc.id       ?: "";
-			var version               = rc.version  ?: "";
+			var object                = rc.object       ?: "";
+			var id                    = rc.id           ?: "";
+			var version               = rc.version      ?: "";
+			var statusColumn          = rc.statusColumn ?: "";
 			var objectName            = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
 			var record                = "";
@@ -772,6 +773,11 @@
 				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 				, link  = ""
 			);
+			if( isBoolean( statusColumn ) ) {
+				prc.cancelAction     = event.buildAdminLink( linkTo="datamanager.object", querystring='id=#object#' );
+				prc.formAction       = event.buildAdminLink( linkTo="datamanager.translateRecordAction", querystring='statusColumn=#statusColumn#' );
+				prc.translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&statusColumn=#statusColumn#&language=" );
+			}
 			prc.pageIcon  = "pencil";
 			prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectName, prc.recordLabel, prc.language.name ] );
 		</cfscript>
@@ -783,9 +789,10 @@
 		<cfargument name="prc"   type="struct"  required="true" />
 
 		<cfscript>
-			var id                    = rc.id       ?: "";
-			var object                = rc.object   ?: "";
-			var languageId            = rc.language ?: "";
+			var id                    = rc.id           ?: "";
+			var object                = rc.object       ?: "";
+			var languageId            = rc.language     ?: "";
+			var statusColumn          = rc.statusColumn ?: "";
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
@@ -827,8 +834,11 @@
 				persist = formData;
 				persist.validationResult = validationResult;
 				persist.delete( "id" );
-
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
+				if( isBoolean( statusColumn ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&statusColumn=true&version=#version#&language=#languageId#" ), persistStruct=persist );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
+				}
 			}
 
 			formData._translation_active = IsTrue( rc._translation_active ?: "" );
@@ -840,7 +850,11 @@
 			);
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordTranslated.confirmation", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			if( isBoolean( statusColumn ) ) {
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			}			
 		</cfscript>
 	</cffunction>
 
@@ -1225,7 +1239,7 @@
 
 				if ( isMultilingual ) {
 					translations     = multilingualPresideObjectService.getTranslationStatus( object, record.id );
-					translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&language=" );
+					translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&statusColumn=true&language=" );
 					ArrayAppend( translateStatusCol, renderView( view="/admin/datamanager/_listingTranslations", args={
 						  translations     = translations
 						, translateUrlBase = translateUrlBase
