@@ -142,11 +142,12 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			pathToRemove = pathToRemove & "/" & languageSlug & "/";
 		}
 		if ( pathToRemove.len() ) {
-			presidePath = "/" & fullPath.replaceNoCase( pathToRemove, "" );
-
+			presidePath = fullPath.replaceNoCase( pathToRemove, "" );
+			presidePath = presidePath.reReplace( "^[^/]", "/" );
 		} else {
 			presidePath = fullPath;
 		}
+
 
 		event.setCurrentPresideUrlPath( presidePath );
 	}
