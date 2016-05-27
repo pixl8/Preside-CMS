@@ -143,7 +143,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		}
 		if ( pathToRemove.len() ) {
 			presidePath = fullPath.replaceNoCase( pathToRemove, "" );
-			presidePath = presidePath.reReplace( "^[^/]", "/" );
+			presidePath = presidePath.reReplace( "^[^/]|$", "/" );
 		} else {
 			presidePath = fullPath;
 		}
