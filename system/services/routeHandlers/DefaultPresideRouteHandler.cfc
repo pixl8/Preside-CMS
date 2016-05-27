@@ -94,7 +94,6 @@ component implements="iRouteHandler" output=false singleton=true {
 		var link     = "";
 		var root     = event.getSiteUrl( page.site );
 
-
 		if ( page.recordCount ) {
 			if ( page.id eq homepage.id ) {
 				return root & "/";
@@ -130,9 +129,10 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	private query function _getPageByIdOrPageType( required string page ) output=false {
-		var ptService = _getPageTypesService();
-		var getPageArgs = {
-			selectFields=[ "page.id", "page._hierarchy_slug as slug", "page.site" ]
+		var ptService       = _getPageTypesService();
+		var siteTreeService = _getSiteTreeService();
+		var getPageArgs     = {
+			selectFields = [ "page.id", "page._hierarchy_slug as slug", "page.site" ]
 		};
 
 		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {
@@ -141,7 +141,24 @@ component implements="iRouteHandler" output=false singleton=true {
 			getPageArgs.id = arguments.page;
 		}
 
-		return _getSiteTreeService().getPage( argumentCollection=getPageArgs );
+		if ( siteTreeService.arePageSlugsMultilingual() ) {
+			getPageArgs.selectFields = [ "page.id", "page.slug", "page.site" ];
+			var page = Duplicate( siteTreeService.getPage( argumentCollection=getPageArgs ) );
+
+			if ( page.recordCount ) {
+				var ancestors = siteTreeService.getAncestors( id=page.id, selectFields=[ "slug" ] );
+
+				if ( ancestors.recordCount ) {
+					var newSlug = "/" & page.slug & "/" & ValueList( ancestors.slug, "/" ) & "/";
+					newSlug = newSlug.reReplace( "/+", "/", "all" );
+					page.slug[ 1 ] = newSlug;
+				}
+			}
+
+			return page;
+		}
+
+		return siteTreeService.getPage( argumentCollection=getPageArgs );
 	}
 
 // private getters and setters

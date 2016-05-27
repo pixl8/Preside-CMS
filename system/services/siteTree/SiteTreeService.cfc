@@ -126,7 +126,7 @@ component {
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
-			if ( _arePageSlugsAreMultilingual() ) {
+			if ( arePageSlugsMultilingual() ) {
 				return _getPageWithMultilingualSlug( argumentCollection=arguments );
 			}
 			args.filter                       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug"; // this double match is for performance - the full slug cannot be indexed because of its potential size
@@ -160,7 +160,7 @@ component {
 		return _getPObj().selectData( argumentCollection = args );
 	}
 
-	public query function getPagesForAjaxSelect(
+	publiuery function getPagesForAjaxSelect(
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
 		, array   ids         = []
@@ -926,6 +926,10 @@ component {
 		return _getPageTypesService().getPageType( arguments.parentType ).getManagedChildTypes().listToArray();
 	}
 
+	public boolean function arePageSlugsMultilingual() {
+		return _pageSlugsAreMultilingual;
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
@@ -1274,9 +1278,6 @@ component {
 		_websitePermissionService = arguments.websitePermissionService;
 	}
 
-	private boolean function _arePageSlugsAreMultilingual() {
-		return _pageSlugsAreMultilingual;
-	}
 	private void function _setPageSlugsAreMultilingual() {
 		var featureEnabled   = $isFeatureEnabled( "multilingual" ) && $isFeatureEnabled( "multilingualUrls" );
 		var slugMultilingual = $getPresideObjectService().getObjectPropertyAttribute(
