@@ -346,10 +346,11 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 // FRONT END, dealing with current page
 	public void function initializePresideSiteteePage (
-		  string slug
-		, string pageId
-		, string systemPage
-		, string subaction
+		  string  slug
+		, string  pageId
+		, string  systemPage
+		, string  subaction
+		, boolean ensureCanonicalUrl = false
 	) output=false {
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
@@ -379,7 +380,9 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			return;
 		}
 
-		checkCanonicalPageUrl( pageId=page.id );
+		if ( arguments.ensureCanonicalUrl ) {
+			checkCanonicalPageUrl( pageId=page.id );
+		}
 
 		for( p in page ){ page = p; break; } // quick query row to struct hack
 
