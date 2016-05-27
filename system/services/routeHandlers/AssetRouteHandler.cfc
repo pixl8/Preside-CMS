@@ -67,7 +67,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			link = ReReplace( link, "^/asset/", "/asset/$" );
 		}
 
-		return event.getSiteUrl() & link;
+		return event.getSiteUrl( includePath=true, includeLanguageSlug=false ) & link;
 	}
 
 // private getters and setters

@@ -133,20 +133,22 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private void function _setPresideUrlPath( event, interceptor ) output=false {
 		var site         = event.getSite();
-		var path         = site.path.reReplace( "/$", "" );
+		var pathToRemove = site.path.reReplace( "/$", "" );
+		var fullPath     = super.getCGIElement( "path_info", event );
+		var presidePath  = "";
 		var languageSlug = event.getLanguageSlug();
 
 		if ( Len( Trim( languageSlug ) ) ) {
-			path = path & "/" & languageSlug & "/";
+			pathToRemove = pathToRemove & "/" & languageSlug & "/";
 		}
-		if ( path.len() ) {
-			path = "/" & super.getCGIElement( "path_info", event ).replaceNoCase( path, "" );
+		if ( pathToRemove.len() ) {
+			presidePath = "/" & fullPath.replaceNoCase( pathToRemove, "" );
 
 		} else {
-			path = super.getCGIElement( "path_info", event );
+			presidePath = fullPath;
 		}
 
-		event.setCurrentPresideUrlPath( path );
+		event.setCurrentPresideUrlPath( presidePath );
 	}
 
 	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
