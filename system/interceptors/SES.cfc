@@ -137,13 +137,12 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		var fullPath     = super.getCGIElement( "path_info", event );
 		var presidePath  = "";
 		var languageSlug = event.getLanguageSlug();
-
 		if ( Len( Trim( languageSlug ) ) ) {
 			pathToRemove = pathToRemove & "/" & languageSlug & "/";
 		}
 		if ( pathToRemove.len() ) {
 			presidePath = fullPath.replaceNoCase( pathToRemove, "" );
-			presidePath = presidePath.reReplace( "^[^/]|$", "/" );
+			presidePath = presidePath.reReplace( "^([^/]|$)", "/\1" );
 		} else {
 			presidePath = fullPath;
 		}
