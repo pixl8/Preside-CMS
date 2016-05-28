@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Task manager: Settings form
+
+This form is used for general configuration of the task manager
+-->
+<form>
+	<tab id="default">
+		<fieldset id="default">
+			<field name="site_context"           control="objectpicker" required="true"              object="site" label="cms:taskmanager.configform.site_context.label"           help="cms:taskmanager.configform.site_context.help" />
+			<field name="scheduledtasks_enabled" control="yesnoswitch"  required="false"                           label="cms:taskmanager.configform.scheduledtasks_enabled.label" help="cms:taskmanager.configform.scheduledtasks_enabled.help" />
+			<field name="keep_logs_for_days"     control="spinner"      required="false" default="7"               label="cms:taskmanager.configform.keep_logs_for_days.label"     help="cms:taskmanager.configform.keep_logs_for_days.help"     />
+		</fieldset>
+	</tab>
+</form>
