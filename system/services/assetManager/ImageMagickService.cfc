@@ -142,7 +142,7 @@ component displayname="ImageMagick"  {
 		,          boolean crop      = false
 		,          string  gravity   = 'center'
 	) {
-		var defaultSettings = "-unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
+		var defaultSettings = "-auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
 		var args            = '"#arguments.sourceFile#" #arguments.qualityArgs# #defaultSettings# -thumbnail #( arguments.width ? arguments.width : '' )#x#( arguments.height ? arguments.height : '' )#';
 		var interlace       = $getPresideSetting( "asset-manager", "imagemagick_interlace" );
 
@@ -170,7 +170,8 @@ component displayname="ImageMagick"  {
 
 		FileWrite( tmpFilePath, arguments.asset );
 
-		var rawInfo = Trim( _exec( command="identify", args='-format "%wx%h" "#tmpFilePath#"' ) );
+		var rawOrientation = Trim( _exec( command="identify", args='-format "%[orientation]" "#tmpFilePath#"' ) );
+		var rawInfo = Trim( _exec( command="identify", args='-format "%[width]x%[height]" "#tmpFilePath#"' ) );
 
 		FileDelete( tmpFilePath );
 

@@ -32,31 +32,39 @@ component displayname="Native Image Manipulation Service" {
 		,          boolean maintainAspectRatio = false
 	) {
 		var image              = "";
-		var interpolation      = arguments.quality
+		var interpolation      = arguments.quality;
 		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
 		var currentAspectRatio = 0;
+		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
+		var checkImageEXIF = true;
 
-		try {
-			image = ImageNew( arguments.asset );
+			try {
+
+				if ( checkImageEXIF ){
+					image = ImageNew( getImageRotation( arguments.asset ) );
+					currentImageInfo = ImageInfo( image );
+				} else {
+					image = ImageNew( arguments.asset );
+					currentImageInfo = ImageInfo( image );
+				}
+
 		} catch ( "java.io.IOException" e ) {
 			throw( type="AssetTransformer.resize.notAnImage" );
 		}
 
-		currentImageInfo = ImageInfo( image );
-
 		if ( !arguments.height ) {
 			if ( currentImageInfo.width == arguments.width ) {
-				return arguments.asset;
+				return ImageGetBlob( image );
 			}
 			ImageScaleToFit( image, arguments.width, "", interpolation );
 		} else if ( !arguments.width ) {
 			if ( currentImageInfo.height == arguments.height ) {
-				return arguments.asset;
+				return ImageGetBlob( image );
 			}
 			ImageScaleToFit( image, "", arguments.height, interpolation );
 		} else if ( currentImageInfo.width == arguments.width && currentImageInfo.height == arguments.height ) {
-			return arguments.asset;
+			return ImageGetBlob( image );
 		} else {
 			if ( maintainAspectRatio ) {
 				currentAspectRatio = currentImageInfo.width / currentImageInfo.height;
@@ -101,14 +109,21 @@ component displayname="Native Image Manipulation Service" {
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
+		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
+		var checkImageEXIF = true;
 
 		try {
-			image = ImageNew( arguments.asset );
+			if ( checkImageEXIF ){
+				image = ImageNew( getImageRotation( arguments.asset ) );
+				imageInfo = ImageInfo( image );
+			} else {
+				image = ImageNew( arguments.asset );
+				imageInfo = ImageInfo( image );
+			}
 		} catch ( "java.io.IOException" e ) {
 			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
 		}
 
-		imageInfo = ImageInfo( image );
 		if ( imageInfo.width > arguments.width || imageInfo.height > arguments.height ) {
 			ImageScaleToFit( image, arguments.width, arguments.height, interpolation );
 		}
@@ -158,12 +173,65 @@ component displayname="Native Image Manipulation Service" {
 	}
 
 	public struct function getImageInformation( required binary asset ) {
+		var image = "";
+		var imageInfo = {};
+		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
+		var checkImageEXIF = true;
+
 		try {
-			return ImageInfo( ImageNew( arguments.asset ) );
+
+			if ( checkImageEXIF ){
+				image = ImageNew( getImageRotation( arguments.asset ) );
+				imageInfo = ImageInfo( image );
+			} else {
+				image = ImageNew( arguments.asset );
+				imageInfo = ImageInfo( image );
+			}
+
 		} catch ( "java.io.IOException" e ) {
 			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
 		}
 
-		return {};
+		return imageInfo;
 	}
+
+    public binary function getImageRotation( required binary asset ) {
+		var imageBinary = arguments.asset;
+        var imageInfo = {};
+        var tmpFilePath = GetTempFile( GetTempDirectory(), "ntv" );
+
+        fileWrite( tmpFilePath, imageBinary );
+        var oImage = ImageNew( tmpFilePath );
+
+        try {
+
+            imageOrientation = imageGetEXIFTag( oImage, "orientation" );
+            imageInfo = imageInfo( oImage );
+				if ( findNoCase( "Rotate", imageOrientation ) && !findNoCase( "Mirror", imageOrientation ) ){
+                var iRotate = 0;
+                if ( imageInfo.width > imageInfo.height ) {
+                    if ( findNoCase( "Rotate 90 CW", imageOrientation ) ){
+                        iRotate = 90;
+                    }
+                    if ( findNoCase( "Rotate 270 CW", imageOrientation ) ){
+                        iRotate = 270;
+                    }
+                    imageRotate( name = oImage, angle = iRotate, x = 2, interpolation = "bicubic" );
+                    //imageWrite( oImage, tmpFilePath, 1, true );
+					//imageBinary = fileReadBinary( tmpFilePath );
+					imageBinary = imageGetBlob( oImage );
+                }
+            }
+
+        } catch (any e) {
+			//No exif tag - orientation
+            //$raiseError( e );
+            //rethrow;
+        } finally {
+            fileDelete( tmpFilePath );
+        }
+
+        return ( imageBinary );
+    }
+
 }
