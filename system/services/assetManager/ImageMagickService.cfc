@@ -227,7 +227,6 @@ component displayname="ImageMagick"  {
 		}
 
 		if ( convertOrientation ) {
-			var tmpDestinationFilePath = GetTempFile( GetTempDirectory(), "mgk" );
 			var imageQuality = _cfToImQuality( "highestQuality" );
 			var defaultSettings = "-auto-orient -unsharp 0.25x0.25+24+0.065 -define jpeg:fancy-upsampling=off -define png:compression-filter=5 -define png:compression-level=9 -define png:compression-strategy=1 -define png:exclude-chunk=all -colorspace sRGB -strip";
 			_exec( command="convert", args="#tmpSourceFilePath# #imageQuality# #defaultSettings# #tmpDestinationFilePath#" );
