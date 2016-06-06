@@ -96,9 +96,13 @@ component extends="preside.system.base.AdminHandler" {
 	public void function runTaskAction( event, rc, prc ) {
 		_checkPermission( "run", event );
 
-		taskManagerService.runTask( rc.task ?: "" );
+		var task = rc.task ?: "";
 
-		setNextEvent( url=event.buildAdminLink( "taskManager" ) );
+		taskManagerService.runTask( task );
+		sleep( 200 );
+		var historyId = taskManagerService.getActiveHistoryIdForTask( task );
+
+		setNextEvent( url=event.buildAdminLink( linkTo="taskManager.log", querystring="id=" & historyId ) );
 	}
 
 	public void function killRunningTaskAction( event, rc, prc ) {
@@ -151,6 +155,7 @@ component extends="preside.system.base.AdminHandler" {
 			  id           = rc.id ?: "---"
 			, selectFields = [ "task_key", "success", "time_taken", "complete", "log", "datecreated" ]
 		);
+
 		if ( !log.recordCount ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="taskmanager" ) );
 		}
