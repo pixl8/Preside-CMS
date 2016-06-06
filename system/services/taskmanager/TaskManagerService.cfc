@@ -561,6 +561,9 @@ component {
 	}
 
 	private string function _cronTabExpressionToHuman( required string expression ) {
+		if ( arguments.expression == "disabled" ) {
+			return "disabled";
+		}
 		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", [ "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar", "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar" ] ).getDescription( arguments.expression );
 	}
 

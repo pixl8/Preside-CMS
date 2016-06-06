@@ -60,7 +60,11 @@
 						#task.name#
 					</td>
 					<td>
-						#task.schedule#
+						<cfif IsTrue( task.isScheduled )>
+							#task.schedule#
+						<cfelse>
+							#translateResource( "cms:taskmanager.task.schedule.disabled" )#
+						</cfif>
 					</td>
 					<td>
 						<cfif task.is_running>
@@ -95,9 +99,13 @@
 								</cfif>
 
 								<cfif canConfigure>
-									<a href="#event.buildAdminLink( linkTo='taskmanager.configureTask', queryString='task=' & task.task_key )#" data-context-key="c">
-										<i class="fa fa-fw fa-cog grey"></i>
-									</a>
+									<cfif IsTrue( task.isScheduled )>
+										<a href="#event.buildAdminLink( linkTo='taskmanager.configureTask', queryString='task=' & task.task_key )#" data-context-key="c">
+											<i class="fa fa-fw fa-cog grey"></i>
+										</a>
+									<cfelse>
+										<a disabled><i class="fa fa-fw fa-cog grey disabled"></i></a>
+									</cfif>
 								</cfif>
 
 								<cfif canToggleActive>
