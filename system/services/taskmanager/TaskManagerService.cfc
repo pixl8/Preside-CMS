@@ -403,6 +403,11 @@ component {
 
 	public string function getNextRunDate( required string taskKey, date lastRun=Now() ) {
 		var task       = getTask( arguments.taskKey );
+
+		if ( !task.isScheduled ) {
+			return "";
+		}
+
 		var taskConfig = getTaskConfiguration( arguments.taskKey );
 		var schedule   = Len( Trim( taskConfig.crontab_definition ?: "" ) ) ? taskConfig.crontab_definition : task.schedule;
 

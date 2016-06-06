@@ -324,7 +324,7 @@ component extends="testbox.system.BaseSpec" {
 				var tm             = _getTaskManagerService();
 				var lastRun        = "2014-10-24T09:03:13";
 				var taskKey        = "someKey";
-				var task           = { schedule = "* */5 * * * *" };
+				var task           = { schedule = "* */5 * * * *", isScheduled=true };
 				var config         = { crontab_definition = "" };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
@@ -338,7 +338,7 @@ component extends="testbox.system.BaseSpec" {
 			it( "shoud use the current date when no last run date passed", function(){
 				var tm             = _getTaskManagerService();
 				var taskKey        = "someKey";
-				var task           = { schedule = "* */5 * * * *" };
+				var task           = { schedule = "* */5 * * * *", isScheduled=true };
 				var rightNow       = Now();
 				var config         = { crontab_definition = "" };
 
@@ -354,7 +354,7 @@ component extends="testbox.system.BaseSpec" {
 				var tm             = _getTaskManagerService();
 				var lastRun        = "2014-10-24T09:03:13";
 				var taskKey        = "someKey";
-				var task           = { schedule = "* */5 * * * *" };
+				var task           = { schedule = "* */5 * * * *", isScheduled=true };
 				var config         = { crontab_definition = "* */10 * * * *" };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
@@ -363,6 +363,21 @@ component extends="testbox.system.BaseSpec" {
 				var nextRun = tm.getNextRunDate( taskKey, lastRun );
 
 				expect( nextRun ).toBe( "2014-10-24 09:10:00" );
+			} );
+
+			it( "should return an empty string when task is not a scheduled task", function(){
+				var tm             = _getTaskManagerService();
+				var lastRun        = "2014-10-24T09:03:13";
+				var taskKey        = "someKey";
+				var task           = { schedule = "disabled", isScheduled=false };
+				var config         = { crontab_definition = "* */10 * * * *" };
+
+				tm.$( "getTask" ).$args( taskKey ).$results( task );
+				tm.$( "getTaskConfiguration" ).$args( taskKey ).$results( config );
+
+				var nextRun = tm.getNextRunDate( taskKey, lastRun );
+
+				expect( nextRun ).toBe( "" );
 			} );
 		} );
 
