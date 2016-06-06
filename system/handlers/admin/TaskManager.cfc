@@ -17,7 +17,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		prc.tasks = taskManagerService.getAllTaskDetails();
+		prc.taskGroups = taskManagerService.getAllTaskDetails();
 		prc.autoRunningEnabled = systemConfigurationService.getSetting( "taskmanager", "scheduledtasks_enabled", false );
 
 		prc.pageTitle    = translateResource( "cms:taskmanager.page.title"    );

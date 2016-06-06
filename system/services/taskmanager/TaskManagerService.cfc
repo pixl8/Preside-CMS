@@ -1,5 +1,6 @@
 /**
  * @singleton
+ * @presideService
  *
  */
 component {
@@ -446,6 +447,7 @@ component {
 		var dbTaskInfo  = _getTaskDao().selectData(
 			selectFields = [ "task_key", "enabled", "is_running", "last_ran", "next_run", "last_run_time_taken", "was_last_run_success", "crontab_definition" ]
 		);
+		var grouped = [];
 
 		for( var dbRecord in dbTaskInfo ){
 			var detail = dbRecord;
@@ -459,10 +461,54 @@ component {
 		}
 
 		taskDetails.sort( function( a, b ){
-			return a.name < b.name ? -1 : 1;
+			if ( a.displayGroup == b.displayGroup ) {
+				return a.name < b.name ? -1 : 1;
+			}
+
+			return a.displayGroup < b.displayGroup ? -1 : 1;
 		} );
 
-		return taskDetails;
+		for( var task in taskDetails ) {
+			if ( !grouped.len() || grouped[ grouped.len() ].id != task.displayGroup ) {
+				var groupId = Len( Trim( task.displayGroup ) ) ? task.displayGroup : "default";
+
+				grouped.append({
+					  id          = groupId
+					, title       = $translateResource( "taskmanager.taskgroups:#groupId#.title", groupId )
+					, description = $translateResource( "taskmanager.taskgroups:#groupId#.description", "" )
+					, stats       = { total=0, success=0, fail=0, running=0, neverRun=0 }
+					, tasks       = []
+					, iconClass   = "fa-check green"
+				});
+			}
+
+			var currentGroup = grouped[ grouped.len() ];
+			currentGroup.tasks.append( task );
+			currentGroup.stats.total++;
+			if ( IsBoolean( task.was_last_run_success ) ) {
+				currentGroup.stats[ task.was_last_run_success ? "success" : "fail" ]++;
+			} else {
+				currentGroup.stats.neverRun++;
+			}
+
+			if ( task.is_running ) {
+				currentGroup.stats.running++;
+			}
+		}
+
+		grouped.sort( function( a, b ){
+			return a.title < b.title ? -1 : 1;
+		} );
+
+		for( var group in grouped ) {
+			if ( group.stats.running ) {
+				group.iconClass = "fa-rotate-right grey";
+			} else if ( group.stats.fail || group.stats.neverRun ) {
+				group.iconClass = "fa-times-circle red";
+			}
+		}
+
+		return grouped;
 	}
 
 	public numeric function disableTask( required string taskKey ) {
