@@ -63,7 +63,7 @@
 						<cfif IsTrue( task.isScheduled )>
 							#task.schedule#
 						<cfelse>
-							#translateResource( "cms:taskmanager.task.schedule.disabled" )#
+							<em class="grey">#translateResource( "cms:taskmanager.task.schedule.disabled" )#</em>
 						</cfif>
 					</td>
 					<td>
@@ -84,7 +84,11 @@
 					</td>
 					<td>
 						<cfif tasksEnabled && task.enabled>
-							#renderContent( 'datetime', task.next_run )#
+							<cfif IsTrue( task.isScheduled )>
+								#renderContent( 'datetime', task.next_run )#
+							<cfelse>
+								<em class="grey">#translateResource( "cms:taskmanager.task.schedule.disabled" )#</em>
+							</cfif>
 						<cfelse>
 							<em class="grey">#translateResource( "cms:taskmanager.table.task.disabled" )#</em>
 						</cfif>
