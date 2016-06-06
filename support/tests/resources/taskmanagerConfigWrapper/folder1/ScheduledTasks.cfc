@@ -4,8 +4,4 @@ component output=false {
 		return true;
 	}
 
-	private boolean function task_2( event, rc, prc ) output=false schedule="* 14 3 * * *" displayname="Task 2" hint="This is scheduled task 2" {
-		return true;
-	}
-
 }

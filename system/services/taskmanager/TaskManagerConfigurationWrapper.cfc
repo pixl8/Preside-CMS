@@ -28,27 +28,29 @@ component displayName="TaskManager Configuration Wrapper" {
 		var tasks = {};
 
 		for( var dir in _getHandlerDirectories() ){
-			var filePath = dir & "/ScheduledTasks.cfc";
-			if ( FileExists( filePath ) ) {
-				var componentPath = Replace( filePath, "/", ".", "all" );
-				    componentPath = ReReplace( componentPath, "\.cfc$", "" );
+			for( var file in [ "ScheduledTasks.cfc", "Tasks.cfc" ] ) {
+				var filePath = dir & "/" & file;
+				if ( FileExists( filePath ) ) {
+					var componentPath = Replace( filePath, "/", ".", "all" );
+					    componentPath = ReReplace( componentPath, "\.cfc$", "" );
 
-				var meta = getComponentMetaData( componentPath );
+					var meta = getComponentMetaData( componentPath );
 
-				for( var f in meta.functions ){
-					var isScheduledTaskMethod = Len( Trim( f.schedule ?: "" ) );
-					if ( isScheduledTaskMethod ) {
-						tasks[ f.name ] = {
-							  event       = "scheduledtasks.#f.name#"
-							, schedule    = _parseCronTabSchedule( f.schedule )
-							, name        = f.displayName ?: f.name
-							, description = f.hint        ?: ""
-							, timeout     = Val( f.timeout ?: 600 )
-							, priority    = Val( f.priority ?: 0 )
-						};
+					for( var f in meta.functions ){
+						var isScheduledTaskMethod = Len( Trim( f.schedule ?: "" ) );
+						if ( isScheduledTaskMethod ) {
+							tasks[ f.name ] = {
+								  event       = "scheduledtasks.#f.name#"
+								, schedule    = _parseCronTabSchedule( f.schedule )
+								, name        = f.displayName ?: f.name
+								, description = f.hint        ?: ""
+								, timeout     = Val( f.timeout ?: 600 )
+								, priority    = Val( f.priority ?: 0 )
+							};
+						}
 					}
-				}
 
+				}
 			}
 		}
 

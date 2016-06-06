@@ -2,7 +2,7 @@ component extends="testbox.system.BaseSpec" {
 
 	public void function run() output=false {
 		describe( "getConfiguredTasks", function(){
-			it( "should discover ScheduledTasks.cfc file in all the passed handler folders and return a structure of tasks that have been derived from the metadata on their handler actions", function(){
+			it( "should discover mix of Tasks.cfc and ScheduledTasks.cfc file in all the passed handler folders and return a structure of tasks that have been derived from the metadata on their handler actions", function(){
 				var wrapper = _getWrapper();
 				var tasks = {
 					  task_1 = { name="Task 1", description="This is scheduled task 1", event="scheduledtasks.task_1", schedule="* 5 * * * *" , timeout=120, priority=0 }
