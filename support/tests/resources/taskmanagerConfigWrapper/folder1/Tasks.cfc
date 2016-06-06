@@ -1,6 +1,13 @@
 component {
 
-	private boolean function task_2( event, rc, prc ) schedule="* 14 3 * * *" displayname="Task 2" hint="This is scheduled task 2" {
+	/**
+	 * This is scheduled task 2
+	 *
+	 * @schedule    disabled
+	 * @displayName Task 2
+	 *
+	 */
+	private boolean function task_2( event, rc, prc ) {
 		return true;
 	}
 
