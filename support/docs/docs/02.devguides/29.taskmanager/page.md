@@ -41,6 +41,53 @@ component {
 }
 ```
 
+### Scheduling tasks
+
+Tasks can be given a default schedule, or defined as _not_ scheduled tasks using the `@schedule` attribute. The attribute expects a value of either `disabled` or an extended (6 point) [cron definition](http://www.nncron.ru/help/EN/working/cron-format.htm). Some example cron definitions:
+
+```luceescript
+/**
+ * Every 15 minutes
+ * @schedule 0 *\/15 * * * *
+ * 
+ * At 25 minutes past the hour, every 2 hours
+ * @schedule 0 25 *\/2 * * *
+ *
+ * At 4:06 AM, only on Tuesday 
+ * @schedule 0 06 04 * * Tue
+ */
+```
+
+Note how we need to escape slashes (`/`) in the cron syntax with a backwards slash (`\`). i.e. regular cron syntax: `0 */15 * * * *` vs our escaped version `0 *\/15 * * * *`. This is because the regular syntax would end the CFML comment with `*/` and render everything after that useless.
+
+>>> The UI of the task manager also uses cron syntax for defining the schedule of tasks.
+
+#### Ad-hoc tasks
+
+You can define tasks to explicitly have _no_ schedule, demanding that tasks are then either run programatically or manually through the admin user interface. To do so, set the `@schedule` attribute to disabled:
+
+```luceescript
+/**
+ *
+ * @schedule     disabled
+ * @timeout      120
+ * @displayName  Optimize images
+ */
+private boolean function optimizeImages( event, rc, prc, logger ) {
+	myAwesomeImageService.doMagic( logger=argumnets.logger ?: NullValue() );
+}
+```
+
 ### Task priority
 
 When tasks run on a schedule, the system currently only allows a single task to run at any one time. If two or more tasks are due to run, the system uses the `@priority` value to determine which task should run first. Tasks with _higher_ priority values will take priority over tasks with lower values.
+
+### Timeouts
+
+Tasks can be given a timeout value using the `@timeout` attribute. Values are in seconds. If the timeout is reached, the system will terminate the running thread for the task using a java thread interrupt.
+
+### Display groups
+
+You can optionally use display groups to break-up the view of tasks in to multiple grouped tabs. For example, you may have a group for maintenance tasks and another group for CRM data syncs. Simply use the `@displayGroup` attribute and tasks with the same "display group" will be grouped together in tabs.
+
+>>> If no groups are specified, a default group of "default" will be used.
