@@ -24,17 +24,19 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:taskmanager.page.subtitle" );
 	}
 
-	public void function configure( event, rc, prc ) {
+	public void function configureTask( event, rc, prc ) {
 		_checkPermission( "configure", event );
 
-		prc.configuration = systemConfigurationService.getCategorySettings( "taskmanager" );
+		var task       = rc.task ?: "";
+		var taskDetail = taskManagerService.getTask( task );
 
-		prc.pageTitle    = translateResource( "cms:taskmanager.configure.page.title"    );
-		prc.pageSubTitle = translateResource( "cms:taskmanager.configure.page.subtitle" );
+		prc.taskConfiguration = taskManagerService.getTaskConfiguration( task );
+		prc.pageTitle         = translateResource( "cms:taskmanager.configureTask.page.title" );
+		prc.pageSubTitle      = taskDetail.name;
 
 		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:taskmanager.configure.page.crumbtrail" )
-			, link  = event.buildAdminLink( linkTo="taskmanager.configure" )
+			  title = translateResource( uri="cms:taskmanager.configure.page.crumbtrail", data=[ taskDetail.name ] )
+			, link  = event.buildAdminLink( linkTo="taskmanager.configureTask", queryString="task=" & task )
 		);
 	}
 
@@ -57,18 +59,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		setNextEvent( url=event.buildAdminLink( linkTo="taskmanager" ) );
 
-	}
-
-	public void function configureTask( event, rc, prc ) {
-		_checkPermission( "configure", event );
-
-		var task       = rc.task ?: "";
-		var taskDetail = taskManagerService.getTask( task );
-
-		prc.taskConfiguration = taskManagerService.getTaskConfiguration( task );
-
-		prc.pageTitle    = translateResource( "cms:taskmanager.configureTask.page.title" );
-		prc.pageSubTitle = taskDetail.name;
 	}
 
 	public void function saveTaskConfigurationAction( event, rc, prc ) {
