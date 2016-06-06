@@ -4,6 +4,16 @@
 </cfscript>
 
 <cfoutput>
+	<cfif canRunTasks>
+		<div class="top-right-button-group">
+			<a id="run-task-btn" class="pull-right inline btn btn-info btn-sm<cfif IsFalse( log.complete )> btn-disabled</cfif>" href="#event.buildAdminLink( linkTo="taskmanager.runTaskAction", queryString="task=#log.task_key#" )#" data-global-key="r" <cfif IsFalse( log.complete )> disabled</cfif>>
+				<i class="fa fa-rotate-right"></i>
+				#translateResource( uri="cms:taskmanager.run.btn" )#
+			</a>
+		</div>
+	</cfif>
+
+
 	<div class="task-log">
 		<pre id="taskmanager-log">#log.log#</pre>
 	</div>

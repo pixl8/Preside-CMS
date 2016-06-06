@@ -2,6 +2,7 @@
 
 	var $logArea  = $( '#taskmanager-log' )
 	  , $timeArea = $( '#task-log-timetaken' )
+	  , $runBtn   = $( '#run-task-btn' )
 	  , updateUrl = cfrequest.logUpdateUrl || ""
 	  , lineCount = cfrequest.lineCount || ""
 	  , fetchRate = 1000
@@ -35,6 +36,10 @@
 							clearInterval( intervalId );
 							$timeArea.parent().removeClass( "running blue" );
 							$timeArea.parent().addClass( "complete green" );
+							if ( $runBtn.length ) {
+								$runBtn.removeAttr( "disabled" );
+								$runBtn.removeClass( "btn-disabled" );
+							}
 						}
 					}
 				}
