@@ -36,18 +36,11 @@ component displayname="Native Image Manipulation Service" {
 		var targetAspectRatio  = 0;
 		var currentImageInfo   = {};
 		var currentAspectRatio = 0;
-		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
-		var checkImageEXIF = true;
 
-			try {
+		try {
 
-				if ( checkImageEXIF ){
-					image = ImageNew( correctImageOrientation( arguments.asset ) );
-					currentImageInfo = ImageInfo( image );
-				} else {
-					image = ImageNew( arguments.asset );
-					currentImageInfo = ImageInfo( image );
-				}
+			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			currentImageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
 			throw( type="AssetTransformer.resize.notAnImage" );
@@ -109,17 +102,12 @@ component displayname="Native Image Manipulation Service" {
 		var image         = "";
 		var imageInfo     = "";
 		var interpolation = arguments.quality;
-		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
-		var checkImageEXIF = true;
 
 		try {
-			if ( checkImageEXIF ){
-				image = ImageNew( correctImageOrientation( arguments.asset ) );
-				imageInfo = ImageInfo( image );
-			} else {
-				image = ImageNew( arguments.asset );
-				imageInfo = ImageInfo( image );
-			}
+
+			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			imageInfo = ImageInfo( image );
+
 		} catch ( "java.io.IOException" e ) {
 			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
 		}
@@ -175,18 +163,11 @@ component displayname="Native Image Manipulation Service" {
 	public struct function getImageInformation( required binary asset ) {
 		var image = "";
 		var imageInfo = {};
-		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
-		var checkImageEXIF = true;
 
 		try {
 
-			if ( checkImageEXIF ){
-				image = ImageNew( correctImageOrientation( arguments.asset ) );
-				imageInfo = ImageInfo( image );
-			} else {
-				image = ImageNew( arguments.asset );
-				imageInfo = ImageInfo( image );
-			}
+			image = ImageNew( correctImageOrientation( arguments.asset ) );
+			imageInfo = ImageInfo( image );
 
 		} catch ( "java.io.IOException" e ) {
 			throw( type="AssetTransformer.shrinkToFit.notAnImage" );
