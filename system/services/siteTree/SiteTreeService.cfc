@@ -312,7 +312,7 @@ component singleton=true {
 
 	public struct function getManagedChildrenForDataTable(
 		  required string  parentId
-		  required string  pageType
+		, required string  pageType
 		, required string  objectName
 		,          array   selectFields = []
 		,          numeric startRow     = 1
