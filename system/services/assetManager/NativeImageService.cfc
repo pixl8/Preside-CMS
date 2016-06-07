@@ -42,7 +42,7 @@ component displayname="Native Image Manipulation Service" {
 			try {
 
 				if ( checkImageEXIF ){
-					image = ImageNew( getImageRotation( arguments.asset ) );
+					image = ImageNew( correctImageOrientation( arguments.asset ) );
 					currentImageInfo = ImageInfo( image );
 				} else {
 					image = ImageNew( arguments.asset );
@@ -114,7 +114,7 @@ component displayname="Native Image Manipulation Service" {
 
 		try {
 			if ( checkImageEXIF ){
-				image = ImageNew( getImageRotation( arguments.asset ) );
+				image = ImageNew( correctImageOrientation( arguments.asset ) );
 				imageInfo = ImageInfo( image );
 			} else {
 				image = ImageNew( arguments.asset );
@@ -181,7 +181,7 @@ component displayname="Native Image Manipulation Service" {
 		try {
 
 			if ( checkImageEXIF ){
-				image = ImageNew( getImageRotation( arguments.asset ) );
+				image = ImageNew( correctImageOrientation( arguments.asset ) );
 				imageInfo = ImageInfo( image );
 			} else {
 				image = ImageNew( arguments.asset );
@@ -195,7 +195,7 @@ component displayname="Native Image Manipulation Service" {
 		return imageInfo;
 	}
 
-    public binary function getImageRotation( required binary asset ) {
+    public binary function correctImageOrientation( required binary asset ) {
 		var imageBinary = arguments.asset;
         var imageInfo = {};
         var tmpFilePath = GetTempFile( GetTempDirectory(), "ntv" );
@@ -207,7 +207,7 @@ component displayname="Native Image Manipulation Service" {
 
             imageOrientation = imageGetEXIFTag( oImage, "orientation" );
             imageInfo = imageInfo( oImage );
-				if ( findNoCase( "Rotate", imageOrientation ) && !findNoCase( "Mirror", imageOrientation ) ){
+			if ( findNoCase( "Rotate", imageOrientation ) && !findNoCase( "Mirror", imageOrientation ) ){
                 var iRotate = 0;
                 if ( imageInfo.width > imageInfo.height ) {
                     if ( findNoCase( "Rotate 90 CW", imageOrientation ) ){
@@ -216,17 +216,18 @@ component displayname="Native Image Manipulation Service" {
                     if ( findNoCase( "Rotate 270 CW", imageOrientation ) ){
                         iRotate = 270;
                     }
-                    imageRotate( name = oImage, angle = iRotate, x = 2, interpolation = "bicubic" );
-                    //imageWrite( oImage, tmpFilePath, 1, true );
-					//imageBinary = fileReadBinary( tmpFilePath );
-					imageBinary = imageGetBlob( oImage );
                 }
+				if ( findNoCase( "Rotate 180", imageOrientation ) ){
+					iRotate = 180;
+				}
+				if ( iRotate > 0 ){
+					imageRotate( name = oImage, angle = iRotate, x = 2, interpolation = "bicubic" );
+					imageBinary = imageGetBlob( oImage );
+				}
             }
 
         } catch (any e) {
 			//No exif tag - orientation
-            //$raiseError( e );
-            //rethrow;
         } finally {
             fileDelete( tmpFilePath );
         }

@@ -24,12 +24,8 @@ component displayname="ImageMagick"  {
 	) {
 
 		var imageBinary = arguments.asset;
-		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
-		var checkImageEXIF = true;
 
-		if ( checkImageEXIF ) {
-			imageBinary = getImageRotation( imageBinary );
-		}
+		imageBinary = autoCorrectImageOrientation( imageBinary );
 
 		var currentImageInfo = getImageInformation( imageBinary );
 
@@ -98,12 +94,8 @@ component displayname="ImageMagick"  {
 		,          string  quality = "highPerformance"
 	) {
 		var imageBinary = arguments.asset;
-		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
-		var checkImageEXIF = true;
 
-		if ( checkImageEXIF ) {
-			imageBinary = getImageRotation( imageBinary );
-		}
+		imageBinary = autoCorrectImageOrientation( imageBinary );
 
 		var currentImageInfo = getImageInformation( imageBinary );
 
@@ -185,12 +177,8 @@ component displayname="ImageMagick"  {
 	public struct function getImageInformation( required binary asset ) {
 		var tmpFilePath = GetTempFile( GetTempDirectory(), "mgk" );
 		var imageBinary = arguments.asset;
-		//var checkImageEXIF = $getPresideSetting( "asset-manager", "chk_imageEXIF" );
-		var checkImageEXIF = true;
 
-		if ( checkImageEXIF ) {
-			imageBinary = getImageRotation( imageBinary );
-		}
+		imageBinary = autoCorrectImageOrientation( imageBinary );
 
 		FileWrite( tmpFilePath, imageBinary );
 
@@ -208,7 +196,7 @@ component displayname="ImageMagick"  {
 		throw( type="AssetTransformer.shrinkToFit.notAnImage" );
 	}
 
-	public binary function getImageRotation( required binary asset ) {
+	public binary function autoCorrectImageOrientation( required binary asset ) {
 		var tmpSourceFilePath = GetTempFile( GetTempDirectory(), "mgk" );
 		var imageBinary = arguments.asset;
 
@@ -217,6 +205,9 @@ component displayname="ImageMagick"  {
 		var convertOrientation = false;
 
 		switch ( rawOrientation ) {
+			case "BottomRight":
+				convertOrientation = true;
+				break;
 			case "RightTop":
 				convertOrientation = true;
 				break;
