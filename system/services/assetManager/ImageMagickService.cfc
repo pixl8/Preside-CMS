@@ -170,7 +170,7 @@ component displayname="ImageMagick"  {
 
 		FileWrite( tmpFilePath, arguments.asset );
 
-		var rawInfo = Trim( _exec( command="identify", args='-format "%wx%h" "#tmpFilePath#"' ) );
+		var rawInfo = Trim( _exec( command="identify", args='-format "%wx%h" "#tmpFilePath#"[0]' ) );
 
 		FileDelete( tmpFilePath );
 
@@ -248,7 +248,7 @@ component displayname="ImageMagick"  {
 	}
 
 	private void function _checkResize( required string destinationFile, required numeric width, required numeric height ) {
-		var rawInfo    = Trim( _exec( command="identify", args='-format "%wx%h" "#arguments.destinationFile#"' ) );
+		var rawInfo    = Trim( _exec( command="identify", args='-format "%wx%h" "#arguments.destinationFile#"[0]' ) );
 		var dimensions = {};
 		var failure    = false;
 
