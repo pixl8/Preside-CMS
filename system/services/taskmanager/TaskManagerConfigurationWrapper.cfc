@@ -30,6 +30,8 @@ component displayName="TaskManager Configuration Wrapper" {
 		for( var dir in _getHandlerDirectories() ){
 			for( var file in [ "ScheduledTasks.cfc", "Tasks.cfc" ] ) {
 				var filePath = dir & "/" & file;
+				var handler  = LCase( ReReplace( file, "\.cfc$", "" ) );
+
 				if ( FileExists( filePath ) ) {
 					var componentPath = Replace( filePath, "/", ".", "all" );
 					    componentPath = ReReplace( componentPath, "\.cfc$", "" );
@@ -40,14 +42,14 @@ component displayName="TaskManager Configuration Wrapper" {
 						var isScheduledTaskMethod = Len( Trim( f.schedule ?: "" ) );
 						if ( isScheduledTaskMethod ) {
 							tasks[ f.name ] = {
-								  event        = "scheduledtasks.#f.name#"
+								  event        = "#handler#.#f.name#"
 								, schedule     = _parseCronTabSchedule( f.schedule )
 								, name         = f.displayName ?: f.name
 								, description  = f.hint        ?: ""
 								, timeout      = Val( f.timeout ?: 600 )
 								, priority     = Val( f.priority ?: 0 )
 								, isScheduled  = f.schedule != "disabled"
-								, displayGroup = f.displayGroup ?: ""
+								, displayGroup = f.displayGroup ?: "default"
 							};
 						}
 					}
