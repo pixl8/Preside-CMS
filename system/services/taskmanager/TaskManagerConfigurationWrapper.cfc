@@ -47,7 +47,7 @@ component displayName="TaskManager Configuration Wrapper" {
 								, timeout      = Val( f.timeout ?: 600 )
 								, priority     = Val( f.priority ?: 0 )
 								, isScheduled  = f.schedule != "disabled"
-								, displayGroup = f.displayGroup ?: ""
+								, displayGroup = f.displayGroup ?: "default"
 							};
 						}
 					}
