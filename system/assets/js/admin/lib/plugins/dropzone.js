@@ -1108,7 +1108,7 @@
           var canvas, ctx, resizeInfo, thumbnail, _ref, _ref1, _ref2, _ref3;
           var orientation = 0;
           EXIF.getData(img, function() {
-            switch(parseInt(EXIF.getTag(this, "orientation"))){
+            switch(parseInt(EXIF.getTag(this, "Orientation"))){
               case 3: orientation = 180; break;
               case 6: orientation = -90; break;
               case 8: orientation = 90; break;
@@ -1699,12 +1699,12 @@
     }
   };
 
-  drawImageIOSFix = function(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+  drawImageIOSFix = function(o, ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
     var vertSquashRatio;
     vertSquashRatio = detectVerticalSquash(img);
     dh = dh / vertSquashRatio;
     ctx.translate( dx+dw/2, dy+dh/2 );
-    ctx.rotate(orientation*Math.PI/180);
+    ctx.rotate(-o*Math.PI/180);
     dx = -dw/2;
     dy = -dh/2;
     return ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
