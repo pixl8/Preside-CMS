@@ -6,8 +6,8 @@ component extends="testbox.system.BaseSpec" {
 				var wrapper = _getWrapper();
 				var tasks = {
 					  task_1 = { name="Task 1", description="This is scheduled task 1", event="scheduledtasks.task_1", schedule="* 5 * * * *" , timeout=120, priority=0, isScheduled=true , displayGroup="default" }
-					, task_2 = { name="Task 2", description="This is scheduled task 2", event="scheduledtasks.task_2", schedule="disabled"    , timeout=600, priority=0, isScheduled=false, displayGroup="default" }
-					, task_3 = { name="Task 3", description="This is scheduled task 3", event="scheduledtasks.task_3", schedule="* 5 * * * *" , timeout=600, priority=0, isScheduled=true , displayGroup="default" }
+					, task_2 = { name="Task 2", description="This is scheduled task 2", event="tasks.task_2"         , schedule="disabled"    , timeout=600, priority=0, isScheduled=false, displayGroup="default" }
+					, task_3 = { name="Task 3", description="This is scheduled task 3", event="tasks.task_3"         , schedule="* 5 * * * *" , timeout=600, priority=0, isScheduled=true , displayGroup="default" }
 					, task_4 = { name="Task 4", description="This is scheduled task 4", event="scheduledtasks.task_4", schedule="* 5 * * * *" , timeout=600, priority=0, isScheduled=true , displayGroup="Group x" }
 					, task_5 = { name="Task 5", description="This is scheduled task 5", event="scheduledtasks.task_5", schedule="* 14 3 * * *", timeout=600, priority=0, isScheduled=true , displayGroup="default" }
 				};
