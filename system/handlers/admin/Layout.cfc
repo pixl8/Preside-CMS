@@ -49,9 +49,8 @@ component {
 						break;
 					}
 				});
-				args.baseUrl = event.getCurrentUrl();
-				var delim = args.baseUrl contains "?" ? "&" : "?";
-				args.baseUrl &= delim & "setLocale=";
+
+				args.baseUrl = event.buildAdminLink( linkto="general.setLocale", queryString="locale=" );
 
 				return renderView( view="/admin/layout/localePicker", args=args );
 			}
