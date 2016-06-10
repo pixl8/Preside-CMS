@@ -82,8 +82,9 @@ component displayName="System configuration service" {
 	 */
 	public struct function getCategorySettings(
 		  required string  category
-		,          boolean includeDefaults=true
-		,          boolean globalDefaultsOnly=false
+		,          boolean includeDefaults    = true
+		,          boolean globalDefaultsOnly = false
+		,          string  siteId             = _getSiteService().getActiveSiteId()
 	) {
 		_reloadCheck();
 
@@ -92,7 +93,7 @@ component displayName="System configuration service" {
 		if ( !arguments.globalDefaultsOnly ) {
 			var rawSiteResult = _getDao().selectData(
 				  selectFields = [ "setting", "value" ]
-				, filter       = { category = arguments.category, site=_getSiteService().getActiveSiteId() }
+				, filter       = { category = arguments.category, site=arguments.siteId }
 			);
 
 			for( var record in rawSiteResult ){

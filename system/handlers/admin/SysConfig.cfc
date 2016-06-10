@@ -47,6 +47,7 @@ component extends="preside.system.base.AdminHandler" {
 			prc.savedData = systemConfigurationService.getCategorySettings(
 				  category        = categoryId
 				, includeDefaults = false
+				, siteId          = siteId
 			);
 		} else {
 			prc.savedData = systemConfigurationService.getCategorySettings(
@@ -74,6 +75,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public any function saveCategoryAction( event, rc, prc ) {
 		var categoryId = rc.id ?: "";
+		var siteId     = rc.site ?: "";
 
 		try {
 			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
@@ -81,9 +83,22 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		var formName         = prc.category.getForm();
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
+		var formName = prc.category.getForm();
+		var formData = event.getCollectionForForm( formName );
+
+		if ( Len( Trim( siteId ) ) ) {
+			for( var setting in formData ){
+				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
+					formData.delete( setting );
+				}
+			}
+		}
+
+		var validationResult = validateForm(
+			  formName      = formName
+			, formData      = formData
+			, ignoreMissing = Len( Trim( siteId ) )
+		);
 
 		announceInterception( "preSaveSystemConfig", {
 			  category         = categoryId
@@ -107,6 +122,7 @@ component extends="preside.system.base.AdminHandler" {
 				  category = categoryId
 				, setting  = setting
 				, value    = formData[ setting ]
+				, siteId   = siteId
 			);
 		}
 

@@ -16,7 +16,7 @@
 <cfoutput>
 	<div class="form-group<cfif hasError> has-error</cfif> with-override-option">
 		<label class="col-sm-1 control-label no-padding-right override-checkbox">
-			<input type="checkbox" name="_enable_#args.name#" class="ace" <cfif hasOverride> checked</cfif> tabindex="-1" />
+			<input type="checkbox" name="_override_#args.name#" class="ace" <cfif hasOverride> checked</cfif> tabindex="99999" value="1" />
 			<span class="lbl"></span>
 		</label>
 		<label class="col-sm-2 control-label no-padding-right" for="#args.for#">
