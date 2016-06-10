@@ -22,33 +22,37 @@ component {
 			if ( !adminLanguages.len() && !args.locales.findNoCase( "en" ) ) {
 				args.locales.append( "en" );
 			}
-			args.locales = args.locales.map( function( locale ){
-				var language = ListFirst( locale, "_" );
-				var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
-
-				return {
-					  locale  = arguments.locale
-					, title   = translateResource( uri="locale:title", language=language, country=country )
-					, flag    = translateResource( uri="locale:flag" , language=language, country=country )
-					, selected = ( arguments.locale == currentLocale )
-				}
-			} ).sort( function( a, b ){
-				if ( a.locale == defaultLocale ) {
-					return -1;
-				}
-
-				return a.title < b.title ? -1 : 1;
-			} );
-
-			args.selectedLocale = args.locales[1];
-			args.locales.each(function( locale ){
-				if ( locale.locale == currentLocale ) {
-					args.selectedLocale = locale;
-					break;
-				}
-			});
 
 			if ( args.locales.len() > 1 ) {
+				args.locales = args.locales.map( function( locale ){
+					var language = ListFirst( locale, "_" );
+					var country  = ListLen( locale, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+
+					return {
+						  locale  = arguments.locale
+						, title   = translateResource( uri="locale:title", language=language, country=country )
+						, flag    = translateResource( uri="locale:flag" , language=language, country=country )
+						, selected = ( arguments.locale == currentLocale )
+					}
+				} ).sort( function( a, b ){
+					if ( a.locale == defaultLocale ) {
+						return -1;
+					}
+
+					return a.title < b.title ? -1 : 1;
+				} );
+
+				args.selectedLocale = args.locales[1];
+				args.locales.each(function( locale ){
+					if ( locale.locale == currentLocale ) {
+						args.selectedLocale = locale;
+						break;
+					}
+				});
+				args.baseUrl = event.getCurrentUrl();
+				var delim = args.baseUrl contains "?" ? "&" : "?";
+				args.baseUrl &= delim & "setLocale=";
+
 				return renderView( view="/admin/layout/localePicker", args=args );
 			}
 		}

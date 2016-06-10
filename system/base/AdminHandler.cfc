@@ -1,6 +1,7 @@
 <cfcomponent output="false" hint="I am a base Handler for all admin handlers. All admin handlers should extend me">
 	<cfproperty name="applicationsService" inject="applicationsService" />
-	<cfproperty name="loginService" inject="loginService" />
+	<cfproperty name="loginService"        inject="loginService" />
+	<cfproperty name="i18n"                inject="coldbox:plugin:i18n" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -8,6 +9,7 @@
 		<cfargument name="eventArguments" type="struct" required="true" />
 
 		<cfscript>
+			_setLocale( event );
 			_checkLogin( event );
 			var activeApplication = applicationsService.getActiveApplication( event.getCurrentEvent() );
 
@@ -28,11 +30,21 @@
 
 
 <!--- private helpers --->
+	<cffunction name="_setLocale" access="private" returntype="void" output="false">
+		<cfargument name="event" type="any" required="true" />
+		<cfscript>
+			var locale = Trim( event.getValue( "setLocale", "" ) );
+			if ( locale.len() ) {
+				i18n.setFwLocale( locale );
+			}
+		</cfscript>
+	</cffunction>
 	<cffunction name="_checkLogin" access="private" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
 
 		<cfscript>
-			var loginExcempt = event.getCurrentEvent() contains 'admin.login' or event.getCurrentEvent() contains 'admin.ajaxProxy'; // ajaxProxy does its own login handling...
+			var currentEvent = event.getCurrentEvent();
+			var loginExcempt = currentEvent.reFindNoCase( "^admin\.(login|ajaxProxy)" );
 			var postLoginUrl = "";
 
 			if ( !loginExcempt ) {
