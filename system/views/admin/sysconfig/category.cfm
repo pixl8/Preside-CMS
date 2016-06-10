@@ -6,6 +6,8 @@
 	sites      = prc.sites ?: QueryNew('');
 	categoryId = Trim( rc.id   ?: "" );
 	site       = Trim( rc.site ?: "" );
+
+	isSiteConfig = sites.recordCount > 1 && site.len();
 </cfscript>
 
 <cfoutput>
@@ -33,8 +35,17 @@
 			<div class="tab-content">
 	</cfif>
 
+
 	<form id="#formId#" method="post" action="#event.buildAdminLink( linkTo='sysConfig.saveCategoryAction' )#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal">
-		<input type="hidden" name="id" value="#( rc.id ?: '' )#">
+		<input type="hidden" name="id"   value="#categoryId#">
+		<input type="hidden" name="site" value="#site#">
+
+		<cfif isSiteConfig>
+			<p class="alert alert-info">
+				<i class="fa fa-fw fa-info"></i>
+				#translateResource( uri="cms:sysConfig.site.config.info" )#
+			</p>
+		</cfif>
 
 		#renderForm(
 			  formName          = prc.category.getForm()
@@ -42,6 +53,8 @@
 			, formId            = formId
 			, savedData         = prc.savedData
 			, validationResult  = rc.validationResult ?: ""
+			, fieldLayout       = isSiteConfig ? "formcontrols.layouts.fieldWithOverrideOption"    : NullValue()
+			, fieldsetLayout    = isSiteConfig ? "formcontrols.layouts.fieldsetWithOverrideOption" : NullValue()
 		)#
 
 		<div class="form-actions row">
