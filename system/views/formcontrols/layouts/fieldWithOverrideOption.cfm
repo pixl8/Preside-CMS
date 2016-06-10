@@ -10,11 +10,12 @@
 
 	hasError    = Len( Trim( args.error ) );
 	hasOverride = args.savedData.keyExists( args.name ) || rc.keyExists( args.name );
+	event.include( "/js/admin/specific/overrideform/" );
 </cfscript>
 
 <cfoutput>
-	<div class="form-group<cfif hasError> has-error</cfif>">
-		<label class="col-sm-1 control-label no-padding-right">
+	<div class="form-group<cfif hasError> has-error</cfif> with-override-option">
+		<label class="col-sm-1 control-label no-padding-right override-checkbox">
 			<input type="checkbox" name="_enable_#args.name#" class="ace" <cfif hasOverride> checked</cfif> />
 			<span class="lbl"></span>
 		</label>
@@ -29,7 +30,7 @@
 
 		</label>
 
-		<div class="col-sm-8">
+		<div class="col-sm-8 control">
 			<div class="clearfix">
 				<div class="container">
 					#args.control#
