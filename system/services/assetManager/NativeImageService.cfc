@@ -176,28 +176,28 @@ component displayname="Native Image Manipulation Service" {
 		return imageInfo;
 	}
 
-    public binary function correctImageOrientation( required binary asset ) {
+	public binary function correctImageOrientation( required binary asset ) {
 		var imageBinary = arguments.asset;
-        var imageInfo = {};
-        var tmpFilePath = GetTempFile( GetTempDirectory(), "ntv" );
+		var imageInfo = {};
+		var tmpFilePath = GetTempFile( GetTempDirectory(), "ntv" );
 
-        fileWrite( tmpFilePath, imageBinary );
-        var oImage = ImageNew( tmpFilePath );
+		fileWrite( tmpFilePath, imageBinary );
+		var oImage = ImageNew( tmpFilePath );
 
-        try {
+		try {
 
-            imageOrientation = imageGetEXIFTag( oImage, "orientation" );
-            imageInfo = imageInfo( oImage );
+			imageOrientation = imageGetEXIFTag( oImage, "orientation" );
+			imageInfo = imageInfo( oImage );
 			if ( findNoCase( "Rotate", imageOrientation ) && !findNoCase( "Mirror", imageOrientation ) ){
-                var iRotate = 0;
-                if ( imageInfo.width > imageInfo.height ) {
-                    if ( findNoCase( "Rotate 90 CW", imageOrientation ) ){
-                        iRotate = 90;
-                    }
-                    if ( findNoCase( "Rotate 270 CW", imageOrientation ) ){
-                        iRotate = 270;
-                    }
-                }
+				var iRotate = 0;
+				if ( imageInfo.width > imageInfo.height ) {
+					if ( findNoCase( "Rotate 90 CW", imageOrientation ) ){
+						iRotate = 90;
+					}
+					if ( findNoCase( "Rotate 270 CW", imageOrientation ) ){
+						iRotate = 270;
+					}
+				}
 				if ( findNoCase( "Rotate 180", imageOrientation ) ){
 					iRotate = 180;
 				}
@@ -205,15 +205,15 @@ component displayname="Native Image Manipulation Service" {
 					imageRotate( name = oImage, angle = iRotate, x = 2, interpolation = "bicubic" );
 					imageBinary = imageGetBlob( oImage );
 				}
-            }
+			}
 
-        } catch (any e) {
+		} catch (any e) {
 			//No exif tag - orientation
-        } finally {
-            fileDelete( tmpFilePath );
-        }
+		} finally {
+			fileDelete( tmpFilePath );
+		}
 
-        return ( imageBinary );
-    }
+		return ( imageBinary );
+	}
 
 }
