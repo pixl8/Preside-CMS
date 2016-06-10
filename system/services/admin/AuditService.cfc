@@ -35,22 +35,18 @@ component output="false" singleton=true {
 		} );
 	}
 
-	public query function getAuditTrailLog(
-		  numeric startRow = 1
-		, numeric maxRows  = 0
-		, struct  filter   = {}
-		, array   extraFilters = []
+	public query function getTrail(
+		  numeric page     = 1
+		, numeric pageSize = 10
 	) {
-		var records = _getDao().selectData(
+		return _getDao().selectData(
 			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "audit_log.detail" , "security_user.email_address", "security_user.known_as","audit_log.user"  ]
 			, orderby      = "audit_log.datecreated desc"
-			, startRow     = arguments.startRow
-			, maxRows      = arguments.maxRows
-			, filter       = arguments.filter
-			, extraFilters = arguments.extraFilters
+			, startRow     = ( ( arguments.page - 1 ) * arguments.pageSize ) + 1
+			, maxRows      = arguments.pageSize
 		);
-		return records;
 	}
+
 	/**
 	 * Returns the auditTrail record matching the given ID
 	 *
@@ -65,7 +61,6 @@ component output="false" singleton=true {
 	}
 
 	public any function renderLogMessage(  required struct log ) {
-
 		var viewletEvent = "renderers.auditLog.auditLogEntry." & arguments.log.action;
 		if ( $getColdbox().viewletExists( viewletEvent ) ) {
 			return $getColdbox().renderViewlet(

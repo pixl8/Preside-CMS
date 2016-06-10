@@ -1,6 +1,6 @@
 <cfparam name="args.logDate" type="date" />
 <cfscript>
-	daysOld = DateDiff( "d", args.logDate, Now() );
+	daysOld = DateDiff( "d", args.logDate, DateFormat( Now(), "yyyy-mm-dd" ) );
 </cfscript>
 
 <cfoutput>
