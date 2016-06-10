@@ -10,6 +10,7 @@
 		};
 
 		$control.on( "click", enableOverride );
+		$control.on( "change", ".form-control", enableOverride );
 		$label.on( "click", enableOverride );
 	} );
 

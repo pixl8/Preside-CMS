@@ -42,7 +42,7 @@
 
 		<cfif isSiteConfig>
 			<p class="alert alert-info">
-				<i class="fa fa-fw fa-info"></i>
+				<i class="fa fa-fw fa-info-circle"></i>
 				#translateResource( uri="cms:sysConfig.site.config.info" )#
 			</p>
 		</cfif>
