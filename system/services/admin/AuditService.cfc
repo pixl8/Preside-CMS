@@ -38,10 +38,48 @@ component output="false" singleton=true {
 	public query function getTrail(
 		  numeric page     = 1
 		, numeric pageSize = 10
+		, string  dateFrom = ""
+		, string  dateTo   = ""
+		, string  user     = ""
+		, string  action   = ""
 	) {
+		var filter = "";
+		var filterDelim = "";
+		var params = {};
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			filter = "audit_log.datecreated >= :datefrom";
+			filterDelim = " and ";
+			params.datefrom = { value=arguments.dateFrom, type="cf_sql_date" }
+		}
+
+		if ( IsDate( arguments.dateTo ) ) {
+			filter &= filterDelim & "audit_log.datecreated <= :dateTo";
+			filterDelim = " and ";
+			params.dateTo = { value=arguments.dateTo, type="cf_sql_date" }
+		}
+
+		if ( Len( Trim( arguments.user ) ) ) {
+			filter &= filterDelim & "user = :user";
+			filterDelim = " and ";
+			params.user = arguments.user;
+		}
+
+		if ( Len( Trim( arguments.action ) ) ) {
+			filter &= filterDelim & "action = :action";
+			filterDelim = " and ";
+			params.action = arguments.action;
+		}
+
+		if ( !Len( Trim( filter ) ) ) {
+			filter = {};
+		}
+
 		return _getDao().selectData(
 			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "audit_log.detail" , "security_user.email_address", "security_user.known_as","audit_log.user"  ]
 			, orderby      = "audit_log.datecreated desc"
+			, filter       = filter
+			, filterParams = params
 			, startRow     = ( ( arguments.page - 1 ) * arguments.pageSize ) + 1
 			, maxRows      = arguments.pageSize
 		);
@@ -73,6 +111,14 @@ component output="false" singleton=true {
 				, args  = arguments.log
 			);
 		}
+	}
+
+	public array function getLoggedActions() {
+		var records = $getPresideObject( "audit_log" ).selectData(
+			  selectFields = [ "distinct action" ]
+		);
+
+		return ValueArray( records.action );
 	}
 
 // PRIVATE GETTERS AND SETTERS

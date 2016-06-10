@@ -4,7 +4,9 @@
 <cfparam name="args.known_as"    type="string"/>
 
 <cfscript>
-	message = translateResource( uri="cms:auditTrail.#args.action#.message", data=[ arguments.args.detail ] );
+	userLink  = '<a href="##">#args.known_as#</a>';
+	message   = translateResource( uri="cms:auditTrail.#args.action#.message", data=[ userLink ] );
+	iconClass = translateResource( uri="cms:auditTrail.#args.action#.iconClass" );
 </cfscript>
 
 <cfoutput>
@@ -20,6 +22,9 @@
 
 	<div class="widget-body">
 		<div class="widget-main">
+			<cfif Len( Trim( iconClass ) )>
+				<i class="fa fa-fw fa-lg #iconClass#"></i>
+			</cfif>
 			#message#
 		</div>
 	</div>

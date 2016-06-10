@@ -15,18 +15,40 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		prc.logs          = auditService.getTrail( 1, 10 );
+		var dateFrom = rc.dateFrom ?: "";
+		var dateTo   = rc.dateTo   ?: "";
+		var user     = rc.user     ?: "";
+		var action   = rc.action   ?: "";
+
+		prc.logs = auditService.getTrail(
+			  page     = 1
+			, pageSize = 10
+			, dateFrom = dateFrom
+			, dateTo   = dateTo
+			, user     = user
+			, action   = action
+		);
 
 		prc.pageTitle     = translateResource( "cms:auditTrail.page.title" );
 		prc.pageSubTitle  = translateResource( "cms:auditTrail.page.subtitle" );
 	}
 
 	public any function loadMore( event, rc, prc ) {
-		var page = Val( rc.page ?: 2 );
-		var args = { logs = auditService.getTrail( page, 10 ) };
-		var logs = renderView( view="/admin/audittrail/_logs", args=args );
+		var dateFrom = rc.dateFrom ?: "";
+		var dateTo   = rc.dateTo   ?: "";
+		var user     = rc.user     ?: "";
+		var action   = rc.action   ?: "";
+		var page     = Val( rc.page ?: 2 );
+		var logs     = auditService.getTrail(
+			  page     = page
+			, pageSize = 10
+			, dateFrom = dateFrom
+			, dateTo   = dateTo
+			, user     = user
+			, action   = action
+		);
 
-		event.renderData( data=logs, type="html" );
+		event.renderData( data=renderView( view="/admin/audittrail/_logs", args={ logs=logs } ), type="html" );
 	}
 
 	// PRIVATE UTILITY
