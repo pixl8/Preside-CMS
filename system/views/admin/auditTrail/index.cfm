@@ -1,88 +1,21 @@
 <cfscript>
-    logs         = prc.logs                             ?                : [];
-    userFilter   = structKeyExists( rc, "user" )        ? rc.user        : "";
-    actionFilter = structKeyExists( rc, "action" )      ? rc.action      : "";
-    dateFilter   = structKeyExists( rc, "dateFilters" ) ? rc.dateFilters : "";
+	logs = prc.logs ?: [];
 </cfscript>
 <cfoutput>
-    <div class="container">
-        <div class="col-sm-5 col-md-4 col-lg-4">
-            <div class="btn-group pull-right">
-                <button data-toggle="dropdown" class="btn btn-success">
-                    <span class="fa fa-caret-down"></span>
-                    <i class="fa fa-plus"></i>
-                    #translateResource( uri='cms:auditTrail.addFilter' )#
-                </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                    <li data-field="DateRange" class="date">
-                        <a href="#event.buildAdminLink( linkTo='auditTrail.getFilters', queryString='type=dateCreated&user=#userFilter#&action=#actionFilter#&dateFilters=#dateFilter#' )#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.dateRange' )#">
-                            <i class="fa fa-calendar"></i>&nbsp;
-                            #translateResource( uri='cms:auditTrail.dateRange' )#
-                        </a>
-                    </li>
-                    <li data-field="activity" class="field">
-                        <a href="#event.buildAdminLink( linkTo='auditTrail.getFilters', queryString='type=Action&user=#userFilter#&action=#actionFilter#&dateCreated=#dateFilter#' )#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.action' )#">
-                            <i class="fa fa-cogs"></i>&nbsp;
-                            #translateResource( uri='cms:auditTrail.action' )#
-                        </a>
-                    </li>
-                    <li data-field="user" class="field">
-                        <a href="#event.buildAdminLink( linkTo='auditTrail.getFilters', queryString='type=User&user=#userFilter#&action=#actionFilter#&dateCreated=#dateFilter#' )#" data-toggle="bootbox-modal" data-title="#translateResource( uri='cms:auditTrail.user' )#">
-                            <i class="fa fa-user"></i>&nbsp;
-                            #translateResource( uri='cms:auditTrail.user' )#
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="clearfix"></div>&nbsp;
-            <cfif len(prc.filterLabel)>
-                <cfloop array="#prc.filterLabel#" index="filter">
-                    <div class="alert alert-info">
-                        <div><i class="#filter.icon#"></i>&nbsp;#filter.value#</div>
-                    </div>
-                </cfloop>
-            </cfif>
-        </div>
-        <div class="col-sm-7 col-md-8 col-lg-8">
-            <cfif logs.recordcount>
-                <div id="audit-trail">
-                    <div class="row">
-                        <div class="col-xs-12 col-sm-10 col-sm-offset-1">
-                            <div class="timeline-container">
-                                <div class="timeline-label">
-                                    <span class="label label-primary arrowed-in-right label-lg">
-                                        <b>Today</b>
-                                    </span>
-                                </div>
-                                <div class="timeline-items">
-                                    <cfloop query="logs">
-                                        <cfscript>
-                                            auditTrailData = QueryRowToStruct( logs, logs.currentRow );
-                                            if ( IsJson( auditTrailData.detail ) ) {
-                                                auditTrailData.detail = DeserializeJson( auditTrailData.detail );
-                                            }
-                                        </cfscript>
-                                        <div class="timeline-item clearfix">
-                                            <div class="timeline-info">
-                                                <img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( known_as )#" />
-                                                <span class="label label-info label-sm">#TimeFormat( datecreated, "HH:mm" )#</span>
-                                            </div>
-                                            <div class="widget-box transparent">
-                                                #renderLogMessage( log=auditTrailData )#
-                                            </div>
-                                        </div>
-                                    </cfloop>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <cfelse>
-                <p><em>#translateResource( uri='cms:auditTrail.noData' )#</em></p>
-            </cfif>
-            <div class="load-more text-center">
-                <a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='user=#userFilter#&action=#actionFilter#&dateFilters=#dateFilter#&page=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
-            </div>
-        </div>
-    </div>
+	<cfif logs.recordcount>
+		<div id="audit-trail">
+			<div class="row">
+				<div class="col-xs-12 col-sm-10 col-sm-offset-1">
+					<div class="timeline-container">
+						#renderView( view="/admin/auditTrail/_logs", args={ logs=logs } )#
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="load-more text-center">
+			<a class="load-more btn btn-primary" data-load-more-target="audit-trail" data-href="#event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='page=' )#"><i class="fa fa-plus-circle"></i> #translateResource( uri='cms:auditTrail.loadMore' )#</a>
+		</div>
+	<cfelse>
+		<p><em>#translateResource( uri='cms:auditTrail.noData' )#</em></p>
+	</cfif>
 </cfoutput>
