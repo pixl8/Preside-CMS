@@ -1,4 +1,4 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="siteService"                inject="siteService";
@@ -6,7 +6,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 
 
 // LIFECYCLE EVENTS
-	function preHandler( event, rc, prc ) output=false {
+	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "systemConfiguration" ) ) {
@@ -24,7 +24,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // FIRST CLASS EVENTS
-	public any function index( event, rc, prc ) output=false {
+	public any function index( event, rc, prc ) {
 		prc.categories = systemConfigurationService.listConfigCategories();
 
 		prc.pageTitle    = translateResource( uri="cms:sysconfig" );
@@ -32,7 +32,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.pageIcon     = "cogs";
 	}
 
-	public any function category( event, rc, prc ) output=false {
+	public any function category( event, rc, prc ) {
 		var categoryId = Trim( rc.id   ?: "" );
 		var siteId     = Trim( rc.site ?: "" );
 
@@ -72,7 +72,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public any function saveCategoryAction( event, rc, prc ) output=false {
+	public any function saveCategoryAction( event, rc, prc ) {
 		var categoryId = rc.id ?: "";
 
 		try {
@@ -120,7 +120,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // VIEWLETS
-	private string function categoryMenu( event, rc, prc, args ) output=false {
+	private string function categoryMenu( event, rc, prc, args ) {
 		args.categories = systemConfigurationService.listConfigCategories();
 
 		return renderView( view="admin/sysconfig/categoryMenu", args=args );
