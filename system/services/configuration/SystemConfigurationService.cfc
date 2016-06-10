@@ -93,17 +93,34 @@ component displayName="System configuration service" {
 	 * @category.hint  Category name of the setting to save
 	 * @setting.hint   Name of the setting to save
 	 * @value.hint     Value to save
+	 * @siteId.hint    ID of site to which the setting applies (optional, if empty setting is treated as system wide default)
 	 *
 	 */
-	public any function saveSetting( required string category, required string setting, required string value )  {
+	public any function saveSetting(
+		  required string category
+		, required string setting
+		, required string value
+		,          string siteId = ""
+	)  {
 		_reloadCheck();
 
 		var dao = _getDao();
 
 		transaction {
+			var filter = "category = :category and setting = :setting and site ";
+			var params = { category = arguments.category, setting = arguments.setting };
+
+			if ( Len( Trim( arguments.siteId ) ) ) {
+				filter &= "= :site";
+				params.site = arguments.siteId;
+			} else {
+				filter &= "is null";
+			}
+
 			var currentRecord = dao.selectData(
 				  selectFields = [ "id" ]
-				, filter       = { category = arguments.category, setting = arguments.setting }
+				, filter       = filter
+				, filterParams = params
 			);
 
 			if ( currentRecord.recordCount ) {
@@ -113,7 +130,12 @@ component displayName="System configuration service" {
 				);
 			} else {
 				return dao.insertData(
-					data = { category = arguments.category, setting = arguments.setting, value = arguments.value }
+					data = {
+						  category = arguments.category
+						, setting  = arguments.setting
+						, value    = arguments.value
+						, site     = arguments.siteId
+					}
 				);
 			}
 		}

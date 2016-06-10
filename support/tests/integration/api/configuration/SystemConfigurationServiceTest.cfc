@@ -52,7 +52,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var configService = _getConfigSvc( testDirs );
 
 				mockDao.$( "selectData" )
-					.$args( filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
 					.$results( QueryNew('id') );
 
 				mockDao.$( "insertData", CreateUUId() );
@@ -66,14 +66,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var log = mockDao.$callLog().insertData;
 
 				expect( log.len() ).toBe( 1 );
-				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting" } } );
+				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site="" } } );
 			} );
 
 			it( "should update existing db record when record already exists in db", function(){
 				var configService = _getConfigSvc( testDirs );
 
 				mockDao.$( "selectData" )
-					.$args( filter={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="mycategory", setting="mysetting" }, selectFields=["id"] )
 					.$results( QueryNew('id', "varchar", ["someid"] ) );
 
 				mockDao.$( "insertData", CreateUUId() );
@@ -91,6 +91,29 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				log = mockDao.$callLog().updateData;
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( { data = {  value="this is the value of my setting" }, id = "someid" } );
+			} );
+
+			it( "should insert a new db record with site ID when site id passed", function(){
+				var configService = _getConfigSvc( testDirs );
+				var siteId        = CreateUUId();
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site = :site", filterParams={ category="mycategory", setting="mysetting", site=siteId }, selectFields=["id"] )
+					.$results( QueryNew('id') );
+
+				mockDao.$( "insertData", CreateUUId() );
+
+				configService.saveSetting(
+					  category = "mycategory"
+					, setting  = "mysetting"
+					, value    = "this is the value of my setting"
+					, siteId   = siteId
+				);
+
+				var log = mockDao.$callLog().insertData;
+
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site=siteId } } );
 			} );
 		} );
 
