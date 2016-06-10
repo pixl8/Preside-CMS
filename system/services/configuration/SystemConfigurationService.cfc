@@ -69,21 +69,29 @@ component displayName="System configuration service" {
 	 * See [[editablesystemsettings]] for a full guide.
 	 *
 	 * @autodoc
-	 * @category.hint        The name of the category who's settings you wish to get
-	 * @includeDefaults.hint Whether to include default global and injected settings or whether to just return the settings for the current site
+	 * @category.hint           The name of the category who's settings you wish to get
+	 * @includeDefaults.hint    Whether to include default global and injected settings or whether to just return the settings for the current site
+	 * @globalDefaultsOnly.hint Whether to only include default global and injected settings or whether to include all amalgamated settings
 	 *
 	 */
-	public struct function getCategorySettings( required string category, boolean includeDefaults=true ) {
+	public struct function getCategorySettings(
+		  required string  category
+		,          boolean includeDefaults=true
+		,          boolean globalDefaultsOnly=false
+	) {
 		_reloadCheck();
 
 		var result = {};
-		var rawSiteResult = _getDao().selectData(
-			  selectFields = [ "setting", "value" ]
-			, filter       = { category = arguments.category, site=_getSiteService().getActiveSiteId() }
-		);
 
-		for( var record in rawSiteResult ){
-			result[ record.setting ] = record.value;
+		if ( !arguments.globalDefaultsOnly ) {
+			var rawSiteResult = _getDao().selectData(
+				  selectFields = [ "setting", "value" ]
+				, filter       = { category = arguments.category, site=_getSiteService().getActiveSiteId() }
+			);
+
+			for( var record in rawSiteResult ){
+				result[ record.setting ] = record.value;
+			}
 		}
 
 		if ( arguments.includeDefaults ) {
