@@ -48,7 +48,11 @@ component extends="preside.system.base.AdminHandler" {
 			, action   = action
 		);
 
-		event.renderData( data=renderView( view="/admin/audittrail/_logs", args={ logs=logs } ), type="html" );
+		if ( logs.recordCount ) {
+			event.renderData( data=renderView( view="/admin/audittrail/_logs", args={ logs=logs } ), type="html" );
+		} else {
+			event.renderData( data="", type="html" );
+		}
 	}
 
 	// PRIVATE UTILITY
