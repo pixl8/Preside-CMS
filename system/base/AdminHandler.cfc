@@ -55,7 +55,7 @@
 						}
 
 					} else {
-						postLoginUrl = "";
+						postLoginUrl = rc.postLoginUrl ?: event.getCurrentUrl();
 					}
 
 					if ( isAdminUser ) {
