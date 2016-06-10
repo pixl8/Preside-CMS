@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" output=false {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
+	property name="siteService"                inject="siteService";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
 
 
@@ -32,14 +33,28 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 	public any function category( event, rc, prc ) output=false {
-		var categoryId = rc.id ?: "";
+		var categoryId = Trim( rc.id   ?: "" );
+		var siteId     = Trim( rc.site ?: "" );
 
 		try {
 			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
 		}
-		prc.savedData           = systemConfigurationService.getCategorySettings( category = categoryId );
+		prc.sites = siteService.listSites();
+
+		if ( prc.sites.recordCount > 1 && siteId.len() ) {
+			prc.savedData = systemConfigurationService.getCategorySettings(
+				  category        = categoryId
+				, includeDefaults = false
+			);
+		} else {
+			prc.savedData = systemConfigurationService.getCategorySettings(
+				  category           = categoryId
+				, globalDefaultsOnly = true
+			);
+		}
+
 		prc.categoryName        = translateResource( uri=prc.category.getName(), defaultValue=prc.category.getId() );
 		prc.categoryDescription = translateResource( uri=prc.category.getDescription(), defaultValue="" );
 
