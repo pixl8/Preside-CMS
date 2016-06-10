@@ -15,7 +15,13 @@ component displayName="System configuration service" {
 	 * @formsService.inject            delayedInjector:formsService
 	 * @siteService.inject             delayedInjector:siteService
 	 */
-	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig, required any formsService ) {
+	public any function init(
+		  required array  autoDiscoverDirectories
+		, required any    dao
+		, required struct injectedConfig
+		, required any    formsService
+		, required any    siteService
+	) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao )
 		_setInjectedConfig( arguments.injectedConfig );
