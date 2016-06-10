@@ -13,12 +13,14 @@ component displayName="System configuration service" {
 	 * @dao.inject                     presidecms:object:system_config
 	 * @injectedConfig.inject          coldbox:setting:injectedConfig
 	 * @formsService.inject            delayedInjector:formsService
+	 * @siteService.inject             delayedInjector:siteService
 	 */
 	public any function init( required array autoDiscoverDirectories, required any dao, required struct injectedConfig, required any formsService ) {
 		_setAutoDiscoverDirectories( arguments.autoDiscoverDirectories );
 		_setDao( arguments.dao )
 		_setInjectedConfig( arguments.injectedConfig );
 		_setFormsService( arguments.formsService );
+		_setSiteService( arguments.siteService );
 		_setLoaded( false );
 
 		return this;
@@ -38,10 +40,21 @@ component displayName="System configuration service" {
 	public string function getSetting( required string category, required string setting, string default="" ) {
 		_reloadCheck();
 
-		var injected = _getInjectedConfig();
-		var result   = _getDao().selectData(
+		var injected   = _getInjectedConfig();
+		var activeSite = _getSiteService().getActiveSiteId();
+		var result     = _getDao().selectData(
 			  selectFields = [ "value" ]
-			, filter       = { category = arguments.category, setting = arguments.setting }
+			, filter       = { category = arguments.category, setting = arguments.setting, site=activeSite }
+		);
+
+		if ( result.recordCount ) {
+			return result.value;
+		}
+
+		result = _getDao().selectData(
+			  selectFields = [ "value" ]
+			, filter       = "category = :category and setting = :setting and site is null"
+			, filterParams = { category = arguments.category, setting = arguments.setting }
 		);
 
 		if ( result.recordCount ) {
@@ -275,5 +288,12 @@ component displayName="System configuration service" {
 	}
 	private void function _setLoaded( required boolean loaded ) {
 		_loaded = arguments.loaded;
+	}
+
+	private any function _getSiteService() {
+		return _siteService;
+	}
+	private void function _setSiteService( required any siteService ) {
+		_siteService = arguments.siteService;
 	}
 }

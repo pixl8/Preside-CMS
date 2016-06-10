@@ -115,15 +115,16 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				expect( log.len() ).toBe( 1 );
 				expect( log[1] ).toBe( { data = { category="mycategory", setting="mysetting", value="this is the value of my setting", site=siteId } } );
 			} );
+
 		} );
 
 		describe( "getSetting", function(){
 
-			it( "should return values as saved in the database for given category and setting", function(){
+			it( "should return values as saved in the database for given category and setting that are saved against the currently active site", function(){
 				var configService = _getConfigSvc( testDirs );
 
 				mockDao.$( "selectData" )
-					.$args( filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
 					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
 
 				expect( configService.getSetting(
@@ -132,11 +133,32 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				) ).toBe( "this is the correct result" );
 			} );
 
-			it( "should return passed default when no record exists", function(){
+			it( "should return global default values as saved in the database for given category and setting when no setting found for active site", function(){
 				var configService = _getConfigSvc( testDirs );
 
 				mockDao.$( "selectData" )
-					.$args( filter={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew( 'value' ) );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
+					.$results( QueryNew('value', "varchar", ["this is the correct result"] ) );
+
+				expect( configService.getSetting(
+					  category = "somecategory"
+					, setting  = "asetting"
+				) ).toBe( "this is the correct result" );
+			} );
+
+			it( "should return passed default when no record exists for either site or global default", function(){
+				var configService = _getConfigSvc( testDirs );
+
+				mockDao.$( "selectData" )
+					.$args( filter={ category="somecategory", setting="asetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew('value') );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="somecategory", setting="asetting" }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				expect( configService.getSetting(
@@ -150,7 +172,11 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				var configService = _getConfigSvc( injectedConfig = { "injectedCat.injectedSetting" = "test value for injected settings" } );
 
 				mockDao.$( "selectData" )
-					.$args( filter={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
+					.$args( filter={ category="injectedCat", setting="injectedSetting", site=activeSite }, selectFields=["value"] )
+					.$results( QueryNew('value') );
+
+				mockDao.$( "selectData" )
+					.$args( filter="category = :category and setting = :setting and site is null", filterParams={ category="injectedCat", setting="injectedSetting" }, selectFields=["value"] )
 					.$results( QueryNew('value') );
 
 				expect( configService.getSetting( category="injectedCat", setting="injectedSetting" ) ).toBe( "test value for injected settings" );
@@ -201,15 +227,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockDao          = createEmptyMock( object=_getPresideObjectService().getObject( "system_config" ) );
 		testDirs         = [ "/tests/resources/systemConfiguration/dir1", "/tests/resources/systemConfiguration/dir2", "/tests/resources/systemConfiguration/dir3" ];
 		mockFormsService = createEmptyMock( "preside.system.services.forms.FormsService" );
+		mockSiteService  = createEmptyMock( "preside.system.services.siteTree.SiteService" );
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
+
+		activeSite = CreateUUId();
+		mockSiteService.$( "getActiveSiteId", activeSite );
+
 
 		return new preside.system.services.configuration.SystemConfigurationService(
 			  dao                     = mockDao
 			, autoDiscoverDirectories = arguments.autoDiscoverDirectories
 			, injectedConfig          = arguments.injectedConfig
 			, formsService            = mockFormsService
+			, siteService             = mockSiteService
 		);
 	}
 
