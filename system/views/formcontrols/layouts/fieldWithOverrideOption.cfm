@@ -21,13 +21,6 @@
 		</label>
 		<label class="col-sm-2 control-label no-padding-right" for="#args.for#">
 			#args.label#
-			<cfif args.required>
-				<em class="required" role="presentation">
-					<sup><i class="fa fa-asterisk"></i></sup>
-					<span>#translateResource( "cms:form.control.required.label" )#</span>
-				</em>
-			</cfif>
-
 		</label>
 
 		<div class="col-sm-8 control">

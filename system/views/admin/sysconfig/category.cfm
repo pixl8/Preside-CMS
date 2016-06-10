@@ -1,6 +1,7 @@
 <cfscript>
 	param name="prc.category"  type="ConfigCategory";
 	param name="prc.savedData" type="struct";
+	param name="prc.formName"  type="string";
 
 	formId     = "edit-system-config-" & ( rc.id ?: "" );
 	sites      = prc.sites ?: QueryNew('');
@@ -48,7 +49,7 @@
 		</cfif>
 
 		#renderForm(
-			  formName          = prc.category.getForm()
+			  formName          = prc.formName
 			, context           = "admin"
 			, formId            = formId
 			, savedData         = prc.savedData

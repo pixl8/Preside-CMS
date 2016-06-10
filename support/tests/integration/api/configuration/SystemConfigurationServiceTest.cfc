@@ -286,6 +286,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 		mockFormsService.$( "formExists" ).$args( formName="system-config.disabled_feature_settings", checkSiteTemplates=false ).$results( false );
 		mockFormsService.$( "formExists", true );
+		mockFormsService.$( "createForm", CreateUUId() );
 
 		activeSite = CreateUUId();
 		mockSiteService.$( "getActiveSiteId", activeSite );

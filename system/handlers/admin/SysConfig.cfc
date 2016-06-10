@@ -43,7 +43,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		prc.sites = siteService.listSites();
 
-		if ( prc.sites.recordCount > 1 && siteId.len() ) {
+		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
+		if ( isSiteConfig ) {
 			prc.savedData = systemConfigurationService.getCategorySettings(
 				  category        = categoryId
 				, includeDefaults = false
@@ -58,6 +59,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.categoryName        = translateResource( uri=prc.category.getName(), defaultValue=prc.category.getId() );
 		prc.categoryDescription = translateResource( uri=prc.category.getDescription(), defaultValue="" );
+		prc.formName            = isSiteConfig ? prc.category.getSiteForm() : prc.category.getForm();
 
 		event.addAdminBreadCrumb(
 			  title = prc.categoryName
@@ -83,13 +85,18 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		var formName = prc.category.getForm();
+		var formName = Len( Trim( siteId ) ) ? prc.category.getSiteForm() : prc.category.getForm();
 		var formData = event.getCollectionForForm( formName );
 
 		if ( Len( Trim( siteId ) ) ) {
 			for( var setting in formData ){
 				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
 					formData.delete( setting );
+					systemConfigurationService.deleteSetting(
+						  category = categoryId
+						, setting  = setting
+						, siteId   = siteId
+					);
 				}
 			}
 		}

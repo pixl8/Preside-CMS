@@ -184,6 +184,28 @@ component displayName="System configuration service" {
 		}
 	}
 
+	public any function deleteSetting(
+		  required string category
+		, required string setting
+		,          string siteId = ""
+	)  {
+		_reloadCheck();
+
+		var dao    = _getDao();
+		var filter = "category = :category and setting = :setting and site ";
+		var params = { category = arguments.category, setting = arguments.setting };
+
+		if ( Len( Trim( arguments.siteId ) ) ) {
+			filter &= "= :site";
+			params.site = arguments.siteId;
+		}
+
+		return dao.deleteData(
+			  filter       = filter
+			, filterParams = params
+		);
+	}
+
 	public array function listConfigCategories() {
 		_reloadCheck();
 
@@ -254,6 +276,7 @@ component displayName="System configuration service" {
 			, description      = _getConventionsBaseCategoryDescription( arguments.id )
 			, icon             = _getConventionsBaseCategoryIcon( arguments.id )
 			, form             = _getConventionsBaseCategoryForm( arguments.id )
+			, siteForm         = _getConventionsBaseSiteCategoryForm( arguments.id )
 		);
 	}
 
@@ -268,6 +291,26 @@ component displayName="System configuration service" {
 	}
 	private string function _getConventionsBaseCategoryForm( required string id ) {
 		return "system-config.#arguments.id#";
+	}
+	private string function _getConventionsBaseSiteCategoryForm( required string id ) {
+		var fullFormName = _getConventionsBaseCategoryForm( arguments.id );
+
+		return _getFormsService().createForm( basedOn=fullFormName, generator=function( definition ){
+			var rawForm = definition.getRawDefinition();
+			var tabs    = rawForm.tabs ?: [];
+
+			for( var tab in tabs ) {
+				var fieldsets = tab.fieldsets ?: [];
+
+				for ( var fieldset in tab.fieldsets ) {
+					var fields = fieldset.fields ?: [];
+
+					for( var field in fields ) {
+						definition.modifyField( name=field.name ?: "", fieldset=fieldset.id ?: "", tab=tab.id ?: "", required=false );
+					}
+				}
+			}
+		} );
 	}
 
 	private void function _reloadCheck() {
