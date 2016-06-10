@@ -14,10 +14,6 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function index( event, rc, prc ) {
-		if ( Len( Trim( rc.l ?: "" ) ) ) {
-			i18n.setFwLocale( Trim( rc.l ) );
-		}
-
 		if ( event.isAdminUser() ){
 			_redirectToDefaultAdminEvent( event );
 		}
