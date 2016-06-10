@@ -29,15 +29,6 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( data=logs, type="html" );
 	}
 
-	public void function viewLog( event, rc, prc ) {
-		prc.auditTrail = auditService.getAuditLog( rc.id ?: "" );
-
-		if ( !prc.auditTrail.recordCount ) {
-			event.adminNotFound();
-		}
-		event.nolayout();
-	}
-
 	// PRIVATE UTILITY
 	private void function _permissionsCheck( required string key, required any event ) {
 		var permKey   = "auditTrail." & arguments.key;
