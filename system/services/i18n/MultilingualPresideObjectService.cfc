@@ -468,13 +468,19 @@ component displayName="Multilingual Preside Object Service" {
 	 *
 	 */
 	public query function getDetectedRequestLanguage( required string localeSlug ) {
-		var languageObj = $getPresideObject( "multilingual_language" );
+		var languageObj  = $getPresideObject( "multilingual_language" );
+		var validateLang = function( required query lang ){
+			var multilingualSettings = $getPresideCategorySettings( "multilingual" );
+			var configuredLanguages  = ListToArray( ListAppend( multilingualSettings.additional_languages ?: "", multilingualSettings.default_language ?: "" ) );
+
+			return configuredLanguages.findNoCase( lang.id ) ? lang : QueryNew( 'id,slug' );
+		}
 
 		if ( Len( Trim( arguments.localeSlug ) ) ) {
 			var languageFromSlug = languageObj.selectData( filter={ slug=arguments.localeSlug } );
 
 			if ( languageFromSlug.recordCount ) {
-				return languageFromSlug;
+				return validateLang( languageFromSlug );
 			}
 		}
 
@@ -482,7 +488,7 @@ component displayName="Multilingual Preside Object Service" {
 		if ( Len( Trim( languageFromCookie ) ) ) {
 			languageFromCookie = languageObj.selectData( id=languageFromCookie );
 			if ( languageFromCookie.recordCount ) {
-				return languageFromCookie;
+				return validateLang( languageFromCookie );
 			}
 		}
 
@@ -492,7 +498,7 @@ component displayName="Multilingual Preside Object Service" {
 				if ( !isNumeric( isoCode ) ) {
 					var languageFromIsoCode = languageObj.selectData( filter={ iso_code = isoCode } );
 					if ( languageFromIsoCode.recordCount ) {
-						return languageFromIsoCode;
+						return validateLang( languageFromIsoCode );
 					}
 				}
 			}
@@ -500,11 +506,10 @@ component displayName="Multilingual Preside Object Service" {
 
 		var defaultLanguage = $getPresideSetting( "multilingual", "default_language" );
 		if ( defaultLanguage.len() ) {
-			return languageObj.selectData( id=defaultLanguage );
+			return validateLang( languageObj.selectData( id=defaultLanguage ) );
 		}
 
 		return QueryNew('id,slug');
-
 	}
 
 	/**

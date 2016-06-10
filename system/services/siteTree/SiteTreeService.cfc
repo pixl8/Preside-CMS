@@ -927,7 +927,13 @@ component {
 	}
 
 	public boolean function arePageSlugsMultilingual() {
-		return _pageSlugsAreMultilingual;
+		if ( _pageSlugsAreMultilingual ) {
+			var featureEnabled = $getPresideSetting( "multilingual", "urls_enabled", false );
+
+			return IsBoolean( featureEnabled ) && featureEnabled;
+		}
+
+		return false;
 	}
 
 // PRIVATE HELPERS
@@ -1279,7 +1285,7 @@ component {
 	}
 
 	private void function _setPageSlugsAreMultilingual() {
-		var featureEnabled   = $isFeatureEnabled( "multilingual" ) && $isFeatureEnabled( "multilingualUrls" );
+		var featureEnabled    = $isFeatureEnabled( "multilingual" );
 		var slugMultilingual = $getPresideObjectService().getObjectPropertyAttribute(
 			  objectName    = "page"
 			, propertyName  = "slug"

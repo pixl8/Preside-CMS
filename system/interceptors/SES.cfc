@@ -1,6 +1,7 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
 	property name="featureService"                   inject="delayedInjector:featureService";
+	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";
 	property name="urlRedirectsService"              inject="delayedInjector:urlRedirectsService";
 	property name="siteService"                      inject="delayedInjector:siteService";
 	property name="adminRouteHandler"                inject="delayedInjector:adminRouteHandler";
@@ -113,7 +114,12 @@ component extends="coldbox.system.interceptors.SES" output=false {
 	}
 
 	private boolean function _skipLanguageDetection( event, interceptor ) output=false {
-		if ( !featureService.isFeatureEnabled( "multilingualUrls" ) ) {
+		if ( !featureService.isFeatureEnabled( "multilingual" ) ) {
+			return true;
+		}
+
+		var multilingualUrlsEnabled = systemConfigurationService.getSetting( "multilingual", "urls_enabled", false );
+		if ( !IsBoolean( multilingualUrlsEnabled ) || !multilingualUrlsEnabled ) {
 			return true;
 		}
 
