@@ -75,15 +75,26 @@ component displayName="System configuration service" {
 	public struct function getCategorySettings( required string category ) {
 		_reloadCheck();
 
-		var rawResult = _getDao().selectData(
+		var rawSiteResult = _getDao().selectData(
 			  selectFields = [ "setting", "value" ]
-			, filter       = { category = arguments.category }
+			, filter       = { category = arguments.category, site=_getSiteService().getActiveSiteId() }
 		);
+		var rawGlobalResult = _getDao().selectData(
+			  selectFields = [ "setting", "value" ]
+			, filter       = "category = :category and site is null"
+			, filterParams = { category = arguments.category }
+		);
+
 		var result = {};
 		var injectedStartsWith = "#arguments.category#.";
 
-		for( var record in rawResult ){
+		for( var record in rawSiteResult ){
 			result[ record.setting ] = record.value;
+		}
+		for( var record in rawGlobalResult ){
+			if ( !result.keyExists( record.setting ) ) {
+				result[ record.setting ] = record.value;
+			}
 		}
 
 		var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );

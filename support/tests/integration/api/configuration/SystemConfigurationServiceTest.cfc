@@ -186,17 +186,21 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 
 		describe( "getCategorySettings", function(){
 
-			it( "should return a struct of all saved setting for a given category", function(){
+			it( "should return a struct of all saved setting for a given category for the currently active site merged with those from global settings", function(){
 				var configService = _getConfigSvc();
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
-					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
 
 				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
 					  setting1 = "value1"
 					, setting2 = "value2"
-					, setting3 = "value3"
+					, setting3 = "value3global"
 				} );
 			} );
 
@@ -208,12 +212,17 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				} );
 
 				mockDao.$( "selectData" )
-					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory" } )
-					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting2", "value2" ], [ "setting3", "value3" ] ] ) );
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
+
 
 				expect( configService.getCategorySettings( category="mycategory" ) ).toBe( {
 					  setting1 = "value1"
-					, setting2 = "value2"
+					, setting2 = "value2global"
 					, setting3 = "value3"
 					, setting4 = "another value"
 				} );
