@@ -257,10 +257,12 @@ component extends="tests.resources.HelperObjects.PresideTestCase" {
 		mockRelationshipGuidance       = getMockbox().createEmptyMock( "preside.system.services.presideObjects.RelationshipGuidance" );
 		mockSystemConfigurationService = getMockbox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 		mockPresideObjectService       = getMockbox().createEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+		mockCookieService              = getMockbox().createEmptyMock( "preside.system.services.cfmlscopes.CookieService" );
 		mockLanguageDao                = getMockbox().createStub();
 
 		var svc = getMockbox().createMock( object=new preside.system.services.i18n.MultilingualPresideObjectService(
-			 relationshipGuidance       = mockRelationshipGuidance
+			  relationshipGuidance = mockRelationshipGuidance
+			, cookieService        = mockCookieService
 		) );
 
 		svc.$( "$getPresideObject" ).$args( "multilingual_language" ).$results( mockLanguageDao );

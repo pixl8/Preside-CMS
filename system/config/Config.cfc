@@ -316,8 +316,13 @@ component {
 			, apis        = {}
 		};
 
+		settings.multilingual = {
+			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
+		}
+
 		settings.formbuilder        = _setupFormBuilder();
 		settings.environmentMessage = "";
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

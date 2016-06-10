@@ -1,4 +1,9 @@
-component singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -29,6 +34,7 @@ component singleton=true {
 		_setI18nService( arguments.i18nService );
 		_setVersioningService( arguments.versioningService );
 		_setWebsitePermissionService( arguments.websitePermissionService );
+		_setPageSlugsAreMultilingual();
 
 		_ensureSystemPagesExistInTree();
 
@@ -120,6 +126,9 @@ component singleton=true {
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
+			if ( arePageSlugsMultilingual() ) {
+				return _getPageWithMultilingualSlug( argumentCollection=arguments );
+			}
 			args.filter                       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug"; // this double match is for performance - the full slug cannot be indexed because of its potential size
 			args.filterParams.slug            = ListLast( arguments.slug, "/" );
 			args.filterParams._hierarchy_slug = arguments.slug;
@@ -151,7 +160,7 @@ component singleton=true {
 		return _getPObj().selectData( argumentCollection = args );
 	}
 
-	public query function getPagesForAjaxSelect(
+	publiuery function getPagesForAjaxSelect(
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
 		, array   ids         = []
@@ -917,6 +926,16 @@ component singleton=true {
 		return _getPageTypesService().getPageType( arguments.parentType ).getManagedChildTypes().listToArray();
 	}
 
+	public boolean function arePageSlugsMultilingual() {
+		if ( _pageSlugsAreMultilingual ) {
+			var featureEnabled = $getPresideSetting( "multilingual", "urls_enabled", false );
+
+			return IsBoolean( featureEnabled ) && featureEnabled;
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
@@ -1154,6 +1173,52 @@ component singleton=true {
 		return sqlFields;
 	}
 
+	private query function _getPageWithMultilingualSlug(
+		  required string  slug
+		, required boolean includeTrash
+		, required array   selectFields
+		, required boolean useCache
+		, required numeric version
+	) {
+		var slugPieces      = slug.listToArray( "/" );
+		var pageObject      = _getPobj();
+		var page            = getSiteHomepage( selectFields=[ "id" ] );
+		var args            = { filter={}, extraFilters=[ filter={} ], selectFields=[ "id" ] };
+		var currentLanguage = $getColdbox().getRequestContext().getLanguage();
+
+		if ( !arguments.includeTrash ) {
+			args.extraFilters = [ { filter={ trashed = false } } ];
+		} else {
+			args.savedFilters = [ "livepages" ];
+		}
+
+		if ( arguments.version ) {
+			args.fromVersionTable = true
+			args.specificVersion  = arguments.version
+		}
+
+		for( var i=1; i<=slugPieces.len(); i++ ) {
+			args.filter       = "( ( _translations.slug = :page.slug and _translations._translation_language = :_translations._translation_language ) or page.slug = :page.slug ) and page.parent_page = :page.parent_page"
+			args.filterParams = {
+				  "page.slug"                           = slugPieces[ i ]
+				, "_translations._translation_language" = currentLanguage
+				, "page.parent_page"                    = page.id
+			};
+
+			if ( i==slugPieces.len() ) {
+				args.selectFields = arguments.selectFields;
+			}
+
+			page = pageObject.selectData( argumentCollection=args );
+
+			if ( !page.recordCount ) {
+				break;
+			}
+		}
+
+		return page;
+	}
+
 // GETTERS AND SETTERS
 	private any function _getLoginService() {
 		return _loginService;
@@ -1217,5 +1282,17 @@ component singleton=true {
 	}
 	private void function _setWebsitePermissionService( required any websitePermissionService ) {
 		_websitePermissionService = arguments.websitePermissionService;
+	}
+
+	private void function _setPageSlugsAreMultilingual() {
+		var featureEnabled    = $isFeatureEnabled( "multilingual" );
+		var slugMultilingual = $getPresideObjectService().getObjectPropertyAttribute(
+			  objectName    = "page"
+			, propertyName  = "slug"
+			, attributeName = "multilingual"
+			, defaultValue  = false
+		);
+
+		_pageSlugsAreMultilingual = featureEnabled && IsBoolean( slugMultilingual ) && slugMultilingual;
 	}
 }

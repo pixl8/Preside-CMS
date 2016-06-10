@@ -483,7 +483,14 @@ component extends="preside.system.base.AdminHandler" {
 			formName = formsService.getMergedFormName( formName, mergeFormName );
 		}
 
-		formData         = event.getCollectionForForm( formName );
+		formData = event.getCollectionForForm( formName );
+		formData._translation_language = languageId
+		formData.id = multilingualPresideObjectService.getExistingTranslationId(
+			  objectName = "page"
+			, id         = pageId
+			, languageId = languageId
+		);
+
 		validationResult = validateForm( formName=formName, formData=formData );
 
 		if ( not validationResult.validated() ) {

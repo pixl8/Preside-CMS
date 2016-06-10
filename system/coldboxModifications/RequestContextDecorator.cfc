@@ -35,7 +35,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return {};
 	}
 
-	public string function getSiteUrl( string siteId="", boolean includePath=true ) output=false {
+	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) output=false {
 		var fetchSite = Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId();
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
@@ -46,6 +46,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		if ( arguments.includePath ) {
 			siteUrl &= site.path ?: "/";
+		}
+
+		if ( arguments.includeLanguageSlug ) {
+			var languageSlug = this.getLanguageSlug();
+			if ( Len( Trim( languageSlug ) ) ) {
+				siteUrl &= "/" & languageSlug;
+			}
 		}
 
 		return siteUrl;
@@ -103,6 +110,23 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getProtocol() & "://" & getServerName();
 	}
 
+	public string function getCurrentUrl( boolean includeQueryString=true ) output=false {
+		var currentUrl  = request[ "preside.path_info"    ] ?: "";
+		var qs          = request[ "preside.query_string" ] ?: "";
+		var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
+
+		return includeQs ? currentUrl & "?" & qs : currentUrl;
+	}
+
+	public void function setCurrentPresideUrlPath( required string presideUrlPath ) {
+		getRequestContext().setValue( name="_presideUrlPath", private=true, value=arguments.presideUrlPath );
+	}
+
+	public string function getCurrentPresideUrlPath() {
+		return getRequestContext().getValue( name="_presideUrlPath", private=true, defaultValue="/" );
+	}
+
+// REQUEST DATA
 	public struct function getCollectionWithoutSystemVars() output=false {
 		var collection = Duplicate( getRequestContext().getCollection() );
 
@@ -154,14 +178,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var path             = Len( Trim( overridenSetting ) ) ? overridenSetting : getController().getSetting( "preside_admin_path" );
 
 		return Len( Trim( path ) ) ? "/#path#/" : "/";
-	}
-
-	public string function getCurrentUrl( boolean includeQueryString=true ) output=false {
-		var currentUrl  = request[ "preside.path_info"    ] ?: "";
-		var qs          = request[ "preside.query_string" ] ?: "";
-		var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
-
-		return includeQs ? currentUrl & "?" & qs : currentUrl;
 	}
 
 	public boolean function isAdminRequest() output=false {
@@ -276,7 +292,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -330,10 +346,11 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 // FRONT END, dealing with current page
 	public void function initializePresideSiteteePage (
-		  string slug
-		, string pageId
-		, string systemPage
-		, string subaction
+		  string  slug
+		, string  pageId
+		, string  systemPage
+		, string  subaction
+		, boolean ensureCanonicalUrl = false
 	) output=false {
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
@@ -361,6 +378,10 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		if ( not page.recordCount ) {
 			return;
+		}
+
+		if ( arguments.ensureCanonicalUrl ) {
+			checkCanonicalPageUrl( pageId=page.id );
 		}
 
 		for( p in page ){ page = p; break; } // quick query row to struct hack
@@ -436,6 +457,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl() );
 
 		prc.presidePage = page;
+	}
+
+	public void function checkCanonicalPageUrl( required string pageId ) output=false {
+		var canonicalUrl  = buildLink( page=arguments.pageId );
+		var canonicalPath = canonicalUrl.reReplaceNoCase( "^https?://(.*?)/", "/" );
+		var currentPath   = getCurrentUrl( includeQueryString=false );
+
+		if ( currentPath != canonicalPath ) {
+			getController().setNextEvent( url=canonicalUrl, statusCode=301, queryString=request[ "preside.query_string" ] ?: "" );
+		}
 	}
 
 	public void function checkPageAccess() output=false {
@@ -594,6 +625,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 	public void function setLanguage( required string language ) output=false {
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
+		getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+
+
+	}
+
+	public string function getLanguageSlug() output=false {
+		return getRequestContext().getValue( name="_languageSlug", defaultValue="", private=true );
+	}
+	public void function setLanguageSlug( required string languageSlug ) output=false {
+		getRequestContext().setValue( name="_languageSlug", value=arguments.languageSlug, private=true );
 	}
 
 // HTTP Header helpers
