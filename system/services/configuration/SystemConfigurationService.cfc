@@ -69,40 +69,44 @@ component displayName="System configuration service" {
 	 * See [[editablesystemsettings]] for a full guide.
 	 *
 	 * @autodoc
-	 * @category.hint The name of the category who's settings you wish to get
+	 * @category.hint        The name of the category who's settings you wish to get
+	 * @includeDefaults.hint Whether to include default global and injected settings or whether to just return the settings for the current site
 	 *
 	 */
-	public struct function getCategorySettings( required string category ) {
+	public struct function getCategorySettings( required string category, boolean includeDefaults=true ) {
 		_reloadCheck();
 
+		var result = {};
 		var rawSiteResult = _getDao().selectData(
 			  selectFields = [ "setting", "value" ]
 			, filter       = { category = arguments.category, site=_getSiteService().getActiveSiteId() }
 		);
-		var rawGlobalResult = _getDao().selectData(
-			  selectFields = [ "setting", "value" ]
-			, filter       = "category = :category and site is null"
-			, filterParams = { category = arguments.category }
-		);
-
-		var result = {};
-		var injectedStartsWith = "#arguments.category#.";
 
 		for( var record in rawSiteResult ){
 			result[ record.setting ] = record.value;
 		}
-		for( var record in rawGlobalResult ){
-			if ( !result.keyExists( record.setting ) ) {
-				result[ record.setting ] = record.value;
+
+		if ( arguments.includeDefaults ) {
+			var injectedStartsWith = "#arguments.category#.";
+			var rawGlobalResult    = _getDao().selectData(
+				  selectFields = [ "setting", "value" ]
+				, filter       = "category = :category and site is null"
+				, filterParams = { category = arguments.category }
+			);
+
+			for( var record in rawGlobalResult ){
+				if ( !result.keyExists( record.setting ) ) {
+					result[ record.setting ] = record.value;
+				}
 			}
-		}
 
-		var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );
-		for( var key in injected ) {
-			var setting = ListRest( key, "." );
+			var injected = _getInjectedConfig().filter( function( key ){ return key.startsWith( injectedStartsWith ) } );
+			for( var key in injected ) {
+				var setting = ListRest( key, "." );
 
-			if ( !result.keyExists( setting ) ) {
-				result[ setting ] = injected[ key ];
+				if ( !result.keyExists( setting ) ) {
+					result[ setting ] = injected[ key ];
+				}
 			}
 		}
 

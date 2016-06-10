@@ -228,6 +228,28 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 				} );
 			} );
 
+			it( "should not mixin global or injected settings when explicitly asked not to do so with the includeDefaults argument", function(){
+				var configService = _getConfigSvc( injectedConfig = {
+					  "injectedCat.injectedSetting" = "test value for injected settings"
+					, "mycategory.setting1"         = "valuex"
+					, "mycategory.setting4"         = "another value"
+				} );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter={ category="mycategory", site=activeSite } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1" ], [ "setting3", "value3" ] ] ) );
+
+				mockDao.$( "selectData" )
+					.$args( selectFields=[ "setting", "value" ], filter="category = :category and site is null", filterParams={ category="mycategory" } )
+					.$results( QueryNew( 'setting,value', 'varchar,varchar', [ [ "setting1", "value1global" ], [ "setting2", "value2global" ], [ "setting3", "value3global" ] ] ) );
+
+
+				expect( configService.getCategorySettings( category="mycategory", includeDefaults=false ) ).toBe( {
+					  setting1 = "value1"
+					, setting3 = "value3"
+				} );
+			} );
+
 		} );
 	}
 
