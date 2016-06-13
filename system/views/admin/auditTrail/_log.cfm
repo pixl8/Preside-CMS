@@ -31,7 +31,7 @@
 				<span class="widget-toolbar no-border">
 					<i class="fa fa-fw bigger-110 fa-clock-o"></i>
 					<a href="#args.userLink#">#args.known_as#</a> @
-					#TimeFormat( args.datecreated, "HH:mm" )#
+					#renderContent( renderer="datetime", data=args.dateCreated )#
 				</span>
 			</div>
 
