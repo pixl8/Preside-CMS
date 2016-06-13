@@ -609,10 +609,23 @@ component {
 			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
 		}
 
+		if ( Len( Trim( pageId ) ) ) {
+			var auditDetail = Duplicate( arguments );
+			auditDetail.id = pageId;
+
+			$audit(
+				  source   = "sitetree"
+				, action   = "add_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = pageId
+			);
+		}
+
 		return pageId;
 	}
 
-	public boolean function editPage( required string id ) {
+	public boolean function editPage( required string id, boolean skipAudit=false ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -746,6 +759,16 @@ component {
 			}
 		}
 
+		if ( updated && !arguments.skipAudit ) {
+			$audit(
+				  source   = "sitetree"
+				, action   = "edit_page"
+				, type     = "sitetree"
+				, detail   = Duplicate( arguments )
+				, recordId = arguments.id
+			);
+		}
+
 		return updated;
 	}
 
@@ -771,8 +794,20 @@ component {
 					, trashed     = true
 					, old_slug    = page.slug
 					, slug        = CreateUUId()
+					, skipAudit   = true
 				);
 			}
+		}
+
+		if ( updated ) {
+			for( var p in page ) { var auditDetail = p; }
+			$audit(
+				  source   = "sitetree"
+				, action   = "trash_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
 		}
 
 		return updated;
@@ -799,8 +834,20 @@ component {
 					, slug        = arguments.slug
 					, active      = arguments.active
 					, trashed     = false
+					, skipAudit   = true
 				);
 			}
+		}
+
+		if ( updated ) {
+			for( var p in page ) { var auditDetail = p; }
+			$audit(
+				  source   = "sitetree"
+				, action   = "restore_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
 		}
 
 		return updated;
@@ -830,11 +877,32 @@ component {
 			}
 		}
 
+		if ( nDeleted ) {
+			for( var p in rootPage ) { var auditDetail = p; }
+			$audit(
+				  source   = "sitetree"
+				, action   = "permanently_delete_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
+		}
+
 		return nDeleted;
 	}
 
 	public boolean function emptyTrash() {
-		return _getPObj().deleteData( filter = { trashed = true } );
+		var pagesDeleted = _getPObj().deleteData( filter = { trashed = true } );
+
+		if ( pagesDeleted ) {
+			$audit(
+				  source = "sitetree"
+				, action = "empty_trash"
+				, type   = "sitetree"
+			);
+		}
+
+		return pagesDeleted;
 	}
 
 	public struct function getActivePageFilter( string pageTableAlais="page" ) {

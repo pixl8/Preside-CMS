@@ -1,0 +1,1 @@
+<img class="user-photo tiny" src="//www.gravatar.com/avatar/{{email_address}}?r=g&d=mm&s=20" alt="" /> <span class="user-info">{{text}}</span>

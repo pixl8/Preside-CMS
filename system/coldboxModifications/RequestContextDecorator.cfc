@@ -215,9 +215,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		content reset=true type="text/html";header statusCode="401";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 	}
 
-	public void function audit() output=false {
-		arguments.userId = getAdminUserId();
-
+	public void function audit( userId=getAdminUserId() ) output=false {
 		return getModel( "AuditService" ).log( argumentCollection = arguments );
 	}
 

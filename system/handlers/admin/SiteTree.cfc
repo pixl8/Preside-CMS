@@ -520,6 +520,15 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		var auditDetail = QueryRowToStruct( page );
+		auditDetail.languageId = languageId
+		event.audit(
+			  source   = "sitetree"
+			, action   = "translate_page"
+			, type     = "sitetree"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
@@ -678,6 +687,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function reorderChildrenAction( event, rc, prc ) {
 		var pageId  = event.getValue( "id", "" );
+		var page    = siteTreeService.getPage( pageId );
 
 		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
 
@@ -686,10 +696,18 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( i=1; i lte ArrayLen( sortedPages ); i++ ){
 			siteTreeService.editPage(
-				  id     = sortedPages[i]
+				  id         = sortedPages[i]
 				, sort_order = i
+				, skipAudit  = true
 			);
 		}
+		event.audit(
+			  source   = "sitetree"
+			, action   = "reorder_children"
+			, type     = "sitetree"
+			, detail   = QueryRowToStruct( page )
+			, recordId = page.id
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );

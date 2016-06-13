@@ -23131,10 +23131,6 @@ td.presidecms .visible-print {
   text-align: center;
   position: relative;
 }
-.presidecms .timeline-info img {
-  border-radius: 100%;
-  max-width: 42px;
-}
 .presidecms .timeline-info .label,
 .presidecms .timeline-info .badge {
   font-size: 12px;
@@ -23159,10 +23155,12 @@ td.presidecms .visible-print {
   margin: 0 0 18px;
   margin-left: 34px;
 }
-.presidecms .timeline-item img {
+.presidecms .timeline-info img {
   border: 1px solid #AAA;
   padding: 2px;
   background-color: #FFF;
+  border-radius: 100%;
+  max-width: 42px;
 }
 .presidecms .timeline-style2:before {
   display: none;
@@ -29143,12 +29141,22 @@ td.presidecms .visible-print {
   margin: -4px 8px 0 0;
   border-radius: 100%;
   border: 2px solid #ffffff;
-  max-width: 40px;
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  background: url(../../../images/avatars/unknown.png ) center center no-repeat;
+  background-size: cover;
 }
 .presidecms .user-photo.tiny {
-  max-width: 20px;
+  width: 20px;
+  height: 20px;
   border: none;
   margin-right: 2px;
+}
+.presidecms .timeline-info .user-photo {
+  margin-top: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 .presidecms .user-info {
   max-width: none;
