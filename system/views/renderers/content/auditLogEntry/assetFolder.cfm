@@ -1,7 +1,6 @@
 <cfparam name="args.action"        type="string" />
 <cfparam name="args.known_as"      type="string" />
 <cfparam name="args.userLink"      type="string" />
-<cfparam name="args.iconClass"     type="string" />
 <cfparam name="args.detail.id"    type="string" default="" />
 <cfparam name="args.detail.label" type="string" default="unknown" />
 
@@ -14,9 +13,5 @@
 </cfscript>
 
 <cfoutput>
-	<cfif Len( Trim( args.iconClass ) )>
-		<i class="fa fa-fw fa-lg #args.iconClass#"></i>
-	</cfif>
-
 	#message#
 </cfoutput>

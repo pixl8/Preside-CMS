@@ -12,13 +12,8 @@
 	pageLink     = '<a href="#event.buildAdminLink( linkto="sitetree.editpage", querystring="id=" & args.detail.id  )#"><i class="fa fa-fw #pageTypeIcon#"></i> #args.detail.title#</a>';
 	language     = renderLabel( objectName="multilingual_language", recordId=args.detail.languageId );
 	message      = translateResource( uri="auditlog.sitetree:translate_page.message", data=[ userLink, pageLink, pagetype, language ] );
-	iconClass    = translateResource( uri="auditlog.sitetree:translate_page.iconClass", defaultValue="fa-file-o" );
 </cfscript>
 
 <cfoutput>
-	<cfif Len( Trim( iconClass ) )>
-		<i class="fa fa-fw fa-lg #iconClass#"></i>
-	</cfif>
-
 	#message#
 </cfoutput>

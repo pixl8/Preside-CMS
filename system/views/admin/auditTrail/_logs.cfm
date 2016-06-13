@@ -17,6 +17,10 @@
 					auditTrailData.detail = DeserializeJson( auditTrailData.detail );
 				}
 				auditTrailData.userLink = event.buildAdminLink( linkto="auditTrail", queryString="user=" & auditTrailData.user );
+
+				auditTrailData.actionLink      = event.buildAdminLink( linkto="auditTrail", queryString="action=" & auditTrailData.action );
+				auditTrailData.actionTitle     = translateResource( uri="auditlog.#auditTrailData.type#:#auditTrailData.action#.title", defaultValue=action.action );
+				auditTrailData.actionIconClass = translateResource( uri="auditlog.#auditTrailData.type#:#auditTrailData.action#.iconClass" );
 			</cfscript>
 
 			<cfif DateDiff( "d", auditTrailData.logDate, logDate )>

@@ -4,7 +4,6 @@
 
 <cfscript>
 	args.userLink  = '<a href="#args.userLink#">#args.known_as#</a>';
-	args.iconClass = translateResource( uri="auditlog.assetmanager:#args.action#.iconClass", defaultValue="fa-file-o" );
 
 	switch( args.action ) {
 		case "add_folder":

@@ -120,12 +120,10 @@ component output="false" singleton=true {
 		);
 	}
 
-	public array function getLoggedActions() {
-		var records = $getPresideObject( "audit_log" ).selectData(
-			  selectFields = [ "distinct action" ]
+	public query function getLoggedActions() {
+		return $getPresideObject( "audit_log" ).selectData(
+			  selectFields = [ "distinct action", "type" ]
 		);
-
-		return ValueArray( records.action );
 	}
 
 // PRIVATE GETTERS AND SETTERS

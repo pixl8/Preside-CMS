@@ -9,8 +9,8 @@ component {
 		args.labels = [ "" ];
 
 		for( var action in actions ){
-			args.labels.append( translateResource( uri="cms:auditTrail.#action#.title", defaultValue=action ) );
-			args.values.append( action );
+			args.labels.append( translateResource( uri="auditlog.#action.type#:#action.action#.title", defaultValue=action.action ) );
+			args.values.append( action.action );
 		}
 
 		return renderView( view="formcontrols/select/index", args=args );

@@ -1,11 +1,16 @@
-<cfparam name="args.email_address" type="string" />
-<cfparam name="args.known_as"      type="string" />
-<cfparam name="args.userLink"      type="string" />
-<cfparam name="args.uri"           type="string" />
-<cfparam name="args.user_ip"       type="string" />
-<cfparam name="args.user_agent"    type="string" />
-<cfparam name="args.logDate"       type="date" />
-<cfparam name="args.datecreated"   type="date" />
+<cfparam name="args.action"          type="string" />
+<cfparam name="args.type"            type="string" />
+<cfparam name="args.email_address"   type="string" />
+<cfparam name="args.known_as"        type="string" />
+<cfparam name="args.userLink"        type="string" />
+<cfparam name="args.actionLink"      type="string" />
+<cfparam name="args.uri"             type="string" />
+<cfparam name="args.user_ip"         type="string" />
+<cfparam name="args.user_agent"      type="string" />
+<cfparam name="args.actionTitle"     type="string" />
+<cfparam name="args.actionIconClass" type="string" />
+<cfparam name="args.logDate"         type="date" />
+<cfparam name="args.datecreated"     type="date" />
 
 <cfoutput>
 	<div class="timeline-item clearfix" data-date="#args.logDate#">
@@ -16,10 +21,14 @@
 		<div class="widget-box transparent">
 			<div class="widget-header widget-header-small">
 				<h5 class="widget-title smaller">
-					<a href="#args.userLink#" class="blue">#args.known_as#</a>
+					<i class="fa fa-fw #args.actionIconClass#"></i>
+					<a href="#args.actionLink#" class="blue">
+						#args.actionTitle#
+					</a>
 				</h5>
 				<span class="widget-toolbar no-border">
 					<i class="fa fa-fw bigger-110 fa-clock-o"></i>
+					<a href="#args.userLink#">#args.known_as#</a> @
 					#TimeFormat( args.datecreated, "HH:mm" )#
 				</span>
 			</div>
