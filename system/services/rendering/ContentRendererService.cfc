@@ -25,7 +25,7 @@ component singleton=true output="false" {
 	public string function render( required string renderer, required any data, any context="default" ) output=false {
 		var renderer = _getRenderer( name=arguments.renderer, context=arguments.context );
 		var r        = "";
-		var rendered = "";
+		var rendered = arguments.data;
 
 		if ( renderer.isChain() ) {
 			for( r in renderer.getChain() ){
