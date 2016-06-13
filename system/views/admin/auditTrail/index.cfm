@@ -5,6 +5,7 @@
 	user        = rc.user     ?: "";
 	action      = rc.action   ?: "";
 	recordId    = rc.recordId ?: "";
+	filtered    = Len( Trim( dateFrom & dateTo & user & action & recordId ) ) > 0;
 	loadMoreUrl = event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='dateFrom=#dateFrom#&dateTo=#dateTo#&user=#user#&action=#action#&recordId=#recordId#&page=' );
 </cfscript>
 <cfoutput>
@@ -17,7 +18,7 @@
 		</a>
 	</div>
 
-	<div class="collapse" id="filter-form">
+	<div <cfif !filtered> class="collapse"</cfif> id="filter-form">
 		<form class="form-horizontal" method="get" action="">
 			#renderForm(
 				  formName = "audittrail.filter"
