@@ -4,7 +4,8 @@
 	dateTo      = rc.dateTo   ?: "";
 	user        = rc.user     ?: "";
 	action      = rc.action   ?: "";
-	loadMoreUrl = event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='dateFrom=#dateFrom#&dateTo=#dateTo#&user=#user#&action=#action#&page=' );
+	recordId    = rc.recordId ?: "";
+	loadMoreUrl = event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='dateFrom=#dateFrom#&dateTo=#dateTo#&user=#user#&action=#action#&recordId=#recordId#&page=' );
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
