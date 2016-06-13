@@ -513,6 +513,14 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		var auditDetail = QueryRowToStruct( page );
+		auditDetail.languageId = languageId
+		event.audit(
+			  source = "sitetree"
+			, action = "translate_page"
+			, type   = "sitetree"
+			, detail = auditDetail
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
