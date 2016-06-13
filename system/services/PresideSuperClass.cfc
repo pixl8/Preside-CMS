@@ -18,6 +18,7 @@ component displayName="Preside Super Class" {
 	 * @errorLogService.inject            delayedInjector:errorLogService
 	 * @featureService.inject             delayedInjector:featureService
 	 * @notificationService.inject        delayedInjector:notificationService
+	 * @auditService.inject               delayedInjector:auditService
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
@@ -32,6 +33,7 @@ component displayName="Preside Super Class" {
 		,  required any errorLogService
 		,  required any featureService
 		,  required any notificationService
+		,  required any auditService
 		,  required any coldbox
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -44,6 +46,7 @@ component displayName="Preside Super Class" {
 		$errorLogService            = arguments.errorLogService;
 		$featureService             = arguments.featureService;
 		$notificationService        = arguments.notificationService;
+		$auditService               = arguments.auditService;
 		$coldbox                    = arguments.coldbox;
 
 		return this;
@@ -519,6 +522,35 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
+	 * Returns the audit log service
+	 *
+	 * @autodoc
+	 */
+	public any function $getAuditService() {
+		return $auditService;
+	}
+
+	/**
+	 * Proxy to auditService.log() method. Creates an audit log entry.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * $audit(
+	 *       detail   = {}
+	 *     , source   = "login"
+	 *     , action   = "login_success"
+	 *     , type     = "user"
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $audit() {
+		return $getAuditService().log( argumentCollection=arguments );
+	}
+
+	/**
 	 * Returns the coldbox controller	 *
 	 *
 	 * @autodoc
@@ -568,6 +600,7 @@ component displayName="Preside Super Class" {
 	 * $announceInterception( "onFormBuilderFormSubmission", formSubmissionData );
 	 * ```
 	 *
+	 * @autodoc
 	 */
 	public any function $announceInterception() {
 		return $getColdbox().getInterceptorService().processState( argumentCollection=arguments )

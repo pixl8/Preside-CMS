@@ -6,7 +6,6 @@ component output="false" extends="preside.system.base.SystemPresideObject" label
 	property name="source"     type="string"  dbtype="varchar" maxLength="100" required=true;
 	property name="action"     type="string"  dbtype="varchar" maxLength="100" required=true;
 	property name="type"       type="string"  dbtype="varchar" maxLength="100" required=true;
-	property name="instance"   type="string"  dbtype="varchar" maxLength="200" required=true;
 	property name="uri"        type="string"  dbtype="varchar" maxLength="255" required=true;
 	property name="user_ip"    type="string"  dbtype="varchar" maxLength="255" required=true;
 	property name="user_agent" type="string"  dbtype="varchar" maxLength="255" required=false;

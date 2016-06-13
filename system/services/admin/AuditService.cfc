@@ -15,19 +15,17 @@ component output="false" singleton=true {
 
 // PUBLIC METHODS
 	public void function log(
-		  required any    detail
+		  required string userId
 		, required string source
 		, required string action
 		, required string type
-		, required string instance
-		, required string userId
+		,          any    detail = {}
 	) {
 		_getDao().insertData( {
 			  detail     = SerializeJSON( arguments.detail )
 			, source     = arguments.source
 			, action     = arguments.action
 			, type       = arguments.type
-			, instance   = arguments.instance
 			, user       = arguments.userId
 			, uri        = cgi.request_url
 			, user_ip    = cgi.remote_addr
