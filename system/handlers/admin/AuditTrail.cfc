@@ -18,6 +18,7 @@ component extends="preside.system.base.AdminHandler" {
 		var dateFrom = rc.dateFrom ?: "";
 		var dateTo   = rc.dateTo   ?: "";
 		var user     = rc.user     ?: "";
+		var recordId = rc.recordId ?: "";
 		var action   = rc.action   ?: "";
 
 		prc.logs = auditService.getTrail(
@@ -27,6 +28,7 @@ component extends="preside.system.base.AdminHandler" {
 			, dateTo   = dateTo
 			, user     = user
 			, action   = action
+			, recordId = recordId
 		);
 
 		prc.pageTitle     = translateResource( "cms:auditTrail.page.title" );
@@ -38,6 +40,7 @@ component extends="preside.system.base.AdminHandler" {
 		var dateTo   = rc.dateTo   ?: "";
 		var user     = rc.user     ?: "";
 		var action   = rc.action   ?: "";
+		var recordId = rc.recordId ?: "";
 		var page     = Val( rc.page ?: 2 );
 		var logs     = auditService.getTrail(
 			  page     = page
@@ -46,6 +49,7 @@ component extends="preside.system.base.AdminHandler" {
 			, dateTo   = dateTo
 			, user     = user
 			, action   = action
+			, recordId = recordId
 		);
 
 		if ( logs.recordCount ) {

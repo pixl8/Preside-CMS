@@ -6,6 +6,7 @@
 			<field name="dateTo"   control="datepicker" />
 			<field name="user"     control="objectpicker" object="security_user" />
 			<field name="action"   control="auditActionPicker" />
+			<field name="recordId" control="textinput" />
 		</fieldset>
 	</tab>
 </form>

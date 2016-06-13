@@ -5,10 +5,12 @@
 <cfparam name="args.userLink"        type="string" />
 <cfparam name="args.actionLink"      type="string" />
 <cfparam name="args.uri"             type="string" />
+<cfparam name="args.record_id"       type="string" />
 <cfparam name="args.user_ip"         type="string" />
 <cfparam name="args.user_agent"      type="string" />
 <cfparam name="args.actionTitle"     type="string" />
 <cfparam name="args.actionIconClass" type="string" />
+<cfparam name="args.recordLink"      type="string" default="" />
 <cfparam name="args.logDate"         type="date" />
 <cfparam name="args.datecreated"     type="date" />
 
@@ -40,6 +42,14 @@
 			</div>
 
 			<div class="widget-header widget-header-small">
+				<span class="widget-title smaller">
+					<cfif Len( Trim( args.record_id ) )>
+						<a href="#args.recordLink#" class="light-grey">
+							<i class="fa fa-fw fa-filter"></i>
+							#translateResource( "cms:audittrail.filter.by.record.id" )#
+						</a>
+					</cfif>
+				</span>
 				<span class="widget-toolbar no-border light-grey">
 					<strong>#translateResource( 'cms:audittrail.item.ip'         )#:</strong> #args.user_ip#
 					<strong>#translateResource( 'cms:audittrail.item.user.agent' )#:</strong> #args.user_agent#

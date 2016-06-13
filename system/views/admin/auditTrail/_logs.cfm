@@ -21,6 +21,10 @@
 				auditTrailData.actionLink      = event.buildAdminLink( linkto="auditTrail", queryString="action=" & auditTrailData.action );
 				auditTrailData.actionTitle     = translateResource( uri="auditlog.#auditTrailData.type#:#auditTrailData.action#.title", defaultValue=action.action );
 				auditTrailData.actionIconClass = translateResource( uri="auditlog.#auditTrailData.type#:#auditTrailData.action#.iconClass" );
+
+				if ( Len( Trim( auditTrailData.record_id ) ) ) {
+					auditTrailData.recordLink = event.buildAdminLink( linkto="auditTrail", queryString="recordId=" & auditTrailData.record_id );
+				}
 			</cfscript>
 
 			<cfif DateDiff( "d", auditTrailData.logDate, logDate )>

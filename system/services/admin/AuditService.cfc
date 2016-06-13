@@ -42,6 +42,7 @@ component output="false" singleton=true {
 		, string  dateTo   = ""
 		, string  user     = ""
 		, string  action   = ""
+		, string  recordId = ""
 	) {
 		var filter = "";
 		var filterDelim = "";
@@ -69,6 +70,12 @@ component output="false" singleton=true {
 			filter &= filterDelim & "action = :action";
 			filterDelim = " and ";
 			params.action = arguments.action;
+		}
+
+		if ( Len( Trim( arguments.recordId ) ) ) {
+			filter &= filterDelim & "record_id = :record_id";
+			filterDelim = " and ";
+			params.record_id = arguments.recordId;
 		}
 
 		if ( !Len( Trim( filter ) ) ) {
