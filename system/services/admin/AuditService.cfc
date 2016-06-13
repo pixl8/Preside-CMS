@@ -19,7 +19,8 @@ component output="false" singleton=true {
 		, required string source
 		, required string action
 		, required string type
-		,          any    detail = {}
+		,          string recordId = ""
+		,          any    detail   = {}
 	) {
 		_getDao().insertData( {
 			  detail     = SerializeJSON( arguments.detail )
@@ -27,6 +28,7 @@ component output="false" singleton=true {
 			, action     = arguments.action
 			, type       = arguments.type
 			, user       = arguments.userId
+			, record_id  = arguments.recordId
 			, uri        = cgi.request_url
 			, user_ip    = cgi.remote_addr
 			, user_agent = cgi.http_user_agent
@@ -74,12 +76,26 @@ component output="false" singleton=true {
 		}
 
 		return _getDao().selectData(
-			  selectFields = [ "audit_log.id", "audit_log.type", "audit_log.datecreated", "audit_log.action", "audit_log.detail" , "security_user.email_address", "security_user.known_as","audit_log.user"  ]
-			, orderby      = "audit_log.datecreated desc"
-			, filter       = filter
+			  filter       = filter
 			, filterParams = params
-			, startRow     = ( ( arguments.page - 1 ) * arguments.pageSize ) + 1
+			, orderby      = "audit_log.datecreated desc"
 			, maxRows      = arguments.pageSize
+			, startRow     = ( ( arguments.page - 1 ) * arguments.pageSize ) + 1
+			, selectFields = [
+				  "audit_log.id"
+				, "audit_log.type"
+				, "audit_log.datecreated"
+				, "audit_log.action"
+				, "audit_log.detail"
+				, "audit_log.source"
+				, "audit_log.record_id"
+				, "audit_log.uri"
+				, "audit_log.user_ip"
+				, "audit_log.user_agent"
+				, "security_user.email_address"
+				, "security_user.known_as"
+				, "audit_log.user"
+			 ]
 		);
 	}
 

@@ -610,10 +610,11 @@ component {
 			auditDetail.id = pageId;
 
 			$audit(
-				  source = "sitetree"
-				, action = "add_page"
-				, type   = "sitetree"
-				, detail = auditDetail
+				  source   = "sitetree"
+				, action   = "add_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = pageId
 			);
 		}
 
@@ -756,10 +757,11 @@ component {
 
 		if ( updated && !arguments.skipAudit ) {
 			$audit(
-				  source = "sitetree"
-				, action = "edit_page"
-				, type   = "sitetree"
-				, detail = Duplicate( arguments )
+				  source   = "sitetree"
+				, action   = "edit_page"
+				, type     = "sitetree"
+				, detail   = Duplicate( arguments )
+				, recordId = arguments.id
 			);
 		}
 
@@ -796,10 +798,11 @@ component {
 		if ( updated ) {
 			for( var p in page ) { var auditDetail = p; }
 			$audit(
-				  source = "sitetree"
-				, action = "trash_page"
-				, type   = "sitetree"
-				, detail = auditDetail
+				  source   = "sitetree"
+				, action   = "trash_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
 			);
 		}
 
@@ -835,10 +838,11 @@ component {
 		if ( updated ) {
 			for( var p in page ) { var auditDetail = p; }
 			$audit(
-				  source = "sitetree"
-				, action = "restore_page"
-				, type   = "sitetree"
-				, detail = auditDetail
+				  source   = "sitetree"
+				, action   = "restore_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
 			);
 		}
 
@@ -872,10 +876,11 @@ component {
 		if ( nDeleted ) {
 			for( var p in rootPage ) { var auditDetail = p; }
 			$audit(
-				  source = "sitetree"
-				, action = "permanently_delete_page"
-				, type   = "sitetree"
-				, detail = auditDetail
+				  source   = "sitetree"
+				, action   = "permanently_delete_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
 			);
 		}
 

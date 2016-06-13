@@ -516,10 +516,11 @@ component extends="preside.system.base.AdminHandler" {
 		var auditDetail = QueryRowToStruct( page );
 		auditDetail.languageId = languageId
 		event.audit(
-			  source = "sitetree"
-			, action = "translate_page"
-			, type   = "sitetree"
-			, detail = auditDetail
+			  source   = "sitetree"
+			, action   = "translate_page"
+			, type     = "sitetree"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
@@ -694,10 +695,11 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 		event.audit(
-			  source = "sitetree"
-			, action = "reorder_children"
-			, type   = "sitetree"
-			, detail = QueryRowToStruct( page )
+			  source   = "sitetree"
+			, action   = "reorder_children"
+			, type     = "sitetree"
+			, detail   = QueryRowToStruct( page )
+			, recordId = page.id
 		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );

@@ -80,10 +80,11 @@ component displayName="AssetManager Service" {
 		auditDetail.id = _getFolderDao().insertData( arguments );
 
 		$audit(
-			  source = "assetmanager"
-			, action = "add_folder"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "add_folder"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return auditDetail.id;
@@ -102,10 +103,11 @@ component displayName="AssetManager Service" {
 		var auditDetail = Duplicate( arguments.data );
 		auditDetail.id  = arguments.id;
 		$audit(
-			  source = "assetmanager"
-			, action = "edit_folder"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "edit_folder"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return result;
@@ -553,10 +555,11 @@ component displayName="AssetManager Service" {
 
 		for( var f in folder ) { var auditDetail = f; }
 		$audit(
-			  source = "assetmanager"
-			, action = "trash_folder"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "trash_folder"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return result;
@@ -711,10 +714,11 @@ component displayName="AssetManager Service" {
 
 		asset.id = newId;
 		$audit(
-			  source = "assetmanager"
-			, action = "add_asset"
-			, type   = "assetmanager"
-			, detail = asset
+			  source   = "assetmanager"
+			, action   = "add_asset"
+			, type     = "assetmanager"
+			, detail   = asset
+			, recordId = asset.id
 		);
 
 		return newId;
@@ -767,10 +771,11 @@ component displayName="AssetManager Service" {
 		var auditDetail = assetVersion;
 		for( var a in originalAsset ) { auditDetail.append( a ); }
 		$audit(
-			  source = "assetmanager"
-			, action = "add_asset_version"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "add_asset_version"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return true;
@@ -801,13 +806,16 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
-		var result = _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		var auditDetail = Duplicate( arguments.data );
 
+		auditDetail.id = arguments.id;
 		$audit(
-			  source = "assetmanager"
-			, action = "edit_asset"
-			, type   = "assetmanager"
-			, detail = arguments
+			  source   = "assetmanager"
+			, action   = "edit_asset"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = arguments.id
 		);
 
 		return result;
@@ -1004,10 +1012,11 @@ component displayName="AssetManager Service" {
 
 		for( var a in asset ) { var auditDetail = a; }
 		$audit(
-			  source = "assetmanager"
-			, action = "trash_asset"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "trash_asset"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return result;
@@ -1027,10 +1036,11 @@ component displayName="AssetManager Service" {
 
 		for( var a in asset ) { var auditDetail = a; }
 		$audit(
-			  source = "assetmanager"
-			, action = "permanently_delete_asset"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "permanently_delete_asset"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return assetDao.deleteData( id=arguments.id );
@@ -1266,10 +1276,11 @@ component displayName="AssetManager Service" {
 
 			for( var a in versionToMakeActive ) { var auditDetail = a; }
 			$audit(
-				  source = "assetmanager"
-				, action = "change_asset_version"
-				, type   = "assetmanager"
-				, detail = auditDetail
+				  source   = "assetmanager"
+				, action   = "change_asset_version"
+				, type     = "assetmanager"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
 			);
 
 			return result;
@@ -1294,10 +1305,11 @@ component displayName="AssetManager Service" {
 		for( var a in asset ) { var auditDetail = a; }
 		auditDetail.append( arguments );
 		$audit(
-			  source = "assetmanager"
-			, action = "delete_asset_version"
-			, type   = "assetmanager"
-			, detail = auditDetail
+			  source   = "assetmanager"
+			, action   = "delete_asset_version"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
 		);
 
 		return result;
