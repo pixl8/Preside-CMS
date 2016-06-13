@@ -1,6 +1,9 @@
 <cfparam name="args.email_address" type="string" />
 <cfparam name="args.known_as"      type="string" />
 <cfparam name="args.userLink"      type="string" />
+<cfparam name="args.uri"           type="string" />
+<cfparam name="args.user_ip"       type="string" />
+<cfparam name="args.user_agent"    type="string" />
 <cfparam name="args.logDate"       type="date" />
 <cfparam name="args.datecreated"   type="date" />
 
@@ -25,6 +28,13 @@
 				<div class="widget-main">
 					#renderLogMessage( log=args )#
 				</div>
+			</div>
+
+			<div class="widget-header widget-header-small">
+				<span class="widget-toolbar no-border light-grey">
+					<strong>#translateResource( 'cms:audittrail.item.ip'         )#:</strong> #args.user_ip#
+					<strong>#translateResource( 'cms:audittrail.item.user.agent' )#:</strong> #args.user_agent#
+				</span>
 			</div>
 		</div>
 	</div>
