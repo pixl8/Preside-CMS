@@ -1390,6 +1390,9 @@
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
+		<cfargument name="auditSource"       type="string"  required="false" default="datamanager" />
+		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_add_record" />
+		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 
 		<cfscript>
 			var formData         = event.getCollectionForForm( arguments.formName );
@@ -1421,9 +1424,9 @@
 				auditDetail.id = newId;
 				auditDetail.objectName = arguments.object;
 				event.audit(
-					  source   = "datamanager"
-					, action   = "datamanager_add_record"
-					, type     = "datamanager"
+					  source   = arguments.auditSource
+					, action   = arguments.auditAction
+					, type     = arguments.auditType
 					, recordId = newId
 					, detail   = auditDetail
 				);
@@ -1561,6 +1564,9 @@
 		<cfargument name="postActionUrl"     type="string"  required="false" default="#( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
+		<cfargument name="auditSource"       type="string"  required="false" default="datamanager" />
+		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_delete_record" />
+		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 
 		<cfscript>
 			var id               = rc.id          ?: "";
@@ -1604,9 +1610,9 @@
 						var auditDetail = Duplicate( record );
 						auditDetail.objectName = object;
 						event.audit(
-							  source   = "datamanager"
-							, action   = "datamanager_delete_record"
-							, type     = "datamanager"
+							  source   = arguments.auditSource
+							, action   = arguments.auditAction
+							, type     = arguments.auditType
 							, recordId = record.id
 							, detail   = auditDetail
 						);
@@ -1642,6 +1648,9 @@
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
+		<cfargument name="auditSource"       type="string"  required="false" default="datamanager" />
+		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_edit_record" />
+		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1677,9 +1686,9 @@
 				var auditDetail = Duplicate( formData );
 				auditDetail.objectName = arguments.object;
 				event.audit(
-					  source   = "datamanager"
-					, action   = "datamanager_edit_record"
-					, type     = "datamanager"
+					  source   = arguments.auditSource
+					, action   = arguments.auditAction
+					, type     = arguments.auditType
 					, recordId = id
 					, detail   = auditDetail
 				);
