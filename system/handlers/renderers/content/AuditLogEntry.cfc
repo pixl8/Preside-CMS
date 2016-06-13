@@ -1,6 +1,7 @@
 component {
 
-	property name="presideObjectService" inject="presideObjectService";
+	property name="presideObjectService"       inject="presideObjectService";
+	property name="systemConfigurationService" inject="systemConfigurationService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -40,6 +41,17 @@ component {
 		var recordLink = '<a href="#recordUrl#">#label#</a>';
 
 		return translateResource( uri="auditlog.usermanager:#action#.message", data=[ userLink, recordLink ] );
+	}
+
+	private string function sysconfig( event, rc, prc ) {
+		var action       = args.action    ?: "";
+		var known_as     = args.known_as  ?: "";
+		var userLink     = '<a href="#args.userLink#">#args.known_as#</a>';
+		var category     = translateResource( systemConfigurationService.getConfigCategory( args.record_id ?: "" ).getName() );
+		var categoryUrl  = event.buildAdminLink( linkTo="sysconfig.category", queryString="id=" & ( args.record_id ?: "" ) )
+		var categoryLink = '<a href="#categoryUrl#">#category#</a>';
+
+		return translateResource( uri="auditlog.sysconfig:#action#.message", data=[ userLink, categoryLink ] );
 	}
 
 }
