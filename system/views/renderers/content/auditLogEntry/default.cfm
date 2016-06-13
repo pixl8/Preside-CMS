@@ -1,3 +1,4 @@
+<cfparam name="args.type"        type="string"/>
 <cfparam name="args.action"      type="string"/>
 <cfparam name="args.datecreated" type="date"/>
 <cfparam name="args.known_as"    type="string"/>
@@ -13,5 +14,6 @@
 	<cfif Len( Trim( iconClass ) )>
 		<i class="fa fa-fw fa-lg #iconClass#"></i>
 	</cfif>
+
 	#message#
 </cfoutput>

@@ -97,18 +97,11 @@ component output="false" singleton=true {
 	}
 
 	public any function renderLogMessage(  required struct log ) {
-		var viewletEvent = "renderers.auditLog.auditLogEntry." & arguments.log.action;
-		if ( $getColdbox().viewletExists( viewletEvent ) ) {
-			return $getColdbox().renderViewlet(
-				  event = viewletEvent
-				, args  = arguments.log
-			);
-		} else {
-			return $getColdbox().renderViewlet(
-				  event = "renderers.content.auditLogEntry.default"
-				, args  = arguments.log
-			);
-		}
+		return $renderContent(
+			  renderer = "auditLogEntry"
+			, data     = arguments.log
+			, context  = [ arguments.log.action, arguments.log.type ]
+		);
 	}
 
 	public array function getLoggedActions() {

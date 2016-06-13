@@ -19,22 +19,24 @@ component displayName="Preside Super Class" {
 	 * @featureService.inject             delayedInjector:featureService
 	 * @notificationService.inject        delayedInjector:notificationService
 	 * @auditService.inject               delayedInjector:auditService
+	 * @contentRendererService.inject     delayedInjector:contentRendererService
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
 	public any function init(
-		   required any presideObjectService
-		,  required any systemConfigurationService
-		,  required any adminLoginService
-		,  required any adminPermissionService
-		,  required any websiteLoginService
-		,  required any websitePermissionService
-		,  required any emailService
-		,  required any errorLogService
-		,  required any featureService
-		,  required any notificationService
-		,  required any auditService
-		,  required any coldbox
+		  required any presideObjectService
+		, required any systemConfigurationService
+		, required any adminLoginService
+		, required any adminPermissionService
+		, required any websiteLoginService
+		, required any websitePermissionService
+		, required any emailService
+		, required any errorLogService
+		, required any featureService
+		, required any notificationService
+		, required any auditService
+		, required any contentRendererService
+		, required any coldbox
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -47,6 +49,7 @@ component displayName="Preside Super Class" {
 		$featureService             = arguments.featureService;
 		$notificationService        = arguments.notificationService;
 		$auditService               = arguments.auditService;
+		$contentRendererService     = arguments.contentRendererService;
 		$coldbox                    = arguments.coldbox;
 
 		return this;
@@ -546,9 +549,51 @@ component displayName="Preside Super Class" {
 	 *
 	 * @autodoc
 	 */
-	public any function $audit() {
+	public any function $audit(
+		string userId = $getAdminLoggedInUserId()
+	) {
 		return $getAuditService().log( argumentCollection=arguments );
 	}
+
+	/**
+	 * Returns the content renderer service
+	 *
+	 * @autodoc
+	 */
+	public any function $getContentRendererService() {
+		return $contentRendererService;
+	}
+
+	/**
+	 * Proxy to contentRendererService.render() method
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $renderContent() {
+		return $getContentRendererService().render( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to contentRendererService.renderLabel() method
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $renderLabel() {
+		return $getContentRendererService().renderLabel( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to contentRendererService.renderField() method
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $renderField() {
+		return $getContentRendererService().renderField( argumentCollection=arguments );
+	}
+
 
 	/**
 	 * Returns the coldbox controller	 *
