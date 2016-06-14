@@ -102,4 +102,15 @@ component {
 		return translateResource( uri="auditlog.websiteusermanager:#action#.message", data=[ userLink, webUserLink ] );
 	}
 
+	private string function websitebenefitsmanager( event, rc, prc ) {
+		var action   = args.action    ?: "";
+		var known_as = args.known_as  ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var benefit     = args.record_id;
+		var benefitName = args.detail.label ?: "unknown";
+		var benefitUrl  = event.buildAdminLink( linkTo="websitebenefitsmanager.editbenefit", queryString="id=" & benefit );
+		var benefitLink = '<a href="#benefitUrl#">#benefitName#</a>';
+
+		return translateResource( uri="auditlog.websitebenefitsmanager:#action#.message", data=[ userLink, benefitLink ] );
+	}
 }
