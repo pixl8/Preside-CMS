@@ -7,11 +7,6 @@
 	recordId    = rc.recordId ?: "";
 	loadMoreUrl = event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='dateFrom=#dateFrom#&dateTo=#dateTo#&user=#user#&action=#action#&recordId=#recordId#&page=' );
 	filtered    = Len( Trim( dateFrom & dateTo & user & action & recordId ) ) > 0;
-
-	if ( filtered ) {
-		toggleFilterLink = '<a data-toggle="collapse" href="##filter-form">' & translateResource( "cms:audittrail.filtered.show.filter" ) & '</a>';
-		dataFilteredMessage = translateResource( uri="cms:audittrail.filtered.message", data=[ togglefilterLink ] );
-	}
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -24,7 +19,14 @@
 	</div>
 
 	<cfif filtered>
-		<p class="alert alert-info"><i class="fa fa-fw fa-filter"></i> #dataFilteredMessage#</p>
+		<p class="alert alert-info">
+			<i class="fa fa-fw fa-filter"></i> #translateResource( uri="cms:audittrail.filtered.message" )#
+			<span class="pull-right">
+				<a href="#event.buildAdminLink( linkTo='audittrail' )#">#translateResource( "cms:audittrail.filtered.clear.filter" )#</a>
+				|
+				<a href="##filter-form" data-toggle="collapse">#translateResource( "cms:audittrail.filtered.show.filter" )#</a>
+			</span>
+		</p>
 	</cfif>
 
 	<div class="collapse" id="filter-form">
