@@ -48,9 +48,11 @@ component {
 
 // private helpers
 	private void function _setSecurityHeaders( event, rc, prc ) {
-		event.setXFrameOptionsHeader(
-			value = event.isAdminRequest() ? "SAMEORIGIN" : "DENY"
-		);
+		if ( !event.isAjax() && !event.isStatelessRequest() ) {
+			event.setXFrameOptionsHeader(
+				value = event.isAdminRequest() ? "SAMEORIGIN" : "DENY"
+			);
+		}
 	}
 
 	private void function _xssProtect( event, rc, prc ) {

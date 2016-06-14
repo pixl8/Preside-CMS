@@ -311,6 +311,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return ReFind( "^admin\..*?action$", currentEvent );
 	}
 
+	public boolean function isStatelessRequest() {
+		var appSettings = GetApplicationSettings();
+
+		return IsBoolean( appSettings.statelessRequest ?: "" ) && appSettings.statelessRequest;
+	}
+
 	public void function setXFrameOptionsHeader( string value ) {
 		if ( !StructKeyExists( arguments, "value" ) ) {
 			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
@@ -325,7 +331,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			}
 		}
 
-		getRequestContext().setHTTPHeader( name="X-Frame-Options", value=arguments.value );
+		this.setHTTPHeader( name="X-Frame-Options", value=arguments.value, overwrite=true );
 	}
 
 // FRONT END, dealing with current page
@@ -606,6 +612,24 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 	public string function getUserAgent() output=false {
 		return cgi.http_user_agent;
+	}
+
+	function setHTTPHeader( string statusCode, string statusText="", string name, string value="", boolean overwrite=false ){
+		if ( StructKeyExists( arguments, "statusCode" ) ) {
+			getPageContext().getResponse().setStatus( javaCast( "int", arguments.statusCode ), javaCast( "string", arguments.statusText ) );
+		} else if ( StructKeyExists( arguments, "name" ) ) {
+			if ( arguments.overwrite ) {
+				getPageContext().getResponse().setHeader( javaCast( "string", arguments.name ), javaCast( "string", arguments.value ) );
+			} else {
+				getPageContext().getResponse().addHeader( javaCast( "string", arguments.name ), javaCast( "string", arguments.value ) );
+			}
+		} else {
+			throw( message="Invalid header arguments",
+				  detail="Pass in either a statusCode or name argument",
+				  type="RequestContext.InvalidHTTPHeaderParameters" );
+		}
+
+		return this;
 	}
 
 // status codes

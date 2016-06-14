@@ -337,7 +337,8 @@ component singleton=true {
 		}
 
 		if ( ListLen( args.orderBy, "." ) == 1 ) {
-			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( args.orderBy ) ) {
+			var col = ListFirst( args.orderBy, " " );
+			if ( _getPresideObjectService().getObjectProperties( arguments.pageType ).keyExists( col ) ) {
 				args.orderBy = "#arguments.pageType#.#args.orderBy#";
 			} else {
 				args.orderBy = "page.#args.orderBy#";
