@@ -90,4 +90,16 @@ component {
 		return translateResource( uri="auditlog.urlredirects:#action#.message", data=[ userLink, ruleLink ] );
 	}
 
+	private string function websiteusermanager( event, rc, prc ) {
+		var action      = args.action    ?: "";
+		var known_as    = args.known_as  ?: "";
+		var userLink    = '<a href="#args.userLink#">#args.known_as#</a>';
+		var webUser     = args.record_id;
+		var webUserName = args.detail.display_name ?: "unknown";
+		var webUserUrl  = event.buildAdminLink( linkTo="websiteusermanager.edituser", queryString="id=" & webUser );
+		var webUserLink = '<a href="#webUserUrl#">#webUserName#</a>';
+
+		return translateResource( uri="auditlog.websiteusermanager:#action#.message", data=[ userLink, webUserLink ] );
+	}
+
 }
