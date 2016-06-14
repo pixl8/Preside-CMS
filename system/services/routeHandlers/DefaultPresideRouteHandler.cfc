@@ -149,7 +149,7 @@ component implements="iRouteHandler" output=false singleton=true {
 				var ancestors = siteTreeService.getAncestors( id=page.id, selectFields=[ "slug" ] );
 
 				if ( ancestors.recordCount ) {
-					var newSlug = "/" & page.slug & "/" & ValueList( ancestors.slug, "/" ) & "/";
+					var newSlug = "/" & ValueList( ancestors.slug, "/" ) & "/" & page.slug & "/";
 					newSlug = newSlug.reReplace( "/+", "/", "all" );
 					page.slug[ 1 ] = newSlug;
 				}
