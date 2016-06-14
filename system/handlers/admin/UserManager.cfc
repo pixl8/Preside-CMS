@@ -66,7 +66,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, addAnotherAction = "usermanager.addGroup"
 				, viewRecordAction = "userManager.editGroup"
 				, audit            = true
-				, auditSource      = "usermanager"
 				, auditAction      = "add_user_group"
 				, auditType        = "usermanager"
 			}
@@ -101,7 +100,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, errorAction   = "userManager.editGroup"
 				, successAction = "userManager.groups"
 				, audit            = true
-				, auditSource      = "usermanager"
 				, auditAction      = "edit_user_group"
 				, auditType        = "usermanager"
 			}
@@ -119,7 +117,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object      = "security_group"
 				, postAction  = "userManager.groups"
 				, audit       = true
-				, auditSource = "usermanager"
 				, auditAction = "delete_user_group"
 				, auditType   = "usermanager"
 			}
@@ -165,7 +162,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, errorAction      = "userManager.addUser"
 				, redirectOnSuccess = false
 				, audit             = true
-				, auditSource       = "usermanager"
 				, auditAction       = "add_user"
 				, auditType         = "usermanager"
 			}
@@ -227,7 +223,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, successAction     = "userManager.users"
 				, mergeWithFormName = ( userId == event.getAdminUserId() ) ? "preside-objects.security_user.admin.edit.self" : ""
 				, audit             = true
-				, auditSource       = "usermanager"
 				, auditAction       = "edit_user"
 				, auditType         = "usermanager"
 			}
@@ -263,8 +258,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 		} else {
 			if ( obj.deleteData( filter={ id = id } ) ) {
 				event.audit(
-					  source   = "usermanager"
-					, action   = "delete_user"
+					  action   = "delete_user"
 					, type     = "usermanager"
 					, recordId = id
 					, detail   = QueryRowToStruct( record )

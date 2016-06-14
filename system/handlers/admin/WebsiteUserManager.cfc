@@ -61,7 +61,6 @@ component extends="preside.system.base.AdminHandler" {
 				, errorAction       = "websiteUserManager.addUser"
 				, redirectOnSuccess = false
 				, audit             = true
-				, auditSource       = "websiteusermanager"
 				, auditType         = "websiteusermanager"
 				, auditAction       = "add_website_user"
 			}
@@ -113,7 +112,6 @@ component extends="preside.system.base.AdminHandler" {
 				, errorAction       = "websiteUserManager.editUser"
 				, redirectOnSuccess = false
 				, audit             = true
-				, auditSource       = "websiteusermanager"
 				, auditType         = "websiteusermanager"
 				, auditAction       = "edit_website_user"
 
@@ -164,8 +162,7 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() ) {
 			websiteLoginService.changePassword( formData.password, prc.record.id );
 			event.audit(
-				  source   = "websiteusermanager"
-				, type     = "websiteusermanager"
+				  type     = "websiteusermanager"
 				, action   = "change_website_user_password"
 				, recordId = prc.record.id
 			);
@@ -190,7 +187,6 @@ component extends="preside.system.base.AdminHandler" {
 				  object     = "website_user"
 				, postAction = "websiteUserManager"
 				, audit             = true
-				, auditSource       = "websiteusermanager"
 				, auditType         = "websiteusermanager"
 				, auditAction       = "delete_website_user"
 			}

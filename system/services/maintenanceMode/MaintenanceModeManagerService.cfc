@@ -51,8 +51,7 @@ component {
 		);
 
 		$audit(
-			  source = "maintenancemode"
-			, action = "activate_maintenance_mode"
+			  action = "activate_maintenance_mode"
 			, type   = "maintenancemode"
 		);
 	}
@@ -61,8 +60,7 @@ component {
 		_getMaintenanceModeService().clearMaintenanceMode();
 
 		$audit(
-			  source = "maintenancemode"
-			, action = "deactivate_maintenance_mode"
+			  action = "deactivate_maintenance_mode"
 			, type   = "maintenancemode"
 		);
 	}

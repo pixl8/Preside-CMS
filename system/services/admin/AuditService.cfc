@@ -16,7 +16,6 @@ component output="false" singleton=true {
 // PUBLIC METHODS
 	public void function log(
 		  required string userId
-		, required string source
 		, required string action
 		, required string type
 		,          string recordId = ""
@@ -24,7 +23,6 @@ component output="false" singleton=true {
 	) {
 		_getDao().insertData( {
 			  detail     = SerializeJSON( arguments.detail )
-			, source     = arguments.source
 			, action     = arguments.action
 			, type       = arguments.type
 			, user       = arguments.userId
@@ -94,7 +92,6 @@ component output="false" singleton=true {
 				, "audit_log.datecreated"
 				, "audit_log.action"
 				, "audit_log.detail"
-				, "audit_log.source"
 				, "audit_log.record_id"
 				, "audit_log.uri"
 				, "audit_log.user_ip"

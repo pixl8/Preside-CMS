@@ -911,8 +911,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
 			event.audit(
-				  source   = "assetmanager"
-				, action   = "edit_asset_folder_admin_permissions"
+				  action   = "edit_asset_folder_admin_permissions"
 				, type     = "assetmanager"
 				, detail   = QueryRowToStruct( folderRecord )
 				, recordId = folderId

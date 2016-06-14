@@ -58,7 +58,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, errorAction      = "websiteBenefitsManager.addBenefit"
 				, redirectOnSuccess = false
 				, audit             = true
-				, auditSource       = "websitebenefitsmanager"
 				, auditType         = "websitebenefitsmanager"
 				, auditAction       = "add_website_benefit"
 			}
@@ -110,7 +109,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, errorAction   = "websiteBenefitsManager.editBenefit"
 				, redirectOnSuccess = false
 				, audit             = true
-				, auditSource       = "websitebenefitsmanager"
 				, auditType         = "websitebenefitsmanager"
 				, auditAction       = "edit_website_benefit"
 			}
@@ -133,7 +131,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object     = "website_benefit"
 				, postAction = "websiteBenefitsManager"
 				, audit             = true
-				, auditSource       = "websitebenefitsmanager"
 				, auditType         = "websitebenefitsmanager"
 				, auditAction       = "delete_website_benefit"
 			}

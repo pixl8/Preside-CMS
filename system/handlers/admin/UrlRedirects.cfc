@@ -33,7 +33,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object      = "url_redirect_rule"
 				, postAction  = "urlRedirects"
 				, audit       = true
-				, auditSource = "urlredirects"
 				, auditType   = "urlredirects"
 				, auditAction = "delete_redirect_rule"
 			}
@@ -78,7 +77,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, addAnotherAction = "urlRedirects.addRule"
 				, viewRecordAction = "urlRedirects.editRule"
 				, audit            = true
-				, auditSource      = "urlredirects"
 				, auditType        = "urlredirects"
 				, auditAction      = "add_redirect_rule"
 			}
@@ -118,7 +116,6 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, errorAction   = "urlRedirects.editRule"
 				, successAction = "urlRedirects"
 				, audit         = true
-				, auditSource   = "urlredirects"
 				, auditType     = "urlredirects"
 				, auditAction   = "edit_redirect_rule"
 			}
