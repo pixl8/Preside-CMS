@@ -5,7 +5,7 @@ component {
 		, string  name                         = arguments.id & ExpandPath( "/" )
 		, array   statelessUrlPatterns         = [ "^https?://(.*?)/api/.*" ]
 		, array   statelessUserAgentPatterns   = [ "CFSCHEDULE", "(bot\b|crawler\b|baiduspider|80legs|ia_archiver|voyager|curl|wget|yahoo! slurp|mediapartners-google)" ]
-		, boolean sessionManagement            = !isStatelessRequest( _getUrl() )
+		, boolean sessionManagement
 		, any     sessionTimeout               = CreateTimeSpan( 0, 0, 40, 0 )
 		, numeric applicationReloadTimeout     = 1200
 		, numeric applicationReloadLockTimeout = 0
@@ -18,11 +18,12 @@ component {
 		this.PRESIDE_APPLICATION_RELOAD_TIMEOUT      = arguments.applicationReloadTimeout;
 		this.COLDBOX_RELOAD_PASSWORD                 = arguments.reloadPassword;
 		this.name                                    = arguments.name
-		this.sessionManagement                       = arguments.sessionManagement;
-		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.scriptProtect                           = arguments.scriptProtect;
 		this.statelessUrlPatterns                    = arguments.statelessUrlPatterns;
 		this.statelessUserAgentPatterns              = arguments.statelessUserAgentPatterns;
+		this.statelessRequest                        = isStatelessRequest( _getUrl() );
+		this.sessionManagement                       = arguments.sessionManagement ?: !this.statelessRequest;
+		this.sessionTimeout                          = arguments.sessionTimeout;
 		this.showDbSyncScripts                       = arguments.showDbSyncScripts
 
 		_setupMappings( argumentCollection=arguments );
