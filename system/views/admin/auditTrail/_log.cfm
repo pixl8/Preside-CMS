@@ -24,9 +24,7 @@
 			<div class="widget-header widget-header-small">
 				<h5 class="widget-title smaller">
 					<i class="fa fa-fw #args.actionIconClass#"></i>
-					<a href="#args.actionLink#" class="blue">
-						#args.actionTitle#
-					</a>
+					<a href="#args.actionLink#" class="blue">#args.actionTitle#</a>
 				</h5>
 				<span class="widget-toolbar no-border">
 					<i class="fa fa-fw bigger-110 fa-clock-o"></i>
