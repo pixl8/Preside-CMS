@@ -72,6 +72,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		}
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=true );
+		event.audit(
+			  source = "userprofile"
+			, action = "edit_profile"
+			, type   = "userprofile"
+		);
 
 		messageBox.info( translateResource( uri="cms:editProfile.updated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="" ) );
@@ -116,6 +121,11 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		formData.delete( "confirm_password" );
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=false );
+		event.audit(
+			  source = "userprofile"
+			, action = "update_password"
+			, type   = "userprofile"
+		);
 
 		messageBox.info( translateResource( uri="cms:editProfile.password.updated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="editProfile" ) );
@@ -178,6 +188,13 @@ component output="false" extends="preside.system.base.AdminHandler" {
 			if ( authVerified ) {
 				loginService.enableTwoFactorAuthenticationForUser();
 				messagebox.info( translateResource( "cms:editProfile.twofactorauthentication.setup.complete.confirmation" ) );
+
+				event.audit(
+					  source = "userprofile"
+					, action = "2fa_setup"
+					, type   = "userprofile"
+				);
+
 				setNextEvent( url=event.buildAdminLink( "editProfile.twoFactorAuthentication" ) );
 			}
 
@@ -199,6 +216,12 @@ component output="false" extends="preside.system.base.AdminHandler" {
 		var enforced = IsTrue( getSystemSetting( "two-factor-auth", "admin_enforced" ) );
 
 		loginService.disableTwoFactorAuthenticationForUser();
+		event.audit(
+			  source = "userprofile"
+			, action = "disable_2fa"
+			, type   = "userprofile"
+		);
+
 
 		if ( enforced || IsTrue( rc.reset ?: "" ) ) {
 			if ( enforced ) {
