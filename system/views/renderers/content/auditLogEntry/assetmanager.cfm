@@ -9,6 +9,7 @@
 		case "add_folder":
 		case "edit_folder":
 		case "trash_folder":
+		case "edit_asset_folder_admin_permissions":
 			echo( renderView( view="/renderers/content/auditLogEntry/assetFolder", args=args ) );
 		break;
 

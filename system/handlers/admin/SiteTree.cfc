@@ -729,6 +729,13 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  source   = "sitetree"
+				, action   = "edit_page_admin_permissions"
+				, type     = "sitetree"
+				, detail   = QueryRowToStruct( page )
+				, recordId = pageId
+			);
 			messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
 		}

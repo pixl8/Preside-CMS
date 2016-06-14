@@ -237,6 +237,14 @@
 			_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
 
 			if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+				event.audit(
+					  source   = "datamanager"
+					, action   = "edit_datamanager_object_admin_permissions"
+					, type     = "datamanager"
+					, recordId = objectName
+					, detail   = { objectName=objectName }
+				);
+
 				messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 			}
