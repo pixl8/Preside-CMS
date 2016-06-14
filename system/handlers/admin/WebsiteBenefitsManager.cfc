@@ -57,6 +57,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object           = "website_benefit"
 				, errorAction      = "websiteBenefitsManager.addBenefit"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditSource       = "websitebenefitsmanager"
+				, auditType         = "websitebenefitsmanager"
+				, auditAction       = "add_website_benefit"
 			}
 		);
 		var newRecordLink = event.buildAdminLink( linkTo="websiteBenefitsManager.editBenefit", queryString="id=#newId#" );
@@ -105,6 +109,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object        = "website_benefit"
 				, errorAction   = "websiteBenefitsManager.editBenefit"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditSource       = "websitebenefitsmanager"
+				, auditType         = "websitebenefitsmanager"
+				, auditAction       = "edit_website_benefit"
 			}
 		);
 
@@ -124,6 +132,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, eventArguments = {
 				  object     = "website_benefit"
 				, postAction = "websiteBenefitsManager"
+				, audit             = true
+				, auditSource       = "websitebenefitsmanager"
+				, auditType         = "websitebenefitsmanager"
+				, auditAction       = "delete_website_benefit"
 			}
 		);
 	}

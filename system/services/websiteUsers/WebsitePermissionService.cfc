@@ -3,6 +3,7 @@
  * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
  *
  * @singleton
+ * @presideService
  * @autodoc
  *
  */
@@ -280,6 +281,12 @@ component displayName="Website permissions service" {
 		for ( var i=1; i <= arguments.benefitsInOrder.len(); i++ ) {
 			dao.updateData( id=arguments.benefitsInOrder[i], data={ priority=i } );
 		}
+
+		$audit(
+			  source = "websitebenefitsmanager"
+			, type   = "websitebenefitsmanager"
+			, action = "prioritize_website_benefits"
+		);
 	}
 
 // PRIVATE HELPERS

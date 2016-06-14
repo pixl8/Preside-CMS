@@ -54,4 +54,63 @@ component {
 		return translateResource( uri="auditlog.sysconfig:#action#.message", data=[ userLink, categoryLink ] );
 	}
 
+	private string function sitemanager( event, rc, prc ) {
+		var action   = args.action    ?: "";
+		var known_as = args.known_as  ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var siteId   = args.record_id;
+		var siteName = args.detail.name ?: "unknown";
+		var siteUrl  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=" & ( args.record_id ?: "" ) )
+		var siteLink = '<a href="#siteUrl#">#siteName#</a>';
+
+		return translateResource( uri="auditlog.sitemanager:#action#.message", data=[ userLink, siteLink ] );
+	}
+
+	private string function passwordpolicies( event, rc, prc ) {
+		var action      = args.action    ?: "";
+		var known_as    = args.known_as  ?: "";
+		var userLink    = '<a href="#args.userLink#">#args.known_as#</a>';
+		var context     = args.record_id;
+		var contextName = translateResource( "cms:passwordpolicycontext.#context#.title" );
+		var contextUrl  = event.buildAdminLink( linkTo="passwordpolicymanager", queryString="context=" & context );
+		var contextLink = '<a href="#contextUrl#">#contextName#</a>';
+
+		return translateResource( uri="auditlog.passwordpolicies:#action#.message", data=[ userLink, contextLink ] );
+	}
+
+	private string function urlredirects( event, rc, prc ) {
+		var action   = args.action    ?: "";
+		var known_as = args.known_as  ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var rule     = args.record_id;
+		var ruleName = args.detail.label ?: "unknown";
+		var ruleUrl  = event.buildAdminLink( linkTo="urlredirects.editrule", queryString="id=" & rule );
+		var ruleLink = '<a href="#ruleUrl#">#ruleName#</a>';
+
+		return translateResource( uri="auditlog.urlredirects:#action#.message", data=[ userLink, ruleLink ] );
+	}
+
+	private string function websiteusermanager( event, rc, prc ) {
+		var action      = args.action    ?: "";
+		var known_as    = args.known_as  ?: "";
+		var userLink    = '<a href="#args.userLink#">#args.known_as#</a>';
+		var webUser     = args.record_id;
+		var webUserName = args.detail.display_name ?: "unknown";
+		var webUserUrl  = event.buildAdminLink( linkTo="websiteusermanager.edituser", queryString="id=" & webUser );
+		var webUserLink = '<a href="#webUserUrl#">#webUserName#</a>';
+
+		return translateResource( uri="auditlog.websiteusermanager:#action#.message", data=[ userLink, webUserLink ] );
+	}
+
+	private string function websitebenefitsmanager( event, rc, prc ) {
+		var action   = args.action    ?: "";
+		var known_as = args.known_as  ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var benefit     = args.record_id;
+		var benefitName = args.detail.label ?: "unknown";
+		var benefitUrl  = event.buildAdminLink( linkTo="websitebenefitsmanager.editbenefit", queryString="id=" & benefit );
+		var benefitLink = '<a href="#benefitUrl#">#benefitName#</a>';
+
+		return translateResource( uri="auditlog.websitebenefitsmanager:#action#.message", data=[ userLink, benefitLink ] );
+	}
 }
