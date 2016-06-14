@@ -1198,7 +1198,7 @@ component {
 		}
 
 		for( var i=1; i<=slugPieces.len(); i++ ) {
-			args.filter       = "( ( _translations.slug = :page.slug and _translations._translation_language = :_translations._translation_language ) or page.slug = :page.slug ) and page.parent_page = :page.parent_page"
+			args.filter       = "( IfNull( _translations.slug, page.slug ) = :page.slug and ( _translations.slug is null or _translations._translation_language = :_translations._translation_language ) ) and page.parent_page = :page.parent_page"
 			args.filterParams = {
 				  "page.slug"                           = slugPieces[ i ]
 				, "_translations._translation_language" = currentLanguage
