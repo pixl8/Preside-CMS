@@ -311,6 +311,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return ReFind( "^admin\..*?action$", currentEvent );
 	}
 
+	public boolean function isStatelessRequest() {
+		var appSettings = GetApplicationSettings();
+
+		return IsBoolean( appSettings.statelessRequest ?: "" ) && appSettings.statelessRequest;
+	}
+
 	public void function setXFrameOptionsHeader( string value ) {
 		if ( !StructKeyExists( arguments, "value" ) ) {
 			var setting = getPageProperty( propertyName="iframe_restriction", cascading=true );
