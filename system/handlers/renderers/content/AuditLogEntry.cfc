@@ -78,4 +78,16 @@ component {
 		return translateResource( uri="auditlog.passwordpolicies:#action#.message", data=[ userLink, contextLink ] );
 	}
 
+	private string function urlredirects( event, rc, prc ) {
+		var action   = args.action    ?: "";
+		var known_as = args.known_as  ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var rule     = args.record_id;
+		var ruleName = args.detail.label ?: "unknown";
+		var ruleUrl  = event.buildAdminLink( linkTo="urlredirects.editrule", queryString="id=" & rule );
+		var ruleLink = '<a href="#ruleUrl#">#ruleName#</a>';
+
+		return translateResource( uri="auditlog.urlredirects:#action#.message", data=[ userLink, ruleLink ] );
+	}
+
 }

@@ -30,8 +30,12 @@ component extends="preside.system.base.AdminHandler" output=false {
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object     = "url_redirect_rule"
-				, postAction = "urlRedirects"
+				  object      = "url_redirect_rule"
+				, postAction  = "urlRedirects"
+				, audit       = true
+				, auditSource = "urlredirects"
+				, auditType   = "urlredirects"
+				, auditAction = "delete_redirect_rule"
 			}
 		);
 	}
@@ -73,6 +77,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 				, successAction    = "urlRedirects"
 				, addAnotherAction = "urlRedirects.addRule"
 				, viewRecordAction = "urlRedirects.editRule"
+				, audit            = true
+				, auditSource      = "urlredirects"
+				, auditType        = "urlredirects"
+				, auditAction      = "add_redirect_rule"
 			}
 		);
 	}
@@ -109,6 +117,10 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  object        = "url_redirect_rule"
 				, errorAction   = "urlRedirects.editRule"
 				, successAction = "urlRedirects"
+				, audit         = true
+				, auditSource   = "urlredirects"
+				, auditType     = "urlredirects"
+				, auditAction   = "edit_redirect_rule"
 			}
 		);
 	}
