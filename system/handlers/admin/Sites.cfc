@@ -47,9 +47,13 @@ component output=false extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 			, eventArguments = {
-				  object           = "site"
-				, errorAction      = "sites.addSite"
+				  object            = "site"
+				, errorAction       = "sites.addSite"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditSource       = "sitemanager"
+				, auditAction       = "add_site"
+				, auditType         = "sitemanager"
 			}
 		);
 
@@ -106,6 +110,10 @@ component output=false extends="preside.system.base.AdminHandler" {
 				  object            = "site"
 				, errorAction       = "sites.editSite"
 				, redirectOnSuccess = false
+				, audit             = true
+				, auditSource       = "sitemanager"
+				, auditAction       = "edit_site"
+				, auditType         = "sitemanager"
 			}
 		);
 

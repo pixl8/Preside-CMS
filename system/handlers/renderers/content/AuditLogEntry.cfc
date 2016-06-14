@@ -54,4 +54,16 @@ component {
 		return translateResource( uri="auditlog.sysconfig:#action#.message", data=[ userLink, categoryLink ] );
 	}
 
+	private string function sitemanager( event, rc, prc ) {
+		var action   = args.action    ?: "";
+		var known_as = args.known_as  ?: "";
+		var userLink = '<a href="#args.userLink#">#args.known_as#</a>';
+		var siteId   = args.record_id;
+		var siteName = args.detail.name ?: "unknown";
+		var siteUrl  = event.buildAdminLink( linkTo="sites.editSite", queryString="id=" & ( args.record_id ?: "" ) )
+		var siteLink = '<a href="#siteUrl#">#siteName#</a>';
+
+		return translateResource( uri="auditlog.sitemanager:#action#.message", data=[ userLink, siteLink ] );
+	}
+
 }
