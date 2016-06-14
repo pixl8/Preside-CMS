@@ -24,6 +24,20 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:taskmanager.page.subtitle" );
 	}
 
+	public void function configure( event, rc, prc ) output=false {
+		_checkPermission( "configure", event );
+
+		prc.configuration = systemConfigurationService.getCategorySettings( "taskmanager" );
+
+		prc.pageTitle    = translateResource( "cms:taskmanager.configure.page.title"    );
+		prc.pageSubTitle = translateResource( "cms:taskmanager.configure.page.subtitle" );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:taskmanager.configure.page.crumbtrail" )
+			, link  = event.buildAdminLink( linkTo="taskmanager.configure" )
+		);
+	}
+
 	public void function configureTask( event, rc, prc ) {
 		_checkPermission( "configure", event );
 
