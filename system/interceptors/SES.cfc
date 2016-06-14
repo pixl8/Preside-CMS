@@ -17,8 +17,8 @@ component extends="coldbox.system.interceptors.SES" output=false {
 // the interceptor method
 	public void function onRequestCapture( event, interceptData ) output=false {
 		_checkRedirectDomains( argumentCollection=arguments );
-		_checkUrlRedirects   ( argumentCollection=arguments );
 		_detectIncomingSite  ( argumentCollection=arguments );
+		_checkUrlRedirects   ( argumentCollection=arguments );
 		_detectLanguage      ( argumentCollection=arguments );
 		_setPresideUrlPath   ( argumentCollection=arguments );
 
