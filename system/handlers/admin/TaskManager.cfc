@@ -53,6 +53,13 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		event.audit(
+			  source = "taskmanager"
+			, action = "edit_taskmanager_configuration"
+			, type   = "taskmanager"
+			, detail = formData
+		);
+
 		taskManagerService.registerMasterScheduledTask();
 
 		messageBox.info( translateResource( uri="cms:taskmanager.configuration.saved" ) );
@@ -89,6 +96,14 @@ component extends="preside.system.base.AdminHandler" {
 			, config  = formData
 		);
 
+		event.audit(
+			  source   = "taskmanager"
+			, action   = "edit_taskmanager_task_configuration"
+			, type     = "taskmanager"
+			, recordId = task
+			, detail   = formData
+		);
+
 		messageBox.info( translateResource( uri="cms:taskmanager.configuration.saved" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="taskmanager" ) );
 	}
@@ -99,6 +114,13 @@ component extends="preside.system.base.AdminHandler" {
 		var task = rc.task ?: "";
 
 		taskManagerService.runTask( task );
+		event.audit(
+			  source   = "taskmanager"
+			, action   = "taskmanager_run_task"
+			, type     = "taskmanager"
+			, recordId = task
+		);
+
 		sleep( 200 );
 		var historyId = taskManagerService.getActiveHistoryIdForTask( task );
 
@@ -109,6 +131,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( "run", event );
 
 		taskManagerService.killRunningTask( rc.task ?: "" );
+		event.audit(
+			  source   = "taskmanager"
+			, action   = "taskmanager_kill_task"
+			, type     = "taskmanager"
+			, recordId = task
+		);
 
 		setNextEvent( url=event.buildAdminLink( "taskManager" ) );
 	}
@@ -116,6 +144,12 @@ component extends="preside.system.base.AdminHandler" {
 	public void function enableTaskAction( event, rc, prc ) {
 		_checkPermission( "toggleactive", event );
 		taskManagerService.enableTask( rc.task ?: "" );
+		event.audit(
+			  source   = "taskmanager"
+			, action   = "taskmanager_enable_task"
+			, type     = "taskmanager"
+			, recordId = rc.task ?: ""
+		);
 
 		setNextEvent( url=event.buildAdminLink( "taskManager" ) );
 	}
@@ -123,6 +157,12 @@ component extends="preside.system.base.AdminHandler" {
 	public void function disableTaskAction( event, rc, prc ) {
 		_checkPermission( "toggleactive", event );
 		taskManagerService.disableTask( rc.task ?: "" );
+		event.audit(
+			  source   = "taskmanager"
+			, action   = "taskmanager_disable_task"
+			, type     = "taskmanager"
+			, recordId = rc.task ?: ""
+		);
 
 		setNextEvent( url=event.buildAdminLink( "taskManager" ) );
 	}

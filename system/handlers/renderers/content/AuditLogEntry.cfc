@@ -2,6 +2,7 @@ component {
 
 	property name="presideObjectService"       inject="presideObjectService";
 	property name="systemConfigurationService" inject="systemConfigurationService";
+	property name="taskmanagerService"         inject="taskmanagerService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -112,5 +113,18 @@ component {
 		var benefitLink = '<a href="#benefitUrl#">#benefitName#</a>';
 
 		return translateResource( uri="auditlog.websitebenefitsmanager:#action#.message", data=[ userLink, benefitLink ] );
+	}
+
+	private string function taskmanager( event, rc, prc ) {
+		var action     = args.action    ?: "";
+		var known_as   = args.known_as  ?: "";
+		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var task       = args.record_id;
+		var taskDetail = Len( Trim( task ) ) ? taskmanagerService.getTask( task ) : {};
+		var taskName   = taskDetail.name ?: "unknown";
+		var taskUrl    = event.buildAdminLink( linkTo="taskmanager.history", queryString="task=" & task );
+		var taskLink   = '<a href="#taskUrl#">#taskName#</a>';
+
+		return translateResource( uri="auditlog.taskmanager:#action#.message", data=[ userLink, taskLink ] );
 	}
 }
