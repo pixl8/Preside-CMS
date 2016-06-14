@@ -11,7 +11,6 @@ component output=false {
 		event.initializePresideSiteteePage(
 			  slug               = ( prc.slug      ?: "/" )
 			, subAction          = ( prc.subAction ?: "" )
-			, ensureCanonicalUrl = true
 		);
 
 		var pageId       = event.getCurrentPageId();

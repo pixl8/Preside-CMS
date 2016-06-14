@@ -354,7 +354,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		, string  pageId
 		, string  systemPage
 		, string  subaction
-		, boolean ensureCanonicalUrl = false
 	) output=false {
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
@@ -382,10 +381,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		if ( not page.recordCount ) {
 			return;
-		}
-
-		if ( arguments.ensureCanonicalUrl ) {
-			checkCanonicalPageUrl( pageId=page.id );
 		}
 
 		for( p in page ){ page = p; break; } // quick query row to struct hack
@@ -461,16 +456,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		addBreadCrumb( title=page.title ?: "", link=getCurrentUrl() );
 
 		prc.presidePage = page;
-	}
-
-	public void function checkCanonicalPageUrl( required string pageId ) output=false {
-		var canonicalUrl  = buildLink( page=arguments.pageId );
-		var canonicalPath = canonicalUrl.reReplaceNoCase( "^https?://(.*?)/", "/" );
-		var currentPath   = getCurrentUrl( includeQueryString=false );
-
-		if ( currentPath != canonicalPath ) {
-			getController().setNextEvent( url=canonicalUrl, statusCode=301, queryString=request[ "preside.query_string" ] ?: "" );
-		}
 	}
 
 	public void function checkPageAccess() output=false {
