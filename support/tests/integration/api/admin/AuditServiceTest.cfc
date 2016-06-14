@@ -29,13 +29,11 @@
 			var records = "";
 			var args    = [{
 				  detail    = { test="something happened" }
-				, source    = "something"
 				, action    = "happened1"
 				, type      = "happening"
 				, userId    = testUsers[3].id
 			},{
 				  detail    = { test="something else happened" }
-				, source    = "somethingelse"
 				, action    = "happened2"
 				, type      = "happening"
 				, userId    = testUsers[5].id
@@ -50,7 +48,6 @@
 
 			for( var i = 1; i lte 2; i++ ){
 				super.assertEquals( SerializeJson( args[i].detail ), records.detail[i]     );
-				super.assertEquals( args[i].source                 , records.source[i]     );
 				super.assertEquals( args[i].action                 , records.action[i]     );
 				super.assertEquals( args[i].type                   , records.type[i]       );
 				super.assertEquals( args[i].userId                 , records.user[i]       );
