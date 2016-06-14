@@ -40,6 +40,7 @@ component output="false" singleton=true {
 		, string  dateTo   = ""
 		, string  user     = ""
 		, string  action   = ""
+		, string  type     = ""
 		, string  recordId = ""
 	) {
 		var filter = "";
@@ -69,6 +70,13 @@ component output="false" singleton=true {
 			filterDelim = " and ";
 			params.action = arguments.action;
 		}
+
+		if ( Len( Trim( arguments.type ) ) ) {
+			filter &= filterDelim & "type = :type";
+			filterDelim = " and ";
+			params.type = arguments.type;
+		}
+
 
 		if ( Len( Trim( arguments.recordId ) ) ) {
 			filter &= filterDelim & "record_id = :record_id";
@@ -128,6 +136,14 @@ component output="false" singleton=true {
 		return $getPresideObject( "audit_log" ).selectData(
 			  selectFields = [ "distinct action", "type" ]
 		);
+	}
+
+	public array function getLoggedTypes() {
+		var types = $getPresideObject( "audit_log" ).selectData(
+			  selectFields = [ "distinct type" ]
+		);
+
+		return ValueArray( types.type );
 	}
 
 // PRIVATE GETTERS AND SETTERS

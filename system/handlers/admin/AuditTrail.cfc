@@ -20,6 +20,7 @@ component extends="preside.system.base.AdminHandler" {
 		var user     = rc.user     ?: "";
 		var recordId = rc.recordId ?: "";
 		var action   = rc.action   ?: "";
+		var type     = rc.type     ?: "";
 
 		prc.logs = auditService.getTrail(
 			  page     = 1
@@ -28,11 +29,12 @@ component extends="preside.system.base.AdminHandler" {
 			, dateTo   = dateTo
 			, user     = user
 			, action   = action
+			, type     = type
 			, recordId = recordId
 		);
 
-		prc.pageTitle     = translateResource( "cms:auditTrail.page.title" );
-		prc.pageSubTitle  = translateResource( "cms:auditTrail.page.subtitle" );
+		prc.pageTitle    = translateResource( "cms:auditTrail.page.title" );
+		prc.pageSubTitle = translateResource( "cms:auditTrail.page.subtitle" );
 	}
 
 	public any function loadMore( event, rc, prc ) {
@@ -40,6 +42,7 @@ component extends="preside.system.base.AdminHandler" {
 		var dateTo   = rc.dateTo   ?: "";
 		var user     = rc.user     ?: "";
 		var action   = rc.action   ?: "";
+		var type     = rc.type     ?: "";
 		var recordId = rc.recordId ?: "";
 		var page     = Val( rc.page ?: 2 );
 		var logs     = auditService.getTrail(
@@ -49,6 +52,7 @@ component extends="preside.system.base.AdminHandler" {
 			, dateTo   = dateTo
 			, user     = user
 			, action   = action
+			, type     = type
 			, recordId = recordId
 		);
 

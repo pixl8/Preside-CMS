@@ -4,9 +4,10 @@
 	dateTo      = rc.dateTo   ?: "";
 	user        = rc.user     ?: "";
 	action      = rc.action   ?: "";
+	type        = rc.type     ?: "";
 	recordId    = rc.recordId ?: "";
-	loadMoreUrl = event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='dateFrom=#dateFrom#&dateTo=#dateTo#&user=#user#&action=#action#&recordId=#recordId#&page=' );
-	filtered    = Len( Trim( dateFrom & dateTo & user & action & recordId ) ) > 0;
+	loadMoreUrl = event.buildAdminLink( linkTo='auditTrail.loadMore', queryString='dateFrom=#dateFrom#&dateTo=#dateTo#&user=#user#&action=#action#&recordId=#recordId#&type=#type#&page=' );
+	filtered    = Len( Trim( dateFrom & dateTo & user & action & recordId & type) ) > 0;
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
