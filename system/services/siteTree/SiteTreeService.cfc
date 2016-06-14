@@ -1244,8 +1244,8 @@ component {
 	) {
 		var slugPieces      = slug.listToArray( "/" );
 		var pageObject      = _getPobj();
-		var page            = getSiteHomepage( selectFields=[ "id" ] );
-		var args            = { filter={}, extraFilters=[ filter={} ], selectFields=[ "id" ] };
+		var page            = getSiteHomepage( selectFields=[ "page.id" ] );
+		var args            = { filter={}, extraFilters=[ filter={} ], selectFields=[ "page.id" ] };
 		var currentLanguage = $getColdbox().getRequestContext().getLanguage();
 
 		if ( !arguments.includeTrash ) {
