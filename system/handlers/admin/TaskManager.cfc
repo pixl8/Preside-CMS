@@ -68,8 +68,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		event.audit(
-			  source = "taskmanager"
-			, action = "edit_taskmanager_configuration"
+			  action = "edit_taskmanager_configuration"
 			, type   = "taskmanager"
 			, detail = formData
 		);
@@ -111,8 +110,7 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		event.audit(
-			  source   = "taskmanager"
-			, action   = "edit_taskmanager_task_configuration"
+			  action   = "edit_taskmanager_task_configuration"
 			, type     = "taskmanager"
 			, recordId = task
 			, detail   = formData
@@ -129,8 +127,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		taskManagerService.runTask( task );
 		event.audit(
-			  source   = "taskmanager"
-			, action   = "taskmanager_run_task"
+			  action   = "taskmanager_run_task"
 			, type     = "taskmanager"
 			, recordId = task
 		);
@@ -146,8 +143,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		taskManagerService.killRunningTask( rc.task ?: "" );
 		event.audit(
-			  source   = "taskmanager"
-			, action   = "taskmanager_kill_task"
+			  action   = "taskmanager_kill_task"
 			, type     = "taskmanager"
 			, recordId = task
 		);
@@ -159,8 +155,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( "toggleactive", event );
 		taskManagerService.enableTask( rc.task ?: "" );
 		event.audit(
-			  source   = "taskmanager"
-			, action   = "taskmanager_enable_task"
+			  action   = "taskmanager_enable_task"
 			, type     = "taskmanager"
 			, recordId = rc.task ?: ""
 		);
@@ -172,8 +167,7 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermission( "toggleactive", event );
 		taskManagerService.disableTask( rc.task ?: "" );
 		event.audit(
-			  source   = "taskmanager"
-			, action   = "taskmanager_disable_task"
+			  action   = "taskmanager_disable_task"
 			, type     = "taskmanager"
 			, recordId = rc.task ?: ""
 		);

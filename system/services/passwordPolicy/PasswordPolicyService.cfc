@@ -93,8 +93,7 @@ component displayName="Password Policy Service" {
 		}
 
 		$audit(
-			  source   = "passwordpolicies"
-			, action   = "password_policy_saved"
+			  action   = "password_policy_saved"
 			, type     = "passwordpolicies"
 			, detail   = arguments
 			, recordId = arguments.context

@@ -322,8 +322,7 @@ component {
 				}
 
 				$audit(
-					  source   = "datamanager"
-					, action   = "datamanager_batch_edit_record"
+					  action   = "datamanager_batch_edit_record"
 					, type     = "datamanager"
 					, recordId = sourceid
 					, detail   = Duplicate( arguments )

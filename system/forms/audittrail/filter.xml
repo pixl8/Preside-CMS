@@ -5,6 +5,7 @@
 			<field name="dateFrom" control="datepicker" />
 			<field name="dateTo"   control="datepicker" />
 			<field name="user"     control="objectpicker" object="security_user" />
+			<field name="type"     control="auditTypePicker" />
 			<field name="action"   control="auditActionPicker" />
 			<field name="recordId" control="textinput" />
 		</fieldset>

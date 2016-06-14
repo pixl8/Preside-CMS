@@ -23078,7 +23078,7 @@ td.presidecms .visible-print {
 }
 .presidecms .timeline-item {
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 30px;
 }
 .presidecms .timeline-item .widget-box {
   background-color: #F2F6F9;
@@ -23094,15 +23094,8 @@ td.presidecms .visible-print {
 .presidecms .timeline-item .transparent .widget-header > .widget-title {
   margin-left: 8px;
 }
-.presidecms .timeline-item:nth-child(even) .widget-box {
-  background-color: #F3F3F3;
-  color: #616161;
-}
-.presidecms .timeline-item:nth-child(even) .widget-box.transparent {
-  border-left-color: #DBDBDB !important;
-}
-.presidecms .timeline-item:nth-child(even) .widget-box.transparent .widget-header {
-  background-color: #EEE !important;
+.presidecms .timeline-item .transparent .widget-header > .widget-title > .fa {
+  margin-right: 0;
 }
 .presidecms .timeline-item .widget-box {
   margin: 0;

@@ -10,6 +10,9 @@
 <cfparam name="args.user_agent"      type="string" />
 <cfparam name="args.actionTitle"     type="string" />
 <cfparam name="args.actionIconClass" type="string" />
+<cfparam name="args.typeLink"        type="string" />
+<cfparam name="args.typeTitle"       type="string" />
+<cfparam name="args.typeIconClass"   type="string" />
 <cfparam name="args.recordLink"      type="string" default="" />
 <cfparam name="args.logDate"         type="date" />
 <cfparam name="args.datecreated"     type="date" />
@@ -24,9 +27,7 @@
 			<div class="widget-header widget-header-small">
 				<h5 class="widget-title smaller">
 					<i class="fa fa-fw #args.actionIconClass#"></i>
-					<a href="#args.actionLink#" class="blue">
-						#args.actionTitle#
-					</a>
+					<a href="#args.actionLink#" class="blue">#args.actionTitle#</a>
 				</h5>
 				<span class="widget-toolbar no-border">
 					<i class="fa fa-fw bigger-110 fa-clock-o"></i>
@@ -42,13 +43,18 @@
 			</div>
 
 			<div class="widget-header widget-header-small">
-				<span class="widget-title smaller">
+				<span class="widget-title smaller light-grey">
 					<cfif Len( Trim( args.record_id ) )>
 						<a href="#args.recordLink#" class="light-grey">
 							<i class="fa fa-fw fa-filter"></i>
 							#translateResource( "cms:audittrail.filter.by.record.id" )#
 						</a>
+						|
 					</cfif>
+					<a href="#args.typeLink#" class="light-grey">
+						<i class="fa fa-fw #args.typeIconClass#"></i>
+						#args.typeTitle#
+					</a>
 				</span>
 				<span class="widget-toolbar no-border light-grey">
 					<strong>#translateResource( 'cms:audittrail.item.ip'         )#:</strong> #args.user_ip#

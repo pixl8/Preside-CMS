@@ -73,8 +73,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=true );
 		event.audit(
-			  source = "userprofile"
-			, action = "edit_profile"
+			  action = "edit_profile"
 			, type   = "userprofile"
 		);
 
@@ -122,8 +121,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		userDao.updateData( id=userId, data=formData, updateManyToManyRecords=false );
 		event.audit(
-			  source = "userprofile"
-			, action = "update_password"
+			  action = "update_password"
 			, type   = "userprofile"
 		);
 
@@ -190,8 +188,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 				messagebox.info( translateResource( "cms:editProfile.twofactorauthentication.setup.complete.confirmation" ) );
 
 				event.audit(
-					  source = "userprofile"
-					, action = "2fa_setup"
+					  action = "2fa_setup"
 					, type   = "userprofile"
 				);
 
@@ -217,8 +214,7 @@ component output="false" extends="preside.system.base.AdminHandler" {
 
 		loginService.disableTwoFactorAuthenticationForUser();
 		event.audit(
-			  source = "userprofile"
-			, action = "disable_2fa"
+			  action = "disable_2fa"
 			, type   = "userprofile"
 		);
 

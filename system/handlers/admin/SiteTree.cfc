@@ -49,6 +49,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.access_restriction"
 			, "Count( child_pages.id ) as child_count"
 		] );
+
 		prc.trashCount = siteTreeService.getTrashCount();
 	}
 
@@ -523,8 +524,7 @@ component extends="preside.system.base.AdminHandler" {
 		var auditDetail = QueryRowToStruct( page );
 		auditDetail.languageId = languageId
 		event.audit(
-			  source   = "sitetree"
-			, action   = "translate_page"
+			  action   = "translate_page"
 			, type     = "sitetree"
 			, detail   = auditDetail
 			, recordId = auditDetail.id
@@ -702,8 +702,7 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 		event.audit(
-			  source   = "sitetree"
-			, action   = "reorder_children"
+			  action   = "reorder_children"
 			, type     = "sitetree"
 			, detail   = QueryRowToStruct( page )
 			, recordId = page.id
@@ -736,6 +735,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  action   = "edit_page_admin_permissions"
+				, type     = "sitetree"
+				, detail   = QueryRowToStruct( page )
+				, recordId = pageId
+			);
 			messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
 		}
