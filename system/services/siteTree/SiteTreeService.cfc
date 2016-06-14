@@ -160,7 +160,7 @@ component {
 		return _getPObj().selectData( argumentCollection = args );
 	}
 
-	publiuery function getPagesForAjaxSelect(
+	public query function getPagesForAjaxSelect(
 		  numeric maxRows     = 1000
 		, string  searchQuery = ""
 		, array   ids         = []
