@@ -66,4 +66,16 @@ component {
 		return translateResource( uri="auditlog.sitemanager:#action#.message", data=[ userLink, siteLink ] );
 	}
 
+	private string function passwordpolicies( event, rc, prc ) {
+		var action      = args.action    ?: "";
+		var known_as    = args.known_as  ?: "";
+		var userLink    = '<a href="#args.userLink#">#args.known_as#</a>';
+		var context     = args.record_id;
+		var contextName = translateResource( "cms:passwordpolicycontext.#context#.title" );
+		var contextUrl  = event.buildAdminLink( linkTo="passwordpolicymanager", queryString="context=" & context );
+		var contextLink = '<a href="#contextUrl#">#contextName#</a>';
+
+		return translateResource( uri="auditlog.passwordpolicies:#action#.message", data=[ userLink, contextLink ] );
+	}
+
 }
