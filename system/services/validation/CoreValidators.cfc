@@ -166,46 +166,46 @@ component validationProvider=true {
 	}
 
 	public boolean function laterThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanField.default" {
-		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+		if ( !IsDate( arguments.value ) || !IsDate( arguments.data[ arguments.field ] ?: "" ) ) {
 			return true;
 		}
 
 		return ( arguments.value > arguments.data[ arguments.field ] );
 	}
 	public string function laterThanField_js() {
-		return true;
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value > $field.val(); }";
 	}
 
 	public boolean function laterThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanOrSameAsField.default" {
-		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+		if ( !IsDate( arguments.value ) || !IsDate( arguments.data[ arguments.field ] ?: "" ) ) {
 			return true;
 		}
 
 		return ( arguments.value >= arguments.data[ arguments.field ] );
 	}
 	public string function laterThanOrSameAsField_js() {
-		return true;
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value >= $field.val(); }";
 	}
 
 	public boolean function earlierThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanField.default" {
-		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+		if ( !IsDate( arguments.value ) || !IsDate( arguments.data[ arguments.field ] ?: "" ) ) {
 			return true;
 		}
 
 		return ( arguments.value < arguments.data[ arguments.field ] );
 	}
 	public string function earlierThanField_js() {
-		return true;
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value < $field.val(); }";
 	}
 
 	public boolean function earlierThanOrSameAsField( required string value, required struct data, required string field ) validatorMessage="cms:validation.earlierThanOrSameAsField.default" {
-		if ( !IsDate( arguments.value ) || !IsDate( argments.data[ arguments.field ] ?: "" ) ) {
+		if ( !IsDate( arguments.value ) || !IsDate( arguments.data[ arguments.field ] ?: "" ) ) {
 			return true;
 		}
 
 		return ( arguments.value <= arguments.data[ arguments.field ] );
 	}
 	public string function earlierThanOrSameAsField_js() {
-		return true;
+		return "function( value, el, params ){ var $field = $( '[name=' + params[0] + ']' ); return $field.length && value <= $field.val(); }";
 	}
 }
