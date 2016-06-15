@@ -151,7 +151,7 @@ component validationProvider=true {
 		return ( arguments.value >= arguments.minimumDate );
 	}
 	public string function minimumDate_js() {
-		return true;
+		return "function( value, el, params ){ return value >= params[0]; }";
 	}
 
 	public boolean function maximumDate( required string value, required date maximumDate ) validatorMessage="cms:validation.maximumDate.default" {
@@ -162,7 +162,7 @@ component validationProvider=true {
 		return ( arguments.value <= arguments.maximumDate );
 	}
 	public string function maximumDate_js() {
-		return true;
+		return "function( value, el, params ){ return value <= params[0]; }";
 	}
 
 	public boolean function laterThanField( required string value, required struct data, required string field ) validatorMessage="cms:validation.laterThanField.default" {

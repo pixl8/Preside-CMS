@@ -69,8 +69,9 @@ component {
 					break;
 				}
 				rules.append( { fieldname=args.name, validator=validator, params={ "#validator#"=DateFormat( theDate, "yyyy-mm-dd" ) } } );
-				
-			} else if ( Len( Trim( args.relativeToField ?: "" ) ) ) {
+
+			}
+			if ( Len( Trim( args.relativeToField ?: "" ) ) ) {
 				var validator = "";
 				switch( args.relativeOperator ) {
 					case "lt":
