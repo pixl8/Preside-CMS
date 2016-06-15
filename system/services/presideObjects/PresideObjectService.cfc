@@ -1634,7 +1634,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 			entities = StructKeyList( entities, "|" );
 
-			_aliasedFieldRegex = "(^|\s|,|\(,\)|`|\[)((#entities#)(\$(#entities#))*)[`\]]?\.[`\[]?([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,|`|\])";
+			_aliasedFieldRegex = "(^|\s|,|\(|\)|`|\[)((#entities#)(\$(#entities#))*)[`\]]?\.[`\[]?([a-zA-Z_][a-zA-Z0-9_]*)(\s|$|\)|,|`|\])";
 		}
 
 		return _aliasedFieldRegex;
