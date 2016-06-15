@@ -9,9 +9,15 @@
 component implements="preside.system.services.fileStorage.StorageProvider" displayname="File System Storage Provider" {
 
 // CONSTRUCTOR
-	public any function init( required string rootDirectory, required string trashDirectory, string rootUrl="" ){
+	public any function init(
+		  required string rootDirectory
+		, required string trashDirectory
+		, required string privateDirectory
+		, string rootUrl=""
+	){
 		_setRootDirectory( arguments.rootDirectory );
 		_setTrashDirectory( arguments.trashDirectory );
+		_setPrivateDirectory( arguments.privateDirectory );
 		_setRootUrl( arguments.rootUrl );
 
 		return this;
@@ -44,12 +50,12 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public boolean function objectExists( required string path, boolean trashed=false, boolean private=false ){
-		return FileExists( _expandPath( arguments.path, arguments.trashed ) );
+		return FileExists( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
 	}
 
 	public query function listObjects( required string path, boolean private=false ){
-		var cleanedPath = _cleanPath( arguments.path );
-		var fullPath    = _expandPath( arguments.path );
+		var cleanedPath = _cleanPath( path=arguments.path, private=arguments.private );
+		var fullPath    = _expandPath( path=arguments.path, private=arguments.private );
 		var objects     = QueryNew( "name,path,size,lastmodified" );
 		var files       = "";
 
@@ -74,7 +80,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public binary function getObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			return FileReadBinary( _expandPath( arguments.path, arguments.trashed ) );
+			return FileReadBinary( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
 		} catch ( java.io.FileNotFoundException e ) {
 			throw(
 				  type    = "storageProvider.objectNotFound"
@@ -85,7 +91,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public struct function getObjectInfo( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed ) );
+			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
 
 			return {
 				  size         = info.size
@@ -104,7 +110,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public void function putObject( required any object, required string path, boolean private=false ){
-		var fullPath = _expandPath( arguments.path );
+		var fullPath = _expandPath( path=arguments.path, private=arguments.private );
 
 		if ( not IsBinary( arguments.object ) and not ( IsSimpleValue( arguments.object ) and FileExists( arguments.object ) ) ) {
 			throw(
@@ -124,7 +130,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
-			FileDelete( _expandPath( arguments.path, arguments.trashed ) );
+			FileDelete( _expandPath( arguments.path, arguments.trashed, arguments.private ) );
 		} catch ( any e ) {
 			if ( e.message contains "does not exist" ) {
 				return;
@@ -134,7 +140,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public string function softDeleteObject( required string path, boolean private=false ){
-		var fullPath      = _expandPath( arguments.path );
+		var fullPath      = _expandPath( path=arguments.path, private=arguments.private );
 		var newPath       = CreateUUId() & ".trash";
 		var fullTrashPath = _getTrashDirectory() & newPath;
 
@@ -151,13 +157,13 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public boolean function restoreObject( required string trashedPath, required string newPath, boolean private=false ){
-		var fullTrashedPath   = _expandPath( arguments.trashedPath, true );
-		var fullNewPath       = _expandPath( arguments.newPath );
+		var fullTrashedPath   = _expandPath( path=arguments.trashedPath, trashed=true );
+		var fullNewPath       = _expandPath( path=arguments.newPath, private=arguments.private );
 		var trashedFileExists = false;
 
 		try {
 			FileMove( fullTrashedPath, fullNewPath );
-			return objectExists( arguments.newPath );
+			return objectExists( path=arguments.newPath, private=arguments.private );
 		} catch ( any e ) {
 			if ( e.message contains "does not exist" ) {
 				return false;
@@ -173,9 +179,10 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 // PRIVATE HELPERS
 	private string function _expandPath( required string path, boolean trashed=false, boolean private=false ){
-		var relativePath = _cleanPath( arguments.path, arguments.trashed );
+		var relativePath = _cleanPath( arguments.path, arguments.trashed, arguments.private );
+		var rootPath     = arguments.trashed ? _getTrashDirectory() : ( arguments.private ? _getPrivateDirectory() : _getRootDirectory() );
 
-		return ( arguments.trashed ? _getTrashDirectory() : _getRootDirectory() ) & relativePath;
+		return rootPath & relativePath;
 	}
 
 	private string function _cleanPath( required string path, boolean trashed=false, boolean private=false ){
@@ -205,10 +212,23 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	private void function _setRootDirectory( required string rootDirectory ){
 		_rootDirectory = arguments.rootDirectory;
 		_rootDirectory = listChangeDelims( _rootDirectory, "/", "\" );
-		if ( Right( _rootDirectory, 1 ) NEQ "/" ) {
+		if ( Right( _rootDirectory, 1 ) != "/" ) {
 			_rootDirectory &= "/";
 		}
 		_ensureDirectoryExists( _rootDirectory );
+	}
+
+	private any function _getPrivateDirectory() {
+		return _privateDirectory;
+	}
+	private void function _setPrivateDirectory( required any privateDirectory ) {
+		_privateDirectory = arguments.privateDirectory;
+		_privateDirectory = listChangeDelims( _privateDirectory, "/", "\" );
+		if ( Right( _privateDirectory, 1 ) != "/" ) {
+			_privateDirectory &= "/";
+		}
+
+		_ensureDirectoryExists( _privateDirectory );
 	}
 
 	private string function _getTrashDirectory(){
@@ -229,7 +249,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 	private void function _setRootUrl( required string rootUrl ){
 		_rootUrl = arguments.rootUrl;
-		if ( Right( _rootUrl, 1 ) NEQ "/" ) {
+		if ( Right( _rootUrl, 1 ) != "/" ) {
 			_rootUrl &= "/";
 		}
 	}
