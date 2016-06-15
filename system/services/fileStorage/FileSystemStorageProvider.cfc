@@ -43,11 +43,11 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
-	public boolean function objectExists( required string path, boolean trashed=false ){
+	public boolean function objectExists( required string path, boolean trashed=false, boolean private=false ){
 		return FileExists( _expandPath( arguments.path, arguments.trashed ) );
 	}
 
-	public query function listObjects( required string path ){
+	public query function listObjects( required string path, boolean private=false ){
 		var cleanedPath = _cleanPath( arguments.path );
 		var fullPath    = _expandPath( arguments.path );
 		var objects     = QueryNew( "name,path,size,lastmodified" );
@@ -72,7 +72,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		return objects;
 	}
 
-	public binary function getObject( required string path, boolean trashed=false ){
+	public binary function getObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
 			return FileReadBinary( _expandPath( arguments.path, arguments.trashed ) );
 		} catch ( java.io.FileNotFoundException e ) {
@@ -83,7 +83,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
-	public struct function getObjectInfo( required string path, boolean trashed=false ){
+	public struct function getObjectInfo( required string path, boolean trashed=false, boolean private=false ){
 		try {
 			var info = GetFileInfo( _expandPath( arguments.path, arguments.trashed ) );
 
@@ -103,7 +103,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
-	public void function putObject( required any object, required string path ){
+	public void function putObject( required any object, required string path, boolean private=false ){
 		var fullPath = _expandPath( arguments.path );
 
 		if ( not IsBinary( arguments.object ) and not ( IsSimpleValue( arguments.object ) and FileExists( arguments.object ) ) ) {
@@ -122,7 +122,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
-	public void function deleteObject( required string path, boolean trashed=false ){
+	public void function deleteObject( required string path, boolean trashed=false, boolean private=false ){
 		try {
 			FileDelete( _expandPath( arguments.path, arguments.trashed ) );
 		} catch ( any e ) {
@@ -133,7 +133,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
-	public string function softDeleteObject( required string path ){
+	public string function softDeleteObject( required string path, boolean private=false ){
 		var fullPath      = _expandPath( arguments.path );
 		var newPath       = CreateUUId() & ".trash";
 		var fullTrashPath = _getTrashDirectory() & newPath;
@@ -150,7 +150,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
-	public boolean function restoreObject( required string trashedPath, required string newPath ){
+	public boolean function restoreObject( required string trashedPath, required string newPath, boolean private=false ){
 		var fullTrashedPath   = _expandPath( arguments.trashedPath, true );
 		var fullNewPath       = _expandPath( arguments.newPath );
 		var trashedFileExists = false;
@@ -172,13 +172,13 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 // PRIVATE HELPERS
-	private string function _expandPath( required string path, boolean trashed=false ){
+	private string function _expandPath( required string path, boolean trashed=false, boolean private=false ){
 		var relativePath = _cleanPath( arguments.path, arguments.trashed );
 
 		return ( arguments.trashed ? _getTrashDirectory() : _getRootDirectory() ) & relativePath;
 	}
 
-	private string function _cleanPath( required string path, boolean trashed=false ){
+	private string function _cleanPath( required string path, boolean trashed=false, boolean private=false ){
 		var cleaned = ListChangeDelims( arguments.path, "/", "\" );
 
 		cleaned = ReReplace( cleaned, "^/", "" );
