@@ -809,7 +809,9 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		return "";
+		var link = "/asset/" & arguments.id & "/";
+
+		return link;
 	}
 
 	public boolean function trashAsset( required string id ) {

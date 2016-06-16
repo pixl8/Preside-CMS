@@ -24,9 +24,23 @@ component extends="testbox.system.BaseSpec"{
 			} );
 
 			it( "should return internal URL of asset when its storage provider has no configured public URL", function(){
-				var service = _getService();
+				var service         = _getService();
+				var assetId         = CreateUUId();
+				var asset           = QueryNew( 'storage_path,asset_folder', 'varchar,varchar', [["/blah/test"],[CreateUUId()]] );
+				var storageProvider = CreateStub();
+				var permissions     = {
+					  contextTree                        = [ assetId ]
+					, restricted                         = false
+					, fullLoginRequired                  = false
+					, grantAcessToAllLoggedInUsers       = false
+				};
 
-				fail( "not yet implemented" );
+				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
+				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder" ] ).$results( asset );
+				service.$( "_getStorageProviderForFolder" ).$args( asset.asset_folder ).$results( storageProvider );
+				storageProvider.$( "getObjectUrl" ).$args( asset.storage_path ).$results( "" );
+
+				expect( service.getAssetUrl( assetId ) ).toBe( "/asset/#assetId#/" );
 			} );
 
 			it( "should return internal URL of asset when it has access restrictions", function(){
