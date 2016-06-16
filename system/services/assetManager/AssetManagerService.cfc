@@ -17,11 +17,6 @@ component displayName="AssetManager Service" {
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
-	 * @assetDao.inject                   presidecms:object:asset
-	 * @assetVersionDao.inject            presidecms:object:asset_version
-	 * @folderDao.inject                  presidecms:object:asset_folder
-	 * @derivativeDao.inject              presidecms:object:asset_derivative
-	 * @assetMetaDao.inject               presidecms:object:asset_meta
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
@@ -29,19 +24,10 @@ component displayName="AssetManager Service" {
 		, required any    documentMetadataService
 		, required any    storageLocationService
 		, required any    storageProviderService
-		, required any    assetDao
-		, required any    assetVersionDao
-		, required any    folderDao
-		, required any    derivativeDao
-		, required any    assetMetaDao
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
 	) {
- 		_setAssetDao( arguments.assetDao );
- 		_setAssetVersionDao( arguments.assetVersionDao );
-		_setFolderDao( arguments.folderDao );
-
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
 
@@ -53,8 +39,6 @@ component displayName="AssetManager Service" {
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
-		_setDerivativeDao( arguments.derivativeDao );
-		_setAssetMetaDao( arguments.assetMetaDao );
 
 		return this;
 	}
@@ -1500,38 +1484,23 @@ component displayName="AssetManager Service" {
 	}
 
 	private any function _getAssetDao() {
-		return _assetDao;
-	}
-	private void function _setAssetDao( required any assetDao ) {
-		_assetDao = arguments.assetDao;
+		return $getPresideObject( "asset" );
 	}
 
 	private any function _getAssetVersionDao() {
-		return _assetVersionDao;
-	}
-	private void function _setAssetVersionDao( required any assetVersionDao ) {
-		_assetVersionDao = arguments.assetVersionDao;
+		return $getPresideObject( "asset_version" );
 	}
 
 	private any function _getFolderDao() {
-		return _folderDao;
-	}
-	private void function _setFolderDao( required any folderDao ) {
-		_folderDao = arguments.folderDao;
+		return $getPresideObject( "asset_folder" );
 	}
 
 	private any function _getDerivativeDao() {
-		return _derivativeDao;
-	}
-	private void function _setDerivativeDao( required any derivativeDao ) {
-		_derivativeDao = arguments.derivativeDao;
+		return $getPresideObject( "asset_derivative" );
 	}
 
 	private any function _getAssetMetaDao() {
-		return _assetMetaDao;
-	}
-	private void function _setAssetMetaDao( required any assetMetaDao ) {
-		_assetMetaDao = arguments.assetMetaDao;
+		return $getPresideObject( "asset_meta" );
 	}
 
 	private any function _getDocumentMetadataService() {
