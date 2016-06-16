@@ -174,7 +174,13 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 
 	public string function getObjectUrl( required string path ){
-		return _getRootUrl() & _cleanPath( arguments.path );
+		var rootUrl = _getRootUrl();
+
+		if ( Trim( rootUrl ).len() ) {
+			return rootUrl & _cleanPath( arguments.path );
+		}
+
+		return "";
 	}
 
 // PRIVATE HELPERS
@@ -249,7 +255,8 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 	}
 	private void function _setRootUrl( required string rootUrl ){
 		_rootUrl = arguments.rootUrl;
-		if ( Right( _rootUrl, 1 ) != "/" ) {
+
+		if ( Len( Trim( _rootUrl ) ) && Right( _rootUrl, 1 ) != "/" ) {
 			_rootUrl &= "/";
 		}
 	}

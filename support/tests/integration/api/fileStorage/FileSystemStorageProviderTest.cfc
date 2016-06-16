@@ -234,6 +234,14 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( provider.getObjectUrl( path=path ) ).toBe( expectedUrl );
 			} );
 
+			it( "should return empty URL when storage provider has no configured public URL", function(){
+				var provider    = _getStorageProvider( rootUrl="" );
+				var path        = "/some/file.jpg";
+				var expectedUrl = "http://uploads.mysite.com" & path;
+
+				expect( provider.getObjectUrl( path=path ) ).toBe( "" );
+			} );
+
 		} );
 
 		describe( "getObjectInfo()", function(){
