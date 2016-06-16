@@ -794,6 +794,24 @@ component displayName="AssetManager Service" {
 		return "";
 	}
 
+	public string function getAssetUrl( required string id ) {
+		var permissions = getAssetPermissioningSettings( arguments.id );
+
+		if ( !permissions.restricted ) {
+			var asset = getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder" ] );
+			if ( asset.recordCount ) {
+				var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
+				var assetUrl        = storageProvider.getObjectUrl( asset.storage_path );
+
+				if ( Len( Trim( assetUrl ) ) ) {
+					return assetUrl;
+				}
+			}
+		}
+
+		return "";
+	}
+
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
 		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder", "active_version" ] );
