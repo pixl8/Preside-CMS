@@ -363,10 +363,6 @@ component {
 		var labelField         = _getPresideOBjectService().getObjectAttribute( arguments.objectName, "labelField", "label" );
 		var replacedLabelField = !Find( ".", labelField ) ? "#arguments.objectName#.${labelfield} as label" : "${labelfield} as label";
 
-		if ( !args.selectFields.len() ) {
-			args.selectFields = _getPresideObjectService().getObjectAttribute( args.objectName, "dbFieldList" ).listToArray();
-		}
-
 		args.selectFields.delete( labelField );
 		args.selectFields.append( replacedLabelField );
 		args.selectFields.delete( "id" );

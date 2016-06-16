@@ -49,11 +49,11 @@ The `objectPicker` control allows users to select one or multiple records from a
             
             <tr>
                 <th>resultTemplate (optional)</th>
-                <td>A Mustache template for rendering items in the drop down list. The default is "{{text}}". To supply a custom template for any given object, create a view at `/views/renderers/content/objectPickerResultTemplate/{your_object}.cfm`. All fields defined on the object will be available to the template along with "text" that will be the label field.</td>
+                <td>A Mustache template for rendering items in the drop down list. The default is "{{text}}". This can be used in conjunction with a custom remote URL for providing a highly customized object picker.</td>
             </tr>
             <tr>
                 <th>selectedTemplate (optional)</th>
-                <td>A Mustache template for rendering selected items in the control. The default is "{{text}}". To supply a custom template for any given object, create a view at `/views/renderers/content/objectPickerSelectedTemplate/{your_object}.cfm`. All fields defined on the object will be available to the template along with "text" that will be the label field.</td>
+                <td>A Mustache template for rendering selected items in the control. The default is "{{text}}". This can be used in conjunction with a custom remote URL for providing a highly customized object picker.</td>
             </tr>
             <tr>
                 <th>quickAdd (optional)</th>
