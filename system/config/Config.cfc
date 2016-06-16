@@ -243,6 +243,7 @@ component {
 		// uploads directory - each site really should override this setting and provide an external location
 		settings.uploads_directory     = ExpandPath( "/uploads" );
 		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
+		settings.public_uploads_url    = "";
 
 
 		settings.ckeditor = {

@@ -13,7 +13,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		  required string rootDirectory
 		, required string trashDirectory
 		, required string privateDirectory
-		, string rootUrl=""
+		,          string rootUrl=""
 	){
 		_setRootDirectory( arguments.rootDirectory );
 		_setTrashDirectory( arguments.trashDirectory );

@@ -10,7 +10,6 @@ component displayName="AssetManager Service" {
 // CONSTRUCTOR
 	/**
 	 * @defaultStorageProvider.inject     assetStorageProvider
-	 * @temporaryStorageProvider.inject   tempStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
 	 * @documentMetadataService.inject    DocumentMetadataService
 	 * @systemConfigurationService.inject systemConfigurationService
@@ -28,7 +27,6 @@ component displayName="AssetManager Service" {
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
-		, required any    temporaryStorageProvider
 		, required any    assetTransformer
 		, required any    documentMetadataService
 		, required any    systemConfigurationService
@@ -52,7 +50,6 @@ component displayName="AssetManager Service" {
 
 		_setDefaultStorageProvider( arguments.defaultStorageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
-		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
 		_setDocumentMetadataService( arguments.documentMetadataService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setStorageLocationService( arguments.storageLocationService );
@@ -529,86 +526,6 @@ component displayName="AssetManager Service" {
 			, label          = CreateUUId()
 			, original_label = folder.label
 		} );
-	}
-
-	public string function uploadTemporaryFile( required string fileField ) {
-		var tmpId         = CreateUUId();
-		var storagePath   = "/" & tmpId & "/";
-		var uploadedFile  = "";
-		var transientPath = "";
-
-		try {
-			uploadedFile = FileUpload(
-				  destination  = GetTempDirectory()
-				, fileField    = arguments.filefield
-				, nameConflict = "MakeUnique"
-			);
-		} catch( any e ) {
-			return "";
-		}
-
-		storagePath  &= uploadedFile.serverFile;
-		transientPath = uploadedFile.serverDirectory & "/" & uploadedFile.serverFile;
-
-		_getTemporaryStorageProvider().putObject(
-			  object = transientPath
-			, path   = storagePath
-		);
-
-		FileDelete( transientPath );
-
-		return tmpId;
-	}
-
-	public void function deleteTemporaryFile( required string tmpId ) {
-		var details = getTemporaryFileDetails( arguments.tmpId );
-		if ( Len( Trim( details.path ?: "" ) ) ) {
-			_getTemporaryStorageProvider().deleteObject( details.path );
-		}
-	}
-
-	public struct function getTemporaryFileDetails( required string tmpId, boolean includeMeta=false ) {
-		var storageProvider = _getTemporaryStorageProvider();
-		var files           = storageProvider.listObjects( "/#arguments.tmpId#/" );
-		var details         = {};
-
-		for( var file in files ) {
-			if ( arguments.includeMeta ) {
-				details = _getDocumentMetadataService().getMetadata( storageProvider.getObject( file.path ) );
-			}
-
-			StructAppend( details, file );
-
-			details.title = details.title ?: ( details.name ?: "" );
-
-			break;
-		}
-
-		return details;
-	}
-
-	public binary function getTemporaryFileBinary( required string tmpId ) {
-		var details = getTemporaryFileDetails( arguments.tmpId );
-
-		return _getTemporaryStorageProvider().getObject( details.path ?: "" );
-	}
-
-	public string function saveTemporaryFileAsAsset( required string tmpId, string folder, struct assetData = {} ) {
-		var asset        = Duplicate( arguments.assetData );
-		var fileDetails  = getTemporaryFileDetails( arguments.tmpId );
-
-		if ( StructIsEmpty( fileDetails ) ) {
-			return "";
-		}
-
-		asset.append( fileDetails, false );
-
-		var fileBinary  = _getTemporaryStorageProvider().getObject( fileDetails.path );
-		var newId       = addAsset( fileBinary, fileDetails.name, arguments.folder, asset );
-
-		deleteTemporaryFile( arguments.tmpId );
-
-		return newId;
 	}
 
 	/**
@@ -1549,13 +1466,6 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setDefaultStorageProvider( required any defaultStorageProvider ) {
 		_defaultStorageProvider = arguments.defaultStorageProvider;
-	}
-
-	private any function _getTemporaryStorageProvider() {
-		return _temporaryStorageProvider;
-	}
-	private void function _setTemporaryStorageProvider( required any temporaryStorageProvider ) {
-		_temporaryStorageProvider = arguments.temporaryStorageProvider;
 	}
 
 	private any function _getAssetTransformer() {
