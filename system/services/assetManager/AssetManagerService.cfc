@@ -12,10 +12,8 @@ component displayName="AssetManager Service" {
 	 * @defaultStorageProvider.inject     assetStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
 	 * @documentMetadataService.inject    DocumentMetadataService
-	 * @systemConfigurationService.inject systemConfigurationService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
-	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
@@ -29,7 +27,6 @@ component displayName="AssetManager Service" {
 		  required any    defaultStorageProvider
 		, required any    assetTransformer
 		, required any    documentMetadataService
-		, required any    systemConfigurationService
 		, required any    storageLocationService
 		, required any    storageProviderService
 		, required any    assetDao
@@ -51,7 +48,6 @@ component displayName="AssetManager Service" {
 		_setDefaultStorageProvider( arguments.defaultStorageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
 		_setDocumentMetadataService( arguments.documentMetadataService );
-		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
 
@@ -1291,7 +1287,7 @@ component displayName="AssetManager Service" {
 	}
 
 	private boolean function _autoExtractDocumentMeta() {
-		var setting = _getSystemConfigurationService().getSetting( "asset-manager", "retrieve_metadata" );
+		var setting = $getPresideSetting( "asset-manager", "retrieve_metadata" );
 
 		return IsBoolean( setting ) && setting;
 	}
@@ -1501,13 +1497,6 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setTypes( required struct types ) {
 		_types = arguments.types;
-	}
-
-	private any function _getSystemConfigurationService() {
-		return _systemConfigurationService;
-	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
-		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 
 	private any function _getAssetDao() {
