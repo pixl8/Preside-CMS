@@ -14,8 +14,8 @@
 	searchable          	= args.searchable       ?: true;
 	multiple            	= args.multiple         ?: false;
 	extraClasses        	= args.extraClasses     ?: "";
-	resultTemplate      	= args.resultTemplate   ?: renderContent( renderer="objectPickerResultTemplate", context=object, data="" );
-	selectedTemplate    	= args.selectedTemplate ?: renderContent( renderer="objectPickerSelectedTemplate", context=object, data="" );
+	resultTemplate      	= args.resultTemplate   ?: "{{text}}";
+	selectedTemplate    	= args.selectedTemplate ?: "{{text}}";
 	disabledValues      	= args.disabledValues   ?: "";
 	quickAdd            	= args.quickAdd         ?: false;
 	quickAddUrl         	= args.quickAddUrl      ?: event.buildAdminLink( linkTo="datamanager.quickAddForm", querystring="object=#object#&multiple=#IsTrue( multiple )#" );
