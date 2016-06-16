@@ -197,6 +197,7 @@
 				, searchQuery  = rc.q       ?: ""
 				, savedFilters = ListToArray( rc.savedFilters ?: "" )
 				, ids          = ListToArray( rc.values ?: "" )
+				, selectFields = ListToArray( rc.selectFields ?: "" )
 			);
 
 			event.renderData( type="json", data=records );
