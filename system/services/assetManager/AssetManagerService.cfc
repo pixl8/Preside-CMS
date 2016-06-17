@@ -580,7 +580,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "asset_folder" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "asset_folder", "access_restriction" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -596,10 +596,10 @@ component displayName="AssetManager Service" {
 		var newFileName          = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var versionId            = "";
 		var assetVersion         = {
-			  asset        = arguments.assetId
-			, asset_type   = fileTypeInfo.typeName
-			, storage_path = newFileName
-			, size         = Len( arguments.fileBinary )
+			  asset          = arguments.assetId
+			, asset_type     = fileTypeInfo.typeName
+			, storage_path   = newFileName
+			, size           = Len( arguments.fileBinary )
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
@@ -607,7 +607,11 @@ component displayName="AssetManager Service" {
 			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
-		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject( object = arguments.fileBinary, path = newFileName );
+		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject(
+			  object  = arguments.fileBinary
+			, path    = newFileName
+			, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
+		);
 
 		versionId = _getAssetVersionDao().insertData( data=assetVersion );
 
@@ -757,13 +761,18 @@ component displayName="AssetManager Service" {
 
 	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var assetBinary = "";
+		var isPrivate   = isAssetAccessRestricted( arguments.id )
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
 			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
 			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProviderForFolder( asset.asset_folder ).getObject( asset.storage_path, arguments.isTrashed );
+			return _getStorageProviderForFolder( asset.asset_folder ).getObject(
+				  path    = asset.storage_path
+				, trashed = arguments.isTrashed
+				, private = isPrivate
+			);
 		}
 	}
 
@@ -1141,6 +1150,20 @@ component displayName="AssetManager Service" {
 			if ( folder.access_restriction != "inherit" ) {
 				return folder.access_restriction == "full";
 			}
+		}
+
+		return false;
+	}
+
+	public boolean function isAssetAccessRestricted( string id, string folder="", string accessRes="" ) {
+		var asset = getAsset( id = arguments.id, selectFields=[ "asset_folder", "access_restriction" ] );
+
+		if ( asset.recordCount ) {
+			if ( asset.access_restriction != "inherit" ) {
+				return asset.access_restriction == "full";
+			}
+
+			return isFolderAccessRestricted( asset.asset_folder );
 		}
 
 		return false;
