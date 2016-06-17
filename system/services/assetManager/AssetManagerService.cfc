@@ -824,7 +824,9 @@ component displayName="AssetManager Service" {
 		if ( !Len( Trim( arguments.versionId ) ) ) {
 			_getAssetDao().updateData( id=arguments.id, data={ asset_url = generatedUrl } );
 		}
-		_getAssetVersionDao().updateData( id=version, data={ asset_url = generatedUrl } );
+		if ( Len( Trim( version ) ) ) {
+			_getAssetVersionDao().updateData( id=version, data={ asset_url = generatedUrl } );
+		}
 
 		return generatedUrl;
 	}
