@@ -423,6 +423,30 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 		} );
+
+		describe( "moveObject", function(){
+
+			it( "should move objects between private and public stores", function(){
+				var provider          = _getStorageProvider();
+				var fileToStore       = FileReadBinary( "/tests/resources/fileStorage/storage/testDir/loading.gif" );
+				var pathToStoreItAt   = CreateUUId() & ".gif";
+				var fileReadFromStore = "";
+
+				// setup a file to test with
+				provider.putObject( object=fileToStore, path=pathToStoreItAt, private=false );
+				fileReadFromStore = provider.getObject( path=pathToStoreItAt, private=false );
+				expect( ToBase64( fileReadFromStore ) ).toBe( ToBase64( fileToStore ) );
+
+				// do the moving
+				trashedPath = provider.moveObject( originalPath=pathToStoreItAt, originalIsPrivate=false, newPath=pathToStoreItAt, newIsPrivate=true );
+				tmpFile = "/tests/resources/fileStorage/private/" & pathToStoreItAt;
+
+				expect( provider.objectExists( path=pathToStoreItAt, private=false ) ).toBeFalse();
+				expect( provider.objectExists( path=pathToStoreItAt, private=true ) ).toBeTrue();
+				expect( FileExists( tmpFile ) ).toBeTrue();
+			} );
+
+		} );
 	}
 
 

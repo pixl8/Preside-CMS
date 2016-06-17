@@ -119,4 +119,16 @@ interface displayname="Storage provider" {
 	 *
 	 */
 	public string function getObjectUrl( required string path ) {}
+
+	/**
+	 * Should move source object to target destination
+	 *
+	 * @autodoc
+	 * @originalPath.hint      The path of the stored object
+	 * @newPath.hint           The new path at which to store the object
+	 * @originalIsPrivate.hint Whether or not the original stored object is stored privately
+	 * @newIsPrivate.hint      Whether or not the new stored object is to be stored privately
+	 *
+	 */
+	public void function moveObject( required string originalPath, required string newPath, boolean originalIsPrivate=false, boolean newIsPrivate=false ) {}
 }

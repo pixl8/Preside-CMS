@@ -223,6 +223,13 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		}
 	}
 
+	public void function moveObject( required string originalPath, required string newPath, boolean originalIsPrivate=false, boolean newIsPrivate=false ) {
+		var fullOriginalPath = _expandPath( path=arguments.originalPath, private=arguments.originalIsPrivate );
+		var fullNewPath      = _expandPath( path=arguments.newPath     , private=arguments.newIsPrivate      );
+
+		FileMove( fullOriginalPath, fullNewPath );
+	}
+
 // GETTERS AND SETTERS
 	private string function _getRootDirectory(){
 		return _rootDirectory;
