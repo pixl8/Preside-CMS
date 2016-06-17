@@ -549,8 +549,9 @@ component displayName="AssetManager Service" {
 		}
 
 		_getStorageProviderForFolder( asset.asset_folder ).putObject(
-			  object = arguments.fileBinary
-			, path   = newFileName
+			  object  = arguments.fileBinary
+			, path    = newFileName
+			, private = isFolderAccessRestricted( asset.asset_folder )
 		);
 
 		if ( !Len( Trim( asset.title ) ) ) {
@@ -1131,6 +1132,18 @@ component displayName="AssetManager Service" {
 		}
 
 		return settings;
+	}
+
+	public boolean function isFolderAccessRestricted( required string folderId ) {
+		var folders = getFolderAncestors( arguments.folderId, true );
+
+		for( var folder in folders ) {
+			if ( folder.access_restriction != "inherit" ) {
+				return folder.access_restriction == "full";
+			}
+		}
+
+		return false;
 	}
 
 	public any function listEditorDerivatives(){
