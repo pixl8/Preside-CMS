@@ -25,8 +25,9 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 
 // PUBLIC API METHODS
 	public any function validate( required struct configuration, required any validationResult ) {
-		var rootDirectory  = arguments.configuration.rootDirectory  ?: "";
-		var trashDirectory = arguments.configuration.trashDirectory ?: "";
+		var rootDirectory    = arguments.configuration.rootDirectory    ?: "";
+		var privateDirectory = arguments.configuration.privateDirectory ?: "";
+		var trashDirectory   = arguments.configuration.trashDirectory   ?: "";
 
 		try {
 			_ensureDirectoryExists( rootDirectory );
@@ -47,6 +48,17 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 				, params    = [ trashDirectory, e.message ?: "" ]
 			);
 		}
+
+		try {
+			_ensureDirectoryExists( privateDirectory );
+		} catch( any e ) {
+			arguments.validationResult.addError(
+				  fieldName = "privateDirectory"
+				, message   = "storage-providers.filesystem:error.creating.directory"
+				, params    = [ privateDirectory, e.message ?: "" ]
+			);
+		}
+
 	}
 
 	public boolean function objectExists( required string path, boolean trashed=false, boolean private=false ){
