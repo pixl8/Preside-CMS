@@ -63,7 +63,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			);
 		}
 
-		if ( !link.reFind( "^(https?)?:\/\/" ) ) {
+		if ( !link.reFind( "^(https?:)?\/\/" ) ) {
 			link = event.getSiteUrl() & link;
 		}
 
