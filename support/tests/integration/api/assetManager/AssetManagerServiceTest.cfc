@@ -157,6 +157,56 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( service.getDerivativeUrl( assetId=assetId, derivativeName=derivative, versionId=versionId ) ).toBe( internalUrl );
 			} );
+
+			it( "should return the saved URL against the DB record for the derivative if it exists", function(){
+				var service          = _getService();
+				var assetId          = CreateUUId();
+				var derivative       = "thumbnailyarh";
+				var savedUrl         = "/asset/#assetId#/#derivative#/#CreateUUId()#/";
+				var derivativeRecord = QueryNew( 'id,asset_url,storage_path,asset_folder,active_version', 'varchar,varchar,varchar,varchar,varchar', [[ CreateUUId(), savedUrl, "/some/path",CreateUUId(),CreateUUId()]]);
+
+				service.$( "getAssetDerivative" ).$args(
+					  assetId           = assetId
+					, derivativeName    = derivative
+					, versionId         = ""
+					, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
+					, createIfNotExists = false
+				).$results( derivativeRecord );
+
+				expect( service.getDerivativeUrl( assetId=assetId, derivativeName=derivative ) ).toBe( savedUrl );
+			} );
+
+			it( "should generate and save the URL for the derivative when a DB record exists but no URL is stored", function(){
+				var service          = _getService();
+				var assetId          = CreateUUId();
+				var derivative       = "thumbnailyarh";
+				var generatedUrl     = "/asset/#assetId#/#derivative#/#CreateUUId()#/";
+				var derivativeRecord = QueryNew( 'id,asset_url,storage_path,asset_folder,active_version', 'varchar,varchar,varchar,varchar,varchar', [[ CreateUUId(), "", "/some/path",CreateUUId(),CreateUUId()]]);
+
+				service.$( "getAssetDerivative" ).$args(
+					  assetId           = assetId
+					, derivativeName    = derivative
+					, versionId         = ""
+					, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
+					, createIfNotExists = false
+				).$results( derivativeRecord );
+
+				service.$( "generateAssetUrl" ).$args(
+					  id          = assetId
+					, storagePath = derivativeRecord.storage_path
+					, folder      = derivativeRecord.asset_folder
+					, derivative  = derivative
+					, versionId   = ""
+				).$results( generatedUrl );
+
+				mockAssetDerivativeDao.$( "updateData", 1 );
+
+				expect( service.getDerivativeUrl( assetId=assetId, derivativeName=derivative ) ).toBe( generatedUrl );
+
+				var callLog = mockAssetDerivativeDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[ 1 ] ).toBe( { id=derivativeRecord.id, data={ asset_url=generatedUrl } } );
+			} );
 		} );
 
 		describe( "generateAssetUrl", function(){

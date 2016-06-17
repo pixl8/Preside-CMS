@@ -847,6 +847,22 @@ component displayName="AssetManager Service" {
 			);
 		}
 
+		if ( Len( Trim( derivative.asset_url ) ) ) {
+			return derivative.asset_url;
+		}
+
+		var generatedUrl = generateAssetUrl(
+			  id          = arguments.assetId
+			, versionId   = arguments.versionId
+			, storagePath = derivative.storage_path
+			, folder      = derivative.asset_folder
+			, derivative  = arguments.derivativeName
+		);
+
+		_getDerivativeDao().updateData( id=derivative.id, data={ asset_url = generatedUrl } );
+
+		return generatedUrl;
+
 		return "";
 	}
 
