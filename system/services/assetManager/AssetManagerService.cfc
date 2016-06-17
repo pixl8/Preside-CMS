@@ -795,7 +795,12 @@ component displayName="AssetManager Service" {
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo( path=asset.storage_path, trashed=arguments.isTrashed, private=isAssetAccessRestricted( arguments.id ) );
+			var private   = Len( Trim( arguments.derivativeName ) ) ? ( !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.id ) ) : isAssetAccessRestricted( arguments.id )
+			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo(
+				  path    = asset.storage_path
+				, trashed = arguments.isTrashed
+				, private = private
+			);
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
@@ -1034,7 +1039,10 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( derivative.recordCount ) {
-			return _getStorageProviderForFolder( derivative.asset_folder ).getObject( derivative.storage_path );
+			return _getStorageProviderForFolder( derivative.asset_folder ).getObject(
+				  path    = derivative.storage_path
+				, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+			);
 		}
 	}
 
@@ -1095,7 +1103,11 @@ component displayName="AssetManager Service" {
 		}
 		var assetType = getAssetType( filename=storagePath, throwOnMissing=true );
 
-		_getStorageProviderForFolder( asset.asset_folder ).putObject( assetBinary, storagePath );
+		_getStorageProviderForFolder( asset.asset_folder ).putObject(
+			  object  = assetBinary
+			, path    = storagePath
+			, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+		);
 
 		return _getDerivativeDao().insertData( {
 			  asset_type    = assetType.typeName
