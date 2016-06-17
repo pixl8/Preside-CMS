@@ -208,6 +208,20 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getInternalAssetUrl( id=assetId, versionId=versionId ) ).toBe( "/asset/#UrlEncodedFormat( assetId )#.#UrlEncodedFormat( versionId )#/" );
 			} );
 
+			it( "should add derivative signature to the URL when derivate details passed", function(){
+				var service    = _getService();
+				var assetId    = CreateUUId();
+				var derivative = CreateUUId();
+				var signature  = CreateUUId();
+
+				service.$( "getDerivativeConfigSignature" ).$args( derivative ).$results( signature );
+
+				expect( service.getInternalAssetUrl(
+					  id         = assetId
+					, derivative = derivative
+				) ).toBe( "/asset/#UrlEncodedFormat( assetId )#/#UrlEncodedFormat( signature )#/" );
+			} );
+
 		} );
 	}
 

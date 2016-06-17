@@ -852,7 +852,7 @@ component displayName="AssetManager Service" {
 		return getInternalAssetUrl( id=arguments.id, versionId=arguments.versionId );
 	}
 
-	public string function getInternalAssetUrl( required string id, string versionId = "" ) {
+	public string function getInternalAssetUrl( required string id, string versionId="", string derivative="" ) {
 		var internalUrl = "/asset/#UrlEncodedFormat( arguments.id )#";
 
 		if ( Len( Trim( arguments.versionId ) ) ) {
@@ -860,6 +860,10 @@ component displayName="AssetManager Service" {
 		}
 
 		internalUrl &= "/";
+
+		if ( Len( Trim( arguments.derivative ) ) ) {
+			internalUrl &= URLEncodedFormat( getDerivativeConfigSignature( arguments.derivative ) ) & "/";
+		}
 
 		return internalUrl;
 	}
