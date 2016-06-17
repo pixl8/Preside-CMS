@@ -47,6 +47,7 @@ component extends="testbox.system.BaseSpec"{
 					, versionId   = asset.active_version
 					, storagePath = asset.storage_path
 					, folder      = asset.asset_folder
+					, trashed     = false
 				).$results( assetUrl );
 				mockAssetDao.$( "updateData", 1 );
 				mockAssetVersionDao.$( "updateData", 1 );
@@ -66,6 +67,7 @@ component extends="testbox.system.BaseSpec"{
 					, versionId   = asset.active_version
 					, storagePath = asset.storage_path
 					, folder      = asset.asset_folder
+					, trashed     = false
 				).$results( assetUrl );
 
 				mockAssetDao.$( "updateData", 1 );
@@ -95,6 +97,7 @@ component extends="testbox.system.BaseSpec"{
 					, versionId   = versionId
 					, storagePath = asset.storage_path
 					, folder      = asset.asset_folder
+					, trashed     = false
 				).$results( assetUrl );
 				mockAssetVersionDao.$( "updateData", 1 );
 
@@ -171,6 +174,20 @@ component extends="testbox.system.BaseSpec"{
 				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="" ).$results( internalUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( internalUrl );
+			} );
+
+			it( "should return internal URL of asset when it is trashed", function(){
+				var service         = _getService();
+				var assetId         = CreateUUId();
+				var folder          = CreateUUId();
+				var path            = "/blah/test.pdf";
+				var storageProvider = CreateStub();
+				var storageUrl      = "";
+				var internalUrl     = "/whatever/test/#CreateUUId()#/";
+
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="" ).$results( internalUrl );
+
+				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder, trashed=true ) ).toBe( internalUrl );
 			} );
 		} );
 

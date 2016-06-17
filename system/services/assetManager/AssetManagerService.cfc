@@ -794,7 +794,7 @@ component displayName="AssetManager Service" {
 		return "";
 	}
 
-	public string function getAssetUrl( required string id, string versionId="" ) {
+	public string function getAssetUrl( required string id, string versionId="", boolean trashed=false ) {
 		var asset   = "";
 		var version = arguments.versionId;
 
@@ -818,6 +818,7 @@ component displayName="AssetManager Service" {
 			, versionId   = version
 			, storagePath = asset.storage_path
 			, folder      = asset.asset_folder
+			, trashed     = arguments.trashed
 		);
 
 		if ( !Len( Trim( arguments.versionId ) ) ) {
@@ -829,19 +830,22 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function generateAssetUrl(
-		  required string id
-		, required string storagePath
-		, required string folder
-		,          string versionId = ""
+		  required string  id
+		, required string  storagePath
+		, required string  folder
+		,          string  versionId = ""
+		,          boolean trashed   = false
 	) {
-		var permissions = getAssetPermissioningSettings( arguments.id );
+		if ( !arguments.trashed ) {
+			var permissions = getAssetPermissioningSettings( arguments.id );
 
-		if ( !permissions.restricted ) {
-			var storageProvider = _getStorageProviderForFolder( arguments.folder );
-			var assetUrl        = storageProvider.getObjectUrl( arguments.storagePath );
+			if ( !permissions.restricted ) {
+				var storageProvider = _getStorageProviderForFolder( arguments.folder );
+				var assetUrl        = storageProvider.getObjectUrl( arguments.storagePath );
 
-			if ( Len( Trim( assetUrl ) ) ) {
-				return assetUrl;
+				if ( Len( Trim( assetUrl ) ) ) {
+					return assetUrl;
+				}
 			}
 		}
 
