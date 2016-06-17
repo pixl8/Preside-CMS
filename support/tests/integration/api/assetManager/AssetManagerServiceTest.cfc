@@ -150,7 +150,7 @@ component extends="testbox.system.BaseSpec"{
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
 				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
-				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="" ).$results( internalUrl );
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false ).$results( internalUrl );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( storageUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( internalUrl );
@@ -171,7 +171,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
-				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="" ).$results( internalUrl );
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false ).$results( internalUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( internalUrl );
 			} );
@@ -185,7 +185,7 @@ component extends="testbox.system.BaseSpec"{
 				var storageUrl      = "";
 				var internalUrl     = "/whatever/test/#CreateUUId()#/";
 
-				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="" ).$results( internalUrl );
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=true ).$results( internalUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder, trashed=true ) ).toBe( internalUrl );
 			} );
@@ -220,6 +220,13 @@ component extends="testbox.system.BaseSpec"{
 					  id         = assetId
 					, derivative = derivative
 				) ).toBe( "/asset/#UrlEncodedFormat( assetId )#/#UrlEncodedFormat( signature )#/" );
+			} );
+
+			it( "should prepend the assetId in the URL with the $ symbol when the asset is trashed", function(){
+				var service = _getService();
+				var assetId = CreateUUId();
+
+				expect( service.getInternalAssetUrl( id=assetId, trashed=true ) ).toBe( "/asset/$#UrlEncodedFormat( assetId )#/" );
 			} );
 
 		} );
