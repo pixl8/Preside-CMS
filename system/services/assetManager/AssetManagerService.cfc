@@ -829,6 +829,27 @@ component displayName="AssetManager Service" {
 		return generatedUrl;
 	}
 
+	public string function getDerivativeUrl( required string assetId, required string derivativeName ) {
+		var derivative = getAssetDerivative(
+			  assetId           = arguments.assetId
+			, derivativeName    = arguments.derivativeName
+			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
+			, versionId         = ""
+			, createIfNotExists = false
+		);
+
+		if ( !derivative.recordCount ) {
+			return getInternalAssetUrl(
+				  id         = arguments.assetId
+				, versionId  = ""
+				, derivative = arguments.derivativeName
+				, trashed    = false
+			);
+		}
+
+		return "";
+	}
+
 	public string function generateAssetUrl(
 		  required string  id
 		, required string  storagePath
@@ -924,7 +945,13 @@ component displayName="AssetManager Service" {
 		return assetDao.deleteData( id=arguments.id );
 	}
 
-	public query function getAssetDerivative( required string assetId, required string derivativeName, string versionId="", array selectFields=[] ) {
+	public query function getAssetDerivative(
+		  required string  assetId
+		, required string  derivativeName
+		,          string  versionId         = ""
+		,          array   selectFields      = []
+		,          boolean createIfNotExists = true
+	) {
 		var derivativeDao      = _getDerivativeDao();
 		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
 		var derivative         = "";
@@ -949,11 +976,15 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		lock type="exclusive" name=lockName timeout=120 {
-			createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+		if ( arguments.createIfNotExists ) {
+			lock type="exclusive" name=lockName timeout=120 {
+				createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 
-			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+				return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+			}
 		}
+
+		return QueryNew( '' );
 	}
 
 	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="" ) {

@@ -110,6 +110,31 @@ component extends="testbox.system.BaseSpec"{
 
 		} );
 
+		describe( "getDerivativeUrl()", function(){
+			it( "should return an internal URL when no derivative DB record yet exists", function(){
+				var service    = _getService();
+				var assetId    = CreateUUId();
+				var derivative = "thumbnailyarh";
+				var internalUrl = "/asset/#assetId#/#derivative#/blah/";
+
+				service.$( "getAssetDerivative" ).$args(
+					  assetId           = assetId
+					, derivativeName    = derivative
+					, versionId         = ""
+					, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
+					, createIfNotExists = false
+				).$results( QueryNew( '' ) );
+				service.$( "getInternalAssetUrl" ).$args(
+					  id         = assetId
+					, versionId  = ""
+					, derivative = derivative
+					, trashed    = false
+				).$results( internalUrl );
+
+				expect( service.getDerivativeUrl( assetId=assetId, derivativeName=derivative ) ).toBe( internalUrl );
+			} );
+		} );
+
 		describe( "generateAssetUrl", function(){
 
 			it( "should return public URL of asset as returned from the assets storage provider, when the asset has no access restrictions", function(){
