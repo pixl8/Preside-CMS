@@ -854,11 +854,16 @@ component displayName="AssetManager Service" {
 		  required string  id
 		, required string  storagePath
 		, required string  folder
-		,          string  versionId = ""
-		,          boolean trashed   = false
+		,          string  versionId  = ""
+		,          string  derivative = ""
+		,          boolean trashed    = false
 	) {
 		if ( !arguments.trashed ) {
-			var permissions = getAssetPermissioningSettings( arguments.id );
+			if ( Len( Trim( arguments.derivative ) ) && isDerivativePubliclyAccessible( arguments.derivative ) ) {
+				var permissions = { restricted = false }
+			} else {
+				var permissions = getAssetPermissioningSettings( arguments.id );
+			}
 
 			if ( !permissions.restricted ) {
 				var storageProvider = _getStorageProviderForFolder( arguments.folder );
@@ -870,7 +875,12 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		return getInternalAssetUrl( id=arguments.id, versionId=arguments.versionId, trashed=arguments.trashed );
+		return getInternalAssetUrl(
+			  id         = arguments.id
+			, versionId  = arguments.versionId
+			, trashed    = arguments.trashed
+			, derivative = arguments.derivative
+		);
 	}
 
 	public string function getInternalAssetUrl( required string id, string versionId="", string derivative="", boolean trashed=false ) {

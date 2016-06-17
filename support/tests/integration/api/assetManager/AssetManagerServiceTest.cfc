@@ -191,15 +191,15 @@ component extends="testbox.system.BaseSpec"{
 				var storageUrl      = "";
 				var internalUrl     = "/whatever/test/#CreateUUId()#/";
 				var permissions     = {
-					  contextTree                        = [ assetId ]
-					, restricted                         = false
-					, fullLoginRequired                  = false
-					, grantAcessToAllLoggedInUsers       = false
+					  contextTree                  = [ assetId ]
+					, restricted                   = false
+					, fullLoginRequired            = false
+					, grantAcessToAllLoggedInUsers = false
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
 				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
-				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false ).$results( internalUrl );
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false, derivative="" ).$results( internalUrl );
 				storageProvider.$( "getObjectUrl" ).$args( path ).$results( storageUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( internalUrl );
@@ -220,7 +220,7 @@ component extends="testbox.system.BaseSpec"{
 				};
 
 				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
-				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false ).$results( internalUrl );
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=false, derivative="" ).$results( internalUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( internalUrl );
 			} );
@@ -234,9 +234,52 @@ component extends="testbox.system.BaseSpec"{
 				var storageUrl      = "";
 				var internalUrl     = "/whatever/test/#CreateUUId()#/";
 
-				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=true ).$results( internalUrl );
+				service.$( "getInternalAssetUrl" ).$args( id=assetId, versionId="", trashed=true, derivative="" ).$results( internalUrl );
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder, trashed=true ) ).toBe( internalUrl );
+			} );
+
+			it( "should check a derivative's permissions to determine public/internal URL checking when a derivative is also passed", function(){
+				var service         = _getService();
+				var assetId         = CreateUUId();
+				var derivative      = CreateUUId();
+				var folder          = CreateUUId();
+				var path            = "/blah/test.pdf";
+				var storageProvider = CreateStub();
+				var dummyUrl        = "https://www.static-site.com/" & CreateUUId();
+
+				service.$( "_getStorageProviderForFolder" ).$args( folder ).$results( storageProvider );
+				service.$( "isDerivativePubliclyAccessible" ).$args( derivative ).$results( true );
+				storageProvider.$( "getObjectUrl" ).$args( path ).$results( dummyUrl );
+
+				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder, derivative=derivative ) ).toBe( dummyUrl );
+			} );
+
+			it( "should ensure derivative is passed to internal URL calculation when derivative passed", function(){
+				var service         = _getService();
+				var assetId         = CreateUUId();
+				var derivative      = CreateUUId();
+				var folder          = CreateUUId();
+				var path            = "/blah/test.pdf";
+				var storageProvider = CreateStub();
+				var internalUrl     = "/test/" & CreateUUId();
+				var permissions     = {
+					  contextTree                  = [ assetId ]
+					, restricted                   = true
+					, fullLoginRequired            = false
+					, grantAcessToAllLoggedInUsers = false
+				};
+
+				service.$( "isDerivativePubliclyAccessible" ).$args( derivative ).$results( false );
+				service.$( "getAssetPermissioningSettings" ).$args( assetId ).$results( permissions );
+				service.$( "getInternalAssetUrl" ).$args(
+					  id         = assetId
+					, versionId  = ""
+					, trashed    = false
+					, derivative = derivative
+				).$results( internalUrl );
+
+				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder, derivative=derivative ) ).toBe( internalUrl );
 			} );
 		} );
 
