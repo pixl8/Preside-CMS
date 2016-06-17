@@ -795,7 +795,7 @@ component displayName="AssetManager Service" {
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo( asset.storage_path, arguments.isTrashed );
+			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo( path=asset.storage_path, trashed=arguments.isTrashed, private=isAssetAccessRestricted( arguments.id ) );
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
