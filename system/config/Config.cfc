@@ -183,14 +183,21 @@ component {
 			, "systemInformation"
 		];
 
+		settings.uploads_directory = ExpandPath( "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
 		};
 		settings.assetManager = {
-			  maxFileSize       = "5"
-			, types             = _getConfiguredFileTypes()
-			, derivatives       = _getConfiguredAssetDerivatives()
-			, folders           = {}
+			  maxFileSize = "5"
+			, types       = _getConfiguredFileTypes()
+			, derivatives = _getConfiguredAssetDerivatives()
+			, folders     = {}
+			, storage     = {
+				  public    = settings.uploads_directory & "/assets"
+				, private   = settings.uploads_directory & "/privateassets"
+				, trash     = settings.uploads_directory & "/.trash"
+				, publicUrl = ""
+			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
@@ -239,12 +246,6 @@ component {
 			  pages  = [ "access" ]
 			, assets = [ "access" ]
 		};
-
-		// uploads directory - each site really should override this setting and provide an external location
-		settings.uploads_directory     = ExpandPath( "/uploads" );
-		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
-		settings.public_uploads_url    = "";
-
 
 		settings.ckeditor = {
 			  defaults    = {

@@ -55,11 +55,10 @@
 			.initArg( name="logLevel"  , value=settings.default_log_level ?: "information" );
 
 		map( "assetStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
-			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/assets" )
-			.initArg( name="privateDirectory", value=settings.uploads_directory & "/privateassets" )
-			.initArg( name="trashDirectory"  , value=settings.uploads_directory & "/.trash" )
-			.initArg( name="rootUrl"         , value=settings.public_uploads_url ?: "" );
-
+			.initArg( name="rootDirectory"   , value=settings.assetmanager.storage.public    )
+			.initArg( name="privateDirectory", value=settings.assetmanager.storage.private   )
+			.initArg( name="trashDirectory"  , value=settings.assetmanager.storage.trash     )
+			.initArg( name="rootUrl"         , value=settings.assetmanager.storage.publicUrl );
 
 		map( "formBuilderStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
 			.initArg( name="rootDirectory"   , value=settings.uploads_directory & "/formbuilder" )
