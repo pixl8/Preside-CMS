@@ -813,12 +813,19 @@ component displayName="AssetManager Service" {
 			return asset.asset_url;
 		}
 
-		return generateAssetUrl(
+		var generatedUrl = generateAssetUrl(
 			  id          = arguments.id
 			, versionId   = version
 			, storagePath = asset.storage_path
 			, folder      = asset.asset_folder
 		);
+
+		if ( !Len( Trim( arguments.versionId ) ) ) {
+			_getAssetDao().updateData( id=arguments.id, data={ asset_url = generatedUrl } );
+		}
+		_getAssetVersionDao().updateData( id=version, data={ asset_url = generatedUrl } );
+
+		return generatedUrl;
 	}
 
 	public string function generateAssetUrl(

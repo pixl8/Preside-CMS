@@ -48,8 +48,61 @@ component extends="testbox.system.BaseSpec"{
 					, storagePath = asset.storage_path
 					, folder      = asset.asset_folder
 				).$results( assetUrl );
+				mockAssetDao.$( "updateData", 1 );
+				mockAssetVersionDao.$( "updateData", 1 );
 
 				expect( service.getAssetUrl( assetId ) ).toBe( assetUrl );
+			} );
+
+			it( "should save a newly generated URL against the asset when one not already set against the database record", function(){
+				var service  = _getService();
+				var assetId  = CreateUUId();
+				var assetUrl = "http://blah.com/#CreateUUId()#.jpg";
+				var asset    = QueryNew( 'storage_path,asset_folder,asset_url,active_version', 'varchar,varchar,varchar,varchar', [["/blah/test",CreateUUId(),"",CreateUUId()]] );
+
+				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url", "active_version" ] ).$results( asset );
+				service.$( "generateAssetUrl" ).$args(
+					  id          = assetId
+					, versionId   = asset.active_version
+					, storagePath = asset.storage_path
+					, folder      = asset.asset_folder
+				).$results( assetUrl );
+
+				mockAssetDao.$( "updateData", 1 );
+				mockAssetVersionDao.$( "updateData", 1 );
+
+				expect( service.getAssetUrl( assetId ) ).toBe( assetUrl );
+
+				var callLog = mockAssetDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1] ).toBe( { id=assetId, data={ asset_url=assetUrl } } );
+
+				var callLog = mockAssetVersionDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1] ).toBe( { id=asset.active_version, data={ asset_url=assetUrl } } );
+			} );
+
+			it( "should save a newly generated URL against the asset version when one not already set against the database record and version id supplied", function(){
+				var service   = _getService();
+				var assetId   = CreateUUId();
+				var versionId = CreateUUId();
+				var assetUrl  = "/asset/#assetId#.#versionId#/";
+				var asset     = QueryNew( 'storage_path,asset_folder,asset_url', 'varchar,varchar,varchar', [["/blah/test",CreateUUId(),""]] );
+
+				service.$( "getAssetVersion" ).$args( assetId=assetId, versionId=versionId, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.asset_url" ] ).$results( asset );
+				service.$( "generateAssetUrl" ).$args(
+					  id          = assetId
+					, versionId   = versionId
+					, storagePath = asset.storage_path
+					, folder      = asset.asset_folder
+				).$results( assetUrl );
+				mockAssetVersionDao.$( "updateData", 1 );
+
+				expect( service.getAssetUrl( id=assetId, versionId=versionId ) ).toBe( assetUrl );
+
+				var callLog = mockAssetVersionDao.$callLog().updateData;
+				expect( callLog.len() ).toBe( 1 );
+				expect( callLog[1] ).toBe( { id=versionId, data={ asset_url=assetUrl } } );
 			} );
 
 		} );
