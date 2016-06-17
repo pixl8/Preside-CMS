@@ -868,7 +868,11 @@ component displayName="AssetManager Service" {
 		internalUrl &= "/";
 
 		if ( Len( Trim( arguments.derivative ) ) ) {
-			internalUrl &= URLEncodedFormat( getDerivativeConfigSignature( arguments.derivative ) ) & "/";
+			internalUrl &= UrlEncodedFormat( arguments.derivative ) & "/";
+			var signature = getDerivativeConfigSignature( arguments.derivative );
+			if ( Len( Trim( signature ) ) ) {
+				internalUrl &= UrlEncodedFormat( signature ) & "/";
+			}
 		}
 
 		return internalUrl;

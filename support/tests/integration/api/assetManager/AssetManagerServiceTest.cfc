@@ -208,7 +208,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getInternalAssetUrl( id=assetId, versionId=versionId ) ).toBe( "/asset/#UrlEncodedFormat( assetId )#.#UrlEncodedFormat( versionId )#/" );
 			} );
 
-			it( "should add derivative signature to the URL when derivate details passed", function(){
+			it( "should add derivative id and signature to the URL when derivate details passed", function(){
 				var service    = _getService();
 				var assetId    = CreateUUId();
 				var derivative = CreateUUId();
@@ -219,7 +219,7 @@ component extends="testbox.system.BaseSpec"{
 				expect( service.getInternalAssetUrl(
 					  id         = assetId
 					, derivative = derivative
-				) ).toBe( "/asset/#UrlEncodedFormat( assetId )#/#UrlEncodedFormat( signature )#/" );
+				) ).toBe( "/asset/#UrlEncodedFormat( assetId )#/#UrlEncodedFormat( derivative )#/#UrlEncodedFormat( signature )#/" );
 			} );
 
 			it( "should prepend the assetId in the URL with the $ symbol when the asset is trashed", function(){
