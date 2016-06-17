@@ -829,19 +829,19 @@ component displayName="AssetManager Service" {
 		return generatedUrl;
 	}
 
-	public string function getDerivativeUrl( required string assetId, required string derivativeName ) {
+	public string function getDerivativeUrl( required string assetId, required string derivativeName, string versionId="" ) {
 		var derivative = getAssetDerivative(
 			  assetId           = arguments.assetId
 			, derivativeName    = arguments.derivativeName
 			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
-			, versionId         = ""
+			, versionId         = arguments.versionId
 			, createIfNotExists = false
 		);
 
 		if ( !derivative.recordCount ) {
 			return getInternalAssetUrl(
 				  id         = arguments.assetId
-				, versionId  = ""
+				, versionId  = arguments.versionId
 				, derivative = arguments.derivativeName
 				, trashed    = false
 			);
