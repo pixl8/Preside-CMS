@@ -795,20 +795,27 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getAssetUrl( required string id, string versionId="" ) {
-		var asset = Len( Trim( arguments.versionId ) )
-			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.asset_url" ] )
-			: getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder", "asset_url" ] );
+		var asset   = "";
+		var version = arguments.versionId;
+
+		if ( Len( Trim( version ) ) ) {
+			asset = getAssetVersion( assetId=arguments.id, versionId=version, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.asset_url" ] );
+		} else {
+			asset   = getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder", "asset_url", "active_version" ] );
+			version = asset.active_version ?: "";
+		}
 
 		if ( !asset.recordCount ) {
 			return "";
 		}
+
 		if ( Len( Trim( asset.asset_url ) ) ) {
 			return asset.asset_url;
 		}
 
 		return generateAssetUrl(
 			  id          = arguments.id
-			, versionId   = arguments.versionId
+			, versionId   = version
 			, storagePath = asset.storage_path
 			, folder      = asset.asset_folder
 		);
@@ -835,7 +842,15 @@ component displayName="AssetManager Service" {
 	}
 
 	public string function getInternalAssetUrl( required string id, string versionId = "" ) {
-		return "";
+		var internalUrl = "/asset/#UrlEncodedFormat( arguments.id )#";
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			internalUrl &= "." & UrlEncodedFormat( arguments.versionId );
+		}
+
+		internalUrl &= "/";
+
+		return internalUrl;
 	}
 
 	public boolean function trashAsset( required string id ) {

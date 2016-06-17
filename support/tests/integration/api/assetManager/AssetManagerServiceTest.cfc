@@ -6,9 +6,9 @@ component extends="testbox.system.BaseSpec"{
 				var service  = _getService();
 				var assetId  = CreateUUId();
 				var assetUrl = "http://blah.com/#CreateUUId()#.jpg";
-				var asset    = QueryNew( 'storage_path,asset_folder,asset_url', 'varchar,varchar,varchar', [["/blah/test",CreateUUId(),assetUrl]] );
+				var asset    = QueryNew( 'storage_path,asset_folder,asset_url,active_version', 'varchar,varchar,varchar,varchar', [["/blah/test",CreateUUId(),assetUrl,CreateUUId()]] );
 
-				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url" ] ).$results( asset );
+				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url", "active_version" ] ).$results( asset );
 
 				expect( service.getAssetUrl( assetId ) ).toBe( assetUrl );
 			} );
@@ -28,9 +28,9 @@ component extends="testbox.system.BaseSpec"{
 			it( "should return an empty string when the asset is not found", function(){
 				var service  = _getService();
 				var assetId  = CreateUUId();
-				var asset    = QueryNew( 'storage_path,asset_folder,asset_url' );
+				var asset    = QueryNew( 'storage_path,asset_folder,asset_url,active_version' );
 
-				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url" ] ).$results( asset );
+				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url", "active_version" ] ).$results( asset );
 
 				expect( service.getAssetUrl( assetId ) ).toBe( "" );
 			} );
@@ -39,12 +39,12 @@ component extends="testbox.system.BaseSpec"{
 				var service  = _getService();
 				var assetId  = CreateUUId();
 				var assetUrl = "http://blah.com/#CreateUUId()#.jpg";
-				var asset    = QueryNew( 'storage_path,asset_folder,asset_url', 'varchar,varchar,varchar', [["/blah/test",CreateUUId(),""]] );
+				var asset    = QueryNew( 'storage_path,asset_folder,asset_url,active_version', 'varchar,varchar,varchar,varchar', [["/blah/test",CreateUUId(),"",CreateUUId()]] );
 
-				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url" ] ).$results( asset );
+				service.$( "getAsset" ).$args( id=assetId, selectFields=[ "storage_path", "asset_folder", "asset_url", "active_version" ] ).$results( asset );
 				service.$( "generateAssetUrl" ).$args(
 					  id          = assetId
-					, versionId   = ""
+					, versionId   = asset.active_version
 					, storagePath = asset.storage_path
 					, folder      = asset.asset_folder
 				).$results( assetUrl );
@@ -119,6 +119,25 @@ component extends="testbox.system.BaseSpec"{
 
 				expect( service.generateAssetUrl( id=assetId, storagePath=path, folder=folder ) ).toBe( internalUrl );
 			} );
+		} );
+
+		describe( "getInternalAssetUrl", function(){
+
+			it( "should take the URL encoded form, /asset/{assetid}/, when no version id supplied", function(){
+				var service = _getService();
+				var assetId = CreateUUId();
+
+				expect( service.getInternalAssetUrl( id=assetId ) ).toBe( "/asset/#UrlEncodedFormat( assetId )#/" );
+			} );
+
+			it( "should take the URL encoded form, /asset/{assetid}.{versionid}/, when version id supplied", function(){
+				var service   = _getService();
+				var assetId   = CreateUUId();
+				var versionId = CreateUUId();
+
+				expect( service.getInternalAssetUrl( id=assetId, versionId=versionId ) ).toBe( "/asset/#UrlEncodedFormat( assetId )#.#UrlEncodedFormat( versionId )#/" );
+			} );
+
 		} );
 	}
 
