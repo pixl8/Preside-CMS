@@ -794,24 +794,48 @@ component displayName="AssetManager Service" {
 		return "";
 	}
 
-	public string function getAssetUrl( required string id ) {
+	public string function getAssetUrl( required string id, string versionId="" ) {
+		var asset = Len( Trim( arguments.versionId ) )
+			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.asset_url" ] )
+			: getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder", "asset_url" ] );
+
+		if ( !asset.recordCount ) {
+			return "";
+		}
+		if ( Len( Trim( asset.asset_url ) ) ) {
+			return asset.asset_url;
+		}
+
+		return generateAssetUrl(
+			  id          = arguments.id
+			, versionId   = arguments.versionId
+			, storagePath = asset.storage_path
+			, folder      = asset.asset_folder
+		);
+	}
+
+	public string function generateAssetUrl(
+		  required string id
+		, required string storagePath
+		, required string folder
+		,          string versionId = ""
+	) {
 		var permissions = getAssetPermissioningSettings( arguments.id );
 
 		if ( !permissions.restricted ) {
-			var asset = getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder" ] );
-			if ( asset.recordCount ) {
-				var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
-				var assetUrl        = storageProvider.getObjectUrl( asset.storage_path );
+			var storageProvider = _getStorageProviderForFolder( arguments.folder );
+			var assetUrl        = storageProvider.getObjectUrl( arguments.storagePath );
 
-				if ( Len( Trim( assetUrl ) ) ) {
-					return assetUrl;
-				}
+			if ( Len( Trim( assetUrl ) ) ) {
+				return assetUrl;
 			}
 		}
 
-		var link = "/asset/" & arguments.id & "/";
+		return getInternalAssetUrl( id=arguments.id, versionId=arguments.versionId );
+	}
 
-		return link;
+	public string function getInternalAssetUrl( required string id, string versionId = "" ) {
+		return "";
 	}
 
 	public boolean function trashAsset( required string id ) {
