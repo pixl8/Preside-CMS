@@ -124,6 +124,7 @@ component extends="testbox.system.BaseSpec"{
 					, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
 					, createIfNotExists = false
 				).$results( QueryNew( '' ) );
+				service.$( "getActiveAssetVersion", "" );
 				service.$( "getInternalAssetUrl" ).$args(
 					  id         = assetId
 					, versionId  = ""
@@ -141,6 +142,7 @@ component extends="testbox.system.BaseSpec"{
 				var derivative = "thumbnailyarh";
 				var internalUrl = "/asset/#assetId#/#derivative#/blah/";
 
+				service.$( "getActiveAssetVersion", "" );
 				service.$( "getAssetDerivative" ).$args(
 					  assetId           = assetId
 					, derivativeName    = derivative
@@ -165,6 +167,7 @@ component extends="testbox.system.BaseSpec"{
 				var savedUrl         = "/asset/#assetId#/#derivative#/#CreateUUId()#/";
 				var derivativeRecord = QueryNew( 'id,asset_url,storage_path,asset_folder,active_version', 'varchar,varchar,varchar,varchar,varchar', [[ CreateUUId(), savedUrl, "/some/path",CreateUUId(),CreateUUId()]]);
 
+				service.$( "getActiveAssetVersion", "" );
 				service.$( "getAssetDerivative" ).$args(
 					  assetId           = assetId
 					, derivativeName    = derivative
@@ -183,6 +186,7 @@ component extends="testbox.system.BaseSpec"{
 				var generatedUrl     = "/asset/#assetId#/#derivative#/#CreateUUId()#/";
 				var derivativeRecord = QueryNew( 'id,asset_url,storage_path,asset_folder,active_version', 'varchar,varchar,varchar,varchar,varchar', [[ CreateUUId(), "", "/some/path",CreateUUId(),CreateUUId()]]);
 
+				service.$( "getActiveAssetVersion", "" );
 				service.$( "getAssetDerivative" ).$args(
 					  assetId           = assetId
 					, derivativeName    = derivative

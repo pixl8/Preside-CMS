@@ -846,19 +846,24 @@ component displayName="AssetManager Service" {
 		return generatedUrl;
 	}
 
-	public string function getDerivativeUrl( required string assetId, required string derivativeName, string versionId="" ) {
+	public string function getDerivativeUrl(
+		  required string assetId
+		, required string derivativeName
+		,          string versionId = ""
+	) {
+		var version    = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.assetId );
 		var derivative = getAssetDerivative(
 			  assetId           = arguments.assetId
 			, derivativeName    = arguments.derivativeName
 			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
-			, versionId         = arguments.versionId
+			, versionId         = version
 			, createIfNotExists = false
 		);
 
 		if ( !derivative.recordCount ) {
 			return getInternalAssetUrl(
 				  id         = arguments.assetId
-				, versionId  = arguments.versionId
+				, versionId  = version
 				, derivative = arguments.derivativeName
 				, trashed    = false
 			);
@@ -870,7 +875,7 @@ component displayName="AssetManager Service" {
 
 		var generatedUrl = generateAssetUrl(
 			  id          = arguments.assetId
-			, versionId   = arguments.versionId
+			, versionId   = version
 			, storagePath = derivative.storage_path
 			, folder      = derivative.asset_folder
 			, derivative  = arguments.derivativeName
@@ -881,6 +886,12 @@ component displayName="AssetManager Service" {
 		return generatedUrl;
 
 		return "";
+	}
+
+	public string function getActiveAssetVersion( required string id ) {
+		var record = _getAssetDao().selectData( id=arguments.id, selectfields=[ "active_version" ] );
+
+		return record.active_version ?: "";
 	}
 
 	public string function generateAssetUrl(
