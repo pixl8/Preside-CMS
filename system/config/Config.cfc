@@ -194,7 +194,7 @@ component {
 			, folders     = {}
 			, storage     = {
 				  public    = settings.uploads_directory & "/assets"
-				, private   = settings.uploads_directory & "/privateassets"
+				, private   = settings.uploads_directory & "/assets" // same as public by default for backward compatibility
 				, trash     = settings.uploads_directory & "/.trash"
 				, publicUrl = ""
 			  }
