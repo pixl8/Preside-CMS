@@ -718,6 +718,7 @@ component displayName="AssetManager Service" {
 							  is_trashed     = false
 							, storage_path   = newPath
 							, trashed_path   = ""
+							, asset_url      = ""
 						} );
 					}
 
@@ -729,6 +730,7 @@ component displayName="AssetManager Service" {
 						, is_trashed     = false
 						, storage_path   = newPath
 						, original_title = ""
+						, asset_url      = ""
 						, trashed_path   = ""
 					} );
 
@@ -1727,11 +1729,11 @@ component displayName="AssetManager Service" {
 
 		for( var version in versions ) {
 			storageProvider.restoreObject( trashedPath=version.trashed_path, newPath=version.storage_path, private=arguments.private );
-			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="" } );
+			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="", asset_url="" } );
 		}
 		for( var derivative in derivatives ) {
 			storageProvider.restoreObject( trashedPath=derivative.trashed_path, newPath=derivative.storage_path, private=arguments.private );
-			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="" } );
+			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="", asset_url="" } );
 		}
 	}
 

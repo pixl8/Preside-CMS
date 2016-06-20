@@ -174,6 +174,7 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		var trashedFileExists = false;
 
 		try {
+			_ensureDirectoryExists( GetDirectoryFromPath( fullNewPath ) );
 			FileMove( fullTrashedPath, fullNewPath );
 			return objectExists( path=arguments.newPath, private=arguments.private );
 		} catch ( any e ) {
