@@ -802,7 +802,7 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> " & records[ field ][ records.currentRow ];
+					records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> ' & records[ field ][ records.currentRow ];
 				}
 			}
 
