@@ -187,7 +187,7 @@ component {
 		return runnableTasks.recordCount ? ValueArray( runnableTasks.task_key ) : [];
 	}
 
-	public void function runTask( required string taskKey ) {
+	public void function runTask( required string taskKey, struct args={} ) {
 		var task        = getTask( arguments.taskKey );
 		var success     = true;
 		var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
@@ -203,7 +203,7 @@ component {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId priority="high" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout {
+			thread name=newThreadId priority="high" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
 				setting requesttimeout = attributes.processTimeout;
 
 				var start = getTickCount();
@@ -212,7 +212,7 @@ component {
 					success = _getController().runEvent(
 						  event          = attributes.event
 						, private        = true
-						, eventArguments = { logger=attributes.logger }
+						, eventArguments = { logger=attributes.logger, args=attributes.args }
 					);
 				} catch( any e ) {
 					setting requesttimeout=55;
