@@ -2,8 +2,10 @@
 <form i18nBaseUri="storage-providers.filesystem:">
 	<tab id="default">
 		<fieldset id="filesystem">
-			<field sortorder="10" name="rootDirectory"  control="textinput" required="true" />
-			<field sortorder="20" name="trashDirectory" control="textinput" required="true" />
+			<field sortorder="10" name="rootDirectory"    control="textinput" required="true" />
+			<field sortorder="20" name="privateDirectory" control="textinput" required="true" />
+			<field sortorder="30" name="trashDirectory"   control="textinput" required="true" />
+			<field sortorder="40" name="rootUrl"          control="textinput" required="false" />
 		</fieldset>
 	</tab>
 </form>

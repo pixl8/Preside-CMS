@@ -10,58 +10,35 @@ component displayName="AssetManager Service" {
 // CONSTRUCTOR
 	/**
 	 * @defaultStorageProvider.inject     assetStorageProvider
-	 * @temporaryStorageProvider.inject   tempStorageProvider
 	 * @assetTransformer.inject           AssetTransformer
 	 * @documentMetadataService.inject    DocumentMetadataService
-	 * @systemConfigurationService.inject systemConfigurationService
 	 * @storageLocationService.inject     storageLocationService
 	 * @storageProviderService.inject     storageProviderService
-	 * @systemConfigurationService.inject systemConfigurationService
 	 * @configuredDerivatives.inject      coldbox:setting:assetManager.derivatives
 	 * @configuredTypesByGroup.inject     coldbox:setting:assetManager.types
 	 * @configuredFolders.inject          coldbox:setting:assetManager.folders
-	 * @assetDao.inject                   presidecms:object:asset
-	 * @assetVersionDao.inject            presidecms:object:asset_version
-	 * @folderDao.inject                  presidecms:object:asset_folder
-	 * @derivativeDao.inject              presidecms:object:asset_derivative
-	 * @assetMetaDao.inject               presidecms:object:asset_meta
 	 */
 	public any function init(
 		  required any    defaultStorageProvider
-		, required any    temporaryStorageProvider
 		, required any    assetTransformer
 		, required any    documentMetadataService
-		, required any    systemConfigurationService
 		, required any    storageLocationService
 		, required any    storageProviderService
-		, required any    assetDao
-		, required any    assetVersionDao
-		, required any    folderDao
-		, required any    derivativeDao
-		, required any    assetMetaDao
 		,          struct configuredDerivatives={}
 		,          struct configuredTypesByGroup={}
 		,          struct configuredFolders={}
 	) {
- 		_setAssetDao( arguments.assetDao );
- 		_setAssetVersionDao( arguments.assetVersionDao );
-		_setFolderDao( arguments.folderDao );
-
 		_migrateFromLegacyRecycleBinApproach();
 		_setupSystemFolders( arguments.configuredFolders );
 
 		_setDefaultStorageProvider( arguments.defaultStorageProvider );
 		_setAssetTransformer( arguments.assetTransformer );
-		_setTemporaryStorageProvider( arguments.temporaryStorageProvider );
 		_setDocumentMetadataService( arguments.documentMetadataService );
-		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setStorageLocationService( arguments.storageLocationService );
 		_setStorageProviderService( arguments.storageProviderService );
 
 		_setConfiguredDerivatives( arguments.configuredDerivatives );
 		_setupConfiguredFileTypesAndGroups( arguments.configuredTypesByGroup );
-		_setDerivativeDao( arguments.derivativeDao );
-		_setAssetMetaDao( arguments.assetMetaDao );
 
 		return this;
 	}
@@ -94,10 +71,15 @@ component displayName="AssetManager Service" {
 			arguments.data.parent_folder = getRootFolderId();
 		}
 
+		var folder = getFolder( arguments.id );
 		var result = _getFolderDao().updateData(
 			  id   = arguments.id
 			, data = arguments.data
 		);
+
+		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
+			ensureAssetsAreInCorrectLocation( folderId=arguments.id );
+		}
 
 		var auditDetail = Duplicate( arguments.data );
 		auditDetail.id  = arguments.id;
@@ -140,11 +122,11 @@ component displayName="AssetManager Service" {
 			}
 			folder = getFolder( id=folder.parent_folder );
 			if ( folder.recordCount ) {
-				ArrayAppend( ancestorArray, folder );
+				ancestorArray.append( folder );
 			}
 		}
 
-		for( var i=ancestorArray.len(); i gt 0; i-- ){
+		for( var i=1; i <= ancestorArray.len(); i++ ){
 			for( folder in ancestorArray[i] ) {
 				QueryAddRow( ancestors, folder );
 			}
@@ -562,86 +544,6 @@ component displayName="AssetManager Service" {
 		return result;
 	}
 
-	public string function uploadTemporaryFile( required string fileField ) {
-		var tmpId         = CreateUUId();
-		var storagePath   = "/" & tmpId & "/";
-		var uploadedFile  = "";
-		var transientPath = "";
-
-		try {
-			uploadedFile = FileUpload(
-				  destination  = GetTempDirectory()
-				, fileField    = arguments.filefield
-				, nameConflict = "MakeUnique"
-			);
-		} catch( any e ) {
-			return "";
-		}
-
-		storagePath  &= uploadedFile.serverFile;
-		transientPath = uploadedFile.serverDirectory & "/" & uploadedFile.serverFile;
-
-		_getTemporaryStorageProvider().putObject(
-			  object = transientPath
-			, path   = storagePath
-		);
-
-		FileDelete( transientPath );
-
-		return tmpId;
-	}
-
-	public void function deleteTemporaryFile( required string tmpId ) {
-		var details = getTemporaryFileDetails( arguments.tmpId );
-		if ( Len( Trim( details.path ?: "" ) ) ) {
-			_getTemporaryStorageProvider().deleteObject( details.path );
-		}
-	}
-
-	public struct function getTemporaryFileDetails( required string tmpId, boolean includeMeta=false ) {
-		var storageProvider = _getTemporaryStorageProvider();
-		var files           = storageProvider.listObjects( "/#arguments.tmpId#/" );
-		var details         = {};
-
-		for( var file in files ) {
-			if ( arguments.includeMeta ) {
-				details = _getDocumentMetadataService().getMetadata( storageProvider.getObject( file.path ) );
-			}
-
-			StructAppend( details, file );
-
-			details.title = details.title ?: ( details.name ?: "" );
-
-			break;
-		}
-
-		return details;
-	}
-
-	public binary function getTemporaryFileBinary( required string tmpId ) {
-		var details = getTemporaryFileDetails( arguments.tmpId );
-
-		return _getTemporaryStorageProvider().getObject( details.path ?: "" );
-	}
-
-	public string function saveTemporaryFileAsAsset( required string tmpId, string folder, struct assetData = {} ) {
-		var asset        = Duplicate( arguments.assetData );
-		var fileDetails  = getTemporaryFileDetails( arguments.tmpId );
-
-		if ( StructIsEmpty( fileDetails ) ) {
-			return "";
-		}
-
-		asset.append( fileDetails, false );
-
-		var fileBinary  = _getTemporaryStorageProvider().getObject( fileDetails.path );
-		var newId       = addAsset( fileBinary, fileDetails.name, arguments.folder, asset );
-
-		deleteTemporaryFile( arguments.tmpId );
-
-		return newId;
-	}
-
 	/**
 	 * Adds an asset into the Asset manager. The asset binary will be uploaded to the appropriate storage
 	 * location for the given folder.
@@ -683,8 +585,9 @@ component displayName="AssetManager Service" {
 		}
 
 		_getStorageProviderForFolder( asset.asset_folder ).putObject(
-			  object = arguments.fileBinary
-			, path   = newFileName
+			  object  = arguments.fileBinary
+			, path    = newFileName
+			, private = isFolderAccessRestricted( asset.asset_folder )
 		);
 
 		if ( !Len( Trim( asset.title ) ) ) {
@@ -721,7 +624,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder", "access_restriction" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -737,10 +640,10 @@ component displayName="AssetManager Service" {
 		var newFileName          = "/uploaded/" & CreateUUId() & "." & fileTypeInfo.extension;
 		var versionId            = "";
 		var assetVersion         = {
-			  asset        = arguments.assetId
-			, asset_type   = fileTypeInfo.typeName
-			, storage_path = newFileName
-			, size         = Len( arguments.fileBinary )
+			  asset          = arguments.assetId
+			, asset_type     = fileTypeInfo.typeName
+			, storage_path   = newFileName
+			, size           = Len( arguments.fileBinary )
 			, version_number = _getNextAssetVersionNumber( arguments.assetId )
 		};
 
@@ -748,7 +651,11 @@ component displayName="AssetManager Service" {
 			assetVersion.raw_text_content = _getDocumentMetadataService().getText( arguments.fileBinary );
 		}
 
-		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject( object = arguments.fileBinary, path = newFileName );
+		_getStorageProviderForFolder( originalAsset.asset_folder ).putObject(
+			  object  = arguments.fileBinary
+			, path    = newFileName
+			, private = originalAsset.access_restriction == "full" || isFolderAccessRestricted( originalAsset.asset_folder )
+		);
 
 		versionId = _getAssetVersionDao().insertData( data=assetVersion );
 
@@ -801,8 +708,13 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
+		var asset  = getAsset( id=arguments.id );
 		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data );
 		var auditDetail = Duplicate( arguments.data );
+
+		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
+			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
+		}
 
 		auditDetail.id = arguments.id;
 		$audit(
@@ -828,6 +740,8 @@ component displayName="AssetManager Service" {
 				  filter = { id = arguments.assetIds }
 				, data   = { asset_folder = arguments.folderId }
 			);
+
+			ensureAssetsAreInCorrectLocation( assetIds=arguments.assetIds );
 
 			$audit(
 				  action = "move_assets"
@@ -857,17 +771,19 @@ component displayName="AssetManager Service" {
 				if ( asset.recordCount ) {
 					var newPath = "/uploaded/" & LCase( assetId & "." & asset.asset_type );
 					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
+					var private         = isAssetAccessRestricted( assetId, arguments.folderId );
 
-					storageProvider.restoreObject( asset.trashed_path, newPath );
+					storageProvider.restoreObject( trashedPath=asset.trashed_path, newPath=newPath, private=private );
 					if ( Len( Trim( asset.active_version ) ) ) {
 						_getAssetVersionDao().updateData( id=asset.active_version, data={
 							  is_trashed     = false
 							, storage_path   = newPath
 							, trashed_path   = ""
+							, asset_url      = ""
 						} );
 					}
 
-					_restoreAssociatedFiles( assetId, storageProvider );
+					_restoreAssociatedFiles( assetId, storageProvider, private );
 
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
@@ -875,6 +791,7 @@ component displayName="AssetManager Service" {
 						, is_trashed     = false
 						, storage_path   = newPath
 						, original_title = ""
+						, asset_url      = ""
 						, trashed_path   = ""
 					} );
 
@@ -934,13 +851,18 @@ component displayName="AssetManager Service" {
 
 	public binary function getAssetBinary( required string id, string versionId="", boolean throwOnMissing=false, boolean isTrashed=false ) {
 		var assetBinary = "";
+		var isPrivate   = isAssetAccessRestricted( arguments.id )
 		var storagePathField = arguments.isTrashed ? "trashed_path as storage_path" : "storage_path";
 		var asset       = Len( Trim( arguments.versionId ) )
 			? getAssetVersion( assetId=arguments.id, versionId=arguments.versionId, throwOnMissing=arguments.throwOnMissing, selectFields=[ "asset_version.#storagePathField#", "asset.asset_folder" ] )
 			: getAsset( id=arguments.id, throwOnMissing=arguments.throwOnMissing, selectFields=[ storagePathField, "asset_folder" ] );
 
 		if ( asset.recordCount ) {
-			return _getStorageProviderForFolder( asset.asset_folder ).getObject( asset.storage_path, arguments.isTrashed );
+			return _getStorageProviderForFolder( asset.asset_folder ).getObject(
+				  path    = asset.storage_path
+				, trashed = arguments.isTrashed
+				, private = isPrivate
+			);
 		}
 	}
 
@@ -963,7 +885,12 @@ component displayName="AssetManager Service" {
 		}
 
 		if ( asset.recordCount ) {
-			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo( asset.storage_path, arguments.isTrashed );
+			var private   = Len( Trim( arguments.derivativeName ) ) ? ( !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.id ) ) : isAssetAccessRestricted( arguments.id )
+			var assetInfo = _getStorageProviderForFolder( asset.asset_folder ).getObjectInfo(
+				  path    = asset.storage_path
+				, trashed = arguments.isTrashed
+				, private = private
+			);
 			var etag      = LCase( Hash( SerializeJson( assetInfo ) ) )
 
 			return Left( etag, 8 );
@@ -972,20 +899,165 @@ component displayName="AssetManager Service" {
 		return "";
 	}
 
+	public string function getAssetUrl( required string id, string versionId="", boolean trashed=false ) {
+		var asset   = "";
+		var version = arguments.versionId;
+
+		if ( Len( Trim( version ) ) ) {
+			asset = getAssetVersion( assetId=arguments.id, versionId=version, selectFields=[ "asset_version.storage_path", "asset.asset_folder", "asset_version.asset_url" ] );
+		} else {
+			asset   = getAsset( id=arguments.id, selectFields=[ "storage_path", "asset_folder", "asset_url", "active_version" ] );
+			version = asset.active_version ?: "";
+		}
+
+		if ( !asset.recordCount ) {
+			return "";
+		}
+
+		if ( Len( Trim( asset.asset_url ) ) ) {
+			return asset.asset_url;
+		}
+
+		var generatedUrl = generateAssetUrl(
+			  id          = arguments.id
+			, versionId   = version
+			, storagePath = asset.storage_path
+			, folder      = asset.asset_folder
+			, trashed     = arguments.trashed
+		);
+
+		if ( !Len( Trim( arguments.versionId ) ) ) {
+			_getAssetDao().updateData( id=arguments.id, data={ asset_url = generatedUrl } );
+		}
+		if ( Len( Trim( version ) ) ) {
+			_getAssetVersionDao().updateData( id=version, data={ asset_url = generatedUrl } );
+		}
+
+		return generatedUrl;
+	}
+
+	public string function getDerivativeUrl(
+		  required string assetId
+		, required string derivativeName
+		,          string versionId = ""
+	) {
+		var version    = Len( Trim( arguments.versionId ) ) ? arguments.versionId : getActiveAssetVersion( arguments.assetId );
+		var derivative = getAssetDerivative(
+			  assetId           = arguments.assetId
+			, derivativeName    = arguments.derivativeName
+			, selectFields      = [ "asset_derivative.id", "asset_derivative.asset_url", "asset_derivative.storage_path", "asset.asset_folder", "asset.active_version" ]
+			, versionId         = version
+			, createIfNotExists = false
+		);
+
+		if ( !derivative.recordCount ) {
+			return getInternalAssetUrl(
+				  id         = arguments.assetId
+				, versionId  = version
+				, derivative = arguments.derivativeName
+				, trashed    = false
+			);
+		}
+
+		if ( Len( Trim( derivative.asset_url ) ) ) {
+			return derivative.asset_url;
+		}
+
+		var generatedUrl = generateAssetUrl(
+			  id          = arguments.assetId
+			, versionId   = version
+			, storagePath = derivative.storage_path
+			, folder      = derivative.asset_folder
+			, derivative  = arguments.derivativeName
+		);
+
+		_getDerivativeDao().updateData( id=derivative.id, data={ asset_url = generatedUrl } );
+
+		return generatedUrl;
+
+		return "";
+	}
+
+	public string function getActiveAssetVersion( required string id ) {
+		var record = _getAssetDao().selectData( id=arguments.id, selectfields=[ "active_version" ] );
+
+		return record.active_version ?: "";
+	}
+
+	public string function generateAssetUrl(
+		  required string  id
+		, required string  storagePath
+		, required string  folder
+		,          string  versionId  = ""
+		,          string  derivative = ""
+		,          boolean trashed    = false
+	) {
+		if ( !arguments.trashed ) {
+			if ( Len( Trim( arguments.derivative ) ) && isDerivativePubliclyAccessible( arguments.derivative ) ) {
+				var permissions = { restricted = false }
+			} else {
+				var permissions = getAssetPermissioningSettings( arguments.id );
+			}
+
+			if ( !permissions.restricted ) {
+				var storageProvider = _getStorageProviderForFolder( arguments.folder );
+				var assetUrl        = storageProvider.getObjectUrl( arguments.storagePath );
+
+				if ( Len( Trim( assetUrl ) ) ) {
+					return assetUrl;
+				}
+			}
+		}
+
+		return getInternalAssetUrl(
+			  id         = arguments.id
+			, versionId  = arguments.versionId
+			, trashed    = arguments.trashed
+			, derivative = arguments.derivative
+		);
+	}
+
+	public string function getInternalAssetUrl( required string id, string versionId="", string derivative="", boolean trashed=false ) {
+		var internalUrl = "/asset/";
+
+		if ( arguments.trashed ) {
+			internalUrl &= "$";
+		}
+
+		internalUrl &= UrlEncodedFormat( arguments.id );
+
+		if ( Len( Trim( arguments.versionId ) ) ) {
+			internalUrl &= "." & UrlEncodedFormat( arguments.versionId );
+		}
+
+		internalUrl &= "/";
+
+		if ( Len( Trim( arguments.derivative ) ) ) {
+			internalUrl &= UrlEncodedFormat( arguments.derivative ) & "/";
+			var signature = getDerivativeConfigSignature( arguments.derivative );
+			if ( Len( Trim( signature ) ) ) {
+				internalUrl &= UrlEncodedFormat( signature ) & "/";
+			}
+		}
+
+		return internalUrl;
+	}
+
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
 		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder", "active_version" ] );
+		var private     = isAssetAccessRestricted( arguments.id );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
 			return false;
 		}
 
-		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( asset.storage_path );
+		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( path=asset.storage_path, private=private );
 		if( asset.active_version.len() ) {
 			_getAssetVersionDao().updateData(
 				  id   = asset.active_version
-				, data = { is_trashed=true, trashed_path = trashedPath }
+				, data = { is_trashed=true, trashed_path = trashedPath, asset_url="" }
 			);
 		}
 
@@ -993,6 +1065,7 @@ component displayName="AssetManager Service" {
 			  assetId    = arguments.id
 			, folderId   = asset.asset_folder
 			, softDelete = true
+			, private    = private
 		);
 
 		var result = assetDao.updateData( id=arguments.id, data={
@@ -1000,6 +1073,7 @@ component displayName="AssetManager Service" {
 			, title          = CreateUUId()
 			, original_title = asset.title
 			, is_trashed     = true
+			, asset_url      = ""
 		} );
 
 		for( var a in asset ) { var auditDetail = a; }
@@ -1036,7 +1110,13 @@ component displayName="AssetManager Service" {
 		return assetDao.deleteData( id=arguments.id );
 	}
 
-	public query function getAssetDerivative( required string assetId, required string derivativeName, string versionId="", array selectFields=[] ) {
+	public query function getAssetDerivative(
+		  required string  assetId
+		, required string  derivativeName
+		,          string  versionId         = ""
+		,          array   selectFields      = []
+		,          boolean createIfNotExists = true
+	) {
 		var derivativeDao      = _getDerivativeDao();
 		var signature          = getDerivativeConfigSignature( arguments.derivativeName );
 		var derivative         = "";
@@ -1061,11 +1141,15 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		lock type="exclusive" name=lockName timeout=120 {
-			createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
+		if ( arguments.createIfNotExists ) {
+			lock type="exclusive" name=lockName timeout=120 {
+				createAssetDerivative( assetId=arguments.assetId, versionId=arguments.versionId, derivativeName=arguments.derivativeName );
 
-			return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+				return derivativeDao.selectData( filter=selectFilter, filterParams=selectFilterParams, selectFields=arguments.selectFields );
+			}
 		}
+
+		return QueryNew( '' );
 	}
 
 	public binary function getAssetDerivativeBinary( required string assetId, required string derivativeName, string versionId="" ) {
@@ -1077,7 +1161,10 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( derivative.recordCount ) {
-			return _getStorageProviderForFolder( derivative.asset_folder ).getObject( derivative.storage_path );
+			return _getStorageProviderForFolder( derivative.asset_folder ).getObject(
+				  path    = derivative.storage_path
+				, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+			);
 		}
 	}
 
@@ -1138,7 +1225,11 @@ component displayName="AssetManager Service" {
 		}
 		var assetType = getAssetType( filename=storagePath, throwOnMissing=true );
 
-		_getStorageProviderForFolder( asset.asset_folder ).putObject( assetBinary, storagePath );
+		_getStorageProviderForFolder( asset.asset_folder ).putObject(
+			  object  = assetBinary
+			, path    = storagePath
+			, private = !isDerivativePubliclyAccessible( arguments.derivativeName ) && isAssetAccessRestricted( arguments.assetId )
+		);
 
 		return _getDerivativeDao().insertData( {
 			  asset_type    = assetType.typeName
@@ -1184,6 +1275,32 @@ component displayName="AssetManager Service" {
 		}
 
 		return settings;
+	}
+
+	public boolean function isFolderAccessRestricted( required string folderId ) {
+		var folders = getFolderAncestors( arguments.folderId, true );
+
+		for( var folder in folders ) {
+			if ( folder.access_restriction != "inherit" ) {
+				return folder.access_restriction == "full";
+			}
+		}
+
+		return false;
+	}
+
+	public boolean function isAssetAccessRestricted( required string id, string folderId ) {
+		var asset = getAsset( id = arguments.id, selectFields=[ "asset_folder", "access_restriction" ] );
+
+		if ( asset.recordCount ) {
+			if ( asset.access_restriction != "inherit" ) {
+				return asset.access_restriction == "full";
+			}
+
+			return isFolderAccessRestricted( arguments.folderId ?: asset.asset_folder );
+		}
+
+		return false;
 	}
 
 	public any function listEditorDerivatives(){
@@ -1355,6 +1472,101 @@ component displayName="AssetManager Service" {
 		return Val( result.asset_count ?: "" );
 	}
 
+	public boolean function ensureAssetsAreInCorrectLocation(
+		  string folderId = ""
+		, string assetId  = ""
+		, array  assetIds = []
+	) {
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			assets = getAsset( arguments.assetId );
+		} else if ( Len( Trim( arguments.folderId ) ) ) {
+			assets = getAllAssetsBeneathFolder( arguments.folderId );
+		} else if ( arguments.assetIds.len() ) {
+			assets = _getAssetDao().selectData( filter={ id=arguments.assetIds } );
+		} else {
+			assets = getAllAssetsBeneathFolder( getRootFolderId() );
+		}
+
+		if ( !assets.recordCount ) {
+			return true;
+		}
+
+		for( var asset in assets ) {
+			ensureAssetIsInCorrectLocation(
+				  assetId     = asset.id
+				, folderId    = asset.asset_folder
+				, storagePath = asset.storage_path
+			);
+		}
+
+		return true;
+	}
+
+	public void function ensureAssetIsInCorrectLocation(
+		  required string assetId
+		, required string folderId
+		, required string storagePath
+	) {
+		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
+		var isPrivate       = isAssetAccessRestricted( arguments.assetId );
+		var derivatives     = _getDerivativeDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
+		var versions        = _getAssetVersionDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
+		var moveToCorrect   = function( required string storagePath ) {
+			if ( !storageProvider.objectExists( path=arguments.storagePath, private=isPrivate ) ) {
+				if ( storageProvider.objectExists( path=arguments.storagePath, private=!isPrivate ) ) {
+					storageProvider.moveObject(
+						  originalPath      = arguments.storagePath
+						, newPath           = arguments.storagePath
+						, originalIsPrivate = !isPrivate
+						, newIsPrivate      = isPrivate
+					);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		if ( moveToCorrect( arguments.storagePath ) ) {
+			_getAssetDao().updateData( id=arguments.assetId, data={ asset_url="" } );
+		}
+		for( var derivative in derivatives ) {
+			if ( moveToCorrect( derivative.storage_path ) ) {
+				_getDerivativeDao().updateData( id=derivative.id, data={ asset_url="" } );
+			}
+		}
+		for( var version in versions ) {
+			if ( moveToCorrect( version.storage_path ) ) {
+				_getAssetVersionDao().updateData( id=version.id, data={ asset_url="" } );
+			}
+		}
+	}
+
+	public query function getAllAssetsBeneathFolder( required string folderId, boolean recursive=true ) {
+		var folders = [ arguments.folderId ];
+
+		if ( arguments.recursive ) {
+			folders.append( getChildFolders( arguments.folderId ), true );
+		}
+
+		return _getAssetDao().selectData(
+			filter = { asset_folder=folders }
+		);
+	}
+
+	public array function getChildFolders( required string parent ) {
+		var childFolders = [];
+		var childRecords = _getFolderDao().selectData( filter={ parent_folder=arguments.parent }, selectFields=[ "id" ] );
+
+		if ( childRecords.recordCount ) {
+			childFolders = ValueArray( childRecords.id );
+			for( var folder in childRecords ) {
+				childFolders.append( getChildFolders( childRecords.id ), true );
+			}
+		}
+
+		return childFolders;
+	}
+
 // PRIVATE HELPERS
 	private void function _migrateFromLegacyRecycleBinApproach() {
 		var folderDao   = _getFolderDao();
@@ -1489,7 +1701,7 @@ component displayName="AssetManager Service" {
 	}
 
 	private boolean function _autoExtractDocumentMeta() {
-		var setting = _getSystemConfigurationService().getSetting( "asset-manager", "retrieve_metadata" );
+		var setting = $getPresideSetting( "asset-manager", "retrieve_metadata" );
 
 		return IsBoolean( setting ) && setting;
 	}
@@ -1579,7 +1791,7 @@ component displayName="AssetManager Service" {
 		return {};
 	}
 
-	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="", boolean softDelete=false ) {
+	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="", boolean softDelete=false, boolean private=false ) {
 		var versionFilter    = { asset = arguments.assetId };
 		var derivativeFilter = { asset = arguments.assetId };
 		var assetVersionDao  = _getAssetVersionDao();
@@ -1602,35 +1814,35 @@ component displayName="AssetManager Service" {
 
 		for( var version in versions ) {
 			if ( arguments.softDelete ) {
-				trashedPath = storageProvider.softDeleteObject( version.storage_path );
-				assetVersionDao.updateData( id=version.id, data={ is_trashed=true, trashed_path=trashedPath } );
+				trashedPath = storageProvider.softDeleteObject( path=version.storage_path, private=arguments.private );
+				assetVersionDao.updateData( id=version.id, data={ is_trashed=true, trashed_path=trashedPath, asset_url="" } );
 			} else {
 				storageProvider.deleteObject( version.storage_path );
 			}
 		}
 		for( var derivative in derivatives ) {
 			if ( arguments.softDelete ) {
-				trashedPath = storageProvider.softDeleteObject( derivative.storage_path );
-				derivativeDao.updateData( id=derivative.id, data={ is_trashed=true, trashed_path=trashedPath } );
+				trashedPath = storageProvider.softDeleteObject( path=derivative.storage_path, private=arguments.private );
+				derivativeDao.updateData( id=derivative.id, data={ is_trashed=true, trashed_path=trashedPath, asset_url="" } );
 			} else {
 				storageProvider.deleteObject( derivative.storage_path );
 			}
 		}
 	}
 
-	private void function _restoreAssociatedFiles( required string assetId, required any storageProvider ) {
+	private void function _restoreAssociatedFiles( required string assetId, required any storageProvider, required boolean private ) {
 		var assetVersionDao  = _getAssetVersionDao();
 		var derivativeDao    = _getDerivativeDao();
 		var versions         = assetVersionDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }   , selectfields=[ "id", "storage_path", "trashed_path" ] );
 		var derivatives      = derivativeDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }, selectfields=[ "id", "storage_path", "trashed_path" ] );
 
 		for( var version in versions ) {
-			storageProvider.restoreObject( version.trashed_path, version.storage_path );
-			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="" } );
+			storageProvider.restoreObject( trashedPath=version.trashed_path, newPath=version.storage_path, private=arguments.private );
+			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="", asset_url="" } );
 		}
 		for( var derivative in derivatives ) {
-			storageProvider.restoreObject( derivative.trashed_path, derivative.storage_path );
-			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="" } );
+			storageProvider.restoreObject( trashedPath=derivative.trashed_path, newPath=derivative.storage_path, private=arguments.private );
+			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="", asset_url="" } );
 		}
 	}
 
@@ -1664,13 +1876,6 @@ component displayName="AssetManager Service" {
 	}
 	private void function _setDefaultStorageProvider( required any defaultStorageProvider ) {
 		_defaultStorageProvider = arguments.defaultStorageProvider;
-	}
-
-	private any function _getTemporaryStorageProvider() {
-		return _temporaryStorageProvider;
-	}
-	private void function _setTemporaryStorageProvider( required any temporaryStorageProvider ) {
-		_temporaryStorageProvider = arguments.temporaryStorageProvider;
 	}
 
 	private any function _getAssetTransformer() {
@@ -1708,46 +1913,24 @@ component displayName="AssetManager Service" {
 		_types = arguments.types;
 	}
 
-	private any function _getSystemConfigurationService() {
-		return _systemConfigurationService;
-	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) {
-		_systemConfigurationService = arguments.systemConfigurationService;
-	}
-
 	private any function _getAssetDao() {
-		return _assetDao;
-	}
-	private void function _setAssetDao( required any assetDao ) {
-		_assetDao = arguments.assetDao;
+		return $getPresideObject( "asset" );
 	}
 
 	private any function _getAssetVersionDao() {
-		return _assetVersionDao;
-	}
-	private void function _setAssetVersionDao( required any assetVersionDao ) {
-		_assetVersionDao = arguments.assetVersionDao;
+		return $getPresideObject( "asset_version" );
 	}
 
 	private any function _getFolderDao() {
-		return _folderDao;
-	}
-	private void function _setFolderDao( required any folderDao ) {
-		_folderDao = arguments.folderDao;
+		return $getPresideObject( "asset_folder" );
 	}
 
 	private any function _getDerivativeDao() {
-		return _derivativeDao;
-	}
-	private void function _setDerivativeDao( required any derivativeDao ) {
-		_derivativeDao = arguments.derivativeDao;
+		return $getPresideObject( "asset_derivative" );
 	}
 
 	private any function _getAssetMetaDao() {
-		return _assetMetaDao;
-	}
-	private void function _setAssetMetaDao( required any assetMetaDao ) {
-		_assetMetaDao = arguments.assetMetaDao;
+		return $getPresideObject( "asset_meta" );
 	}
 
 	private any function _getDocumentMetadataService() {
