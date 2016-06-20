@@ -11,13 +11,13 @@ component {
 	 * reside in the correct public/private data store and have appropriately
 	 * set URLs (public vs private).
 	 *
-	 * @displayName  Move asset files
+	 * @displayName  Make asset files public/private
 	 * @schedule     disabled
 	 * @displayGroup assetmanager
 	 * @timeout      1200
 	 *
 	 */
-	private boolean function moveAssets( event, rc, prc, logger, args={} ) {
+	private boolean function makeAssetFilesPublicOrPrivate( event, rc, prc, logger, args={} ) {
 		return assetManagerService.ensureAssetsAreInCorrectLocation(
 			  folderId = args.folder  ?: ""
 			, assetId  = args.assetId ?: ""
