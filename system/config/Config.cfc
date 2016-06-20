@@ -126,9 +126,16 @@ component {
 				defaultLogAppender = {
 					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
 					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+				},
+				taskmanagerRequestAppender = {
+					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
+					, properties = { logName="TASKMANAGER" }
 				}
 			},
-			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' }
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' },
+			categories = {
+				taskmanager = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' }
+			}
 		};
 
 		settings.eventName                   = "event";
@@ -180,6 +187,7 @@ component {
 			, "urlRedirects"
 			, "errorLogs"
 			, "maintenanceMode"
+			, "taskmanager"
 			, "systemInformation"
 		];
 
@@ -218,6 +226,7 @@ component {
 			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -237,7 +246,7 @@ component {
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs" ];
 		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
