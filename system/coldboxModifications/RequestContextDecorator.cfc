@@ -55,6 +55,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			}
 		}
 
+		siteUrl = siteUrl.reReplace( "/$", "" );
+
 		return siteUrl;
 	}
 

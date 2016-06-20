@@ -51,8 +51,6 @@ component implements="iRouteHandler" output=false singleton=true {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		linke = ReReplace( link, "^/", "" );
-
 		return event.getSiteUrl() & link;
 	}
 
