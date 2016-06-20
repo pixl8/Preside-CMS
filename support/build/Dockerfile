@@ -1,4 +1,4 @@
-FROM lucee/lucee4:latest
+FROM lucee/lucee4:4.5.2-t8.0.36
 COPY docker/dummysite /var/www
 COPY docker/resources/server.xml /usr/local/tomcat/conf/server.xml
 COPY docker/resources/web.xml /usr/local/tomcat/conf/web.xml
