@@ -1,9 +1,12 @@
 /**
+ * Service responsible for the business logic for the Preside Task Manager system.
+ *
  * @singleton
  * @presideService
+ * @autodoc
  *
  */
-component {
+component displayName="Task Manager Service" {
 
 // CONSTRUCTOR
 	/**
@@ -187,7 +190,24 @@ component {
 		return runnableTasks.recordCount ? ValueArray( runnableTasks.task_key ) : [];
 	}
 
-	public void function runTask( required string taskKey ) {
+	/**
+	 * Runs the specified task. e.g.
+	 * \n
+	 * ```luceescript
+	 * taskmanagerService.runTask(
+	 * \t  taskKey = "resizeImages"
+	 * \t, args    = { derivative="thumbnail" }
+	 * );
+	 * ```
+	 * \n
+	 * See [[taskmanager]] for more detail.
+	 *
+	 * @autodoc
+	 * @taskKey.hint The 'key' of the task (this is the Tasks.cfc handler action name)
+	 * @args.hint    An optional struct of variables that will be passed to the task handler action
+	 *
+	 */
+	public void function runTask( required string taskKey, struct args={} ) {
 		var task        = getTask( arguments.taskKey );
 		var success     = true;
 		var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
@@ -203,7 +223,7 @@ component {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId priority="high" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout {
+			thread name=newThreadId priority="high" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
 				setting requesttimeout = attributes.processTimeout;
 
 				var start = getTickCount();
@@ -212,7 +232,7 @@ component {
 					success = _getController().runEvent(
 						  event          = attributes.event
 						, private        = true
-						, eventArguments = { logger=attributes.logger }
+						, eventArguments = { logger=attributes.logger, args=attributes.args }
 					);
 				} catch( any e ) {
 					setting requesttimeout=55;

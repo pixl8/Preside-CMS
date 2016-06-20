@@ -91,3 +91,28 @@ Tasks can be given a timeout value using the `@timeout` attribute. Values are in
 You can optionally use display groups to break-up the view of tasks in to multiple grouped tabs. For example, you may have a group for maintenance tasks and another group for CRM data syncs. Simply use the `@displayGroup` attribute and tasks with the same "display group" will be grouped together in tabs.
 
 >>> If no groups are specified, a default group of "default" will be used.
+
+### Invoking tasks programatically
+
+In cases where you need to start a background task as a result of some progmmable event, you can call the [[taskmanagerservice-runtask]] method of the [[api-taskmanagerservice]] directly, or use the [[api-presidesuperclass]] [[presidesuperclass-$runtask]] method (see [[presidesuperclass]]). For example:
+
+```luceescript
+// /services/AssetManagerService.cfc
+/**
+ * @presideService
+ * @singleton
+ */
+component {
+	// ...
+
+	public boolean function editFolderPermissions( ... ) {
+		// ...
+
+		$runTask( taskKey="moveAssets", args={ folder=arguments.folder } )
+
+		// ...
+	}
+
+	// ...
+}
+```

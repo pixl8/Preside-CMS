@@ -114,11 +114,12 @@ component extends="testbox.system.BaseSpec" {
 		} );
 
 		describe( "runTask()", function(){
-			it( "should call the handler defined for the task", function(){
+			it( "should call the handler defined for the task, passing additional args set", function(){
 				var tm      = _getTaskManagerService();
 				var taskKey = "syncEvents";
 				var task    = { event="sync.events", name="My task", timeout=120 };
 				var logId   = CreateUUId();
+				var args    = { test=true, blah=CreateUUId() };
 
 				tm.$( "getTask" ).$args( taskKey ).$results( task );
 				tm.$( "taskIsRunning" ).$args( taskKey ).$results( false );
@@ -128,14 +129,14 @@ component extends="testbox.system.BaseSpec" {
 				tm.$( "createTaskHistoryLog", logId );
 				tm.$( "_getLogger" ).$args( logId ).$results( mockLogger );
 
-				tm.runTask( taskKey );
+				tm.runTask( taskKey=taskKey, args=args );
 				sleep( 200 );
 
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 1 );
 				expect( mockColdbox.$callLog().runEvent[1] ).toBe( {
 					  event          = task.event
 					, private        = true
-					, eventArguments = { logger=mockLogger }
+					, eventArguments = { logger=mockLogger, args=args }
 				} );
 			} );
 
