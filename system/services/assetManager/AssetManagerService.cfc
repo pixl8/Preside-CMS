@@ -686,7 +686,7 @@ component displayName="AssetManager Service" {
 				, data   = { asset_folder = arguments.folderId }
 			);
 
-			ensureAssetsAreInCorrectLocation( assetIds = arguments.assetIds );
+			ensureAssetsAreInCorrectLocation
 
 			return result;
 		}
@@ -710,8 +710,9 @@ component displayName="AssetManager Service" {
 				if ( asset.recordCount ) {
 					var newPath = "/uploaded/" & LCase( assetId & "." & asset.asset_type );
 					var storageProvider = _getStorageProviderForFolder( asset.asset_folder );
+					var private         = isAssetAccessRestricted( assetId, arguments.folderId );
 
-					storageProvider.restoreObject( asset.trashed_path, newPath );
+					storageProvider.restoreObject( trashedPath=asset.trashed_path, newPath=newPath, private=private );
 					if ( Len( Trim( asset.active_version ) ) ) {
 						_getAssetVersionDao().updateData( id=asset.active_version, data={
 							  is_trashed     = false
@@ -720,7 +721,7 @@ component displayName="AssetManager Service" {
 						} );
 					}
 
-					_restoreAssociatedFiles( assetId, storageProvider );
+					_restoreAssociatedFiles( assetId, storageProvider, private );
 
 					restoredAssetCount += _getAssetDao().updateData( id=assetId, data={
 						  asset_folder   = arguments.folderId
@@ -974,17 +975,18 @@ component displayName="AssetManager Service" {
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
 		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder", "active_version" ] );
+		var private     = isAssetAccessRestricted( arguments.id );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
 			return false;
 		}
 
-		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( asset.storage_path );
+		trashedPath = _getStorageProviderForFolder( asset.asset_folder ).softDeleteObject( path=asset.storage_path, private=private );
 		if( asset.active_version.len() ) {
 			_getAssetVersionDao().updateData(
 				  id   = asset.active_version
-				, data = { is_trashed=true, trashed_path = trashedPath }
+				, data = { is_trashed=true, trashed_path = trashedPath, asset_url="" }
 			);
 		}
 
@@ -992,6 +994,7 @@ component displayName="AssetManager Service" {
 			  assetId    = arguments.id
 			, folderId   = asset.asset_folder
 			, softDelete = true
+			, private    = private
 		);
 
 		return assetDao.updateData( id=arguments.id, data={
@@ -999,6 +1002,7 @@ component displayName="AssetManager Service" {
 			, title          = CreateUUId()
 			, original_title = asset.title
 			, is_trashed     = true
+			, asset_url      = ""
 		} );
 	}
 
@@ -1196,7 +1200,7 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
-	public boolean function isAssetAccessRestricted( string id ) {
+	public boolean function isAssetAccessRestricted( required string id, string folderId ) {
 		var asset = getAsset( id = arguments.id, selectFields=[ "asset_folder", "access_restriction" ] );
 
 		if ( asset.recordCount ) {
@@ -1204,7 +1208,7 @@ component displayName="AssetManager Service" {
 				return asset.access_restriction == "full";
 			}
 
-			return isFolderAccessRestricted( asset.asset_folder );
+			return isFolderAccessRestricted( arguments.folderId ?: asset.asset_folder );
 		}
 
 		return false;
@@ -1676,7 +1680,7 @@ component displayName="AssetManager Service" {
 		return {};
 	}
 
-	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="", boolean softDelete=false ) {
+	private void function _deleteAssociatedFiles( required string assetId, required string folderId, string versionId="", boolean softDelete=false, boolean private=false ) {
 		var versionFilter    = { asset = arguments.assetId };
 		var derivativeFilter = { asset = arguments.assetId };
 		var assetVersionDao  = _getAssetVersionDao();
@@ -1699,34 +1703,34 @@ component displayName="AssetManager Service" {
 
 		for( var version in versions ) {
 			if ( arguments.softDelete ) {
-				trashedPath = storageProvider.softDeleteObject( version.storage_path );
-				assetVersionDao.updateData( id=version.id, data={ is_trashed=true, trashed_path=trashedPath } );
+				trashedPath = storageProvider.softDeleteObject( path=version.storage_path, private=arguments.private );
+				assetVersionDao.updateData( id=version.id, data={ is_trashed=true, trashed_path=trashedPath, asset_url="" } );
 			} else {
 				storageProvider.deleteObject( version.storage_path );
 			}
 		}
 		for( var derivative in derivatives ) {
 			if ( arguments.softDelete ) {
-				trashedPath = storageProvider.softDeleteObject( derivative.storage_path );
-				derivativeDao.updateData( id=derivative.id, data={ is_trashed=true, trashed_path=trashedPath } );
+				trashedPath = storageProvider.softDeleteObject( path=derivative.storage_path, private=arguments.private );
+				derivativeDao.updateData( id=derivative.id, data={ is_trashed=true, trashed_path=trashedPath, asset_url="" } );
 			} else {
 				storageProvider.deleteObject( derivative.storage_path );
 			}
 		}
 	}
 
-	private void function _restoreAssociatedFiles( required string assetId, required any storageProvider ) {
+	private void function _restoreAssociatedFiles( required string assetId, required any storageProvider, required boolean private ) {
 		var assetVersionDao  = _getAssetVersionDao();
 		var derivativeDao    = _getDerivativeDao();
 		var versions         = assetVersionDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }   , selectfields=[ "id", "storage_path", "trashed_path" ] );
 		var derivatives      = derivativeDao.selectData( filter={ asset=arguments.assetId, is_trashed=true }, selectfields=[ "id", "storage_path", "trashed_path" ] );
 
 		for( var version in versions ) {
-			storageProvider.restoreObject( version.trashed_path, version.storage_path );
+			storageProvider.restoreObject( trashedPath=version.trashed_path, newPath=version.storage_path, private=arguments.private );
 			assetVersionDao.updateData( id=version.id, data={ is_trashed=false, trashed_path="" } );
 		}
 		for( var derivative in derivatives ) {
-			storageProvider.restoreObject( derivative.trashed_path, derivative.storage_path );
+			storageProvider.restoreObject( trashedPath=derivative.trashed_path, newPath=derivative.storage_path, private=arguments.private );
 			derivativeDao.updateData( id=derivative.id, data={ is_trashed=false, trashed_path="" } );
 		}
 	}
