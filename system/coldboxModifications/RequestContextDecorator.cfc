@@ -85,9 +85,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			link = getRequestContext().buildLink( argumentCollection = arguments );
 		}
 
-		link = Replace( link, "(.+)//", "\1/", "all" );
-		link = ReReplace( link, "^(https?):/", "\1://" );
-
 		return link;
 	}
 

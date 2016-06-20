@@ -106,7 +106,7 @@ component implements="iRouteHandler" output=false singleton=true {
 
 		if ( page.recordCount ) {
 			if ( page.id eq homepage.id ) {
-				return root & "/";
+				return root;
 			}
 
 			link &= ReReplace( page.slug, "/$", "" );
@@ -134,6 +134,8 @@ component implements="iRouteHandler" output=false singleton=true {
 				link &= "?" & buildArgs.queryString;
 			}
 		}
+
+		link = ReReplace( link, "^/", "" );
 
 		return root & link;
 	}

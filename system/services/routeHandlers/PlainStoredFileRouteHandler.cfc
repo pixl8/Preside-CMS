@@ -45,7 +45,7 @@ component implements="iRouteHandler" output=false singleton=true {
 			path &= "|" & buildArgs.filename;
 		}
 
-		var link = "/file/#ToBase64( path )#/";
+		var link = "file/#ToBase64( path )#/";
 
 		return event.getSiteUrl() & link;
 	}
