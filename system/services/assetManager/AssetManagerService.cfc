@@ -68,7 +68,7 @@ component displayName="AssetManager Service" {
 		);
 
 		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
-			ensureAssetsAreInCorrectLocation( folderId=arguments.id )
+			ensureAssetsAreInCorrectLocation( folderId=arguments.id );
 		}
 
 		return result;
@@ -681,10 +681,14 @@ component displayName="AssetManager Service" {
 				, throwIfNot = true
 			);
 
-			return _getAssetDao().updateData(
+			var result = _getAssetDao().updateData(
 				  filter = { id = arguments.assetIds }
 				, data   = { asset_folder = arguments.folderId }
 			);
+
+			ensureAssetsAreInCorrectLocation( assetIds = arguments.assetIds );
+
+			return result;
 		}
 
 		return false;
@@ -1356,11 +1360,14 @@ component displayName="AssetManager Service" {
 	public boolean function ensureAssetsAreInCorrectLocation(
 		  string folderId = ""
 		, string assetId  = ""
+		, array  assetIds = []
 	) {
 		if ( Len( Trim( arguments.assetId ) ) ) {
 			assets = getAsset( arguments.assetId );
 		} else if ( Len( Trim( arguments.folderId ) ) ) {
 			assets = getAllAssetsBeneathFolder( arguments.folderId );
+		} else if ( arguments.assetIds.len() ) {
+			assets = _getAssetDao().selectData( filter={ id=arguments.assetIds } );
 		} else {
 			assets = getAllAssetsBeneathFolder( getRootFolderId() );
 		}
