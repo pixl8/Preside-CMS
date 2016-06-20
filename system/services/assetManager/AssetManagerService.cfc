@@ -1178,7 +1178,7 @@ component displayName="AssetManager Service" {
 		return false;
 	}
 
-	public boolean function isAssetAccessRestricted( string id, string folder="", string accessRes="" ) {
+	public boolean function isAssetAccessRestricted( string id ) {
 		var asset = getAsset( id = arguments.id, selectFields=[ "asset_folder", "access_restriction" ] );
 
 		if ( asset.recordCount ) {
@@ -1337,6 +1337,113 @@ component displayName="AssetManager Service" {
 		);
 
 		return Val( result.asset_count ?: "" );
+	}
+
+	public boolean function ensureAssetsAreInCorrectLocation(
+		  string folderId = ""
+		, string assetId  = ""
+		, any    logger
+	) {
+		var canLog   = arguments.keyExists( "logger" );
+		var canInfo  = canLog && arguments.logger.canInfo();
+
+		if ( Len( Trim( arguments.assetId ) ) ) {
+			assets = getAsset( arguments.assetId );
+		} else if ( Len( Trim( arguments.folderId ) ) ) {
+			assets = getAllAssetsBeneathFolder( arguments.folderId );
+		} else {
+			assets = getAllAssetsBeneathFolder( getRootFolderId() );
+		}
+
+		if ( !assets.recordCount ) {
+			if ( canInfo ) { arguments.logger.info( "Nothing to do :)" ); }
+			return true;
+		}
+
+		if ( canInfo ) { arguments.logger.info( "Ensuring [#NumberFormat( assets.recordCount )#] assets' files reside in the correct storage location" ); }
+		for( var asset in assets ) {
+			ensureAssetIsInCorrectLocation(
+				  assetId     = asset.id
+				, folderId    = asset.asset_folder
+				, storagePath = asset.storage_path
+				, logger      = arguments.logger ?: NullValue()
+			);
+		}
+		if ( canInfo ) { arguments.logger.info( "Done." ); }
+
+		return true;
+	}
+
+	public void function ensureAssetIsInCorrectLocation(
+		  required string assetId
+		, required string folderId
+		, required string storagePath
+		,          any    logger
+	) {
+		var canLog          = arguments.keyExists( "logger" );
+		var canInfo         = canLog && arguments.logger.canInfo();
+		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
+		var isPrivate       = isAssetAccessRestricted( arguments.assetId );
+		var storageName     = isPrivate ? "private" : "public";
+		var derivatives     = _getDerivativeDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
+		var versions        = _getAssetVersionDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
+		var moveToCorrect   = function( required string storagePath ) {
+			if ( !storageProvider.objectExists( path=arguments.storagePath, private=isPrivate ) ) {
+				if ( storageProvider.objectExists( path=arguments.storagePath, private=!isPrivate ) ) {
+					storageProvider.moveObject(
+						  originalPath      = arguments.storagePath
+						, newPath           = arguments.storagePath
+						, originalIsPrivate = !isPrivate
+						, newIsPrivate      = isPrivate
+					);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		if ( moveToCorrect( arguments.storagePath ) ) {
+			if ( canInfo ) { arguments.logger.info( "Moved [#arguments.storagePath#] to #storageName# storage location." ) }
+			_getAssetDao().updateData( id=arguments.assetId, data={ asset_url="" } );
+		}
+		for( var derivative in derivatives ) {
+			if ( moveToCorrect( derivative.storage_path ) ) {
+				if ( canInfo ) { arguments.logger.info( "Moved [#derivative.storage_path#] to #storageName# storage location." ) }
+				_getDerivativeDao().updateData( id=derivative.id, data={ asset_url="" } );
+			}
+		}
+		for( var version in versions ) {
+			if ( moveToCorrect( version.storage_path ) ) {
+				if ( canInfo ) { arguments.logger.info( "Moved [#version.storage_path#] to #storageName# storage location." ) }
+				_getAssetVersionDao().updateData( id=version.id, data={ asset_url="" } );
+			}
+		}
+	}
+
+	public query function getAllAssetsBeneathFolder( required string folderId, boolean recursive=true ) {
+		var folders = [ arguments.folderId ];
+
+		if ( arguments.recursive ) {
+			folders.append( getChildFolders( arguments.folderId ), true );
+		}
+
+		return _getAssetDao().selectData(
+			filter = { asset_folder=folders }
+		);
+	}
+
+	public array function getChildFolders( required string parent ) {
+		var childFolders = [];
+		var childRecords = _getFolderDao().selectData( filter={ parent_folder=arguments.parent }, selectFields=[ "id" ] );
+
+		if ( childRecords.recordCount ) {
+			childFolders = ValueArray( childRecords.id );
+			for( var folder in childRecords ) {
+				childFolders.append( getChildFolders( childRecords.id ), true );
+			}
+		}
+
+		return childFolders;
 	}
 
 // PRIVATE HELPERS

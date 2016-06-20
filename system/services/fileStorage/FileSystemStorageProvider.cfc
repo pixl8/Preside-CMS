@@ -227,7 +227,12 @@ component implements="preside.system.services.fileStorage.StorageProvider" displ
 		var fullOriginalPath = _expandPath( path=arguments.originalPath, private=arguments.originalIsPrivate );
 		var fullNewPath      = _expandPath( path=arguments.newPath     , private=arguments.newIsPrivate      );
 
-		FileMove( fullOriginalPath, fullNewPath );
+		try {
+			_ensureDirectoryExists( GetDirectoryFromPath( fullNewPath ) );
+			FileMove( fullOriginalPath, fullNewPath );
+		} catch( any e ) {
+			throw( type="preside.FileSystemStorageProvider.could.not.move", message="Could not move file, [#fullOriginalPath#] to [#fullnewPath#]. Error message: [#e.message#]", detail=e.detail );
+		}
 	}
 
 // GETTERS AND SETTERS
