@@ -61,10 +61,17 @@ component displayName="AssetManager Service" {
 			arguments.data.parent_folder = getRootFolderId();
 		}
 
-		return _getFolderDao().updateData(
+		var folder = getFolder( arguments.id );
+		var result = _getFolderDao().updateData(
 			  id   = arguments.id
 			, data = arguments.data
 		);
+
+		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
+			ensureAssetsAreInCorrectLocation( folderId=arguments.id )
+		}
+
+		return result;
 	}
 
 	public boolean function setFolderLocation( required string id, required struct data ) {
@@ -96,11 +103,11 @@ component displayName="AssetManager Service" {
 			}
 			folder = getFolder( id=folder.parent_folder );
 			if ( folder.recordCount ) {
-				ArrayAppend( ancestorArray, folder );
+				ancestorArray.append( folder );
 			}
 		}
 
-		for( var i=ancestorArray.len(); i gt 0; i-- ){
+		for( var i=1; i <= ancestorArray.len(); i++ ){
 			for( folder in ancestorArray[i] ) {
 				QueryAddRow( ancestors, folder );
 			}
@@ -655,7 +662,14 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
-		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		var asset  = getAsset( id=arguments.id );
+		var result = _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+
+		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
+			ensureAssetsAreInCorrectLocation( assetId=arguments.id );
+		}
+
+		return result;
 	}
 
 	public boolean function moveAssets( required array assetIds, required string folderId ) {
@@ -1342,11 +1356,7 @@ component displayName="AssetManager Service" {
 	public boolean function ensureAssetsAreInCorrectLocation(
 		  string folderId = ""
 		, string assetId  = ""
-		, any    logger
 	) {
-		var canLog   = arguments.keyExists( "logger" );
-		var canInfo  = canLog && arguments.logger.canInfo();
-
 		if ( Len( Trim( arguments.assetId ) ) ) {
 			assets = getAsset( arguments.assetId );
 		} else if ( Len( Trim( arguments.folderId ) ) ) {
@@ -1356,20 +1366,16 @@ component displayName="AssetManager Service" {
 		}
 
 		if ( !assets.recordCount ) {
-			if ( canInfo ) { arguments.logger.info( "Nothing to do :)" ); }
 			return true;
 		}
 
-		if ( canInfo ) { arguments.logger.info( "Ensuring [#NumberFormat( assets.recordCount )#] assets' files reside in the correct storage location" ); }
 		for( var asset in assets ) {
 			ensureAssetIsInCorrectLocation(
 				  assetId     = asset.id
 				, folderId    = asset.asset_folder
 				, storagePath = asset.storage_path
-				, logger      = arguments.logger ?: NullValue()
 			);
 		}
-		if ( canInfo ) { arguments.logger.info( "Done." ); }
 
 		return true;
 	}
@@ -1378,13 +1384,9 @@ component displayName="AssetManager Service" {
 		  required string assetId
 		, required string folderId
 		, required string storagePath
-		,          any    logger
 	) {
-		var canLog          = arguments.keyExists( "logger" );
-		var canInfo         = canLog && arguments.logger.canInfo();
 		var storageProvider = _getStorageProviderForFolder( arguments.folderId );
 		var isPrivate       = isAssetAccessRestricted( arguments.assetId );
-		var storageName     = isPrivate ? "private" : "public";
 		var derivatives     = _getDerivativeDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
 		var versions        = _getAssetVersionDao().selectData( filter={ asset=arguments.assetId }, selectFields=[ "id", "storage_path" ] );
 		var moveToCorrect   = function( required string storagePath ) {
@@ -1403,18 +1405,15 @@ component displayName="AssetManager Service" {
 		}
 
 		if ( moveToCorrect( arguments.storagePath ) ) {
-			if ( canInfo ) { arguments.logger.info( "Moved [#arguments.storagePath#] to #storageName# storage location." ) }
 			_getAssetDao().updateData( id=arguments.assetId, data={ asset_url="" } );
 		}
 		for( var derivative in derivatives ) {
 			if ( moveToCorrect( derivative.storage_path ) ) {
-				if ( canInfo ) { arguments.logger.info( "Moved [#derivative.storage_path#] to #storageName# storage location." ) }
 				_getDerivativeDao().updateData( id=derivative.id, data={ asset_url="" } );
 			}
 		}
 		for( var version in versions ) {
 			if ( moveToCorrect( version.storage_path ) ) {
-				if ( canInfo ) { arguments.logger.info( "Moved [#version.storage_path#] to #storageName# storage location." ) }
 				_getAssetVersionDao().updateData( id=version.id, data={ asset_url="" } );
 			}
 		}
