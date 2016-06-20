@@ -18,17 +18,13 @@ component displayName="Preside Super Class" {
 	 * @errorLogService.inject            delayedInjector:errorLogService
 	 * @featureService.inject             delayedInjector:featureService
 	 * @notificationService.inject        delayedInjector:notificationService
-<<<<<<< HEAD
 	 * @auditService.inject               delayedInjector:auditService
 	 * @contentRendererService.inject     delayedInjector:contentRendererService
-=======
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
->>>>>>> feature-PRESIDECMS-416_taskmanager
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
 	public any function init(
-<<<<<<< HEAD
 		  required any presideObjectService
 		, required any systemConfigurationService
 		, required any adminLoginService
@@ -41,21 +37,8 @@ component displayName="Preside Super Class" {
 		, required any notificationService
 		, required any auditService
 		, required any contentRendererService
+		, required any taskmanagerService
 		, required any coldbox
-=======
-		   required any presideObjectService
-		,  required any systemConfigurationService
-		,  required any adminLoginService
-		,  required any adminPermissionService
-		,  required any websiteLoginService
-		,  required any websitePermissionService
-		,  required any emailService
-		,  required any errorLogService
-		,  required any featureService
-		,  required any notificationService
-		,  required any taskmanagerService
-		,  required any coldbox
->>>>>>> feature-PRESIDECMS-416_taskmanager
 	) {
 		$presideObjectService       = arguments.presideObjectService;
 		$systemConfigurationService = arguments.systemConfigurationService;
@@ -67,12 +50,9 @@ component displayName="Preside Super Class" {
 		$errorLogService            = arguments.errorLogService;
 		$featureService             = arguments.featureService;
 		$notificationService        = arguments.notificationService;
-<<<<<<< HEAD
 		$auditService               = arguments.auditService;
 		$contentRendererService     = arguments.contentRendererService;
-=======
 		$taskmanagerService         = arguments.taskmanagerService;
->>>>>>> feature-PRESIDECMS-416_taskmanager
 		$coldbox                    = arguments.coldbox;
 
 		return this;
