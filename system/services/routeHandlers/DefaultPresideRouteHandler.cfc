@@ -135,8 +135,6 @@ component implements="iRouteHandler" output=false singleton=true {
 			}
 		}
 
-		link = ReReplace( link, "^/", "" );
-
 		return root & link;
 	}
 
