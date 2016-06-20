@@ -2,7 +2,7 @@
  * This class is used to provide common PresideCMS functionality to your service layer.
  * See [[presidesuperclass]] for a full guide on how to make use of this class.
  *
- * @autodoc true
+ * @autodoc
  *
  */
 component displayName="Preside Super Class" {
@@ -18,6 +18,7 @@ component displayName="Preside Super Class" {
 	 * @errorLogService.inject            delayedInjector:errorLogService
 	 * @featureService.inject             delayedInjector:featureService
 	 * @notificationService.inject        delayedInjector:notificationService
+	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
@@ -32,6 +33,7 @@ component displayName="Preside Super Class" {
 		,  required any errorLogService
 		,  required any featureService
 		,  required any notificationService
+		,  required any taskmanagerService
 		,  required any coldbox
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -44,6 +46,7 @@ component displayName="Preside Super Class" {
 		$errorLogService            = arguments.errorLogService;
 		$featureService             = arguments.featureService;
 		$notificationService        = arguments.notificationService;
+		$taskmanagerService         = arguments.taskmanagerService;
 		$coldbox                    = arguments.coldbox;
 
 		return this;
@@ -59,7 +62,7 @@ component displayName="Preside Super Class" {
 	 * $getPresideObjectService().dbSync();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getPresideObjectService() {
@@ -75,7 +78,7 @@ component displayName="Preside Super Class" {
 	 * $getPresideObject( "my_object" ).deleteData( id=arguments.id );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getPresideObject() {
@@ -96,7 +99,7 @@ component displayName="Preside Super Class" {
 	 * );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getSystemConfigurationService() {
@@ -112,7 +115,7 @@ component displayName="Preside Super Class" {
 	 * var mailServer = $getPresideSetting( category="email", setting="server" );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getPresideSetting() {
@@ -128,7 +131,7 @@ component displayName="Preside Super Class" {
 	 * var mailSettings = $getPresideCategorySettings( category="email" );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getPresideCategorySettings() {
@@ -147,7 +150,7 @@ component displayName="Preside Super Class" {
 	 * \t    // ...
 	 * }
 	 * ```
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getAdminLoginService() {
@@ -166,7 +169,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getWebsiteLoginService() {
@@ -183,7 +186,7 @@ component displayName="Preside Super Class" {
 	 * var adminSystemUserRoles = $getAdminPermissionService().listRoles();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getAdminPermissionService() {
@@ -202,7 +205,7 @@ component displayName="Preside Super Class" {
 	 * );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getWebsitePermissionService() {
@@ -221,7 +224,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $isAdminUserLoggedIn() {
@@ -238,7 +241,7 @@ component displayName="Preside Super Class" {
 	 * var userDetails = $getAdminLoggedInUserDetails();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getAdminLoggedInUserDetails() {
@@ -255,7 +258,7 @@ component displayName="Preside Super Class" {
 	 * var userId = $getAdminLoggedInUserId();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getAdminLoggedInUserId() {
@@ -274,7 +277,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $hasAdminPermission() {
@@ -293,7 +296,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $isWebsiteUserLoggedIn() {
@@ -312,7 +315,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $isWebsiteUserImpersonated() {
@@ -329,7 +332,7 @@ component displayName="Preside Super Class" {
 	 * var userDetails = $getWebsiteLoggedInUserDetails();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getWebsiteLoggedInUserDetails() {
@@ -346,7 +349,7 @@ component displayName="Preside Super Class" {
 	 * var userId = $getWebsiteLoggedInUserId();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getWebsiteLoggedInUserId() {
@@ -365,7 +368,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $hasWebsitePermission() {
@@ -383,7 +386,7 @@ component displayName="Preside Super Class" {
 	 * var emailTemplates = $getEmailService().listTemplates();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getEmailService() {
@@ -402,7 +405,7 @@ component displayName="Preside Super Class" {
 	 * \t    , args     =  { bookingId = arguments.bookingId }
 	 * );
 	 * ```
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $sendEmail() {
@@ -420,7 +423,7 @@ component displayName="Preside Super Class" {
 	 * $getErrorLogService().deleteAllErrors();
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getErrorLogService() {
@@ -441,7 +444,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $raiseError() {
@@ -453,7 +456,7 @@ component displayName="Preside Super Class" {
 	 * Returns an instance of the [[api-featureservice]]. This service can be used for checking
 	 * whether or not a feature is enabled.
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getFeatureService() {
@@ -471,7 +474,7 @@ component displayName="Preside Super Class" {
 	 * }
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $isFeatureEnabled() {
@@ -490,7 +493,7 @@ component displayName="Preside Super Class" {
 	 * );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $getNotificationService() {
@@ -511,11 +514,38 @@ component displayName="Preside Super Class" {
 	 * );
 	 * ```
 	 *
-	 * @autodoc true
+	 * @autodoc
 	 *
 	 */
 	public any function $createNotification() {
 		return $getNotificationService().createNotification( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns an instance of the [[api-taskmanagerService]]. See [[taskmanager]] for a full guide.
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $getTaskmanagerService() {
+		return $taskmanagerService;
+	}
+
+	/**
+	 * Proxy to the [[taskmanagerservice-runtask]] method of the [[api-taskmanagerservice]].
+	 * See [[taskmanager]] for a full guide.
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * $runTask( "resizeImages" );
+	 * ```
+	 *
+	 * @autodoc
+	 *
+	 */
+	public any function $runTask() {
+		return $getTaskmanagerService().runTask( argumentCollection=arguments );
 	}
 
 	/**
