@@ -156,14 +156,22 @@ component output=false singleton=true {
 		);
 
 		for( var propertyName in manyToManyData ){
-			_saveManyToManyVersion(
-				  sourceObjectName = arguments.objectName
-				, sourceObjectId   = recordId
-				, joinPropertyName = propertyName
-				, values           = manyToManyData[ propertyName ]
-				, versionNumber    = arguments.versionNumber
-				, versionAuthor    = arguments.versionAuthor
+			var relationship = poService.getObjectPropertyAttribute(
+				  objectName    = arguments.objectName
+				, propertyName  = propertyName
+				, attributeName = "relationship"
 			);
+
+			if ( relationship == "many-to-many" ) {
+				_saveManyToManyVersion(
+					  sourceObjectName = arguments.objectName
+					, sourceObjectId   = recordId
+					, joinPropertyName = propertyName
+					, values           = manyToManyData[ propertyName ]
+					, versionNumber    = arguments.versionNumber
+					, versionAuthor    = arguments.versionAuthor
+				);
+			}
 		}
 
 		return arguments.versionNumber;
