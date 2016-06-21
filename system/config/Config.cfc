@@ -203,10 +203,10 @@ component {
 			, derivatives = _getConfiguredAssetDerivatives()
 			, folders     = {}
 			, storage     = {
-				  public    = settings.uploads_directory & "/assets"
-				, private   = settings.uploads_directory & "/assets" // same as public by default for backward compatibility
-				, trash     = settings.uploads_directory & "/.trash"
-				, publicUrl = ""
+				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
+				, private   = ( settings.injectedConfig[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
+				, trash     = ( settings.injectedConfig[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
+				, publicUrl = ( settings.injectedConfig[ "assetmanager.storage.publicUrl" ] ?: "" )
 			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
