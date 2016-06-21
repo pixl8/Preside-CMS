@@ -531,11 +531,12 @@ component {
 	}
 
 	public string function addPage(
-		  required string title
-		, required string slug
-		, required string page_type
-		,          string parent_page
-		,          string userId      = _getLoginService().getLoggedInUserId()
+		  required string  title
+		, required string  slug
+		, required string  page_type
+		,          string  parent_page
+		,          string  userId = _getLoginService().getLoggedInUserId()
+		,          boolean audit  = true
 
 	) {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
@@ -605,7 +606,7 @@ component {
 			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
 		}
 
-		if ( Len( Trim( pageId ) ) ) {
+		if ( Len( Trim( pageId ) ) && arguments.audit ) {
 			var auditDetail = Duplicate( arguments );
 			auditDetail.id = pageId;
 
@@ -1137,6 +1138,7 @@ component {
 			, active                  = 1
 			, userId                  = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 			, exclude_from_navigation = pageType.getId() != "homepage"
+			, audit                   = false
 		};
 		if ( Len( Trim( parent ?: "" ) ) ) {
 			addPageArgs.parent_page = parent;
