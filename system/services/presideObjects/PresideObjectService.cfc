@@ -278,7 +278,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
 
 		for( key in cleanedData ){
-			if ( arguments.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ) eq "many-to-many" ) {
+			if ( arguments.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(many|one)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 			}
 			if ( not ListFindNoCase( obj.dbFieldList, key ) ) {
@@ -330,12 +330,23 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			newId = Len( Trim( newId ) ) ? newId : ( adapter.getGeneratedKey(result) ?: "" );
 			if ( Len( Trim( newId ) ) ) {
 				for( key in manyToManyData ){
-					syncManyToManyData(
-						  sourceObject   = arguments.objectName
-						, sourceProperty = key
-						, sourceId       = newId
-						, targetIdList   = manyToManyData[ key ]
-					);
+					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+
+					if ( relationship == "many-to-many" ) {
+						syncManyToManyData(
+							  sourceObject   = arguments.objectName
+							, sourceProperty = key
+							, sourceId       = newId
+							, targetIdList   = manyToManyData[ key ]
+						);
+					} else if ( relationship == "one-to-many" ) {
+						syncOneToManyData(
+							  sourceObject   = arguments.objectName
+							, sourceProperty = key
+							, sourceId       = newId
+							, targetIdList   = manyToManyData[ key ]
+						);
+					}
 				}
 			}
 		}
@@ -431,7 +442,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var preparedFilter     = "";
 
 		for( key in cleanedData ){
-			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ) eq "many-to-many" ) {
+			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(one|many)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 				cleanedData.delete( key );
 			} elseif ( !ListFindNoCase( obj.dbFieldList, key ) ) {
@@ -512,13 +523,26 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				}
 
 				for( key in manyToManyData ){
-					for( var updatedId in updatedRecords ) {
-						syncManyToManyData(
-							  sourceObject   = arguments.objectName
-							, sourceProperty = key
-							, sourceId       = updatedId
-							, targetIdList   = manyToManyData[ key ]
-						);
+					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+
+					if ( relationship == "many-to-many" ) {
+						for( var updatedId in updatedRecords ) {
+							syncManyToManyData(
+								  sourceObject   = arguments.objectName
+								, sourceProperty = key
+								, sourceId       = updatedId
+								, targetIdList   = manyToManyData[ key ]
+							);
+						}
+					} else if ( relationship == "one-to-many" ) {
+						for( var updatedId in updatedRecords ) {
+							syncOneToManyData(
+								  sourceObject   = arguments.objectName
+								, sourceProperty = key
+								, sourceId       = updatedId
+								, targetIdList   = manyToManyData[ key ]
+							);
+						}
 					}
 				}
 			}
@@ -801,6 +825,66 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Synchronizes a record's related one-to-many object data for a given property. Returns true on success, false otherwise.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * presideObjectService.syncOneToManyData(
+	 * \t      sourceObject   = "event"
+	 * \t    , sourceProperty = "sessions"
+	 * \t    , sourceId       = rc.eventId
+	 * \t    , targetIdList   = rc.sessions // e.g. "635,1,52,24"
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 * @sourceObject.hint   The object that contains the one-to-many property
+	 * @sourceProperty.hint The name of the property that is defined as a one-to-many relationship
+	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
+	 *
+	 */
+	public boolean function syncOneToManyData(
+		  required string sourceObject
+		, required string sourceProperty
+		, required string sourceId
+		, required string targetIdList
+	) {
+		var prop             = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var targetObjectName = prop.relatedTo ?: "";
+		var targetObject     = getObject( targetObjectName );
+		var targetFk         = prop.relationshipKey ?: arguments.sourceObject;
+		var targetProp       = getObjectProperty( targetObjectName, targetFk );
+		var records          = ListToArray( arguments.targetIdList );
+
+		if ( !IsBoolean( targetProp.required ?: "" ) || !targetProp.required ) {
+			var filter = "#LCase( targetFk )# = :#targetFk#";
+			var params = { "#targetFk#"=arguments.sourceId };
+
+			if ( records.len() ) {
+				filter &= " and id not in (:id)";
+				params.id = records;
+			}
+			targetObject.updateData(
+				  filter       = filter
+				, filterParams = params
+				, data         = { "#targetFk#" = "" }
+			);
+		}
+		if ( records.len() ) {
+			targetObject.updateData(
+				  filter = { id=records }
+				, data   = { "#targetFk#" = arguments.sourceId }
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Returns a structure of many to many data for a given record. Each structure key represents a many-to-many type property on the object. The value for each key will be a comma separated list of IDs of the related data.
 	 * \n
 	 * ${arguments}
@@ -1007,7 +1091,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * ```
 	 *
 	 * @objectName.hint    Name of the object who's property attribute we wish to get
-	 * @objectName.hint    Name of the property who's attribute we wish to get
+	 * @propertyName.hint  Name of the property who's attribute we wish to get
 	 * @attributeName.hint Name of the attribute who's value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
