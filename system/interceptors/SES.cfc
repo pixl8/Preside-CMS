@@ -139,7 +139,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 	private void function _setPresideUrlPath( event, interceptor ) output=false {
 		var site         = event.getSite();
-		var pathToRemove = site.path.reReplace( "/$", "" );
+		var pathToRemove = ( site.path ?: "" ).reReplace( "/$", "" );
 		var fullPath     = super.getCGIElement( "path_info", event );
 		var presidePath  = "";
 		var languageSlug = event.getLanguageSlug();
