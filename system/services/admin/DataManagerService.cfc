@@ -279,7 +279,7 @@ component {
 					pobjService.updateData(
 						  objectName = objectName
 						, data       = { "#arguments.fieldName#" = value }
-						, filter     = { id=id }
+						, filter     = { id=sourceId }
 					);
 				} else {
 					var existingIds  = [];
