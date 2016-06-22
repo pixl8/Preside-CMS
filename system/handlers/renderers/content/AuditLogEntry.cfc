@@ -15,7 +15,7 @@ component {
 		var objectTitle  = translateResource( uri="preside-objects.#objectName#:title.singular" );
 		var objectUrl    = event.buildAdminLink( linkTo="datamanager.object", queryString="id=" & objectName );
 		var objectLink   = '<a href="#objectUrl#">#objectTitle#</a>';
-		var recordLabel  = args.detail[ labelField ] ?: "unknown";
+		var recordLabel  = args.detail[ labelField ] ?: renderLabel( objectName=objectName, recordId=record_id );
 		var recordUrl    = event.buildAdminLink( linkTo="datamanager.viewRecord", queryString="object=#objectName#&id=#args.record_id#" );
 		var recordLink   = '<a href="#recordUrl#">#recordLabel#</a>';
 
@@ -23,7 +23,10 @@ component {
 			case "datamanager_translate_record":
 				var language = renderLabel( "multilingual_language", args.detail.languageId ?: "" );
 				return translateResource( uri="auditlog.datamanager:#args.action#.message", data=[ userLink, objectLink, recordLink, language ] );
-			break;
+			case "datamanager_batch_edit_record":
+				var field = args.detail.fieldName ?: "";
+				var fieldName = translateResource( "preside-objects.#objectName#:field.#field#.title", field );
+				return translateResource( uri="auditlog.datamanager:#args.action#.message", data=[ userLink, objectLink, recordLink, fieldName ] );
 		}
 
 
