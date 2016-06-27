@@ -7,14 +7,7 @@
 component {
 
 // CONSTRUCTOR
-	/**
-	 * @presideObjectService.inject PresideObjectService
-	 * @coldboxController.inject    coldbox
-	 */
-	public any function init( required any presideObjectService, required any coldboxController ) {
-		_setPresideObjectService( arguments.presideObjectService );
-		_setColdboxController( arguments.coldboxController );
-
+	public any function init() {
 		return this;
 	}
 
@@ -51,14 +44,14 @@ component {
 	}
 
 	public numeric function getNextVersionNumber() {
-		return _getPresideObjectService().insertData( objectName="version_number_sequence", data={} );
+		return $getPresideObjectService().insertData( objectName="version_number_sequence", data={} );
 	}
 
 	public numeric function saveVersionForInsert(
 		  required string  objectName
 		, required struct  data
 		, required struct  manyToManyData
-		,          string  versionAuthor = _getLoggedInUserId()
+		,          string  versionAuthor = $getAdminLoggedInUserId()
 		,          numeric versionNumber = getNextVersionNumber()
 	) {
 		return saveVersion(
@@ -80,11 +73,11 @@ component {
 		, required struct  manyToManyData
 		,          numeric versionNumber = getNextVersionNumber()
 		,          boolean forceVersionCreation = false
-		,          string  versionAuthor = _getLoggedInUserId()
+		,          string  versionAuthor = $getAdminLoggedInUserId()
 	) {
-		var poService              = _getPresideObjectService();
-		var existingRecords        = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
-		var newData                = Duplicate( arguments.data );
+		var poService       = $getPresideObjectService();
+		var existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
+		var newData         = Duplicate( arguments.data );
 
 		StructDelete( newData, "datecreated" );
 		StructDelete( newData, "datemodified" );
@@ -139,9 +132,9 @@ component {
 		, required struct  manyToManyData
 		, required array   changedFields
 		,          numeric versionNumber = getNextVersionNumber()
-		,          string  versionAuthor = _getLoggedInUserId()
+		,          string  versionAuthor = $getAdminLoggedInUserId()
 	) {
-		var poService         = _getPresideObjectService();
+		var poService         = $getPresideObjectService();
 		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
 		var versionedData     = Duplicate( arguments.data );
 		var recordId          = versionedData.id ?: "";
@@ -176,7 +169,7 @@ component {
 	}
 
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
-		var poService            = _getPresideObjectService();
+		var poService            = $getPresideObjectService();
 		var changedFields        = [];
 		var oldData              = arguments.existingData ?: NullValue();
 		var oldManyToManyData    = arguments.existingManyToManyData ?: NullValue();
@@ -336,7 +329,7 @@ component {
 		, required numeric versionNumber
 		, required string  versionAuthor
 	) {
-		var poService      = _getPresideObjectService();
+		var poService      = $getPresideObjectService();
 		var prop           = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
 		var targetObject   = prop.relatedTo ?: "";
 		var pivotTable     = prop.relatedVia ?: "";
@@ -363,15 +356,9 @@ component {
 		}
 	}
 
-	private string function _getLoggedInUserId() {
-		var event = _getColdboxController().getRequestContext();
-
-		return event.isAdminUser() ? event.getAdminUserId() : "";
-	}
-
 	private array function _getIgnoredFieldsForVersioning( required string objectName ) {
 		var ignoredFields = [ "datemodified" ];
-		var properties    = _getPresideObjectService().getObjectProperties( arguments.objectName );
+		var properties    = $getPresideObjectService().getObjectProperties( arguments.objectName );
 
 		for( var propertyName in properties ) {
 			var ignore = ( properties[ propertyName ].ignoreChangesForVersioning ?: false );
@@ -385,7 +372,7 @@ component {
 	}
 
 	private array function _getVersionedManyToManyFieldsForObject( required string objectName ) {
-		var poService       = _getPresideObjectService();
+		var poService       = $getPresideObjectService();
 		var properties      = poService.getObjectProperties( arguments.objectName );
 		var versionedFields = [];
 
@@ -402,20 +389,5 @@ component {
 		}
 
 		return versionedFields;
-	}
-
-// GETTERS AND SETTERS
-	private any function _getPresideObjectService() {
-		return _presideObjectService;
-	}
-	private void function _setPresideObjectService( required any presideObjectService ) {
-		_presideObjectService = arguments.presideObjectService;
-	}
-
-	private any function _getColdboxController() {
-		return _coldboxController;
-	}
-	private void function _setColdboxController( required any coldboxController ) {
-		_coldboxController = arguments.coldboxController;
 	}
 }
