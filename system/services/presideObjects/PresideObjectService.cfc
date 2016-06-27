@@ -137,7 +137,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
 	 * @maxVersion.hint         Can be used to set a maximum version number when selecting from the version table
 	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
-	 * @allowDraftVersions.hint When selecting from version tables, choose whether or not to allow selecting from a draft version
+	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
 	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
 	 * @selectFields.docdefault []
 	 * @filter.docdefault       {}
@@ -187,6 +187,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		args.adapter = _getAdapter( args.objMeta.dsn );
 
 		args.selectFields   = _parseSelectFields( argumentCollection=args );
+
+		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
+			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
+		}
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = args.adapter
@@ -1941,6 +1945,13 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		return newData;
+	}
+
+	private struct function _getDraftExclusionFilter( required string objectName ) {
+		return {
+			  filter       = "#arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft"
+			, filterparams = { "#arguments.objectName#._version_is_draft" = false }
+		};
 	}
 
 // SIMPLE PRIVATE PROXIES

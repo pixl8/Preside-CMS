@@ -30,6 +30,7 @@ component {
 				_removeUniqueIndexes( objMeta );
 				_removeRelationships( objMeta );
 				_addAdditionalVersioningPropertiesToVersionObject( objMeta, versionObjectName );
+				_addAdditionalVersioningPropertiesToSourceObject( obj.meta, objectName );
 
 				versionedObjects[ versionObjectName ] = { meta = objMeta, instance="auto_created" };
 			}
@@ -308,6 +309,25 @@ component {
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
 			objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_record_id" ] = { unique=false, fields="id,_version_number" };
 		}
+	}
+
+	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
+		objMeta.properties[ "_version_is_draft" ] = {
+			  name         = "_version_is_draft"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft" );
+		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#__is_draft" ] = { unique=false, fields="_version_is_draft" };
 	}
 
 	private any function _renameTableIndexes( required string indexKey ) {
