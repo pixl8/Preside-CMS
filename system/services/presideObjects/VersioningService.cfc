@@ -281,9 +281,21 @@ component {
 			, generator    = "none"
 		};
 
+		objMeta.properties[ "_version_is_draft" ] = {
+			  name         = "_version_is_draft"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
 
-
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields" );
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
@@ -292,8 +304,9 @@ component {
 		}
 		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_number" ] = { unique=false, fields="_version_number" };
 		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_author" ] = { unique=false, fields="_version_author" };
+		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_is_draft" ] = { unique=false, fields="_version_is_draft" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
-			objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_record_id" ]      = { unique=false, fields="id,_version_number" };
+			objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_record_id" ] = { unique=false, fields="id,_version_number" };
 		}
 	}
 
