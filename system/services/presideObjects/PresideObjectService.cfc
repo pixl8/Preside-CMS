@@ -15,6 +15,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @sqlRunner.inject              SqlRunner
 	 * @relationshipGuidance.inject   RelationshipGuidance
 	 * @presideObjectDecorator.inject PresideObjectDecorator
+	 * @versioningService.inject      VersioningService
 	 * @filterService.inject          presideObjectSavedFilterService
 	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
@@ -29,6 +30,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required any     sqlRunner
 		, required any     relationshipGuidance
 		, required any     presideObjectDecorator
+		, required any     versioningService
 		, required any     filterService
 		, required any     cache
 		, required any     defaultQueryCache
@@ -46,7 +48,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		_setFilterService( arguments.filterService );
 		_setCache( arguments.cache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
-		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
+		_setVersioningService( arguments.versioningService );
 		_setCacheMaps( {} );
 		_setInterceptorService( arguments.interceptorService );
 
@@ -135,6 +137,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
 	 * @maxVersion.hint         Can be used to set a maximum version number when selecting from the version table
 	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint When selecting from version tables, choose whether or not to allow selecting from a draft version
 	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
 	 * @selectFields.docdefault []
 	 * @filter.docdefault       {}
@@ -144,20 +147,21 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	public query function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields      = []
-		,          any     filter            = {}
-		,          struct  filterParams      = {}
-		,          array   extraFilters      = []
-		,          array   savedFilters      = []
-		,          string  orderBy           = ""
-		,          string  groupBy           = ""
-		,          numeric maxRows           = 0
-		,          numeric startRow          = 1
-		,          boolean useCache          = true
-		,          boolean fromVersionTable  = false
-		,          string  maxVersion        = "HEAD"
-		,          numeric specificVersion   = 0
-		,          string  forceJoins        = ""
+		,          array   selectFields       = []
+		,          any     filter             = {}
+		,          struct  filterParams       = {}
+		,          array   extraFilters       = []
+		,          array   savedFilters       = []
+		,          string  orderBy            = ""
+		,          string  groupBy            = ""
+		,          numeric maxRows            = 0
+		,          numeric startRow           = 1
+		,          boolean useCache           = true
+		,          boolean fromVersionTable   = false
+		,          string  maxVersion         = "HEAD"
+		,          numeric specificVersion    = 0
+		,          boolean allowDraftVersions = false
+		,          string  forceJoins         = ""
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
@@ -1469,6 +1473,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required array   selectFields
 		, required string  maxVersion
 		, required numeric specificVersion
+		, required boolean allowDraftVersions
 		, required any     filter
 		, required array   params
 		, required string  orderBy
@@ -1492,16 +1497,15 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		if ( arguments.specificVersion ) {
-			versionFilter = { "#arguments.objectName#._version_number" = arguments.specificVersion };
+			versionFilter = "#arguments.objectName#._version_number = :#arguments.objectName#._version_number";
+			params.append( { name="#arguments.objectName#___version_number", value=arguments.specificVersion, type="cf_sql_int" } );
+
+			if ( !arguments.allowDraftVersions ) {
+				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
+				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
+			}
 			compiledFilter = _mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
-			arguments.params = _arrayMerge( arguments.params, _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = versionObj.properties
-				, data              = versionFilter
-				, dbAdapter         = adapter
-				, tableAlias        = arguments.objectName
-			) );
 		} else {
 			versionCheckJoin   = _getVersionCheckJoin( versionTableName, arguments.objectName, adapter );
 			versionCheckFilter = "_latestVersionCheck.id is null";
@@ -1509,6 +1513,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			if ( ReFind( "^[1-9][0-9]*$", arguments.maxVersion ) ) {
 				versionCheckJoin.additionalClauses &= " and _latestVersionCheck._version_number <= #arguments.maxVersion#";
 				versionCheckFilter &= " and #arguments.objectName#._version_number <= #arguments.maxVersion#";
+
+				if ( !arguments.allowDraftVersions ) {
+					versionCheckJoin.additionalClauses &= " and ( _latestVersionCheck._version_is_draft is null or _latestVersionCheck._version_is_draft = 0 )";
+					versionCheckFilter &= " and ( _latestVersionCheck._version_is_draft is null or _latestVersionCheck._version_is_draft = 0 )";
+				}
 			}
 			ArrayAppend( alteredJoins, versionCheckJoin );
 
