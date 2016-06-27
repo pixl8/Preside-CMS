@@ -1,11 +1,17 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+
+component {
 
 // CONSTRUCTOR
 	/**
 	 * @presideObjectService.inject PresideObjectService
 	 * @coldboxController.inject    coldbox
 	 */
-	public any function init( required any presideObjectService, required any coldboxController ) output=false {
+	public any function init( required any presideObjectService, required any coldboxController ) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setColdboxController( arguments.coldboxController );
 
@@ -13,7 +19,7 @@ component output=false singleton=true {
 	}
 
 // PUBLIC API METHODS
-	public void function setupVersioningForVersionedObjects( required struct objects, required string primaryDsn ) output=false {
+	public void function setupVersioningForVersionedObjects( required struct objects, required string primaryDsn ) {
 		var versionedObjects = {};
 
 		for( var objectName in objects ){
@@ -44,7 +50,7 @@ component output=false singleton=true {
 
 	}
 
-	public numeric function getNextVersionNumber() output=false {
+	public numeric function getNextVersionNumber() {
 		return _getPresideObjectService().insertData( objectName="version_number_sequence", data={} );
 	}
 
@@ -54,7 +60,7 @@ component output=false singleton=true {
 		, required struct  manyToManyData
 		,          string  versionAuthor = _getLoggedInUserId()
 		,          numeric versionNumber = getNextVersionNumber()
-	) output=false {
+	) {
 		return saveVersion(
 			  objectName        = arguments.objectName
 			, data              = arguments.data
@@ -75,7 +81,7 @@ component output=false singleton=true {
 		,          numeric versionNumber = getNextVersionNumber()
 		,          boolean forceVersionCreation = false
 		,          string  versionAuthor = _getLoggedInUserId()
-	) output=false {
+	) {
 		var poService              = _getPresideObjectService();
 		var existingRecords        = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
 		var newData                = Duplicate( arguments.data );
@@ -134,7 +140,7 @@ component output=false singleton=true {
 		, required array   changedFields
 		,          numeric versionNumber = getNextVersionNumber()
 		,          string  versionAuthor = _getLoggedInUserId()
-	) output=false {
+	) {
 		var poService         = _getPresideObjectService();
 		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
 		var versionedData     = Duplicate( arguments.data );
@@ -219,7 +225,7 @@ component output=false singleton=true {
 	}
 
 // PRIVATE HELPERS
-	private void function _removeUniqueIndexes( required struct objMeta ) output=false {
+	private void function _removeUniqueIndexes( required struct objMeta ) {
 		for( var ixName in objMeta.indexes ) {
 			var ix = objMeta.indexes[ ixName ];
 			if ( IsBoolean( ix.unique ?: "" ) && ix.unique ) {
@@ -228,13 +234,13 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _removeRelationships( required struct objMeta ) output=false {
+	private void function _removeRelationships( required struct objMeta ) {
 		objMeta.relationships = objMeta.relationships ?: {};
 
 		StructClear( objMeta.relationships );
 	}
 
-	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string objectName ) output=false {
+	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string objectName ) {
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
 			if ( ( objMeta.properties.id.generator ?: "" ) == "increment" ) {
 				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with a an auto incrementing id.", detail="Please either use the default UUID generator for the id or turn versioning off on the object with versioned=false" );
@@ -298,15 +304,15 @@ component output=false singleton=true {
 		}
 	}
 
-	private any function _renameTableIndexes( required string indexKey ) output=false {
+	private any function _renameTableIndexes( required string indexKey ) {
 		return _removeTablePrefix( RereplaceNoCase( arguments.indexKey, '^([iu]x_)', '\1version_' ) );
 	}
 
-	private any function _removeTablePrefix( required string indexKey ) output=false {
+	private any function _removeTablePrefix( required string indexKey ) {
 		return replaceNoCase( arguments.indexKey, '_psys_', '_' );
 	}
 
-	private any function _createVersionNumberSequenceObject( required string primaryDsn ) output=false {
+	private any function _createVersionNumberSequenceObject( required string primaryDsn ) {
 		return { instance="auto_created", meta={
 			  dbFieldList = "id,datecreated"
 			, dsn         = primaryDsn
@@ -329,7 +335,7 @@ component output=false singleton=true {
 		, required string  values
 		, required numeric versionNumber
 		, required string  versionAuthor
-	) output=false {
+	) {
 		var poService      = _getPresideObjectService();
 		var prop           = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
 		var targetObject   = prop.relatedTo ?: "";
@@ -357,7 +363,7 @@ component output=false singleton=true {
 		}
 	}
 
-	private string function _getLoggedInUserId() output=false {
+	private string function _getLoggedInUserId() {
 		var event = _getColdboxController().getRequestContext();
 
 		return event.isAdminUser() ? event.getAdminUserId() : "";
@@ -399,17 +405,17 @@ component output=false singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
 	}
 
-	private any function _getColdboxController() output=false {
+	private any function _getColdboxController() {
 		return _coldboxController;
 	}
-	private void function _setColdboxController( required any coldboxController ) output=false {
+	private void function _setColdboxController( required any coldboxController ) {
 		_coldboxController = arguments.coldboxController;
 	}
 }
