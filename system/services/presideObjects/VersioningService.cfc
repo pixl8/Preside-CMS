@@ -54,6 +54,7 @@ component {
 		, required struct  manyToManyData
 		,          string  versionAuthor = $getAdminLoggedInUserId()
 		,          numeric versionNumber = getNextVersionNumber()
+		,          boolean isDraft       = false
 	) {
 		return saveVersion(
 			  objectName        = arguments.objectName
@@ -61,6 +62,7 @@ component {
 			, versionNumber     = arguments.versionNumber
 			, versionAuthor     = arguments.versionAuthor
 			, manyToManyData    = arguments.manyToManyData
+			, isDraft           = arguments.isDraft
 			, changedFields     = StructKeyArray( arguments.data )
 		);
 	}
@@ -72,9 +74,10 @@ component {
 		, required struct  filterParams
 		, required struct  data
 		, required struct  manyToManyData
-		,          numeric versionNumber = getNextVersionNumber()
+		,          numeric versionNumber        = getNextVersionNumber()
 		,          boolean forceVersionCreation = false
-		,          string  versionAuthor = $getAdminLoggedInUserId()
+		,          string  versionAuthor        = $getAdminLoggedInUserId()
+		,          boolean isDraft              = false
 	) {
 		var poService       = $getPresideObjectService();
 		var existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
@@ -121,6 +124,7 @@ component {
 				, versionAuthor  = arguments.versionAuthor
 				, manyToManyData = mergedManyToManyData
 				, changedFields  = changedFields
+				, isDraft        = arguments.isDraft
 			);
 		}
 
@@ -134,6 +138,7 @@ component {
 		, required array   changedFields
 		,          numeric versionNumber = getNextVersionNumber()
 		,          string  versionAuthor = $getAdminLoggedInUserId()
+		,          boolean isDraft       = false
 	) {
 		var poService         = $getPresideObjectService();
 		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
@@ -142,6 +147,7 @@ component {
 
 		versionedData._version_number         = arguments.versionNumber;
 		versionedData._version_author         = arguments.versionAuthor;
+		versionedData._version_is_draft       = arguments.isDraft;
 		versionedData._version_changed_fields = ',' & arguments.changedFields.toList() & ",";
 
 		if ( poService.fieldExists( versionObjectName, "id" ) ) {

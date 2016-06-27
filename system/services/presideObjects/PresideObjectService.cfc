@@ -255,6 +255,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @objectName.hint              Name of the object in which to to insert a record
 	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
+	 * @isDraft.hint                 Whether or not to save the record as a draft record
 	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @useVersioning.docdefault     automatic
@@ -263,6 +264,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		  required string  objectName
 		, required struct  data
 		,          boolean insertManyToManyRecords = false
+		,          boolean isDraft                 = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 
@@ -310,6 +312,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				newId = cleanedData.id;
 			}
 		}
+		if ( objectIsVersioned( arguments.objectName ) ) {
+			cleanedData._version_is_draft = arguments.isDraft;
+		}
 
 		transaction {
 			if ( requiresVersioning ) {
@@ -318,6 +323,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					, data           = cleanedData
 					, manyToManyData = manyToManyData
 					, versionNumber  = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					, isDraft        = arguments.isDraft
 				);
 			}
 
@@ -402,6 +408,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
 	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
+	 * @isDraft.hint                 Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
 	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @useVersioning.docdefault     auto
@@ -416,6 +423,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          array   savedFilters            = []
 		,          boolean forceUpdateAll          = false
 		,          boolean updateManyToManyRecords = false
+		,          boolean isDraft                 = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 		,          boolean forceVersionCreation    = false
@@ -481,52 +489,55 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					, filterParams         = preparedFilter.filterParams
 					, data                 = cleanedData
 					, manyToManyData       = manyToManyData
+					, isDraft              = arguments.isDraft
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 					, forceVersionCreation = arguments.forceVersionCreation
 				);
 			}
 
-			preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = obj.properties
-				, data              = cleanedData
-				, dbAdapter         = adapter
-				, preFix            = "set__"
-			) );
+			if ( !arguments.isDraft ) {
+				preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
+					  objectName        = arguments.objectName
+					, columnDefinitions = obj.properties
+					, data              = cleanedData
+					, dbAdapter         = adapter
+					, preFix            = "set__"
+				) );
 
-			sql = adapter.getUpdateSql(
-				  tableName     = obj.tableName
-				, tableAlias    = arguments.objectName
-				, updateColumns = StructKeyArray( cleanedData )
-				, filter        = preparedFilter.filter
-				, joins         = joins
-			);
+				sql = adapter.getUpdateSql(
+					  tableName     = obj.tableName
+					, tableAlias    = arguments.objectName
+					, updateColumns = StructKeyArray( cleanedData )
+					, filter        = preparedFilter.filter
+					, joins         = joins
+				);
 
-			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+				result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
-			if ( StructCount( manyToManyData ) ) {
-				var updatedRecords = [];
+				if ( StructCount( manyToManyData ) ) {
+					var updatedRecords = [];
 
-				if ( Len( Trim( arguments.id ?: "" ) ) ) {
-					updatedRecords = [ arguments.id ];
-				} else {
-					updatedRecords = selectData(
-						  objectName   = arguments.objectName
-						, selectFields = [ "id" ]
-						, filter       = preparedFilter.filter
-						, filterParams = preparedFilter.filterParams
-					);
-					updatedRecords = ListToArray( updatedRecords.id );
-				}
-
-				for( key in manyToManyData ){
-					for( var updatedId in updatedRecords ) {
-						syncManyToManyData(
-							  sourceObject   = arguments.objectName
-							, sourceProperty = key
-							, sourceId       = updatedId
-							, targetIdList   = manyToManyData[ key ]
+					if ( Len( Trim( arguments.id ?: "" ) ) ) {
+						updatedRecords = [ arguments.id ];
+					} else {
+						updatedRecords = selectData(
+							  objectName   = arguments.objectName
+							, selectFields = [ "id" ]
+							, filter       = preparedFilter.filter
+							, filterParams = preparedFilter.filterParams
 						);
+						updatedRecords = ListToArray( updatedRecords.id );
+					}
+
+					for( key in manyToManyData ){
+						for( var updatedId in updatedRecords ) {
+							syncManyToManyData(
+								  sourceObject   = arguments.objectName
+								, sourceProperty = key
+								, sourceId       = updatedId
+								, targetIdList   = manyToManyData[ key ]
+							);
+						}
 					}
 				}
 			}
