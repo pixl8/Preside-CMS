@@ -80,7 +80,7 @@ component {
 		,          boolean isDraft              = false
 	) {
 		var poService       = $getPresideObjectService();
-		var existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
+		var existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true );
 		var newData         = Duplicate( arguments.data );
 
 		StructDelete( newData, "datecreated" );
@@ -190,7 +190,7 @@ component {
 			);
 		}
 		if ( IsNull( oldData ) ) {
-			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId );
+			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId, allowDraftVersions=true );
 			for( var d in oldData ) { oldData = d; } // query to struct hack
 		}
 
