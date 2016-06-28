@@ -438,6 +438,7 @@ component singleton=true {
 		, boolean expandAllSiblings = true
 		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
 		, boolean isSubMenu         = false
+		, boolean allowDrafts       = _getLoginService().isLoggedIn()
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ]
@@ -461,11 +462,12 @@ component singleton=true {
 			}
 
 			var children = _getPObj().selectData(
-				  selectFields = args.selectFields
-				, filter       = filter
-				, filterParams = filterParams
-				, extraFilters = extraFilters
-				, orderBy      = "sort_order"
+				  selectFields       = args.selectFields
+				, filter             = filter
+				, filterParams       = filterParams
+				, extraFilters       = extraFilters
+				, orderBy            = "sort_order"
+				, allowDraftVersions = args.allowDrafts
 			);
 
 			for( var child in children ){

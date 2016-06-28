@@ -4,6 +4,7 @@
  *
  * @autodoc
  * @singleton
+ * @presideService
  *
  */
 component displayName="Preside Object View Service" {
@@ -92,8 +93,9 @@ component displayName="Preside Object View Service" {
 		StructDelete( selectDataArgs, "cacheSuffix"            );
 		StructDelete( selectDataArgs, "cacheTimeout"           );
 
-		selectDataArgs.objectName   = arguments.presideObject
-		selectDataArgs.selectFields = viewDetails.selectFields
+		selectDataArgs.objectName         = arguments.presideObject
+		selectDataArgs.selectFields       = viewDetails.selectFields
+		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $isAdminUserLoggedIn();
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
 		for( record in data ) {
