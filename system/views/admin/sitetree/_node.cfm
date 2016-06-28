@@ -15,6 +15,7 @@
 	param name="args.trashed"                     type="boolean";
 	param name="args.child_count"                 type="numeric";
 	param name="args.access_restriction"          type="string";
+	param name="args.is_draft"                    type="string";
 
 	param name="args.permission_context"          type="array" default=[];
 	param name="args.parent_restriction"          type="string" default="none";
@@ -47,6 +48,7 @@
 		managedChildPageTypes   = getManagedChildPageTypes( args.page_type );
 		isSystemPage            = isSystemPageType( args.page_type );
 		hasChildren             = managedChildPageTypes.len() || args.child_count;
+		isDraft                 = IsTrue( args.is_draft );
 
 		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=permContextKeys );
 		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=permContextKeys );
@@ -65,12 +67,19 @@
 		dataImage            = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
 		usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
 		outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
+
+		if ( isDraft ) {
+			redClass   = greenClass = "light-grey";
+		} else {
+			redClass   = "red";
+			greenClass = "green";
+		}
 	}
 </cfscript>
 
 <cfif hasNavigatePermission>
 	<cfoutput>
-		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
+		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif><cfif isDraft> draft light-grey</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
 			<td class="page-title-cell">
 				<!--- whitespace important here hence one line --->
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
@@ -146,22 +155,32 @@
 			</td>
 			<td>#pageType#</td>
 			<td>
-				#renderField( object="page", property="active", data=args.active, context=[ "adminDataTable", "admin" ] )#
+				<cfif IsTrue( args.active )>
+					<i class="fa fa-fw fa-check-circle #greenClass#"></i>
+				<cfelse>
+					<i class="fa fa-fw fa-times-circle #redClass#"></i>
+				</cfif>
 
 				<cfif usesDateRestrictions>
-					<i class="fa fa-clock-o <cfif outOfDate>red<cfelse>green</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
+					<i class="fa fa-fw fa-clock-o <cfif outOfDate>#redClass#<cfelse>#greenClass#</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
+				</cfif>
+
+				<cfif isDraft>
+					#translateResource( "cms:sitetree.page.status.draft" )#
+				<cfelse>
+					#translateResource( "cms:sitetree.page.status.published" )#
 				</cfif>
 			</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">
-						<i class="fa fa-fw fa-lock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
+						<i class="fa fa-fw fa-lock #redClass#"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.full" )#
 					</cfcase>
 					<cfcase value="partial">
-						<i class="fa fa-fw fa-unlock red"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
+						<i class="fa fa-fw fa-unlock #redClass#"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.partial" )#
 					</cfcase>
 					<cfdefaultcase>
-						<i class="fa fa-fw fa-unlock green"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
+						<i class="fa fa-fw fa-unlock #greenClass#"></i> &nbsp; #translateResource( "preside-objects.page:access_restriction.option.none" )#
 					</cfdefaultcase>
 				</cfswitch>
 			</td>
