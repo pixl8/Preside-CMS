@@ -171,11 +171,12 @@ component singleton=true {
 		}
 
 		return _getPobj().selectData(
-			  selectFields = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
-			, filter       = filter
-			, filterParams = params
-			, maxRows      = arguments.maxRows
-			, orderBy      = "page._hierarchy_sort_order"
+			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			, filter             = filter
+			, filterParams       = params
+			, maxRows            = arguments.maxRows
+			, orderBy            = "page._hierarchy_sort_order"
+			, allowDraftVersions = true
 		);
 	}
 
