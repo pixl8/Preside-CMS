@@ -112,9 +112,10 @@ component singleton=true {
 		, array   selectFields = []
 		, boolean useCache     = true
 		, numeric version      = 0
+		, boolean allowDrafts  = _getLoginService().isLoggedIn()
 
 	) {
-		var args = { filter="", filterParams={}, useCache=arguments.useCache };
+		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
 			args.filter          = "page.id = :id";
@@ -285,15 +286,21 @@ component singleton=true {
 		return arguments.defaultValue;
 	}
 
-	public query function getDescendants( required string id, numeric depth=0, array selectFields=[] ) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ] );
+	public query function getDescendants(
+		  required string  id
+		,          numeric depth        = 0
+		,          array   selectFields = []
+		,          boolean allowDrafts  = _getLoginService().isLoggedIn()
+	) {
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount ) {
 			args = {
-				  filter       = "_hierarchy_lineage like :_hierarchy_lineage"
-				, filterParams = { _hierarchy_lineage = page._hierarchy_child_selector }
-				, orderBy      = "_hierarchy_sort_order"
+				  filter             = "_hierarchy_lineage like :_hierarchy_lineage"
+				, filterParams       = { _hierarchy_lineage = page._hierarchy_child_selector }
+				, orderBy            = "_hierarchy_sort_order"
+				, allowDraftVersions = arguments.allowDrafts
 			};
 
 			if ( arguments.depth ) {
@@ -622,7 +629,7 @@ component singleton=true {
 		_checkForBadHomepageOperations( argumentCollection = arguments );
 
 		transaction {
-			existingPage = getPage( id = arguments.id, includeTrash = true, useCache = false );
+			existingPage = getPage( id = arguments.id, includeTrash = true, useCache = false, allowDrafts=true );
 			if ( not existingPage.recordCount ) {
 				return false;
 			}
@@ -713,7 +720,7 @@ component singleton=true {
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
-				if ( pageTypeObj.dataExists( filter={ page=arguments.id } ) ) {
+				if ( pageTypeObj.dataExists( filter={ page=arguments.id }, allowDraftVersions=true ) ) {
 					_getPresideObject( pageType.getPresideObject() ).updateData(
 						  data                    = arguments
 						, filter                  = { page=arguments.id }
@@ -990,7 +997,7 @@ component singleton=true {
 	}
 
 	private numeric function _getNextAvailableHierarchyId() {
-		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ] );
+		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ], allowDraftVersions=true );
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
 	}
