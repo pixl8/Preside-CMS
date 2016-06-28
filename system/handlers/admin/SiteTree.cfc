@@ -270,7 +270,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" )
 
 		prc.page = QueryRowToStruct( prc.page );
-		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version  );
+		var savedData = getPresideObject( pageType.getPresideObject() ).selectData( filter={ page = pageId }, fromVersionTable=( version > 0 ), specificVersion=version, allowDraftVersions=true  );
 		StructAppend( prc.page, QueryRowToStruct( savedData ) );
 
 		var contextualAccessPerms = websitePermissionService.getContextualPermissions(
