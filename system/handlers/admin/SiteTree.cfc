@@ -146,6 +146,12 @@ component extends="preside.system.base.AdminHandler" {
 		var pageType     = rc.page_type ?: "";
 
 		_checkPermissions( argumentCollection=arguments, key="add", pageId=parentPageId );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=parentPageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=parentPageId, throwOnError=false );
+
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
 
 		prc.parentPage = siteTreeService.getPage(
 			  id              = parentPageId
@@ -165,6 +171,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.mainFormName  = "preside-objects.page.add";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
+
 
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(

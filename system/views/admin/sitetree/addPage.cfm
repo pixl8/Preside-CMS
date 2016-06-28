@@ -13,7 +13,16 @@
 		prc.pageTitle    = translateResource( "cms:sitetree.addPage.title" );
 	}
 
+	canPublish   = IsTrue( prc.canPublish   ?: "" );
+	canSaveDraft = IsTrue( prc.canSaveDraft ?: "" );
 
+	actions = [];
+	if ( canSaveDraft ) {
+		actions.append( { key="savedraft", title=translateResource( "cms:sitetree.addpage.draft.btn" ) } );
+	}
+	if ( canPublish ) {
+		actions.append( { key="publish", title=translateResource( "cms:sitetree.addpage.btn" ) } );
+	}
 </cfscript>
 
 <cfoutput>
@@ -44,15 +53,36 @@
 			)#
 
 			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">
-					<i class="fa fa-reply bigger-110"></i>
-					#translateResource( "cms:sitetree.cancel.btn" )#
-				</a>
+				<div class="btn-group">
+					<a href="#event.buildAdminLink( linkTo="sitetree" )#" class="btn btn-default" data-global-key="c">
+						<i class="fa fa-reply bigger-110"></i>
+						#translateResource( "cms:sitetree.cancel.btn" )#
+					</a>
+				</div>
 
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:sitetree.addpage.btn" )#
-				</button>
+				<input name="_saveAction" type="hidden" value="#actions[1].key#">
+				<cfif actions.len() == 1>
+					<div class="btn-group">
+						<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-save bigger-110"></i>
+							#actions[1].title#
+						</button>
+					</div>
+				<cfelse>
+					<div class="btn-group" data-multi-submit-field="_saveAction">
+						<button type="submit" class="btn btn-info">
+							<i class="fa fa-save bigger-110"></i> #actions[1].title#
+						</button>
+						<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<i class="fa fa-caret-down bigger-110"></i><span class="sr-only">Toggle Dropdown</span>
+						</button>
+						<ul class="dropdown-menu">
+							<cfloop array="#actions#" index="i" item="action">
+								<li><a href="##" data-action-key="#action.key#">#action.title#</a></li>
+							</cfloop>
+						</ul>
+					</div>
+				</cfif>
 			</div>
 		</div>
 	</form>
