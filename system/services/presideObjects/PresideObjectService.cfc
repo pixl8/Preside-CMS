@@ -887,9 +887,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		args.append( {
-			  objectName   = getVersionObjectName( arguments.objectName )
-			, orderBy      = "_version_number desc"
-			, useCache     = false
+			  objectName         = getVersionObjectName( arguments.objectName )
+			, orderBy            = "_version_number desc"
+			, useCache           = false
+			, allowDraftVersions = true
 		} );
 
 		if ( args.keyExists( "fieldName" ) ) {
