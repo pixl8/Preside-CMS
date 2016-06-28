@@ -43,6 +43,7 @@ component singleton=true {
 		, boolean useCache     = true
 		, string  rootPageId   = ""
 		, numeric maxDepth     = -1
+		, boolean allowDrafts  = _getLoginService().isLoggedIn()
 
 	) {
 		var tree             = "";
@@ -54,13 +55,14 @@ component singleton=true {
 			filter &= " and page.page_type in (:page_type)"
 		}
 
-		var maxDepth         = arguments.maxDepth;
-		var args = {
-			  orderBy      = "page._hierarchy_sort_order"
-			, filter       = filter
-			, filterParams = { trashed = arguments.trash, page_type = allowedPageTypes }
-			, useCache     = arguments.useCache
-			, groupBy      = "page.id"
+		var maxDepth = arguments.maxDepth;
+		var args     = {
+			  orderBy            = "page._hierarchy_sort_order"
+			, filter             = filter
+			, filterParams       = { trashed = arguments.trash, page_type = allowedPageTypes }
+			, useCache           = arguments.useCache
+			, groupBy            = "page.id"
+			, allowDraftVersions = arguments.allowDrafts
 		};
 
 		if ( ArrayLen( arguments.selectFields ) ) {
@@ -89,7 +91,6 @@ component singleton=true {
 			args.filter       &= " and page._hierarchy_depth <= :_hierarchy_depth";
 			args.filterParams._hierarchy_depth = maxDepth;
 		}
-
 
 		tree = _getPObj().selectData( argumentCollection = args );
 
@@ -527,11 +528,12 @@ component singleton=true {
 	}
 
 	public string function addPage(
-		  required string title
-		, required string slug
-		, required string page_type
-		,          string parent_page
-		,          string userId      = _getLoginService().getLoggedInUserId()
+		  required string  title
+		, required string  slug
+		, required string  page_type
+		,          string  parent_page
+		,          string  userId      = _getLoginService().getLoggedInUserId()
+		,          boolean isDraft     = false
 
 	) {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
@@ -590,7 +592,7 @@ component singleton=true {
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
-			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true );
+			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
 			if ( not Len( pageId ) and StructKeyExists( arguments, "id" ) ) {
 				pageId = arguments.id;
 			}
@@ -598,7 +600,7 @@ component singleton=true {
 
 			pageTypeObjData = Duplicate( arguments );
 			pageTypeObjData.page = pageTypeObjData.id = pageId;
-			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
+			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
 		}
 
 		return pageId;

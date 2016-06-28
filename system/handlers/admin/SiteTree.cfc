@@ -47,6 +47,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page._hierarchy_slug as full_slug"
 			, "page.trashed"
 			, "page.access_restriction"
+			, "page._version_is_draft as is_draft"
 			, "Count( child_pages.id ) as child_count"
 		] );
 		prc.trashCount = siteTreeService.getTrashCount();
@@ -74,6 +75,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.trashed"
 			, "page.access_restriction"
 			, "page._hierarchy_depth"
+			, "page._version_is_draft as is_draft"
 			, "Count( child_pages.id ) as child_count"
 		] );
 
@@ -172,7 +174,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.mainFormName  = "preside-objects.page.add";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "add" );
 
-
 		_pageCrumbtrail( argumentCollection=arguments, pageId=parentPageId, pageTitle=prc.parentPage.title );
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:sitetree.addPage.title" )
@@ -184,12 +185,18 @@ component extends="preside.system.base.AdminHandler" {
 		var parent            = rc.parent_page ?: "";
 		var pageType          = rc.page_type   ?: "";
 		var formName          = "preside-objects.page.add";
+		var saveAsDraft       = ( rc._saveaction ?: "" ) != "publish";
 		var formData          = "";
 		var validationResult  = "";
 		var newId             = "";
 		var persist           = "";
 
 		_checkPermissions( argumentCollection=arguments, key="add", pageId=parent );
+		if ( saveAsDraft ) {
+			_checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=parent );
+		} else {
+			_checkPermissions( argumentCollection=arguments, key="publish", pageId=parent );
+		}
 
 		if ( !pageTypesService.pageTypeExists( pageType ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
@@ -214,7 +221,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.addPage" ), persistStruct=persist );
 		}
 
-		newId = siteTreeService.addPage( argumentCollection = formData );
+		newId = siteTreeService.addPage( argumentCollection = formData, isDraft=saveAsDraft );
 
 		websitePermissionService.syncContextPermissions(
 			  context       = "page"
