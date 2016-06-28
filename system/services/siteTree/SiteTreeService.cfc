@@ -368,20 +368,27 @@ component singleton=true {
 		return result;
 	}
 
-	public query function getAncestors( required string id, numeric depth=0, array selectFields=[], boolean includeSiblings=false ) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ] );
+	public query function getAncestors(
+		  required string  id
+		,          numeric depth           = 0
+		,          array   selectFields    = []
+		,          boolean includeSiblings = false
+		,          boolean allowDrafts     = _getLoginService().isLoggedIn()
+	) {
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount and page._hierarchy_lineage neq "/" ) {
 			args = {
-				  filter       = "( _hierarchy_id in (:_hierarchy_id)"
-				, filterParams = { _hierarchy_id = { value=page._hierarchy_lineage, list=true, separator="/" } }
-				, orderBy      = "_hierarchy_sort_order"
+				  filter             = "( _hierarchy_id in (:_hierarchy_id)"
+				, filterParams       = { _hierarchy_id = { value=page._hierarchy_lineage, list=true, separator="/" } }
+				, orderBy            = "_hierarchy_sort_order"
+				, allowDraftVersions = arguments.allowDrafts
 			};
 
 			if ( arguments.includeSiblings ) {
 				// would be nice not to have to make this additional call here, necessary due to using _hierarchy_id instead of id to form lineage
-				var ancestors = getAncestors( id=arguments.id, selectFields=[ "id" ] );
+				var ancestors = getAncestors( id=arguments.id, selectFields=[ "id" ], allowDraftVersions=arguments.allowDrafts );
 				args.filter &= " or parent_page in (:parent_page) or parent_page is null";
 				args.filterParams.parent_page = { value=ValueList( ancestors.id ), list=true };
 			}
