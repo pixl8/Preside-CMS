@@ -9,7 +9,7 @@
 <cfoutput>
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName    = "page"
-		, gridFields    = [ "datemodified", "_version_author", "title" ]
+		, gridFields    = [ "datemodified", "_version_author", "_version_is_draft", "title" ]
 		, datasourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=sitetree.getPageHistoryForAjaxDataTables&id=#id#" )
 		, allowSearch   = false
 	} )#
