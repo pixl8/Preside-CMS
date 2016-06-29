@@ -1102,7 +1102,16 @@
 			);
 
 			if ( !selectedVersion && args.versions.recordCount ) {
-				selectedVersion = args.versions._version_number; // first record, they are ordered reverse chronologically
+				for( var version in args.versions ) {
+					if ( IsFalse( version._version_is_draft ) ) {
+						selectedVersion = version._version_number;
+						break;
+					}
+				}
+
+				if ( !selectedVersion ) {
+					selectedVersion = args.versions._version_number;
+				}
 			}
 
 			args.nextVersion = 0;
