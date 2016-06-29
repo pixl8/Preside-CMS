@@ -257,13 +257,14 @@ component extends="preside.system.base.AdminHandler" {
 	public void function editPage( event, rc, prc ) {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
-		var version          = Val ( rc.version    ?: "" );
 		var pageType         = "";
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=prc.page.parent_page, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=prc.page.parent_page, throwOnError=false );
+
+		var version = Val ( rc.version    ?: "" );
 
 		if ( !prc.canPublish && !prc.canSaveDraft ) {
 			event.adminAccessDenied();

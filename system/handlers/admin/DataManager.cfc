@@ -6,6 +6,7 @@
 	<cfproperty name="formsService"                     inject="formsService"                     />
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
+	<cfproperty name="versioningService"                inject="versioningService"                />
 	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -1095,25 +1096,21 @@
 
 		<cfscript>
 			var selectedVersion = Val( args.version ?: "" );
+			var objectName      = args.object ?: "";
+			var id              = args.id     ?: "";
 
-			args.versions = presideObjectService.getRecordVersions(
-				  objectName = args.object ?: ""
-				, id         = args.id     ?: ""
+			args.latestVersion          = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id );
+			args.latestPublishedVersion = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id, publishedOnly=true );
+			args.versions               = presideObjectService.getRecordVersions(
+				  objectName = objectName
+				, id         = id
 			);
 
-			if ( !selectedVersion && args.versions.recordCount ) {
-				for( var version in args.versions ) {
-					if ( IsFalse( version._version_is_draft ) ) {
-						selectedVersion = version._version_number;
-						break;
-					}
-				}
-
-				if ( !selectedVersion ) {
-					selectedVersion = args.versions._version_number;
-				}
+			if ( !selectedVersion ) {
+				selectedVersion = args.latestVersion;
 			}
 
+			args.isLatest    = args.latestVersion == selectedVersion;
 			args.nextVersion = 0;
 			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
 

@@ -44,6 +44,7 @@
 		  object         = "page"
 		, id             = pageId
 		, version        = version
+		, isDraft        = IsTrue( page._version_is_draft ?: "" )
 		, baseUrl        = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
 		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
 	} )#

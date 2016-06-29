@@ -224,12 +224,18 @@ component {
 		return getChangedFields( argumentCollection=arguments ).len() > 0;
 	}
 
-	public numeric function getLatestVersionNumber( required string objectName, required string recordId ) {
+	public numeric function getLatestVersionNumber( required string objectName, required string recordId, boolean publishedOnly=false ) {
 		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var filter            = { id = arguments.recordId };
+
+		if ( arguments.publishedOnly ) {
+			filter._version_is_draft = false;
+		}
+
 		var record            = $getPresideObjectService().selectData(
 			  objectName   = versionObjectName
 			, selectFields = [ "Max( _version_number ) as version_number" ]
-			, filter       = { id = arguments.recordId }
+			, filter       = filter
 			, useCache     = false
 		);
 
