@@ -6,37 +6,43 @@
 
 <cfscript>
 	usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
-	outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
 	isDraft              = IsTrue( args.is_draft );
 	hasDrafts            = IsTrue( args.has_drafts );
 
-	if ( isDraft ) {
-		redClass   = greenClass = "light-grey";
-	} else {
-		redClass   = "red";
-		greenClass = "green";
-	}
+	statusText   = translateResource( "cms:sitetree.page.status.published" )
+	statusIcon   = "check-circle";
+	statusColour = "green";
 
+	if ( isDraft ) {
+		statusText   = translateResource( "cms:sitetree.page.status.draft" );
+		statusIcon   = "edit";
+		statusColour = "light-grey";
+	} else {
+		if ( IsFalse( args.active ) ) {
+			statusIcon   = "times-circle";
+			statusColour = "red";
+			statusText   = translateResource( "cms:sitetree.page.status.inactive" );
+		} else if ( usesDateRestrictions ) {
+			statusIcon = "clock-o";
+
+			if ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) {
+				statusColour = "red";
+				statusText   = translateResource( "cms:sitetree.page.status.embargoed" );
+			} else if ( IsDate( args.expiry_date ) && args.expiry_date < Now() ) {
+				statusColour = "red";
+				statusText   = translateResource( "cms:sitetree.page.status.expired" );
+			} else {
+				statusColour = "green";
+			}
+		}
+
+		if ( hasDrafts ) {
+			statusText &= " &nbsp; <em class=""light-grey"">#translateResource( "cms:sitetree.page.status.has.drafts" )#</em>";
+		}
+	}
 </cfscript>
 
 <cfoutput>
-	<cfif IsTrue( args.active )>
-		<i class="fa fa-fw fa-check-circle #greenClass#"></i>
-	<cfelse>
-		<i class="fa fa-fw fa-times-circle #redClass#"></i>
-	</cfif>
-
-	<cfif usesDateRestrictions>
-		<i class="fa fa-fw fa-clock-o <cfif outOfDate>#redClass#<cfelse>#greenClass#</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
-	</cfif>
-
-	<cfif isDraft>
-		#translateResource( "cms:sitetree.page.status.draft" )#
-	<cfelse>
-		#translateResource( "cms:sitetree.page.status.published" )#
-	</cfif>
-
-	<cfif hasDrafts && !isDraft>
-		&nbsp; <em class="light-grey">#translateResource( "cms:sitetree.page.status.has.drafts" )#</em>
-	</cfif>
+	<i class="fa fa-fw fa-#statusIcon# #statusColour#"></i>
+	#statusText#
 </cfoutput>
