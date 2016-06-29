@@ -123,7 +123,7 @@
 							<i class="fa fa-caret-down"></i>
 						</a>
 						<ul class="dropdown-menu">
-							<cfif hasActivatePermission>
+							<cfif hasActivatePermission && !isDraft>
 								<li>
 									<cfif IsTrue( args.active )>
 										<a href="#quickBuildLink( args.deactivatePageBaseLink, {id=args.id} )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.deactivate.child.page.link", data=[ safeTitle ] )#">
