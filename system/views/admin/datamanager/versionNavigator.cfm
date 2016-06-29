@@ -5,7 +5,7 @@
 	param name="args.object"                 type="string";
 	param name="args.id"                     type="string";
 	param name="args.version"                type="string";
-	param name="args.isDraft"                type="boolean";
+	param name="args.isDraft"                type="boolean" default=false;
 	param name="args.isLatest"               type="boolean";
 	param name="args.versions"               type="query";
 	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( linkTo='datamanager.editRecord'   , queryString='object=#args.object#&id=#args.id#&version=' )#";
