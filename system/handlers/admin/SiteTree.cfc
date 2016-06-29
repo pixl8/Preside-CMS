@@ -322,6 +322,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function editPageAction( event, rc, prc ) {
 		var pageId            = event.getValue( "id", "" );
+		var saveAsDraft       = ( rc._saveaction ?: "" ) != "publish";
 		var validationRuleset = "";
 		var validationResult  = "";
 		var newId             = "";
@@ -354,7 +355,7 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		try {
-			siteTreeService.editPage( argumentCollection = formData );
+			siteTreeService.editPage( argumentCollection=formData, isDraft=saveAsDraft );
 		} catch( "SiteTreeService.BadParent" e ) {
 			validationResult.addError( fieldname="parent_page", message="cms:sitetree.validation.badparent.error" );
 

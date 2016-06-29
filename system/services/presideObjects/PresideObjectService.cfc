@@ -496,6 +496,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 
 			if ( !arguments.isDraft ) {
+				cleanedData._version_is_draft = false;
 				preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
 					  objectName        = arguments.objectName
 					, columnDefinitions = obj.properties

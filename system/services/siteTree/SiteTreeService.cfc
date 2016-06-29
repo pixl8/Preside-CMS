@@ -623,7 +623,7 @@ component singleton=true {
 		return pageId;
 	}
 
-	public boolean function editPage( required string id ) {
+	public boolean function editPage( required string id, boolean isDraft=false ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -639,7 +639,7 @@ component singleton=true {
 		_checkForBadHomepageOperations( argumentCollection = arguments );
 
 		transaction {
-			existingPage = getPage( id = arguments.id, includeTrash = true, useCache = false, allowDrafts=true );
+			existingPage = getPage( id=arguments.id, includeTrash=true, useCache=false, allowDrafts=true );
 			if ( not existingPage.recordCount ) {
 				return false;
 			}
@@ -727,6 +727,7 @@ component singleton=true {
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
 				, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+				, isDraft                 = arguments.isDraft
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
@@ -737,6 +738,7 @@ component singleton=true {
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
 						, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+						, isDraft                 = arguments.isDraft
 					);
 				} else {
 					var insertData = Duplicate( arguments );
@@ -745,6 +747,7 @@ component singleton=true {
 						  data                    = insertData
 						, versionNumber           = versionNumber
 						, insertManyToManyRecords = true
+						, isDraft                 = arguments.isDraft
 					);
 				}
 			}
