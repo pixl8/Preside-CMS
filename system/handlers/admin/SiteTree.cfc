@@ -388,6 +388,28 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function activatePageAction( event, rc, prc ) {
+		var page   = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="activate", pageId=page.id );
+
+		siteTreeService.editPage( id=page.id, active=true );
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.activated.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.id#" ) );
+	}
+
+	public void function deactivatePageAction( event, rc, prc ) {
+		var page   = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="activate", pageId=page.id );
+
+		siteTreeService.editPage( id=page.id, active=false );
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.deactivated.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.id#" ) );
+	}
+
 	public void function translatePage( event, rc, prc ) {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
