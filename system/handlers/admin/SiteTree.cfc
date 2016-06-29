@@ -258,7 +258,13 @@ component extends="preside.system.base.AdminHandler" {
 		var pageType         = "";
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
-		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=prc.page.parent_page, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=prc.page.parent_page, throwOnError=false );
+
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
 
 		if ( !pageTypesService.pageTypeExists( prc.page.page_type ) ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
