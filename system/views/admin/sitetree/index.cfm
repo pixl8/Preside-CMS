@@ -27,7 +27,7 @@
 			<tr>
 				<th>#translateResource( 'cms:sitetree.table.title.header'    )#</th>
 				<th>#translateResource( 'cms:sitetree.table.pagetype.header' )#</th>
-				<th>#translateResource( 'cms:sitetree.table.active.header'   )#</th>
+				<th>#translateResource( 'cms:sitetree.table.status.header'   )#</th>
 				<th>#translateResource( 'cms:sitetree.table.access.header'   )#</th>
 				<th>#translateResource( 'cms:sitetree.table.url.header'      )#</th>
 			</tr>
