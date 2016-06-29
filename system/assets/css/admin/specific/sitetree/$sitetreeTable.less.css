@@ -30,6 +30,9 @@
 .presidecms .tree-table tbody > tr.draft a {
   color: #6fb3e0;
 }
+.presidecms .tree-table tbody > tr.has-drafts {
+  font-style: italic;
+}
 .presidecms .tree-table .page-title-cell {
   min-width: 450px;
 }

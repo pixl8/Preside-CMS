@@ -48,6 +48,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.trashed"
 			, "page.access_restriction"
 			, "page._version_is_draft as is_draft"
+			, "page._version_has_drafts as has_drafts"
 			, "Count( child_pages.id ) as child_count"
 		] );
 		prc.trashCount = siteTreeService.getTrashCount();
@@ -76,6 +77,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page.access_restriction"
 			, "page._hierarchy_depth"
 			, "page._version_is_draft as is_draft"
+			, "page._version_has_drafts as has_drafts"
 			, "Count( child_pages.id ) as child_count"
 		] );
 

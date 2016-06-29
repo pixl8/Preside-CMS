@@ -16,6 +16,7 @@
 	param name="args.child_count"                 type="numeric";
 	param name="args.access_restriction"          type="string";
 	param name="args.is_draft"                    type="string";
+	param name="args.has_drafts"                  type="string";
 
 	param name="args.permission_context"          type="array" default=[];
 	param name="args.parent_restriction"          type="string" default="none";
@@ -49,6 +50,7 @@
 		isSystemPage            = isSystemPageType( args.page_type );
 		hasChildren             = managedChildPageTypes.len() || args.child_count;
 		isDraft                 = IsTrue( args.is_draft );
+		hasDrafts               = IsTrue( args.has_drafts );
 
 		hasEditPagePermission    = hasCmsPermission( permissionKey="sitetree.edit"              , context="page", contextKeys=permContextKeys );
 		hasAddPagePermission     = hasCmsPermission( permissionKey="sitetree.add"               , context="page", contextKeys=permContextKeys );
@@ -79,7 +81,7 @@
 
 <cfif hasNavigatePermission>
 	<cfoutput>
-		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif><cfif isDraft> draft light-grey</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
+		<tr class="depth-#args._hierarchy_depth#<cfif isOpen> open</cfif><cfif isSelected> selected</cfif><cfif isDraft> draft light-grey<cfelseif hasDrafts> has-drafts</cfif>" data-id="#args.id#" data-parent="#args.parent_page#" data-depth="#args._hierarchy_depth#"<cfif hasChildren> data-has-children="true"</cfif> data-context-container="#args.id#"<cfif isOpen> data-open-on-start="true"</cfif>>
 			<td class="page-title-cell">
 				<!--- whitespace important here hence one line --->
 				<cfif hasChildren><i class="fa fa-lg fa-fw fa-caret-right tree-toggler"></i></cfif><i class="fa fa-fw #pageIcon# page-type-icon" title="#HtmlEditFormat( pageType )#"></i>
@@ -169,6 +171,10 @@
 					#translateResource( "cms:sitetree.page.status.draft" )#
 				<cfelse>
 					#translateResource( "cms:sitetree.page.status.published" )#
+				</cfif>
+
+				<cfif hasDrafts && !isDraft>
+					&nbsp; <em class="light-grey">#translateResource( "cms:sitetree.page.status.has.drafts" )#</em>
 				</cfif>
 			</td>
 			<td>
