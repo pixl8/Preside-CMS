@@ -147,7 +147,7 @@ component {
 
 		versionedData._version_number         = arguments.versionNumber;
 		versionedData._version_author         = arguments.versionAuthor;
-		versionedData._version_is_draft       = arguments.isDraft;
+		versionedData._version_is_draft       = versionedData._version_has_drafts = arguments.isDraft;
 		versionedData._version_changed_fields = ',' & arguments.changedFields.toList() & ",";
 
 		if ( poService.fieldExists( versionObjectName, "id" ) ) {
@@ -302,7 +302,21 @@ component {
 			, default      = false
 		};
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft" );
+		objMeta.properties[ "_version_has_drafts" ] = {
+			  name         = "_version_has_drafts"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
@@ -331,9 +345,23 @@ component {
 			, generator    = "none"
 			, default      = false
 		};
+		objMeta.properties[ "_version_has_drafts" ] = {
+			  name         = "_version_has_drafts"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft" );
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft,_version_has_drafts" );
 		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#__is_draft" ] = { unique=false, fields="_version_is_draft" };
+		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#__has_drafts" ] = { unique=false, fields="_version_has_drafts" };
 	}
 
 	private any function _renameTableIndexes( required string indexKey ) {

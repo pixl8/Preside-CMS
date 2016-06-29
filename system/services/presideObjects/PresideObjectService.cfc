@@ -313,7 +313,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 		}
 		if ( objectIsVersioned( arguments.objectName ) ) {
-			cleanedData._version_is_draft = arguments.isDraft;
+			cleanedData._version_is_draft = cleanedData._version_has_drafts = arguments.isDraft;
 		}
 
 		transaction {
@@ -495,50 +495,53 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				);
 			}
 
-			if ( !arguments.isDraft ) {
-				cleanedData._version_is_draft = false;
-				preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
-					  objectName        = arguments.objectName
-					, columnDefinitions = obj.properties
-					, data              = cleanedData
-					, dbAdapter         = adapter
-					, preFix            = "set__"
-				) );
+			if ( arguments.isDraft ) {
+				cleanedData = { _version_has_drafts = true };
+			} else {
+				cleanedData._version_is_draft   = false;
+				cleanedData._version_has_drafts = false;
+			}
+			preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
+				  objectName        = arguments.objectName
+				, columnDefinitions = obj.properties
+				, data              = cleanedData
+				, dbAdapter         = adapter
+				, preFix            = "set__"
+			) );
 
-				sql = adapter.getUpdateSql(
-					  tableName     = obj.tableName
-					, tableAlias    = arguments.objectName
-					, updateColumns = StructKeyArray( cleanedData )
-					, filter        = preparedFilter.filter
-					, joins         = joins
-				);
+			sql = adapter.getUpdateSql(
+				  tableName     = obj.tableName
+				, tableAlias    = arguments.objectName
+				, updateColumns = StructKeyArray( cleanedData )
+				, filter        = preparedFilter.filter
+				, joins         = joins
+			);
 
-				result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
+			result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
-				if ( StructCount( manyToManyData ) ) {
-					var updatedRecords = [];
+			if ( StructCount( manyToManyData ) ) {
+				var updatedRecords = [];
 
-					if ( Len( Trim( arguments.id ?: "" ) ) ) {
-						updatedRecords = [ arguments.id ];
-					} else {
-						updatedRecords = selectData(
-							  objectName   = arguments.objectName
-							, selectFields = [ "id" ]
-							, filter       = preparedFilter.filter
-							, filterParams = preparedFilter.filterParams
+				if ( Len( Trim( arguments.id ?: "" ) ) ) {
+					updatedRecords = [ arguments.id ];
+				} else {
+					updatedRecords = selectData(
+						  objectName   = arguments.objectName
+						, selectFields = [ "id" ]
+						, filter       = preparedFilter.filter
+						, filterParams = preparedFilter.filterParams
+					);
+					updatedRecords = ListToArray( updatedRecords.id );
+				}
+
+				for( key in manyToManyData ){
+					for( var updatedId in updatedRecords ) {
+						syncManyToManyData(
+							  sourceObject   = arguments.objectName
+							, sourceProperty = key
+							, sourceId       = updatedId
+							, targetIdList   = manyToManyData[ key ]
 						);
-						updatedRecords = ListToArray( updatedRecords.id );
-					}
-
-					for( key in manyToManyData ){
-						for( var updatedId in updatedRecords ) {
-							syncManyToManyData(
-								  sourceObject   = arguments.objectName
-								, sourceProperty = key
-								, sourceId       = updatedId
-								, targetIdList   = manyToManyData[ key ]
-							);
-						}
 					}
 				}
 			}
