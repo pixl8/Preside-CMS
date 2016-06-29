@@ -827,7 +827,6 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object     = "page"
 				, recordId   = pageId
-				, gridFields = ( rc.gridFields ?: 'datemodified,_version_author,_version_is_draft,title' )
 				, actionsView = "admin/sitetree/_historyActions"
 			}
 		);

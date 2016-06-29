@@ -215,7 +215,6 @@ component output="false" singleton=true {
 	public struct function getRecordHistoryForGridListing(
 		  required string  objectName
 		, required string  recordId
-		, required array   gridFields
 		,          string  property     = ""
 		,          numeric startRow     = 1
 		,          numeric maxRows      = 10
@@ -227,7 +226,7 @@ component output="false" singleton=true {
 		var args   = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId
-			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName, true )
+			, selectFields     = [ "id", "_version_is_draft as published", "datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
@@ -238,9 +237,14 @@ component output="false" singleton=true {
 		if ( Len( Trim( arguments.property ) ) ) {
 			args.fieldName = arguments.property;
 		}
-		result.records = _getPresideObjectService().getRecordVersions( argumentCollection = args );
+		result.records = Duplicate( _getPresideObjectService().getRecordVersions( argumentCollection = args ) );
 
-		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+		// odd looking, just a reversal of the _version_is_draft field that we're aliasing as 'published'
+		for( var i=1; i<=result.records.recordCount; i++ ) {
+			result.records.published[ i ] = !IsBoolean( result.records.published[ i ] ) || !result.records.published[ i ];
+		}
+
+		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			args = {
