@@ -13,7 +13,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="page_type"    type="string"  dbtype="varchar"  maxLength="100" required=true                                             control="pageTypePicker" indexes="pagetype";
 	property name="layout"       type="string"  dbtype="varchar"  maxLength="100" required=false                                            control="pageLayoutPicker";
 	property name="sort_order"   type="numeric" dbtype="int"                      required=true                                             control="none";
-	property name="active"       type="boolean" dbtype="boolean"                  required=false default=false;
+	property name="active"       type="boolean" dbtype="boolean"                  required=false default=true;
 	property name="trashed"      type="boolean" dbtype="boolean"                  required=false default=false control="none";
 	property name="old_slug"     type="string"  dbtype="varchar" maxLength="50"   required=false;
 
