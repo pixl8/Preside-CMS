@@ -6,6 +6,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="validationEngine"                 inject="validationEngine";
 	property name="websitePermissionService"         inject="websitePermissionService";
 	property name="dataManagerService"               inject="dataManagerService";
+	property name="versioningService"                inject="versioningService";
 	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 	property name="messageBox"                       inject="coldbox:plugin:messageBox";
 
@@ -996,7 +997,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false ) {
 		var pageId  = arguments.pageId        ?: ( rc.id ?: "" );
-		var version = arguments.allowVersions ? ( rc.version ?: 0 ) : 0;
+		var version = arguments.allowVersions ? ( rc.version ?: versioningService.getLatestVersionNumber( "page", pageId ) ) : 0;
 		var page    = siteTreeService.getPage(
 			  id              = pageId
 			, version         = Val( version )
@@ -1004,10 +1005,12 @@ component extends="preside.system.base.AdminHandler" {
 			, includeTrash    = arguments.includeTrash
 		);
 
-		if ( not page.recordCount ) {
+		if ( !page.recordCount ) {
 			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.page.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
+
+		rc.version = rc.version ?: version;
 
 		return page;
 	}

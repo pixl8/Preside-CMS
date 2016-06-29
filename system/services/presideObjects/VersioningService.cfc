@@ -224,6 +224,18 @@ component {
 		return getChangedFields( argumentCollection=arguments ).len() > 0;
 	}
 
+	public numeric function getLatestVersionNumber( required string objectName, required string recordId ) {
+		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var record            = $getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "Max( _version_number ) as version_number" ]
+			, filter       = { id = arguments.recordId }
+			, useCache     = false
+		);
+
+		return Val( record.version_number ?: "" );
+	}
+
 // PRIVATE HELPERS
 	private void function _removeUniqueIndexes( required struct objMeta ) {
 		for( var ixName in objMeta.indexes ) {
