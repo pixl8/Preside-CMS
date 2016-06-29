@@ -67,6 +67,7 @@
 		isOpen            = !isSelected && selectedAncestors.find( args.id );
 
 		dataImage            = Len( Trim( args.main_image ) ) ? 'data-image="#event.buildLink( assetId = args.main_image, derivative = 'pageThumbnail'  )#"' : "";
+
 		usesDateRestrictions = IsDate( args.embargo_date ) || IsDate( args.expiry_date );
 		outOfDate            = ( IsDate( args.embargo_date ) && args.embargo_date > Now() ) || ( IsDate( args.expiry_date ) && args.expiry_date < Now() );
 
@@ -76,6 +77,8 @@
 			redClass   = "red";
 			greenClass = "green";
 		}
+
+		status = renderView( view="/admin/sitetree/_nodeStatus", args=args );
 	}
 </cfscript>
 
@@ -156,27 +159,7 @@
 				</div>
 			</td>
 			<td>#pageType#</td>
-			<td>
-				<cfif IsTrue( args.active )>
-					<i class="fa fa-fw fa-check-circle #greenClass#"></i>
-				<cfelse>
-					<i class="fa fa-fw fa-times-circle #redClass#"></i>
-				</cfif>
-
-				<cfif usesDateRestrictions>
-					<i class="fa fa-fw fa-clock-o <cfif outOfDate>#redClass#<cfelse>#greenClass#</cfif>" title="#DateTimeFormat(args.embargo_date)# to #DateTimeFormat(args.expiry_date)#"></i>
-				</cfif>
-
-				<cfif isDraft>
-					#translateResource( "cms:sitetree.page.status.draft" )#
-				<cfelse>
-					#translateResource( "cms:sitetree.page.status.published" )#
-				</cfif>
-
-				<cfif hasDrafts && !isDraft>
-					&nbsp; <em class="light-grey">#translateResource( "cms:sitetree.page.status.has.drafts" )#</em>
-				</cfif>
-			</td>
+			<td>#status#</td>
 			<td>
 				<cfswitch expression="#args.access_restriction#">
 					<cfcase value="full">
