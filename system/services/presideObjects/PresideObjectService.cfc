@@ -495,12 +495,15 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				);
 			}
 
-			if ( arguments.isDraft ) {
-				cleanedData = { _version_has_drafts = true };
-			} else {
-				cleanedData._version_is_draft   = false;
-				cleanedData._version_has_drafts = false;
+			if ( arguments.useVersioning ) {
+				if ( arguments.isDraft ) {
+					cleanedData = { _version_has_drafts = true };
+				} else {
+					cleanedData._version_is_draft   = false;
+					cleanedData._version_has_drafts = false;
+				}
 			}
+
 			preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = obj.properties
