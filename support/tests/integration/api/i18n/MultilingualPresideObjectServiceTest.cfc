@@ -55,24 +55,55 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getTranslationStatus()", function(){
-			it( "should return statuses of translations for each non default language by looking up translation records", function(){
+			it( "should return statuses of translations for each non default language by looking up translation records and their draft statuses", function(){
 				var svc           = _getService();
 				var objectName    = "someobject";
 				var recordId      = CreateUUId();
-				var mockLanguages = [{id="lang_1"},{id="lang_2"},{id="lang_3"}];
-				var mockDbResult  = QueryNew('_translation_language,_translation_active', "varchar,bit", [
-					 [ "lang_3", 0 ]
-					,[ "lang_1", 1 ]
+				var mockLanguages = [{id="lang_1"},{id="lang_2"},{id="lang_3"},{id="lang_4"}];
+				var mockDbResult  = QueryNew('_translation_language,_version_is_draft,_version_has_drafts', "varchar,bit,bit", [
+					 [ "lang_3", 0, 0 ]
+					,[ "lang_1", 1, 1 ]
+					,[ "lang_4", 0, 1 ]
+				]);
+				var expectedResult = [
+					  { id="lang_1", status="inprogress" }
+					, { id="lang_2", status="notstarted" }
+					, { id="lang_3", status="active" }
+					, { id="lang_4", status="inprogress" }
+				];
+
+				svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
+				mockPresideObjectService.$( "objectIsVersioned" ).$args( objectName ).$results( true )
+				mockPresideObjectService.$( "selectData" ).$args(
+					  selectFields = [ "_translation_language", "_version_is_draft", "_version_has_drafts" ]
+					, objectName   = "_translation_" & objectName
+					, filter       = { _translation_source_record=recordId }
+				).$results( mockDbResult );
+
+				expect( svc.getTranslationStatus( objectName, recordId ) ).toBe( expectedResult );
+			} );
+
+			it( "should return statuses of translations for each non default language by looking up translation records existance / non-existance when version history not enabled on the object", function(){
+				var svc           = _getService();
+				var objectName    = "someobject";
+				var recordId      = CreateUUId();
+				var mockLanguages = [{id="lang_1"},{id="lang_2"},{id="lang_3"},{id="lang_4"}];
+				var mockDbResult  = QueryNew('_translation_language', "varchar", [
+					 [ "lang_3" ]
+					,[ "lang_1" ]
+					,[ "lang_4" ]
 				]);
 				var expectedResult = [
 					  { id="lang_1", status="active" }
 					, { id="lang_2", status="notstarted" }
-					, { id="lang_3", status="inprogress" }
+					, { id="lang_3", status="active" }
+					, { id="lang_4", status="active" }
 				];
 
 				svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
+				mockPresideObjectService.$( "objectIsVersioned" ).$args( objectName ).$results( false )
 				mockPresideObjectService.$( "selectData" ).$args(
-					  selectFields = [ "_translation_language", "_translation_active" ]
+					  selectFields = [ "_translation_language" ]
 					, objectName   = "_translation_" & objectName
 					, filter       = { _translation_source_record=recordId }
 				).$results( mockDbResult );
@@ -150,7 +181,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 				expect( actualProperties.keyExists( "_translation_source_record" ) ).toBeTrue();
 				expect( actualProperties.keyExists( "_translation_language"      ) ).toBeTrue();
-				expect( actualProperties.keyExists( "_translation_active"        ) ).toBeTrue();
 
 				expect( actualProperties._translation_source_record ).toBe( {
 					  name          = "_translation_source_record"
@@ -177,21 +207,6 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 					, generator     = "none"
 					, control       = "none"
 				} );
-
-				expect( actualProperties._translation_active ).toBe( {
-					  name          = "_translation_active"
-					, required      = false
-					, type          = "boolean"
-					, dbtype        = "boolean"
-					, default       = false
-					, uniqueindexes = ""
-					, indexes       = ""
-					, relationship  = "none"
-					, relatedto     = "none"
-					, generator     = "none"
-					, control       = "none"
-					, maxLength     = 0
-				} );
 			} );
 
 			it( "should modify db field list based on additional fields and multilingual fields", function(){
@@ -208,7 +223,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var dummyObject = { meta={ name="app.preside-objects.myobject", multilingual=true, properties=dummyProps, dbFieldList="prop1,prop2,prop4,prop6" } };
 				var multilingualObject = svc.createTranslationObject( "myobject", dummyObject );
 
-				expect( multilingualObject.meta.dbFieldList ?: "" ).toBe( "prop1,prop6,_translation_source_record,_translation_language,_translation_active"  );
+				expect( multilingualObject.meta.dbFieldList ?: "" ).toBe( "prop1,prop6,_translation_source_record,_translation_language"  );
 			} );
 
 			it( "should add unique index to the object definition", function(){

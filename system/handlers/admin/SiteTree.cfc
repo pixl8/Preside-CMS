@@ -550,8 +550,6 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.translatePage", querystring="id=#pageId#&language=#languageId#" ), persistStruct=persist );
 		}
 
-		formData._translation_active = IsTrue( rc._translation_active ?: "" );
-
 		if ( pageIsMultilingual ) {
 			multilingualPresideObjectService.saveTranslation(
 				  objectName = "page"

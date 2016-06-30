@@ -832,7 +832,6 @@
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
 			}
 
-			formData._translation_active = IsTrue( rc._translation_active ?: "" );
 			multilingualPresideObjectService.saveTranslation(
 				  objectName = object
 				, id         = id

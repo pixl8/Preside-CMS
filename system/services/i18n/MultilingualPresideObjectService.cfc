@@ -153,23 +153,6 @@ component displayName="Multilingual Preside Object Service" {
 		dbFieldList.append( "_translation_language" );
 		propertyNames.append( "_translation_language" );
 
-		translationProperties._translation_active = {
-			  name          = "_translation_active"
-			, required      = false
-			, default       = false
-			, type          = "boolean"
-			, dbtype        = "boolean"
-			, uniqueindexes = ""
-			, indexes       = ""
-			, relationship  = "none"
-			, relatedto     = "none"
-			, generator     = "none"
-			, maxLength     = 0
-			, control       = "none"
-		};
-		dbFieldList.append( "_translation_active" );
-		propertyNames.append( "_translation_active" );
-
 		translationObject.dbFieldList   = dbFieldList.toList();
 		translationObject.propertyNames = propertyNames;
 
@@ -257,10 +240,6 @@ component displayName="Multilingual Preside Object Service" {
 					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				}
 
-				if ( !$isAdminUserLoggedIn() ) {
-					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_active = 1";
-				}
-
 				arguments.tableJoins[ i ].type = "left";
 
 				arguments.preparedFilter.params.append( { name="_translation_language", type="varchar", value=arguments.language } );
@@ -311,21 +290,27 @@ component displayName="Multilingual Preside Object Service" {
 	 * @autoDoc         true
 	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
-		var languages = listLanguages( includeDefault=false );
-		var dbRecords = $getPresideObjectService().selectData(
+		var languages         = listLanguages( includeDefault=false );
+		var objectIsVersioned = $getPresideObjectService().objectIsVersioned( arguments.objectName );
+		var selectFields      = objectIsVersioned ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
+		var dbRecords         = $getPresideObjectService().selectData(
 			  objectName   = _getTranslationObjectPrefix() & objectName
-			, selectFields = [ "_translation_language", "_translation_active" ]
+			, selectFields = selectFields
 			, filter       = { _translation_source_record = arguments.recordId }
 		);
 		var mappedRecords = {};
 
 		for( var record in dbRecords ){
-			mappedrecords[ record._translation_language ] = record._translation_active;
+			if ( objectIsVersioned ) {
+				mappedrecords[ record._translation_language ] = ( !IsBoolean( record._version_is_draft ) || !record._version_is_draft ) && ( !IsBoolean( record._version_has_drafts ) || !record._version_has_drafts );
+			} else {
+				mappedrecords[ record._translation_language ] = true;
+			}
 		}
 
 		for( var language in languages ) {
 			if ( mappedRecords.keyExists( language.id ) ) {
-				language.status = Val( mappedRecords[ language.id ] ) ? "active" : "inprogress";
+				language.status = mappedRecords[ language.id ] ? "active" : "inprogress";
 			} else {
 				language.status = "notstarted"
 			}

@@ -55,16 +55,6 @@
 		)#
 
 		<div class="form-actions row">
-			#renderFormControl(
-				  type         = "yesNoSwitch"
-				, context      = "admin"
-				, name         = "_translation_active"
-				, id           = "_translation_active"
-				, label        = translateResource( uri="cms:datamanager.translation.active" )
-				, savedData    = prc.savedTranslation ?: {}
-				, defaultValue = IsTrue( prc.savedTranslation._translation_active ?: "" )
-			)#
-
 			<div class="col-md-offset-2">
 				<a href="#event.buildAdminLink( linkTo='sitetree.editPage', queryString='id=#pageId#' )#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
