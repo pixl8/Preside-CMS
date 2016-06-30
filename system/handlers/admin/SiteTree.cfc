@@ -429,6 +429,13 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
 		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
 
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish"  , pageId=pageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
+
+		if ( !prc.canPublish && !prc.canSaveDraft ) {
+			event.adminAccessDenied();
+		}
+
 		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 		if ( prc.language.isempty() ) {
 			messageBox.error( translateResource( uri="cms:multilingual.language.not.active.error" ) );
