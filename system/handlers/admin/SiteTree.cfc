@@ -423,11 +423,10 @@ component extends="preside.system.base.AdminHandler" {
 	public void function translatePage( event, rc, prc ) {
 		var pageId           = rc.id               ?: "";
 		var validationResult = rc.validationResult ?: "";
-		var version          = Val ( rc.version    ?: "" );
 		var pageType         = "";
 
 		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
-		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true, setVersion=false );
 
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish"  , pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
@@ -460,6 +459,13 @@ component extends="preside.system.base.AdminHandler" {
 		var translationPageTypeObject = multilingualPresideObjectService.getTranslationObjectName( prc.pageTypeObjectName );
 
 		prc.savedTranslation = {};
+
+		var version = rc.version ?: versioningService.getLatestVersionNumber(
+			  objectName = translationPageObject
+			, filter     = { _translation_source_record=pageId, _translation_language=prc.language.id }
+		);
+
+		rc.version = rc.version ?: version;
 
 		if ( prc.pageIsMultilingual ) {
 			prc.mainFormName  = "preside-objects.#translationPageObject#.admin.edit";
@@ -496,14 +502,15 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function translatePageAction( event, rc, prc ) {
-		var pageId            = event.getValue( "id", "" );
-		var languageId        = event.getValue( "language", "" );
+		var pageId            = rc.id       ?: "";
+		var languageId        = rc.language ?: "";
+		var saveAsDraft       = ( rc._saveaction ?: "" ) != "publish";
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
 		var validationRuleset = "";
 		var validationResult  = "";
 		var newId             = "";
 		var persist           = "";
 		var formData          = "";
-		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
 
 		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
 
@@ -563,6 +570,7 @@ component extends="preside.system.base.AdminHandler" {
 				, id         = pageId
 				, data       = formData
 				, languageId = languageId
+				, isDraft    = saveAsDraft
 			);
 		}
 
@@ -572,6 +580,7 @@ component extends="preside.system.base.AdminHandler" {
 				, id         = pageId
 				, data       = formData
 				, languageId = languageId
+				, isDraft    = saveAsDraft
 			);
 		}
 
@@ -1038,7 +1047,7 @@ component extends="preside.system.base.AdminHandler" {
 		return formsService.formExists( defaultForm ) ? defaultForm : "";
 	}
 
-	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false ) {
+	private query function _getPageAndThrowOnMissing( event, rc, prc, pageId, includeTrash=false, allowVersions=false, setVersion=true ) {
 		var pageId  = arguments.pageId        ?: ( rc.id ?: "" );
 		var version = arguments.allowVersions ? ( rc.version ?: versioningService.getLatestVersionNumber( "page", pageId ) ) : 0;
 		var page    = siteTreeService.getPage(
@@ -1053,7 +1062,9 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 
-		rc.version = rc.version ?: version;
+		if ( arguments.setVersion ) {
+			rc.version = rc.version ?: version;
+		}
 
 		return page;
 	}

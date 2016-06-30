@@ -294,9 +294,10 @@ component displayName="Multilingual Preside Object Service" {
 		var objectIsVersioned = $getPresideObjectService().objectIsVersioned( arguments.objectName );
 		var selectFields      = objectIsVersioned ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
 		var dbRecords         = $getPresideObjectService().selectData(
-			  objectName   = _getTranslationObjectPrefix() & objectName
-			, selectFields = selectFields
-			, filter       = { _translation_source_record = arguments.recordId }
+			  objectName         = _getTranslationObjectPrefix() & objectName
+			, selectFields       = selectFields
+			, filter             = { _translation_source_record = arguments.recordId }
+			, allowDraftVersions = true
 		);
 		var mappedRecords = {};
 
@@ -361,9 +362,10 @@ component displayName="Multilingual Preside Object Service" {
 		var filter                = { _translation_source_record=arguments.id, _translation_language=arguments.languageId };
 		var presideObjectService  = $getPresideObjectService();
 		var args                  = {
-			  objectName   = translationObjectName
-			, filter       = filter
-			, selectFields = arguments.selectFields
+			  objectName         = translationObjectName
+			, filter             = filter
+			, selectFields       = arguments.selectFields
+			, allowDraftVersions = true
 		};
 
 		if ( !arguments.useCache ) {
@@ -389,10 +391,11 @@ component displayName="Multilingual Preside Object Service" {
 	 *
 	 */
 	public string function saveTranslation(
- 		  required string objectName
-		, required string id
-		, required string languageId
-		, required struct data
+ 		  required string  objectName
+		, required string  id
+		, required string  languageId
+		, required struct  data
+		,          boolean isDraft = false
 	){
 		var returnValue = "";
 
@@ -412,6 +415,7 @@ component displayName="Multilingual Preside Object Service" {
 					, id                      = existingTranslation.id
 					, data                    = arguments.data
 					, updateManyToManyRecords = true
+					, isDraft                 = arguments.isDraft
 				);
 			} else {
 				var newRecordData = Duplicate( arguments.data );
@@ -422,6 +426,7 @@ component displayName="Multilingual Preside Object Service" {
 					  objectName              = translationObjectName
 					, data                    = newRecordData
 					, insertManyToManyRecords = true
+					, isDraft                 = arguments.isDraft
 				);
 			}
 		}

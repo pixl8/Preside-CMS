@@ -75,9 +75,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
 				mockPresideObjectService.$( "objectIsVersioned" ).$args( objectName ).$results( true )
 				mockPresideObjectService.$( "selectData" ).$args(
-					  selectFields = [ "_translation_language", "_version_is_draft", "_version_has_drafts" ]
-					, objectName   = "_translation_" & objectName
-					, filter       = { _translation_source_record=recordId }
+					  selectFields       = [ "_translation_language", "_version_is_draft", "_version_has_drafts" ]
+					, objectName         = "_translation_" & objectName
+					, filter             = { _translation_source_record=recordId }
+					, allowDraftVersions = true
 				).$results( mockDbResult );
 
 				expect( svc.getTranslationStatus( objectName, recordId ) ).toBe( expectedResult );
@@ -103,9 +104,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				svc.$( "listLanguages" ).$args( includeDefault=false ).$results( mockLanguages );
 				mockPresideObjectService.$( "objectIsVersioned" ).$args( objectName ).$results( false )
 				mockPresideObjectService.$( "selectData" ).$args(
-					  selectFields = [ "_translation_language" ]
-					, objectName   = "_translation_" & objectName
-					, filter       = { _translation_source_record=recordId }
+					  selectFields       = [ "_translation_language" ]
+					, objectName         = "_translation_" & objectName
+					, filter             = { _translation_source_record=recordId }
+					, allowDraftVersions = true
 				).$results( mockDbResult );
 
 				expect( svc.getTranslationStatus( objectName, recordId ) ).toBe( expectedResult );
@@ -274,9 +276,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				var mockResult = QueryNew('id,label', 'varchar,varchar', [ ["idtest","labeltest"] ]);
 
 				mockPresideObjectService.$( "selectData" ).$args(
-					  selectFields = []
-					, objectName   = "_translation_" & objectName
-					, filter       = { _translation_source_record=id, _translation_language=language }
+					  selectFields       = []
+					, objectName         = "_translation_" & objectName
+					, filter             = { _translation_source_record=id, _translation_language=language }
+					, allowDraftVersions = true
 				).$results( mockResult );
 
 				expect( mockResult, svc.selectTranslation( objectName, id, language ) );

@@ -224,18 +224,31 @@ component {
 		return getChangedFields( argumentCollection=arguments ).len() > 0;
 	}
 
-	public numeric function getLatestVersionNumber( required string objectName, required string recordId, boolean publishedOnly=false ) {
+	public numeric function getLatestVersionNumber(
+		  required string  objectName
+		,          string  recordId
+		,          any     filter        = ""
+		,          struct  filterParams  = {}
+		,          boolean publishedOnly = false
+	) {
 		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
-		var filter            = { id = arguments.recordId };
+		var extraFilters      = [];
+
+		if ( arguments.keyExists( "id" ) ) {
+			arguments.filter = { id = arguments.recordId };
+			arguments.filterParams = {};
+		}
 
 		if ( arguments.publishedOnly ) {
-			filter._version_is_draft = false;
+			extraFilters.append( { filter={ _version_is_draft = false } } );
 		}
 
 		var record            = $getPresideObjectService().selectData(
 			  objectName   = versionObjectName
 			, selectFields = [ "Max( _version_number ) as version_number" ]
-			, filter       = filter
+			, filter       = arguments.filter
+			, filterParams = arguments.filterParams
+			, extraFilters = extraFilters
 			, useCache     = false
 		);
 
