@@ -261,8 +261,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="edit", pageId=pageId );
 		prc.page         = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true );
-		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=prc.page.parent_page, throwOnError=false );
-		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=prc.page.parent_page, throwOnError=false );
+		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish", pageId=pageId, throwOnError=false );
+		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
 
 		var version = Val ( rc.version    ?: "" );
 
@@ -275,6 +275,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
 		}
 		pageType = pageTypesService.getPageType( prc.page.page_type );
+		prc.canActivate  = !IsTrue( prc.page._version_is_draft ) && !pageType.isSystemPageType() && _checkPermissions( argumentCollection=arguments, key="activate", pageId=pageId, throwOnError=false );
 
 		prc.mainFormName  = "preside-objects.page.edit";
 		prc.mergeFormName = _getPageTypeFormName( pageType, "edit" )

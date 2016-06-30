@@ -21,6 +21,7 @@
 	canDeletePage           = prc.canDeletePage           ?: false;
 	canSortChildren         = prc.canSortChildren         ?: false;
 	canManagePagePerms      = prc.canManagePagePerms      ?: false;
+	canActivate             = prc.canActivate             ?: false;
 	translations            = prc.translations            ?: [];
 	translateUrlBase        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=" );
 
@@ -68,6 +69,22 @@
 							<a data-context-key="a" href="#event.buildAdminLink( linkTo='sitetree.addPage', querystring='parent_page=pageId&page_type=#allowableChildPageTypes#' )#" title="#HtmlEditFormat( addPageLinkTitle )#">
 								<i class="fa fa-fw fa-plus"></i>&nbsp;
 								#addPageLinkTitle#
+							</a>
+						</cfif>
+					</li>
+				</cfif>
+
+				<cfif canActivate>
+					<li>
+						<cfif IsTrue( page.active )>
+							<a href="#event.buildAdminLink( linkTo='sitetree.deactivatePageAction', queryString='id=#page.id#' )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.deactivate.child.page.link", data=[ safeTitle ] )#">
+								<i class="fa fa-fw fa-times-circle"></i>&nbsp;
+								#translateResource( "cms:sitetree.deactivate.page.dropdown" )#
+							</a>
+						<cfelse>
+							<a href="#event.buildAdminLink( linkTo='sitetree.activatePageAction', queryString='id=#page.id#' )#" class="confirmation-prompt" title="#translateResource( uri="cms:sitetree.activate.child.page.link", data=[ safeTitle ] )#">
+								<i class="fa fa-fw fa-check-circle"></i>&nbsp;
+								#translateResource( "cms:sitetree.activate.page.dropdown" )#
 							</a>
 						</cfif>
 					</li>
