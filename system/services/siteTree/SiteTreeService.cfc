@@ -331,13 +331,14 @@ component singleton=true {
 	) {
 		var result = {};
 		var args = {
-			  objectName   = arguments.objectName
-			, selectFields = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
-			, maxRows      = arguments.maxRows
-			, startRow     = arguments.startRow
-			, orderBy      = arguments.orderBy
-			, filter       = "page.parent_page = :page.parent_page and page.page_type = :page.page_type and page.trashed = :page.trashed"
-			, filterParams = { "page.parent_page"=arguments.parentId, "page.page_type"=arguments.pageType, "page.trashed"=false }
+			  objectName         = arguments.objectName
+			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
+			, maxRows            = arguments.maxRows
+			, startRow           = arguments.startRow
+			, orderBy            = arguments.orderBy
+			, filter             = "page.parent_page = :page.parent_page and page.page_type = :page.page_type and page.trashed = :page.trashed"
+			, filterParams       = { "page.parent_page"=arguments.parentId, "page.page_type"=arguments.pageType, "page.trashed"=false }
+			, allowDraftVersions = true
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -1109,7 +1110,7 @@ component singleton=true {
 		var fields = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "sitetreeGridFields"
-			, defaultValue  = "page.title,page.active,page.datemodified"
+			, defaultValue  = "page.title,page.datemodified"
 		);
 
 		return ListToArray( fields );
@@ -1132,6 +1133,11 @@ component singleton=true {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
+		sqlFields.append( "page._version_is_draft"   );
+		sqlFields.append( "page._version_has_drafts" );
+		sqlFields.append( "page.active"              );
+		sqlFields.append( "page.embargo_date"        );
+		sqlFields.append( "page.expiry_date"         );
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){

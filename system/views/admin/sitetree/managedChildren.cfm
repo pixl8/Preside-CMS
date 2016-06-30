@@ -39,6 +39,7 @@
 					<cfloop array="#gridFields#" item="fieldName" index="i">
 						<th data-field="#cleanGridFields[ i ]#">#gridFieldTitles[ i ]#</th>
 					</cfloop>
+					<th data-field="status" data-sortable="false">#translateResource( uri="cms:sitetree.table.status.header" )#</th>
 					<th>&nbsp;</th>
 				</tr>
 			</thead>

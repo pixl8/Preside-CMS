@@ -931,6 +931,7 @@ component extends="preside.system.base.AdminHandler" {
 
 
 		var optionsCol = [];
+		var statusCol  = [];
 		var dtHelper   = getMyPlugin( "JQueryDatatablesHelpers" );
 		var results    = siteTreeService.getManagedChildrenForDataTable(
 			  objectName   = pageType
@@ -957,11 +958,16 @@ component extends="preside.system.base.AdminHandler" {
 			args.canEdit        = _checkPermissions( argumentCollection=arguments, key="edit"        , pageId=args.id, throwOnError=false );
 			args.canDelete      = _checkPermissions( argumentCollection=arguments, key="delete"      , pageId=args.id, throwOnError=false );
 			args.canViewHistory = _checkPermissions( argumentCollection=arguments, key="viewversions", pageId=args.id, throwOnError=false );
+			args.is_draft       = IsTrue( record._version_is_draft   );
+			args.has_drafts     = IsTrue( record._version_has_drafts );
 
 			ArrayAppend( optionsCol, renderView( view="/admin/sitetree/_managedPageGridActions", args=record ) );
+			ArrayAppend( statusCol, renderView( view="/admin/sitetree/_nodeStatus", args=record ) );
 		}
 
+		QueryAddColumn( records, "status" , statusCol );
 		QueryAddColumn( records, "_options" , optionsCol );
+		ArrayAppend( cleanGridFields, "status" );
 		ArrayAppend( cleanGridFields, "_options" );
 
 		event.renderData( type="json", data=dtHelper.queryToResult( records, cleanGridFields, results.totalRecords ) );
