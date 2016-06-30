@@ -379,7 +379,7 @@ component singleton=true output="false" {
 	}
 
 	private any function _registerRendererByConvention( required string renderer, required string context ) output=false {
-		conventionsBasedName = _getConventionBasedViewletName( arguments.renderer, arguments.context );
+		var conventionsBasedName = _getConventionBasedViewletName( arguments.renderer, arguments.context );
 		if ( _getColdbox().viewletExists( conventionsBasedName ) ) {
 			registerRenderer( arguments.renderer, arguments.context, conventionsBasedName );
 			return new ContentRenderer( viewlet=conventionsBasedName, chain=[] );
