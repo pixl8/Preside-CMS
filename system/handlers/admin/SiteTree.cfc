@@ -397,7 +397,11 @@ component extends="preside.system.base.AdminHandler" {
 		siteTreeService.editPage( id=page.id, active=true );
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.activated.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.id#" ) );
+		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.id#" ) );
+		}
 	}
 
 	public void function deactivatePageAction( event, rc, prc ) {
@@ -408,7 +412,12 @@ component extends="preside.system.base.AdminHandler" {
 		siteTreeService.editPage( id=page.id, active=false );
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.deactivated.confirmation" ) );
-		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.id#" ) );
+
+		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#page.id#" ) );
+		}
 	}
 
 	public void function translatePage( event, rc, prc ) {
