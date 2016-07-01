@@ -1131,28 +1131,42 @@
 		<cfargument name="args"  type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
-			var selectedVersion = Val( args.version ?: "" );
+			var recordId              = args.id       ?: "";
+			var language              = args.language ?: "";
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( args.object ?: "" );
+			var selectedVersion       = Val( args.version ?: "" );
 			var existingTranslation = multilingualPresideObjectService.selectTranslation(
 				  objectName   = args.object ?: ""
 				, id           = args.id ?: ""
 				, languageId   = args.language ?: ""
 				, selectFields = [ "id" ]
+				, version      = selectedVersion
 			);
 
 			if ( !existingTranslation.recordCount ) {
 				return "";
 			}
 
+			args.version  = args.version ?: selectedVersion;
+			args.latestVersion          = versioningService.getLatestVersionNumber(
+				  objectName = translationObjectName
+				, filter     = { _translation_source_record=recordId, _translation_language=language }
+			);
+			args.latestPublishedVersion = versioningService.getLatestVersionNumber(
+				  objectName    = translationObjectName
+				, filter        = { _translation_source_record=recordId, _translation_language=language }
+				, publishedOnly = true
+			);
 			args.versions = presideObjectService.getRecordVersions(
 				  objectName = translationObjectName
 				, id         = existingTranslation.id
 			);
 
 			if ( !selectedVersion && args.versions.recordCount ) {
-				selectedVersion = args.versions._version_number; // first record, they are ordered reverse chronologically
+				selectedVersion = args.latestVersion;
 			}
 
+			args.isLatest    = args.latestVersion == selectedVersion;
 			args.nextVersion = 0;
 			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
 
@@ -1163,7 +1177,10 @@
 				}
 			}
 
-			return renderView( view="admin/datamanager/translationVersionNavigator", args=args );
+			args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' )
+			args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' )
+
+			return renderView( view="admin/datamanager/versionNavigator", args=args );
 		</cfscript>
 	</cffunction>
 

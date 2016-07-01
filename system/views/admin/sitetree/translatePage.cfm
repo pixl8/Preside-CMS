@@ -50,6 +50,7 @@
 		, language       = currentLanguageId
 		, baseUrl        = event.buildAdminLink( linkTo="sitetree.translatePage", queryString="id=#pageId#&language=#currentLanguageId#&version=" )
 		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.translationHistory", queryString="id=#pageId#&language=#currentLanguageId#" )
+		, isDraft        = IsTrue( prc.savedTranslation._version_is_draft ?: "" )
 	} )#
 
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal translate-page-form" method="post" action="#event.buildAdminLink( linkTo='sitetree.translatePageAction' )#">
