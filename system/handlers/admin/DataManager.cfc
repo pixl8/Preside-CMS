@@ -1344,7 +1344,6 @@
 		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="languageId"      type="string"  required="false" default="#( rc.language ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 
 		<cfscript>
@@ -1365,7 +1364,6 @@
 				  objectName  = translationObject
 				, recordId    = translationRecord.id ?: ""
 				, property    = property
-				, gridFields  = gridFields
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
 				, orderBy     = dtHelper.getSortOrder()
@@ -1373,10 +1371,27 @@
 				, filter      = { _translation_language = languageId }
 			);
 			var records = Duplicate( results.records );
+			var gridFields = [ "published", "datemodified", "_version_author", "_version_changed_fields" ];
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+					if ( field == "published" ) {
+						records[ field ][ records.currentRow ] = renderContent( "boolean", record[ field ], [ "adminDataTable", "admin" ] );
+					} else if ( field == "_version_changed_fields" ) {
+						var rendered = [];
+						for( var changedField in ListToArray( records[ field ][ records.currentRow ] ) ) {
+							var translated = translateResource(
+								  uri          = "preside-objects.#object#:field.#changedField#.title"
+								, defaultValue = translateResource( uri="cms:preside-objects.default.field.#changedField#.title", defaultValue="" )
+							);
+							if ( Len( Trim( translated ) ) ) {
+								rendered.append( translated );
+							}
+						}
+						records[ field ][ records.currentRow ] = '<span title="#HtmlEditFormat( rendered.toList( ', ' ) )#">' & abbreviate( rendered.toList( ", " ), 100 ) & '</span>';
+					} else {
+						records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+					}
 				}
 
 				if ( Len( Trim( actionsView ) ) ) {
