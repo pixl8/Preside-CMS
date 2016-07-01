@@ -1484,7 +1484,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 		var interceptArguments = arguments;
 		interceptArguments.tableJoins = tableJoins;
-		_announceInterception( "postPrepareTableJoins", arguments );
+		_announceInterception( "postPrepareTableJoins", interceptArguments );
 
 		return interceptArguments.tableJoins;
 	}
@@ -1507,7 +1507,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
 		var versionTableName     = versionObj.tableName;
-		var alteredJoins         = _alterJoinsToUseVersionTables( arguments.joins, arguments.originalTableName, versionTableName, arguments.objectName );
+		var alteredJoins         = _alterJoinsToUseVersionTables( arguments.joins, arguments.originalTableName, versionTableName, arguments.objectName, { filter=arguments.filter, params=arguments.params } );
 		var compiledSelectFields = Duplicate( arguments.selectFields );
 		var compiledFilter       = Duplicate( arguments.filter );
 		var sql                  = "";
@@ -1579,6 +1579,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required string originalTableName
 		, required string versionTableName
 		, required string objectName
+		, required struct preparedFilter
 	) {
 		var manyToManyObjects = {};
 		var isPageType        = isPageType( arguments.objectName );
@@ -1615,7 +1616,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 		}
 
-		return _convertObjectJoinsToTableJoins( arguments.joins );
+		return _convertObjectJoinsToTableJoins( argumentCollection=arguments, joins=arguments.joins );
 	}
 
 	private array function _dbFieldListToSelectFieldsArray( required string fieldList, required string tableAlias, required any dbAdapter ) {

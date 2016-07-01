@@ -231,13 +231,16 @@ component displayName="Multilingual Preside Object Service" {
 	 * @preparedFilter.hint The fully prepared and resolved filter that will be used in the select query
 	 */
 	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter ) {
-
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
 			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
 				if ( arguments.tableJoins[ i ].keyExists( "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				} else {
 					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
+				}
+
+				if ( !$isAdminUserLoggedIn() && $getPresideObjectService().objectIsVersioned( arguments.tableJoins[ i ].joinToTable ) ) {
+					arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = 0 )";
 				}
 
 				arguments.tableJoins[ i ].type = "left";
