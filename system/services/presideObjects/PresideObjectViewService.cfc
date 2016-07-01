@@ -97,7 +97,10 @@ component displayName="Preside Object View Service" {
 		selectDataArgs.selectFields       = viewDetails.selectFields
 		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $isAdminUserLoggedIn();
 
+		selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
+
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
+
 		for( record in data ) {
 			var viewArgs = _renderFields( arguments.presideObject, record, viewDetails.fieldOptions );
 			viewArgs.append( arguments.args );
@@ -313,6 +316,36 @@ component displayName="Preside Object View Service" {
 		return cacheKey;
 
 	}
+
+	private struct function _getVersioningArgsForSelectData( required string objectName, string id="", any filter={}, struct filterParams={} ) {
+		var coldbox = $getColdbox();
+		var event   = coldbox.getRequestService().getContext();
+
+		if ( event.isAdminUser() ) {
+			var currentEvent = event.getCurrentEvent();
+
+			if ( currentEvent == "core.SiteTreePageRequestHandler.index" && arguments.objectName == "page" || _getPresideObjectService().isPageType( arguments.objectName ) ) {
+				var currentPageId = event.getCurrentPageId();
+				var isSelectDataForPage = Len( Trim( currentPageId ) ) && ( arguments.id == currentPageId || ( arguments.filter.page ?: "" ) == currentPageId || ( arguments.filter.id ?: "" ) == currentPageId || ( arguments.filterParams.page ?: "" ) == currentPageId || ( arguments.filterParams.id ?: "" ) == currentPageId );
+
+				if ( isSelectDataForPage ) {
+					var args    = { fromVersionTable=true };
+					var version = Val( event.getValue( "version", 0 ) );
+
+					if ( version ) {
+						args.specificVersion = version;
+					} else {
+						args.maxVersion = "HEAD";
+					}
+
+					return args;
+				}
+			}
+		}
+
+		return {};
+	}
+
 
 // getters and setters
 	private any function _getPresideObjectService() {

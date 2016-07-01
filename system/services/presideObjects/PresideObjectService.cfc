@@ -1507,7 +1507,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
 		var versionTableName     = versionObj.tableName;
-		var alteredJoins         = _alterJoinsToUseVersionTables( arguments.joins, arguments.originalTableName, versionTableName );
+		var alteredJoins         = _alterJoinsToUseVersionTables( arguments.joins, arguments.originalTableName, versionTableName, arguments.objectName );
 		var compiledSelectFields = Duplicate( arguments.selectFields );
 		var compiledFilter       = Duplicate( arguments.filter );
 		var sql                  = "";
@@ -1578,11 +1578,21 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		  required array  joins
 		, required string originalTableName
 		, required string versionTableName
+		, required string objectName
 	) {
 		var manyToManyObjects = {};
+		var isPageType        = isPageType( arguments.objectName );
+		var pageIsVersioned   = objectIsVersioned( "page" );
+
 		for( var join in arguments.joins ){
 			if ( Len( Trim( join.manyToManyProperty ?: "" ) ) ) {
 				manyToManyObjects[ join.joinToObject ] = 1;
+			}
+
+			if ( isPageType && pageIsVersioned && join.joinFromObject == arguments.objectName && join.joinToObject == "page" ) {
+				join.joinToObject     = getVersionObjectName( "page" );
+				join.addVersionClause = true;
+				join.tableAlias       = "page";
 			}
 		}
 
@@ -1591,7 +1601,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				StructDelete( manyToManyObjects, obj );
 			}
 		}
-
 
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
