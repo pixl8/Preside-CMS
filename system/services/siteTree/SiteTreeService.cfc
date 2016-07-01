@@ -112,6 +112,7 @@ component singleton=true {
 		, array   selectFields = []
 		, boolean useCache     = true
 		, numeric version      = 0
+		, boolean getLatest    = false
 		, boolean allowDrafts  = _getLoginService().isLoggedIn()
 
 	) {
@@ -148,6 +149,9 @@ component singleton=true {
 		if ( arguments.version ) {
 			args.fromVersionTable = true
 			args.specificVersion  = arguments.version
+		} else if ( arguments.getLatest ) {
+			args.fromVersionTable = true
+			args.maxVersion       = "HEAD";
 		}
 
 		return _getPObj().selectData( argumentCollection = args );
@@ -411,20 +415,38 @@ component singleton=true {
 		return QueryNew('');
 	}
 
-	public query function getSiteHomepage( array selectFields=[], boolean createIfNotExists=true ) {
+	public query function getSiteHomepage(
+		  array   selectFields      = []
+		, boolean createIfNotExists = true
+		, boolean getLatest         = false
+		, boolean allowDrafts       = false
+		, numeric version           = 0
+	) {
 		var loginSvc       = _getLoginService();
-		var homepage       = _getPobj().selectData(
-			  maxRows      = 1
-			, orderBy      = "_hierarchy_sort_order"
-			, selectFields = arguments.selectFields
-			, filter       = {
+		var homepageArgs   = {
+			  maxRows            = 1
+			, orderBy            = "_hierarchy_sort_order"
+			, selectFields       = arguments.selectFields
+			, allowDraftVersions = arguments.allowDrafts
+			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
 				, trashed          = false
 			  }
-		);
+		}
 
-		if ( homepage.recordCount or not arguments.createIfNotExists ) {
+		if ( arguments.version ) {
+			homepageArgs.fromVersionTable = true;
+			homepageArgs.specificVersion  = arguments.version;
+		} else if ( arguments.getLatest ) {
+			homepageArgs.fromVersionTable = true;
+			homepageArgs.maxVersion       = "HEAD";
+		}
+
+		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+
+
+		if ( homepage.recordCount || !arguments.createIfNotExists ) {
 			return homepage;
 		}
 
@@ -436,7 +458,7 @@ component singleton=true {
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		);
 
-		return getPage( id=homepage, selectFields=arguments.selectFields );
+		return getPage( argumentCollection=arguments, id=homepage );
 	}
 
 	public array function getPagesForNavigationMenu(

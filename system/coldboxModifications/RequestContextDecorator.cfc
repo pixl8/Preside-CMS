@@ -344,6 +344,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
 		var prc         = getRequestContext().getCollection( private = true );
+		var version     = this.isAdminUser() ? Val( rc.version ?: "" ) : 0;
+		var getLatest   = !version && this.isAdminUser();
 		var page        = "";
 		var parentPages = "";
 		var getPageArgs = {};
@@ -352,7 +354,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		}
 
 		if ( ( arguments.slug ?: "/" ) == "/" && !Len( Trim( arguments.pageId ?: "" ) ) && !Len( Trim( arguments.systemPage ?: "" ) ) ) {
-			page = sitetreeSvc.getSiteHomepage();
+			page = sitetreeSvc.getSiteHomepage( getLatest=getLatest, allowDrafts=getLatest, version=version );
 			parentPages = QueryNew( page.columnlist );
 		} else {
 			if ( Len( Trim( arguments.pageId ?: "" ) ) ) {
@@ -362,7 +364,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			} else {
 				getPageArgs.slug = arguments.slug;
 			}
-			page = sitetreeSvc.getPage( argumentCollection = getPageArgs );
+			page = sitetreeSvc.getPage( argumentCollection=getPageArgs, getLatest=getLatest, allowDrafts=getLatest, version=version );
 		}
 
 		if ( not page.recordCount ) {
