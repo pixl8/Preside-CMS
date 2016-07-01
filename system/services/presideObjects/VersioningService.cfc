@@ -234,7 +234,7 @@ component {
 		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
 		var extraFilters      = [];
 
-		if ( arguments.keyExists( "id" ) ) {
+		if ( arguments.keyExists( "recordId" ) ) {
 			arguments.filter = { id = arguments.recordId };
 			arguments.filterParams = {};
 		}
