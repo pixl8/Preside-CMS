@@ -426,7 +426,7 @@ component extends="preside.system.base.AdminHandler" {
 		var pageType         = "";
 
 		_checkPermissions( argumentCollection=arguments, key="translate", pageId=pageId );
-		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=true, setVersion=false );
+		prc.page = _getPageAndThrowOnMissing( argumentCollection=arguments, allowVersions=false, setVersion=false );
 
 		prc.canPublish   = _checkPermissions( argumentCollection=arguments, key="publish"  , pageId=pageId, throwOnError=false );
 		prc.canSaveDraft = _checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId, throwOnError=false );
