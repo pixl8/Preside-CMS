@@ -40,7 +40,7 @@
 						<th data-field="#cleanGridFields[ i ]#">#gridFieldTitles[ i ]#</th>
 					</cfloop>
 					<th data-field="status" data-sortable="false">#translateResource( uri="cms:sitetree.table.status.header" )#</th>
-					<th>&nbsp;</th>
+					<th data-width="12em">&nbsp;</th>
 				</tr>
 			</thead>
 			<tbody data-nav-list="1" data-nav-list-child-selector="> tr a:nth-of-type(1)">

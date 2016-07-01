@@ -984,6 +984,8 @@ component extends="preside.system.base.AdminHandler" {
 			args.canViewHistory = _checkPermissions( argumentCollection=arguments, key="viewversions", pageId=args.id, throwOnError=false );
 			args.is_draft       = IsTrue( record._version_is_draft   );
 			args.has_drafts     = IsTrue( record._version_has_drafts );
+			args.canActivate    = !args.is_draft && _checkPermissions( argumentCollection=arguments, key="activate", pageId=args.id, throwOnError=false );
+			args.isActive       = IsTrue( record.active );
 
 			ArrayAppend( optionsCol, renderView( view="/admin/sitetree/_managedPageGridActions", args=record ) );
 			ArrayAppend( statusCol, renderView( view="/admin/sitetree/_nodeStatus", args=record ) );
