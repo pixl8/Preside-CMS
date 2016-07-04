@@ -277,11 +277,7 @@
 					ensureEditorIsNotMaximized();
 				}
 
-				if ( confirm( i18n.translateResource( "cms:frontendeditor.confirm.save.prompt" ) ) ) {
-					saveContent();
-				} else {
-					editor.focus();
-				}
+				saveContent();
 			};
 
 			setContent = function( content ){

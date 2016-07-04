@@ -1,4 +1,4 @@
-component output=false {
+component {
 
 	property name="frontendEditingService" inject="frontendEditingService";
 	property name="contentRendererService" inject="contentRendererService";
@@ -6,7 +6,7 @@ component output=false {
 
 
 <!--- actions --->
-	public void function saveAction( event, rc, prc ) output=false {
+	public void function saveAction( event, rc, prc ) {
 		var pageId   = rc.pageId   ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
@@ -41,7 +41,7 @@ component output=false {
 		}
 	}
 
-	public void function saveDraftAction( event, rc, prc ) output=false {
+	public void function saveDraftAction( event, rc, prc ) {
 		var success = frontendEditingService.saveDraft(
 			  object   = rc.object   ?: ""
 			, property = rc.property ?: ""
@@ -57,7 +57,7 @@ component output=false {
 		}
 	}
 
-	public void function discardDraftAction( event, rc, prc ) output=false {
+	public void function discardDraftAction( event, rc, prc ) {
 		var success = frontendEditingService.discardDraft(
 			  object   = rc.object   ?: ""
 			, property = rc.property ?: ""
@@ -72,7 +72,7 @@ component output=false {
 		}
 	}
 
-	public void function getHistoryForAjaxDataTables( event, rc, prc ) output=false {
+	public void function getHistoryForAjaxDataTables( event, rc, prc ) {
 		var recordId = rc.id       ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
@@ -91,7 +91,7 @@ component output=false {
 		);
 	}
 
-	public void function getVersionContent( event, rc, prc ) output=false {
+	public void function getVersionContent( event, rc, prc ) {
 		var recordId = rc.id       ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
@@ -112,7 +112,7 @@ component output=false {
 		event.renderData( type="json", data=result );
 	}
 
-	public void function previewVersionContent( event, rc, prc ) output=false {
+	public void function previewVersionContent( event, rc, prc ) {
 		var recordId = rc.id       ?: "";
 		var object   = rc.object   ?: "";
 		var property = rc.property ?: "";
@@ -139,7 +139,7 @@ component output=false {
 	}
 
 // VIEWLETS
-	private string function renderFrontendEditor( event, rc, prc, struct args={} ) output=false {
+	private string function renderFrontendEditor( event, rc, prc, struct args={} ) {
 		if ( !event.isAdminUser() ) {
 			return args.renderedContent ?: ( args.rawContent ?: "" );
 		}
@@ -158,7 +158,7 @@ component output=false {
 	}
 
 
-	private string function renderPreview( event, rc, prc, struct args={} ) output=false {
+	private string function renderPreview( event, rc, prc, struct args={} ) {
 		var pageId   = args.pageId   ?: 0;
 		var renderer = args.renderer ?: "";
 		var content  = args.content  ?: "";
