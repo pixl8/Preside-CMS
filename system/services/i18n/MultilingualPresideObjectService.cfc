@@ -230,9 +230,10 @@ component displayName="Multilingual Preside Object Service" {
 	 * @language.hint       The language to filter on
 	 * @preparedFilter.hint The fully prepared and resolved filter that will be used in the select query
 	 */
-	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter ) {
+	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter, boolean fromVersionTable=false ) {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
 			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
+
 				if ( arguments.tableJoins[ i ].keyExists( "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				} else {
@@ -246,9 +247,58 @@ component displayName="Multilingual Preside Object Service" {
 				arguments.tableJoins[ i ].type = "left";
 
 				arguments.preparedFilter.params.append( { name="_translation_language", type="varchar", value=arguments.language } );
+
+				if ( arguments.fromVersionTable ) {
+					arguments.tableJoins[ i ].tableName = "_version_" & arguments.tableJoins[ i ].tableName;
+				}
 			}
 		}
+	}
 
+	/**
+	 * Works on intercepted select queries to add versioning clauses to translation
+	 * table joins
+	 *
+	 * @autodoc
+	 *
+	 */
+	public void function addVersioningClausesToTranslationJoins( required struct selectDataArgs ) {
+
+		if ( !selectDataArgs.specificVersion ) {
+			var poService          = $getPresideObjectService();
+			var versionedObject    = selectDataArgs.objectName;
+
+			if ( !isMultilingual( selectDataArgs.objectName ) && poService.isPageType( selectDataArgs.objectName ) ) {
+				versionedObject = "page";
+			}
+
+			var versionObjectName  = poService.getVersionObjectName( getTranslationObjectName( versionedObject ) );
+			var tableName          = poService.getObjectAttribute( versionObjectName, "tablename", "" );
+
+
+			for( var i=selectDataArgs.joins.len(); i>0; i-- ) {
+				var join = selectDataArgs.joins[i];
+
+				if ( join.tableAlias contains "_translations" ) {
+					var alias              = join.tableAlias;
+					var vCheckAlias        = alias & "$_latestVersionCheck";
+					var versionCheckJoin   = _getVersionCheckJoin( tableName, alias, selectDataArgs.adapter );
+					var versionCheckFilter = "#vCheckAlias#.id is null";
+
+					if ( ReFind( "^[1-9][0-9]*$", selectDataArgs.maxVersion ) ) {
+						versionCheckJoin.additionalClauses &= " and #vCheckAlias#._version_number <= #selectDataArgs.maxVersion#";
+						versionCheckFilter &= " and #vCheckAlias#._version_number <= #selectDataArgs.maxVersion#";
+
+						if ( !selectDataArgs.allowDraftVersions ) {
+							versionCheckJoin.additionalClauses &= " and ( #vCheckAlias#._version_is_draft is null or #vCheckAlias#._version_is_draft = 0 )";
+							versionCheckFilter &= " and ( #vCheckAlias#._version_is_draft is null or #vCheckAlias#._version_is_draft = 0 )";
+						}
+					}
+					selectDataArgs.joins.append( versionCheckJoin );
+					selectDataArgs.filter = poService.mergeFilters( selectDataArgs.filter, versionCheckFilter, selectDataArgs.adapter, selectDataArgs.objectName );
+				}
+			}
+		}
 	}
 
 	/**
@@ -518,6 +568,19 @@ component displayName="Multilingual Preside Object Service" {
 
 	private any function _getLanguageDao() {
 		return $getPresideObject( "multilingual_language" );
+	}
+
+	private struct function _getVersionCheckJoin( required string tableName, required string tableAlias, required any adapter ) {
+		var vCheckAlias = arguments.tableAlias & "$_latestVersionCheck";
+		return {
+			  tableName         = arguments.tableName
+			, tableAlias        = vCheckAlias
+			, tableColumn       = "id"
+			, joinToTable       = arguments.tableAlias
+			, joinToColumn      = "id"
+			, type              = "left"
+			, additionalClauses = "#adapter.escapeEntity( vCheckAlias )#.#adapter.escapeEntity( '_version_number' )# > #adapter.escapeEntity( arguments.tableAlias )#.#adapter.escapeEntity( '_version_number' )#"
+		}
 	}
 
 // GETTERS AND SETTERS

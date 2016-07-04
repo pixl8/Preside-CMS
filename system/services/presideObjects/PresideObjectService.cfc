@@ -1208,6 +1208,20 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return "textinput";
 	}
 
+	public string function mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) {
+		var parsed1 = arguments.dbAdapter.getClauseSql( arguments.filter1, arguments.tableAlias );
+		var parsed2 = arguments.dbAdapter.getClauseSql( arguments.filter2, arguments.tableAlias );
+
+		parsed1 = ReReplace( parsed1, "^\s*where ", "" );
+		parsed2 = ReReplace( parsed2, "^\s*where ", "" );
+
+		if ( Len( Trim( parsed1 ) ) && Len( Trim( parsed2 ) ) ) {
+			return "(" & parsed1 & ") and (" & parsed2 & ")";
+		}
+
+		return Len( Trim( parsed1 ) ) ? parsed1 : parsed2;
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
@@ -1507,13 +1521,18 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
 		var versionTableName     = versionObj.tableName;
-		var alteredJoins         = _alterJoinsToUseVersionTables( arguments.joins, arguments.originalTableName, versionTableName, arguments.objectName, { filter=arguments.filter, params=arguments.params } );
 		var compiledSelectFields = Duplicate( arguments.selectFields );
 		var compiledFilter       = Duplicate( arguments.filter );
 		var sql                  = "";
 		var versionFilter        = "";
 		var versionCheckJoin     = "";
 		var versionCheckFilter   = "";
+		var args                 = {};
+		var alteredJoins         = _alterJoinsToUseVersionTables(
+			  argumentCollection = arguments
+			, versionTableName   = versionTableName
+			, preparedFilter     = { filter=arguments.filter, params=arguments.params }
+		);
 
 		if ( not ArrayLen( arguments.selectFields ) ) {
 			compiledSelectFields = _dbFieldListToSelectFieldsArray( versionObj.dbFieldList, arguments.objectName, adapter );
@@ -1527,7 +1546,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
 				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
 			}
-			compiledFilter = _mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
+			compiledFilter = mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
 		} else {
 			versionCheckJoin   = _getVersionCheckJoin( versionTableName, arguments.objectName, adapter );
@@ -1544,10 +1563,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 			ArrayAppend( alteredJoins, versionCheckJoin );
 
-			compiledFilter = _mergeFilters( compiledFilter, versionCheckFilter, adapter, arguments.objectName );
+			compiledFilter = mergeFilters( compiledFilter, versionCheckFilter, adapter, arguments.objectName );
 		}
 
-		sql = adapter.getSelectSql(
+		var args = Duplicate( arguments );
+		args.append( {
 			  tableName     = versionTableName
 			, tableAlias    = arguments.objectName
 			, selectColumns = compiledSelectFields
@@ -1557,7 +1577,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			, groupBy       = arguments.groupBy
 			, maxRows       = arguments.maxRows
 			, startRow      = arguments.startRow
-		);
+		} );
+		_announceInterception( "postPrepareVersionSelect", args );
+
+		sql = adapter.getSelectSql( argumentCollection=args );
 
 		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
 	}
@@ -1628,20 +1651,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		return fieldArray;
-	}
-
-	private string function _mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) {
-		var parsed1 = arguments.dbAdapter.getClauseSql( arguments.filter1, arguments.tableAlias );
-		var parsed2 = arguments.dbAdapter.getClauseSql( arguments.filter2, arguments.tableAlias );
-
-		parsed1 = ReReplace( parsed1, "^\s*where ", "" );
-		parsed2 = ReReplace( parsed2, "^\s*where ", "" );
-
-		if ( Len( Trim( parsed1 ) ) && Len( Trim( parsed2 ) ) ) {
-			return "(" & parsed1 & ") and (" & parsed2 & ")";
-		}
-
-		return Len( Trim( parsed1 ) ) ? parsed1 : parsed2;
 	}
 
 	private string function _generateNewIdWhenNecessary( required string generator ) {
@@ -1900,7 +1909,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			savedFilter.filterParams = savedFilter.filterParams ?: {};
 
 			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
-			result.filter = _mergeFilters(
+			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = savedFilter.filter
 				, dbAdapter  = arguments.adapter
@@ -1913,7 +1922,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
 
 			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
-			result.filter = _mergeFilters(
+			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = extraFilter.filter
 				, dbAdapter  = arguments.adapter
