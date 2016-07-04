@@ -12,7 +12,6 @@ component {
 	}
 
 	public void function requestStart( event, rc, prc ) {
-		_setSecurityHeaders( argumentCollection = arguments );
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );
 		_recordUserVisits( argumentCollection = arguments );
@@ -47,14 +46,6 @@ component {
 	}
 
 // private helpers
-	private void function _setSecurityHeaders( event, rc, prc ) {
-		if ( !event.isAjax() && !event.isStatelessRequest() ) {
-			event.setXFrameOptionsHeader(
-				value = event.isAdminRequest() ? "SAMEORIGIN" : "DENY"
-			);
-		}
-	}
-
 	private void function _xssProtect( event, rc, prc ) {
 		if ( IsTrue( antiSamySettings.enabled ?: "" ) ) {
 			if ( IsFalse( antiSamySettings.bypassForAdministrators ?: "" ) || !event.isAdminUser() ) {
