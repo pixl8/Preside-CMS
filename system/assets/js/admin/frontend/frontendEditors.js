@@ -323,9 +323,7 @@
 						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
 					}
 				} ).always( function( xhr ){
-					if ( !xhr.success ) {
-						clearNotifications();
-					}
+					clearNotifications();
 					disableEditForm( false );
 				} );
 			};
