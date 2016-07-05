@@ -26,37 +26,49 @@
 			     .includeData( { devConsoleToggleKeyCode=getSetting( "devConsoleToggleKeyCode" ) } );
 		}
 
+		userMenu          = renderView( "/admin/layout/userMenu" );
+		notificationsMenu = renderViewlet( "admin.notifications.notificationNavPromo" );
+
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 	</cfscript>
 
 	<cfoutput>
-		<div class="preside-admin-toolbar presidecms" id="preside-admin-toolbar">
-			<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
+		<div class="presidecms preside-admin-toolbar">
+			<div class="preside-theme">
+				<div class="navbar navbar-default" id="preside-admin-toolbar">
+					<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
 
-			<ul class="preside-admin-toolbar-actions list-unstyled">
-				<li>
-					<cfif prc.hasCmsPageEditPermissions>
-						<div class="edit-mode-toggle-container">
-							<label>
-								#translateResource( "cms:admintoolbar.editmode" )#
-								<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
-								<span class="lbl"></span>
-							</span>
-						</div>
-					</cfif>
-					<a class="view-in-tree-link" href="#event.getEditPageLink()#" title="#translateResource( 'cms:admintoolbar.edit.page' )#">
-						<i class="fa fa-pencil fa-lg"></i>
-					</a>
-				</li>
-				<li>
-					<a href="#event.buildAdminLink( linkTo="login.logout", querystring="redirect=referer" )#">
-						<img class="nav-user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( event.getAdminUserDetails().email_address ) ) )#?r=g&d=mm&s=40" alt="Avatar for #HtmlEditFormat( event.getAdminUserDetails().known_as )#" />
-						<span class="logout-link"> #translateResource( "cms:logout.link" )# </span>
-					</a>
-				</li>
-			</ul>
+					<div class="navbar-header pull-left">
+						<ul class="nav ace-nav">
+							<li>
+								<cfif prc.hasCmsPageEditPermissions>
+									<a class="edit-mode-toggle-container">
+										<label>
+											<i class="fa fa-fw fa-pencil"></i>
+											#translateResource( "cms:admintoolbar.editmode" )#
+											<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
+											<span class="lbl"></span>
+										</span>
+									</a>
+								</cfif>
+<!--- 								<a class="view-in-tree-link" href="#event.getEditPageLink()#" title="#translateResource( 'cms:admintoolbar.edit.page' )#">
+									<i class="fa fa-pencil fa-lg"></i>
+								</a>
+ --->							</li>
+
+						</ul>
+					</div>
+					<div class="navbar-header pull-right">
+						<ul class="nav ace-nav">
+							<li>#notificationsMenu#</li>
+							<li>#userMenu#</li>
+						</ul>
+					</div>
+				</div>
+			</div>
 		</div>
+
 
 		#ckEditorJs#
 	</cfoutput>
