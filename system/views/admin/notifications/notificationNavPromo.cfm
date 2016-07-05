@@ -5,7 +5,7 @@
 
 
 <cfoutput>
-	<a href="##" class="dropdown-toggle" data-toggle="dropdown">
+	<a href="##" class="dropdown-toggle" data-toggle="preside-dropdown">
 		<i class="fa fa-bell-o<cfif notificationCount> icon-animated-bell</cfif>"></i>
 		<span class="badge <cfif notificationCount>badge-important</cfif>">#notificationCount#</span>
 	</a>
