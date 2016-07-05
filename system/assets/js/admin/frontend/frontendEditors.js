@@ -121,22 +121,15 @@
 			  , $overlay           = $editor.find( ".content-editor-overlay .inner" )
 			  , $form              = $editorContainer.find( "form" )
 			  , $contentInput      = $form.find( "[name=content]" )
-			  , $drafttextarea     = $editorContainer.find( "textarea[name=draftContent]" )
 			  , $editorParent      = $scriptContainer.parent()
 			  , $notificationsArea = $editor.find( ".content-editor-editor-notifications" )
 			  , $versioningLink    = $editorContainer.find( ".version-history-link" )
 			  , isRichEditor       = $editor.hasClass( "richeditor" )
 			  , saveAction         = $form.attr( "action" )
-			  , saveDraftAction    = $form.data( "saveDraftAction" )
-			  , discardDraftAction = $form.data( "discardDraftAction" )
 			  , originalValue      = $contentInput.val()
-			  , savedDraftValue    = $drafttextarea.length && $drafttextarea.val().length ? $drafttextarea.val() : originalValue
 			  , formEnabled        = false
-			  , autoSaveInterval   = 1500 // auto save draft 1.5 seconds after typing stopped
-			  , autoSaveTimeout    = null
-			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
 			  , versionIcon        = '<i class="preside-icon fa fa-history"></i> '
-			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent;
+			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent;
 
 			$scriptContainer.appendTo( "body" );
 			$editor.appendTo( "body" );
@@ -172,19 +165,10 @@
 
 			setupCkEditor = function(){
 				$editor.data( "_rawContent", $contentInput.val() );
-				if ( $drafttextarea.val().length ) {
-					notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.draft.loaded.notification" ) );
-					$contentInput.val( $drafttextarea.val() );
-				}
 				editor = new PresideRichEditor( $contentInput.get(0) ).editor;
 				editor.on( "change", function( e ){ disableOrEnableSaveButtons(); } );
 				editor.on( "instanceReady", function( e ){
-					if ( originalValue === savedDraftValue ) {
-						originalValue = e.editor.getData();
-					} else {
-						savedDraftValue = e.editor.getData();
-					}
-
+					originalValue = e.editor.getData();
 					disableOrEnableSaveButtons();
 					e.editor.focus();
 					$('html, body').scrollTop( $editor.offset().top - 20 );
@@ -212,17 +196,11 @@
 							editor.execCommand( "maximize" );
 							return false;
 						}
-
-						if ( autoSaveTimeout !== null ) {
-							window.clearTimeout( autoSaveTimeout );
-						}
-						autoSaveTimeout = window.setTimeout( autoSave, autoSaveInterval );
 					}
 				} );
 			};
 
 			tearDownCkEditor = function(){
-				autoSave();
 				$contentInput.val( $editor.data( "_rawContent" ) );
 				ensureEditorIsNotMaximized();
 				editor.destroy();
@@ -239,9 +217,6 @@
 				}
 			};
 
-			draftIsDirty = function(){
-				return editor.getData() != savedDraftValue && editor.getData() != originalValue;
-			};
 			isDirty = function(){
 				return true; // temporarily always enabling save buttons due to ckeditor bugs, etc. return ( isRichEditor ? editor.getData() : $contentInput.val() ) != originalValue;
 			};
@@ -312,47 +287,27 @@
 			saveContent = function( options ){
 				var formData, content;
 
-				options = $.extend( {
-					  draft : false
-					, url   : saveAction
-				}, options );
+				options = $.extend( { url : saveAction }, options );
 
 				if ( isRichEditor ) {
 					$contentInput.val( editor.getData() );
-					if ( !options.draft ) {
-						$editor.data( "_rawContent", $contentInput.val() );
-					}
+					$editor.data( "_rawContent", $contentInput.val() );
 				}
 				content = $contentInput.val();
 
 				formData = $form.serializeArray();
 
-				if ( options.draft ) {
-					notify( i18n.translateResource( "cms:frontendeditor.saving.draft.notification" ) );
-				} else {
-					notify( i18n.translateResource( "cms:frontendeditor.saving.notification" ) );
-				}
+				notify( i18n.translateResource( "cms:frontendeditor.saving.notification" ) );
 				disableEditForm();
 
 				$.post( options.url, formData, function( data ) {
-					if ( data.success && ( options.draft || typeof data.rendered != "undefined" ) )  {
-						savedDraftValue = content;
+					if ( data.success && typeof data.rendered != "undefined" ) {
+						originalValue = content;
+						setContent( data.rendered );
+						toggleEditMode( false );
 
-						if ( options.draft ) {
-							$drafttextarea.val( content );
-							$editor.addClass( "has-draft" );
-							notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.saved.draft.notification", { data : [ $.dateformat.date( new Date(), "HH:mm:ss" ) ] } ) );
-						} else {
-							originalValue = content;
-							setContent( data.rendered );
-							toggleEditMode( false );
-							if ( isRichEditor ) {
-								clearLocalDraft();
-							}
-
-							if ( data.message ) {
-								$.alert( { message : data.message } );
-							}
+						if ( data.message ) {
+							$.alert( { message : data.message } );
 						}
 
 					} else if ( data.error ) {
@@ -369,59 +324,14 @@
 						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
 					}
 				} ).always( function( xhr ){
-					if ( !options.draft || !xhr.success ) {
+					if ( !xhr.success ) {
 						clearNotifications();
 					}
 					disableEditForm( false );
 				} );
 			};
 
-			discardDraft = function(){
-				notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.discarding.draft.notification" ) );
-				$.post( discardDraftAction, $form.serializeArray(), function( data ) {
-					if ( data.success )  {
-						clearLocalDraft();
-						if ( data.message ) {
-							$.alert( { message : data.message } );
-						}
-					} else if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).fail( function( xhr ){
-					var data = xhr.responseJSON || {};
-
-					if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).always( function(){
-					clearNotifications();
-				} );
-			};
-
-			clearLocalDraft = function(){
-				$drafttextarea.val("");
-				$contentInput.val( $editor.data( "_rawContent" ) );
-				$editor.removeClass( "has-draft" );
-				originalValue = savedDraftValue = $contentInput.val();
-				editor.setData( originalValue );
-				disableOrEnableSaveButtons();
-			};
-
-			autoSave = function(){
-				if ( draftIsDirty() ) {
-					saveContent( {
-						  draft : true
-						, url   : saveDraftAction
-					} );
-				}
-			};
-
 			exitProtectionListener = function(){
-				autoSave();
 				if ( isDirty() ) {
 					return i18n.translateResource( "cms:frontendeditor.browser.exit.warning" );
 				}
@@ -546,12 +456,8 @@
 			setVersionContent = function( content ){
 				$editor.data( "_rawContent", content );
 
-				if ( isRichEditor ) {
-					clearLocalDraft();
-				} else {
-					originalValue = content;
-					$contentInput.val( content );
-				}
+				originalValue = content;
+				$contentInput.val( content );
 
 				notify( versionIcon + i18n.translateResource( "cms:frontendeditor.version.loaded.notification" ) );
 			};
@@ -576,11 +482,6 @@
 			$editorContainer.on( "click", ".editor-btn-save", function( e ){
 				e.preventDefault();
 				confirmAndSave();
-			} );
-
-			$editorContainer.on( "click", ".discard-draft", function( e ){
-				e.preventDefault();
-				discardDraft();
 			} );
 
 			$editorContainer.on( "submit", ".content-editor-form", function( e ){

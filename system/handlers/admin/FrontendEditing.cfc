@@ -23,14 +23,6 @@ component {
 		);
 
 		if ( success ) {
-			frontendEditingService.discardDraft(
-				  object   = object
-				, property = property
-				, recordId = recordId
-				, content  = content
-				, owner    = event.getAdminUserId()
-			);
-
 			event.renderData( type="json", data={
 				  success  = true
 				, message  = translateResource( "cms:frontendeditor.save.success" )
@@ -38,37 +30,6 @@ component {
 			} );
 		} else {
 			event.renderData( type="json", data={ success=false, message=translateResource( "cms:frontendeditor.save.unknown.error" ) } );
-		}
-	}
-
-	public void function saveDraftAction( event, rc, prc ) {
-		var success = frontendEditingService.saveDraft(
-			  object   = rc.object   ?: ""
-			, property = rc.property ?: ""
-			, recordId = rc.recordId ?: ""
-			, content  = rc.content  ?: ""
-			, owner    = event.getAdminUserId()
-		);
-
-		if ( success ) {
-			event.renderData( type="json", data={ success = true } );
-		} else {
-			event.renderData( type="json", data={ success=false, error=translateResource( "cms:frontendeditor.save.unknown.error" ) } );
-		}
-	}
-
-	public void function discardDraftAction( event, rc, prc ) {
-		var success = frontendEditingService.discardDraft(
-			  object   = rc.object   ?: ""
-			, property = rc.property ?: ""
-			, recordId = rc.recordId ?: ""
-			, owner    = event.getAdminUserId()
-		);
-
-		if ( success ) {
-			event.renderData( type="json", data={ success = true, message=translateResource( "cms:frontendeditor.draft.discarded.success" ) } );
-		} else {
-			event.renderData( type="json", data={ success=false, error=translateResource( "cms:frontendeditor.discard.draft.unknown.error" ) } );
 		}
 	}
 
@@ -147,12 +108,6 @@ component {
 		var control  = args.control  ?: "richeditor";
 
 		args.renderer = args.renderer ?: contentRendererService.getRendererForField( fieldAttributes = { control = control } );
-		args.draftContent = frontendEditingService.getDraft(
-			  object   = args.object   ?: ""
-			, property = args.property ?: ""
-			, recordId = args.recordId ?: ""
-			, owner    = event.getAdminUserId()
-		);
 
 		return renderView( view="/admin/frontendediting/renderFrontendEditor", args=args );
 	}

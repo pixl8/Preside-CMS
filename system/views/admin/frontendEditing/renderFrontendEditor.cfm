@@ -1,7 +1,6 @@
 <cfscript>
 	renderedContent = args.renderedContent ?: "";
 	rawContent      = args.rawContent      ?: "";
-	draftContent    = args.draftContent    ?: "";
 	control         = args.control         ?: "";
 	label           = args.label           ?: "";
 	renderer        = args.renderer        ?: "";
@@ -9,7 +8,6 @@
 	property        = args.property        ?: "";
 	recordId        = args.recordId        ?: "";
 	pageId          = event.getCurrentPageId();
-	hasDraft        = Len( Trim( draftContent ) );
 	containerId     = "_" & Left( LCase( Hash( CreateUUId() ) ), 8 );
 
 	if ( not Len( Trim( label ) ) ) {
@@ -27,7 +25,7 @@
 	<cfelse>
 		<!-- container: #containerId# -->#Trim( renderedContent )#<!-- !container: #containerId# -->
 		<script type="text/template" class="content-editor">
-			<div class="presidecms content-editor #LCase( control )#<cfif hasDraft> has-draft</cfif>" id="#containerId#">
+			<div class="presidecms content-editor #LCase( control )#" id="#containerId#">
 				<div class="content-editor-overlay" title="#translateResource( 'cms:frontendeditor.overlay.hint' )#">
 					<div class="inner"></div>
 				</div>
@@ -35,12 +33,7 @@
 					#translateResource( label, property )# <span class="draft-warning">#translateResource( "cms:frontendeditor.draft.warning.label" )#</span>
 				</div>
 				<div class="presidecms content-editor-editor-container">
-					<form method="post"
-					    class                     = "content-editor-form"
-						action                    = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' )#"
-						data-save-draft-action    = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveDraftAction' )#"
-						data-discard-draft-action = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.discardDraftAction' )#">
-
+					<form method="post" class="content-editor-form" action="#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' )#">
 						<input type="hidden" name="pageId"   value="#pageId#"   />
 						<input type="hidden" name="object"   value="#object#"   />
 						<input type="hidden" name="property" value="#property#" />
@@ -59,7 +52,6 @@
 								, id           = ""
 								, layout       = ""
 							)#
-							<textarea name="draftContent" class="hide">#draftContent#</textarea>
 						<cfelse>
 							#renderFormControl(
 								  name         = "content"

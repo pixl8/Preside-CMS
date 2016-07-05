@@ -2,14 +2,12 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @draftService.inject         draftService
 	 * @presideObjectService.inject presideObjectService
 	 * @siteTreeService.inject      siteTreeService
 	 *
 	 */
-	public any function init( required any draftService, required any presideObjectService, required any siteTreeService ) {
+	public any function init( required any presideObjectService, required any siteTreeService ) {
 		_setPresideObjectService( arguments.presideObjectService );
-		_setDraftService( arguments.draftService );
 		_setSiteTreeService( arguments.siteTreeService );
 
 		return this;
@@ -35,48 +33,7 @@ component singleton=true {
 		);
 	}
 
-	public boolean function draftExists( required string object, required string property, required string recordId, required string owner ) {
-		return _getDraftService().draftExists(
-			  key   = _getDraftKey( argumentCollection = arguments )
-			, owner = arguments.owner
-		);
-	}
-
-	public string function getDraft( required string object, required string property, required string recordId, required string owner ) {
-		return _getDraftService().getDraftContent(
-			  key   = _getDraftKey( argumentCollection = arguments )
-			, owner = arguments.owner
-		);
-	}
-
-	public boolean function saveDraft( required string object, required string property, required string recordId, required string owner, required string content ) {
-		return _getDraftService().saveDraft(
-			  key     = _getDraftKey( argumentCollection = arguments )
-			, owner   = arguments.owner
-			, content = arguments.content
-		);
-	}
-
-	public numeric function discardDraft( required string object, required string property, required string recordId, required string owner ) {
-		return _getDraftService().discardDraft(
-			  key   = _getDraftKey( argumentCollection = arguments )
-			, owner = arguments.owner
-		);
-	}
-
-// PRIVATE HELPERS
-	private string function _getDraftKey( required string object, required string property, required string recordId ) {
-		return "frontendedit_" & arguments.object & "-" & arguments.property & "-" & arguments.recordId;
-	}
-
 // GETTERS AND SETTERS
-	private any function _getDraftService() {
-		return _draftService;
-	}
-	private void function _setDraftService( required any draftService ) {
-		_draftService = arguments.draftService;
-	}
-
 	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
