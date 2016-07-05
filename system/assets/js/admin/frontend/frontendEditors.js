@@ -5,7 +5,6 @@
 	  , htmlComments    = $( "*" ).contents().filter( function(){ return this.nodeType === 8; } )
 	  , dummyDivs       = []
 	  , currentEditMode = false
-	  , toolbarOffset   = 45
 	  , setEditorSizesAndPosition
 	  , removeDummyDivs
 	  , setEditMode
@@ -35,9 +34,9 @@
 				} );
 
 				position.width  = $before.width();
-				position.top    = $before.offset().top + $before.height() - toolbarOffset;
+				position.top    = $before.offset().top + $before.height();
 				position.left   = $before.offset().left;
-				position.height = $after.offset().top - toolbarOffset - position.top;
+				position.height = $after.offset().top - position.top;
 
 				if ( position.height < 25 ) {
 					dummyDivs.push( $( "<div></div>" ).height( 25 - position.height ) );
