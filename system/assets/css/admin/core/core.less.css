@@ -30739,6 +30739,9 @@ td.presidecms .visible-print {
   border-right-color: #f5962d;
   -moz-border-right-colors: #f5962d;
 }
+.presidecms .preside-theme .dropdown-menu > li {
+  list-style: none !important;
+}
 .presidecms .preside-theme .sitewide-alert {
   margin-bottom: 0;
 }
