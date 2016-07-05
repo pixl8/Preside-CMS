@@ -23,7 +23,8 @@ html {
 .preside-admin-toolbar a,
 .preside-admin-toolbar span,
 .preside-admin-toolbar p,
-.preside-admin-toolbar li {
+.preside-admin-toolbar li,
+.preside-admin-toolbar label {
   font-size: 13px;
 }
 .preside-admin-toolbar .nav li {

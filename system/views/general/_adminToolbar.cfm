@@ -39,26 +39,33 @@
 				<div class="navbar navbar-default" id="preside-admin-toolbar">
 					<a href="#event.buildAdminLink()#"><h1>#translateResource( "cms:admintoolbar.title" )#</h1></a>
 
-					<div class="navbar-header pull-left">
-						<ul class="nav ace-nav">
-							<li>
-								<cfif prc.hasCmsPageEditPermissions>
+					<cfif prc.hasCmsPageEditPermissions>
+						<div class="navbar-header pull-left">
+							<ul class="nav ace-nav">
+								<li>
 									<a class="edit-mode-toggle-container">
 										<label>
-											<i class="fa fa-fw fa-pencil"></i>
 											#translateResource( "cms:admintoolbar.editmode" )#
 											<input id="edit-mode-options" class="ace ace-switch ace-switch-6" type="checkbox" />
 											<span class="lbl"></span>
-										</span>
+										</label>
 									</a>
-								</cfif>
-<!--- 								<a class="view-in-tree-link" href="#event.getEditPageLink()#" title="#translateResource( 'cms:admintoolbar.edit.page' )#">
-									<i class="fa fa-pencil fa-lg"></i>
-								</a>
- --->							</li>
 
-						</ul>
-					</div>
+									<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
+										<i class="fa fa-caret-down"></i>
+									</a>
+									<ul class="user-menu pull-left dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+										<li>
+											<a href="#event.getEditPageLink()#">
+												<i class="fa fa-pencil fa-lg"></i>
+												#translateResource( 'cms:admintoolbar.edit.page' )#
+											</a>
+										</li>
+									</ul>
+								</li>
+							</ul>
+						</div>
+					</cfif>
 					<div class="navbar-header pull-right">
 						<ul class="nav ace-nav">
 							<li>#notificationsMenu#</li>
