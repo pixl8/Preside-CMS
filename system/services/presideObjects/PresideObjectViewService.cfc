@@ -326,9 +326,8 @@ component displayName="Preside Object View Service" {
 
 			if ( currentEvent == "core.SiteTreePageRequestHandler.index" && arguments.objectName == "page" || _getPresideObjectService().isPageType( arguments.objectName ) ) {
 				var currentPageId = event.getCurrentPageId();
-				var isSelectDataForPage = Len( Trim( currentPageId ) ) && ( arguments.id == currentPageId || ( arguments.filter.page ?: "" ) == currentPageId || ( arguments.filter.id ?: "" ) == currentPageId || ( arguments.filterParams.page ?: "" ) == currentPageId || ( arguments.filterParams.id ?: "" ) == currentPageId );
 
-				if ( isSelectDataForPage ) {
+				if ( _isSelectDataForCurrentPage( currentPageId, arguments.id, arguments.filter, arguments.filterparams ) ) {
 					var args    = { fromVersionTable=true };
 					var version = Val( event.getValue( "version", 0 ) );
 
@@ -344,6 +343,36 @@ component displayName="Preside Object View Service" {
 		}
 
 		return {};
+	}
+
+	private boolean function _isSelectDataForCurrentPage(
+		  required string currentPageId
+		, required string id
+		, required any    filter
+		, required struct filterparams
+	) {
+		if ( !Len( Trim( currentPageId ) ) ) {
+			return false;
+		}
+
+		if ( arguments.id == currentPageId ) {
+			return true;
+		}
+
+		if ( IsSimpleValue( arguments.filter.page       ?: [] ) && arguments.filter.page       == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filterParams.page ?: [] ) && arguments.filterParams.page == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filter.id         ?: [] ) && arguments.filter.id         == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filterParams.id   ?: [] ) && arguments.filterParams.id   == currentPageId ) {
+			return true;
+		}
+
+		return false;
 	}
 
 
