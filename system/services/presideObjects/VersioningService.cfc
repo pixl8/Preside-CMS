@@ -281,6 +281,30 @@ component {
 		return changedFields;
 	}
 
+	public boolean function promoteVersion( required string objectName, required string recordId, required numeric versionNumber ) {
+		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var versionRecord     = $getPresideObjectService().selectData(
+			  objectName = versionObjectName
+			, filter     = { id=arguments.recordId, _version_number=arguments.versionNumber }
+		);
+
+		if ( versionRecord.recordCount ) {
+			for( var v in versionRecord ) { versionRecord = v; }
+			versionRecord.delete( "id"           );
+			versionRecord.delete( "datemodified" );
+			versionRecord.delete( "datecreated"  );
+
+			return $getPresideObjectService().updateData(
+				  objectName = arguments.objectName
+				, id         = arguments.recordId
+				, data       = versionRecord
+				, isDraft    = IsBoolean( versionRecord._version_is_draft ) && versionRecord._version_is_draft
+			);
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private void function _removeUniqueIndexes( required struct objMeta ) {
 		for( var ixName in objMeta.indexes ) {

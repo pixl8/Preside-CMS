@@ -413,6 +413,29 @@ component extends="preside.system.base.AdminHandler" {
 		}
 	}
 
+	public void function discardDraftsAction( event, rc, prc ) {
+		var pageId            = event.getValue( "id", "" );
+		var page              = _getPageAndThrowOnMissing( argumentCollection=arguments );
+
+		_checkPermissions( argumentCollection=arguments, key="edit"     , pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="saveDraft", pageId=pageId );
+
+		if ( !pageTypesService.pageTypeExists( page.page_type ) ) {
+			getPlugin( "messageBox" ).error( translateResource( "cms:sitetree.pageType.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree" ) );
+		}
+
+		siteTreeService.discardDrafts( pageId );
+
+		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.drafts.discarded.confirmation" ) );
+
+		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
+			setNextEvent( url=event.buildAdminLink( linkto="sitetree.managedChildren", querystring="parent=#page.parent_page#&pageType=#page.page_type#" ) );
+		} else {
+			setNextEvent( url=event.buildAdminLink( linkTo="sitetree", querystring="selected=#pageId#" ) );
+		}
+	}
+
 	public void function activatePageAction( event, rc, prc ) {
 		var page   = _getPageAndThrowOnMissing( argumentCollection=arguments );
 

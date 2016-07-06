@@ -11,6 +11,7 @@
 	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( linkTo='datamanager.editRecord'   , queryString='object=#args.object#&id=#args.id#&version=' )#";
 	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( linkTo='datamanager.recordHistory', queryString='object=#args.object#&id=#args.id#' )#";
 	param name="args.publishUrl"             type="string" default="";
+	param name="args.discardDraftsUrl"       type="string" default="";
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue="record" );
 
@@ -35,10 +36,16 @@
 			<p class="pull-left">
 				<i class="fa fa-history fa-lg fa-fw"></i> #alertMessage#
 
-				<cfif args.isDraft && Len( Trim( args.publishUrl ) )>
+				<cfif args.isDraft && args.isLatest && Len( args.publishUrl & args.discardDraftsUrl )>
 					<br><br>
 					<i class="fa fa-fw fa-lg"></i>
-					<a href="#args.publishUrl#" class="btn btn-sm btn-info"><i class="fa fa-fw fa-check"></i> #translateResource( "cms:publish.draft.btn" )#</a>
+
+					<cfif Len( Trim( args.publishUrl ) )>
+						<a href="#args.publishUrl#" class="btn btn-sm btn-info"><i class="fa fa-fw fa-check"></i> #translateResource( "cms:publish.draft.btn" )#</a>
+					</cfif>
+					<cfif Len( Trim( args.discardDraftsUrl ) )>
+						<a href="#args.discardDraftsUrl#" class="btn btn-sm btn-danger"><i class="fa fa-fw fa-trash"></i> #translateResource( "cms:discard.drafts.btn" )#</a>
+					</cfif>
 				</cfif>
 			</p>
 

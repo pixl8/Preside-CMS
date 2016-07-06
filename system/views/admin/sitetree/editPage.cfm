@@ -42,13 +42,14 @@
 
 <cfoutput>
 	#renderViewlet( event='admin.datamanager.versionNavigator', args={
-		  object         = "page"
-		, id             = pageId
-		, version        = version
-		, isDraft        = IsTrue( page._version_is_draft ?: "" )
-		, baseUrl        = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
-		, allVersionsUrl = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
-		, publishUrl     = ( canPublish ? event.buildAdminlink( linkTo="sitetree.publishPageAction", queryString="id=#pageId#" ) : "" )
+		  object           = "page"
+		, id               = pageId
+		, version          = version
+		, isDraft          = IsTrue( page._version_is_draft ?: "" )
+		, baseUrl          = event.buildAdminLink( linkTo="sitetree.editPage", queryString="id=#pageId#&version=" )
+		, allVersionsUrl   = event.buildAdminLink( linkTo="sitetree.pageHistory", queryString="id=#pageId#" )
+		, publishUrl       = ( canPublish   ? event.buildAdminlink( linkTo="sitetree.publishPageAction", queryString="id=#pageId#" ) : "" )
+		, discardDraftsUrl = ( canSaveDraft ? event.buildAdminlink( linkTo="sitetree.discardDraftsAction", queryString="id=#pageId#" ) : "" )
 	} )#
 
 	<div class="top-right-button-group">

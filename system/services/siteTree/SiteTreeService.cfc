@@ -993,6 +993,30 @@ component singleton=true {
 		return false;
 	}
 
+	public boolean function discardDrafts( required string pageId ) {
+		var page = getPage(
+			  id          = arguments.pageId
+			, getLatest   = true
+			, allowDrafts = true
+		);
+
+		if ( page.recordCount ) {
+			var versioningService = _getVersioningService();
+			var latestPublishedVersion = versioningService.getLatestVersionNumber(
+				  objectName    = "page"
+				, recordId      = arguments.pageId
+				, publishedOnly = true
+			);
+
+			if ( latestPublishedVersion ) {
+				return versioningService.promoteVersion( objectName="page"        , recordId=arguments.pageId, versionNumber=latestPublishedVersion )
+				    && versioningService.promoteVersion( objectName=page.page_type, recordId=arguments.pageId, versionNumber=latestPublishedVersion );
+			}
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
