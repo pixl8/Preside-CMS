@@ -30741,6 +30741,8 @@ td.presidecms .visible-print {
 }
 .presidecms .preside-theme .dropdown-menu > li {
   list-style: none !important;
+  margin-left: 0;
+  padding-left: 0;
 }
 .presidecms .preside-theme .sitewide-alert {
   margin-bottom: 0;

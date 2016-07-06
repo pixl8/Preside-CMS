@@ -47,7 +47,7 @@
 					#translateResource( label, property )# <span class="draft-warning">#translateResource( "cms:frontendeditor.draft.warning.label" )#</span>
 				</div>
 				<div class="presidecms content-editor-editor-container">
-					<form method="post" class="content-editor-form" action="#saveAction#" data-publish-prompt-endpoint="#publishPromptEndpoint#" data-publish-action="#publishAction#">
+					<form method="post" class="content-editor-form preside-theme" action="#saveAction#" data-publish-prompt-endpoint="#publishPromptEndpoint#" data-publish-action="#publishAction#">
 						<input type="hidden" name="pageId"   value="#pageId#"   />
 						<input type="hidden" name="object"   value="#object#"   />
 						<input type="hidden" name="property" value="#property#" />
