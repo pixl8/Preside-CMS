@@ -41,10 +41,10 @@
 					<i class="fa fa-fw fa-lg"></i>
 
 					<cfif Len( Trim( args.publishUrl ) )>
-						<a href="#args.publishUrl#" class="btn btn-sm btn-info"><i class="fa fa-fw fa-check"></i> #translateResource( "cms:publish.draft.btn" )#</a>
+						<a href="#args.publishUrl#" class="btn btn-sm btn-info confirmation-prompt" title="#HtmlEditFormat( translateResource( 'cms:publish.draft.confirmation' ) )#"><i class="fa fa-fw fa-check"></i> #translateResource( "cms:publish.draft.btn" )#</a>
 					</cfif>
-					<cfif Len( Trim( args.discardDraftsUrl ) )>
-						<a href="#args.discardDraftsUrl#" class="btn btn-sm btn-danger"><i class="fa fa-fw fa-trash"></i> #translateResource( "cms:discard.drafts.btn" )#</a>
+					<cfif args.latestPublishedVersion and Len( Trim( args.discardDraftsUrl ) )>
+						<a href="#args.discardDraftsUrl#" class="btn btn-sm btn-danger confirmation-prompt" title="#HtmlEditFormat( translateResource( 'cms:discard.draft.confirmation' ) )#"><i class="fa fa-fw fa-trash"></i> #translateResource( "cms:discard.drafts.btn" )#</a>
 					</cfif>
 				</cfif>
 			</p>
