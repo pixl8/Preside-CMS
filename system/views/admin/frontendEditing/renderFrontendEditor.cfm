@@ -15,7 +15,17 @@
 	}
 
 	if ( event.isAdminUser() ) {
-		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
+		prc.hasCmsSaveDraftPermissions = prc.hasCmsSaveDraftPermissions ?: hasCmsPermission( permissionKey="sitetree.saveDraft", context="page", contextKeys=event.getPagePermissionContext() );
+		prc.hasCmsPublishPermissions   = prc.hasCmsPublishPermissions   ?: hasCmsPermission( permissionKey="sitetree.publish", context="page", contextKeys=event.getPagePermissionContext() );
+		prc.hasCmsPageEditPermissions  = prc.hasCmsPageEditPermissions  ?: ( prc.hasCmsSaveDraftPermissions || prc.hasCmsPublishPermissions ) && hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
+
+		actions = [];
+		if ( prc.hasCmsSaveDraftPermissions ) {
+			actions.append( { key="save", title=translateResource( "cms:frontendeditor.editor.save.btn" ) } );
+		}
+		if ( prc.hasCmsPublishPermissions ) {
+			actions.append( { key="publish", title=translateResource( "cms:frontendeditor.editor.publish.btn" ) } );
+		}
 	}
 </cfscript>
 
@@ -70,14 +80,29 @@
 							<a href="##versiontable#containerId#" class="version-history-link" title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
 							   data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history" data-buttons="ok"><i class="fa fa-history fa-lg"></i></a>
 
-							<button class="btn btn-primary editor-btn-save" type="submit" disabled="disabled">
-								<i class="fa fa-check"></i>
-								#translateResource( "cms:frontendeditor.editor.save.btn" )#
-							</button>
-							<button class="btn editor-btn-cancel">
-								<i class="fa fa-reply"></i>
-								#translateResource( "cms:frontendeditor.editor.cancel.btn" )#
-							</button>
+
+							<div class="btn-group dropup" data-multi-submit-field="_saveAction">
+								<button class="btn btn-primary editor-btn-#actions[1].key#">
+									<i class="fa fa-save fa-fw"></i> #actions[1].title#
+								</button>
+								<cfif actions.len() gt 1>
+									<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="preside-dropdown" aria-haspopup="true" aria-expanded="false">
+										<i class="fa fa-caret-down bigger-110"></i><span class="sr-only">Toggle Dropdown</span>
+									</button>
+									<ul class="dropdown-menu text-left">
+										<cfloop array="#actions#" index="i" item="action">
+											<li><a href="##" class="editor-btn-#action.key#">#action.title#</a></li>
+										</cfloop>
+									</ul>
+								</cfif>
+							</div>
+
+							<div class="btn-group">
+								<button class="btn editor-btn-cancel">
+									<i class="fa fa-reply"></i>
+									#translateResource( "cms:frontendeditor.editor.cancel.btn" )#
+								</button>
+							</div>
 
 							<div class="hide" id="versiontable#containerId#">
 								<table class="table table-hover field-version-table" data-remote="#event.buildAdminLink( linkTo="ajaxProxy", queryString="action=frontendediting.getHistoryForAjaxDataTables&id=#recordId#&object=#object#&property=#property#" )#">
