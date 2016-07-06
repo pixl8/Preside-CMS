@@ -10,6 +10,7 @@
 	param name="args.versions"               type="query";
 	param name="args.baseUrl"                type="string" default="#event.buildAdminLink( linkTo='datamanager.editRecord'   , queryString='object=#args.object#&id=#args.id#&version=' )#";
 	param name="args.allVersionsUrl"         type="string" default="#event.buildAdminLink( linkTo='datamanager.recordHistory', queryString='object=#args.object#&id=#args.id#' )#";
+	param name="args.publishUrl"             type="string" default="";
 
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue="record" );
 
@@ -32,9 +33,13 @@
 	<cfoutput>
 		<div class="version-navigator clearfix alert alert-block alert-#alertClass#">
 			<p class="pull-left">
-				<i class="fa fa-history fa-lg"></i>
-				&nbsp;
-				#alertMessage#
+				<i class="fa fa-history fa-lg fa-fw"></i> #alertMessage#
+
+				<cfif args.isDraft && Len( Trim( args.publishUrl ) )>
+					<br><br>
+					<i class="fa fa-fw fa-lg"></i>
+					<a href="#args.publishUrl#" class="btn btn-sm btn-info"><i class="fa fa-fw fa-check"></i> #translateResource( "cms:publish.draft.btn" )#</a>
+				</cfif>
 			</p>
 
 			<div class="pull-right">

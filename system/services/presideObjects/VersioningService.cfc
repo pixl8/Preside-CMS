@@ -240,7 +240,7 @@ component {
 		}
 
 		if ( arguments.publishedOnly ) {
-			extraFilters.append( { filter={ _version_is_draft = false } } );
+			extraFilters.append( { filter="_version_is_draft is null or _version_is_draft = 0" } );
 		}
 
 		var record            = $getPresideObjectService().selectData(
@@ -253,6 +253,32 @@ component {
 		);
 
 		return Val( record.version_number ?: "" );
+	}
+
+	public array function getDraftChangedFields( required string objectName, required string recordId ) {
+		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var latestPublished   = getLatestVersionNumber(
+			  objectName    = arguments.objectName
+			, recordId      = arguments.recordId
+			, publishedOnly = true
+		);
+		var versionRecords = $getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "_version_changed_fields", "_version_is_draft" ]
+			, filter       = "id = :id and _version_number > :_version_number"
+			, filterParams = { id=arguments.recordId, _version_number=latestPublished }
+		);
+		var changedFields = {};
+
+		for( var record in versionRecords ) {
+			for( var field in ListToArray( record._version_changed_fields ) ) {
+				changedFields[ field ] = "";
+			}
+		}
+
+		changedFields = changedFields.keyArray().sort( "textnocase" );
+
+		return changedFields;
 	}
 
 // PRIVATE HELPERS

@@ -963,6 +963,36 @@ component singleton=true {
 		return _getPageTypesService().getPageType( arguments.parentType ).getManagedChildTypes().listToArray();
 	}
 
+	public boolean function publishDraft( required string pageId ) {
+		var page = getPage(
+			  id          = arguments.pageId
+			, getLatest   = true
+			, allowDrafts = true
+		);
+
+		if ( page.recordCount ) {
+			for( var p in page ) { page = p; }
+
+			page.append( getExtendedPageProperties( page.id, page.page_type ) );
+
+			var changedFields = _getVersioningService().getDraftChangedFields( "page", page.id );
+			changedFields.append( _getVersioningService().getDraftChangedFields( page.page_type, page.id ), true );
+
+			var dataToSubmit = {};
+			for( var field in changedFields ) {
+				if ( page.keyExists( field ) ) {
+					dataToSubmit[ field ] = page[ field ];
+				}
+			}
+
+			if ( dataToSubmit.count() ) {
+				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false );
+			}
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
