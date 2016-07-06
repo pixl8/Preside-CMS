@@ -646,7 +646,7 @@ component singleton=true {
 		return pageId;
 	}
 
-	public boolean function editPage( required string id, boolean isDraft=false ) {
+	public boolean function editPage( required string id, boolean isDraft=false, boolean forceVersionCreation ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -749,7 +749,7 @@ component singleton=true {
 				, id                      = arguments.id
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
-				, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
 				, isDraft                 = arguments.isDraft
 			);
 
@@ -760,7 +760,7 @@ component singleton=true {
 						, filter                  = { page=arguments.id }
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
-						, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
 						, isDraft                 = arguments.isDraft
 					);
 				} else {
@@ -986,7 +986,7 @@ component singleton=true {
 			}
 
 			if ( dataToSubmit.count() ) {
-				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false );
+				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
 			}
 		}
 
@@ -1009,8 +1009,21 @@ component singleton=true {
 			);
 
 			if ( latestPublishedVersion ) {
-				return versioningService.promoteVersion( objectName="page"        , recordId=arguments.pageId, versionNumber=latestPublishedVersion )
-				    && versioningService.promoteVersion( objectName=page.page_type, recordId=arguments.pageId, versionNumber=latestPublishedVersion );
+				var newVersionNumber = versioningService.getNextVersionNumber();
+
+				versioningService.promoteVersion(
+					  objectName       = "page"
+					, recordId         = arguments.pageId
+					, versionNumber    = latestPublishedVersion
+					, newVersionNumber = newVersionNumber
+				);
+
+				return versioningService.promoteVersion(
+					  objectName    = page.page_type
+					, recordId      = arguments.pageId
+					, versionNumber = latestPublishedVersion
+					, newVersionNumber = newVersionNumber
+				);
 			}
 		}
 

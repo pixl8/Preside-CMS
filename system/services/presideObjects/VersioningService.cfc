@@ -281,7 +281,12 @@ component {
 		return changedFields;
 	}
 
-	public boolean function promoteVersion( required string objectName, required string recordId, required numeric versionNumber ) {
+	public boolean function promoteVersion(
+		  required string  objectName
+		, required string  recordId
+		, required numeric versionNumber
+		,          numeric newVersionNumber = getNextVersionNumber()
+	) {
 		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
 		var versionRecord     = $getPresideObjectService().selectData(
 			  objectName = versionObjectName
@@ -295,10 +300,12 @@ component {
 			versionRecord.delete( "datecreated"  );
 
 			return $getPresideObjectService().updateData(
-				  objectName = arguments.objectName
-				, id         = arguments.recordId
-				, data       = versionRecord
-				, isDraft    = IsBoolean( versionRecord._version_is_draft ) && versionRecord._version_is_draft
+				  objectName           = arguments.objectName
+				, id                   = arguments.recordId
+				, data                 = versionRecord
+				, isDraft              = IsBoolean( versionRecord._version_is_draft ) && versionRecord._version_is_draft
+				, versionNumber        = arguments.newVersionNumber
+				, forceVersionCreation = true
 			);
 		}
 
