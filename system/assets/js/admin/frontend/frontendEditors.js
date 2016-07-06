@@ -114,21 +114,23 @@
 
 	$.fn.presideFrontEndEditor = function( command ){
 		return this.each( function(){
-			var $scriptContainer   = $( this )
-			  , $editor            = $( $scriptContainer.html() )
-			  , $editorContainer   = $editor.find( '.content-editor-editor-container' )
-			  , $overlay           = $editor.find( ".content-editor-overlay .inner" )
-			  , $form              = $editorContainer.find( "form" )
-			  , $contentInput      = $form.find( "[name=content]" )
-			  , $editorParent      = $scriptContainer.parent()
-			  , $notificationsArea = $editor.find( ".content-editor-editor-notifications" )
-			  , $versioningLink    = $editorContainer.find( ".version-history-link" )
-			  , isRichEditor       = $editor.hasClass( "richeditor" )
-			  , saveAction         = $form.attr( "action" )
-			  , originalValue      = $contentInput.val()
-			  , formEnabled        = false
-			  , versionIcon        = '<i class="preside-icon fa fa-history"></i> '
-			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent;
+			var $scriptContainer      = $( this )
+			  , $editor               = $( $scriptContainer.html() )
+			  , $editorContainer      = $editor.find( '.content-editor-editor-container' )
+			  , $overlay              = $editor.find( ".content-editor-overlay .inner" )
+			  , $form                 = $editorContainer.find( "form" )
+			  , $contentInput         = $form.find( "[name=content]" )
+			  , $editorParent         = $scriptContainer.parent()
+			  , $notificationsArea    = $editor.find( ".content-editor-editor-notifications" )
+			  , $versioningLink       = $editorContainer.find( ".version-history-link" )
+			  , isRichEditor          = $editor.hasClass( "richeditor" )
+			  , saveAction            = $form.attr( "action" )
+			  , publishAction         = $form.data( "publishAction" )
+			  , publishPromptEndpoint = $form.data( "publishPromptEndpoint" )
+			  , originalValue         = $contentInput.val()
+			  , formEnabled           = false
+			  , versionIcon           = '<i class="preside-icon fa fa-history"></i> '
+			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, saveDraft, publishChanges, fetchPublishPrompt, notify, clearNotifications, disableEditForm, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent, commonSuccessHandler, commonFailHandler, commonAlwaysHandler;
 
 			$scriptContainer.appendTo( "body" );
 			$editor.appendTo( "body" );
@@ -186,7 +188,7 @@
 
 						if ( code === ctrlEnter ) {
 							if ( isDirty() ) {
-								confirmAndSave();
+								saveDraft();
 								return false;
 							}
 						}
@@ -222,7 +224,7 @@
 
 			disableOrEnableSaveButtons = function() {
 				if ( formEnabled ) {
-					$editorContainer.find( ".editor-btn-save" ).prop( "disabled", !isDirty() );
+					$editorContainer.find( ".editor-btn" ).prop( "disabled", !isDirty() );
 				}
 			};
 
@@ -247,12 +249,63 @@
 				}
 			};
 
-			confirmAndSave = function(){
+			saveDraft = function(){
 				if ( isRichEditor ) {
 					ensureEditorIsNotMaximized();
 				}
 
 				saveContent();
+			};
+
+			publishChanges = function(){
+				var formData = $form.serializeArray();
+				if ( isRichEditor ) {
+					ensureEditorIsNotMaximized();
+				}
+
+				saveContent( function( data ) {
+					if ( data.success && typeof data.rendered != "undefined" ) {
+						originalValue = content;
+						setContent( data.rendered );
+
+						clearNotifications();
+						disableEditForm( false );
+
+						fetchPublishPrompt( function( prompt ){
+							presideBootbox.confirm( prompt, function( confirmed ) {
+								if ( confirmed ) {
+									notify( i18n.translateResource( "cms:frontendeditor.publishing.notification" ) );
+									disableEditForm();
+
+									$.post( publishAction, formData, function( data ){
+										if ( data.success ) {
+											toggleEditMode( false );
+
+											if ( data.message ) {
+												$.alert( { message : data.message } );
+											}
+
+										} else if ( data.error ) {
+											$.alert( { type : "error", message : data.error, sticky : true } );
+										} else {
+											$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+										}
+									} ).fail( commonFailHandler ).always( commonAlwaysHandler );
+								}
+							});
+						} );
+					} else if ( data.error ) {
+						$.alert( { type : "error", message : data.error, sticky : true } );
+					} else {
+						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+					}
+				} );
+			};
+
+			fetchPublishPrompt = function( callback ){
+				var formData = $form.serializeArray();
+
+				$.post( publishPromptEndpoint, formData, callback );
 			};
 
 			setContent = function( content ){
@@ -283,10 +336,12 @@
 				}
 			};
 
-			saveContent = function( options ){
+			saveContent = function( success, fail, always ){
 				var formData, content;
 
-				options = $.extend( { url : saveAction }, options );
+				success = success || commonSuccessHandler;
+				fail    = fail    || commonFailHandler;
+				always  = always  || commonAlwaysHandler;
 
 				if ( isRichEditor ) {
 					$contentInput.val( editor.getData() );
@@ -299,33 +354,7 @@
 				notify( i18n.translateResource( "cms:frontendeditor.saving.notification" ) );
 				disableEditForm();
 
-				$.post( options.url, formData, function( data ) {
-					if ( data.success && typeof data.rendered != "undefined" ) {
-						originalValue = content;
-						setContent( data.rendered );
-						toggleEditMode( false );
-
-						if ( data.message ) {
-							$.alert( { message : data.message } );
-						}
-
-					} else if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).fail( function( xhr ){
-					var data = xhr.responseJSON || {};
-
-					if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).always( function( xhr ){
-					clearNotifications();
-					disableEditForm( false );
-				} );
+				$.post( saveAction, formData, success ).fail( fail ).always( always );
 			};
 
 			exitProtectionListener = function(){
@@ -459,6 +488,38 @@
 				notify( versionIcon + i18n.translateResource( "cms:frontendeditor.version.loaded.notification" ) );
 			};
 
+			commonSuccessHandler = function( data ) {
+				if ( data.success && typeof data.rendered != "undefined" ) {
+					originalValue = content;
+					setContent( data.rendered );
+					toggleEditMode( false );
+
+					if ( data.message ) {
+						$.alert( { message : data.message } );
+					}
+
+				} else if ( data.error ) {
+					$.alert( { type : "error", message : data.error, sticky : true } );
+				} else {
+					$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+				}
+			};
+
+			commonFailHandler = function( xhr ){
+				var data = xhr.responseJSON || {};
+
+				if ( data.error ) {
+					$.alert( { type : "error", message : data.error, sticky : true } );
+				} else {
+					$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+				}
+			};
+
+			commonAlwaysHandler = function( xhr ){
+				clearNotifications();
+				disableEditForm( false );
+			};
+
 			$editor.on( "click", ".content-editor-overlay,.content-editor-label", function( e ){
 				e.preventDefault();
 				toggleEditMode( true );
@@ -478,7 +539,12 @@
 
 			$editorContainer.on( "click", ".editor-btn-save", function( e ){
 				e.preventDefault();
-				confirmAndSave();
+				saveDraft();
+			} );
+
+			$editorContainer.on( "click", ".editor-btn-publish", function( e ){
+				e.preventDefault();
+				publishChanges();
 			} );
 
 			$editorContainer.on( "submit", ".content-editor-form", function( e ){

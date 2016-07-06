@@ -26,6 +26,10 @@
 		if ( prc.hasCmsPublishPermissions ) {
 			actions.append( { key="publish", title=translateResource( "cms:frontendeditor.editor.publish.btn" ) } );
 		}
+
+		saveAction            = event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' );
+		publishAction         = event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.publishAction' );
+		publishPromptEndpoint = event.buildAdminLink( linkTo='ajaxProxy.index', queryString='action=frontendEditing.getPublishPrompt' );
 	}
 </cfscript>
 
@@ -43,7 +47,7 @@
 					#translateResource( label, property )# <span class="draft-warning">#translateResource( "cms:frontendeditor.draft.warning.label" )#</span>
 				</div>
 				<div class="presidecms content-editor-editor-container">
-					<form method="post" class="content-editor-form" action="#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' )#">
+					<form method="post" class="content-editor-form" action="#saveAction#" data-publish-prompt-endpoint="#publishPromptEndpoint#" data-publish-action="#publishAction#">
 						<input type="hidden" name="pageId"   value="#pageId#"   />
 						<input type="hidden" name="object"   value="#object#"   />
 						<input type="hidden" name="property" value="#property#" />
@@ -82,16 +86,16 @@
 
 
 							<div class="btn-group dropup" data-multi-submit-field="_saveAction">
-								<button class="btn btn-primary editor-btn-#actions[1].key#">
+								<button class="btn btn-primary editor-btn-#actions[1].key# editor-btn">
 									<i class="fa fa-save fa-fw"></i> #actions[1].title#
 								</button>
 								<cfif actions.len() gt 1>
-									<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="preside-dropdown" aria-haspopup="true" aria-expanded="false">
+									<button type="button" class="btn btn-primary dropdown-toggle editor-btn" data-toggle="preside-dropdown" aria-haspopup="true" aria-expanded="false">
 										<i class="fa fa-caret-down bigger-110"></i><span class="sr-only">Toggle Dropdown</span>
 									</button>
 									<ul class="dropdown-menu text-left">
 										<cfloop array="#actions#" index="i" item="action">
-											<li><a href="##" class="editor-btn-#action.key#">#action.title#</a></li>
+											<li><a href="##" class="editor-btn-#action.key# editor-btn">#action.title#</a></li>
 										</cfloop>
 									</ul>
 								</cfif>

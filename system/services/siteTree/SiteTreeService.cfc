@@ -963,6 +963,28 @@ component singleton=true {
 		return _getPageTypesService().getPageType( arguments.parentType ).getManagedChildTypes().listToArray();
 	}
 
+	public array function getDraftChangedFields( required string pageId, string pageType ) {
+		if ( !arguments.keyExists( "pageType" ) ) {
+			var page = getPage(
+				  id          = arguments.pageId
+				, getLatest   = true
+				, allowDrafts = true
+				, selectFields = [ "page.page_type" ]
+			);
+
+			if ( !page.recordCount ) {
+				return [];
+			}
+
+			arguments.pageType = page.page_type;
+		}
+
+		var changedFields = _getVersioningService().getDraftChangedFields( "page", arguments.pageId );
+		    changedFields.append( _getVersioningService().getDraftChangedFields( arguments.pageType, arguments.pageId ), true );
+
+		return changedFields;
+	}
+
 	public boolean function publishDraft( required string pageId ) {
 		var page = getPage(
 			  id          = arguments.pageId
@@ -975,9 +997,7 @@ component singleton=true {
 
 			page.append( getExtendedPageProperties( page.id, page.page_type ) );
 
-			var changedFields = _getVersioningService().getDraftChangedFields( "page", page.id );
-			changedFields.append( _getVersioningService().getDraftChangedFields( page.page_type, page.id ), true );
-
+			var changedFields = getDraftChangedFields( page.id, page.page_type );
 			var dataToSubmit = {};
 			for( var field in changedFields ) {
 				if ( page.keyExists( field ) ) {

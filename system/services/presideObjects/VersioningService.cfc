@@ -281,6 +281,38 @@ component {
 		return changedFields;
 	}
 
+	public boolean function publishLatestDraft( required string objectName, required string recordId ) {
+		var changedFields = getDraftChangedFields( argumentCollection=arguments );
+		var dataToPublish = {};
+		var record        = $getPresideObjectService().selectData(
+			  objectName         = arguments.objectName
+			, id                 = recordId
+			, fromVersionTable   = true
+			, allowDraftVersions = true
+		);
+
+		if ( record.recordCount ) {
+			for( var r in record ) { record = r; }
+			for( var field in changedFields ) {
+				if ( record.keyExists( field ) ) {
+					dataToPublish[ field ] = record[ field ];
+				}
+			}
+
+			if ( dataToPublish.count() ) {
+				return $getPresideObjectService().updateData(
+					  objectName           = arguments.objectName
+					, id                   = arguments.recordId
+					, data                 = dataToPublish
+					, isDraft              = false
+					, forceVersionCreation = true
+				);
+			}
+		}
+
+		return false;
+	}
+
 	public boolean function promoteVersion(
 		  required string  objectName
 		, required string  recordId

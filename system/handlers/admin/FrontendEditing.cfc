@@ -3,6 +3,8 @@ component {
 	property name="frontendEditingService" inject="frontendEditingService";
 	property name="contentRendererService" inject="contentRendererService";
 	property name="presideObjectService"   inject="presideObjectService";
+	property name="versioningService"      inject="versioningService";
+	property name="siteTreeService"        inject="siteTreeService";
 
 
 <!--- actions --->
@@ -31,6 +33,28 @@ component {
 		} else {
 			event.renderData( type="json", data={ success=false, message=translateResource( "cms:frontendeditor.save.unknown.error" ) } );
 		}
+	}
+
+	public void function publishAction( event, rc, prc ) {
+		var object   = rc.object   ?: "";
+		var recordId = rc.recordId ?: "";
+		var pageId   = rc.pageId   ?: "";
+
+
+		if ( !hasCmsPermission( permissionKey="sitetree.publish", context="page", contextKeys=[ pageId ] ) ) {
+			event.adminAccessDenied();
+		}
+
+		if ( object == "page" || presideObjectService.isPageType( object ) ) {
+			siteTreeService.publishDraft( recordId );
+		} else {
+			versioningService.publishLatestDraft( object, recordId );
+		}
+
+		event.renderData( type="json", data={
+			  success  = true
+			, message  = translateResource( "cms:frontendeditor.publish.success" )
+		} );
 	}
 
 	public void function getHistoryForAjaxDataTables( event, rc, prc ) {
@@ -97,6 +121,35 @@ component {
 		}
 
 		event.renderData( type="html", data=preview );
+	}
+
+	public void function getPublishPrompt( event, rc, prc ) {
+		var object        = rc.object   ?: "";
+		var recordId      = rc.recordId ?: "";
+		var i18nBase      = presideObjectService.getResourceBundleUriRoot( object );
+		var objectTitle   = LCase( translateResource( "#i18nBase#title.singular" ) );
+		var recordLabel   = renderLabel( object, recordId );
+		var changedFields = [];
+
+		if ( object == "page" || presideObjectService.isPageType( object ) ) {
+			changedFields = siteTreeService.getDraftChangedFields( recordId );
+		} else {
+			changedFields = versioningService.getDraftChangedFields( object, recordId );
+		}
+
+		for( var i=changedFields.len(); i>0; i-- ) {
+			changedFields[ i ] = translateResource( "#i18nBase#field.#changedFields[i]#.title", "" );
+			if ( changedFields[ i ] == "" ) {
+				changedFields.deleteAt( i );
+			}
+		}
+
+		changedFields = changedFields.toList( ", " );
+
+		event.renderData(
+			  type = "text"
+			, data = translateResource( uri="cms:frontendeditor.publish.prompt", data=[ objectTitle, recordLabel, changedFields ] )
+		);
 	}
 
 // VIEWLETS
