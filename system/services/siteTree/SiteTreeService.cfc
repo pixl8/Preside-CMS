@@ -653,7 +653,7 @@ component {
 			auditDetail.id = pageId;
 
 			$audit(
-				  action   = "add_page"
+				  action   = arguments.isDraft ? "add_draft_page" : "add_page"
 				, type     = "sitetree"
 				, detail   = auditDetail
 				, recordId = pageId
@@ -802,7 +802,7 @@ component {
 
 		if ( updated && !arguments.skipAudit ) {
 			$audit(
-				  action   = "edit_page"
+				  action   = arguments.isDraft ? "save_draft_page" : "edit_page"
 				, type     = "sitetree"
 				, detail   = Duplicate( arguments )
 				, recordId = arguments.id

@@ -442,7 +442,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="activate", pageId=page.id );
 
-		siteTreeService.editPage( id=page.id, active=true );
+		siteTreeService.editPage( id=page.id, active=true, skipAudit=true );
+		event.audit(
+			  action   = "activate_page"
+			, type     = "sitetree"
+			, detail   = QueryRowToStruct( page )
+			, recordId = page.id
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.activated.confirmation" ) );
 		if ( _isManagedPage( page.parent_page, page.page_type ) ) {
@@ -457,7 +463,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		_checkPermissions( argumentCollection=arguments, key="activate", pageId=page.id );
 
-		siteTreeService.editPage( id=page.id, active=false );
+		siteTreeService.editPage( id=page.id, active=false, skipAudit=true );
+		event.audit(
+			  action   = "deactivate_page"
+			, type     = "sitetree"
+			, detail   = QueryRowToStruct( page )
+			, recordId = page.id
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.page.deactivated.confirmation" ) );
 
