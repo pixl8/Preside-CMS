@@ -95,6 +95,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
 		var service = CreateMock( object=new preside.system.services.frontendEditing.FrontendEditingService( sitetreeService=mockSiteTreeService ) );
 		service.$( "$getPresideObjectService", mockPresideObjectService );
+		service.$( "$audit" );
 
 		mockPresideObjectService.$( "isPageType", false );
 

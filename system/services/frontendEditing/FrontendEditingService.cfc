@@ -1,4 +1,9 @@
-component singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -23,12 +28,22 @@ component singleton=true {
 			);
 		}
 
-		return poService.updateData(
+		var result = poService.updateData(
 			  objectName = arguments.object
 			, data       = { "#property#" = arguments.content }
 			, id         = arguments.recordId
 			, isDraft    = true
 		);
+
+		$audit(
+			  action   = "frontend_save_draft"
+			, type     = "frontendeditor"
+			, detail   = Duplicate( arguments )
+			, recordId = arguments.recordId
+		);
+
+
+		return result;
 	}
 
 // GETTERS AND SETTERS
