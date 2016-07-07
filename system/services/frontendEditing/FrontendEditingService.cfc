@@ -2,12 +2,10 @@ component singleton=true {
 
 // CONSTRUCTOR
 	/**
-	 * @presideObjectService.inject presideObjectService
-	 * @siteTreeService.inject      siteTreeService
+	 * @siteTreeService.inject siteTreeService
 	 *
 	 */
-	public any function init( required any presideObjectService, required any siteTreeService ) {
-		_setPresideObjectService( arguments.presideObjectService );
+	public any function init( required any siteTreeService ) {
 		_setSiteTreeService( arguments.siteTreeService );
 
 		return this;
@@ -15,7 +13,7 @@ component singleton=true {
 
 // PUBLIC METHODS
 	public boolean function saveContent( required string object, required string property, required string recordId, required string content ) {
-		var poService = _getPresideObjectService();
+		var poService = $getPresideObjectService();
 
 		if ( poService.isPageType( arguments.object ) || arguments.object == "page" ) {
 			return _getSiteTreeService().editPage(
@@ -34,13 +32,6 @@ component singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getPresideObjectService() {
-		return _presideObjectService;
-	}
-	private void function _setPresideObjectService( required any presideObjectService ) {
-		_presideObjectService = arguments.presideObjectService;
-	}
-
 	private any function _getSiteTreeService() {
 		return _siteTreeService;
 	}

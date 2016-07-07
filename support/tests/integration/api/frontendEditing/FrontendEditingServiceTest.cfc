@@ -1,26 +1,108 @@
-component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
+component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 
-// SETUP, TEARDOWN, ETC.
-	function beforeTests() {
-		presideObjectService = _getPresideObjectService( forceNewInstance=true );
-		_emptyDatabase();
-		_dbSync();
-		_createDummyUsers();
+
+	function run(){
+
+		describe( "saveContent()", function(){
+			it( "should save individual field to preside object record as a draft", function(){
+				var service    = _getService();
+				var objectName = "someObject";
+				var recordId   = CreateUUId();
+				var propName   = "someProperty";
+				var content    = CreateUUId();
+
+				mockPresideObjectService.$( "updateData", 1 );
+
+				expect( service.saveContent(
+					  object   = objectName
+					, property = propName
+					, recordId = recordId
+					, content  = content
+				) ).toBeTrue();
+
+				var log = mockPresideObjectService.$callLog().updateData;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  objectName = objectName
+					, data       = { someProperty=content }
+					, id         = recordId
+					, isDraft    = true
+				} );
+
+			} );
+
+			it( "should use sitetree service to save draft when object is 'page'", function(){
+				var service    = _getService();
+				var objectName = "page";
+				var recordId   = CreateUUId();
+				var propName   = "title";
+				var content    = CreateUUId();
+
+				mockSiteTreeService.$( "editPage", 1 );
+
+				expect( service.saveContent(
+					  object   = objectName
+					, property = propName
+					, recordId = recordId
+					, content  = content
+				) ).toBeTrue();
+
+				var log = mockSiteTreeService.$callLog().editPage;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id      = recordId
+					, isDraft = true
+					, title   = content
+				} );
+
+			} );
+
+			it( "should use sitetree service to save draft when object is a page type", function(){
+				var service    = _getService();
+				var objectName = "homepage";
+				var recordId   = CreateUUId();
+				var propName   = "title";
+				var content    = CreateUUId();
+
+				mockPresideObjectService.$( "isPageType" ).$args( objectName ).$results( true );
+				mockSiteTreeService.$( "editPage", 1 );
+
+				expect( service.saveContent(
+					  object   = objectName
+					, property = propName
+					, recordId = recordId
+					, content  = content
+				) ).toBeTrue();
+
+				var log = mockSiteTreeService.$callLog().editPage;
+				expect( log.len() ).toBe( 1 );
+				expect( log[1] ).toBe( {
+					  id      = recordId
+					, isDraft = true
+					, title   = content
+				} );
+
+			} );
+		} );
+
+
 	}
 
-	function afterTests() {
-		_wipeData();
+// PRIVATE HELPERS
+	private any function _getService() {
+		mockSiteTreeService      = CreateEmptyMock( "preside.system.services.siteTree.SiteTreeService" );
+		mockPresideObjectService = CreateEmptyMock( "preside.system.services.presideObjects.PresideObjectService" );
+
+		var service = CreateMock( object=new preside.system.services.frontendEditing.FrontendEditingService( sitetreeService=mockSiteTreeService ) );
+		service.$( "$getPresideObjectService", mockPresideObjectService );
+
+		mockPresideObjectService.$( "isPageType", false );
+
+		return service;
 	}
 
-	function setup() {
-		super.setup();
-
-		var draftService  = new preside.system.services.drafts.DraftService( dao = presideObjectService.getObject( "draft" ) );
-
-		mockPoService = getMockBox().createMock( object=Duplicate( presideObjectService ) );
-
-		editingService = new preside.system.services.frontendEditing.FrontendEditingService( presideObjectService = mockPoService, draftService = draftService );
-	}
+}
+/*
 
 // TESTS
 	function test01_saveContent_shouldSaveIndividualFieldToPresideObjectRecord() {
@@ -46,79 +128,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		super.assertEquals( expectedUpdateDataCall, callLog[1] );
 	}
 
-	function test03_draftExists_shouldReturnFalse_whenNoDraftExistsForTheUserAndField(){
-		super.assertFalse(
-			editingService.draftExists( object="meh", property="test", recordId="testid", owner=testUsers[2].id )
-		);
-	}
-
-	function test04_draftExists_shouldReturnTrue_whenDraftExistsForUserAndField(){
-		editingService.saveDraft(
-			  object   = "meh"
-			, property = "test"
-			, recordId = "testid"
-			, content  = "this is test content"
-			, owner    = testUsers[3].id
-		);
-
-		super.assert(
-			editingService.draftExists( object="meh", property="test", recordId="testid", owner=testUsers[3].id )
-		);
-	}
-
-	function test05_getDraft_shouldReturnSavedDraft(){
-		editingService.saveDraft(
-			  object   = "meh"
-			, property = "test"
-			, recordId = "testid"
-			, content  = "this is test content"
-			, owner    = testUsers[3].id
-		);
-		editingService.saveDraft(
-			  object   = "anotherObj"
-			, property = "someOtherProperty"
-			, recordId = "someId"
-			, content  = "more test content"
-			, owner    = testUsers[1].id
-		);
-
-		super.assertEquals(
-			  "more test content"
-			, editingService.getDraft( object="anotherObj", property="someOtherProperty", recordId="someId", owner=testUsers[1].id )
-		);
-	}
-
-	function test06_discardDraft_shouldDiscardSavedDraft(){
-		editingService.saveDraft(
-			  object   = "meh"
-			, property = "test"
-			, recordId = "testid"
-			, content  = "this is test content"
-			, owner    = testUsers[3].id
-		);
-
-		super.assert( editingService.draftExists( object="meh", property="test", recordId="testid", owner=testUsers[3].id ) );
-
-		editingService.discardDraft( object="meh", property="test", recordId="testid", owner=testUsers[3].id );
-
-		super.assertFalse( editingService.draftExists( object="meh", property="test", recordId="testid", owner=testUsers[3].id ) );
-	}
-
 // PRIVATE HELPERS
-	private function _wipeData() {
-	}
 
-	private function _createDummyUsers() {
-		variables.testUsers = [
-			  { loginId="fred"    , pw="some%$p45%word" , name="Big Daddy"   , email="test1@test.com", id="" }
-			, { loginId="james"   , pw="aN0THERP4$$word", name="007"         , email="test2@test.com", id="" }
-			, { loginId="boris"   , pw="j0ns0n"         , name="Bendy Boris" , email="test3@test.com", id="" }
-			, { loginId="pixl8"   , pw="1nter4ct!ve"    , name="Pixl8"       , email="test4@test.com", id="" }
-			, { loginId="mandy"   , pw="sdfjlsdf84£rjs" , name="Patinkin"    , email="test5@test.com", id="" }
-			, { loginId="sysadmin", pw="ajdlfjasfas&&^" , name="System Admin", email="test6@test.com", id="" }
-		];
-		for( var user in testUsers ){
-			user.id = _insertData( objectName="security_user", data={ known_as=user.name, login_id=user.loginId, password=_bCryptPassword( user.pw ), email_address=user.email } );
-		}
-	}
 }
+*/
