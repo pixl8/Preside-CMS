@@ -1073,7 +1073,16 @@ component {
 			}
 
 			if ( dataToSubmit.count() ) {
-				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
+				editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
+
+				$audit(
+					  action   = "publish_page_drafts"
+					, type     = "sitetree"
+					, detail   = page
+					, recordId = page.id
+				);
+
+				return true;
 			}
 		}
 
@@ -1105,12 +1114,22 @@ component {
 					, newVersionNumber = newVersionNumber
 				);
 
-				return versioningService.promoteVersion(
+				versioningService.promoteVersion(
 					  objectName    = page.page_type
 					, recordId      = arguments.pageId
 					, versionNumber = latestPublishedVersion
 					, newVersionNumber = newVersionNumber
 				);
+
+				for( var p in page ) { var auditDetail = p; }
+				$audit(
+					  action   = "discard_page_drafts"
+					, type     = "sitetree"
+					, detail   = auditDetail
+					, recordId = page.id
+				);
+
+				return true;
 			}
 		}
 
