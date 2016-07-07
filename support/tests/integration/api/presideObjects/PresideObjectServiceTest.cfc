@@ -2094,8 +2094,8 @@
 
 			poService.updateData(
 				  objectName   = "a_category_object"
-				, filter       = "label like :label"
-				, filterParams = { label = "my new label%" }
+				, filter       = "a_category_object.label like :a_category_object.label"
+				, filterParams = { "a_category_object.label" = "my new label%" }
 				, data         = { label = "changed" }
 			);
 

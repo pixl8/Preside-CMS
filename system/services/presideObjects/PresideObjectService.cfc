@@ -1606,7 +1606,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	) {
 		var manyToManyObjects = {};
 		var isPageType        = isPageType( arguments.objectName );
-		var pageIsVersioned   = objectIsVersioned( "page" );
+		var pageIsVersioned   = objectExists( "page" ) && objectIsVersioned( "page" );
 
 		for( var join in arguments.joins ){
 			if ( Len( Trim( join.manyToManyProperty ?: "" ) ) ) {
