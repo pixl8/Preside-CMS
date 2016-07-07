@@ -45,9 +45,10 @@ component {
 
 	public string function renderLabel( required string objectName, required string recordId, string keyField="id" ) {
 		var record = _getPresideObjectService().selectData(
-			  objectName   = arguments.objectName
-			, filter       = { "#keyField#"=arguments.recordId }
-			, selectFields = [ "${labelfield} as label" ]
+			  objectName         = arguments.objectName
+			, filter             = { "#keyField#"=arguments.recordId }
+			, selectFields       = [ "${labelfield} as label" ]
+			, allowDraftVersions = $isAdminUserLoggedIn()
 		);
 
 		if ( record.recordCount ) {
