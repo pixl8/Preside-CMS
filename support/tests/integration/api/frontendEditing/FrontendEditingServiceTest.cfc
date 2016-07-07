@@ -102,33 +102,3 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 	}
 
 }
-/*
-
-// TESTS
-	function test01_saveContent_shouldSaveIndividualFieldToPresideObjectRecord() {
-		var expectedUpdateDataCall = {
-			  objectName = "meh"
-			, data       = { test = "this is test content" }
-			, id         = "testid"
-		};
-
-		mockPoService.$( "isPageType", false );
-		mockPoService.$( "updateData", true );
-
-		editingService.saveContent(
-			  object   = expectedUpdateDataCall.objectName
-			, property = "test"
-			, recordId = expectedUpdateDataCall.id
-			, content  = expectedUpdateDataCall.data.test
-		);
-
-		var callLog = mockPoService.$callLog().updateData;
-
-		super.assertEquals( 1, callLog.len() );
-		super.assertEquals( expectedUpdateDataCall, callLog[1] );
-	}
-
-// PRIVATE HELPERS
-
-}
-*/
