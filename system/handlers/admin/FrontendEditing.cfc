@@ -141,14 +141,19 @@ component {
 			changedFields[ i ] = translateResource( "#i18nBase#field.#changedFields[i]#.title", "" );
 			if ( changedFields[ i ] == "" ) {
 				changedFields.deleteAt( i );
+			} else {
+				changedFields[ i ] = "<li>" & changedFields[ i ] & "</li>";
 			}
 		}
 
-		changedFields = changedFields.toList( ", " );
+		changedFields = "<ul>" & changedFields.toList( " " ) & "</ul>"
+		var prompt =  "<p>" & translateResource( uri="cms:frontendeditor.publish.prompt", data=[ objectTitle, recordLabel ] ) & "</p>";
+		    prompt &= "<h4>" & translateResource( "cms:frontendeditor.publish.prompt.changed.fields.title" ) & "</h4>";
+		    prompt &= changedFields;
 
 		event.renderData(
-			  type = "text"
-			, data = translateResource( uri="cms:frontendeditor.publish.prompt", data=[ objectTitle, recordLabel, changedFields ] )
+			  type = "html"
+			, data = prompt
 		);
 	}
 
