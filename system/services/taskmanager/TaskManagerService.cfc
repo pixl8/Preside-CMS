@@ -570,6 +570,7 @@ component displayName="Task Manager Service" {
 	}
 
 	public struct function getStats() {
+		var scheduleEnabled   = _getSystemConfigurationService().getSetting( "taskmanager", "scheduledtasks_enabled" );
 		var tasks             = _getTaskDao().selectData();
 		var taskHistory       = _getTaskHistoryDao().selectData();
 		var failureCount      = 0;
@@ -600,12 +601,13 @@ component displayName="Task Manager Service" {
 		}
 
 		return {
-			  "taskmanager.failure.count" = failureCount
-			, "taskmanager.success.count" = successCount
-			, "taskmanager.failure.perc"  = ( taskHistory.recordCount ? ( ( historicFailures  / taskHistory.recordCount ) * 100 ) : 0 )
-			, "taskmanager.success.perc"  = ( taskHistory.recordCount ? ( ( historicSuccesses / taskHistory.recordCount ) * 100 ) : 0 )
-			, "taskmanager.total.time"    = totalTime
-			, "taskmanager.avg.time"      = ( taskHistory.recordCount ? ( totalTime / taskHistory.recordCount ) : 0 )
+			  "taskmanager.schedule.enabled" = ( IsBoolean( scheduleEnabled ) && scheduleEnabled ) ? 1 : 0
+			, "taskmanager.failure.count"    = failureCount
+			, "taskmanager.success.count"    = successCount
+			, "taskmanager.failure.perc"     = ( taskHistory.recordCount ? ( ( historicFailures  / taskHistory.recordCount ) * 100 ) : 0 )
+			, "taskmanager.success.perc"     = ( taskHistory.recordCount ? ( ( historicSuccesses / taskHistory.recordCount ) * 100 ) : 0 )
+			, "taskmanager.total.time"       = totalTime
+			, "taskmanager.avg.time"         = ( taskHistory.recordCount ? ( totalTime / taskHistory.recordCount ) : 0 )
 		};
 	}
 
