@@ -75,6 +75,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"                  );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"                 );
 		interceptorSettings.customInterceptionPoints.append( "postPrepareTableJoins"                 );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareVersionSelect"              );
 		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"                      );
 		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"                   );
@@ -213,7 +214,7 @@ component {
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
 			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]

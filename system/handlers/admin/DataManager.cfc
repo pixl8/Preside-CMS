@@ -6,6 +6,7 @@
 	<cfproperty name="formsService"                     inject="formsService"                     />
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
+	<cfproperty name="versioningService"                inject="versioningService"                />
 	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -840,7 +841,6 @@
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
 			}
 
-			formData._translation_active = IsTrue( rc._translation_active ?: "" );
 			multilingualPresideObjectService.saveTranslation(
 				  objectName = object
 				, id         = id
@@ -1114,16 +1114,21 @@
 
 		<cfscript>
 			var selectedVersion = Val( args.version ?: "" );
+			var objectName      = args.object ?: "";
+			var id              = args.id     ?: "";
 
-			args.versions = presideObjectService.getRecordVersions(
-				  objectName = args.object ?: ""
-				, id         = args.id     ?: ""
+			args.latestVersion          = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id );
+			args.latestPublishedVersion = versioningService.getLatestVersionNumber( objectName=objectName, recordId=id, publishedOnly=true );
+			args.versions               = presideObjectService.getRecordVersions(
+				  objectName = objectName
+				, id         = id
 			);
 
-			if ( !selectedVersion && args.versions.recordCount ) {
-				selectedVersion = args.versions._version_number; // first record, they are ordered reverse chronologically
+			if ( !selectedVersion ) {
+				selectedVersion = args.latestVersion;
 			}
 
+			args.isLatest    = args.latestVersion == selectedVersion;
 			args.nextVersion = 0;
 			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
 
@@ -1145,28 +1150,42 @@
 		<cfargument name="args"  type="struct" required="false" default="#StructNew()#" />
 
 		<cfscript>
-			var selectedVersion = Val( args.version ?: "" );
+			var recordId              = args.id       ?: "";
+			var language              = args.language ?: "";
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( args.object ?: "" );
+			var selectedVersion       = Val( args.version ?: "" );
 			var existingTranslation = multilingualPresideObjectService.selectTranslation(
 				  objectName   = args.object ?: ""
 				, id           = args.id ?: ""
 				, languageId   = args.language ?: ""
 				, selectFields = [ "id" ]
+				, version      = selectedVersion
 			);
 
 			if ( !existingTranslation.recordCount ) {
 				return "";
 			}
 
+			args.version  = args.version ?: selectedVersion;
+			args.latestVersion          = versioningService.getLatestVersionNumber(
+				  objectName = translationObjectName
+				, filter     = { _translation_source_record=recordId, _translation_language=language }
+			);
+			args.latestPublishedVersion = versioningService.getLatestVersionNumber(
+				  objectName    = translationObjectName
+				, filter        = { _translation_source_record=recordId, _translation_language=language }
+				, publishedOnly = true
+			);
 			args.versions = presideObjectService.getRecordVersions(
 				  objectName = translationObjectName
 				, id         = existingTranslation.id
 			);
 
 			if ( !selectedVersion && args.versions.recordCount ) {
-				selectedVersion = args.versions._version_number; // first record, they are ordered reverse chronologically
+				selectedVersion = args.latestVersion;
 			}
 
+			args.isLatest    = args.latestVersion == selectedVersion;
 			args.nextVersion = 0;
 			args.prevVersion = args.versions.recordCount < 2 ? 0 : args.versions._version_number[ args.versions.recordCount-1 ];
 
@@ -1177,7 +1196,10 @@
 				}
 			}
 
-			return renderView( view="admin/datamanager/translationVersionNavigator", args=args );
+			args.baseUrl        = args.baseUrl        ?: event.buildAdminLink( linkTo='datamanager.translateRecord'         , queryString='object=#args.object#&id=#args.id#&language=#language#&version=' )
+			args.allVersionsUrl = args.allVersionsUrl ?: event.buildAdminLink( linkTo='datamanager.translationRecordHistory', queryString='object=#args.object#&id=#args.id#&language=#language#' )
+
+			return renderView( view="admin/datamanager/versionNavigator", args=args );
 		</cfscript>
 	</cffunction>
 
@@ -1275,12 +1297,9 @@
 		<cfargument name="object"          type="string"  required="false" default="#( rc.object ?: '' )#" />
 		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 
 		<cfscript>
-			gridFields = ListToArray( gridFields );
-
 			var versionObject       = presideObjectService.getVersionObjectName( object );
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var optionsCol          = [];
@@ -1289,17 +1308,33 @@
 				  objectName  = object
 				, recordId    = recordId
 				, property    = property
-				, gridFields  = gridFields
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
 				, orderBy     = dtHelper.getSortOrder()
 				, searchQuery = dtHelper.getSearchQuery()
 			);
-			var records = Duplicate( results.records );
+			var records    = Duplicate( results.records );
+			var gridFields = [ "published", "datemodified", "_version_author", "_version_changed_fields" ];
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+					if ( field == "published" ) {
+						records[ field ][ records.currentRow ] = renderContent( "boolean", record[ field ], [ "adminDataTable", "admin" ] );
+					} else if ( field == "_version_changed_fields" ) {
+						var rendered = [];
+						for( var changedField in ListToArray( records[ field ][ records.currentRow ] ) ) {
+							var translated = translateResource(
+								  uri          = "preside-objects.#object#:field.#changedField#.title"
+								, defaultValue = translateResource( uri="cms:preside-objects.default.field.#changedField#.title", defaultValue="" )
+							);
+							if ( Len( Trim( translated ) ) ) {
+								rendered.append( translated );
+							}
+						}
+						records[ field ][ records.currentRow ] = '<span title="#HtmlEditFormat( rendered.toList( ', ' ) )#">' & abbreviate( rendered.toList( ", " ), 100 ) & '</span>';
+					} else {
+						records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+					}
 				}
 
 				if ( Len( Trim( actionsView ) ) ) {
@@ -1328,7 +1363,6 @@
 		<cfargument name="recordId"        type="string"  required="false" default="#( rc.id ?: '' )#" />
 		<cfargument name="languageId"      type="string"  required="false" default="#( rc.language ?: '' )#" />
 		<cfargument name="property"        type="string"  required="false" default="#( rc.property ?: '' )#" />
-		<cfargument name="gridFields"      type="string"  required="false" default="#( rc.gridFields ?: 'datemodified,label,_version_author' )#" />
 		<cfargument name="actionsView"     type="string"  required="false" default="" />
 
 		<cfscript>
@@ -1349,7 +1383,6 @@
 				  objectName  = translationObject
 				, recordId    = translationRecord.id ?: ""
 				, property    = property
-				, gridFields  = gridFields
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
 				, orderBy     = dtHelper.getSortOrder()
@@ -1357,10 +1390,27 @@
 				, filter      = { _translation_language = languageId }
 			);
 			var records = Duplicate( results.records );
+			var gridFields = [ "published", "datemodified", "_version_author", "_version_changed_fields" ];
 
 			for( var record in records ){
 				for( var field in gridFields ){
-					records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+					if ( field == "published" ) {
+						records[ field ][ records.currentRow ] = renderContent( "boolean", record[ field ], [ "adminDataTable", "admin" ] );
+					} else if ( field == "_version_changed_fields" ) {
+						var rendered = [];
+						for( var changedField in ListToArray( records[ field ][ records.currentRow ] ) ) {
+							var translated = translateResource(
+								  uri          = "preside-objects.#object#:field.#changedField#.title"
+								, defaultValue = translateResource( uri="cms:preside-objects.default.field.#changedField#.title", defaultValue="" )
+							);
+							if ( Len( Trim( translated ) ) ) {
+								rendered.append( translated );
+							}
+						}
+						records[ field ][ records.currentRow ] = '<span title="#HtmlEditFormat( rendered.toList( ', ' ) )#">' & abbreviate( rendered.toList( ", " ), 100 ) & '</span>';
+					} else {
+						records[ field ][ records.currentRow ] = renderField( versionObject, field, record[ field ], [ "adminDataTable", "admin" ] );
+					}
 				}
 
 				if ( Len( Trim( actionsView ) ) ) {

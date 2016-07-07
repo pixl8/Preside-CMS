@@ -22,13 +22,22 @@ component extends="coldbox.system.Interceptor" output=false {
 	}
 
 	public void function postPrepareTableJoins( event, interceptData ) {
-		if ( featureService.isFeatureEnabled( "multilingual" ) ) {
+		if ( featureService.isFeatureEnabled( "multilingual" ) && interceptData.keyExists( "tableJoins" ) && interceptData.keyExists( "preparedFilter" ) ) {
 			var language = event.getLanguage();
 			if ( language.len() ){
 				multilingualPresideObjectService.addLanguageClauseToTranslationJoins(
 					  argumentCollection = interceptData
 					, language           = language
 				);
+			}
+		}
+	}
+
+	public void function postPrepareVersionSelect( event, interceptData ) {
+		if ( featureService.isFeatureEnabled( "multilingual" ) ) {
+			var language = event.getLanguage();
+			if ( language.len() ){
+				multilingualPresideObjectService.addVersioningClausesToTranslationJoins( selectDataArgs=interceptData );
 			}
 		}
 	}

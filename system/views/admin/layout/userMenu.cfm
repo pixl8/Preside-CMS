@@ -1,5 +1,5 @@
 <cfoutput>
-	<a data-toggle="dropdown" href="##" class="dropdown-toggle">
+	<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
 		<img class="nav-user-photo user-photo" src="//www.gravatar.com/avatar/#LCase( Hash( LCase( event.getAdminUserDetails().email_address ) ) )#?r=g&d=mm&s=40" alt="" />
 		<span class="user-info"> #event.getAdminUserDetails().known_as# </span>
 

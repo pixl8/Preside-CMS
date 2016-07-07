@@ -24,6 +24,15 @@
 .presidecms .tree-table tbody > tr > td:first-child {
   padding-left: 1.78571429em;
 }
+.presidecms .tree-table tbody > tr.draft {
+  font-style: italic;
+}
+.presidecms .tree-table tbody > tr.draft a {
+  color: #6fb3e0;
+}
+.presidecms .tree-table tbody > tr.has-drafts {
+  font-style: italic;
+}
 .presidecms .tree-table .page-title-cell {
   min-width: 450px;
 }

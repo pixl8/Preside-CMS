@@ -49,6 +49,7 @@ component {
 		, boolean useCache     = true
 		, string  rootPageId   = ""
 		, numeric maxDepth     = -1
+		, boolean allowDrafts  = _getLoginService().isLoggedIn()
 
 	) {
 		var tree             = "";
@@ -60,13 +61,14 @@ component {
 			filter &= " and page.page_type in (:page_type)"
 		}
 
-		var maxDepth         = arguments.maxDepth;
-		var args = {
-			  orderBy      = "page._hierarchy_sort_order"
-			, filter       = filter
-			, filterParams = { trashed = arguments.trash, page_type = allowedPageTypes }
-			, useCache     = arguments.useCache
-			, groupBy      = "page.id"
+		var maxDepth = arguments.maxDepth;
+		var args     = {
+			  orderBy            = "page._hierarchy_sort_order"
+			, filter             = filter
+			, filterParams       = { trashed = arguments.trash, page_type = allowedPageTypes }
+			, useCache           = arguments.useCache
+			, groupBy            = "page.id"
+			, allowDraftVersions = arguments.allowDrafts
 		};
 
 		if ( ArrayLen( arguments.selectFields ) ) {
@@ -96,7 +98,6 @@ component {
 			args.filterParams._hierarchy_depth = maxDepth;
 		}
 
-
 		tree = _getPObj().selectData( argumentCollection = args );
 
 		if ( arguments.format eq "nestedArray" ) {
@@ -117,9 +118,11 @@ component {
 		, array   selectFields = []
 		, boolean useCache     = true
 		, numeric version      = 0
+		, boolean getLatest    = false
+		, boolean allowDrafts  = _getLoginService().isLoggedIn()
 
 	) {
-		var args = { filter="", filterParams={}, useCache=arguments.useCache };
+		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
 			args.filter          = "page.id = :id";
@@ -155,6 +158,9 @@ component {
 		if ( arguments.version ) {
 			args.fromVersionTable = true
 			args.specificVersion  = arguments.version
+		} else if ( arguments.getLatest ) {
+			args.fromVersionTable = true
+			args.maxVersion       = "HEAD";
 		}
 
 		return _getPObj().selectData( argumentCollection = args );
@@ -178,11 +184,12 @@ component {
 		}
 
 		return _getPobj().selectData(
-			  selectFields = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
-			, filter       = filter
-			, filterParams = params
-			, maxRows      = arguments.maxRows
-			, orderBy      = "page._hierarchy_sort_order"
+			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			, filter             = filter
+			, filterParams       = params
+			, maxRows            = arguments.maxRows
+			, orderBy            = "page._hierarchy_sort_order"
+			, allowDraftVersions = true
 		);
 	}
 
@@ -293,15 +300,21 @@ component {
 		return arguments.defaultValue;
 	}
 
-	public query function getDescendants( required string id, numeric depth=0, array selectFields=[] ) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ] );
+	public query function getDescendants(
+		  required string  id
+		,          numeric depth        = 0
+		,          array   selectFields = []
+		,          boolean allowDrafts  = _getLoginService().isLoggedIn()
+	) {
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount ) {
 			args = {
-				  filter       = "_hierarchy_lineage like :_hierarchy_lineage"
-				, filterParams = { _hierarchy_lineage = page._hierarchy_child_selector }
-				, orderBy      = "_hierarchy_sort_order"
+				  filter             = "_hierarchy_lineage like :_hierarchy_lineage"
+				, filterParams       = { _hierarchy_lineage = page._hierarchy_child_selector }
+				, orderBy            = "_hierarchy_sort_order"
+				, allowDraftVersions = arguments.allowDrafts
 			};
 
 			if ( arguments.depth ) {
@@ -331,13 +344,14 @@ component {
 	) {
 		var result = {};
 		var args = {
-			  objectName   = arguments.objectName
-			, selectFields = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
-			, maxRows      = arguments.maxRows
-			, startRow     = arguments.startRow
-			, orderBy      = arguments.orderBy
-			, filter       = "page.parent_page = :page.parent_page and page.page_type = :page.page_type and page.trashed = :page.trashed"
-			, filterParams = { "page.parent_page"=arguments.parentId, "page.page_type"=arguments.pageType, "page.trashed"=false }
+			  objectName         = arguments.objectName
+			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
+			, maxRows            = arguments.maxRows
+			, startRow           = arguments.startRow
+			, orderBy            = arguments.orderBy
+			, filter             = "page.parent_page = :page.parent_page and page.page_type = :page.page_type and page.trashed = :page.trashed"
+			, filterParams       = { "page.parent_page"=arguments.parentId, "page.page_type"=arguments.pageType, "page.trashed"=false }
+			, allowDraftVersions = true
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -368,20 +382,27 @@ component {
 		return result;
 	}
 
-	public query function getAncestors( required string id, numeric depth=0, array selectFields=[], boolean includeSiblings=false ) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ] );
+	public query function getAncestors(
+		  required string  id
+		,          numeric depth           = 0
+		,          array   selectFields    = []
+		,          boolean includeSiblings = false
+		,          boolean allowDrafts     = _getLoginService().isLoggedIn()
+	) {
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount and page._hierarchy_lineage neq "/" ) {
 			args = {
-				  filter       = "( _hierarchy_id in (:_hierarchy_id)"
-				, filterParams = { _hierarchy_id = { value=page._hierarchy_lineage, list=true, separator="/" } }
-				, orderBy      = "_hierarchy_sort_order"
+				  filter             = "( _hierarchy_id in (:_hierarchy_id)"
+				, filterParams       = { _hierarchy_id = { value=page._hierarchy_lineage, list=true, separator="/" } }
+				, orderBy            = "_hierarchy_sort_order"
+				, allowDraftVersions = arguments.allowDrafts
 			};
 
 			if ( arguments.includeSiblings ) {
 				// would be nice not to have to make this additional call here, necessary due to using _hierarchy_id instead of id to form lineage
-				var ancestors = getAncestors( id=arguments.id, selectFields=[ "id" ] );
+				var ancestors = getAncestors( id=arguments.id, selectFields=[ "id" ], allowDraftVersions=arguments.allowDrafts );
 				args.filter &= " or parent_page in (:parent_page) or parent_page is null";
 				args.filterParams.parent_page = { value=ValueList( ancestors.id ), list=true };
 			}
@@ -403,20 +424,38 @@ component {
 		return QueryNew('');
 	}
 
-	public query function getSiteHomepage( array selectFields=[], boolean createIfNotExists=true ) {
+	public query function getSiteHomepage(
+		  array   selectFields      = []
+		, boolean createIfNotExists = true
+		, boolean getLatest         = false
+		, boolean allowDrafts       = false
+		, numeric version           = 0
+	) {
 		var loginSvc       = _getLoginService();
-		var homepage       = _getPobj().selectData(
-			  maxRows      = 1
-			, orderBy      = "_hierarchy_sort_order"
-			, selectFields = arguments.selectFields
-			, filter       = {
+		var homepageArgs   = {
+			  maxRows            = 1
+			, orderBy            = "_hierarchy_sort_order"
+			, selectFields       = arguments.selectFields
+			, allowDraftVersions = arguments.allowDrafts
+			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
 				, trashed          = false
 			  }
-		);
+		}
 
-		if ( homepage.recordCount or not arguments.createIfNotExists ) {
+		if ( arguments.version ) {
+			homepageArgs.fromVersionTable = true;
+			homepageArgs.specificVersion  = arguments.version;
+		} else if ( arguments.getLatest ) {
+			homepageArgs.fromVersionTable = true;
+			homepageArgs.maxVersion       = "HEAD";
+		}
+
+		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+
+
+		if ( homepage.recordCount || !arguments.createIfNotExists ) {
 			return homepage;
 		}
 
@@ -428,7 +467,7 @@ component {
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		);
 
-		return getPage( id=homepage, selectFields=arguments.selectFields );
+		return getPage( argumentCollection=arguments, id=homepage );
 	}
 
 	public array function getPagesForNavigationMenu(
@@ -439,6 +478,7 @@ component {
 		, boolean expandAllSiblings = true
 		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
 		, boolean isSubMenu         = false
+		, boolean allowDrafts       = _getLoginService().isLoggedIn()
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ]
@@ -462,11 +502,12 @@ component {
 			}
 
 			var children = _getPObj().selectData(
-				  selectFields = args.selectFields
-				, filter       = filter
-				, filterParams = filterParams
-				, extraFilters = extraFilters
-				, orderBy      = "sort_order"
+				  selectFields       = args.selectFields
+				, filter             = filter
+				, filterParams       = filterParams
+				, extraFilters       = extraFilters
+				, orderBy            = "sort_order"
+				, allowDraftVersions = args.allowDrafts
 			);
 
 			for( var child in children ){
@@ -540,9 +581,9 @@ component {
 		, required string  slug
 		, required string  page_type
 		,          string  parent_page
-		,          string  userId = _getLoginService().getLoggedInUserId()
-		,          boolean audit  = true
-
+		,          string  userId      = _getLoginService().getLoggedInUserId()
+		,          boolean isDraft     = false
+		,          boolean audit       = true
 	) {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var homepage        = getSiteHomepage( [ "id" ], false );
@@ -600,7 +641,7 @@ component {
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
-			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true );
+			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
 			if ( not Len( pageId ) and StructKeyExists( arguments, "id" ) ) {
 				pageId = arguments.id;
 			}
@@ -608,7 +649,7 @@ component {
 
 			pageTypeObjData = Duplicate( arguments );
 			pageTypeObjData.page = pageTypeObjData.id = pageId;
-			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
+			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
 		}
 
 		if ( Len( Trim( pageId ) ) && arguments.audit ) {
@@ -616,7 +657,7 @@ component {
 			auditDetail.id = pageId;
 
 			$audit(
-				  action   = "add_page"
+				  action   = arguments.isDraft ? "add_draft_page" : "add_page"
 				, type     = "sitetree"
 				, detail   = auditDetail
 				, recordId = pageId
@@ -626,7 +667,7 @@ component {
 		return pageId;
 	}
 
-	public boolean function editPage( required string id, boolean skipAudit=false ) {
+	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean forceVersionCreation ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -642,7 +683,7 @@ component {
 		_checkForBadHomepageOperations( argumentCollection = arguments );
 
 		transaction {
-			existingPage = getPage( id = arguments.id, includeTrash = true, useCache = false );
+			existingPage = getPage( id=arguments.id, includeTrash=true, useCache=false, allowDrafts=true );
 			if ( not existingPage.recordCount ) {
 				return false;
 			}
@@ -729,17 +770,19 @@ component {
 				, id                      = arguments.id
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
-				, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
+				, isDraft                 = arguments.isDraft
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
-				if ( pageTypeObj.dataExists( filter={ page=arguments.id } ) ) {
+				if ( pageTypeObj.dataExists( filter={ page=arguments.id }, allowDraftVersions=true ) ) {
 					_getPresideObject( pageType.getPresideObject() ).updateData(
 						  data                    = arguments
 						, filter                  = { page=arguments.id }
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
-						, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
+						, isDraft                 = arguments.isDraft
 					);
 				} else {
 					var insertData = Duplicate( arguments );
@@ -748,6 +791,7 @@ component {
 						  data                    = insertData
 						, versionNumber           = versionNumber
 						, insertManyToManyRecords = true
+						, isDraft                 = arguments.isDraft
 					);
 				}
 			}
@@ -761,10 +805,11 @@ component {
 		}
 
 		if ( updated && !arguments.skipAudit ) {
+			for( var p in existingPage ) { existingPage = p };
 			$audit(
-				  action   = "edit_page"
+				  action   = arguments.isDraft ? "save_draft_page" : "edit_page"
 				, type     = "sitetree"
-				, detail   = Duplicate( arguments )
+				, detail   = existingPage
 				, recordId = arguments.id
 			);
 		}
@@ -1000,6 +1045,103 @@ component {
 		return false;
 	}
 
+	public array function getDraftChangedFields( required string pageId, string pageType ) {
+		if ( !arguments.keyExists( "pageType" ) ) {
+			var page = getPage(
+				  id          = arguments.pageId
+				, getLatest   = true
+				, allowDrafts = true
+				, selectFields = [ "page.page_type" ]
+			);
+
+			if ( !page.recordCount ) {
+				return [];
+			}
+
+			arguments.pageType = page.page_type;
+		}
+
+		var changedFields = _getVersioningService().getDraftChangedFields( "page", arguments.pageId );
+		    changedFields.append( _getVersioningService().getDraftChangedFields( arguments.pageType, arguments.pageId ), true );
+
+		return changedFields;
+	}
+
+	public boolean function publishDraft( required string pageId ) {
+		var page = getPage(
+			  id          = arguments.pageId
+			, getLatest   = true
+			, allowDrafts = true
+		);
+
+		if ( page.recordCount ) {
+			for( var p in page ) { page = p; }
+
+			page.append( getExtendedPageProperties( page.id, page.page_type ) );
+
+			var changedFields = getDraftChangedFields( page.id, page.page_type );
+			var dataToSubmit = {};
+			for( var field in changedFields ) {
+				if ( page.keyExists( field ) ) {
+					dataToSubmit[ field ] = page[ field ];
+				}
+			}
+
+			if ( dataToSubmit.count() ) {
+				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
+			}
+		}
+
+		return false;
+	}
+
+	public boolean function discardDrafts( required string pageId ) {
+		var page = getPage(
+			  id          = arguments.pageId
+			, getLatest   = true
+			, allowDrafts = true
+		);
+
+		if ( page.recordCount ) {
+			var versioningService = _getVersioningService();
+			var latestPublishedVersion = versioningService.getLatestVersionNumber(
+				  objectName    = "page"
+				, recordId      = arguments.pageId
+				, publishedOnly = true
+			);
+
+			if ( latestPublishedVersion ) {
+				var newVersionNumber = versioningService.getNextVersionNumber();
+
+				versioningService.promoteVersion(
+					  objectName       = "page"
+					, recordId         = arguments.pageId
+					, versionNumber    = latestPublishedVersion
+					, newVersionNumber = newVersionNumber
+				);
+
+				versioningService.promoteVersion(
+					  objectName    = page.page_type
+					, recordId      = arguments.pageId
+					, versionNumber = latestPublishedVersion
+					, newVersionNumber = newVersionNumber
+				);
+
+				for( var p in page ) { var auditDetail = p; }
+				$audit(
+					  action   = "discard_page_drafts"
+					, type     = "sitetree"
+					, detail   = auditDetail
+					, recordId = page.id
+				);
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
@@ -1070,7 +1212,7 @@ component {
 	}
 
 	private numeric function _getNextAvailableHierarchyId() {
-		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ] );
+		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ], allowDraftVersions=true );
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
 	}
@@ -1170,7 +1312,7 @@ component {
 		var fields = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "sitetreeGridFields"
-			, defaultValue  = "page.title,page.active,page.datemodified"
+			, defaultValue  = "page.title,page.datemodified"
 		);
 
 		return ListToArray( fields );
@@ -1193,6 +1335,11 @@ component {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
+		sqlFields.append( "page._version_is_draft"   );
+		sqlFields.append( "page._version_has_drafts" );
+		sqlFields.append( "page.active"              );
+		sqlFields.append( "page.embargo_date"        );
+		sqlFields.append( "page.expiry_date"         );
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){

@@ -11,7 +11,6 @@ This form is used as the base "add page" form for Sitetree pages. See also [[for
 		<fieldset id="main" sortorder="10">
 			<field sortorder="10" binding="page.title" />
 			<field sortorder="20" binding="page.slug" control="autoslug" required="true" basedOn="title" />
-			<field sortorder="30" binding="page.active" />
 			<field sortorder="40" binding="page.main_image" />
 			<field sortorder="50" binding="page.layout" />
 			<field sortorder="60" binding="page.teaser" />

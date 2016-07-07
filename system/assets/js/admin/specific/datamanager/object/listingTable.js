@@ -22,7 +22,7 @@
 		var $tableHeaders = $listingTable.find( 'thead > tr > th')
 		  , colConfig     = []
 		  , defaultSort   = []
-		  , i;
+		  , i, $header;
 
 		if ( useMultiActions ) {
 			colConfig.push( {
@@ -34,9 +34,11 @@
 		}
 
 		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-1; i++ ){
+			$header = $( $tableHeaders.get(i) );
 			colConfig.push( { "mData":$( $tableHeaders.get(i) ).data( 'field' ) } );
-			if ( typeof $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) !== 'undefined' ) {
-				defaultSort.push( [ i, $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) ]);
+
+			if ( typeof $header.data( 'defaultSortOrder' ) !== 'undefined' ) {
+				defaultSort.push( [ i, $header.data( 'defaultSortOrder' ) ]);
 			}
 		}
 		if( isMultilingual ) {
@@ -54,6 +56,23 @@
 			mData     : "_options",
 			sWidth    : "9em"
 		} );
+		$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );
+
+		for( i=0; i < $tableHeaders.length; i++ ){
+			$header = $( $tableHeaders.get(i) );
+
+			if ( typeof $header.data( 'class' ) !== 'undefined' ) {
+				colConfig[ colConfig.length-1 ].sClass = $header.data( 'defaultSortOrder' );
+			}
+
+			if ( typeof $header.data( 'sortable' ) !== 'undefined' ) {
+				colConfig[ colConfig.length-1 ].bSortable = $header.data( 'sortable' );
+			}
+
+			if ( typeof $header.data( 'width' ) !== 'undefined' ) {
+				colConfig[ colConfig.length-1 ].sWidth = $header.data( 'width' );
+			}
+		}
 
 		$listingTable.dataTable( {
 			aoColumns     : colConfig,
