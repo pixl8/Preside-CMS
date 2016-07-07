@@ -1073,16 +1073,7 @@ component {
 			}
 
 			if ( dataToSubmit.count() ) {
-				editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
-
-				$audit(
-					  action   = "publish_page_drafts"
-					, type     = "sitetree"
-					, detail   = page
-					, recordId = page.id
-				);
-
-				return true;
+				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
 			}
 		}
 

@@ -49,6 +49,12 @@ component {
 			siteTreeService.publishDraft( recordId );
 		} else {
 			versioningService.publishLatestDraft( object, recordId );
+			event.audit(
+				 action   = "frontend_publish_changes"
+				, type     = "frontendeditor"
+				, detail   = { object=object, recordId=recordId }
+				, recordId = recordId
+			);
 		}
 
 		event.renderData( type="json", data={
