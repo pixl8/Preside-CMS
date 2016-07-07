@@ -1,4 +1,9 @@
-component singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -574,7 +579,7 @@ component singleton=true {
 		,          string  parent_page
 		,          string  userId      = _getLoginService().getLoggedInUserId()
 		,          boolean isDraft     = false
-
+		,          boolean audit       = true
 	) {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var homepage        = getSiteHomepage( [ "id" ], false );
@@ -643,10 +648,22 @@ component singleton=true {
 			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
 		}
 
+		if ( Len( Trim( pageId ) ) && arguments.audit ) {
+			var auditDetail = Duplicate( arguments );
+			auditDetail.id = pageId;
+
+			$audit(
+				  action   = "add_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = pageId
+			);
+		}
+
 		return pageId;
 	}
 
-	public boolean function editPage( required string id, boolean isDraft=false, boolean forceVersionCreation ) {
+	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean forceVersionCreation ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -783,6 +800,15 @@ component singleton=true {
 			}
 		}
 
+		if ( updated && !arguments.skipAudit ) {
+			$audit(
+				  action   = "edit_page"
+				, type     = "sitetree"
+				, detail   = Duplicate( arguments )
+				, recordId = arguments.id
+			);
+		}
+
 		return updated;
 	}
 
@@ -808,8 +834,19 @@ component singleton=true {
 					, trashed     = true
 					, old_slug    = page.slug
 					, slug        = CreateUUId()
+					, skipAudit   = true
 				);
 			}
+		}
+
+		if ( updated ) {
+			for( var p in page ) { var auditDetail = p; }
+			$audit(
+				  action   = "trash_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
 		}
 
 		return updated;
@@ -836,8 +873,19 @@ component singleton=true {
 					, slug        = arguments.slug
 					, active      = arguments.active
 					, trashed     = false
+					, skipAudit   = true
 				);
 			}
+		}
+
+		if ( updated ) {
+			for( var p in page ) { var auditDetail = p; }
+			$audit(
+				  action   = "restore_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
 		}
 
 		return updated;
@@ -867,11 +915,30 @@ component singleton=true {
 			}
 		}
 
+		if ( nDeleted ) {
+			for( var p in rootPage ) { var auditDetail = p; }
+			$audit(
+				  action   = "permanently_delete_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
+		}
+
 		return nDeleted;
 	}
 
 	public boolean function emptyTrash() {
-		return _getPObj().deleteData( filter = { trashed = true } );
+		var pagesDeleted = _getPObj().deleteData( filter = { trashed = true } );
+
+		if ( pagesDeleted ) {
+			$audit(
+				  action = "empty_trash"
+				, type   = "sitetree"
+			);
+		}
+
+		return pagesDeleted;
 	}
 
 	public struct function getActivePageFilter( string pageTableAlais="page" ) {
@@ -1203,6 +1270,7 @@ component singleton=true {
 			, active                  = 1
 			, userId                  = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 			, exclude_from_navigation = pageType.getId() != "homepage"
+			, audit                   = false
 		};
 		if ( Len( Trim( parent ?: "" ) ) ) {
 			addPageArgs.parent_page = parent;

@@ -28,38 +28,32 @@
 			var auditService = _getAuditService();
 			var records = "";
 			var args    = [{
-				  detail    = "something happened"
-				, source    = "something"
-				, action    = "happened"
+				  detail    = { test="something happened" }
+				, action    = "happened1"
 				, type      = "happening"
-				, instance  = "4"
 				, userId    = testUsers[3].id
 			},{
-				  detail    = "something else happened"
-				, source    = "somethingelse"
-				, action    = "happened"
+				  detail    = { test="something else happened" }
+				, action    = "happened2"
 				, type      = "happening"
-				, instance  = "IDOFSOMETHING"
 				, userId    = testUsers[5].id
 			}];
 
 			auditService.log( argumentCollection = args[1] );
 			auditService.log( argumentCollection = args[2] );
 
-			records = _selectData( objectName = "audit_log", orderby="instance" );
+			records = _selectData( objectName = "audit_log", orderby="action" );
 
 			super.assertEquals( 2, records.recordCount, "Expected two records to have been created. #records.recordCount# was reported instead." );
 
 			for( var i = 1; i lte 2; i++ ){
-				super.assertEquals( args[i].detail     , records.detail[i]  );
-				super.assertEquals( args[i].source     , records.source[i]     );
-				super.assertEquals( args[i].action     , records.action[i]     );
-				super.assertEquals( args[i].type       , records.type[i]       );
-				super.assertEquals( args[i].instance   , records.instance[i]   );
-				super.assertEquals( args[i].userId     , records.user[i]       );
-				super.assertEquals( cgi.http_user_agent, records.user_agent[i] );
-				super.assertEquals( cgi.remote_addr    , records.user_ip[i]    );
-				super.assertEquals( cgi.request_url    , records.uri[i]        );
+				super.assertEquals( SerializeJson( args[i].detail ), records.detail[i]     );
+				super.assertEquals( args[i].action                 , records.action[i]     );
+				super.assertEquals( args[i].type                   , records.type[i]       );
+				super.assertEquals( args[i].userId                 , records.user[i]       );
+				super.assertEquals( cgi.http_user_agent            , records.user_agent[i] );
+				super.assertEquals( cgi.remote_addr                , records.user_ip[i]    );
+				super.assertEquals( cgi.request_url                , records.uri[i]        );
 			}
 		</cfscript>
 	</cffunction>

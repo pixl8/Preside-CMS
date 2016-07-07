@@ -910,6 +910,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="folders.manageContextPerms" );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  action   = "edit_asset_folder_admin_permissions"
+				, type     = "assetmanager"
+				, detail   = QueryRowToStruct( folderRecord )
+				, recordId = folderId
+			);
 			messageBox.info( translateResource( uri="cms:assetmanager.permsSaved.confirmation", data=[ folderRecord.label ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index", queryString="folder=#folderId#" ) );
 		}

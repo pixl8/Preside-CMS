@@ -238,6 +238,13 @@
 			_checkPermission( argumentCollection=arguments, key="manageContextPerms", object=objectName );
 
 			if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+				event.audit(
+					  action   = "edit_datamanager_object_admin_permissions"
+					, type     = "datamanager"
+					, recordId = objectName
+					, detail   = { objectName=objectName }
+				);
+
 				messageBox.info( translateResource( uri="cms:datamanager.permsSaved.confirmation", data=[ objectName ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#" ) );
 			}
@@ -459,6 +466,7 @@
 				  event          = "admin.DataManager._deleteRecordAction"
 				, prePostExempt  = true
 				, private        = true
+				, eventArguments = { audit=true }
 			);
 		</cfscript>
 	</cffunction>
@@ -484,7 +492,8 @@
 				, prePostExempt  = true
 				, private        = true
 				, eventArguments = {
-					postActionUrl  = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&relationshipKey=#relationshipKey#&parentId=#parentId#" )
+					  postActionUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#objectName#&relationshipKey=#relationshipKey#&parentId=#parentId#" )
+					, audit         = true
 				}
 			);
 		</cfscript>
@@ -551,6 +560,7 @@
 				  event          = "admin.DataManager._addRecordAction"
 				, prePostExempt  = true
 				, private        = true
+				, eventArguments = { audit=true }
 			);
 		</cfscript>
 	</cffunction>
@@ -718,6 +728,7 @@
 				  event          = "admin.DataManager._editRecordAction"
 				, prePostExempt  = true
 				, private        = true
+				, eventArguments = { audit=true }
 			);
 		</cfscript>
 	</cffunction>
@@ -798,7 +809,8 @@
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
 			}
 
-			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			var record = presideObjectService.selectData( objectName=object, filter={ id=id } );
+			if ( !record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
@@ -837,6 +849,15 @@
 				, id         = id
 				, data       = formData
 				, languageId = languageId
+			);
+
+			var auditDetail = QueryRowToStruct( record );
+			auditDetail.append( { objectName=object, languageId=languageId } );
+			event.audit(
+				  action   = "datamanager_translate_record"
+				, type     = "datamanager"
+				, recordId = id
+				, detail   = auditDetail
 			);
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordTranslated.confirmation", data=[ objectName ] ) );
@@ -1020,6 +1041,7 @@
 				, eventArguments = {
 					  errorUrl   = event.buildAdminLink( linkTo="datamanager.editOneToManyRecord"   , queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#&id=#id#" )
 					, successUrl = event.buildAdminLink( linkTo="datamanager.manageOneToManyRecords", queryString="object=#object#&parentId=#parentId#&relationshipKey=#relationshipKey#" )
+					, audit      = true
 				}
 			);
 		</cfscript>
@@ -1423,6 +1445,9 @@
 		<cfargument name="successAction"     type="string"  required="false" default=""     />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
+		<cfargument name="audit"             type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_add_record" />
+		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 
 		<cfscript>
 			var formData         = event.getCollectionForForm( arguments.formName );
@@ -1448,6 +1473,18 @@
 
 			obj = presideObjectService.getObject( object );
 			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+
+			if ( arguments.audit ) {
+				var auditDetail = Duplicate( formData );
+				auditDetail.id = newId;
+				auditDetail.objectName = arguments.object;
+				event.audit(
+					  action   = arguments.auditAction
+					, type     = arguments.auditType
+					, recordId = newId
+					, detail   = auditDetail
+				);
+			}
 
 			if ( !redirectOnSuccess ) {
 				return newId;
@@ -1580,6 +1617,9 @@
 		<cfargument name="postAction"        type="string"  required="false" default="datamanager.object" />
 		<cfargument name="postActionUrl"     type="string"  required="false" default="#( event.buildAdminLink( linkTo=postAction, queryString=( postAction=="datamanager.object" ? "id=#object#" : "" ) ) )#" />
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
+		<cfargument name="audit"             type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_delete_record" />
+		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 
 		<cfscript>
 			var id               = rc.id          ?: "";
@@ -1619,13 +1659,16 @@
 
 			if ( presideObjectService.deleteData( objectName=object, filter={ id = ids } ) ) {
 				for( record in records ) {
-					event.audit(
-						  detail   = "#objectName#, '#record[labelField]#', was deleted"
-						, source   = "datamanager"
-						, action   = "deleteRecord"
-						, type     = object
-						, instance = record.id
-					);
+					if ( arguments.audit ) {
+						var auditDetail = Duplicate( record );
+						auditDetail.objectName = object;
+						event.audit(
+							  action   = arguments.auditAction
+							, type     = arguments.auditType
+							, recordId = record.id
+							, detail   = auditDetail
+						);
+					}
 				}
 
 				if ( redirectOnSuccess ) {
@@ -1656,6 +1699,9 @@
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
+		<cfargument name="audit"             type="boolean" required="false" default="false" />
+		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_edit_record" />
+		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1687,11 +1733,24 @@
 
 			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
 
+			if ( arguments.audit ) {
+				var auditDetail = Duplicate( formData );
+				auditDetail.objectName = arguments.object;
+				event.audit(
+					  action   = arguments.auditAction
+					, type     = arguments.auditType
+					, recordId = id
+					, detail   = auditDetail
+				);
+			}
+
 			if ( redirectOnSuccess ) {
 				messageBox.info( translateResource( uri="cms:datamanager.recordEdited.confirmation", data=[ objectName ] ) );
 
 				setNextEvent( url=successUrl );
 			}
+
+
 		</cfscript>
 	</cffunction>
 

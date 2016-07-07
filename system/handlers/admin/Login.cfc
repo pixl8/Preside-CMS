@@ -38,13 +38,6 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( loggedIn ) {
 			user = event.getAdminUserDetails();
-			event.audit(
-				  detail   = "[#user.known_as#] has logged in"
-				, source   = "login"
-				, action   = "login_success"
-				, type     = "user"
-				, instance = user.id
-			);
 
 			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
 				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
@@ -144,19 +137,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function logout( event, rc, prc ) {
-		var user        = "";
-
 		if ( event.isAdminUser() ) {
-			user = event.getAdminUserDetails();
-
-			event.audit(
-				  detail   = "[#user.known_as#] has logged out"
-				, source   = "logout"
-				, action   = "logout_success"
-				, type     = "user"
-				, instance = user.id
-			);
-
 			loginService.logout();
 		}
 

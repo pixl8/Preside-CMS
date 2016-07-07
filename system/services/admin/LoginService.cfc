@@ -61,6 +61,13 @@ component displayName="Admin login service" {
 		if ( success ) {
 			_persistUserSession( usr );
 			recordLogin();
+		} else if ( usr.recordCount ) {
+			$audit(
+				  userId   = usr.id
+				, source   = "login"
+				, action   = "login_failure"
+				, type     = "user"
+			);
 		}
 
 		return success;
@@ -195,10 +202,20 @@ component displayName="Admin login service" {
 	}
 
 	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) {
-		return _getUserDao().updateData( id=getSystemUserId(), data={
+		var userId = getSystemUserId();
+		var result = _getUserDao().updateData( id=getSystemUserId(), data={
 			  email_address = arguments.emailAddress
 			, password      = _getBCryptService().hashPw( arguments.password )
 		} );
+
+		$audit(
+			  userId   = userId
+			, source   = "login"
+			, action   = "firsttime_setup"
+			, type     = "user"
+		);
+
+		return result;
 	}
 
 	/**
@@ -217,6 +234,13 @@ component displayName="Admin login service" {
 				  template = "resetCMSPassword"
 				, to       = [ userRecord.email_address ]
 				, args     = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#", expires=tokenInfo.resetExpiry, username=userRecord.known_as }
+			);
+
+			$audit(
+				  userId   = userRecord.id
+				, source   = "login"
+				, action   = "password_reset_instructions_sent"
+				, type     = "user"
 			);
 
 			return true;
@@ -249,6 +273,14 @@ component displayName="Admin login service" {
 					, createdBy      = arguments.createdBy
 					, loginId        = userRecord.login_id
 				}
+			);
+
+			$audit(
+				  userId = userRecord.id
+				, source = "login"
+				, action = "welcome_email_sent"
+				, type   = "user"
+				, detail = { message = arguments.welcomeMessage, createdBy=arguments.createdBy }
 			);
 
 			return true;
@@ -308,11 +340,19 @@ component displayName="Admin login service" {
 
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
-
-			return _getUserDao().updateData(
+			var updated  = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			$audit(
+				  userId   = record.id
+				, source   = "reset_password"
+				, action   = "reset_password_success"
+				, type     = "user"
+			);
+
+			return updated;
 		}
 		return false;
 	}
@@ -324,6 +364,13 @@ component displayName="Admin login service" {
 	 */
 	public boolean function recordLogin() {
 		var userId = getLoggedInUserId();
+
+		$audit(
+			  userId   = userId
+			, source   = "login"
+			, action   = "login_success"
+			, type     = "user"
+		);
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
 			last_logged_in = Now()
@@ -338,6 +385,13 @@ component displayName="Admin login service" {
 	 */
 	public boolean function recordLogout() {
 		var userId = getLoggedInUserId();
+
+		$audit(
+			  userId   = userId
+			, source   = "logout"
+			, action   = "logout_success"
+			, type     = "user"
+		);
 
 		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
 			last_logged_out = Now()
@@ -578,6 +632,20 @@ component displayName="Admin login service" {
 					, logged_in_date = Now()
 				});
 			}
+
+			$audit(
+				  userId = userId
+				, source = "login"
+				, action = "login_2fa_success"
+				, type   = "user"
+			);
+		} else {
+			$audit(
+				  userId = userId
+				, source = "login"
+				, action = "login_2fa_failure"
+				, type   = "user"
+			);
 		}
 
 		_getSessionStorage().setVar( name=_getTwoFaSessionKey(), value=authenticated );

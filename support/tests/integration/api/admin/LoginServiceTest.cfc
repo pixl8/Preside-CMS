@@ -21,6 +21,9 @@
 				, googleAuthenticator = mockGoogleAuthenticator
 				, qrCodeGenerator     = mockQrCodeGenerator
 			);
+
+			loginService = getMockBox().createMock( object=loginService );
+			loginService.$( "$audit" );
 		</cfscript>
 	</cffunction>
 

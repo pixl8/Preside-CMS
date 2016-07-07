@@ -76,7 +76,17 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		return _getFolderDao().insertData( arguments );
+		var auditDetail = Duplicate( arguments );
+		auditDetail.id = _getFolderDao().insertData( arguments );
+
+		$audit(
+			  action   = "add_folder"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
+
+		return auditDetail.id;
 	}
 
 	public boolean function editFolder( required string id, required struct data ) {
@@ -84,10 +94,21 @@ component displayName="AssetManager Service" {
 			arguments.data.parent_folder = getRootFolderId();
 		}
 
-		return _getFolderDao().updateData(
+		var result = _getFolderDao().updateData(
 			  id   = arguments.id
 			, data = arguments.data
 		);
+
+		var auditDetail = Duplicate( arguments.data );
+		auditDetail.id  = arguments.id;
+		$audit(
+			  action   = "edit_folder"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
+
+		return result;
 	}
 
 	public boolean function setFolderLocation( required string id, required struct data ) {
@@ -524,11 +545,21 @@ component displayName="AssetManager Service" {
 			return false;
 		}
 
-		return _getFolderDao().updateData( id = arguments.id, data = {
+		var result = _getFolderDao().updateData( id = arguments.id, data = {
 			  is_trashed     = true
 			, label          = CreateUUId()
 			, original_label = folder.label
 		} );
+
+		for( var f in folder ) { var auditDetail = f; }
+		$audit(
+			  action   = "trash_folder"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
+
+		return result;
 	}
 
 	public string function uploadTemporaryFile( required string fileField ) {
@@ -678,11 +709,19 @@ component displayName="AssetManager Service" {
 			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
 		}
 
+		asset.id = newId;
+		$audit(
+			  action   = "add_asset"
+			, type     = "assetmanager"
+			, detail   = asset
+			, recordId = asset.id
+		);
+
 		return newId;
 	}
 
 	public boolean function addAssetVersion( required string assetId, required binary fileBinary, required string fileName, boolean makeActive=true  ) {
-		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "asset_type", "asset_folder" ] );
+		var originalAsset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "asset_type", "asset_folder" ] );
 
 		if( !originalAsset.recordCount ) {
 			return false;
@@ -725,6 +764,15 @@ component displayName="AssetManager Service" {
 			);
 		}
 
+		var auditDetail = assetVersion;
+		for( var a in originalAsset ) { auditDetail.append( a ); }
+		$audit(
+			  action   = "add_asset_version"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
+
 		return true;
 	}
 
@@ -753,7 +801,18 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
-		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		var auditDetail = Duplicate( arguments.data );
+
+		auditDetail.id = arguments.id;
+		$audit(
+			  action   = "edit_asset"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = arguments.id
+		);
+
+		return result;
 	}
 
 	public boolean function moveAssets( required array assetIds, required string folderId ) {
@@ -765,10 +824,18 @@ component displayName="AssetManager Service" {
 				, throwIfNot = true
 			);
 
-			return _getAssetDao().updateData(
+			var result = _getAssetDao().updateData(
 				  filter = { id = arguments.assetIds }
 				, data   = { asset_folder = arguments.folderId }
 			);
+
+			$audit(
+				  action = "move_assets"
+				, type   = "assetmanager"
+				, detail = arguments
+			);
+
+			return result;
 		}
 
 		return false;
@@ -813,6 +880,14 @@ component displayName="AssetManager Service" {
 
 
 				}
+			}
+
+			if ( restoredAssetCount ) {
+				$audit(
+					  action = "restore_assets"
+					, type   = "assetmanager"
+					, detail = arguments
+				);
 			}
 
 			return restoredAssetCount;
@@ -920,12 +995,22 @@ component displayName="AssetManager Service" {
 			, softDelete = true
 		);
 
-		return assetDao.updateData( id=arguments.id, data={
+		var result = assetDao.updateData( id=arguments.id, data={
 			  trashed_path   = trashedPath
 			, title          = CreateUUId()
 			, original_title = asset.title
 			, is_trashed     = true
 		} );
+
+		for( var a in asset ) { var auditDetail = a; }
+		$audit(
+			  action   = "trash_asset"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
+
+		return result;
 	}
 
 	public boolean function permanentlyDeleteAsset( required string id ) {
@@ -939,6 +1024,14 @@ component displayName="AssetManager Service" {
 
 		_getStorageProviderForFolder( asset.asset_folder ).deleteObject( asset.trashed_path, true );
 		_deleteAssociatedFiles( arguments.id, asset.asset_folder );
+
+		for( var a in asset ) { var auditDetail = a; }
+		$audit(
+			  action   = "permanently_delete_asset"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
 
 		return assetDao.deleteData( id=arguments.id );
 	}
@@ -1146,19 +1239,20 @@ component displayName="AssetManager Service" {
 		var versionToMakeActive = _getAssetVersionDao().selectData(
 			  id           = arguments.versionId
 			, selectFields = [
-				  "storage_path"
-				, "size"
-				, "asset_type"
-				, "raw_text_content"
-				, "created_by"
-				, "updated_by"
+				  "asset_version.storage_path"
+				, "asset_version.size"
+				, "asset_version.asset_type"
+				, "asset_version.raw_text_content"
+				, "asset_version.created_by"
+				, "asset_version.updated_by"
+				, "asset.title"
 			]
 		);
 
 		var versionImageDimension =  _getImageInfo( getAssetBinary( arguments.assetId, arguments.versionId ) );
 
 		if ( versionToMakeActive.recordCount ) {
-			return _getAssetDao().updateData( id=arguments.assetId, data={
+			var result = _getAssetDao().updateData( id=arguments.assetId, data={
 				  active_version   = arguments.versionId
 				, storage_path     = versionToMakeActive.storage_path
 				, size             = versionToMakeActive.size
@@ -1169,13 +1263,23 @@ component displayName="AssetManager Service" {
 				, width            = versionImageDimension.width  ?: ""
 				, height           = versionImageDimension.height ?: ""
 			} );
+
+			for( var a in versionToMakeActive ) { var auditDetail = a; }
+			$audit(
+				  action   = "change_asset_version"
+				, type     = "assetmanager"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
+
+			return result;
 		}
 
 		return false;
 	}
 
 	public boolean function deleteAssetVersion( required string assetId, required string versionId ) {
-		var asset = getAsset( id=arguments.assetId, selectFields=[ "active_version", "asset_folder" ] );
+		var asset = getAsset( id=arguments.assetId, selectFields=[ "id", "title", "active_version", "asset_folder" ] );
 
 		if ( !asset.recordCount || asset.active_version == arguments.versionId ) {
 			return false;
@@ -1183,9 +1287,20 @@ component displayName="AssetManager Service" {
 
 		_deleteAssociatedFiles( arguments.assetId, asset.asset_folder, arguments.versionId );
 
-		return _getAssetVersionDao().deleteData(
+		var result = _getAssetVersionDao().deleteData(
 			filter = { id=arguments.versionId, asset=arguments.assetId }
 		);
+
+		for( var a in asset ) { var auditDetail = a; }
+		auditDetail.append( arguments );
+		$audit(
+			  action   = "delete_asset_version"
+			, type     = "assetmanager"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
+
+		return result;
 	}
 
 	public query function getAssetVersions( required string assetId, array selectFields=[] ) {

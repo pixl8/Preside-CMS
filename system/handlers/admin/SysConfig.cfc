@@ -95,6 +95,13 @@ component extends="preside.system.base.AdminHandler" output=false {
 			);
 		}
 
+		event.audit(
+			  action   = "save_sysconfig_category"
+			, type     = "sysconfig"
+			, recordId = categoryId
+			, detail   = formData
+		);
+
 		announceInterception( "postSaveSystemConfig", {
 			  category         = categoryId
 			, configuration    = formData

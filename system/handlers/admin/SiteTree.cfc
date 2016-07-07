@@ -52,6 +52,7 @@ component extends="preside.system.base.AdminHandler" {
 			, "page._version_has_drafts as has_drafts"
 			, "Count( child_pages.id ) as child_count"
 		] );
+
 		prc.trashCount = siteTreeService.getTrashCount();
 	}
 
@@ -631,6 +632,14 @@ component extends="preside.system.base.AdminHandler" {
 			);
 		}
 
+		var auditDetail = QueryRowToStruct( page );
+		auditDetail.languageId = languageId
+		event.audit(
+			  action   = "translate_page"
+			, type     = "sitetree"
+			, detail   = auditDetail
+			, recordId = auditDetail.id
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.pageTranslated.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree.editPage", querystring="id=#pageId#" ) );
@@ -789,6 +798,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function reorderChildrenAction( event, rc, prc ) {
 		var pageId  = event.getValue( "id", "" );
+		var page    = siteTreeService.getPage( pageId );
 
 		_checkPermissions( argumentCollection=arguments, key="sort", pageId=pageId );
 
@@ -797,10 +807,17 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( i=1; i lte ArrayLen( sortedPages ); i++ ){
 			siteTreeService.editPage(
-				  id     = sortedPages[i]
+				  id         = sortedPages[i]
 				, sort_order = i
+				, skipAudit  = true
 			);
 		}
+		event.audit(
+			  action   = "reorder_children"
+			, type     = "sitetree"
+			, detail   = QueryRowToStruct( page )
+			, recordId = page.id
+		);
 
 		getPlugin( "MessageBox" ).info( translateResource( uri="cms:sitetree.childrenReordered.confirmation" ) );
 		setNextEvent( url=event.buildAdminLink( linkTo="sitetree", queryString="selected=#pageId#" ) );
@@ -829,6 +846,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="manageContextPerms", pageId=pageId );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  action   = "edit_page_admin_permissions"
+				, type     = "sitetree"
+				, detail   = QueryRowToStruct( page )
+				, recordId = pageId
+			);
 			messageBox.info( translateResource( uri="cms:sitetree.cmsPermsSaved.confirmation", data=[ page.title ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="sitetree.index", queryString="selected=#pageId#" ) );
 		}
