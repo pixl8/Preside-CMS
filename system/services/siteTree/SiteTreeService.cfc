@@ -801,10 +801,11 @@ component {
 		}
 
 		if ( updated && !arguments.skipAudit ) {
+			for( var p in existingPage ) { existingPage = p };
 			$audit(
 				  action   = arguments.isDraft ? "save_draft_page" : "edit_page"
 				, type     = "sitetree"
-				, detail   = Duplicate( arguments )
+				, detail   = existingPage
 				, recordId = arguments.id
 			);
 		}
