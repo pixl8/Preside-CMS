@@ -271,28 +271,32 @@
 						clearNotifications();
 						disableEditForm( false );
 
-						fetchPublishPrompt( function( prompt ){
-							presideBootbox.confirm( prompt, function( confirmed ) {
-								if ( confirmed ) {
-									notify( i18n.translateResource( "cms:frontendeditor.publishing.notification" ) );
-									disableEditForm();
+						fetchPublishPrompt( function( data ){
+							if ( data.publishable ) {
+								presideBootbox.confirm( data.prompt, function( confirmed ) {
+									if ( confirmed ) {
+										notify( i18n.translateResource( "cms:frontendeditor.publishing.notification" ) );
+										disableEditForm();
 
-									$.post( publishAction, formData, function( data ){
-										if ( data.success ) {
-											toggleEditMode( false );
+										$.post( publishAction, formData, function( data ){
+											if ( data.success ) {
+												toggleEditMode( false );
 
-											if ( data.message ) {
-												$.alert( { message : data.message } );
+												if ( data.message ) {
+													$.alert( { message : data.message } );
+												}
+
+											} else if ( data.error ) {
+												$.alert( { type : "error", message : data.error, sticky : true } );
+											} else {
+												$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
 											}
-
-										} else if ( data.error ) {
-											$.alert( { type : "error", message : data.error, sticky : true } );
-										} else {
-											$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-										}
-									} ).fail( commonFailHandler ).always( commonAlwaysHandler );
-								}
-							});
+										} ).fail( commonFailHandler ).always( commonAlwaysHandler );
+									}
+								});
+							} else {
+								presideBootbox.alert( data.prompt );
+							}
 						} );
 					} else if ( data.error ) {
 						$.alert( { type : "error", message : data.error, sticky : true } );

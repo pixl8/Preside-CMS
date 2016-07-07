@@ -137,24 +137,31 @@ component {
 			changedFields = versioningService.getDraftChangedFields( object, recordId );
 		}
 
-		for( var i=changedFields.len(); i>0; i-- ) {
-			changedFields[ i ] = translateResource( "#i18nBase#field.#changedFields[i]#.title", "" );
-			if ( changedFields[ i ] == "" ) {
-				changedFields.deleteAt( i );
-			} else {
-				changedFields[ i ] = "<li>" & changedFields[ i ] & "</li>";
+		if ( changedFields.len() ) {
+			for( var i=changedFields.len(); i>0; i-- ) {
+				changedFields[ i ] = translateResource( "#i18nBase#field.#changedFields[i]#.title", "" );
+				if ( changedFields[ i ] == "" ) {
+					changedFields.deleteAt( i );
+				} else {
+					changedFields[ i ] = "<li>" & changedFields[ i ] & "</li>";
+				}
 			}
+
+			changedFields = "<ul>" & changedFields.toList( " " ) & "</ul>"
+			var prompt =  "<p>" & translateResource( uri="cms:frontendeditor.publish.prompt", data=[ objectTitle, recordLabel ] ) & "</p>";
+			    prompt &= "<p>" & translateResource( "cms:frontendeditor.publish.prompt.changed.fields.title" ) & "</p>";
+			    prompt &= changedFields;
+
+			event.renderData(
+				  type = "json"
+				, data = { prompt=prompt, publishable=true }
+			);
+		} else {
+			event.renderData(
+				  type = "json"
+				, data = { prompt=translateResource( "cms:frontendeditor.publish.not.required.alert" ), publishable=false }
+			);
 		}
-
-		changedFields = "<ul>" & changedFields.toList( " " ) & "</ul>"
-		var prompt =  "<p>" & translateResource( uri="cms:frontendeditor.publish.prompt", data=[ objectTitle, recordLabel ] ) & "</p>";
-		    prompt &= "<h4>" & translateResource( "cms:frontendeditor.publish.prompt.changed.fields.title" ) & "</h4>";
-		    prompt &= changedFields;
-
-		event.renderData(
-			  type = "html"
-			, data = prompt
-		);
 	}
 
 // VIEWLETS
