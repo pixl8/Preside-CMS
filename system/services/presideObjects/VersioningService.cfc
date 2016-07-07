@@ -29,7 +29,7 @@ component {
 
 				_removeUniqueIndexes( objMeta );
 				_removeRelationships( objMeta );
-				_addAdditionalVersioningPropertiesToVersionObject( objMeta, versionObjectName );
+				_addAdditionalVersioningPropertiesToVersionObject( objMeta, versionObjectName, objectName );
 				_addAdditionalVersioningPropertiesToSourceObject( obj.meta, objectName );
 
 				versionedObjects[ versionObjectName ] = { meta = objMeta, instance="auto_created" };
@@ -360,7 +360,7 @@ component {
 		StructClear( objMeta.relationships );
 	}
 
-	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string objectName ) {
+	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string versionedObjectName, required string originalObjectName ) {
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
 			if ( ( objMeta.properties.id.generator ?: "" ) == "increment" ) {
 				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with a an auto incrementing id.", detail="Please either use the default UUID generator for the id or turn versioning off on the object with versioned=false" );
@@ -440,14 +440,14 @@ component {
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
-			objMeta.indexes[ _renameTableIndexes(indexKey) ] = duplicate( objMeta.indexes[indexKey]);
+			objMeta.indexes[ _renameTableIndexes(indexKey, arguments.originalObjectName, arguments.versionedObjectName ) ] = duplicate( objMeta.indexes[indexKey]);
 			structDelete(objMeta.indexes, indexKey);
 		}
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_number" ] = { unique=false, fields="_version_number" };
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_author" ] = { unique=false, fields="_version_author" };
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_is_draft" ] = { unique=false, fields="_version_is_draft" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_number" ] = { unique=false, fields="_version_number" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_author" ] = { unique=false, fields="_version_author" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_draft"       ] = { unique=false, fields="_version_is_draft" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
-			objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_record_id" ] = { unique=false, fields="id,_version_number" };
+			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id" ] = { unique=false, fields="id,_version_number" };
 		}
 	}
 
@@ -480,16 +480,12 @@ component {
 		};
 
 		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft,_version_has_drafts" );
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#__is_draft" ] = { unique=false, fields="_version_is_draft" };
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#__has_drafts" ] = { unique=false, fields="_version_has_drafts" };
+		objMeta.indexes[ "ix_#arguments.objectName#_is_draft" ] = { unique=false, fields="_version_is_draft" };
+		objMeta.indexes[ "ix_#arguments.objectName#_has_drafts" ] = { unique=false, fields="_version_has_drafts" };
 	}
 
-	private any function _renameTableIndexes( required string indexKey ) {
-		return _removeTablePrefix( RereplaceNoCase( arguments.indexKey, '^([iu]x_)', '\1version_' ) );
-	}
-
-	private any function _removeTablePrefix( required string indexKey ) {
-		return replaceNoCase( arguments.indexKey, '_psys_', '_' );
+	private any function _renameTableIndexes( required string indexKey, required string objectName, required string versionedObjectName ) {
+		return ReplaceNoCase( arguments.indexKey, arguments.objectName, arguments.versionedObjectName );
 	}
 
 	private any function _createVersionNumberSequenceObject( required string primaryDsn ) {
