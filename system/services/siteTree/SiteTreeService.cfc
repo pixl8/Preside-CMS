@@ -590,15 +590,14 @@ component singleton=true {
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
-			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true );
+			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, skipTrivialInterceptors=pageType.isSystemPageType() );
 			if ( not Len( pageId ) and StructKeyExists( arguments, "id" ) ) {
 				pageId = arguments.id;
 			}
 
-
 			pageTypeObjData = Duplicate( arguments );
 			pageTypeObjData.page = pageTypeObjData.id = pageId;
-			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true );
+			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, skipTrivialInterceptors=pageType.isSystemPageType() );
 		}
 
 		return pageId;
