@@ -861,12 +861,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var records          = ListToArray( arguments.targetIdList );
 
 		if ( !IsBoolean( targetProp.required ?: "" ) || !targetProp.required ) {
-			var filter = "#LCase( targetFk )# = :#targetFk#";
-			var params = { "#targetFk#"=arguments.sourceId };
+			var filter = "#targetObjectName#.#LCase( targetFk )# = :#targetObjectName#.#targetFk#";
+			var params = { "#targetObjectName#.#targetFk#"=arguments.sourceId };
 
 			if ( records.len() ) {
-				filter &= " and id not in (:id)";
-				params.id = records;
+				filter &= " and #targetObjectName#.id not in (:#targetObjectName#.id)";
+				params[ "#targetObjectName#.id" ] = records;
 			}
 			targetObject.updateData(
 				  filter       = filter
