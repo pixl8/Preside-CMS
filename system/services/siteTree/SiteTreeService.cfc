@@ -641,19 +641,16 @@ component {
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
-<<<<<<< HEAD
-			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
-=======
-			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, skipTrivialInterceptors=pageType.isSystemPageType() );
->>>>>>> v10.6.6
+
+			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft, skipTrivialInterceptors=pageType.isSystemPageType() );
+
 			if ( not Len( pageId ) and StructKeyExists( arguments, "id" ) ) {
 				pageId = arguments.id;
 			}
 
 			pageTypeObjData = Duplicate( arguments );
 			pageTypeObjData.page = pageTypeObjData.id = pageId;
-<<<<<<< HEAD
-			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft );
+			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft, skipTrivialInterceptors=pageType.isSystemPageType() );
 		}
 
 		if ( Len( Trim( pageId ) ) && arguments.audit ) {
@@ -666,9 +663,6 @@ component {
 				, detail   = auditDetail
 				, recordId = pageId
 			);
-=======
-			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, skipTrivialInterceptors=pageType.isSystemPageType() );
->>>>>>> v10.6.6
 		}
 
 		return pageId;
