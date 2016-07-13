@@ -43,7 +43,7 @@ component implements="iRouteHandler" output=false singleton=true {
 	}
 
 	public string function build( required struct buildArgs, required any event ) output=false {
-		var link = ListChangeDelims( arguments.buildArgs.linkTo ?: "", "/", "." ) & "/";
+		var link = "/" & Replace( arguments.buildArgs.linkTo ?: "", ".", "/", "all" ) & "/";
 
 		link = ReReplaceNoCase( link, "index/$", "" );
 
