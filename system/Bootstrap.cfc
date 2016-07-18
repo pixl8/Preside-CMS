@@ -205,13 +205,22 @@ component {
 	}
 
 	private void function _ensureCaseSensitiveStructSettingsAreActive() {
-		admin  action="getCompilerSettings" returnVariable="luceeCompilerSettings";
+		var check         = { sensiTivity=true };
+		var caseSensitive = check.keyArray().find( "sensiTivity" );
 
-		if ( luceeCompilerSettings.DotNotationUpperCase ){
-			admin action="updateCompilerSettings" DotNotationUpperCase="false"
-			suppressWSBeforeArg=luceeCompilerSettings.suppressWSBeforeArg
-			nullSupport=luceeCompilerSettings.nullSupport
-			templateCharset=luceeCompilerSettings.templateCharset;
+		if ( !caseSensitive ) {
+			var luceeCompilerSettings = "";
+
+			try {
+				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
+				admin action               = "updateCompilerSettings"
+				      dotNotationUpperCase = false
+					  suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
+					  nullSupport          = luceeCompilerSettings.nullSupport
+					  templateCharset      = luceeCompilerSettings.templateCharset;
+			} catch( security e ) {
+				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
+			}
 		}
 	}
 
