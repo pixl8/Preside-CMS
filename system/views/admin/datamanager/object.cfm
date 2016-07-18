@@ -6,6 +6,7 @@
 	objectDescription   = translateResource( uri = "preside-objects.#objectName#:description"   , defaultValue = "" );
 	addRecordTitle      = translateResource( uri = "cms:datamanager.addrecord.title"            , data = [ LCase( objectTitleSingular ) ] );
 	managePermsTitle    = translateResource( uri = "cms:datamanager.manageperms.link"           , data = [ LCase( objectTitleSingular ) ] );
+	defaultsort         = translateResource( uri = "cms:datamanager.defaultsort" );
 
 	prc.pageIcon        = "puzzle-piece";
 	prc.pageTitle       = objectTitle;
@@ -42,6 +43,16 @@
 				</button>
 			</a>
 		</cfif>
+
+		<cfif prc.defaultsort >
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="datamanager.object", queryString="id=#objectName#&defaultSort=#prc.defaultSort#" )#">
+				<button class="btn btn-default btn-sm">
+					<i class="fa fa-sort"></i>
+					Default sort
+				</button>
+			</a>
+		</cfif>
+
 	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
