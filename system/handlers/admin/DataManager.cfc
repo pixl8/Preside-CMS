@@ -1184,13 +1184,18 @@
 			var translations        = [];
 			var translateUrlBase    = "";
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
+			var sortOrder 			= dtHelper.getSortOrder();
+			var extraSortOrder 	    = dataManagerService.getSortFieldExtra(object) ?: "";
+			if(IsEmpty(sortOrder) && !IsEmpty(extraSortOrder)) {
+				sortOrder = extraSortOrder;
+			}
 			var results             = dataManagerService.getRecordsForGridListing(
 				  objectName  = object
 				, gridFields  = gridFields
 				, filter      = arguments.filter
 				, startRow    = dtHelper.getStartRow()
 				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = dtHelper.getSortOrder()
+				, orderBy     = sortOrder
 				, searchQuery = dtHelper.getSearchQuery()
 			);
 			var records = Duplicate( results.records );
