@@ -21,6 +21,7 @@ component displayname="ImageMagick"  {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
+		,          string  gravity             = 'center'
 	) {
 
 		var imageBinary = arguments.asset;
@@ -48,6 +49,7 @@ component displayname="ImageMagick"  {
 				, height          = arguments.height
 				, expand          = maintainAspectRatio
 				, crop            = maintainAspectRatio
+				, gravity         = arguments.gravity
 			);
 
 			imageBinary = FileReadBinary( tmpDestFilePath );
