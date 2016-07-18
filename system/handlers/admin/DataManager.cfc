@@ -1184,11 +1184,12 @@
 			var translations        = [];
 			var translateUrlBase    = "";
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
-			var sortOrder 			= dtHelper.getSortOrder();
-			var extraSortOrder 	    = dataManagerService.getSortFieldExtra(object) ?: "";
-			if(IsEmpty(sortOrder) && !IsEmpty(extraSortOrder)) {
-				sortOrder = extraSortOrder;
+			var sortOrder           = dtHelper.getSortOrder();
+
+			if ( IsEmpty( sortOrder ) ) {
+				sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( object );
 			}
+
 			var results             = dataManagerService.getRecordsForGridListing(
 				  objectName  = object
 				, gridFields  = gridFields

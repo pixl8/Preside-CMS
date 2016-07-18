@@ -143,10 +143,10 @@ component output="false" singleton=true {
 		);
 	}
 
-	public string function getSortFieldExtra( required string objectName ) output=false {
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) output=false {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
-			, attributeName = "datamanagerSortFields"
+			, attributeName = "datamanagerDefaultSortOrder"
 			, defaultValue  = ""
 		);
 	}
