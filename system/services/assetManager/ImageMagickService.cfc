@@ -21,6 +21,7 @@ component displayname="ImageMagick"  {
 		,          numeric height              = 0
 		,          string  quality             = "highPerformance"
 		,          boolean maintainAspectRatio = false
+		,          string  gravity             = 'center'
 	) {
 		var currentImageInfo = getImageInformation( arguments.asset );
 
@@ -43,6 +44,7 @@ component displayname="ImageMagick"  {
 				, height          = arguments.height
 				, expand          = maintainAspectRatio
 				, crop            = maintainAspectRatio
+				, gravity         = arguments.gravity
 			);
 
 			var binary = FileReadBinary( tmpDestFilePath );
