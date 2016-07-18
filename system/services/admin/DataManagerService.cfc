@@ -148,6 +148,14 @@ component {
 		);
 	}
 
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) output=false {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerDefaultSortOrder"
+			, defaultValue  = ""
+		);
+	}
+
 	public query function getRecordsForSorting( required string objectName ) {
 		var sortField = getSortField( arguments.objectName );
 		return _getPresideObjectService().selectData(
