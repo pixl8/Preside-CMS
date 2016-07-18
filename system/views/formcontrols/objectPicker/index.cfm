@@ -70,7 +70,9 @@
 	        data-sortable="#( IsBoolean( sortable ) && sortable ? 'true' : 'false' )#"
 	        data-value="#HtmlEditFormat( value )#"
 	        <cfif IsBoolean( multiple ) && multiple>
-	        	multiple="multiple"
+	        	multiple               ="multiple"
+                data-select-all-text   = "#translateResource( uri='cms:assetManager.select.multiple.SelectAll' )#"
+				data-deselect-all-text = "#translateResource( uri='cms:assetManager.select.multiple.SelectNone' )#"
 	        </cfif>
 	        <cfif Len( Trim( remoteUrl ) )>
 		        data-remote-url="#remoteUrl#"

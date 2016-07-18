@@ -35,6 +35,8 @@
 	        data-value="#value#"
 	        <cfif IsBoolean( multiple ) && multiple>
 	        	multiple="multiple"
+                data-select-all-text   = "#translateResource( uri='cms:assetManager.select.multiple.SelectAll' )#"
+				data-deselect-all-text = "#translateResource( uri='cms:assetManager.select.multiple.SelectNone' )#"
 	        </cfif>
 	>
 		<cfloop array="#values#" index="i" item="selectValue">

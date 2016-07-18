@@ -63,7 +63,87 @@
 			this.setup();
 			this.set_up_html();
 			this.register_observers();
+			this.set_select_clear_all_options( this.dropdown );
 		}
+
+		UberSelect.prototype.set_select_clear_all_options = function( dropdown ){
+			var chosen       = this,
+				optionsCount = chosen.search_results.children().size(),
+			    $dropdown    = dropdown;
+
+    	   if( !chosen.__customButtonsInitilized ) {
+    			chosen.__customButtonsInitilized = true;
+    			var contained = function( el ) {
+		            var container = document.createElement("ul");
+		            container.appendChild(el);
+		            return container;
+		        }
+		        var selectAllText     = this.form_field.getAttribute( "data-select-all-text" )   || 'All',
+		            selectNoneText    = this.form_field.getAttribute( "data-deselect-all-text" ) || 'None';
+		       if( chosen.is_multiple &&  optionsCount > 1) {
+		       		var selectAllEl       = document.createElement("li"),
+	                selectAllElContainer  = contained(selectAllEl),
+	                selectNoneEl          = document.createElement("li"),
+	                selectNoneElContainer = contained(selectNoneEl);
+
+	                selectAllEl.appendChild( document.createTextNode( selectAllText ) );
+        			selectNoneEl.appendChild( document.createTextNode( selectNoneText ) );
+
+        			$dropdown.prepend(selectNoneElContainer);
+        			$dropdown.prepend(selectAllElContainer);
+        			var $selectAllEl           = $(selectAllEl),
+		                $selectAllElContainer  = $(selectAllElContainer),
+		                $selectNoneEl          = $(selectNoneEl),
+		                $selectNoneElContainer = $(selectNoneElContainer);
+
+		            $selectNoneElContainer.addClass("chosen-results");
+		            $selectAllElContainer.addClass("chosen-results");
+		            $selectAllEl.addClass("active-result text-primary");
+		            $selectNoneEl.addClass("active-result text-primary");
+		            $selectAllEl.bind('mouseover.chosen', function(evt) {
+						chosen.search_results_mouseover(evt);
+					});
+					$selectNoneEl.bind('mouseover.chosen', function(evt) {
+						chosen.search_results_mouseover(evt);
+					});
+		            $selectAllEl.on("click", function(e) {
+		                e.preventDefault();
+		                chosen.clear_all_options( chosen );
+		                chosen.select_all_options( chosen );
+		                return false;
+		            });
+		            $selectNoneEl.on("click", function(e) {
+		                e.preventDefault();
+            			chosen.clear_all_options( chosen );
+            			return false;
+		            });
+			   }
+    		}
+		}
+
+		UberSelect.prototype.select_all_options = function( chosen ){
+			var options = SelectParser.select_to_array( chosen.form_field );
+			if (!options.length) {
+				chosen.results_build( function(){
+					if (chosen.results_showing) {
+						chosen.winnow_results();
+					}
+				} );
+           		options = chosen.select_options;
+			}
+			var _len  = options.length;
+			for(var _i = 0; _i<_len; _i++ ){
+				chosen.value.push( options[ _i ].value );
+			}
+            chosen.form_field_jq.trigger("chosen:updated");
+		};
+
+		UberSelect.prototype.clear_all_options = function( chosen ){
+			chosen.hidden_field.val( "" );
+			chosen.selected = [];
+			chosen.value    = [];
+            chosen.form_field_jq.trigger("chosen:updated");
+		};
 
 		UberSelect.prototype.setup_preselected_value = function(){
 			var options, _i=0, _len;
@@ -184,7 +264,6 @@
 
 		UberSelect.prototype.result_add_option = function( option ) {
 			var classes, style;
-
 			option = $.extend( {}, {
 				  disabled          : false
 				, classes           : ""
