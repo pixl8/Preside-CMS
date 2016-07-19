@@ -223,7 +223,7 @@ component {
 			, assetmanager           = {
 				  general          = [ "navigate" ]
 				, folders          = [ "add", "edit", "delete", "manageContextPerms" ]
-				, assets           = [ "upload", "edit", "delete", "download", "pick" ]
+				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
 		};
