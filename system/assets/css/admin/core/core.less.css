@@ -29187,6 +29187,11 @@ td.presidecms .visible-print {
 .presidecms input.ace[type="checkbox"] {
   z-index: 12;
 }
+.presidecms .btn.disabled,
+.presidecms .btn[disabled],
+fieldset[disabled] .presidecms .btn {
+  opacity: 0.3;
+}
 .presidecms .bootstrap-timepicker {
   position: relative;
 }
