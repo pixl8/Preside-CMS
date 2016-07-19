@@ -223,7 +223,7 @@ component displayName="Task Manager Service" {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId priority="high" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
+			thread name=newThreadId priority="low" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
 				setting requesttimeout = attributes.processTimeout;
 
 				var start = getTickCount();
