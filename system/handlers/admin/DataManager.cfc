@@ -739,9 +739,10 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object                = rc.object   ?: "";
-			var id                    = rc.id       ?: "";
-			var version               = rc.version  ?: "";
+			var object                = rc.object       ?: "";
+			var id                    = rc.id           ?: "";
+			var version               = rc.version      ?: "";
+			var fromDataGrid          = rc.fromDataGrid ?: "";
 			var objectName            = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
 			var record                = "";
@@ -784,6 +785,11 @@
 				  title = translateResource( uri="cms:datamanager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 				, link  = ""
 			);
+			if( isTrue( fromDataGrid ) ) {
+				prc.cancelAction     = event.buildAdminLink( linkTo="datamanager.object", querystring='id=#object#' );
+				prc.formAction       = event.buildAdminLink( linkTo="datamanager.translateRecordAction", querystring='fromDataGrid=#fromDataGrid#' );
+				prc.translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&fromDataGrid=#fromDataGrid#&language=" );
+			}
 			prc.pageIcon  = "pencil";
 			prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectName, prc.recordLabel, prc.language.name ] );
 		</cfscript>
@@ -795,9 +801,10 @@
 		<cfargument name="prc"   type="struct"  required="true" />
 
 		<cfscript>
-			var id                    = rc.id       ?: "";
-			var object                = rc.object   ?: "";
-			var languageId            = rc.language ?: "";
+			var id                    = rc.id           ?: "";
+			var object                = rc.object       ?: "";
+			var languageId            = rc.language     ?: "";
+			var fromDataGrid          = rc.fromDataGrid ?: "";
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
@@ -837,8 +844,11 @@
 				persist = formData;
 				persist.validationResult = validationResult;
 				persist.delete( "id" );
-
-				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
+				if( isTrue( fromDataGrid ) ) {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&fromDataGrid=true&version=#version#&language=#languageId#" ), persistStruct=persist );
+				} else {
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.translateRecord", querystring="id=#id#&object=#object#&version=#version#&language=#languageId#" ), persistStruct=persist );
+				}
 			}
 
 			multilingualPresideObjectService.saveTranslation(
@@ -858,7 +868,11 @@
 			);
 
 			messageBox.info( translateResource( uri="cms:datamanager.recordTranslated.confirmation", data=[ objectName ] ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			if( isTrue( fromDataGrid ) ) {
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
+			} else {
+				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#id#" ) );
+			}
 		</cfscript>
 	</cffunction>
 
@@ -1272,7 +1286,7 @@
 
 				if ( isMultilingual ) {
 					translations     = multilingualPresideObjectService.getTranslationStatus( object, record.id );
-					translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&language=" );
+					translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#record.id#&fromDataGrid=true&language=" );
 					ArrayAppend( translateStatusCol, renderView( view="/admin/datamanager/_listingTranslations", args={
 						  translations     = translations
 						, translateUrlBase = translateUrlBase
