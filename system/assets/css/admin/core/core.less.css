@@ -29021,7 +29021,7 @@ td.presidecms .visible-print {
 .presidecms input[type="radio"].ace + .lbl,
 .presidecms input[type="checkbox"].ace.ace-checkbox-2 + .lbl,
 .presidecms input[type="radio"].ace.ace-checkbox-2 + .lbl {
-  z-index: 2;
+  z-index: 0;
 }
 .presidecms input[type="checkbox"].ace:focus + .lbl::before,
 .presidecms input[type="radio"].ace:focus + .lbl::before,
