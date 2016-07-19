@@ -11,6 +11,10 @@ component {
 		announceInterception( "onApplicationStart" );
 	}
 
+	public void function applicationEnd( event, rc, prc ) {
+		applicationReloadService.gracefulShutdown();
+	}
+
 	public void function requestStart( event, rc, prc ) {
 		_setSecurityHeaders( argumentCollection = arguments );
 		_xssProtect( argumentCollection = arguments );

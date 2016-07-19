@@ -31,6 +31,7 @@ component {
 			, modulesExternalLocation   = ["/preside/system/modules"]
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
+			, applicationEndHandler     = "General.applicationEnd"
 			, requestStartHandler       = "General.requestStart"
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
@@ -87,6 +88,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"                  );
 		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"                    );
+		interceptorSettings.customInterceptionPoints.append( "onApplicationEnd"                      );
 		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"                  );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"                 );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"                );

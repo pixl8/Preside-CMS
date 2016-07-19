@@ -1,4 +1,9 @@
-component singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+component {
 
 // CONSTRUCTOR
 
@@ -33,7 +38,14 @@ component singleton=true {
 	}
 
 // PUBLIC API METHODS
+	public void function gracefulShutdown() {
+		$announceInterception( "onApplicationEnd" );
+		$getColdbox().getWirebox().shutdownSingletons();
+	}
+
 	public void function reloadAll() {
+		gracefulShutdown();
+
 		application.clear();
 	}
 
