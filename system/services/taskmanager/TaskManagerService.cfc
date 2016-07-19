@@ -611,6 +611,16 @@ component displayName="Task Manager Service" {
 		};
 	}
 
+	public void function shutdown() {
+		if ( tasksAreRunning() ) {
+			throw(
+				  type    = "preside.reload.taskmanager.running"
+				, message = "The application has been prevented from reloading because one or more tasks are running in the task manager."
+				, detail  = "Manually stop all tasks before reloading the application, or await their completion."
+			);
+		}
+	}
+
 // PRIVATE HELPERS
 	private any function _createJodaTimeObject( required date cfmlDateTime ) {
 		return CreateObject( "java", "org.joda.time.DateTime", "/preside/system/services/taskmanager/lib/cron-1.0.jar" ).init( cfmlDateTime );
