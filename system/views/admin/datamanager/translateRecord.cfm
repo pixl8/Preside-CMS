@@ -9,15 +9,16 @@
 	useVersioning       = prc.useVersioning ?: false;
 	formName            = prc.formName ?: "";
 
-	deleteRecordLink   = event.buildAdminLink( linkTo="datamanager.deleteTranslationAction", queryString="object=#object#&id=#id#&language=#currentLanguageId#" );
-	deleteRecordPrompt = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] )
-	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.btn" )
+	deleteRecordLink    = event.buildAdminLink( linkTo="datamanager.deleteTranslationAction", queryString="object=#object#&id=#id#&language=#currentLanguageId#" );
+	deleteRecordPrompt  = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] );
+	deleteRecordTitle   = translateResource( uri="cms:datamanager.deleteRecord.btn" );
 
-	canDelete        = prc.canDelete;
-	translations     = prc.translations ?: [];
-	translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
-
-	formId = "translate-record-form";
+	canDelete           = prc.canDelete;
+	translations        = prc.translations     ?: [];
+	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
+	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( linkTo="datamanager.editRecord", querystring='object=#object#&id=#id#' );
+	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
+	formId              = "translate-record-form";
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -53,7 +54,7 @@
 		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "", language=currentLanguageId } )#
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#event.buildAdminLink( linkTo='datamanager.translateRecordAction' )#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
 		<input type="hidden" name="object"   value="#object#" />
 		<input type="hidden" name="id"       value="#id#" />
 		<input type="hidden" name="language" value="#currentLanguageId#" />
@@ -81,7 +82,7 @@
 			)#
 
 			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo='datamanager.editRecord', queryString='object=#object#&id=#id#' )#" class="btn btn-default" data-global-key="c">
+				<a href="#cancelAction#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:datamanager.cancel.btn" )#
 				</a>
