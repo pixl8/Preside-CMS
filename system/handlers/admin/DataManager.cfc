@@ -54,9 +54,10 @@
 
 			_addObjectNameBreadCrumb( event, objectName );
 
-			prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
-			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
-			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
+			prc.draftsEnabled = datamanagerService.areDraftsEnabledForObject( objectName );
+			prc.canAdd        = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
+			prc.canDelete     = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+			prc.canSort       = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
 			prc.gridFields          = _getObjectFieldsForGrid( objectName );
 			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
@@ -82,7 +83,8 @@
 					  object              = objectName
 					, useMultiActions     = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 					, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
-					, isMultilingual      = ( rc.isMultilingual      ?: 'false' )
+					, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
+					, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
 				}
 			);
 		</cfscript>
@@ -1267,6 +1269,7 @@
 		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
+		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1274,6 +1277,7 @@
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var checkboxCol         = [];
 			var optionsCol          = [];
+			var statusCol           = [];
 			var translateStatusCol  = [];
 			var translations        = [];
 			var translateUrlBase    = "";
@@ -1325,8 +1329,16 @@
 						, translateUrlBase = translateUrlBase
 					} ) );
 				}
+
+				if ( draftsEnabled ) {
+					statusCol.append( renderView( view="/admin/datamanager/_recordStatus", args=record ) );
+				}
 			}
 
+			if ( draftsEnabled ) {
+				QueryAddColumn( records, "_status" , statusCol );
+				ArrayAppend( gridFields, "_status" );
+			}
 			if ( isMultilingual ) {
 				QueryAddColumn( records, "_translateStatus" , translateStatusCol );
 				ArrayAppend( gridFields, "_translateStatus" );

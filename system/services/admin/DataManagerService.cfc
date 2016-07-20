@@ -170,7 +170,6 @@ component {
 	}
 
 	public struct function getRecordsForGridListing(
-
 		  required string  objectName
 		, required array   gridFields
 		,          numeric startRow     = 1
@@ -439,6 +438,11 @@ component {
 		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
+		}
+
+		if ( areDraftsEnabledForObject( arguments.objectName ) ) {
+			sqlFields.append( "_version_has_drafts" );
+			sqlFields.append( "_version_is_draft"   );
 		}
 
 		// ensure all fields are valid + get labels from join tables
