@@ -706,6 +706,16 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			prc.useVersioning = datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
 			if ( prc.useVersioning && Val( version ) ) {
 				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );

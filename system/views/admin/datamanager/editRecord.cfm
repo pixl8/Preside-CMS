@@ -58,6 +58,9 @@
 		, id            = ( rc.id      ?: "" )
 		, version       = ( rc.version ?: "" )
 		, record        = ( prc.record ?: {} )
-		, useVersioning = ( prc.useVersioning ?: false )
+		, useVersioning = IsTrue( prc.useVersioning ?: "" )
+		, draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
+		, canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
+		, canPublish    = IsTrue( prc.canPublish    ?: "" )
 	} )#
 </cfoutput>
