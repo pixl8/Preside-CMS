@@ -11,6 +11,12 @@ component {
 		announceInterception( "onApplicationStart" );
 	}
 
+	public void function applicationEnd( event, rc, prc ) {
+		applicationReloadService.gracefulShutdown(
+			force = url.keyExists( "force" )
+		);
+	}
+
 	public void function requestStart( event, rc, prc ) {
 		_xssProtect( argumentCollection = arguments );
 		_reloadChecks( argumentCollection = arguments );

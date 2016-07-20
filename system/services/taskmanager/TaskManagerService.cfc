@@ -269,7 +269,7 @@ component displayName="Task Manager Service" {
 		}
 	}
 
-	public boolean function killRunningTask( required string taskKey ) {
+	public boolean function killRunningTask( required string taskKey, numeric timeout=1000 ) {
 		var task = _getTaskDao().selectData(
 			  selectFields = [ "running_thread" ]
 			, filter = { task_key=arguments.taskKey }
@@ -280,10 +280,28 @@ component displayName="Task Manager Service" {
 			if ( logger.canWarn() ) {
 				logger.warn( "Task manually cancelled by user. Killing task thread now..." );
 			}
-			_getCfThreadHelper().terminateThread( task.running_thread );
+			try {
+				_getCfThreadHelper().terminateThread( task.running_thread, arguments.timeout );
+				if ( arguments.timeout && logger.canWarn() ) {
+					logger.warn( "Thread killed" );
+				}
+
+			} catch( any e ) {
+				if ( logger.canError() ) {
+					logger.error( "Task errored while terminating. Error: #e.message#. Detail: #e.detail#." );
+				}
+			}
 		}
 
 		return !taskIsRunning( taskKey );
+	}
+
+	public void function killAllRunningTasks( numeric timeout=0 ) {
+		for( var taskKey in listTasks() ){
+			if ( taskIsRunning( taskKey ) ) {
+				killRunningTask( taskKey, arguments.timeout );
+			}
+		}
 	}
 
 	public array function listTasksStoredInStatusDb() {
@@ -609,6 +627,20 @@ component displayName="Task Manager Service" {
 			, "taskmanager.total.time"       = totalTime
 			, "taskmanager.avg.time"         = ( taskHistory.recordCount ? ( totalTime / taskHistory.recordCount ) : 0 )
 		};
+	}
+
+	public void function shutdown( boolean force=false ) {
+		if ( tasksAreRunning() ) {
+			if ( arguments.force ) {
+				killAllRunningTasks( timeout=1000 );
+			} else {
+				throw(
+					  type    = "preside.reload.taskmanager.running"
+					, message = "The application has been prevented from reloading because one or more tasks are running in the task manager."
+					, detail  = "Either: reload the application with the &force URL parameter; manually stop all tasks before reloading the application; or, await their completion."
+				);
+			}
+		}
 	}
 
 // PRIVATE HELPERS
