@@ -124,6 +124,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 		describe( "listGridFields()", function(){
 			it( "should return configured grid fields for object", function(){
 				var dataManagerService = _getService();
+
 				mockPoService.$( "getObjectAttribute" ).$args(
 					  objectName    = "object4"
 					, attributeName = "labelfield"
@@ -136,6 +137,45 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				).$results( "field1,field2,field3" );
 
 				expect( dataManagerService.listGridFields( "object4" ) ).toBe( ["field1","field2","field3"] );
+			} );
+		} );
+
+		describe( "areDraftsEnabledForObject()", function(){
+			it( "should return false when versioning is not enabled for the object", function(){
+				var dataManagerService = _getService();
+				var objectName         = "test_object";
+
+				mockPoService.$( "objectIsVersioned" ).$args( objectName ).$results( false );
+
+				expect( dataManagerService.areDraftsEnabledForObject( objectName ) ).toBeFalse();
+			} );
+
+			it( "should return false when versioning is enabled but drafts attribute not set on the object", function(){
+				var dataManagerService = _getService();
+				var objectName         = "test_object";
+
+				mockPoService.$( "objectIsVersioned" ).$args( objectName ).$results( true );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = objectName
+					, attributeName = "datamanagerAllowDrafts"
+					, defaultValue  = ""
+				).$results( "" );
+
+				expect( dataManagerService.areDraftsEnabledForObject( objectName ) ).toBeFalse();
+			} );
+
+			it( "should return true when versioning is enabled and 'datamanagerAllowDrafts' attribute set to true on the object", function(){
+				var dataManagerService = _getService();
+				var objectName         = "test_object";
+
+				mockPoService.$( "objectIsVersioned" ).$args( objectName ).$results( true );
+				mockPoService.$( "getObjectAttribute" ).$args(
+					  objectName    = objectName
+					, attributeName = "datamanagerAllowDrafts"
+					, defaultValue  = ""
+				).$results( true );
+
+				expect( dataManagerService.areDraftsEnabledForObject( objectName ) ).toBeTrue();
 			} );
 		} );
 	}

@@ -404,6 +404,22 @@ component {
 		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
+	public boolean function areDraftsEnabledForObject( required string objectName ) {
+		var poService = _getPresideObjectService();
+
+		if ( !poService.objectIsVersioned( arguments.objectName ) ) {
+			return false;
+		}
+
+		var draftsEnabled = poService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowDrafts"
+			, defaultValue  = ""
+		);
+
+		return IsBoolean( draftsEnabled ) && draftsEnabled;
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
