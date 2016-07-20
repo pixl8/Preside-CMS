@@ -292,8 +292,8 @@
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
-			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
-			if ( not prc.record.recordCount ) {
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
+			if ( !prc.record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
