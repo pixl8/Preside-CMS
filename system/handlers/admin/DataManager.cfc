@@ -708,9 +708,9 @@
 
 			prc.useVersioning = datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
 			if ( prc.useVersioning && Val( version ) ) {
-				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
 			} else {
-				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
 			}
 
 			if ( not prc.record.recordCount ) {
