@@ -698,7 +698,7 @@
 		<cfscript>
 			var object     = rc.object  ?: "";
 			var id         = rc.id      ?: "";
-			var version    = rc.version ?: "";
+			var version    = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
 			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var record     = "";
 
@@ -759,11 +759,26 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._editRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = {
+					  audit         =true
+					, draftsEnabled = prc.draftsEnabled
+					, canPublish    = IsTrue( prc.canPublish   ?: "" )
+					, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+				  }
 			);
 		</cfscript>
 	</cffunction>
@@ -1752,6 +1767,9 @@
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
 		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_edit_record" />
 		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1763,8 +1781,9 @@
 			var obj              = "";
 			var validationResult = "";
 			var persist          = "";
+			var isDraft          = false;
 
-			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled ) ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 
 				setNextEvent( url=errorUrl );
@@ -1781,7 +1800,24 @@
 				setNextEvent( url=errorUrl );
 			}
 
-			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
+			if ( arguments.draftsEnabled ) {
+				isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+				if ( isDraft && !arguments.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+				if ( !isDraft && !arguments.canPublish ) {
+					event.adminAccessDenied();
+				}
+			}
+
+			presideObjectService.updateData(
+				  id                      = id
+				, objectName              = object
+				, data                    = formData
+				, updateManyToManyRecords = true
+				, isDraft                 = isDraft
+			);
 
 			if ( arguments.audit ) {
 				var auditDetail = Duplicate( formData );
