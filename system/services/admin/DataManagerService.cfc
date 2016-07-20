@@ -105,6 +105,9 @@ component {
 			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
 				return false;
 			}
+			if ( propertyName.startsWith( "_" ) ) {
+				return false;
+			}
 			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
 				return false;
 			}
