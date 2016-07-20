@@ -12,7 +12,9 @@ component {
 	}
 
 	public void function applicationEnd( event, rc, prc ) {
-		applicationReloadService.gracefulShutdown();
+		applicationReloadService.gracefulShutdown(
+			force = url.keyExists( "force" )
+		);
 	}
 
 	public void function requestStart( event, rc, prc ) {

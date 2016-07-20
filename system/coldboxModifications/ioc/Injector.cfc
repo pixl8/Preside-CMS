@@ -65,14 +65,14 @@ component output=false extends="coldbox.system.ioc.Injector" {
 		}
 	}
 
-	public void function shutdownSingletons() {
+	public void function shutdownSingletons( boolean force=false ) {
 		var singletons = instance.scopes["SINGLETON"].getSingletons();
 
 		for( var singletonKey in singletons ) {
 			var singleton = singletons[ singletonKey ];
 
 			if ( IsObject( singleton ) && StructKeyExists( singleton, "shutdown" ) ) {
-				singleton.shutdown();
+				singleton.shutdown( force=arguments.force );
 			}
 		}
 	}

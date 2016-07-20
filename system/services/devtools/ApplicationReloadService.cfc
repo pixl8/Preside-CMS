@@ -38,9 +38,13 @@ component {
 	}
 
 // PUBLIC API METHODS
-	public void function gracefulShutdown() {
-		$announceInterception( "onApplicationEnd" );
-		$getColdbox().getWirebox().shutdownSingletons();
+	public void function gracefulShutdown( boolean force=false ) {
+		var lockName = "gracefulshutdownlock-#ExpandPath( '/' )#";
+
+		lock name=lockName type="exclusive" timeout=0 {
+			$announceInterception( "onApplicationEnd" );
+			$getColdbox().getWirebox().shutdownSingletons( arguments.force );
+		}
 	}
 
 	public void function reloadAll() {

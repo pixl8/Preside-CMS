@@ -56,17 +56,38 @@ component displayName="CFThread Helper" {
 	 *
 	 * @autodoc
 	 * @threadName.hint The name of the thread (as specified in the original cfthread tag)
+	 * @timeout.hint    Wait for thread to finish for up to timeout value. Do not wait if timeout = 0 (default)
 	 */
-	public void function terminateThread( required string threadName ) {
-		var javaThreads = getJavaThreads();
-		var cfthreads   = {};
+	public void function terminateThread( required string threadName, numeric timeout=0 ) {
+		var javaThreads  = getJavaThreads();
+		var cfthreads    = {};
+		var isTerminated = function( threadToCheck ) {
+			return threadToCheck.getThreadScope().status == "TERMINATED";
+		}
 
 		for( var thread in javaThreads ) {
 			if ( thread.getName() contains "cfthread" ) {
 				try {
 					var cfThreadScope = thread.getThreadScope();
 					if ( ( cfThreadScope.name ?: "" ) == arguments.threadName ) {
-						thread.interrupt();
+						if ( !isTerminated( thread ) ) {
+							thread.interrupt();
+
+							if ( arguments.timeout ) {
+								var start    = GetTickCount();
+								var timedOut = false;
+
+								do {
+									sleep( 5 );
+									timedOut = ( GetTickCount() - start ) >= arguments.timeout;
+
+								} while( !timedOut && !isTerminated( thread ) );
+
+								if ( !isTerminated( thread ) ) {
+									throw( type="preside.CFThreadHelper", message="Failed to kill task running thread, [#arguments.threadName#], within timeout [#arguments.timeout#ms]" );
+								}
+							}
+						}
 						return;
 					}
 				} catch( any e ) {}
