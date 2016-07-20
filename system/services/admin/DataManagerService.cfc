@@ -184,14 +184,15 @@ component {
 
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
-			  objectName       = arguments.objectName
-			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
-			, startRow         = arguments.startRow
-			, maxRows          = arguments.maxRows
-			, orderBy          = arguments.orderBy
-			, filter           = arguments.filter
-			, filterParams     = arguments.filterParams
-			, extraFilters     = []
+			  objectName         = arguments.objectName
+			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
+			, startRow           = arguments.startRow
+			, maxRows            = arguments.maxRows
+			, orderBy            = arguments.orderBy
+			, filter             = arguments.filter
+			, filterParams       = arguments.filterParams
+			, allowDraftVersions = true
+			, extraFilters       = []
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -207,10 +208,11 @@ component {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			result.totalRecords = _getPresideObjectService().selectData(
-				  objectName       = arguments.objectName
-				, selectFields     = [ "count( * ) as nRows" ]
-				, filter           = arguments.filter
-				, filterParams     = arguments.filterParams
+				  objectName         = arguments.objectName
+				, selectFields       = [ "count( * ) as nRows" ]
+				, filter             = arguments.filter
+				, filterParams       = arguments.filterParams
+				, allowDraftVersions = true
 			).nRows;
 		}
 
