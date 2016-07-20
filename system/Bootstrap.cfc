@@ -176,6 +176,7 @@ component {
 	}
 
 	private void function _clearExistingApplication() {
+		onApplicationEnd( application );
 		application.clear();
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
