@@ -537,6 +537,16 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			_addObjectNameBreadCrumb( event, objectName );
 
 			event.addAdminBreadCrumb(
@@ -1812,27 +1822,35 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="_checkPermission" access="public" returntype="void" output="false">
-		<cfargument name="event"  type="any"    required="true" />
-		<cfargument name="rc"     type="struct" required="true" />
-		<cfargument name="prc"    type="struct" required="true" />
-		<cfargument name="key"    type="string" required="true" />
-		<cfargument name="object" type="string" required="true" />
+	<cffunction name="_checkPermission" access="public" returntype="any" output="false">
+		<cfargument name="event"        type="any"     required="true" />
+		<cfargument name="rc"           type="struct"  required="true" />
+		<cfargument name="prc"          type="struct"  required="true" />
+		<cfargument name="key"          type="string"  required="true" />
+		<cfargument name="object"       type="string"  required="true" />
+		<cfargument name="throwOnError" type="boolean" required="false" default="true" />
 
 		<cfscript>
 			var operations = [ "add", "edit", "delete", "viewversions" ];
+			var permitted  = true;
+
 			if ( operations.find( arguments.key ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
+				permitted = false;
+			} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
+				permitted = false;
+			} else {
+				var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
+
+				if ( allowedSiteTemplates != "*" && !ListFindNoCase( allowedSiteTemplates, siteService.getActiveSiteTemplate() ) ) {
+					permitted = false;
+				}
+			}
+
+			if ( !permitted && arguments.throwOnError ) {
 				event.adminAccessDenied();
 			}
 
-			if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
-				event.adminAccessDenied();
-			}
-			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
-
-			if ( allowedSiteTemplates != "*" && !ListFindNoCase( allowedSiteTemplates, siteService.getActiveSiteTemplate() ) ) {
-				event.adminAccessDenied();
-			}
+			return permitted;
 		</cfscript>
 	</cffunction>
 
