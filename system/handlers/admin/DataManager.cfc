@@ -698,7 +698,7 @@
 		<cfscript>
 			var object     = rc.object  ?: "";
 			var id         = rc.id      ?: "";
-			var version    = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
+			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
 			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var record     = "";
 
