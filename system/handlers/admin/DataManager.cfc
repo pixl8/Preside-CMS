@@ -1782,8 +1782,10 @@
 			var validationResult = "";
 			var persist          = "";
 			var isDraft          = false;
+			var forceVersion     = false;
+			var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
 
-			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled ) ) {
+			if ( !existingRecord.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 
 				setNextEvent( url=errorUrl );
@@ -1809,6 +1811,10 @@
 				if ( !isDraft && !arguments.canPublish ) {
 					event.adminAccessDenied();
 				}
+
+				if ( !isDraft && IsTrue( existingRecord._version_is_draft ?: "" ) ) {
+					forceVersion = true;
+				}
 			}
 
 			presideObjectService.updateData(
@@ -1817,6 +1823,7 @@
 				, data                    = formData
 				, updateManyToManyRecords = true
 				, isDraft                 = isDraft
+				, forceVersionCreation    = forceVersion
 			);
 
 			if ( arguments.audit ) {
