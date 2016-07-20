@@ -566,11 +566,26 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._addRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = {
+					  audit         = true
+					, draftsEnabled = prc.draftsEnabled
+					, canPublish    = IsTrue( prc.canPublish   ?: "" )
+					, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+				  }
 			);
 		</cfscript>
 	</cffunction>
@@ -1458,6 +1473,9 @@
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
 		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_add_record" />
 		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
 
 		<cfscript>
 			var formData         = event.getCollectionForForm( arguments.formName );
@@ -1467,6 +1485,7 @@
 			var newId            = "";
 			var newRecordLink    = "";
 			var persist          = "";
+			var isDraft          = false;
 
 			validationResult = validateForm( formName=arguments.formName, formData=formData );
 
@@ -1481,8 +1500,19 @@
 				}
 			}
 
+			if ( arguments.draftsEnabled ) {
+				isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+				if ( isDraft && !arguments.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+				if ( !isDraft && !arguments.canPublish ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			obj = presideObjectService.getObject( object );
-			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+			newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
 			if ( arguments.audit ) {
 				var auditDetail = Duplicate( formData );
