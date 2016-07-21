@@ -18,6 +18,22 @@
 	translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
 
 	formId = "translate-record-form";
+
+	draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
+	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
+	canPublish    = IsTrue( prc.canPublish    ?: "" )
+
+	actions = [];
+	if ( draftsEnabled ) {
+		if ( canSaveDraft ) {
+			actions.append( { key="savedraft", title=translateResource( uri="cms:datamanager.translate.record.draft.btn", data=[ LCase( objectTitleSingular ) ] ) } );
+		}
+		if ( canPublish ) {
+			actions.append( { key="publish", title=translateResource( uri="cms:datamanager.translate.record.publish.btn", data=[ LCase( objectTitleSingular ) ] ) } );
+		}
+	} else {
+		actions.append( { key="add", title=translateResource( uri="cms:datamanager.translate.record.btn", data=[ LCase( objectTitleSingular ) ] ) } );
+	}
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -69,19 +85,37 @@
 			, validationResult   = rc.validationResult ?: ""
 		)#
 
-		<div class="form-actions row">
-			<div class="col-md-offset-2">
+		<div class="col-md-offset-2">
+			<div class="btn-group">
 				<a href="#event.buildAdminLink( linkTo='datamanager.editRecord', queryString='object=#object#&id=#id#' )#" class="btn btn-default" data-global-key="c">
 					<i class="fa fa-reply bigger-110"></i>
 					#translateResource( "cms:datamanager.cancel.btn" )#
 				</a>
-
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:datamanager.savechanges.btn" )#
-				</button>
 			</div>
+
+			<input name="_saveAction" type="hidden" value="#actions[1].key#">
+			<cfif actions.len() == 1>
+				<div class="btn-group">
+					<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i>
+						#actions[1].title#
+					</button>
+				</div>
+			<cfelse>
+				<div class="btn-group" data-multi-submit-field="_saveAction">
+					<button type="submit" class="btn btn-info">
+						<i class="fa fa-save bigger-110"></i> #actions[1].title#
+					</button>
+					<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fa fa-caret-down bigger-110"></i><span class="sr-only">Toggle Dropdown</span>
+					</button>
+					<ul class="dropdown-menu">
+						<cfloop array="#actions#" index="i" item="action">
+							<li><a href="##" data-action-key="#action.key#">#action.title#</a></li>
+						</cfloop>
+					</ul>
+				</div>
+			</cfif>
 		</div>
 	</form>
 </cfoutput>

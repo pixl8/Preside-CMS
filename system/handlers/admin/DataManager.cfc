@@ -809,6 +809,15 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="translate", object=object );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=object, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=object, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
 
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
 			prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
