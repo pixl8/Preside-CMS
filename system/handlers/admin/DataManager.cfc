@@ -860,9 +860,21 @@
 			var object                = rc.object   ?: "";
 			var languageId            = rc.language ?: "";
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+			var isDraft               = false;
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_checkPermission( argumentCollection=arguments, key="translate", object=object );
+
+			var draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
+			if ( draftsEnabled ) {
+				isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+				if ( isDraft  ) {
+					_checkPermission( argumentCollection=arguments, key="savedraft", object=object );
+				} else {
+					_checkPermission( argumentCollection=arguments, key="publish", object=object );
+				}
+			}
 
 			prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 			if ( prc.language.isempty() ) {
@@ -910,6 +922,7 @@
 				, id         = id
 				, data       = formData
 				, languageId = languageId
+				, isDraft    = isDraft
 			);
 
 			var auditDetail = QueryRowToStruct( record );
