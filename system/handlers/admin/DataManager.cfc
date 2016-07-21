@@ -1833,8 +1833,8 @@
 					event.adminAccessDenied();
 				}
 
-				if ( !isDraft && IsTrue( existingRecord._version_is_draft ?: "" ) ) {
-					forceVersion = true;
+				if ( !isDraft ) {
+					forceVersion = IsTrue( existingRecord._version_is_draft ) || IsTrue( existingRecord._version_has_drafts );
 				}
 			}
 
