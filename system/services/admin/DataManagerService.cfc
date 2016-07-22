@@ -105,6 +105,9 @@ component {
 			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
 				return false;
 			}
+			if ( propertyName.startsWith( "_" ) ) {
+				return false;
+			}
 			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
 				return false;
 			}
@@ -178,7 +181,6 @@ component {
 	}
 
 	public struct function getRecordsForGridListing(
-
 		  required string  objectName
 		, required array   gridFields
 		,          numeric startRow     = 1
@@ -192,14 +194,15 @@ component {
 
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
-			  objectName       = arguments.objectName
-			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
-			, startRow         = arguments.startRow
-			, maxRows          = arguments.maxRows
-			, orderBy          = arguments.orderBy
-			, filter           = arguments.filter
-			, filterParams     = arguments.filterParams
-			, extraFilters     = []
+			  objectName         = arguments.objectName
+			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
+			, startRow           = arguments.startRow
+			, maxRows            = arguments.maxRows
+			, orderBy            = arguments.orderBy
+			, filter             = arguments.filter
+			, filterParams       = arguments.filterParams
+			, allowDraftVersions = true
+			, extraFilters       = []
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -215,10 +218,11 @@ component {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			result.totalRecords = _getPresideObjectService().selectData(
-				  objectName       = arguments.objectName
-				, selectFields     = [ "count( * ) as nRows" ]
-				, filter           = arguments.filter
-				, filterParams     = arguments.filterParams
+				  objectName         = arguments.objectName
+				, selectFields       = [ "count( * ) as nRows" ]
+				, filter             = arguments.filter
+				, filterParams       = arguments.filterParams
+				, allowDraftVersions = true
 			).nRows;
 		}
 
@@ -412,6 +416,22 @@ component {
 		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
+	public boolean function areDraftsEnabledForObject( required string objectName ) {
+		var poService = _getPresideObjectService();
+
+		if ( !poService.objectIsVersioned( arguments.objectName ) ) {
+			return false;
+		}
+
+		var draftsEnabled = poService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowDrafts"
+			, defaultValue  = ""
+		);
+
+		return IsBoolean( draftsEnabled ) && draftsEnabled;
+	}
+
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
@@ -429,6 +449,11 @@ component {
 		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
+		}
+
+		if ( areDraftsEnabledForObject( arguments.objectName ) ) {
+			sqlFields.append( "_version_has_drafts" );
+			sqlFields.append( "_version_is_draft"   );
 		}
 
 		// ensure all fields are valid + get labels from join tables

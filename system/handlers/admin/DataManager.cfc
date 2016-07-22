@@ -54,9 +54,10 @@
 
 			_addObjectNameBreadCrumb( event, objectName );
 
-			prc.canAdd    = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
-			prc.canDelete = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
-			prc.canSort   = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
+			prc.draftsEnabled = datamanagerService.areDraftsEnabledForObject( objectName );
+			prc.canAdd        = datamanagerService.isOperationAllowed( objectName, "add" )    && hasCmsPermission( permissionKey="datamanager.add", context="datamanager", contextkeys=[ objectName ] );
+			prc.canDelete     = datamanagerService.isOperationAllowed( objectName, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] );
+			prc.canSort       = datamanagerService.isSortable( objectName ) && hasCmsPermission( permissionKey="datamanager.edit", context="datamanager", contextKeys=[ objectName ] );
 
 			prc.gridFields          = _getObjectFieldsForGrid( objectName );
 			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
@@ -82,7 +83,8 @@
 					  object              = objectName
 					, useMultiActions     = hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ objectName ] )
 					, gridFields          = ( rc.gridFields          ?: 'label,datecreated,datemodified' )
-					, isMultilingual      = ( rc.isMultilingual      ?: 'false' )
+					, isMultilingual      = IsTrue( rc.isMultilingual ?: 'false' )
+					, draftsEnabled       = IsTrue( rc.draftsEnabled  ?: 'false' )
 				}
 			);
 		</cfscript>
@@ -292,8 +294,8 @@
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
 
-			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
-			if ( not prc.record.recordCount ) {
+			prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
+			if ( !prc.record.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 				setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", querystring="id=#object#" ) );
 			}
@@ -537,6 +539,16 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=objectName, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			_addObjectNameBreadCrumb( event, objectName );
 
 			event.addAdminBreadCrumb(
@@ -556,11 +568,26 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="add", object=objectName );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._addRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = {
+					  audit         = true
+					, draftsEnabled = prc.draftsEnabled
+					, canPublish    = IsTrue( prc.canPublish   ?: "" )
+					, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+				  }
 			);
 		</cfscript>
 	</cffunction>
@@ -673,7 +700,7 @@
 		<cfscript>
 			var object     = rc.object  ?: "";
 			var id         = rc.id      ?: "";
-			var version    = rc.version ?: "";
+			var version    = rc.version = rc.version ?: ( presideObjectService.objectIsVersioned( object ) ? versioningService.getLatestVersionNumber( object, id ) : 0 );
 			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var record     = "";
 
@@ -681,11 +708,21 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			prc.useVersioning = datamanagerService.isOperationAllowed( object, "viewversions" ) && presideObjectService.objectIsVersioned( object );
 			if ( prc.useVersioning && Val( version ) ) {
-				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version );
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, fromVersionTable=true, specificVersion=version, allowDraftVersions=true );
 			} else {
-				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+				prc.record = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false, allowDraftVersions=true );
 			}
 
 			if ( not prc.record.recordCount ) {
@@ -724,11 +761,26 @@
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="edit", object=objectName );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			runEvent(
 				  event          = "admin.DataManager._editRecordAction"
 				, prePostExempt  = true
 				, private        = true
-				, eventArguments = { audit=true }
+				, eventArguments = {
+					  audit         =true
+					, draftsEnabled = prc.draftsEnabled
+					, canPublish    = IsTrue( prc.canPublish   ?: "" )
+					, canSaveDraft  = IsTrue( prc.canSaveDraft ?: "" )
+				  }
 			);
 		</cfscript>
 	</cffunction>
@@ -758,6 +810,15 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="translate", object=object );
 
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
+			if ( prc.draftsEnabled ) {
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=object, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=object, throwOnError=false );
+
+				if ( !prc.canPublish && !prc.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+			}
 
 			prc.useVersioning = presideObjectService.objectIsVersioned( object );
 			prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
@@ -806,9 +867,21 @@
 			var languageId            = rc.language     ?: "";
 			var fromDataGrid          = rc.fromDataGrid ?: "";
 			var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+			var isDraft               = false;
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_checkPermission( argumentCollection=arguments, key="translate", object=object );
+
+			var draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
+			if ( draftsEnabled ) {
+				isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+				if ( isDraft  ) {
+					_checkPermission( argumentCollection=arguments, key="savedraft", object=object );
+				} else {
+					_checkPermission( argumentCollection=arguments, key="publish", object=object );
+				}
+			}
 
 			prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
 			if ( prc.language.isempty() ) {
@@ -856,12 +929,22 @@
 				, id         = id
 				, data       = formData
 				, languageId = languageId
+				, isDraft    = isDraft
 			);
 
+			var auditAction = "datamanager_translate_record";
 			var auditDetail = QueryRowToStruct( record );
 			auditDetail.append( { objectName=object, languageId=languageId } );
+			if ( draftsEnabled ) {
+				if ( isDraft ) {
+					auditAction = "datamanager_save_draft_translation";
+				} else {
+					auditAction = "datamanager_publish_translation";
+				}
+			}
+
 			event.audit(
-				  action   = "datamanager_translate_record"
+				  action   = auditAction
 				, type     = "datamanager"
 				, recordId = id
 				, detail   = auditDetail
@@ -1228,6 +1311,7 @@
 		<cfargument name="filter"              type="struct"  required="false" default="#StructNew()#" />
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
+		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1235,6 +1319,7 @@
 			var objectTitleSingular = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
 			var checkboxCol         = [];
 			var optionsCol          = [];
+			var statusCol           = [];
 			var translateStatusCol  = [];
 			var translations        = [];
 			var translateUrlBase    = "";
@@ -1292,8 +1377,16 @@
 						, translateUrlBase = translateUrlBase
 					} ) );
 				}
+
+				if ( draftsEnabled ) {
+					statusCol.append( renderView( view="/admin/datamanager/_recordStatus", args=record ) );
+				}
 			}
 
+			if ( draftsEnabled ) {
+				QueryAddColumn( records, "_status" , statusCol );
+				ArrayAppend( gridFields, "_status" );
+			}
 			if ( isMultilingual ) {
 				QueryAddColumn( records, "_translateStatus" , translateStatusCol );
 				ArrayAppend( gridFields, "_translateStatus" );
@@ -1463,8 +1556,11 @@
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_add_record" />
+		<cfargument name="auditAction"       type="string"  required="false" default="" />
 		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
 
 		<cfscript>
 			var formData         = event.getCollectionForForm( arguments.formName );
@@ -1474,6 +1570,7 @@
 			var newId            = "";
 			var newRecordLink    = "";
 			var persist          = "";
+			var isDraft          = false;
 
 			validationResult = validateForm( formName=arguments.formName, formData=formData );
 
@@ -1488,13 +1585,31 @@
 				}
 			}
 
+			if ( arguments.draftsEnabled ) {
+				isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+				if ( isDraft && !arguments.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+				if ( !isDraft && !arguments.canPublish ) {
+					event.adminAccessDenied();
+				}
+			}
+
 			obj = presideObjectService.getObject( object );
-			newId = obj.insertData( data=formData, insertManyToManyRecords=true );
+			newId = obj.insertData( data=formData, insertManyToManyRecords=true, isDraft=isDraft );
 
 			if ( arguments.audit ) {
 				var auditDetail = Duplicate( formData );
 				auditDetail.id = newId;
 				auditDetail.objectName = arguments.object;
+				if ( arguments.auditAction == "" ) {
+					if ( arguments.draftsEnabled && isDraft ) {
+						arguments.auditAction = "datamanager_add_draft_record";
+					} else {
+						arguments.auditAction = "datamanager_add_record";
+					}
+				}
 				event.audit(
 					  action   = arguments.auditAction
 					, type     = arguments.auditType
@@ -1717,8 +1832,11 @@
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_edit_record" />
+		<cfargument name="auditAction"       type="string"  required="false" default="" />
 		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
+		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
+		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
+		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1730,8 +1848,11 @@
 			var obj              = "";
 			var validationResult = "";
 			var persist          = "";
+			var isDraft          = false;
+			var forceVersion     = false;
+			var existingRecord   = presideObjectService.selectData( objectName=object, filter={ id=id }, allowDraftVersions=arguments.draftsEnabled );
 
-			if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			if ( !existingRecord.recordCount ) {
 				messageBox.error( translateResource( uri="cms:datamanager.recordNotFound.error", data=[ LCase( objectName ) ] ) );
 
 				setNextEvent( url=errorUrl );
@@ -1748,11 +1869,44 @@
 				setNextEvent( url=errorUrl );
 			}
 
-			presideObjectService.updateData( objectName=object, data=formData, id=id, updateManyToManyRecords=true );
+			if ( arguments.draftsEnabled ) {
+				isDraft = ( rc._saveaction ?: "" ) != "publish";
+
+				if ( isDraft && !arguments.canSaveDraft ) {
+					event.adminAccessDenied();
+				}
+				if ( !isDraft && !arguments.canPublish ) {
+					event.adminAccessDenied();
+				}
+
+				if ( !isDraft ) {
+					forceVersion = IsTrue( existingRecord._version_is_draft ) || IsTrue( existingRecord._version_has_drafts );
+				}
+			}
+
+			presideObjectService.updateData(
+				  id                      = id
+				, objectName              = object
+				, data                    = formData
+				, updateManyToManyRecords = true
+				, isDraft                 = isDraft
+				, forceVersionCreation    = forceVersion
+			);
 
 			if ( arguments.audit ) {
 				var auditDetail = Duplicate( formData );
 				auditDetail.objectName = arguments.object;
+				if ( !Len( Trim( arguments.auditAction ) ) ) {
+					if ( arguments.draftsEnabled ) {
+						if ( isDraft ) {
+							arguments.auditAction = "datamanager_save_draft_record";
+						} else {
+							arguments.auditAction = "datamanager_publish_record";
+						}
+					} else {
+						arguments.auditAction = "datamanager_edit_record";
+					}
+				}
 				event.audit(
 					  action   = arguments.auditAction
 					, type     = arguments.auditType
@@ -1829,27 +1983,35 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="_checkPermission" access="public" returntype="void" output="false">
-		<cfargument name="event"  type="any"    required="true" />
-		<cfargument name="rc"     type="struct" required="true" />
-		<cfargument name="prc"    type="struct" required="true" />
-		<cfargument name="key"    type="string" required="true" />
-		<cfargument name="object" type="string" required="true" />
+	<cffunction name="_checkPermission" access="public" returntype="any" output="false">
+		<cfargument name="event"        type="any"     required="true" />
+		<cfargument name="rc"           type="struct"  required="true" />
+		<cfargument name="prc"          type="struct"  required="true" />
+		<cfargument name="key"          type="string"  required="true" />
+		<cfargument name="object"       type="string"  required="true" />
+		<cfargument name="throwOnError" type="boolean" required="false" default="true" />
 
 		<cfscript>
 			var operations = [ "add", "edit", "delete", "viewversions" ];
+			var permitted  = true;
+
 			if ( operations.find( arguments.key ) && !datamanagerService.isOperationAllowed( arguments.object, arguments.key ) ) {
+				permitted = false;
+			} else if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
+				permitted = false;
+			} else {
+				var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
+
+				if ( allowedSiteTemplates != "*" && !ListFindNoCase( allowedSiteTemplates, siteService.getActiveSiteTemplate() ) ) {
+					permitted = false;
+				}
+			}
+
+			if ( !permitted && arguments.throwOnError ) {
 				event.adminAccessDenied();
 			}
 
-			if ( !hasCmsPermission( permissionKey="datamanager.#arguments.key#", context="datamanager", contextKeys=[ arguments.object ] ) && !hasCmsPermission( permissionKey="presideobject.#arguments.object#.#arguments.key#" ) ) {
-				event.adminAccessDenied();
-			}
-			var allowedSiteTemplates = presideObjectService.getObjectAttribute( objectName=arguments.object, attributeName="siteTemplates", defaultValue="*" );
-
-			if ( allowedSiteTemplates != "*" && !ListFindNoCase( allowedSiteTemplates, siteService.getActiveSiteTemplate() ) ) {
-				event.adminAccessDenied();
-			}
+			return permitted;
 		</cfscript>
 	</cffunction>
 
