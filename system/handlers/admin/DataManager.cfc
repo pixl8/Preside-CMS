@@ -1530,7 +1530,7 @@
 		<cfargument name="redirectOnSuccess" type="boolean" required="false" default="true" />
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.add" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_add_record" />
+		<cfargument name="auditAction"       type="string"  required="false" default="" />
 		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
@@ -1577,6 +1577,13 @@
 				var auditDetail = Duplicate( formData );
 				auditDetail.id = newId;
 				auditDetail.objectName = arguments.object;
+				if ( arguments.auditAction == "" ) {
+					if ( arguments.draftsEnabled && isDraft ) {
+						arguments.auditAction = "datamanager_add_draft_record";
+					} else {
+						arguments.auditAction = "datamanager_add_record";
+					}
+				}
 				event.audit(
 					  action   = arguments.auditAction
 					, type     = arguments.auditType
@@ -1799,7 +1806,7 @@
 		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#object#.admin.edit" />
 		<cfargument name="mergeWithFormName" type="string"  required="false" default="" />
 		<cfargument name="audit"             type="boolean" required="false" default="false" />
-		<cfargument name="auditAction"       type="string"  required="false" default="datamanager_edit_record" />
+		<cfargument name="auditAction"       type="string"  required="false" default="" />
 		<cfargument name="auditType"         type="string"  required="false" default="datamanager" />
 		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
@@ -1863,6 +1870,17 @@
 			if ( arguments.audit ) {
 				var auditDetail = Duplicate( formData );
 				auditDetail.objectName = arguments.object;
+				if ( !Len( Trim( arguments.auditAction ) ) ) {
+					if ( arguments.draftsEnabled ) {
+						if ( isDraft ) {
+							arguments.auditAction = "datamanager_save_draft_record";
+						} else {
+							arguments.auditAction = "datamanager_publish_record";
+						}
+					} else {
+						arguments.auditAction = "datamanager_edit_record";
+					}
+				}
 				event.audit(
 					  action   = arguments.auditAction
 					, type     = arguments.auditType
