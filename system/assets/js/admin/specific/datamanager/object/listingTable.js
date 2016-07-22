@@ -13,15 +13,17 @@
 	  , allowSearch         = cfrequest.allowSearch
 	  , datasourceUrl       = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 	  , useMultiActions     = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
-	  , isMultilingual      = cfrequest.isMultilingual      || false
+	  , isMultilingual      = cfrequest.isMultilingual || false
+	  , draftsEnabled       = cfrequest.draftsEnabled  || false
 	  , object              = cfrequest.objectName  || ""
 	  , objectTitle         = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 	  , enabledContextHotkeys;
 
 	setupDatatable = function(){
-		var $tableHeaders = $listingTable.find( 'thead > tr > th')
-		  , colConfig     = []
-		  , defaultSort   = []
+		var $tableHeaders        = $listingTable.find( 'thead > tr > th')
+		  , colConfig            = []
+		  , defaultSort          = []
+		  , dynamicHeadersOffset = 1
 		  , i, $header;
 
 		if ( useMultiActions ) {
@@ -33,7 +35,10 @@
 			} );
 		}
 
-		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-1; i++ ){
+		if ( draftsEnabled  ) { dynamicHeadersOffset++; }
+		if ( isMultilingual ) { dynamicHeadersOffset++; }
+
+		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
 			$header = $( $tableHeaders.get(i) );
 			colConfig.push( { "mData":$( $tableHeaders.get(i) ).data( 'field' ) } );
 
@@ -41,9 +46,15 @@
 				defaultSort.push( [ i, $header.data( 'defaultSortOrder' ) ]);
 			}
 		}
+		if( draftsEnabled ) {
+			colConfig.push( {
+				bSortable : false,
+				mData     : "_status",
+				sWidth    : "15em"
+			} );
+		}
 		if( isMultilingual ) {
 			colConfig.push( {
-				sClass    : "center",
 				bSortable : false,
 				mData     : "_translateStatus",
 				sWidth    : "12em"
