@@ -21,6 +21,8 @@ component {
 
 		switch( action ) {
 			case "datamanager_translate_record":
+			case "datamanager_save_draft_translation":
+			case "datamanager_publish_translation":
 				var language = renderLabel( "multilingual_language", args.detail.languageId ?: "" );
 				return translateResource( uri="auditlog.datamanager:#args.action#.message", data=[ userLink, objectLink, recordLink, language ] );
 			case "datamanager_batch_edit_record":

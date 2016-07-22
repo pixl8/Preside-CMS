@@ -925,10 +925,19 @@
 				, isDraft    = isDraft
 			);
 
+			var auditAction = "datamanager_translate_record";
 			var auditDetail = QueryRowToStruct( record );
 			auditDetail.append( { objectName=object, languageId=languageId } );
+			if ( draftsEnabled ) {
+				if ( isDraft ) {
+					auditAction = "datamanager_save_draft_translation";
+				} else {
+					auditAction = "datamanager_publish_translation";
+				}
+			}
+
 			event.audit(
-				  action   = "datamanager_translate_record"
+				  action   = auditAction
 				, type     = "datamanager"
 				, recordId = id
 				, detail   = auditDetail
