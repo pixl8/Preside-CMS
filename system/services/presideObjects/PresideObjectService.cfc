@@ -1945,7 +1945,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				if ( aliasedKey != key ) {
 					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
 					result.filterParams.delete( key );
-					result.filter = result.filter.replaceNoCase( ":#key#", ":#aliasedKey#", "all" );
+					result.filter = result.filter.reReplaceNoCase( "(\b):#key#(\b)", "\1:#aliasedKey#\2", "all" );
 				}
 			}
 
