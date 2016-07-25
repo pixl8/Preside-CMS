@@ -1684,10 +1684,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required struct filterParams
 		, required array  joinTargets
 	) {
-		var cacheMaps = _getCacheMaps();
-		var objId     = "";
-		var id        = "";
-		var joinObj   = "";
+		var cacheMaps   = _getCacheMaps();
+		var objId       = "";
+		var id          = "";
+		var joinObj     = "";
+		var fullIdField = "#arguments.objectName#.id";
 
 		if ( not StructKeyExists( cacheMaps, arguments.objectName ) ) {
 			cacheMaps[ arguments.objectName ] = {
@@ -1695,10 +1696,18 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			};
 		}
 
-		if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
-			objId = arguments.filter.id;
-		} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
-			objId = arguments.filterParams.id;
+		if ( IsStruct( arguments.filter ) ) {
+			if ( arguments.filter.keyExists( "id" ) ) {
+				objId = arguments.filter.id;
+			} else if ( arguments.filter.keyExists( fullIdField ) ) {
+				objId = arguments.filter[ fullIdField ];
+			}
+		} else {
+			if ( arguments.filterParams.keyExists( "id" ) ) {
+				objId = arguments.filterParams.id;
+			} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+				objId = arguments.filterParams[ fullIdField ];
+			}
 		}
 
 		if ( IsStruct( objId ) ) {
@@ -1737,14 +1746,23 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var keysToClear = "";
 		var objIds      = "";
 		var objId       = "";
+		var fullIdField = "#arguments.objectName#.id";
 
 		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
 			keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
 
-			if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
-				objIds = arguments.filter.id;
-			} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
-				objIds = arguments.filterParams.id;
+			if ( IsStruct( arguments.filter ) ) {
+				if ( arguments.filter.keyExists( "id" ) ) {
+					objIds = arguments.filter.id;
+				} else if ( arguments.filter.keyExists( fullIdField ) ) {
+					objIds = arguments.filter[ fullIdField ];
+				}
+			} else {
+				if ( arguments.filterParams.keyExists( "id" ) ) {
+					objIds = arguments.filterParams.id;
+				} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+					objIds = arguments.filterParams[ fullIdField ];
+				}
 			}
 
 			if ( IsSimpleValue( objIds ) ) {
@@ -1885,6 +1903,14 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		if ( IsStruct( result.filter ) ) {
+			for( var key in result.filter ) {
+				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
+				if ( aliasedKey != key ) {
+					result.filter[ aliasedKey ] = result.filter[ key ];
+					result.filter.delete( key );
+				}
+			}
+
 			result.params = _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = arguments.columnDefinitions
@@ -1892,6 +1918,15 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				, dbAdapter         = adapter
 			);
 		} else {
+			for( var key in result.filterParams ) {
+				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
+				if ( aliasedKey != key ) {
+					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
+					result.filterParams.delete( key );
+					result.filter = result.filter.replaceNoCase( ":#key#", ":#aliasedKey#", "all" );
+				}
+			}
+
 			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
 			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
 			result.params = _convertUserFilterParamsToQueryParams(
@@ -1940,16 +1975,20 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	}
 
 	private string function _autoAliasBareProperty(
-		  required string objectName
-		, required string propertyName
-		, required any    dbAdapter
-		,          string alias = arguments.objectName
+		  required string  objectName
+		, required string  propertyName
+		, required any     dbAdapter
+		,          string  alias          = arguments.objectName
+		,          boolean escapeEntities = true
 	) {
 		var objMeta       = _getObject( arguments.objectName ).meta;
 		var barePropRegex = "^(" & objMeta.dbFieldList.replace( ",", "|", "all" ) & ")$";
 
 		if ( arguments.propertyName.reFindNoCase( barePropRegex ) ) {
-			return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( arguments.propertyName );
+			if ( escapeEntities ) {
+				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( arguments.propertyName );
+			}
+			return arguments.alias & "." & arguments.propertyName;
 		}
 
 		return arguments.propertyName;
