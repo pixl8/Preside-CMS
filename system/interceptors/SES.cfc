@@ -51,13 +51,14 @@ component extends="coldbox.system.interceptors.SES" output=false {
 // private utility methods
 	private void function _detectIncomingSite( event, interceptData ) output=false {
 		var pathInfo = super.getCGIElement( "path_info", event );
+		var domain   = super.getCGIElement( "server_name", event );
 		var site     = "";
 
 		if ( adminRouteHandler.match( pathInfo, event ) && event.isAdminUser() ) {
-			site = siteService.getActiveAdminSite();
+			site = siteService.getActiveAdminSite( domain=domain );
 		} else {
 			site = siteService.matchSite(
-				  domain = super.getCGIElement( "server_name", event )
+				  domain = domain
 				, path   = pathInfo
 			);
 			if ( Len( Trim( site.id ?: "" ) ) ) {

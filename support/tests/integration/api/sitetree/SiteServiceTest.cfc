@@ -1,6 +1,6 @@
-component output="false" extends="tests.resources.HelperObjects.PresideTestCase" {
-// test lifecycle methods
-	public any function beforeTests() output=false {
+component extends="tests.resources.HelperObjects.PresideBddTestCase" {
+
+	function beforeAll() {
 		_emptyDatabase();
 
 		presideObjectService = _getPresideObjectService( forceNewInstance=true );
@@ -9,73 +9,79 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		_setupTestData();
 	}
 
-// tests
-	public void function test01_matchSite_shouldReturnDefaultSite_whenNoSpecificMatchesMade() output=false {
-		var siteService = _getSiteService();
-		var site        = siteService.matchSite( domain="anyolddomain.com", path="/anyoldpath.html" );
+	function run() {
 
-		super.assertEquals( sites[1], site.id ?: "" );
-	}
+		describe( "matchSite()", function(){
+			it( "should return default site when no specific matches made", function(){
+				var siteService = _getSiteService();
+				var site        = siteService.matchSite( domain="anyolddomain.com", path="/anyoldpath.html" );
 
-	public void function test02_matchSite_shouldReturnDefaultSite_whenDomainMatchedButNoPathsMatch() output=false {
-		var siteService = _getSiteService();
-		var site        = siteService.matchSite( domain="www.oddsite.com", path="/anyoldpath.html" );
+				expect( site.id ?: "" ).toBe( sites[1] );
+			} );
 
-		super.assertEquals( sites[1], site.id ?: "" );
-	}
+			it( "should return default site when domain matched but not paths match", function(){
+				var siteService = _getSiteService();
+				var site        = siteService.matchSite( domain="www.oddsite.com", path="/anyoldpath.html" );
 
-	public void function test03_matchSite_shouldReturnSpecificSiteThatMatchesDomain_whenNoSpecificPathsRegisteredForThatDomain() output=false {
-		var siteService = _getSiteService();
-		var site        = siteService.matchSite( domain="fubar.anothersite.com", path="/some/path/" );
+				expect( site.id ?: "" ).toBe( sites[1] );
+			} );
 
-		super.assertEquals( sites[4], site.id ?: "" );
-	}
+			it( "should return specific stie that matches domain when no specific paths registered for that domain", function(){
+				var siteService = _getSiteService();
+				var site        = siteService.matchSite( domain="fubar.anothersite.com", path="/some/path/" );
 
-	public void function test04_matchSite_shouldReturnSpecificSiteThatMatchesDomainAndPath_whenSpecificPathsRegisteredForThatDomain() output=false {
-		var siteService = _getSiteService();
-		var site        = siteService.matchSite( domain="testsite.com", path="/sub/path/" );
+				expect( site.id ?: "" ).toBe( sites[4] );
+			} );
 
-		super.assertEquals( sites[3], site.id ?: "" );
-	}
+			it( "should return specific site that matches domain and path when specific paths registered for that domain", function(){
+				var siteService = _getSiteService();
+				var site        = siteService.matchSite( domain="testsite.com", path="/sub/path/" );
 
-	public void function test05_matchSite_shouldReturnSpecificSiteThatMatchesJustDomain_whenBothGeneralAndSpecificPathRegisteredButSpecificPathNotMatches() output=false {
-		var siteService = _getSiteService();
-		var site        = siteService.matchSite( domain="testsite.com", path="/any/old/path.html" );
+				expect( site.id ?: "" ).toBe( sites[3] );
+			} );
 
-		super.assertEquals( sites[2], site.id ?: "" );
-	}
+			it( "should return specific site that matches just domain when both general and specific path registerd but specific path not matches", function(){
+				var siteService = _getSiteService();
+				var site        = siteService.matchSite( domain="testsite.com", path="/any/old/path.html" );
 
-	public void function test06_getActiveAdminSite_shouldReturnActiveSiteStoredInSession_whenUserHasPermissionToNavigateIt() output=false {
-		var siteService = _getSiteService();
-		var testSiteId  = "testsiteid";
+				expect( site.id ?: "" ).toBe( sites[2] );
+			} );
+		} );
 
-		mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( true );
-		mockSessionStorage.$( "getVar" ).$args( "_activeSite" ).$results( { id=testSiteId } );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ testSiteId ] ).$results( true );
+		describe( "getActiveAdminSite()", function(){
+			it( "should return active site stored in session when user has permisission to navigate to it", function(){
+				var siteService = _getSiteService();
+				var testSiteId  = "testsiteid";
 
-		super.assertEquals( testSiteId, siteService.getActiveAdminSite().id );
-	}
+				mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( true );
+				mockSessionStorage.$( "getVar" ).$args( "_activeSite" ).$results( { id=testSiteId } );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ testSiteId ] ).$results( true );
 
-	public void function test07_getActiveAdminSite_shouldReturnFirstSiteThatUserHasAccessTo_whenNoActiveSiteAlreadySet() output=false {
-		var siteService = _getSiteService();
+				expect( siteService.getActiveAdminSite( domain="testsite.com" ).id ).toBe( testSiteId );
+			} );
 
-		mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( false );
-		mockSessionStorage.$( "setVar", NullValue() );
+			it( "should return first site matching the current domain that user has access to when no active site already set", function(){
+				var siteService = _getSiteService();
 
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[1] ] ).$results( false );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[2] ] ).$results( true );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[3] ] ).$results( true );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[4] ] ).$results( false );
-		mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[5] ] ).$results( true );
+				mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( false );
+				mockSessionStorage.$( "setVar", NullValue() );
 
-		super.assertEquals( sites[2], siteService.getActiveAdminSite().id );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[1] ] ).$results( true );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[2] ] ).$results( true );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[3] ] ).$results( true );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[4] ] ).$results( false );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[5] ] ).$results( true );
+
+				expect( siteService.getActiveAdminSite( domain="testsite.com" ).id ).toBe( sites[2] );
+			} );
+		} );
 	}
 
 // private utility
-	private any function _getSiteService() output=false {
-		mockSessionStorage    = getMockBox().createStub();
-		mockPermissionService = getMockBox().createStub();
-		mockColdbox           = getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+	private any function _getSiteService() {
+		mockSessionStorage    = createStub();
+		mockPermissionService = createStub();
+		mockColdbox           = createEmptyMock( "preside.system.coldboxModifications.Controller" );
 
 		return new preside.system.services.sitetree.SiteService(
 			  siteDao               = presideObjectService.getObject( "site" )
@@ -87,7 +93,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		);
 	}
 
-	private void function _setupTestData() output=false {
+	private void function _setupTestData() {
 		variables.sites = [];
 
 		sites.append( _insertData( objectName="site", data={ name="Default site" , domain="*"                    , path="/"          } ) );
