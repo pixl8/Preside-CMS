@@ -708,7 +708,7 @@
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
 			_checkPermission( argumentCollection=arguments, key="edit", object=object );
 
-			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( objectName );
+			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
 			if ( prc.draftsEnabled ) {
 				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
 				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
