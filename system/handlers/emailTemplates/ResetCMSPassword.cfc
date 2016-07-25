@@ -16,7 +16,7 @@ component output=false {
 			, htmlBody = renderView( view="/emailTemplates/resetCmsPassword/html", args=args )
 		};
 
-		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody } );
+		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody, subject=message.subject } );
 
 		return message;
 	}
