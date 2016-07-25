@@ -88,8 +88,11 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 	/**
 	 * Returns the id of the currently active site for the administrator. If no site selected, chooses the first site
 	 * that the logged in user has rights to
+	 *
+	 * @autodoc
+	 * @domain.hint domain that the site should match
 	 */
-	public struct function getActiveAdminSite() output=false autodoc=true{
+	public struct function getActiveAdminSite( required string domain ) {
 		var sessionStorage    = _getSessionStorage();
 		var permissionService = _getPermissionService();
 
@@ -102,7 +105,11 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 
 		var siteDao   = _getSiteDao();
 		var dbAdapter = siteDao.getDbAdapter();
-		var sites     = siteDao.selectData( orderBy = "#dbAdapter.getLengthFunctionSql( 'domain' )#, #dbAdapter.getLengthFunctionSql( 'path' )#" );
+		var sites     = siteDao.selectData(
+			  filter       = "( domain = '*' or domain = :domain )"
+			, filterParams = { domain = arguments.domain }
+			, orderBy      = "#dbAdapter.getLengthFunctionSql( 'domain' )# desc, #dbAdapter.getLengthFunctionSql( 'path' )#"
+		);
 
 		for( var site in sites ) {
 			if ( permissionService.hasPermission( permissionKey="sites.navigate", context="site", contextKeys=[ site.id ] ) ) {

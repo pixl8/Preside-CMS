@@ -162,7 +162,7 @@ component output=false extends="preside.system.base.AdminHandler" {
 			event.adminAccessDenied();
 		}
 
-		var currentActiveSite = siteService.getActiveAdminSite();
+		var currentActiveSite = siteService.getActiveAdminSite( domain=cgi.server_name ?: "" );
 		var newSite           = siteService.getSite( activeSiteId );
 
 		if ( newSite.domain != currentActiveSite.domain ) {

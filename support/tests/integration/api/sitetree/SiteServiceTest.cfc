@@ -57,22 +57,22 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				mockSessionStorage.$( "getVar" ).$args( "_activeSite" ).$results( { id=testSiteId } );
 				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ testSiteId ] ).$results( true );
 
-				expect( siteService.getActiveAdminSite().id ).toBe( testSiteId );
+				expect( siteService.getActiveAdminSite( domain="testsite.com" ).id ).toBe( testSiteId );
 			} );
 
-			it( "should return first site that user has access to when no active site already set", function(){
+			it( "should return first site matching the current domain that user has access to when no active site already set", function(){
 				var siteService = _getSiteService();
 
 				mockSessionStorage.$( "exists" ).$args( "_activeSite" ).$results( false );
 				mockSessionStorage.$( "setVar", NullValue() );
 
-				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[1] ] ).$results( false );
+				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[1] ] ).$results( true );
 				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[2] ] ).$results( true );
 				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[3] ] ).$results( true );
 				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[4] ] ).$results( false );
 				mockPermissionService.$( "hasPermission" ).$args( permissionKey="sites.navigate", context="site", contextKeys=[ sites[5] ] ).$results( true );
 
-				expect( siteService.getActiveAdminSite().id ).toBe( sites[2] );
+				expect( siteService.getActiveAdminSite( domain="testsite.com" ).id ).toBe( sites[2] );
 			} );
 		} );
 	}
