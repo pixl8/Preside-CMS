@@ -2,7 +2,7 @@
 
 <cfif args.responses.len()>
 	<cfoutput>
-		<table class="table formbuilder-response table-striped"
+		<table class="table formbuilder-response table-striped">
 			<cfloop array="#args.responses#" item="response" index="i">
 				<tr>
 					<th>#( response.item.configuration.label ?: response.item.configuration.name )#:</th>
