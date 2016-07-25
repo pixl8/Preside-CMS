@@ -1781,12 +1781,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 	private array function _parseSelectFields( required string objectName, required array selectFields ) {
 		_announceInterception( "preParseSelectFields", arguments );
-		var fields = arguments.selectFields;
+		var fields  = arguments.selectFields;
+		var obj     = _getObject( arguments.objectName ).meta;
+		var adapter = _getAdapter( obj.dsn ?: "" );
 
-		if ( not ArrayLen( fields ) ) {
-			var obj     = _getObject( arguments.objectName ).meta;
-			var adapter = _getAdapter( obj.dsn ?: "" );
-
+		if ( !fields.len() ) {
 			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
 		}
 
@@ -1815,6 +1814,12 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				}
 				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
+
+			fields[i] = _autoAliasBareProperty(
+				  objectName   = arguments.objectName
+				, propertyName = fields[i]
+				, dbAdapter    = adapter
+			);
 		}
 
 		arguments.selectFields = fields;
@@ -1932,6 +1937,22 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		return newData;
+	}
+
+	private string function _autoAliasBareProperty(
+		  required string objectName
+		, required string propertyName
+		, required any    dbAdapter
+		,          string alias = arguments.objectName
+	) {
+		var objMeta       = _getObject( arguments.objectName ).meta;
+		var barePropRegex = "^(" & objMeta.dbFieldList.replace( ",", "|", "all" ) & ")$";
+
+		if ( arguments.propertyName.reFindNoCase( barePropRegex ) ) {
+			return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( arguments.propertyName );
+		}
+
+		return arguments.propertyName;
 	}
 
 // SIMPLE PRIVATE PROXIES
