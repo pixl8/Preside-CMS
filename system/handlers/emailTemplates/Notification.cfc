@@ -27,7 +27,7 @@ component output=false {
 			message.subject = "PresideCMS: You have received a notification from the CMS";
 		}
 
-		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody } );
+		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody, subject=message.subject } );
 
 		return message;
 	}

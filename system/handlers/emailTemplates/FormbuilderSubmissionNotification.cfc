@@ -10,7 +10,7 @@ component {
 			, htmlBody = renderView( view="/formbuilder/actions/email/_bodyHtml", args=args )
 		};
 
-		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody } );
+		message.htmlBody = renderView( view="/emailTemplates/_adminHtmlLayout", args={ body=message.htmlBody, subject=( args.subject ?: "" ) } );
 
 		return message;
 	}
