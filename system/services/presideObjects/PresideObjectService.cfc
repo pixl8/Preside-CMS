@@ -188,8 +188,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			, adapter            = args.adapter
 			, columnDefinitions  = args.objMeta.properties
 		);
+		args.orderBy     = _parseOrderBy( args.orderBy, args.objectName, args.adapter );
+		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
+
 
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.result = _selectFromVersionTables(
@@ -1844,6 +1847,25 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
+	}
+
+	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
+		var items   = arguments.orderBy.listToArray();
+		var rebuilt = [];
+
+		for( var item in items ) {
+			var propertyName = Trim( ListFirst( item, " " ) );
+			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
+			var aliased      = _autoAliasBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+
+			if ( propertyName != aliased ) {
+				item = aliased & direction;
+			}
+
+			rebuilt.append( Trim( item ) );
+		}
+
+		return rebuilt.toList( ", " );
 	}
 
 	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) {
