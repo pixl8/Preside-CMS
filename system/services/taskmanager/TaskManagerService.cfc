@@ -203,15 +203,11 @@ component displayName="Task Manager Service" {
 	 * See [[taskmanager]] for more detail.
 	 *
 	 * @autodoc
-	 * @taskKey.hint          The 'key' of the task (this is the Tasks.cfc handler action name)
-	 * @args.hint             An optional struct of variables that will be passed to the task handler action
-	 * @completionListener.hint Optional instantiated object with which to process task completion. Must implement a 'taskComplete()' method that accepts the following arguments: `taskKey`, `success`, `timeTaken`, `dateCreated` and `log`.
+	 * @taskKey.hint The 'key' of the task (this is the Tasks.cfc handler action name)
+	 * @args.hint    An optional struct of variables that will be passed to the task handler action
+	 *
 	 */
-	public void function runTask(
-		  required string taskKey
-		,          struct args               = {}
-		,          any    completionListener = ""
-	) {
+	public void function runTask( required string taskKey, struct args={} ) {
 		var task        = getTask( arguments.taskKey );
 		var success     = true;
 		var newThreadId = "PresideTaskmanagerTask-" & arguments.taskKey & "-" & CreateUUId();
@@ -227,7 +223,7 @@ component displayName="Task Manager Service" {
 				markTaskAsRunning( arguments.taskKey, newThreadId );
 			}
 
-			thread name=newThreadId priority="low" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args completionListener=arguments.completionListener {
+			thread name=newThreadId priority="low" taskKey=arguments.taskKey event=task.event taskName=task.name logger=_getLogger( newLogId ) processTimeout=task.timeout args=arguments.args {
 				setting requesttimeout = attributes.processTimeout;
 
 				var start = getTickCount();
@@ -252,10 +248,9 @@ component displayName="Task Manager Service" {
 				} finally {
 					try {
 						markTaskAsCompleted(
-							  taskKey            = attributes.taskKey
-							, success            = success
-							, timeTaken          = GetTickCount() - start
-							, completionListener = attributes.completionListener
+							  taskKey   = attributes.taskKey
+							, success   = success
+							, timeTaken = GetTickCount() - start
 						);
 					} catch( any e ) {
 						setting requesttimeout=55;
@@ -339,12 +334,7 @@ component displayName="Task Manager Service" {
 		);
 	}
 
-	public numeric function markTaskAsCompleted(
-		  required string  taskKey
-		, required boolean success
-		, required numeric timeTaken
-		,          any     completionListener = ""
-	) {
+	public numeric function markTaskAsCompleted( required string taskKey, required boolean success, required numeric timeTaken ) {
 		completeTaskHistoryLog( argumentCollection=arguments );
 
 		var updatedRows = _getTaskDao().updateData(
@@ -372,30 +362,13 @@ component displayName="Task Manager Service" {
 		} );
 	}
 
-	public numeric function completeTaskHistoryLog(
-		  required string  taskKey
-		, required boolean success
-		, required numeric timeTaken
-		,          any     completionListener = ""
-	) {
+	public numeric function completeTaskHistoryLog( required string taskKey, required boolean success, required numeric timeTaken ) {
 		var historyId = getActiveHistoryIdForTask( arguments.taskKey );
 		if ( Len( Trim( historyId ) ) ) {
 			_getTaskHistoryDao().updateData(
 				  id = historyId
 				, data = { complete=true, success=arguments.success, time_taken=arguments.timeTaken }
 			);
-
-			if ( IsObject( arguments.completionListener ) ) {
-				var logRecord = _getTaskHistoryDao().selectData( id=historyId );
-
-				arguments.completionListener.taskComplete(
-					  taskKey     = arguments.taskKey
-					, success     = arguments.success
-					, timeTaken   = arguments.timeTaken
-					, dateCreated = logRecord.datecreated ?: Now()
-					, log         = logRecord.log         ?: ""
-				);
-			}
 		}
 	}
 
