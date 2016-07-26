@@ -15,8 +15,6 @@ component extends="coldbox.system.Coldbox" output="false" {
 	}
 
 	public boolean function onRequestStart( required string targetPage ) output=true {
-		reloadChecks();
-
 		if ( ReFindNoCase( 'index\.cfm$', arguments.targetPage ) ) {
 			var content = "";
 

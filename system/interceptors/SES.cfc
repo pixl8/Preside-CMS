@@ -57,6 +57,20 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		return this;
 	}
 
+// overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
+	public any function getModel( string name, string dsl, struct initArguments={} ) {
+		if ( arguments.keyExists( "name" ) ) {
+			arguments.dsl = "delayedInjector:" & arguments.name;
+		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.startsWith( "delayedInjector:" ) && !arguments.dsl.startsWith( "provider:" ) ) {
+			arguments.dsl = "delayedInjector:" & arguments.dsl;
+		}
+
+		return super.getModel(
+			  dsl           = arguments.dsl ?: NullValue()
+			, initArguments = arguments.initArguments
+		);
+	}
+
 // private utility methods
 	private void function _detectIncomingSite( event, interceptData ) output=false {
 		var pathInfo = super.getCGIElement( "path_info", event );
