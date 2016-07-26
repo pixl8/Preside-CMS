@@ -13,6 +13,16 @@ component  {
 		return renderView( view="/renderers/content/formBuilderSubmission/default", args=args );
 	}
 
+	private string function htmlEmail( event, rc, prc, args={} ){
+		args.responses = _preRenderResponses( argumentCollection=arguments );
+
+		if ( IsSimpleValue( args.responses ) ) {
+			return args.responses;
+		}
+
+		return Trim( renderView( view="/renderers/content/formBuilderSubmission/htmlEmail", args=args ) );
+	}
+
 	private string function textEmail( event, rc, prc, args={} ){
 		args.responses = _preRenderResponses( argumentCollection=arguments );
 

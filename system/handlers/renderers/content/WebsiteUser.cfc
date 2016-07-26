@@ -18,6 +18,14 @@ component output=false {
 		return args.userRecord.recordCount ? args.userRecord.label : translateResource( 'cms:anonymous.user' );
 	}
 
+	private string function email( event, rc, prc, args={} ){
+		var userId = args.data ?: "";
+
+		args.userRecord = Len( Trim( userId ) ) ? userDao.selectData( id=userId, selectFields=[ "${labelfield} as label" ] ) : QueryNew( '' );
+
+		return args.userRecord.recordCount ? args.userRecord.label : translateResource( 'cms:anonymous.user' );
+	}
+
 	private string function adminDataTable( event, rc, prc, args={} ){
 		var userId = args.data ?: "";
 
