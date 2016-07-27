@@ -3,8 +3,9 @@ component extends="coldbox.system.web.Controller" output=false {
 	public any function init() output=false {
 		super.init( argumentCollection = arguments );
 
-		services.handlerService = new preside.system.coldboxModifications.services.HandlerService( this );
-		instance.wireBox	    = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
+		services.handlerService     = new preside.system.coldboxModifications.services.HandlerService( this );
+		services.interceptorService = new preside.system.coldboxModifications.services.InterceptorService( this );
+		instance.wireBox            = CreateObject( "preside.system.coldboxModifications.ioc.Injector" );
 	}
 
 	public boolean function handlerExists( required string event ) output=false {

@@ -209,7 +209,7 @@ component {
 
 			var isManyToManyField = ( properties[ field ].relationship ?: "" ) == "many-to-many";
 			if ( isManyToManyField ) {
-				if ( StructKeyExists( oldManyToManyData, field ) && oldManyToManyData[ field ] != arguments.newData[ field ] ) {
+				if ( StructKeyExists( oldManyToManyData, field ) && Compare( oldManyToManyData[ field ], arguments.newData[ field ] ) ) {
 					changedFields.append( field );
 				}
 			} else {
@@ -219,7 +219,7 @@ component {
 						arguments.newData[ field ] = 0;
 					}
 				}
-				if ( StructKeyExists( oldData, field ) && oldData[ field ] != ( arguments.newData[ field ] ?: "" ) ) {
+				if ( StructKeyExists( oldData, field ) && Compare( oldData[ field ], arguments.newData[ field ] ?: "" ) ) {
 					changedFields.append( field );
 				}
 			}
