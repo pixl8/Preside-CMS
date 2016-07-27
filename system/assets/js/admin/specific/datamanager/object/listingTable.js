@@ -127,13 +127,11 @@
 			var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
 
 			$allCBoxes.each( function(){
-				if( $selectAllCBox.is( ':checked' ) ) {
-					this.checked = true;
-					$(this).closest( 'tr' ).addClass( 'selected' );
-				}
-				else {
-					this.checked = false;
-					$(this).closest( 'tr' ).removeClass( 'selected' );
+				this.checked = $selectAllCBox.is( ':checked' );
+				if ( this.checked ) {
+					$( this ).closest( 'tr' ).addClass( 'selected' );
+				} else {
+					$( this ).closest( 'tr' ).removeClass( 'selected' );
 				}
 			});
 		});
@@ -142,7 +140,7 @@
 		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
 			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
 
-			if(anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length) {
+			if ( anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length ) {
 				$selectAllCBox.prop( 'checked', true );
 			} else {
 				$selectAllCBox.prop( 'checked', false );
