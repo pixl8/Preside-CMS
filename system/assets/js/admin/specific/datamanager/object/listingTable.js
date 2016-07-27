@@ -127,14 +127,26 @@
 			var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
 
 			$allCBoxes.each( function(){
-				this.checked = $selectAllCBox.is( ':checked' );
-				$(this).closest('tr').toggleClass('selected');
+				if( $selectAllCBox.is( ':checked' ) ) {
+					this.checked = true;
+					$(this).closest( 'tr' ).addClass( 'selected' );
+				}
+				else {
+					this.checked = false;
+					$(this).closest( 'tr' ).removeClass( 'selected' );
+				}
 			});
 		});
 
 		$multiActionBtns.data( 'hidden', true );
 		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
 			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			if(anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length) {
+				$selectAllCBox.prop( 'checked', true );
+			} else {
+				$selectAllCBox.prop( 'checked', false );
+			}
 
 			enabledContextHotkeys( !anyBoxesTicked );
 
@@ -173,22 +185,9 @@
 	};
 
 	setupTableRowFocusBehaviour = function(){
-		var focusSelector = useMultiActions ? 'tbody :checkbox' : 'tbody tr a';
-
-		$listingTable.on( 'focus', focusSelector, function(){
-			$( this ).closest( 'tr' ).addClass( 'focus' );
-		} );
-		$listingTable.on( 'blur', focusSelector, function(){
-			$( this ).closest( 'tr' ).removeClass( 'focus' );
-		} );
-
 		$listingTable.on( 'click', 'tbody :checkbox', function(){
 			var $cbox = $( this );
 			$cbox.closest( 'tr' ).toggleClass( 'selected', $cbox.is( ':checked' ) );
-		} );
-
-		$listingTable.on( 'keydown', 'tr.focus', 'return', function(){
-			$( this ).click();
 		} );
 	};
 
