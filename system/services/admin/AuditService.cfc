@@ -1,8 +1,11 @@
 /**
- * Provides logic for interacting with form builder forms
+ * Provides logic for interacting Preside's [[auditing|Audit log system]]
+ *
+ * @singleton
  * @presideservice
+ * @autodoc
  */
-component output="false" singleton=true {
+component displayName="Audit Service" {
 
 // CONSTRUCTOR
 	/**
@@ -14,6 +17,19 @@ component output="false" singleton=true {
 	}
 
 // PUBLIC METHODS
+	/**
+	 * Inserts a log entry into the system's audit log. You are most likely
+	 * to want to use either `$audit()` or `event.audit()` to proxy to this
+	 * method (see [[auditing]] for more details).
+	 *
+	 * @autodoc
+	 * @userId.hint   ID of the admin user who performed the action
+	 * @action.hint   Key of the action performed, e.g. datamanager_edit_record
+	 * @type.hint     Type of action performed, used for grouping audit logs, e.g. datamanager
+	 * @recordId.hint ID of the entity that was acted upon. For example, the ID of a record that was edited
+	 * @detail.hint   A struct containing data that will be useful when rendering the audit log entry. For example, a list of fields that were changed in an edit process
+	 *
+	 */
 	public void function log(
 		  required string userId
 		, required string action
@@ -124,6 +140,13 @@ component output="false" singleton=true {
 		);
 	}
 
+	/**
+	 * Renders the given log (a structure of the log detail). See [[auditing]] for
+	 * more details on providing custom renderers for log entries.
+	 *
+	 * @autodoc
+	 * @log.hint A struct representing the log. Contains all keys found in the [[presideobject-audit_log]] object with the detail key deserialized to a meaninful datatype
+	 */
 	public any function renderLogMessage(  required struct log ) {
 		return $renderContent(
 			  renderer = "auditLogEntry"
