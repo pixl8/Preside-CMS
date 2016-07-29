@@ -33,6 +33,17 @@
 	var Datepicker = function(element, options) {
 		var that = this;
 
+		dates = $.fn.datepicker.dates = {
+			en: {
+				days: [ i18n.translateResource( "cms:days.sun" ), i18n.translateResource( "cms:days.mon" ), i18n.translateResource( "cms:days.tue" ), i18n.translateResource( "cms:days.wed" ), i18n.translateResource( "cms:days.thu" ), i18n.translateResource( "cms:days.fri" ), i18n.translateResource( "cms:days.sat" ), i18n.translateResource( "cms:days.sun" ) ],
+				daysShort: [ i18n.translateResource( "cms:daysShort.sun" ), i18n.translateResource( "cms:daysShort.mon" ), i18n.translateResource( "cms:daysShort.tue" ), i18n.translateResource( "cms:daysShort.wed" ), i18n.translateResource( "cms:daysShort.thu" ), i18n.translateResource( "cms:daysShort.fri" ), i18n.translateResource( "cms:daysShort.sat" ), i18n.translateResource( "cms:daysShort.sun" ) ],
+				daysMin: [ i18n.translateResource( "cms:daysMin.sun" ), i18n.translateResource( "cms:daysMin.mon" ), i18n.translateResource( "cms:daysMin.tue" ), i18n.translateResource( "cms:daysMin.wed" ), i18n.translateResource( "cms:daysMin.thu" ), i18n.translateResource( "cms:daysMin.fri" ), i18n.translateResource( "cms:daysMin.sat" ), i18n.translateResource( "cms:daysMin.sun" ) ],
+				months: [ i18n.translateResource( "cms:months.jan" ), i18n.translateResource( "cms:months.feb" ), i18n.translateResource( "cms:months.mar" ), i18n.translateResource( "cms:months.apr" ), i18n.translateResource( "cms:months.may" ), i18n.translateResource( "cms:months.jun" ), i18n.translateResource( "cms:months.jul" ), i18n.translateResource( "cms:months.aug" ), i18n.translateResource( "cms:months.sep" ), i18n.translateResource( "cms:months.oct" ), i18n.translateResource( "cms:months.nov" ), i18n.translateResource( "cms:months.dec" ) ],
+				monthsShort: [ i18n.translateResource( "cms:monthsShort.jan" ), i18n.translateResource( "cms:monthsShort.feb" ), i18n.translateResource( "cms:monthsShort.mar" ), i18n.translateResource( "cms:monthsShort.apr" ), i18n.translateResource( "cms:monthsShort.may" ), i18n.translateResource( "cms:monthsShort.jun" ), i18n.translateResource( "cms:monthsShort.jul" ), i18n.translateResource( "cms:monthsShort.aug" ), i18n.translateResource( "cms:monthsShort.sep" ), i18n.translateResource( "cms:monthsShort.oct" ), i18n.translateResource( "cms:monthsShort.nov" ), i18n.translateResource( "cms:monthsShort.dec" ) ],
+				today: i18n.translateResource( "cms:datepicker.today" )
+			}
+		};
+
 		this.element = $(element);
 		this.language = options.language||this.element.data('date-language')||"en";
 		this.language = this.language in dates ? this.language : this.language.split('-')[0]; //Check if "de-DE" style date is available, if not language should fallback to 2 letter code eg "de"
@@ -818,17 +829,6 @@
 	$.fn.datepicker.defaults = {
 	};
 	$.fn.datepicker.Constructor = Datepicker;
-	var dates = $.fn.datepicker.dates = {
-		en: {
-			days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-			daysShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-			daysMin: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-			months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-			monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-			today: "Today"
-		}
-	};
-
 	var DPGlobal = {
 		modes: [
 			{

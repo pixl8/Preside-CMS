@@ -4,7 +4,8 @@ component output=false {
 		var data = args.data ?: "";
 
 		if ( IsDate( data ) ) {
-			return dateFormat( parseDateTime( data ), "dd mmm yyyy" );
+			data = parseDateTime( data );
+			return LSDateFormat( data );
 		}
 
 		return data;

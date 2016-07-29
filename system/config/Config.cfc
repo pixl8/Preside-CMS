@@ -172,6 +172,13 @@ component {
 			, "formbuilder"
 		];
 
+
+		settings.languageRef = {
+			  en =  'english (united kingdom)'
+			, de = 'german'
+			, fr = 'french'
+		};
+
 		settings.adminConfigurationMenuItems = [
 			  "usermanager"
 			, "passwordPolicyManager"

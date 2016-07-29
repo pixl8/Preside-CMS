@@ -43,7 +43,7 @@
         },
 
         format: 'YYYY-MM-DD HH:mm',
-
+        locale: $('.datetimepicker').attr('data-date-language'),
         sideBySide:true
 	});
 
@@ -60,7 +60,7 @@
         },
 
         format: 'HH:mm',
-
+        locale: $('.timepicker').attr('data-date-language'),
         sideBySide:true
 	});
 
