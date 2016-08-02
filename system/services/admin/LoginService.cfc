@@ -16,6 +16,7 @@ component displayName="Admin login service" {
 	 * @systemUserList.inject      coldbox:setting:system_users
 	 * @userDao.inject             presidecms:object:security_user
 	 * @emailService.inject        emailService
+	 * @cookieService.inject       cookieService
 	 * @googleAuthenticator.inject googleAuthenticator
 	 * @qrCodeGenerator.inject     qrCodeGenerator
 	 */
@@ -25,6 +26,7 @@ component displayName="Admin login service" {
 		, required string systemUserList
 		, required any    userDao
 		, required any    emailService
+		, required any    cookieService
 		, required any    googleAuthenticator
 		, required any    qrCodeGenerator
 		,          string sessionKey      = "admin_user"
@@ -38,7 +40,9 @@ component displayName="Admin login service" {
 		_setTwoFaSessionKey( arguments.twoFaSessionKey );
 		_setGoogleAuthenticator( arguments.googleAuthenticator );
 		_setEmailService( arguments.emailService );
-		_setQrCodeGenerator( arguments.qrCodeGenerator )
+		_setCookieService( arguments.cookieService );
+		_setQrCodeGenerator( arguments.qrCodeGenerator );
+		_setRememberMeCookieKey( "_presidecms-admin-persist" );
 
 		return this;
 	}
@@ -54,13 +58,17 @@ component displayName="Admin login service" {
 	 * @password.hint User provided password
 	 *
 	 */
-	public boolean function login( required string loginId, required string password ) {
+	public boolean function login( required string loginId, required string password, boolean rememberLogin=false, numeric rememberExpiryInDays=90 ) {
 		var usr = _getUserByLoginId( arguments.loginId );
 		var success = usr.recordCount and _getBCryptService().checkPw( arguments.password, usr.password );
 
 		if ( success ) {
 			_persistUserSession( usr );
 			recordLogin();
+
+			if ( arguments.rememberLogin ) {
+				_setRememberMeCookie( userId=usr.id, loginId=usr.login_id, expiry=arguments.rememberExpiryInDays );
+			}
 		} else if ( usr.recordCount ) {
 			$audit(
 				  userId   = usr.id
@@ -102,6 +110,7 @@ component displayName="Admin login service" {
 		if ( isLoggedIn() ) {
 			recordLogout();
 			_destroyUserSession();
+			_deleteRememberMeCookie();
 		}
 	}
 
@@ -113,7 +122,7 @@ component displayName="Admin login service" {
 	 * @autodoc
 	 */
 	public boolean function isLoggedIn() {
-		return _getSessionStorage().exists( name=_getSessionKey() );
+		return _getSessionStorage().exists( name=_getSessionKey() ) || _autoLogin();
 	}
 
 	/**
@@ -433,9 +442,9 @@ component displayName="Admin login service" {
 			return false;
 		}
 
-		var configuration = $getPresideCategorySettings( "two-factor-auth" );
-		var adminEnabled  = IsBoolean( configuration.admin_enabled  ?: "" ) && configuration.admin_enabled;
-		var adminEnforced = IsBoolean( configuration.admin_enforced ?: "" ) && configuration.admin_enforced;
+		var configuration = $getPresideCategorySettings( "admin-login-security" );
+		var adminEnabled  = IsBoolean( configuration.tfa_enabled  ?: "" ) && configuration.tfa_enabled;
+		var adminEnforced = IsBoolean( configuration.tfa_enforced ?: "" ) && configuration.tfa_enforced;
 
 		return adminEnabled && ( adminEnforced || isTwoFactorAuthenticationEnabledForUser() );
 	}
@@ -456,7 +465,7 @@ component displayName="Admin login service" {
 			return true;
 		}
 
-		var tfaTrustPeriod = Val( $getPresideSetting( "two-factor-auth", "admin_trust_period", 7 ) );
+		var tfaTrustPeriod = Val( $getPresideSetting( "admin-login-security", "tfa_trust_period", 7 ) );
 		if ( !tfaTrustPeriod ) {
 			return false;
 		}
@@ -519,7 +528,7 @@ component displayName="Admin login service" {
 	 *
 	 */
 	public boolean function isTwoFactorAuthenticationEnabled() {
-		var adminEnabled = $getPresideSetting( "two-factor-auth", "admin_enabled" );
+		var adminEnabled = $getPresideSetting( "admin-login-security", "tfa_enabled" );
 
 		return $isFeatureEnabled( "twoFactorAuthentication" ) && IsBoolean( adminEnabled ) && adminEnabled;
 	}
@@ -571,7 +580,7 @@ component displayName="Admin login service" {
 	 */
 	public string function getTwoFactorAuthenticationQrCodeImage( required string key, numeric size=125 ) {
 		var userDetails     = getLoggedInUserDetails()
-		var applicationName = $getPresideSetting( "two-factor-auth", "admin_app_name" );
+		var applicationName = $getPresideSetting( "admin-login-security", "tfa_app_name" );
 
 		if ( !Len( Trim( applicationName ) ) ) {
 			applicationName = "PresideCMS";
@@ -707,6 +716,115 @@ component displayName="Admin login service" {
 		);
 	}
 
+	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
+		var cookieValue = {
+			  loginId = arguments.loginId
+			, expiry  = arguments.expiry
+			, series  = _createNewLoginTokenSeries()
+			, token   = _createNewLoginToken()
+		};
+
+		$getPresideObject( "security_user_login_token" ).insertData( data={
+			  user   = arguments.userId
+			, series = cookieValue.series
+			, token  = _getBCryptService().hashPw( cookieValue.token )
+		} );
+
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = cookieValue
+			, expires  = arguments.expiry
+			, httpOnly = true
+		);
+	}
+
+	private void function _deleteRememberMeCookie() {
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+
+			if ( Len( cookieValue.series ?: "" ) ) {
+				$getPresideObject( "security_user_login_token" ).deleteData( filter={ series = cookieValue.series } );
+			}
+
+			_getCookieService().deleteVar( _getRememberMeCookieKey() );
+		}
+	}
+
+	private struct function _readRememberMeCookie() {
+		var cookieValue = _getCookieService().getVar( _getRememberMeCookieKey(), {} );
+
+		if ( IsStruct( cookieValue ) ) {
+			var keys = cookieValue.keyArray()
+			keys.sort( "textNoCase" );
+
+			if ( keys.toList() == "expiry,loginId,series,token" ) {
+				return cookieValue;
+			}
+		}
+
+		return {};
+	}
+
+	private boolean function _autoLogin() {
+		if ( StructKeyExists( request, "_presideAdminAutoLoginResult" ) ) {
+			return request._presideAdminAutoLoginResult;
+		}
+
+		request._presideAdminAutoLoginResult = false;
+
+		if ( _getCookieService().exists( _getRememberMeCookieKey() ) ) {
+			var cookieValue = _readRememberMeCookie();
+			var user        = _getUserRecordFromCookie( cookieValue );
+
+			if ( user.recordcount ) {
+				_persistUserSession( user );
+
+				request._presideAdminAutoLoginResult = true;
+				return true;
+			}
+
+			_deleteRememberMeCookie();
+		}
+
+		return false;
+	}
+
+	private query function _getUserRecordFromCookie( required struct cookieValue ) {
+		if ( StructCount( arguments.cookieValue ) ) {
+			var tokenRecord = $getPresideObject( "security_user_login_token" ).selectData(
+				  selectFields = [ "security_user_login_token.id", "security_user_login_token.token", "user.login_id" ]
+				, filter       = { series = arguments.cookieValue.series }
+			);
+
+			if ( tokenRecord.recordCount && tokenRecord.login_id == arguments.cookieValue.loginId ) {
+				if ( _getBCryptService().checkPw( arguments.cookieValue.token, tokenRecord.token ) ) {
+					_recycleLoginToken( tokenRecord.id, arguments.cookieValue );
+					return _getUserByLoginId( tokenRecord.login_id );
+				}
+
+				$getPresideObject( "security_user_login_token" ).deleteData( id=tokenRecord.id );
+			}
+		}
+
+		return QueryNew('');
+	}
+
+	private void function _recycleLoginToken( required string tokenId, required struct cookieValue ) {
+		arguments.cookieValue.token = _createNewLoginToken();
+
+		$getPresideObject( "security_user_login_token" ).updateData(
+			  id   = arguments.tokenId
+			, data = { token = _getBCryptService().hashPw( arguments.cookieValue.token ) }
+		);
+
+		_getCookieService().setVar(
+			  name     = _getRememberMeCookieKey()
+			, value    = arguments.cookieValue
+			, expires  = arguments.cookieValue.expiry
+			, httpOnly = true
+		);
+	}
+
 	private string function _createNewLoginTokenSeries() {
 		return _createRandomToken();
 	}
@@ -829,6 +947,13 @@ component displayName="Admin login service" {
 		_emailService = arguments.emailService;
 	}
 
+	private any function _getCookieService() {
+		return _cookieService;
+	}
+	private void function _setCookieService( required any cookieService ) {
+		_cookieService = arguments.cookieService;
+	}
+
 	private any function _getGoogleAuthenticator() {
 		return _googleAuthenticator;
 	}
@@ -841,6 +966,13 @@ component displayName="Admin login service" {
 	}
 	private void function _setQrCodeGenerator( required any qrCodeGenerator ) {
 		_qrCodeGenerator = arguments.qrCodeGenerator;
+	}
+
+	private string function _getRememberMeCookieKey() {
+		return _rememberMeCookieKey;
+	}
+	private void function _setRememberMeCookieKey( required string rememberMeCookieKey ) {
+		_rememberMeCookieKey = arguments.rememberMeCookieKey;
 	}
 
 }
