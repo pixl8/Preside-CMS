@@ -21,6 +21,8 @@ component output=false singleton=true displayname="Site service" autodoc=true {
 		_setPermissionService( arguments.permissionService );
 		_setColdbox( arguments.coldbox );
 
+		ensureDefaultSiteExists();
+
 		return this;
 	}
 
