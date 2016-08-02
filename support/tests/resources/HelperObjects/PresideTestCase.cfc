@@ -119,8 +119,11 @@
 					, reloadDb               = false
 				);
 
+				request[ key ] = getMockbox().createMock( object=request[ key ] );
+
 				versioningService.$( "$getPresideObjectService", request[ key ] );
 				versioningService.$( "$getAdminLoggedInUserId", "" );
+				request[ key ].$( "$isAdminUserLoggedIn", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];

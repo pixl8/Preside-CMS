@@ -2,9 +2,12 @@
  * The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
  * \n
  * For a full developer guide on using Preside Objects and this service, see [[presidedataobjects]].
+ *
+ * @presideservice
+ * @singleton
+ * @autodoc
  */
-
-component singleton=true autodoc=true displayName="Preside Object Service" {
+component displayName="Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
@@ -160,7 +163,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          boolean fromVersionTable   = false
 		,          string  maxVersion         = "HEAD"
 		,          numeric specificVersion    = 0
-		,          boolean allowDraftVersions = false
+		,          boolean allowDraftVersions = $isAdminUserLoggedIn()
 		,          string  forceJoins         = ""
 
 	) autodoc=true {
