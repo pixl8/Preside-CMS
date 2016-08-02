@@ -31,14 +31,16 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function login( event, rc, prc ) {
-		var user         = "";
-		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
-		var unsavedData  = sessionStorage.getVar( "_unsavedFormData", {} );
-		var loggedIn     = loginService.logIn(
-			  loginId              = event.getValue( name="loginId" , defaultValue="" )
-			, password             = event.getValue( name="password", defaultValue="" )
-			, rememberLogin        = true
-			, rememberExpiryInDays = 30
+		var user                   = "";
+		var postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData            = sessionStorage.getVar( "_unsavedFormData", {} );
+		var isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
+		var rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
+		var loggedIn               = loginService.logIn(
+			  loginId              = rc.loginId  ?: ""
+			, password             = rc.password ?: ""
+			, rememberLogin        = isRememberMeEnabled && IsTrue( rc.rememberMe ?: "" )
+			, rememberExpiryInDays = rememberMeExpiryInDays
 		);
 
 		if ( loggedIn ) {

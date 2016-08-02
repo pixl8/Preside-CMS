@@ -62,7 +62,7 @@
 								<div class="checkbox clearfix">
 									<label class="block">
 										<span class="block">
-											<input type="checkbox" name="rememberme" />
+											<input type="checkbox" name="rememberme" value="true" />
 											#rememberMeLabel#
 										</span>
 									</label>
