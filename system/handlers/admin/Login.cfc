@@ -25,6 +25,9 @@ component extends="preside.system.base.AdminHandler" {
 		if ( loginService.isUserDatabaseNotConfigured() ) {
 			event.setView( "/admin/login/firstTimeUserSetup" );
 		}
+
+		prc.isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
+		prc.rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
 	}
 
 	public void function login( event, rc, prc ) {
