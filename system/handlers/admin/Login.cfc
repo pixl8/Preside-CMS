@@ -32,8 +32,10 @@ component extends="preside.system.base.AdminHandler" {
 		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
 		var unsavedData  = sessionStorage.getVar( "_unsavedFormData", {} );
 		var loggedIn     = loginService.logIn(
-			  loginId  = event.getValue( name="loginId" , defaultValue="" )
-			, password = event.getValue( name="password", defaultValue="" )
+			  loginId              = event.getValue( name="loginId" , defaultValue="" )
+			, password             = event.getValue( name="password", defaultValue="" )
+			, rememberLogin        = true
+			, rememberExpiryInDays = 30
 		);
 
 		if ( loggedIn ) {

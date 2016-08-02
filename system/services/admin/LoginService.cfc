@@ -388,9 +388,9 @@ component displayName="Admin login service" {
 			return false;
 		}
 
-		var configuration = $getPresideCategorySettings( "two-factor-auth" );
-		var adminEnabled  = IsBoolean( configuration.admin_enabled  ?: "" ) && configuration.admin_enabled;
-		var adminEnforced = IsBoolean( configuration.admin_enforced ?: "" ) && configuration.admin_enforced;
+		var configuration = $getPresideCategorySettings( "admin-login-security" );
+		var adminEnabled  = IsBoolean( configuration.tfa_enabled  ?: "" ) && configuration.tfa_enabled;
+		var adminEnforced = IsBoolean( configuration.tfa_enforced ?: "" ) && configuration.tfa_enforced;
 
 		return adminEnabled && ( adminEnforced || isTwoFactorAuthenticationEnabledForUser() );
 	}
@@ -411,7 +411,7 @@ component displayName="Admin login service" {
 			return true;
 		}
 
-		var tfaTrustPeriod = Val( $getPresideSetting( "two-factor-auth", "admin_trust_period", 7 ) );
+		var tfaTrustPeriod = Val( $getPresideSetting( "admin-login-security", "tfa_trust_period", 7 ) );
 		if ( !tfaTrustPeriod ) {
 			return false;
 		}
@@ -474,7 +474,7 @@ component displayName="Admin login service" {
 	 *
 	 */
 	public boolean function isTwoFactorAuthenticationEnabled() {
-		var adminEnabled = $getPresideSetting( "two-factor-auth", "admin_enabled" );
+		var adminEnabled = $getPresideSetting( "admin-login-security", "tfa_enabled" );
 
 		return $isFeatureEnabled( "twoFactorAuthentication" ) && IsBoolean( adminEnabled ) && adminEnabled;
 	}
@@ -526,7 +526,7 @@ component displayName="Admin login service" {
 	 */
 	public string function getTwoFactorAuthenticationQrCodeImage( required string key, numeric size=125 ) {
 		var userDetails     = getLoggedInUserDetails()
-		var applicationName = $getPresideSetting( "two-factor-auth", "admin_app_name" );
+		var applicationName = $getPresideSetting( "admin-login-security", "tfa_app_name" );
 
 		if ( !Len( Trim( applicationName ) ) ) {
 			applicationName = "PresideCMS";
