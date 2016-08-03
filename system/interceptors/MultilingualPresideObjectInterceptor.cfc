@@ -8,9 +8,11 @@ component extends="coldbox.system.Interceptor" output=false {
 	public void function configure() output=false {}
 
 	public void function postReadPresideObjects( event, interceptData ) {
-		multilingualPresideObjectService.addTranslationObjectsForMultilingualEnabledObjects(
-			objects = ( interceptData.objects ?: {} )
-		);
+		if ( featureService.isFeatureEnabled( "multilingual" ) ) {
+			multilingualPresideObjectService.addTranslationObjectsForMultilingualEnabledObjects(
+				objects = ( interceptData.objects ?: {} )
+			);
+		}
 	}
 
 	public void function postParseSelectFields( event, interceptData ) {
