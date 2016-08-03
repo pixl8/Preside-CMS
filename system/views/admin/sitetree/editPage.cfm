@@ -126,7 +126,7 @@
 				</cfloop>
 
 				<li>
-					<a data-global-key="p" href="#event.buildAdminLink( linkTo='sitetree.previewPage', queryString='id=#pageId#&version=#version#' )#">
+					<a data-global-key="p" href="#event.buildAdminLink( linkTo='sitetree.previewPage', queryString='id=#pageId#' )#">
 						<i class="fa fa-fw fa-external-link"></i>&nbsp;
 						#translateResource( "cms:sitetree.preview.page.btn" )#
 					</a>
