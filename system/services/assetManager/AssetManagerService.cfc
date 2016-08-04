@@ -76,7 +76,7 @@ component displayName="AssetManager Service" {
 			}
 		}
 
-		return _getFolderDao().insertData( arguments );
+		return _getFolderDao().insertData( data=arguments, insertManyToManyRecords=true );
 	}
 
 	public boolean function editFolder( required string id, required struct data ) {
@@ -85,8 +85,9 @@ component displayName="AssetManager Service" {
 		}
 
 		return _getFolderDao().updateData(
-			  id   = arguments.id
-			, data = arguments.data
+			  id                      = arguments.id
+			, data                    = arguments.data
+			, updateManyToManyRecords = true
 		);
 	}
 
@@ -672,7 +673,7 @@ component displayName="AssetManager Service" {
 			asset.asset_folder = getRootFolderId();
 		}
 
-		var newId = _getAssetDao().insertData( data=asset );
+		var newId = _getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
 
 		if ( _autoExtractDocumentMeta() ) {
 			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
@@ -753,7 +754,7 @@ component displayName="AssetManager Service" {
 	}
 
 	public boolean function editAsset( required string id, required struct data ) {
-		return _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		return _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 	}
 
 	public boolean function moveAssets( required array assetIds, required string folderId ) {
