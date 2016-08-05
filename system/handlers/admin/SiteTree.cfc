@@ -1089,9 +1089,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function previewPage( event, rc, prc ) {
-		var version = rc.version ?: "";
-
-		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ), queryString="version=" & version ) );
+		setNextEvent( url=event.buildLink( page=( rc.id ?: "" ) ) );
 	}
 
 <!--- private viewlets --->

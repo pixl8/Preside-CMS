@@ -21,15 +21,22 @@ component extends="preside.system.base.AdminHandler" {
 		if ( loginService.isUserDatabaseNotConfigured() ) {
 			event.setView( "/admin/login/firstTimeUserSetup" );
 		}
+
+		prc.isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
+		prc.rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
 	}
 
 	public void function login( event, rc, prc ) {
-		var user         = "";
-		var postLoginUrl = event.getValue( name="postLoginUrl", defaultValue="" );
-		var unsavedData  = sessionStorage.getVar( "_unsavedFormData", {} );
-		var loggedIn     = loginService.logIn(
-			  loginId  = event.getValue( name="loginId" , defaultValue="" )
-			, password = event.getValue( name="password", defaultValue="" )
+		var user                   = "";
+		var postLoginUrl           = event.getValue( name="postLoginUrl", defaultValue="" );
+		var unsavedData            = sessionStorage.getVar( "_unsavedFormData", {} );
+		var isRememberMeEnabled    = IsTrue( getSystemSetting( "admin-login-security", "rememberme_enabled" ) );
+		var rememberMeExpiryInDays = Val( getSystemSetting( "admin-login-security", "rememberme_expiry_in_days", 30 ) );
+		var loggedIn               = loginService.logIn(
+			  loginId              = rc.loginId  ?: ""
+			, password             = rc.password ?: ""
+			, rememberLogin        = isRememberMeEnabled && IsTrue( rc.rememberMe ?: "" )
+			, rememberExpiryInDays = rememberMeExpiryInDays
 		);
 
 		if ( loggedIn ) {
