@@ -386,7 +386,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 		for( p in page ){ page = p; break; } // quick query row to struct hack
 
-		StructAppend( page, sitetreeSvc.getExtendedPageProperties( page.id, page.page_type ) );
+		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
 		page.ancestors = [];
 
