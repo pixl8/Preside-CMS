@@ -265,7 +265,7 @@
 
 				saveContent( function( data ) {
 					if ( data.success && typeof data.rendered != "undefined" ) {
-						originalValue = content;
+						originalValue = $contentInput.val();
 						setContent( data.rendered );
 
 						clearNotifications();
@@ -341,7 +341,7 @@
 			};
 
 			saveContent = function( success, fail, always ){
-				var formData, content;
+				var formData;
 
 				success = success || commonSuccessHandler;
 				fail    = fail    || commonFailHandler;
@@ -351,7 +351,6 @@
 					$contentInput.val( editor.getData() );
 					$editor.data( "_rawContent", $contentInput.val() );
 				}
-				content = $contentInput.val();
 
 				formData = $form.serializeArray();
 
@@ -494,7 +493,7 @@
 
 			commonSuccessHandler = function( data ) {
 				if ( data.success && typeof data.rendered != "undefined" ) {
-					originalValue = content;
+					originalValue = $contentInput.val();
 					setContent( data.rendered );
 					toggleEditMode( false );
 
