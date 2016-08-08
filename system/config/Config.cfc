@@ -188,6 +188,7 @@ component {
 			, "passwordPolicyManager"
 			, "systemConfiguration"
 			, "updateManager"
+			, "rulesEngine"
 			, "urlRedirects"
 			, "errorLogs"
 			, "auditTrail"
