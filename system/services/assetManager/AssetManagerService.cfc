@@ -54,7 +54,7 @@ component displayName="AssetManager Service" {
 		}
 
 		var auditDetail = Duplicate( arguments );
-		auditDetail.id = _getFolderDao().insertData( arguments );
+		auditDetail.id = _getFolderDao().insertData( data=arguments, insertManyToManyRecords=true );
 
 		$audit(
 			  action   = "add_folder"
@@ -73,8 +73,9 @@ component displayName="AssetManager Service" {
 
 		var folder = getFolder( arguments.id );
 		var result = _getFolderDao().updateData(
-			  id   = arguments.id
-			, data = arguments.data
+			  id                      = arguments.id
+			, data                    = arguments.data
+			, updateManyToManyRecords = true
 		);
 
 		if ( data.keyExists( "access_restriction" ) && folder.access_restriction != arguments.data.access_restriction ) {
@@ -606,7 +607,7 @@ component displayName="AssetManager Service" {
 			asset.asset_folder = getRootFolderId();
 		}
 
-		var newId = _getAssetDao().insertData( data=asset );
+		var newId = _getAssetDao().insertData( data=asset, insertManyToManyRecords=true );
 
 		if ( _autoExtractDocumentMeta() ) {
 			_saveAssetMetaData( assetId=newId, metaData=_getDocumentMetadataService().getMetaData( arguments.fileBinary ) );
@@ -709,7 +710,7 @@ component displayName="AssetManager Service" {
 
 	public boolean function editAsset( required string id, required struct data ) {
 		var asset  = getAsset( id=arguments.id );
-		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data );
+		var result      = _getAssetDao().updateData( id=arguments.id, data=arguments.data, updateManyToManyRecords=true );
 		var auditDetail = Duplicate( arguments.data );
 
 		if ( data.keyExists( "access_restriction" ) && asset.access_restriction != arguments.data.access_restriction ) {
