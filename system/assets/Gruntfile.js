@@ -88,8 +88,8 @@ module.exports = function( grunt ) {
 					  src  : ["js/admin/lib/ace/ace.js", "js/admin/lib/ace/ace-elements.js"]
 					, dest : "js/admin/lib/ace-1.0.0.min.js"
 				},{
-					  src  : "js/admin/lib/bootstrap-3.0.0.001.js"
-					, dest : "js/admin/lib/bootstrap-3.0.0.001.min.js"
+					  src  : "js/admin/lib/bootstrap-3.0.0.002.js"
+					, dest : "js/admin/lib/bootstrap-3.0.0.002.min.js"
 				},{
 					  src  : "js/admin/lib/jquery-1.10.2.js"
 					, dest : "js/admin/lib/jquery-1.10.2.min.js"

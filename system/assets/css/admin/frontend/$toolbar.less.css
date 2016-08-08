@@ -29,6 +29,7 @@ html {
 }
 .preside-admin-toolbar .nav li {
   margin-left: 0px !important;
+  margin-bottom: 0px !important;
 }
 body {
   padding-bottom: 100px !important;

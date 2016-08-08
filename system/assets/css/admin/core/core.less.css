@@ -30979,6 +30979,10 @@ td.presidecms .visible-print {
   margin-left: 0px;
   margin-right: 0px;
 }
+.presidecms .btn {
+  min-width: auto;
+  width: auto;
+}
 .presidecms .role-picker-checkbox,
 .presidecms .role-picker-radio {
   padding-bottom: 4px;
