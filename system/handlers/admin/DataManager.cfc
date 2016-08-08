@@ -710,8 +710,8 @@
 
 			prc.draftsEnabled = dataManagerService.areDraftsEnabledForObject( object );
 			if ( prc.draftsEnabled ) {
-				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=objectName, throwOnError=false );
-				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=objectName, throwOnError=false );
+				prc.canPublish   = _checkPermission( argumentCollection=arguments, key="publish"  , object=object, throwOnError=false );
+				prc.canSaveDraft = _checkPermission( argumentCollection=arguments, key="savedraft", object=object, throwOnError=false );
 
 				if ( !prc.canPublish && !prc.canSaveDraft ) {
 					event.adminAccessDenied();
