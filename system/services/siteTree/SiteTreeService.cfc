@@ -189,7 +189,12 @@ component {
 		);
 	}
 
-	public struct function getExtendedPageProperties( required string id, required string pageType ) {
+	public struct function getExtendedPageProperties(
+		  required string  id
+		, required string  pageType
+		,          boolean getLatest   = false
+		,          boolean allowDrafts = _getLoginService().isLoggedIn()
+	) {
 		var ptSvc = _getPageTypesService();
 
 		if ( !ptSvc.pageTypeExists( arguments.pageType ) ) {
@@ -198,7 +203,13 @@ component {
 
 		var pt = ptSvc.getPageType( arguments.pageType );
 		var pobj   = _getPresideObject( pt.getPresideObject() );
-		var record = pobj.selectData( filter={ page = arguments.id } );
+		var args  = { filter={ page=arguments.id }, allowDraftVersions=arguments.allowDrafts };
+		if ( arguments.getLatest ) {
+			args.fromVersionTable = true
+			args.maxVersion       = "HEAD";
+		}
+
+		var record = pobj.selectData( argumentCollection=args );
 
 		if ( !record.recordCount ) {
 			return {};
@@ -1063,7 +1074,12 @@ component {
 		if ( page.recordCount ) {
 			for( var p in page ) { page = p; }
 
-			page.append( getExtendedPageProperties( page.id, page.page_type ) );
+			page.append( getExtendedPageProperties(
+				  id          = page.id
+				, pageType    = page.page_type
+				, getLatest   = true
+				, allowDrafts = true
+			) );
 
 			var changedFields = getDraftChangedFields( page.id, page.page_type );
 			var dataToSubmit = {};
