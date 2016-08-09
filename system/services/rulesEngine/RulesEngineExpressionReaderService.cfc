@@ -84,6 +84,11 @@ component {
 				definition.type    = "boolean";
 				definition.variety = _booleanVarietyMappings[ argName ];
 			break;
+
+			case "_all" :
+			case "_any" :
+				definition.type = "scope";
+			break;
 		}
 
 		return definition;

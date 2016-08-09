@@ -145,6 +145,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( definition ).toBe( { type="boolean", variety="willWillNot" } );
 			} );
 
+			it( "should return 'scope' type when argument name = '_all'", function(){
+				var service    = _getService();
+				var argument   = { name="_all" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { type="scope" } );
+			} );
+			it( "should return 'scope' type when argument name = '_any'", function(){
+				var service    = _getService();
+				var argument   = { name="_any" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { type="scope" } );
+			} );
+
 		} );
 	}
 
