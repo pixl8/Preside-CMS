@@ -81,13 +81,13 @@ component {
 			case "_has" :
 			case "_was" :
 			case "_will" :
-				definition.type    = "boolean";
-				definition.variety = _booleanVarietyMappings[ argName ];
+				definition.expressionType = "boolean";
+				definition.variety        = _booleanVarietyMappings[ argName ];
 			break;
 
 			case "_all" :
 			case "_any" :
-				definition.type = "scope";
+				definition.expressionType = "scope";
 			break;
 		}
 
