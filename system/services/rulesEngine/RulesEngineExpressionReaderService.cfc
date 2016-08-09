@@ -6,7 +6,7 @@
  * @singleton
  *
  */
-component {
+component displayName="RulesEngine Expression Reader Service" {
 
 	variables._booleanVarietyMappings = {
 		  _is   = "isIsNot"
@@ -14,6 +14,31 @@ component {
 		, _was  = "wasWasNot"
 		, _will = "willWillNot"
 	};
+
+// CONSTRUCTOR
+	public any function init() {
+		return this;
+	}
+
+
+// PUBLIC API
+	/**
+	 * Reads all the expressions from an array of directories potentially containing handler CFC files
+	 * and returns a structure who's keys are the IDs of expressions and who's values are the
+	 * detailed configuration of the expression as defined in the handler CFC actions
+	 *
+	 * @autodoc
+	 * @directories array of mapped path to the directory, e.g. [ "/preside/system/handlers/rules/expressions", "/app/handlers/rules/expressions" ]
+	 */
+	public struct function getExpressionsFromDirectories( required array directories ) {
+		var expressions = {};
+
+		for( var dir in arguments.directories ) {
+			expressions.append( getExpressionsFromDirectory( dir ) );
+		}
+
+		return expressions;
+	}
 
 	/**
 	 * Reads all the expressions from a directory of handler CFC files

@@ -239,6 +239,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getExpressionsFromDirectory( rootDir ) ).toBe( expected );
 			} );
 		} );
+
+		describe( "getExpressionsFromDirectories()", function(){
+			it( "should merge the results of getting expressions from each of the passed directories", function(){
+				var service     = _getService();
+				var expected    = {};
+				var rawDirs     = [];
+				var directories = [
+					  { dir="/some/dir"                   , expressions={ test1=CreateUUId(), another1={ test=CreateUUId() } } }
+					, { dir="/another/awesome/dir"        , expressions={ test2=CreateUUId(), another2={ test=CreateUUId() } } }
+					, { dir="/yes/this/is/adir"           , expressions={ test3=CreateUUId(), another3={ test=CreateUUId() } } }
+					, { dir="/something/without/dir/in/it", expressions={ test4=CreateUUId(), another4={ test=CreateUUId() } } }
+					, { dir="/oops"                       , expressions={ test5=CreateUUId(), another5={ test=CreateUUId() } } }
+				];
+
+				for( var dir in directories ) {
+					expected.append( dir.expressions );
+					rawDirs.append( dir.dir );
+
+					service.$( "getExpressionsFromDirectory" ).$args( dir.dir ).$results( dir.expressions );
+				}
+
+				expect( service.getExpressionsFromDirectories( rawDirs ) ).toBe( expected );
+			} );
+		} );
 	}
 
 
