@@ -55,6 +55,63 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getExpressionFieldsFromFunctionDefinition()", function(){
+			it( "should return struct containing keys that are the names of non-core-expected arguments to the function", function(){
+				var service = _getService();
+				var dummyFunction = {
+					parameters = [
+						  { name="test" }
+						, { name="event" }
+						, { name="rc" }
+						, { name="prc" }
+						, { name="stuff" }
+						, { name="args" }
+						, { name="payload" }
+						, { name="context" }
+						, { name="_is" }
+						, { name="_any" }
+					]
+				};
+
+				service.$( "getFieldDefinition", {} );
+
+				var fields = service.getExpressionFieldsFromFunctionDefinition( dummyFunction );
+				expect( fields.keyArray().sort( "textnocase" ) ).toBe( [ "_any", "_is", "stuff", "test" ] );
+			} );
+
+			it( "should return configuration for each found field using the getFieldDefinition() method", function(){
+				var service = _getService();
+				var dummyFunction = {
+					parameters = [
+						  { name="test" }
+						, { name="event" }
+						, { name="rc" }
+						, { name="prc" }
+						, { name="stuff" }
+						, { name="args" }
+						, { name="payload" }
+						, { name="context" }
+						, { name="_is" }
+						, { name="_any" }
+					]
+				};
+				var definitions = {
+					  test  = { test=CreateUUId() }
+					, stuff = { test=CreateUUId() }
+					, _is   = { test=CreateUUId() }
+					, _any  = { test=CreateUUId() }
+				};
+
+				service.$( "getFieldDefinition" ).$args( dummyFunction.parameters[1 ] ).$results( definitions.test  );
+				service.$( "getFieldDefinition" ).$args( dummyFunction.parameters[5 ] ).$results( definitions.stuff );
+				service.$( "getFieldDefinition" ).$args( dummyFunction.parameters[9 ] ).$results( definitions._is   );
+				service.$( "getFieldDefinition" ).$args( dummyFunction.parameters[10] ).$results( definitions._any  );
+
+				var fields = service.getExpressionFieldsFromFunctionDefinition( dummyFunction );
+				expect( fields ).toBe( definitions );
+			} );
+		} );
+
 	}
 
 

@@ -45,7 +45,17 @@ component {
 	 *
 	 */
 	public struct function getExpressionFieldsFromFunctionDefinition( required any functionMeta ) {
-		return {};
+		var params                 = functionMeta.parameters ?: [];
+		var standardParamsToIgnore = [ "event", "rc", "prc", "args", "payload", "context" ];
+		var fields                 = {};
+
+		for( var param in params ) {
+			if ( !standardParamsToIgnore.findNoCase( param.name ) ) {
+				fields[ param.name ] = getFieldDefinition( param );
+			}
+		}
+
+		return fields;
 	}
 
 }
