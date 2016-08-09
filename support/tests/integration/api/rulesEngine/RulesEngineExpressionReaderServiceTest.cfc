@@ -182,6 +182,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 		} );
+
+		describe( "getDefaultFieldTypeForArgumentType()", function(){
+			it( "should return 'number' when argument type = 'numeric'", function(){
+				var service = _getService();
+
+				expect( service.getDefaultFieldTypeForArgumentType( "numeric" ) ).toBe( "number" );
+			} );
+
+			it( "should return 'text' when argument type = 'string'", function(){
+				var service = _getService();
+
+				expect( service.getDefaultFieldTypeForArgumentType( "string" ) ).toBe( "text" );
+			} );
+
+			it( "should return 'date' when argument type = 'date'", function(){
+				var service = _getService();
+
+				expect( service.getDefaultFieldTypeForArgumentType( "date" ) ).toBe( "date" );
+			} );
+
+			it( "should return 'boolean' when argument type = 'boolean'", function(){
+				var service = _getService();
+
+				expect( service.getDefaultFieldTypeForArgumentType( "boolean" ) ).toBe( "boolean" );
+			} );
+
+			it( "should return 'text' for any other type", function(){
+				var service = _getService();
+
+				expect( service.getDefaultFieldTypeForArgumentType( CreateUUId() ) ).toBe( "text" );
+			} );
+		} );
 	}
 
 

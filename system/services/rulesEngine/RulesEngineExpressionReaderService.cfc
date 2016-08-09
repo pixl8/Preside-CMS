@@ -113,7 +113,16 @@ component {
 	 * @argumentType.hint Type of the argument
 	 */
 	public string function getDefaultFieldTypeForArgumentType( required string argumentType ) {
-		return "";
+
+		switch( arguments.argumentType ) {
+			case "numeric":
+				return "number";
+			case "date":
+			case "boolean":
+				return arguments.argumentType;
+		}
+
+		return "text";
 	}
 
 }
