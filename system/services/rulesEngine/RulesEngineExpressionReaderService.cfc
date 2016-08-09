@@ -8,6 +8,13 @@
  */
 component {
 
+	variables._booleanVarietyMappings = {
+		  _is   = "isIsNot"
+		, _has  = "hasHasNot"
+		, _was  = "wasWasNot"
+		, _will = "willWillNot"
+	};
+
 	/**
 	 * Reads the configured rules engine expressions from the given handler CFC file.
 	 * Returns a struct who's keys are IDs of expressions and who's values are the
@@ -56,6 +63,30 @@ component {
 		}
 
 		return fields;
+	}
+
+	/**
+	 * Reads function argument meta data and returns a rules
+	 * engine expression field configuration.
+	 *
+	 * @autodoc
+	 * @functionArgumentMeta.hint Metadata for the function argument
+	 */
+	public struct function getFieldDefinition( required struct functionArgumentMeta ) {
+		var argName    = functionArgumentMeta.name ?: "";
+		var definition = {};
+
+		switch( argName ) {
+			case "_is" :
+			case "_has" :
+			case "_was" :
+			case "_will" :
+				definition.type    = "boolean";
+				definition.variety = _booleanVarietyMappings[ argName ];
+			break;
+		}
+
+		return definition;
 	}
 
 }

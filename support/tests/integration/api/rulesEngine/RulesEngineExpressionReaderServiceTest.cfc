@@ -112,6 +112,40 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getFieldDefinition()", function(){
+			it( "should return 'boolean' type and 'isIsNot' variety when argument name = '_is'", function(){
+				var service    = _getService();
+				var argument   = { name="_is" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { type="boolean", variety="isIsNot" } );
+			} );
+
+			it( "should return 'boolean' type and 'hasHasNot' variety when argument name = '_has'", function(){
+				var service    = _getService();
+				var argument   = { name="_has" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { type="boolean", variety="hasHasNot" } );
+			} );
+
+			it( "should return 'boolean' type and 'wasWasNot' variety when argument name = '_was'", function(){
+				var service    = _getService();
+				var argument   = { name="_was" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { type="boolean", variety="wasWasNot" } );
+			} );
+
+			it( "should return 'boolean' type and 'willWillNot' variety when argument name = '_will'", function(){
+				var service    = _getService();
+				var argument   = { name="_will" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { type="boolean", variety="willWillNot" } );
+			} );
+
+		} );
 	}
 
 
