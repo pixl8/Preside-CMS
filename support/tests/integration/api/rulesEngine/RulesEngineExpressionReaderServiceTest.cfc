@@ -214,6 +214,31 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getDefaultFieldTypeForArgumentType( CreateUUId() ) ).toBe( "text" );
 			} );
 		} );
+
+		describe( "getExpressionsFromDirectory()", function(){
+			it( "should merge the results of getting expressions from every CFC file beneath the passed directory", function(){
+				var service = _getService();
+				var rootDir = "/resources/rulesEngine/expressions";
+				var files   = [
+					  { path="resources.rulesEngine.expressions.SimpleExpressionHandler"             , expressions={ test1=CreateUUId(), fubar={ test=CreateUUId() } } }
+					, { path="resources.rulesEngine.expressions.subfolder.AGreatHandler"             , expressions={ test2=CreateUUId() } }
+					, { path="resources.rulesEngine.expressions.subfolder.AnotherHandler"            , expressions={ test3=CreateUUId() } }
+					, { path="resources.rulesEngine.expressions.subfolder.subagain.ExpressionHandler", expressions={ test4=CreateUUId() } }
+				];
+				var expected = {};
+
+				for( var file in files ) {
+					service.$( "getExpressionsFromCfc" ).$args(
+						  componentPath = file.path
+						, rootPath      = "resources.rulesEngine.expressions"
+					).$results( file.expressions );
+
+					expected.append( file.expressions );
+				}
+
+				expect( service.getExpressionsFromDirectory( rootDir ) ).toBe( expected );
+			} );
+		} );
 	}
 
 

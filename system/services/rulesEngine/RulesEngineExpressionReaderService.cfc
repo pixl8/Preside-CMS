@@ -16,6 +16,34 @@ component {
 	};
 
 	/**
+	 * Reads all the expressions from a directory of handler CFC files
+	 * and returns a structure who's keys are the IDs of expressions and who's values are the
+	 * detailed configuration of the expression as defined in the handler CFC actions
+	 *
+	 * @autodoc
+	 * @directory mapped path to the directory, e.g. /app/handlers/rules/expressions
+	 */
+	public struct function getExpressionsFromDirectory( required string directory ) {
+		var dottedDirPath   = arguments.directory.reReplace( "[\\/]", ".", "all" ).reReplace( "^\.", "" ).reReplace( "\.$", "" );
+		var expandedDirPath = ExpandPath( arguments.directory );
+		var handlerCfcs     = DirectoryList( expandedDirPath, true, "path", "*.cfc" );
+		var expressions     = {};
+
+		for( var handlerCfc in handlerCfcs ){
+			var relativePath       = handlerCfc.replace( expandedDirPath, "" );
+			var dottedRelativePath = relativePath.reReplace( "[\\/]", ".", "all" ).reReplace( "^\.", "" ).reReplace( "\.cfc$", "" );
+			var dottedCfcPath         = dottedDirPath & "." & dottedRelativePath;
+
+			expressions.append( getExpressionsFromCfc(
+				  componentPath = dottedCfcPath
+				, rootPath      = dottedDirPath
+			) );
+		}
+
+		return expressions;
+	}
+
+	/**
 	 * Reads the configured rules engine expressions from the given handler CFC file.
 	 * Returns a struct who's keys are IDs of expressions and who's values are the
 	 * detailed configuration of the expression as defined in the handler CFC actions
