@@ -118,7 +118,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_is" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="boolean", variety="isIsNot" } );
+				expect( definition ).toBe( { fieldType="boolean", variety="isIsNot" } );
 			} );
 
 			it( "should return 'boolean' type and 'hasHasNot' variety when argument name = '_has'", function(){
@@ -126,7 +126,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_has" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="boolean", variety="hasHasNot" } );
+				expect( definition ).toBe( { fieldType="boolean", variety="hasHasNot" } );
 			} );
 
 			it( "should return 'boolean' type and 'wasWasNot' variety when argument name = '_was'", function(){
@@ -134,7 +134,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_was" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="boolean", variety="wasWasNot" } );
+				expect( definition ).toBe( { fieldType="boolean", variety="wasWasNot" } );
 			} );
 
 			it( "should return 'boolean' type and 'willWillNot' variety when argument name = '_will'", function(){
@@ -142,7 +142,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_will" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="boolean", variety="willWillNot" } );
+				expect( definition ).toBe( { fieldType="boolean", variety="willWillNot" } );
 			} );
 
 			it( "should return 'scope' type when argument name = '_all'", function(){
@@ -150,7 +150,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_all" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="scope" } );
+				expect( definition ).toBe( { fieldType="scope" } );
 			} );
 
 			it( "should return 'scope' type when argument name = '_any'", function(){
@@ -158,7 +158,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_any" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="scope" } );
+				expect( definition ).toBe( { fieldType="scope" } );
 			} );
 
 			it( "should merge argument metadata that is not 'name', 'type' or 'hint' into the field definition", function(){
@@ -166,7 +166,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_any", type="boolean", hint="Any/all", test="this", stuff=true, required=true };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { expressionType="scope", test="this", stuff=true, required=true } );
+				expect( definition ).toBe( { fieldType="scope", test="this", stuff=true, required=true } );
 			} );
 
 		} );
