@@ -26,7 +26,8 @@ component {
 		for( var func in functions ) {
 			if ( IsBoolean( func.expression ?: "" ) && func.expression ) {
 				expressions[ baseId & "." & func.name ] = {
-					contexts = ListToArray( func.expressionContexts ?: func.name )
+					  contexts = ListToArray( func.expressionContexts ?: func.name )
+					, fields   = getExpressionFieldsFromFunctionDefinition( func )
 				};
 			}
 		}
@@ -34,5 +35,17 @@ component {
 		return expressions;
 	}
 
+
+	/**
+	 * Reads the function metadata and returns a struct of expression
+	 * field configurations
+	 *
+	 * @autodoc
+	 * @functionMeta.hint Metadata about the function
+	 *
+	 */
+	public struct function getExpressionFieldsFromFunctionDefinition( required any functionMeta ) {
+		return {};
+	}
 
 }
