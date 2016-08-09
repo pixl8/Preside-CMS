@@ -10,17 +10,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
-				expect( expressions.keyArray().sort( "textnocase" ) ).toBe( [ "SimpleExpressionHandler.event_booking", "SimpleExpressionHandler.user" ] );
+				expect( expressions.keyArray().sort( "textnocase" ) ).toBe( [ "SimpleExpressionHandler.global", "SimpleExpressionHandler.user" ] );
+			} );
+
+			it( "it should detail the contexts of each expression as configured by the @expressionContexts tag on the function", function(){
+				var service  = _getService();
+				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
+				var rootPath = "resources.rulesEngine.expressions";
+
+				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
+
+				expect( expressions[ "SimpleExpressionHandler.user" ].contexts ?: "" ).toBe( [ "user", "marketing" ] );
+			} );
+
+			it( "it should set a default context using the function name when the expression handler function does not set an @expressionContexts", function(){
+				var service  = _getService();
+				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
+				var rootPath = "resources.rulesEngine.expressions";
+
+				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
+
+				expect( expressions[ "SimpleExpressionHandler.global" ].contexts ?: "" ).toBe( [ "global" ] );
 			} );
 		} );
-
 
 	}
 
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		return new preside.system.services.rulesEngine.RulesEngineExpressionReaderService();
+		var service = new preside.system.services.rulesEngine.RulesEngineExpressionReaderService();
+
+		return createMock( object=service );
 	}
 
 }

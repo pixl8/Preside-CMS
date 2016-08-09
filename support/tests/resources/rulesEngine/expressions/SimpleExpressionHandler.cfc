@@ -14,10 +14,10 @@ component {
 	 * \n
 	 * Expression appears like: "User {_is} a member of {_any} of the groups {groups}"
 	 *
-	 * @groups.fieldType  object
-	 * @groups.object     user_group
-	 * @expressionContext user
-	 * @expression        true
+	 * @groups.fieldType   object
+	 * @groups.object      user_group
+	 * @expressionContexts user,marketing
+	 * @expression         true
 	 *
 	 */
 	private boolean function user(
@@ -45,11 +45,10 @@ component {
 	 *
 	 * @groups.fieldType  object
 	 * @groups.object     user_group
-	 * @expressionContext event_booking
 	 * @expression
 	 *
 	 */
-	private boolean function event_booking(
+	private boolean function global(
 		  required struct  payload
 		, required any     groups
 		, required boolean _is

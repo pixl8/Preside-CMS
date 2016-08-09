@@ -25,7 +25,9 @@ component {
 
 		for( var func in functions ) {
 			if ( IsBoolean( func.expression ?: "" ) && func.expression ) {
-				expressions[ baseId & "." & func.name ] = {};
+				expressions[ baseId & "." & func.name ] = {
+					contexts = ListToArray( func.expressionContexts ?: func.name )
+				};
 			}
 		}
 
