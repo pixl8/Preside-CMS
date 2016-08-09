@@ -152,12 +152,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( definition ).toBe( { expressionType="scope" } );
 			} );
+
 			it( "should return 'scope' type when argument name = '_any'", function(){
 				var service    = _getService();
 				var argument   = { name="_any" };
 				var definition = service.getFieldDefinition( argument );
 
 				expect( definition ).toBe( { expressionType="scope" } );
+			} );
+
+			it( "should merge argument metadata that is not 'name', 'type' or 'hint' into the field definition", function(){
+				var service    = _getService();
+				var argument   = { name="_any", type="boolean", hint="Any/all", test="this", stuff=true, required=true };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { expressionType="scope", test="this", stuff=true, required=true } );
 			} );
 
 		} );

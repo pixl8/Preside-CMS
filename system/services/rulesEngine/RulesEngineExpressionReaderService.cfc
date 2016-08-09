@@ -73,8 +73,9 @@ component {
 	 * @functionArgumentMeta.hint Metadata for the function argument
 	 */
 	public struct function getFieldDefinition( required struct functionArgumentMeta ) {
-		var argName    = functionArgumentMeta.name ?: "";
-		var definition = {};
+		var argName            = functionArgumentMeta.name ?: "";
+		var argAttribsToIgnore = [ "name", "type", "hint" ];
+		var definition         = {};
 
 		switch( argName ) {
 			case "_is" :
@@ -89,6 +90,12 @@ component {
 			case "_any" :
 				definition.expressionType = "scope";
 			break;
+		}
+
+		for( var attribName in functionArgumentMeta ) {
+			if ( !argAttribsToIgnore.findNoCase( attribName ) ) {
+				definition[ attribName ] = functionArgumentMeta[ attribName ];
+			}
 		}
 
 		return definition;
