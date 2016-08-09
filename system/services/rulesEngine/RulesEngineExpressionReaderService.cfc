@@ -83,7 +83,7 @@ component {
 			case "_was" :
 			case "_will" :
 				definition.fieldType = "boolean";
-				definition.variety        = _booleanVarietyMappings[ argName ];
+				definition.variety   = _booleanVarietyMappings[ argName ];
 			break;
 
 			case "_all" :
@@ -98,7 +98,22 @@ component {
 			}
 		}
 
+		if ( !Len( Trim( definition.fieldType ?: "" ) ) ) {
+			definition.fieldType = getDefaultFieldTypeForArgumentType( functionArgumentMeta.type ?: "any" );
+		}
+
 		return definition;
+	}
+
+	/**
+	 * Returns a default expression field type for a given
+	 * argument type. e.g. 'numeric' = 'number', 'string' = 'text', etc.
+	 *
+	 * @autodoc
+	 * @argumentType.hint Type of the argument
+	 */
+	public string function getDefaultFieldTypeForArgumentType( required string argumentType ) {
+		return "";
 	}
 
 }

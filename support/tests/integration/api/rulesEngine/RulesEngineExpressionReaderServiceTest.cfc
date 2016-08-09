@@ -169,6 +169,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( definition ).toBe( { fieldType="scope", test="this", stuff=true, required=true } );
 			} );
 
+			it( "should derive the 'fieldType' of the argument from the argument type when no 'fieldType' meta is set for the argument", function(){
+				var service    = _getService();
+				var argument   = { name="someArg", type="numeric", required=true };
+				var derivedType = CreateUUId();
+
+				service.$( "getDefaultFieldTypeForArgumentType" ).$args( argument.type ).$results( derivedType );
+
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { fieldType=derivedType, required=true } );
+			} );
+
 		} );
 	}
 
