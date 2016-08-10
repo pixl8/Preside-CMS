@@ -219,6 +219,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					fail( "An unexpected error was thrown, rather than a controlled error" );
 				}
 			} );
+
+			it( "should throw an informative error when the expression does not support the given context", function(){
+				var service      = _getService();
+				var expressionId = "userGroup.event_booking";
+				var errorThrown  = false;
+
+				try {
+					service.evaluateExpression(
+						  expressionId     = expressionId
+						, context          = "whatev"
+						, payload          = {}
+						, configuredFields = {}
+					);
+
+				} catch( "preside.rule.expression.invalid.context" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The expression [#expressionId#] cannot be used in the [whatev] context." );
+
+				} catch( any e ) {
+					fail( "An unexpected error was thrown, rather than a controlled error" );
+				}
+			} );
 		} );
 	}
 

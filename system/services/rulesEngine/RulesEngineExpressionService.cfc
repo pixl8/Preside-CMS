@@ -63,10 +63,7 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
 	 */
 	public struct function getExpression( required string expressionId ) {
-		_throwOnMissingExpression( arguments.expressionId );
-
-		var expressions = _getExpressions();
-		var expression  = Duplicate( expressions[ arguments.expressionId ] );
+		var expression = Duplicate( _getRawExpression( arguments.expressionId ) );
 
 		expression.id     = expressionId;
 		expression.label  = getExpressionLabel( expressionId );
@@ -147,7 +144,15 @@ component displayName="RulesEngine Expression Service" {
 		, required struct payload
 		, required struct configuredFields
 	) {
-		_throwOnMissingExpression( expressionId );
+		var expression = _getRawExpression( expressionId );
+		var contexts   = expression.contexts ?: [];
+
+		if ( !contexts.findNoCase( arguments.context ) && !contexts.findNoCase( "global" ) ) {
+			throw(
+				  type    = "preside.rule.expression.invalid.context"
+				, message = "The expression [#arguments.expressionId#] cannot be used in the [#arguments.context#] context."
+			);
+		}
 
 		var handlerAction = "rules.expressions." & arguments.expressionId;
 		var eventArgs     = { context=arguments.context, payload=arguments.payload };
@@ -165,12 +170,10 @@ component displayName="RulesEngine Expression Service" {
 	}
 
 // PRIVATE HELPERS
-	private void function _throwOnMissingExpression( required string expressionid ) {
+	private struct function _getRawExpression( required string expressionid ) {
 		var expressions = _getExpressions();
 
-		if ( !expressions.keyExists( arguments.expressionId ) ) {
-			throw( type="preside.rule.expression.not.found", message="The expression [#arguments.expressionId#] could not be found." );
-		}
+		return expressions[ arguments.expressionId ] ?: throw( type="preside.rule.expression.not.found", message="The expression [#arguments.expressionId#] could not be found." );
 	}
 
 // GETTERS AND SETTERS
