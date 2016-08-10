@@ -46,6 +46,12 @@ component displayName="RulesEngine Expression Service" {
 		expression.label = getExpressionLabel( expressionId );
 		expression.text  = getExpressionText( expressionId );
 
+		expression.fields = expression.fields ?: {};
+
+		for( var fieldName in expression.fields ) {
+			expression.fields[ fieldName ].defaultLabel = getDefaultFieldLabel( expressionId, fieldName );
+		}
+
 		return expression;
 	}
 

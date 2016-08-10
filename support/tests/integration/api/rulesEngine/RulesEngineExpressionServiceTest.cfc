@@ -33,6 +33,22 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 			} );
+
+			it( "should add translated default labels to any defined fields in the expression", function(){
+				var service      = _getService();
+				var expressionId = "userGroup.user";
+				var expected     = Duplicate( mockExpressions[ expressionId ] );
+
+				expected.label = CreateUUId();
+				expected.text  = CreateUUId();
+				expected.fields._is.defaultLabel = CreateUUId();
+
+				service.$( "getExpressionLabel" ).$args( expressionId ).$results( expected.label );
+				service.$( "getExpressionText"  ).$args( expressionId ).$results( expected.text  );
+				service.$( "getDefaultFieldLabel").$args( expressionId, "_is" ).$results( expected.fields._is.defaultLabel );
+
+				expect( service.getExpression( expressionId ) ).toBe( expected );
+			} );
 		} );
 
 		describe( "getExpressionLabel()", function(){
@@ -95,7 +111,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultTestExpressions() {
 		return {
-			  "userGroup.user"          = { fields={}, contexts=[ "user" ] }
+			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "user" ] }
 			, "userGroup.event_booking" = { fields={}, contexts=[ "event_booking" ] }
 		};
 	}
