@@ -23,6 +23,29 @@ component displayName="RulesEngine Expression Service" {
 
 // PUBLIC API
 	/**
+	 * Returns an array of expressions ordered by there translated
+	 * labels and optionally filtered by context and search term
+	 *
+	 * @autodoc
+	 *
+	 */
+	public array function listExpressions() {
+		var allExpressions = _getExpressions();
+		var list           = [];
+
+		for( var expressionId in allExpressions ) {
+			list.append( getExpression( expressionId ) );
+		}
+
+		list.sort( function( a, b ){
+			return a.label > b.label ? 1 : -1;
+		} );
+
+		return list;
+	}
+
+
+	/**
 	 * Returns a structure with all relevant info about the expression
 	 * including:
 	 * \n
@@ -43,9 +66,9 @@ component displayName="RulesEngine Expression Service" {
 
 		var expression  = Duplicate( expressions[ arguments.expressionId ] );
 
-		expression.label = getExpressionLabel( expressionId );
-		expression.text  = getExpressionText( expressionId );
-
+		expression.id     = expressionId;
+		expression.label  = getExpressionLabel( expressionId );
+		expression.text   = getExpressionText( expressionId );
 		expression.fields = expression.fields ?: {};
 
 		for( var fieldName in expression.fields ) {

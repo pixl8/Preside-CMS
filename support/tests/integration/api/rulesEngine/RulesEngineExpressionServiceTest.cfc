@@ -9,6 +9,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expected.label = CreateUUId();
 				expected.text  = CreateUUId();
+				expected.id    = expressionId;
 
 				service.$( "getExpressionLabel" ).$args( expressionId ).$results( expected.label );
 				service.$( "getExpressionText"  ).$args( expressionId ).$results( expected.text  );
@@ -41,6 +42,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expected.label = CreateUUId();
 				expected.text  = CreateUUId();
+				expected.id    = expressionId;
 				expected.fields._is.defaultLabel = CreateUUId();
 
 				service.$( "getExpressionLabel" ).$args( expressionId ).$results( expected.label );
@@ -90,6 +92,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "listExpressions()", function(){
+			it( "should return an array of all expressions, ordered by translated expression label", function(){
+				var service = _getService();
+				var expressionIds = mockExpressions.keyArray();
+				var labels = [];
+
+				for( var id in expressionIds ){
+					labels.append( CreateUUId() );
+					service.$( "getExpression" ).$args( id ).$results( { id=id, label=labels[ labels.len() ], text="whatever", fields={}, contexts=[] } );
+				}
+
+				var expressions = service.listExpressions();
+				var orderedExpressionLabels = [];
+				var orderedExpressionIds    = [];
+
+				for( var expression in expressions ) {
+					orderedExpressionIds.append( expression.id );
+					orderedExpressionLabels.append( expression.label );
+				}
+
+				expect( orderedExpressionLabels ).toBe( labels.sort( "textnocase" ) );
+			} );
+		} );
+
 	}
 
 
@@ -113,6 +139,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		return {
 			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "user" ] }
 			, "userGroup.event_booking" = { fields={}, contexts=[ "event_booking" ] }
+			, "expression3.context1"    = { fields={}, contexts=[ "event_booking" ] }
+			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ] }
+			, "expression5.context3"    = { fields={}, contexts=[ "event_booking" ] }
+			, "expression6.context4"    = { fields={}, contexts=[ "event_booking" ] }
+			, "expression7.context5"    = { fields={}, contexts=[ "event_booking" ] }
 		};
 	}
 
