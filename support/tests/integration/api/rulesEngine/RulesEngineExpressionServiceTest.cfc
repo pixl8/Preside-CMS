@@ -59,6 +59,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getDefaultFieldLabel()", function(){
+			it( "should return a translated field label using a convention based i18n URI that falls back to a default URI should no expression specific label exist", function(){
+				var service      = _getService();
+				var expressionId = "some.expression.here";
+				var fieldName    = "myfield";
+				var label        = CreateUUId();
+				var defaultLabel = CreateUUId();
+
+				service.$( "$translateResource" ).$args( uri="rules.fields:#fieldName#.label", defaultValue=fieldName ).$results( defaultLabel );
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:field.#fieldName#.label", defaultValue=defaultLabel ).$results( label );
+
+				expect( service.getDefaultFieldLabel( expressionId, fieldName ) ).toBe( label );
+			} );
+		} );
+
 	}
 
 

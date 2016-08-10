@@ -83,6 +83,23 @@ component displayName="RulesEngine Expression Service" {
 		);
 	}
 
+	/**
+	 * Returns the default label for an expression field. This label is used when
+	 * an administrator has not yet configured the field after inserting an expression
+	 * into their condition builder. e.g.
+	 * \n
+	 * > Choose an event
+	 *
+	 * @audotodoc
+	 * @expressionId.hint ID of the expression who's field we want to get the label of
+	 * @fieldName.hint    Name of the field
+	 */
+	public string function getDefaultFieldLabel( required string expressionId, required string fieldName ) {
+		var defaultFieldLabel = $translateResource( uri="rules.fields:#arguments.fieldName#.label", defaultValue=arguments.fieldName );
+
+		return $translateResource( uri="rules.expressions.#arguments.expressionId#:field.#arguments.fieldName#.label", defaultValue=defaultFieldLabel );
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getExpressions() {
 		return _expressions;
