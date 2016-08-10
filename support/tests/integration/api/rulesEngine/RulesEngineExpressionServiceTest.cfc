@@ -197,6 +197,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, configuredFields = fields
 				) ).toBeTrue();
 			} );
+
+			it( "should throw an informative error when the expression does not exist", function(){
+				var service      = _getService();
+				var expressionId = "non.existant";
+				var errorThrown  = false;
+
+				try {
+					service.evaluateExpression(
+						  expressionId     = expressionId
+						, context          = "whatev"
+						, payload          = {}
+						, configuredFields = {}
+					);
+
+				} catch( "preside.rule.expression.not.found" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The expression [#expressionId#] could not be found." );
+
+				} catch( any e ) {
+					fail( "An unexpected error was thrown, rather than a controlled error" );
+				}
+			} );
 		} );
 	}
 
