@@ -114,6 +114,31 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( orderedExpressionLabels ).toBe( labels.sort( "textnocase" ) );
 			} );
+
+			it( "should filter expressions by context when a context is supplied, with 'global' context matching any context", function(){
+				var service = _getService();
+				var context = "request";
+				var expressionIds = mockExpressions.keyArray();
+
+				for( var id in expressionIds ){
+					service.$( "getExpression" ).$args( id ).$results(
+						{ id=id, label=id, text=id, fields={}, contexts=mockExpressions[id].contexts }
+					);
+				}
+
+				var expressions = service.listExpressions( context=context );
+				var returnedIds = [];
+				for( var expression in expressions ) {
+					returnedIds.append( expression.id );
+				}
+
+				expect( returnedIds ).toBe( [
+					  "expression3.context1"
+					, "expression7.context5"
+					, "userGroup.event_booking"
+					, "userGroup.user"
+				] );
+			} );
 		} );
 
 	}
@@ -137,13 +162,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultTestExpressions() {
 		return {
-			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "user" ] }
-			, "userGroup.event_booking" = { fields={}, contexts=[ "event_booking" ] }
-			, "expression3.context1"    = { fields={}, contexts=[ "event_booking" ] }
+			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ] }
+			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ] }
+			, "expression3.context1"    = { fields={}, contexts=[ "global" ] }
 			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ] }
-			, "expression5.context3"    = { fields={}, contexts=[ "event_booking" ] }
-			, "expression6.context4"    = { fields={}, contexts=[ "event_booking" ] }
-			, "expression7.context5"    = { fields={}, contexts=[ "event_booking" ] }
+			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ] }
+			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ] }
+			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ] }
 		};
 	}
 

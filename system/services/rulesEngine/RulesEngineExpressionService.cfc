@@ -23,18 +23,23 @@ component displayName="RulesEngine Expression Service" {
 
 // PUBLIC API
 	/**
-	 * Returns an array of expressions ordered by there translated
-	 * labels and optionally filtered by context and search term
+	 * Returns an array of expressions ordered by their translated
+	 * labels and optionally filtered by context
 	 *
 	 * @autodoc
-	 *
+	 * @context.hint Expression context with which to filter the results
 	 */
-	public array function listExpressions() {
-		var allExpressions = _getExpressions();
-		var list           = [];
+	public array function listExpressions( string context="" ) {
+		var allExpressions  = _getExpressions();
+		var list            = [];
+		var filterOnContext = arguments.context.len() > 0;
 
 		for( var expressionId in allExpressions ) {
-			list.append( getExpression( expressionId ) );
+			var contexts = allExpressions[ expressionId ].contexts ?: [];
+
+			if ( !filterOnContext || contexts.findNoCase( arguments.context ) || contexts.findNoCase( "global" ) ) {
+				list.append( getExpression( expressionId ) );
+			}
 		}
 
 		list.sort( function( a, b ){
