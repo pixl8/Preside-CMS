@@ -1239,7 +1239,8 @@ component displayName="AssetManager Service" {
 		var versionToMakeActive = _getAssetVersionDao().selectData(
 			  id           = arguments.versionId
 			, selectFields = [
-				  "asset_version.storage_path"
+				  "asset_version.id"
+				, "asset_version.storage_path"
 				, "asset_version.size"
 				, "asset_version.asset_type"
 				, "asset_version.raw_text_content"
