@@ -141,15 +141,72 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "evaluateExpression()", function(){
+			it( "should return false when the return value of the expression's convention-based coldbox handler is false for the given in context, payload and configured fields", function(){
+				var service      = _getService();
+				var context      = "request";
+				var fields       = { _is = false, test=CreateUUId() };
+				var payload      = { test=CreateUUId() };
+				var expressionId = "userGroup.user";
+				var eventArgs    = {
+					  context = context
+					, payload = payload
+				};
+
+				eventArgs.append( fields );
+
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = "rules.expressions.#expressionId#"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = eventArgs
+				).$results( false );
+
+				expect( service.evaluateExpression(
+					  expressionId     = expressionId
+					, context          = context
+					, payload          = payload
+					, configuredFields = fields
+				) ).toBeFalse();
+			} );
+
+			it( "should return true when the return value of the expression's convention-based coldbox handler is true for the given in context, payload and configured fields", function(){
+				var service      = _getService();
+				var context      = "request";
+				var fields       = { _is = false, test=CreateUUId() };
+				var payload      = { test=CreateUUId() };
+				var expressionId = "userGroup.user";
+				var eventArgs    = {
+					  context = context
+					, payload = payload
+				};
+
+				eventArgs.append( fields );
+
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = "rules.expressions.#expressionId#"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = eventArgs
+				).$results( true );
+
+				expect( service.evaluateExpression(
+					  expressionId     = expressionId
+					, context          = context
+					, payload          = payload
+					, configuredFields = fields
+				) ).toBeTrue();
+			} );
+		} );
 	}
 
 
 // PRIVATE HELPERS
 	private any function _getService( struct expressions=_getDefaultTestExpressions() ) {
-		variables.mockReaderService = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
-		variables.mockDirectories   = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
-		variables.mockExpressions   = arguments.expressions;
-
+		variables.mockReaderService     = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
+		variables.mockDirectories       = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
+		variables.mockExpressions       = arguments.expressions;
+		variables.mockColdboxController = CreateStub();
 		mockReaderService.$( "getExpressionsFromDirectories" ).$args( mockDirectories ).$results( mockExpressions );
 
 		var service = new preside.system.services.rulesEngine.RulesEngineExpressionService(
@@ -157,7 +214,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			, expressionDirectories   = mockDirectories
 		);
 
-		return createMock( object=service );
+		service = createMock( object=service );
+
+		service.$( "$getColdbox", mockColdboxController );
+
+		return service;
 	}
 
 	private struct function _getDefaultTestExpressions() {

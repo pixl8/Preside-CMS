@@ -134,6 +134,37 @@ component displayName="RulesEngine Expression Service" {
 		return $translateResource( uri="rules.expressions.#arguments.expressionId#:field.#arguments.fieldName#.label", defaultValue=defaultFieldLabel );
 	}
 
+	/**
+	 * Evaluates an expression, returning true or false,
+	 * using the passed context, payload and field configuration.
+	 *
+	 * @autodoc
+	 * @expressionId.hint     The ID of the expression to evaluate
+	 * @context.hint          The context in which the expression is being evaluated. e.g. 'request', 'workflow' or 'marketing-automation'
+	 * @payload.hint          A structure of data representing a payload against which the expression can be evaluated
+	 * @configuredFields.hint A structure of fields configured for the expression instance being evaluated
+	 */
+	public boolean function evaluateExpression(
+		  required string expressionId
+		, required string context
+		, required struct payload
+		, required struct configuredFields
+	) {
+		var handlerAction = "rules.expressions." & arguments.expressionId;
+		var eventArgs     = { context=arguments.context, payload=arguments.payload };
+
+		eventArgs.append( arguments.configuredFields );
+
+		var result = $getColdbox().runEvent(
+			  event          = handlerAction
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = eventArgs
+		);
+
+		return result;
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getExpressions() {
 		return _expressions;
