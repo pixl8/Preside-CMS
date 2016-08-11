@@ -87,6 +87,41 @@ component displayName="RulesEngine Field Type Service" {
 	}
 
 	/**
+	 * Processes a form config form submission for a field
+	 * using the passed field type and configuration options.
+	 * Returns the result of processing the submission (a value to
+	 * be saved against the field in an expression) and accepts
+	 * a [[api-validationresult]] object with which to record
+	 * validation errors
+	 *
+	 * @autodoc
+	 * @fieldType.hint          Name of the fieldtype
+	 * @fieldConfiguration.hint Field type configuration options for the specific field
+	 * @validationResult.hint   [[api-validationresult]] object for recording validation errors
+	 *
+	 */
+	public any function processConfigScreenSubmission(
+		  required string fieldType
+		, required struct fieldConfiguration
+		, required any    validationResult
+	) {
+		var handler = getHandlerForFieldType( arguments.fieldType );
+		var action  = handler & ".processConfigScreenSubmission";
+		var coldbox = $getColdbox();
+
+		if ( coldbox.handlerExists( action ) ) {
+			return $getColdbox().runEvent(
+				  event         = action
+				, private       = true
+				, prePostExempt = true
+				, eventArguments = { validationResult=arguments.validationResult, config=arguments.fieldConfiguration }
+			);
+		}
+
+		throw( type="preside.rules.fieldtype.missing.config.action", message="The field type, [#arguments.fieldType#], has no [processConfigScreenSubmission] handler with which to process config screen submission" );
+	}
+
+	/**
 	 * Returns the handler name to use for the given
 	 * field type.
 	 *

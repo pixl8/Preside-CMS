@@ -102,9 +102,56 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "processConfigurationScreenSubmission()", function(){
-			it( "should do things", function(){
-				fail( "but we haven't yet implemented anything" );
+		describe( "processConfigScreenSubmission()", function(){
+			it( "should use the field type's handler action, 'processConfigScreenSubmission', to retrieve a value for the field based on a submission", function(){
+				var service          = _getService();
+				var handler          = "some.handler";
+				var action           = handler & ".processConfigScreenSubmission";
+				var fieldType        = "mytype";
+				var result           = { test=CreateUUId() };
+				var configOptions    = { test=CreateUUId() };
+				var validationResult = CreateStub();
+
+				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( action ).$results( true );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = action
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { config=configOptions, validationResult=validationResult }
+				).$results( result );
+
+				expect( service.processConfigScreenSubmission(
+					  fieldType          = fieldType
+					, fieldConfiguration = configOptions
+					, validationResult   = validationResult
+				) ).toBe( result );
+			} );
+
+			it( "should throw an informative error when the field type has no 'processConfigScreenSubmission' handler", function(){
+				var service     = _getService();
+				var handler     = "some.handler";
+				var action      = handler & ".processConfigScreenSubmission";
+				var fieldType   = "mytype";
+				var errorThrown = false;
+
+				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( action ).$results( false );
+
+				try {
+					service.processConfigScreenSubmission(
+						  fieldType          = fieldType
+						, validationResult   = CreateStub()
+						, fieldConfiguration = {}
+					);
+				} catch( "preside.rules.fieldtype.missing.config.action" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The field type, [#fieldType#], has no [processConfigScreenSubmission] handler with which to process config screen submission" );
+				} catch( any e ) {
+					fail( "A specific and helpful error message was not thrown. Instead: [#e.message#]" );
+				}
+
+				expect( errorThrown ).toBe( true );
 			} );
 		} );
 
