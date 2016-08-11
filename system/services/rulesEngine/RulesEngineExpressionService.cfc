@@ -169,11 +169,62 @@ component displayName="RulesEngine Expression Service" {
 		return result;
 	}
 
+	/**
+	 * Validates a configured expression for a given context.
+	 * Returns true if valid, false otherwise and sets specific
+	 * error messages using the passed [[api-validationresult]] object.
+	 *
+	 * @autodoc
+	 * @expressionId.hint     ID of the expression to validate
+	 * @fields.hint           Struct of saved field configurations for the expression instance to validate
+	 * @context.hint          Context in which the expression is being used
+	 * @validationResult.hint [[api-validationresult]] object with which to record errors
+	 *
+	 */
+	public boolean function isExpressionValid(
+		  required string expressionId
+		, required struct fields
+		, required string context
+		, required any    validationResult
+	) {
+		var expression = _getRawExpression( arguments.expressionId, false );
+
+		if ( expression.isEmpty() ) {
+			arguments.validationResult.setGeneralMessage( "The [#arguments.expressionId#] expression could not be found" );
+			return false;
+		}
+
+		if ( !expression.contexts.findNoCase( arguments.context ) && !expression.contexts.findNoCase( "global" ) ) {
+			arguments.validationResult.setGeneralMessage( "The [#arguments.expressionId#] expression cannot be used in the [#arguments.context#] context" );
+			return false;
+		}
+
+		for ( var fieldName in expression.fields ) {
+			var field    = expression.fields[ fieldName ];
+			var required = IsBoolean( field.required ?: "" ) && field.required;
+
+			if ( required && IsEmpty( arguments.fields[ fieldName ] ?: "" ) ) {
+				arguments.validationResult.setGeneralMessage( "The [#arguments.expressionId#] expression is missing one or more required fields" );
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 // PRIVATE HELPERS
-	private struct function _getRawExpression( required string expressionid ) {
+	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
 
-		return expressions[ arguments.expressionId ] ?: throw( type="preside.rule.expression.not.found", message="The expression [#arguments.expressionId#] could not be found." );
+		if ( expressions.keyExists( arguments.expressionId ) ) {
+			return expressions[ arguments.expressionId ];
+		}
+
+		if ( !arguments.throwOnMissing ) {
+			return {};
+		}
+
+		throw( type="preside.rule.expression.not.found", message="The expression [#arguments.expressionId#] could not be found." );
 	}
 
 // GETTERS AND SETTERS

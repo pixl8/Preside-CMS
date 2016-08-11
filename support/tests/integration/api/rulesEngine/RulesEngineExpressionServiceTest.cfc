@@ -242,6 +242,87 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 			} );
 		} );
+
+		describe( "isExpressionValid()", function(){
+			it( "should return false when expression is not valid for the passed context", function(){
+				var service          = _getService();
+				var validationResult = _newValidationResult();
+
+				expect( service.isExpressionValid(
+					  expressionId     = "userGroup.user"
+					, fields           = {}
+					, context          = "badcontext"
+					, validationResult = validationResult
+				) ).toBeFalse();
+			} );
+
+			it( "should set a general error message when expression is not valid for the passed context", function(){
+				var service          = _getService();
+				var validationResult = _newValidationResult();
+
+				service.isExpressionValid(
+					  expressionId     = "userGroup.user"
+					, fields           = {}
+					, context          = "badcontext"
+					, validationResult = validationResult
+				);
+
+				expect( validationResult.getGeneralMessage() ).toBe( "The [userGroup.user] expression cannot be used in the [badcontext] context" );
+			} );
+
+			it( "should return false when expression does not exist", function(){
+				var service          = _getService();
+				var validationResult = _newValidationResult();
+
+				expect( service.isExpressionValid(
+					  expressionId     = CreateUUId()
+					, fields           = {}
+					, context          = "badcontext"
+					, validationResult = validationResult
+				) ).toBeFalse();
+			} );
+
+			it( "should set a general error message when expression does not exist", function(){
+				var service          = _getService();
+				var validationResult = _newValidationResult();
+				var expressionid     = CreateUUId();
+
+				service.isExpressionValid(
+					  expressionId     = expressionid
+					, fields           = {}
+					, context          = "badcontext"
+					, validationResult = validationResult
+				);
+
+				expect( validationResult.getGeneralMessage() ).toBe( "The [#expressionid#] expression could not be found" );
+			} );
+
+			it( "should return false when fields are missing one or more required values", function(){
+				var service          = _getService();
+				var validationResult = _newValidationResult();
+
+				expect( service.isExpressionValid(
+					  expressionId     = "expression3.context1"
+					, fields           = { fubar=CreateUUId() }
+					, context          = "badcontext"
+					, validationResult = validationResult
+				) ).toBeFalse();
+			} );
+
+			it( "should set a general error message when fields are missing one or more required values", function(){
+				var service          = _getService();
+				var validationResult = _newValidationResult();
+
+				service.isExpressionValid(
+					  expressionId     = "expression3.context1"
+					, fields           = { fubar=CreateUUId() }
+					, context          = "badcontext"
+					, validationResult = validationResult
+				);
+
+				expect( validationResult.getGeneralMessage() ).toBe( "The [expression3.context1] expression is missing one or more required fields" );
+			} );
+		} );
 	}
 
 
@@ -269,12 +350,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		return {
 			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ] }
 			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ] }
-			, "expression3.context1"    = { fields={}, contexts=[ "global" ] }
+			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ] }
 			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ] }
 			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ] }
 			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ] }
 			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ] }
 		};
+	}
+
+	private any function _newValidationResult() {
+		return new preside.system.services.validation.ValidationResult();
 	}
 
 }
