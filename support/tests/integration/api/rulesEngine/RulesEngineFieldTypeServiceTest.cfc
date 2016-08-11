@@ -156,9 +156,50 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "prepareConfiguredFieldData()", function(){
-			it( "should do things", function(){
-				fail( "but we haven't yet implemented anything" );
+			it( "should use the field type's handler action, 'prepareConfiguredFieldData', to retrieve a 'live' value for the saved field value within an expression", function(){
+				var service          = _getService();
+				var handler          = "some.handler";
+				var action           = handler & ".prepareConfiguredFieldData";
+				var fieldType        = "mytype";
+				var result           = { test=CreateUUId() };
+				var configOptions    = { test=CreateUUId() };
+				var savedValue       = { blah=CreateUUId() };
+
+				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( action ).$results( true );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = action
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { config=configOptions, value=savedValue }
+				).$results( result );
+
+				expect( service.prepareConfiguredFieldData(
+					  fieldType          = fieldType
+					, fieldConfiguration = configOptions
+					, savedValue         = savedValue
+				) ).toBe( result );
 			} );
+
+			it( "should return the raw saved value when the field type has not implemented a 'prepareConfiguredFieldData' handler action", function(){
+				var service          = _getService();
+				var handler          = "some.handler";
+				var action           = handler & ".prepareConfiguredFieldData";
+				var fieldType        = "mytype";
+				var result           = { test=CreateUUId() };
+				var configOptions    = { test=CreateUUId() };
+				var savedValue       = { blah=CreateUUId() };
+
+				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( action ).$results( false );
+
+				expect( service.prepareConfiguredFieldData(
+					  fieldType          = fieldType
+					, fieldConfiguration = configOptions
+					, savedValue         = savedValue
+				) ).toBe( savedValue );
+			} );
+
 		} );
 
 	}

@@ -122,6 +122,43 @@ component displayName="RulesEngine Field Type Service" {
 	}
 
 	/**
+	 * Prepares a saved field value for the field type in
+	 * readiness for evaluation. Field types can provide
+	 * their own 'prepareConfiguredFieldData' handler action
+	 * to implement time sensitive and dynamic value evaluation
+	 * in cases where the saved value requires dynamic processing
+	 * prior to expression evaluation. For example, a saved time range of
+	 * 'within the last 4 days' could be processed at runtime
+	 * to return a simple date range struct with `datefrom` and `dateto`
+	 * keys.
+	 *
+	 * @autodoc
+	 * @fieldType.hint          Name of the fieldtype
+	 * @fieldConfiguration.hint Field type configuration options for the specific field
+	 * @savedValue.hint         Saved value to process
+	 */
+	public any function prepareConfiguredFieldData(
+		  required string fieldType
+		, required struct fieldConfiguration
+		, required any    savedValue
+	) {
+		var handler = getHandlerForFieldType( arguments.fieldType );
+		var action  = handler & ".prepareConfiguredFieldData";
+		var coldbox = $getColdbox();
+
+		if ( coldbox.handlerExists( action ) ) {
+			return $getColdbox().runEvent(
+				  event         = action
+				, private       = true
+				, prePostExempt = true
+				, eventArguments = { value=arguments.savedValue, config=arguments.fieldConfiguration }
+			);
+		}
+
+		return arguments.savedValue;
+	}
+
+	/**
 	 * Returns the handler name to use for the given
 	 * field type.
 	 *
