@@ -29,7 +29,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, eventArguments = { value=inputValue, config=configOptions }
 				).$results( rendered );
 
-				expect( service.renderConfiguredField( fieldType, inputValue, configOptions ) ).toBe( rendered );
+				expect( service.renderConfiguredField( fieldType=fieldType, value=inputValue, fieldConfiguration=configOptions ) ).toBe( rendered );
 
 			} );
 
@@ -45,13 +45,60 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
 				mockColdbox.$( "handlerExists" ).$args( action ).$results( false );
 
-				expect( service.renderConfiguredField( fieldType, inputValue, configOptions ) ).toBe( inputValue );
+				expect( service.renderConfiguredField( fieldType=fieldType, value=inputValue, fieldConfiguration=configOptions ) ).toBe( inputValue );
 			} );
 		} );
 
-		describe( "renderConfigurationScreen()", function(){
-			it( "should do things", function(){
-				fail( "but we haven't yet implemented anything" );
+		describe( "renderConfigScreen()", function(){
+			it( "should use the field type's viewlet, 'renderConfigScreen', to render the field type's configuration screen", function(){
+				var service       = _getService();
+				var handler       = "some.handler";
+				var action        = handler & ".renderConfigScreen";
+				var fieldType     = "mytype";
+				var rendered      = CreateUUId();
+				var savedValue    = CreateUUId();
+				var configOptions = { test=CreateUUId() }
+
+				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( action ).$results( true );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = action
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = { value=savedValue, config=configOptions }
+				).$results( rendered );
+
+				expect( service.renderConfigScreen(
+					  fieldType          = fieldType
+					, currentValue       = savedValue
+					, fieldConfiguration = configOptions
+				) ).toBe( rendered );
+			} );
+
+			it( "should throw an informative error when the field type has no 'renderConfigScreen' handler", function(){
+				var service     = _getService();
+				var handler     = "some.handler";
+				var action      = handler & ".renderConfigScreen";
+				var fieldType   = "mytype";
+				var errorThrown = false;
+
+				service.$( "getHandlerForFieldType" ).$args( fieldType ).$results( handler );
+				mockColdbox.$( "handlerExists" ).$args( action ).$results( false );
+
+				try {
+					service.renderConfigScreen(
+						  fieldType          = fieldType
+						, currentValue       = ""
+						, fieldConfiguration = {}
+					);
+				} catch( "preside.rules.fieldtype.missing.config.screen" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The field type, [#fieldType#], has no [renderConfigScreen] handler with which to show a configuration screen" );
+				} catch( any e ) {
+					fail( "A specific and helpful error message was not thrown. Instead: [#e.message#]" );
+				}
+
+				expect( errorThrown ).toBe( true );
 			} );
 		} );
 
