@@ -13,7 +13,12 @@
 component displayName="RulesEngine Condition Service" {
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @expressionService.inject rulesEngineExpressionService
+	 *
+	 */
+	public any function init( required any expressionService ) {
+		_setExpressionService( arguments.expressionService );
 		return this;
 	}
 
@@ -34,14 +39,78 @@ component displayName="RulesEngine Condition Service" {
 	public boolean function validateCondition(
 		  required string condition
 		, required string context
-		, required any validationResult
+		, required any    validationResult
 	) {
 		if ( !IsJson( arguments.condition ) ) {
-			arguments.validationResult.setGeneralMessage( "The passed condition was malformed and could not be read" );
-			return false;
+			return _malformedError( arguments.validationResult );
 		}
 
+		var parsedCondition = DeserializeJson( arguments.condition );
+
+		if ( !IsArray( parsedCondition ) ) {
+			return _malformedError( arguments.validationResult );
+		}
+
+		return _validateConditionGroup( parsedCondition, arguments.context, arguments.validationResult );
+	}
+
+// PRIVATE HELPERS
+	private boolean function _validateConditionGroup(
+		  required array  group
+		, required string context
+		, required any    validationResult
+	) {
+		var isValid = true;
+		var validJoins = "^(and|or)$";
+
+		for( var i=1; i<=arguments.group.len(); i++ ){
+			var item     = arguments.group[ i ];
+			var isOddRow = ( i mod 2 ) == 1;
+
+			if ( isOddRow ) {
+				if ( IsArray( item ) ) {
+					isValid = _validateConditionGroup( item, arguments.context, arguments.validationResult );
+					if ( !isValid ) {
+						return false;
+					}
+				} else if ( IsStruct( item ) ) {
+					if ( !item.keyExists( "expression" ) || !item.keyExists( "fields" ) ) {
+						return _malformedError( arguments.validationResult );
+					}
+					isValid = _getExpressionService().isExpressionValid(
+						  expressionId     = item.expression
+						, fields           = item.fields
+						, context          = arguments.context
+						, validationResult = arguments.validationResult
+					);
+					if ( !isValid ) {
+						return false;
+					}
+				} else {
+					return _malformedError( arguments.validationResult );
+				}
+			} else if ( IsSimpleValue( item ) ) {
+				if ( !item.reFindNoCase( validJoins ) ) {
+					return _malformedError( arguments.validationResult );
+				}
+			} else {
+				return _malformedError( arguments.validationResult );
+			}
+		}
 		return true;
+	}
+
+	private boolean function _malformedError( required any validationResult ) {
+		arguments.validationResult.setGeneralMessage( "The passed condition was malformed and could not be read" );
+		return false;
+	}
+
+// GETTERS AND SETTERS
+	private any function _getExpressionService() {
+		return _expressionService;
+	}
+	private void function _setExpressionService( required any expressionService ) {
+		_expressionService = arguments.expressionService;
 	}
 
 }
