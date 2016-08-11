@@ -309,6 +309,31 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeFalse();
 			} );
 		} );
+
+		describe( "evaluateCondition()", function(){
+			it( "should return true when it contains a single expression that evaluates to true for the given payload", function(){
+				var service   = _getService();
+				var payload   = { blah=CreateUUId() };
+				var context   = CreateUUId();
+				var condition = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+
+				expect( service.evaluateCondition(
+					  condition = SerializeJson( condition )
+					, context   = context
+					, payload   = payload
+				) ).toBe( true );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

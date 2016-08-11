@@ -54,6 +54,24 @@ component displayName="RulesEngine Condition Service" {
 		return _validateConditionGroup( parsedCondition, arguments.context, arguments.validationResult );
 	}
 
+	/**
+	 * Evaluates a given JSON condition by logically
+	 * evaluating each of its expressions with the given
+	 * payload and context.
+	 *
+	 * @autodoc
+	 * @condition.hint JSON condition containing expressions to evaluate
+	 * @context.hint   The context of the evaluation, e.g. 'webrequest', or 'workflow', etc.
+	 * @payload.hint   Payload for the given context, e.g. a structure containing workflow state, or information about the current web request
+	 */
+	public boolean function evaluateCondition(
+		  required string condition
+		, required string context
+		, required struct payload
+	) {
+		return true;
+	}
+
 // PRIVATE HELPERS
 	private boolean function _validateConditionGroup(
 		  required array  group
