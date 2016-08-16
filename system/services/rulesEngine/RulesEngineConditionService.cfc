@@ -69,6 +69,24 @@ component displayName="RulesEngine Condition Service" {
 		, required string context
 		, required struct payload
 	) {
+		var parsedCondition = DeserializeJson( arguments.condition );
+
+		for( var i=1; i<=parsedCondition.len(); i++ ) {
+			var item     = parsedCondition[i];
+			var isOddRow = ( i mod 2 == 1 )
+
+			if ( isOddRow ) {
+				var expressionResult = _getExpressionService().evaluateExpression(
+					  expressionId     = item.expression
+					, context          = arguments.context
+					, payload          = arguments.payload
+					, configuredFields = item.fields
+				);
+
+				return expressionResult;
+			}
+		}
+
 		return true;
 	}
 
