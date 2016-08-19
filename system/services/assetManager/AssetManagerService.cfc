@@ -1090,7 +1090,7 @@ component displayName="AssetManager Service" {
 
 	public boolean function permanentlyDeleteAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title", "asset_folder" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title", "asset_folder", "id" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
