@@ -1,30 +1,31 @@
 <cfscript>
-	objectName          = "rules_engine_condition"
-	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
-	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
-	prioritizeBtn       = translateResource( uri="cms:websitebenefitsmanager.prioritize.btn" );
+	objectName = "rules_engine_condition";
+	contexts   = prc.contexts ?: [];
 </cfscript>
 
 
 <cfoutput>
-<!--- 	<div class="top-right-button-group">
-		<cfif hasCmsPermission( "websiteBenefitsManager.prioritize" )>
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.prioritize" )#" data-global-key="p">
-				<button class="btn btn-default btn-sm">
-					<i class="fa fa-sort-amount-asc"></i>
-					#prioritizeBtn#
-				</button>
-			</a>
+	<div class="top-right-button-group">
+		<cfif hasCmsPermission( "rulesEngine.add" )>
+			<button data-toggle="dropdown" class="btn btn-sm btn-success pull-right inline">
+				<span class="fa fa-caret-down"></span>
+				<i class="fa fa-fw fa-plus"></i>&nbsp; #translateResource( 'cms:rulesEngine.add.condition.btn')#
+			</button>
+
+			<ul class="dropdown-menu pull-right dropdown-caret dropdown-caret-right" role="menu" aria-labelledby="label">
+				<cfloop array="#contexts#" item="context" index="i">
+					<li>
+						<a href="#event.buildAdminLink( linkTo='rulesEngine.addCondition', queryString='context=' & context.id )#">
+							<i class="fa fa-fw #context.iconClass#"></i>&nbsp; #context.title#
+							<br>
+							<i class="fa fa-fw"></i>&nbsp; <em class="grey">#context.description#</em>
+
+						</a>
+					</li>
+				</cfloop>
+			</ul>
 		</cfif>
-		<cfif hasCmsPermission( "websiteBenefitsManager.add" )>
-			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.addBenefit" )#" data-global-key="a">
-				<button class="btn btn-success btn-sm">
-					<i class="fa fa-plus"></i>
-					#addRecordTitle#
-				</button>
-			</a>
-		</cfif>
-	</div> --->
+	</div>
 
 	#renderView( view="/admin/datamanager/_objectDataTable", args={
 		  objectName      = objectName

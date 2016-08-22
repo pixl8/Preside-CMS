@@ -1,5 +1,6 @@
 component extends="preside.system.base.AdminHandler" {
 
+	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );
@@ -20,6 +21,8 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageIcon     = translateResource( "cms:rulesEngine.iconClass" );
 		prc.pageTitle    = translateResource( "cms:rulesEngine.page.title" );
 		prc.pageSubTitle = translateResource( "cms:rulesEngine.page.subtitle" );
+
+		prc.contexts     = rulesEngineConditionService.listContexts();
 	}
 
 	public void function getConditionsForAjaxDataTables( event, rc, prc )  {
