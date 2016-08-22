@@ -740,6 +740,127 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, payload     = payload
 				) ).toBeFalse();
 			} );
+
+			it( "should return true when the condition contains a complex and nested structure of expressions that follow logical boolean rules", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",[{
+						  expression = "another.expression"
+						, fields     = { test=CreateUUId(), _is=true }
+					},"or",[{
+							  expression = "another.expression"
+							, fields     = { test=CreateUUId(), _is=true }
+							},"and",{
+							  expression = "another.expression"
+							, fields     = { test=CreateUUId(), _is=true } }
+							]
+					]
+				];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][1].expression
+					, configuredFields = condition[3][1].fields
+					, context          = context
+					, payload          = payload
+				).$results( false );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][3][1].expression
+					, configuredFields = condition[3][3][1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][3][3].expression
+					, configuredFields = condition[3][3][3].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeTrue();
+			} );
+
+			it( "should return false when the condition contains a complex and nested structure of expressions that follow logical boolean rules that would evaluate false", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",[{
+						  expression = "another.expression"
+						, fields     = { test=CreateUUId(), _is=true }
+					},"or",[{
+							  expression = "another.expression"
+							, fields     = { test=CreateUUId(), _is=true }
+							},"and",{
+							  expression = "another.expression"
+							, fields     = { test=CreateUUId(), _is=true }
+							},"and",{
+							  expression = "boom.expression"
+							, fields     = { test=CreateUUId(), _is=true }
+							} ]
+					]
+				];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][1].expression
+					, configuredFields = condition[3][1].fields
+					, context          = context
+					, payload          = payload
+				).$results( false );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][3][1].expression
+					, configuredFields = condition[3][3][1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][3][3].expression
+					, configuredFields = condition[3][3][3].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3][3][5].expression
+					, configuredFields = condition[3][3][5].fields
+					, context          = context
+					, payload          = payload
+				).$results( false );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeFalse();
+			} );
 		} );
 	}
 

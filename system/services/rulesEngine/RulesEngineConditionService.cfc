@@ -164,18 +164,27 @@ component displayName="RulesEngine Condition Service" {
 	) {
 		var currentEvaluation = true;
 		var currentJoin       = "and";
+		var expressionResult  = true;
 
 		for( var i=1; i<=arguments.expressionArray.len(); i++ ) {
 			var item     = arguments.expressionArray[i];
-			var isOddRow = ( i mod 2 == 1 )
+			var isOddRow = ( i mod 2 == 1 );
 
 			if ( isOddRow ) {
-				var expressionResult = _getExpressionService().evaluateExpression(
-					  expressionId     = item.expression
-					, context          = arguments.context
-					, payload          = arguments.payload
-					, configuredFields = item.fields
-				);
+				if ( IsArray( item ) ) {
+					expressionResult = _evaluateExpressionArray(
+						  expressionArray = item
+						, context         = arguments.context
+						, payload         = arguments.payload
+					);
+				} else {
+					expressionResult = _getExpressionService().evaluateExpression(
+						  expressionId     = item.expression
+						, context          = arguments.context
+						, payload          = arguments.payload
+						, configuredFields = item.fields
+					);
+				}
 
 				if ( currentJoin == "and" ) {
 					currentEvaluation = currentEvaluation && expressionResult;
