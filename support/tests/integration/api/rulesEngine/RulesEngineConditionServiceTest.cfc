@@ -1,6 +1,41 @@
 component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
+		describe( "getCondition()", function(){
+			it( "should return a deSerialized expression from database lookup of serialized expression by ID", function(){
+				var service     = _getService();
+				var conditionId = CreateUUId();
+				var expressions = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+				var dbRecord    = QueryNew( "id,condition_name,context,expressions", "varchar,varchar,varchar,varchar", [[
+					conditionId, "My Condition", "visitor", SerializeJson( expressions )
+				]] );
+
+
+				mockConditionDao.$( "selectData" ).$args( id=conditionId ).$results( dbRecord );
+
+				expect( service.getCondition( conditionId ) ).toBe( {
+					  id          = conditionId
+					, name        = dbRecord.condition_name
+					, context     = dbRecord.context
+					, expressions = expressions
+				} );
+
+			} );
+
+			it( "should return an empty struct when the condition does not exist", function(){
+				var service     = _getService();
+				var conditionId = CreateUUId();
+				var dbRecord    = QueryNew( "id,condition_name,context,expressions" );
+
+				mockConditionDao.$( "selectData" ).$args( id=conditionId ).$results( dbRecord );
+
+				expect( service.getCondition( conditionId ) ).toBe( {} );
+			} );
+		} );
+
 		describe( "validateCondition()", function(){
 			it( "should return false when passed condition is not valid JSON", function(){
 				var service          = _getService();
@@ -312,13 +347,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "evaluateCondition()", function(){
 			it( "should return true when it contains a single expression that evaluates to true for the given payload", function(){
-				var service   = _getService();
-				var payload   = { blah=CreateUUId() };
-				var context   = CreateUUId();
-				var condition = [{
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
 					  expression = "test.expression"
 					, fields     = { test=CreateUUId(), _is=true }
 				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
 
 				mockExpressionService.$( "evaluateExpression" ).$args(
 					  expressionId     = condition[1].expression
@@ -328,20 +366,23 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( true );
 
 				expect( service.evaluateCondition(
-					  condition = SerializeJson( condition )
-					, context   = context
-					, payload   = payload
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
 				) ).toBeTrue();
 			} );
 
 			it( "should return false when it contains a single expression that evaluates to false for the given payload", function(){
-				var service   = _getService();
-				var payload   = { blah=CreateUUId() };
-				var context   = CreateUUId();
-				var condition = [{
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
 					  expression = "test.expression"
 					, fields     = { test=CreateUUId(), _is=true }
 				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
 
 				mockExpressionService.$( "evaluateExpression" ).$args(
 					  expressionId     = condition[1].expression
@@ -351,9 +392,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( false );
 
 				expect( service.evaluateCondition(
-					  condition = SerializeJson( condition )
-					, context   = context
-					, payload   = payload
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
 				) ).toBeFalse();
 			} );
 		} );
@@ -363,12 +404,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private any function _getService() {
 		variables.mockColdbox = createStub();
 		variables.mockExpressionService = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionService" );
+		variables.mockConditionDao = createStub();
 
 		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineConditionService(
 			expressionService = mockExpressionService
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$getPresideObject" ).$args( "rules_engine_condition" ).$results( mockConditionDao );
 		mockExpressionService.$( "isExpressionValid", true );
 
 		return service;

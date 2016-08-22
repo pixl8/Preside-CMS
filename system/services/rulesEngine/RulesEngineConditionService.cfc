@@ -26,6 +26,30 @@ component displayName="RulesEngine Condition Service" {
 // PUBLIC API
 
 	/**
+	 * Returns a structure with details of the condition
+	 * that matches the supplied condition ID. Struct keys:
+	 * `id`, `name`, `context` and `expression`. Returns an empty
+	 * struct when the condition is not found.
+	 *
+	 * @autodoc
+	 * @conditionId.hint ID of the condition to get.
+	 */
+	public struct function getCondition( required string conditionId ) {
+		var conditionRecord = $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
+
+		if ( conditionRecord.recordCount ) {
+			return {
+				  id          = arguments.conditionId
+				, name        = conditionRecord.condition_name
+				, context     = conditionRecord.context
+				, expressions = DeSerializeJson( conditionRecord.expressions )
+			};
+		}
+
+		return {};
+	}
+
+	/**
 	 * Validates the passed JSON condition string
 	 * for the given context. Returns true when valid,
 	 * false otherwise. Sets any errors in the passed
@@ -55,24 +79,24 @@ component displayName="RulesEngine Condition Service" {
 	}
 
 	/**
-	 * Evaluates a given JSON condition by logically
+	 * Evaluates a given condition by logically
 	 * evaluating each of its expressions with the given
 	 * payload and context.
 	 *
 	 * @autodoc
-	 * @condition.hint JSON condition containing expressions to evaluate
-	 * @context.hint   The context of the evaluation, e.g. 'webrequest', or 'workflow', etc.
-	 * @payload.hint   Payload for the given context, e.g. a structure containing workflow state, or information about the current web request
+	 * @conditionId.hint ID of the condition stored in the database
+	 * @context.hint     The context of the evaluation, e.g. 'webrequest', or 'workflow', etc.
+	 * @payload.hint     Payload for the given context, e.g. a structure containing workflow state, or information about the current web request
 	 */
 	public boolean function evaluateCondition(
-		  required string condition
+		  required string conditionId
 		, required string context
 		, required struct payload
 	) {
-		var parsedCondition = DeserializeJson( arguments.condition );
+		var condition = getCondition( arguments.conditionId );
 
-		for( var i=1; i<=parsedCondition.len(); i++ ) {
-			var item     = parsedCondition[i];
+		for( var i=1; i<=condition.expressions.len(); i++ ) {
+			var item     = condition.expressions[i];
 			var isOddRow = ( i mod 2 == 1 )
 
 			if ( isOddRow ) {
