@@ -10,7 +10,7 @@
 			<i class="fa fa-fw fa-caret-down"></i>
 		</a>
 
-		<ul class="admin-locale-picker dropdown-menu dropdown-caret pull-right dropdown-close dropdown-yellow">
+		<ul class="admin-locale-picker dropdown-menu dropdown-caret dropdown-close dropdown-yellow">
 			<cfloop array="#args.locales#" item="locale" index="i">
 				<li <cfif locale.selected>class="active"</cfif>>
 					<a href="#args.baseUrl##locale.locale#" class="locale-link">
