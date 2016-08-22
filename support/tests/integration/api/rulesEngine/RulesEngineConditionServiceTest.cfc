@@ -412,6 +412,152 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, payload     = payload
 				) ).toBeFalse();
 			} );
+
+			it( "should return true when the condition contains two 'true' evaluating expressions separated by an 'and'", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "another.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3].expression
+					, configuredFields = condition[3].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeTrue();
+			} );
+
+			it( "should return false when the condition contains one 'true' evaluating expression followed by a 'false' evaluating expression and separated by an 'and'", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "another.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3].expression
+					, configuredFields = condition[3].fields
+					, context          = context
+					, payload          = payload
+				).$results( false );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeFalse();
+			} );
+
+			it( "should return false when the condition contains one 'false' evaluating expression followed by a 'true' evaluating expression and separated by an 'and'", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "another.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( false );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3].expression
+					, configuredFields = condition[3].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeFalse();
+			} );
+
+			it( "should not evaluate the second expression when the condition contains one 'false' evaluating expression followed by a 'true' evaluating expression and separated by an 'and'", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+				var condition   = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",{
+					  expression = "another.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				}];
+
+				service.$( "getCondition" ).$args( conditionId ).$results( { expressions=condition } );
+
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[1].expression
+					, configuredFields = condition[1].fields
+					, context          = context
+					, payload          = payload
+				).$results( false );
+				mockExpressionService.$( "evaluateExpression" ).$args(
+					  expressionId     = condition[3].expression
+					, configuredFields = condition[3].fields
+					, context          = context
+					, payload          = payload
+				).$results( true );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeFalse();
+
+				expect( mockExpressionService.$callLog().evaluateExpression.len() ).toBe( 1 );
+			} );
 		} );
 	}
 

@@ -99,23 +99,11 @@ component displayName="RulesEngine Condition Service" {
 			return false;
 		}
 
-		for( var i=1; i<=condition.expressions.len(); i++ ) {
-			var item     = condition.expressions[i];
-			var isOddRow = ( i mod 2 == 1 )
-
-			if ( isOddRow ) {
-				var expressionResult = _getExpressionService().evaluateExpression(
-					  expressionId     = item.expression
-					, context          = arguments.context
-					, payload          = arguments.payload
-					, configuredFields = item.fields
-				);
-
-				return expressionResult;
-			}
-		}
-
-		return true;
+		return _evaluateExpressionArray(
+			  expressionArray = condition.expressions
+			, context         = arguments.context
+			, payload         = arguments.payload
+		);
 	}
 
 // PRIVATE HELPERS
@@ -167,6 +155,42 @@ component displayName="RulesEngine Condition Service" {
 	private boolean function _malformedError( required any validationResult ) {
 		arguments.validationResult.setGeneralMessage( "The passed condition was malformed and could not be read" );
 		return false;
+	}
+
+	private boolean function _evaluateExpressionArray(
+		  required array  expressionArray
+		, required string context
+		, required struct payload
+	) {
+		var currentEvaluation = true;
+		var currentJoin       = "and";
+
+		for( var i=1; i<=arguments.expressionArray.len(); i++ ) {
+			var item     = arguments.expressionArray[i];
+			var isOddRow = ( i mod 2 == 1 )
+
+			if ( isOddRow ) {
+				var expressionResult = _getExpressionService().evaluateExpression(
+					  expressionId     = item.expression
+					, context          = arguments.context
+					, payload          = arguments.payload
+					, configuredFields = item.fields
+				);
+
+				if ( currentJoin == "and" ) {
+					currentEvaluation = currentEvaluation && expressionResult;
+				} else {
+					currentEvaluation = currentEvaluation || expressionResult;
+				}
+			} else {
+				currentJoin = item;
+				if ( currentJoin == "and" && !currentEvaluation ) {
+					return false;
+				}
+			}
+		}
+
+		return currentEvaluation;
 	}
 
 // GETTERS AND SETTERS
