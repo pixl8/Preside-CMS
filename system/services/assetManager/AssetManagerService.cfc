@@ -1046,7 +1046,7 @@ component displayName="AssetManager Service" {
 
 	public boolean function trashAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "storage_path", "title", "asset_folder", "active_version" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "id", "storage_path", "title", "asset_folder", "active_version" ] );
 		var private     = isAssetAccessRestricted( arguments.id );
 		var trashedPath = "";
 
@@ -1090,7 +1090,7 @@ component displayName="AssetManager Service" {
 
 	public boolean function permanentlyDeleteAsset( required string id ) {
 		var assetDao    = _getAssetDao();
-		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "trashed_path", "title", "asset_folder" ] );
+		var asset       = assetDao.selectData( id=arguments.id, selectFields=[ "id", "trashed_path", "title", "asset_folder" ] );
 		var trashedPath = "";
 
 		if ( !asset.recordCount ) {
