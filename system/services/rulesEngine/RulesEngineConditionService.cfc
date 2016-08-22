@@ -186,6 +186,8 @@ component displayName="RulesEngine Condition Service" {
 				currentJoin = item;
 				if ( currentJoin == "and" && !currentEvaluation ) {
 					return false;
+				} else if ( currentJoin == "or" && currentEvaluation ) {
+					return true;
 				}
 			}
 		}
