@@ -6,7 +6,7 @@
 		<i class="fa fa-caret-down"></i>
 	</a>
 
-	<ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+	<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 		<li>
 			<a href="#event.buildAdminLink( linkTo="editProfile" )#">
 				<i class="fa fa-user"></i>

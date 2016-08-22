@@ -10,7 +10,7 @@
 		<span class="badge <cfif notificationCount>badge-important</cfif>">#notificationCount#</span>
 	</a>
 
-	<ul class="pull-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
+	<ul class="dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
 		<li class="dropdown-header">
 			<cfif notificationCount>
 				<i class="icon-warning-sign"></i>
