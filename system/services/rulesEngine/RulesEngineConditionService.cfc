@@ -95,6 +95,10 @@ component displayName="RulesEngine Condition Service" {
 	) {
 		var condition = getCondition( arguments.conditionId );
 
+		if ( condition.isEmpty() ) {
+			return false;
+		}
+
 		for( var i=1; i<=condition.expressions.len(); i++ ) {
 			var item     = condition.expressions[i];
 			var isOddRow = ( i mod 2 == 1 )

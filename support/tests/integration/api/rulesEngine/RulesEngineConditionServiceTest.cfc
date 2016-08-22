@@ -397,6 +397,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, payload     = payload
 				) ).toBeFalse();
 			} );
+
+			it( "should return false when the condition does not exist", function(){
+				var service     = _getService();
+				var payload     = { blah=CreateUUId() };
+				var context     = CreateUUId();
+				var conditionId = CreateUUId();
+
+				service.$( "getCondition" ).$args( conditionId ).$results( {} );
+
+				expect( service.evaluateCondition(
+					  conditionId = conditionId
+					, context     = context
+					, payload     = payload
+				) ).toBeFalse();
+			} );
 		} );
 	}
 
