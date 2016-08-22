@@ -22,6 +22,21 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:rulesEngine.page.subtitle" );
 	}
 
+	public void function getConditionsForAjaxDataTables( event, rc, prc )  {
+		_checkPermissions( argumentCollection=arguments, key="read" );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object      = "rules_engine_condition"
+				, gridFields  = "condition_name,context,datemodified"
+				, actionsView = "/admin/rulesEngine/_conditionsTableActions"
+			}
+		);
+	}
+
 // PRIVATE HELPERS
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permKey = "rulesEngine." & arguments.key;

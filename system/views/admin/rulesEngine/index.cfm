@@ -1,1 +1,35 @@
-<!--- TODO --->
+<cfscript>
+	objectName          = "rules_engine_condition"
+	objectTitleSingular = translateResource( uri="preside-objects.#objectName#:title.singular", defaultValue=objectName );
+	addRecordTitle      = translateResource( uri="cms:datamanager.addrecord.title", data=[ LCase( objectTitleSingular ) ] );
+	prioritizeBtn       = translateResource( uri="cms:websitebenefitsmanager.prioritize.btn" );
+</cfscript>
+
+
+<cfoutput>
+<!--- 	<div class="top-right-button-group">
+		<cfif hasCmsPermission( "websiteBenefitsManager.prioritize" )>
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.prioritize" )#" data-global-key="p">
+				<button class="btn btn-default btn-sm">
+					<i class="fa fa-sort-amount-asc"></i>
+					#prioritizeBtn#
+				</button>
+			</a>
+		</cfif>
+		<cfif hasCmsPermission( "websiteBenefitsManager.add" )>
+			<a class="pull-right inline" href="#event.buildAdminLink( linkTo="websitebenefitsmanager.addBenefit" )#" data-global-key="a">
+				<button class="btn btn-success btn-sm">
+					<i class="fa fa-plus"></i>
+					#addRecordTitle#
+				</button>
+			</a>
+		</cfif>
+	</div> --->
+
+	#renderView( view="/admin/datamanager/_objectDataTable", args={
+		  objectName      = objectName
+		, useMultiActions = false
+		, datasourceUrl   = event.buildAdminLink( linkTo="ajaxProxy", queryString="action=rulesengine.getConditionsForAjaxDataTables" )
+		, gridFields      = [ "condition_name", "context", "datemodified" ]
+	} )#
+</cfoutput>
