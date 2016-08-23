@@ -8,6 +8,7 @@
 			  , $builderContainer = $formControl.next( "div.rules-engine-condition-builder" )
 			  , $searchInput      = $builderContainer.find( ".rules-engine-condition-builder-expression-search" )
 			  , $expressionList   = $builderContainer.find( ".rules-engine-condition-builder-expressions-list" )
+			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
 			  , $expressions      = $expressionList.find( "> li" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
@@ -16,7 +17,7 @@
 			  , performSearch
 			  , initializeBuilder
 			  , prepareSearchEngine
-			  , prepareExpressionAdditionBehavior
+			  , prepareDragAndDrop
 			  , addExpression
 			  , sortableStop;
 
@@ -26,7 +27,7 @@
 				$searchInput.on( "keyup", performSearch );
 
 				prepareSearchEngine();
-				prepareExpressionAdditionBehavior();
+				prepareDragAndDrop();
 			};
 
 			prepareSearchEngine = function(){
@@ -61,7 +62,13 @@
 
 			};
 
-			prepareExpressionAdditionBehavior = function() {
+			prepareDragAndDrop = function() {
+				$expressions.draggable( { helper : "clone" } );
+				$conditionPanel.droppable({
+					  accept     : $expressions
+		        	, drop       : addExpression
+		        	, hoverClass : "ui-droppable-hover"
+				});
 			};
 
 			addExpression = function( event, ui ){
