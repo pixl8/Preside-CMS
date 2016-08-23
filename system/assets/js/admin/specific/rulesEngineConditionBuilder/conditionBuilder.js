@@ -1,6 +1,70 @@
 ( function( $ ){
 
 	var expressionLib = cfrequest.rulesEngineExpressions || {};
+	var RulesEngineCondition = (function() {
+		function RulesEngineCondition( $formControl ) {
+			this.$formControl = $formControl;
+			this.model = this.deserialize( this.$formControl.val() );
+
+			this.render();
+		}
+
+		RulesEngineCondition.prototype.persistToHiddenField = function() {
+			this.$formControl.val( this.serialize() );
+		};
+
+		RulesEngineCondition.prototype.serialize = function() {
+			return JSON.stringify( this.model );
+		};
+
+		RulesEngineCondition.prototype.deserialize = function( initialConditionValue ) {
+			if ( this.isValidSerializedCondition( initialConditionValue ) ) {
+				try {
+					return JSON.parse( initialConditionValue );
+				} catch( e ) {}
+			}
+
+			return [];
+		};
+
+		RulesEngineCondition.prototype.isValidSerializedCondition = function( serializedCondition ) {
+			if ( typeof serializedCondition !== "string" ) {
+				return false;
+			}
+
+			if ( $.trim( serializedCondition ).length === 0 ) {
+				return false;
+			}
+
+			// TODO: ajax call to validate the json string
+			return true;
+		};
+
+		RulesEngineCondition.prototype.render = function() {
+			console.log( "TODO: render stuff" );
+		};
+
+		RulesEngineCondition.prototype.addExpression = function() {
+			console.log( "TODO: addExpression() logic" );
+			this.persistToHiddenField();
+			this.render();
+		};
+
+		RulesEngineCondition.prototype.removeExpression = function() {
+			console.log( "TODO: removeExpression() logic" );
+			this.persistToHiddenField();
+			this.render();
+		};
+
+		RulesEngineCondition.prototype.saveExpressionFieldValue = function() {
+			console.log( "TODO: saveExpressionFieldValue() logic" );
+			this.persistToHiddenField();
+			this.render();
+		};
+
+
+		return RulesEngineCondition;
+	})();
 
 	$.fn.rulesEngineConditionBuilder = function(){
 		return this.each( function(){
@@ -14,6 +78,8 @@
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , expressions       = expressionLib[ $formControl.attr( "id" ) ] || []
+			  , $hiddenControl
+			  , condition
 			  , performSearch
 			  , initializeBuilder
 			  , prepareSearchEngine
@@ -22,9 +88,23 @@
 			  , sortableStop;
 
 			initializeBuilder = function() {
-				$formControl.removeAttr( "tabindex" ).addClass( "hide" );
+				var id       = $formControl.attr( "id" )
+				  , name     = $formControl.attr( "name" )
+				  , tabIndex = $formControl.attr( "tabindex" )
+				  , val      = $formControl.val();
+
+
 				$builderContainer.removeClass( "hide" );
 				$searchInput.on( "keyup", performSearch );
+
+				$hiddenControl = $( '<input type="hidden">' );
+				$hiddenControl.val( val );
+				$hiddenControl.attr( "name", name );
+				$formControl.after( $hiddenControl );
+				$formControl.remove();
+				$hiddenControl.attr( "id", id );
+
+				condition = new RulesEngineCondition( $hiddenControl );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
