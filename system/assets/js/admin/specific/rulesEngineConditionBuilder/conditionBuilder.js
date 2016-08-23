@@ -2,9 +2,10 @@
 
 	var expressionLib = cfrequest.rulesEngineExpressions || {};
 	var RulesEngineCondition = (function() {
-		function RulesEngineCondition( $formControl ) {
+		function RulesEngineCondition( $formControl, expressions ) {
 			this.$formControl = $formControl;
-			this.model = this.deserialize( this.$formControl.val() );
+			this.model        = this.deserialize( this.$formControl.val() );
+			this.expressions  = expressions;
 
 			this.render();
 		}
@@ -45,9 +46,41 @@
 		};
 
 		RulesEngineCondition.prototype.addExpression = function( expressionId ) {
-			console.log( "TODO: addExpression() logic. Here we were passed expression ID: " + expressionId );
+			var newExpression = this.newExpression( expressionId );
+
+			if ( this.model.length ) {
+				this.model.push( "and" );
+			}
+			this.model.push( newExpression );
+
 			this.persistToHiddenField();
 			this.render();
+		};
+
+		RulesEngineCondition.prototype.newExpression = function( expressionId ) {
+			var expression, newExpression, fieldName;
+
+			for( var i=this.expressions.length-1; i>=0; i-- ) {
+				expression = this.expressions[ i ];
+				if ( expression.id.toLowerCase() === expressionId.toLowerCase() ) {
+					newExpression = {
+						  expression : expression.id
+						, fields     : {}
+					};
+
+					for( fieldName in expression.fields ){
+						if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
+							newExpression.fields[ fieldName ] = null;
+						} else {
+							newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
+						}
+					}
+
+					return newExpression;
+				}
+			}
+
+			return {};
 		};
 
 		RulesEngineCondition.prototype.removeExpression = function() {
@@ -104,7 +137,7 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 
-				condition = new RulesEngineCondition( $hiddenControl );
+				condition = new RulesEngineCondition( $hiddenControl, expressions );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
