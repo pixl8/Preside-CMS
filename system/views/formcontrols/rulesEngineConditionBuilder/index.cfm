@@ -22,14 +22,24 @@
 		<div class="well">
 			<div class="row">
 				<div class="col-md-6">
+					<h4 class="blue">Edit condition</h4>
 					<div class="rules-engine-condition-builder-condition-pane form-control">
-						<p>TODO: build conditions viewer here :)</p>
+						<ul class="list-unstyled rules-engine-condition-builder-rule-list">
+
+						</ul>
 					</div>
 				</div>
 				<div class="col-md-6">
+					<h4 class="blue">Expression library (drag and drop to add)</h4>
 					<div class="rules-engine-condition-builder-expressions-pane">
-						<input class="rules-engine-condition-builder-expression-search form-control">
-						<ul class="list-unstyled rules-engine-condition-builder-expressions-list">
+						<label class="block clearfix">
+							<span class="block input-icon input-icon-right">
+								<input class="rules-engine-condition-builder-expression-search form-control" placeholder="#HtmlEditFormat( translateResource( 'cms:rulesEngine.expression.search.placeholder' ) )#">
+								<i class="fa fa-search fa-fw light-grey"></i>
+							</span>
+						</label>
+
+						<ul class="list-unstyled rules-engine-condition-builder-expressions-list form-control">
 							<cfloop array="#expressions#" item="expression" index="i">
 								<li data-id="#expression.id#">#expression.label#</li>
 							</cfloop>
