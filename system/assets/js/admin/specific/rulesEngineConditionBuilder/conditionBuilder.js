@@ -44,8 +44,8 @@
 			console.log( "TODO: render stuff" );
 		};
 
-		RulesEngineCondition.prototype.addExpression = function() {
-			console.log( "TODO: addExpression() logic" );
+		RulesEngineCondition.prototype.addExpression = function( expressionId ) {
+			console.log( "TODO: addExpression() logic. Here we were passed expression ID: " + expressionId );
 			this.persistToHiddenField();
 			this.render();
 		};
@@ -153,7 +153,7 @@
 
 			addExpression = function( event, ui ){
 				var $expression = ui.draggable.clone();
-				alert( $expression.data( "id" ) );
+				condition.addExpression( $expression.data( "id" ) );
 			};
 
 			sortableStop = function(){
