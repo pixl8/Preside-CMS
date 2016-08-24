@@ -11,6 +11,7 @@
 			this.expressions      = expressions;
 			this.fieldRenderCache = {};
 
+			this.setupBehaviors();
 			this.render();
 		}
 
@@ -48,10 +49,10 @@
 		RulesEngineCondition.prototype.render = function() {
 			var lis, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
 
-			transformExpressionsToHtmlLis = function( expressions, depth ) {
+			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
 				var lis        = []
 				  , indent     = ( 20 * depth )
-				  , liTemplate = '<li style="margin-left:' + indent + 'px"></li>'
+				  , liTemplate = '<li class="rules-engine-condition-builder-expression" style="margin-left:' + indent + 'px"></li>'
 				  , $li, i;
 
 				for( i=0; i<expressions.length; i++ ) {
@@ -61,12 +62,14 @@
 
 					if ( isOddRow ) {
 						$li = $( liTemplate );
-						$li.html( expression );
+						$li.data( "modelIndex", index.concat([i]) );
+						$li.html( '<a class="rules-engine-condition-builder-join-toggle">' + i18n.translateResource( "cms:rulesEngine.join." + expression ) + "</a>" );
 						lis.push( $li );
 					} else if ( Array.isArray( expression ) ) {
-						lis = lis.concat( transformExpressionsToHtmlLis( expression, depth+1 ) );
+						lis = lis.concat( transformExpressionsToHtmlLis( expression, depth+1, index.concat([i]) ) );
 					} else {
 						$li = $( liTemplate );
+						$li.data( "modelIndex", index.concat([i]) );
 						$li.html( rulesEngineCondition.renderExpression( expression ) );
 						lis.push( $li );
 					}
@@ -75,7 +78,7 @@
 				return lis;
 			};
 
-			lis = transformExpressionsToHtmlLis( this.model, 0 );
+			lis = transformExpressionsToHtmlLis( this.model, 0, [] );
 			this.$ruleList.html( "" );
 			for( i=0; i<lis.length; i++ ) {
 				this.$ruleList.append( lis[i] );
@@ -188,7 +191,45 @@
 			} else {
 				$field.html( '<a class="rules-engine-condition-builder-field-link">' + "[" + fieldDefinition.defaultLabel + "]" + '</a>' );
 			}
-		}
+		};
+
+		RulesEngineCondition.prototype.setupBehaviors = function() {
+			var rulesEngineCondition = this;
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-join-toggle", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.toggleJoin( $( this ) );
+			} );
+		};
+
+		RulesEngineCondition.prototype.getModelIndexString = function( index ){
+			var string = "this.model[", i;
+
+			for( i=0; i<index.length; i++ ) {
+				string += index[i];
+				if ( i < ( index.length-1 ) ) {
+					string += '][';
+				}
+			}
+
+			string += "]";
+
+			return string;
+		};
+
+		RulesEngineCondition.prototype.toggleJoin = function( $clickedJoin ) {
+			var $li = $clickedJoin.closest( ".rules-engine-condition-builder-expression" )
+			  , modelIndexString, currentValue, newValue;
+
+			if ( $li.length ) {
+				modelIndexString = this.getModelIndexString( $li.data( "modelIndex" ) );
+				currentValue     = eval( modelIndexString );
+				newValue         = currentValue === "and" ? "or" : "and";
+
+				eval( modelIndexString + ' = "' + newValue + '"' );
+				this.render();
+			}
+		};
 
 		return RulesEngineCondition;
 	})();
