@@ -158,7 +158,7 @@
 
 			for( fieldName in expression.fields ) {
 				fieldPatternRegex = new RegExp( "\{" + fieldName + "\}", "gi" );
-				text = text.replace( fieldPatternRegex, '<span data-field-name="' + fieldName + '"></span>' );
+				text = text.replace( fieldPatternRegex, '<span class="rules-engine-condition-builder-field" data-field-name="' + fieldName + '"></span>' );
 			}
 
 			$expression.html( text );
@@ -168,6 +168,8 @@
 				$field          = $expression.find( "[data-field-name=" + fieldName + "]" );
 
 				fieldDefinition = definition.fields[ fieldName ] || {};
+				$field.data( "fieldDefinition", fieldDefinition );
+				$field.data( "fieldValue", fieldValue );
 
 				this.renderField( fieldName, fieldValue, fieldDefinition, $field );
 			}
@@ -200,6 +202,11 @@
 				e.preventDefault();
 				rulesEngineCondition.toggleJoin( $( this ) );
 			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-field-link", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.processFieldClick( $( this ) );
+			} );
 		};
 
 		RulesEngineCondition.prototype.getModelIndexString = function( index ){
@@ -230,6 +237,27 @@
 				this.render();
 			}
 		};
+
+		RulesEngineCondition.prototype.processFieldClick = function( $clickedFieldLink ) {
+			var $field = $clickedFieldLink.closest( ".rules-engine-condition-builder-field" )
+			  , $li, fieldDefinition, fieldName, fieldValue, expressionModel;
+
+			if ( $field.length ) {
+				$li = $field.closest( ".rules-engine-condition-builder-expression" );
+				expressionModel = eval( this.getModelIndexString( $li.data( "modelIndex" ) ) );
+
+				fieldDefinition = $field.data( "fieldDefinition" );
+				fieldName       = $field.data( "fieldName" );
+				fieldValue      = $field.data( "fieldValue" );
+				fieldType       = fieldDefinition.fieldType;
+
+				if ( fieldType === "boolean" ) {
+					expressionModel.fields[ fieldName ] = !expressionModel.fields[ fieldName ];
+				}
+
+				this.render();
+			}
+		}
 
 		return RulesEngineCondition;
 	})();

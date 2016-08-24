@@ -7,6 +7,13 @@
   -moz-box-box-shadow: 0px 0px 5px #8b9aa3 !important;
   box-shadow: 0px 0px 5px #8b9aa3 !important;
 }
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list a {
+  cursor: pointer;
+  border-bottom: 1px dotted;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list a:hover {
+  text-decoration: none;
+}
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-expressions-list {
   height: 400px;
   overflow-y: auto;
