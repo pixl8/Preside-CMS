@@ -2,8 +2,9 @@
 
 	var expressionLib = cfrequest.rulesEngineExpressions || {};
 	var RulesEngineCondition = (function() {
-		function RulesEngineCondition( $formControl, expressions ) {
+		function RulesEngineCondition( $formControl, expressions, $ruleList ) {
 			this.$formControl = $formControl;
+			this.$ruleList    = $ruleList;
 			this.model        = this.deserialize( this.$formControl.val() );
 			this.expressions  = expressions;
 
@@ -42,7 +43,34 @@
 		};
 
 		RulesEngineCondition.prototype.render = function() {
-			console.log( "TODO: render stuff" );
+			var lis, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
+
+			transformExpressionsToHtmlLis = function( expressions, depth ) {
+				var i, lis=[], indent=10 * depth, liTag='<li style="margin-left:' + indent + 'px">';
+
+				for( i=0; i<expressions.length; i++ ) {
+					var isOddRow = i % 2
+					  , expression = expressions[i];
+
+
+					if ( isOddRow ) {
+						lis.push( liTag + expression + '</li>' );
+					} else if ( Array.isArray( expression ) ) {
+						lis.concat( transformExpressionsToHtmlLis( expression, depth+1 ) );
+					} else {
+
+						lis.push( liTag + rulesEngineCondition.getExpression( expression.expression ).text + '</li>' );
+					}
+				}
+
+				return lis;
+			};
+
+			lis = transformExpressionsToHtmlLis( this.model, 0 );
+			this.$ruleList.html( "" );
+			for( i=0; i<lis.length; i++ ) {
+				this.$ruleList.append( lis[i] );
+			}
 		};
 
 		RulesEngineCondition.prototype.addExpression = function( expressionId ) {
@@ -58,29 +86,40 @@
 		};
 
 		RulesEngineCondition.prototype.newExpression = function( expressionId ) {
-			var expression, newExpression, fieldName;
+			var expression = this.getExpression( expressionId )
+			  , newExpression;
 
-			for( var i=this.expressions.length-1; i>=0; i-- ) {
-				expression = this.expressions[ i ];
-				if ( expression.id.toLowerCase() === expressionId.toLowerCase() ) {
-					newExpression = {
-						  expression : expression.id
-						, fields     : {}
-					};
+			if ( expression === null ) {
+				return {};
+			}
 
-					for( fieldName in expression.fields ){
-						if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
-							newExpression.fields[ fieldName ] = null;
-						} else {
-							newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
-						}
-					}
+			newExpression = {
+				  expression : expression.id
+				, fields     : {}
+			};
 
-					return newExpression;
+			for( fieldName in expression.fields ){
+				if ( typeof expression.fields[ fieldName ].default === "undefined" ) {
+					newExpression.fields[ fieldName ] = null;
+				} else {
+					newExpression.fields[ fieldName ] = expression.fields[ fieldName ].default;
 				}
 			}
 
-			return {};
+			return newExpression;
+		};
+
+		RulesEngineCondition.prototype.getExpression = function( expressionId ) {
+			var i, expression;
+
+			for( i=this.expressions.length-1; i>=0; i-- ) {
+				expression = this.expressions[ i ];
+				if ( expression.id.toLowerCase() === expressionId.toLowerCase() ) {
+					return expression;
+				}
+			}
+
+			return;
 		};
 
 		RulesEngineCondition.prototype.removeExpression = function() {
@@ -137,7 +176,7 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 
-				condition = new RulesEngineCondition( $hiddenControl, expressions );
+				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
