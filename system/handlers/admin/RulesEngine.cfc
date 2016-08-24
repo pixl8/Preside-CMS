@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
+	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );
@@ -65,6 +66,21 @@ component extends="preside.system.base.AdminHandler" {
 				, gridFields  = "condition_name,context,datemodified"
 				, actionsView = "/admin/rulesEngine/_conditionsTableActions"
 			}
+		);
+	}
+
+	public string function ajaxRenderField( event, rc, prc ) {
+		var fieldConfig = event.getCollectionWithoutSystemVars();
+		var fieldValue  = rc.fieldValue ?: "";
+		var fieldType   = rc.fieldType  ?: "";
+
+		fieldConfig.delete( "fieldValue" );
+		fieldConfig.delete( "fieldType"  );
+
+		return rulesEngineFieldTypeService.renderConfiguredField(
+			  fieldType          = fieldType
+			, value              = fieldValue
+			, fieldConfiguration = fieldConfig
 		);
 	}
 

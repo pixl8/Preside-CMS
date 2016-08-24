@@ -1,12 +1,15 @@
 ( function( $ ){
 
-	var expressionLib = cfrequest.rulesEngineExpressions || {};
+	var expressionLib        = cfrequest.rulesEngineExpressions || {}
+	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || "";
+
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition( $formControl, expressions, $ruleList ) {
-			this.$formControl = $formControl;
-			this.$ruleList    = $ruleList;
-			this.model        = this.deserialize( this.$formControl.val() );
-			this.expressions  = expressions;
+			this.$formControl     = $formControl;
+			this.$ruleList        = $ruleList;
+			this.model            = this.deserialize( this.$formControl.val() );
+			this.expressions      = expressions;
+			this.fieldRenderCache = {};
 
 			this.render();
 		}
@@ -46,7 +49,10 @@
 			var lis, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
 
 			transformExpressionsToHtmlLis = function( expressions, depth ) {
-				var i, lis=[], indent=10 * depth, liTag='<li style="margin-left:' + indent + 'px">';
+				var lis        = []
+				  , indent     = ( 20 * depth )
+				  , liTemplate = '<li style="margin-left:' + indent + 'px"></li>'
+				  , $li, i;
 
 				for( i=0; i<expressions.length; i++ ) {
 					var isOddRow = i % 2
@@ -54,12 +60,15 @@
 
 
 					if ( isOddRow ) {
-						lis.push( liTag + expression + '</li>' );
+						$li = $( liTemplate );
+						$li.html( expression );
+						lis.push( $li );
 					} else if ( Array.isArray( expression ) ) {
-						lis.concat( transformExpressionsToHtmlLis( expression, depth+1 ) );
+						lis = lis.concat( transformExpressionsToHtmlLis( expression, depth+1 ) );
 					} else {
-
-						lis.push( liTag + rulesEngineCondition.getExpression( expression.expression ).text + '</li>' );
+						$li = $( liTemplate );
+						$li.html( rulesEngineCondition.renderExpression( expression ) );
+						lis.push( $li );
 					}
 				}
 
@@ -134,6 +143,52 @@
 			this.render();
 		};
 
+		RulesEngineCondition.prototype.renderExpression = function( expression ) {
+			var definition = this.getExpression( expression.expression )
+			  , text       = definition.text || ""
+			  , $expression = $( "<span></span>" )
+			  , fieldName, fieldValue, fieldPatternRegex, fieldDefinition, $field;
+
+			if ( typeof definition.id === "undefined" ) {
+				return "";
+			}
+
+			for( fieldName in expression.fields ) {
+				fieldPatternRegex = new RegExp( "\{" + fieldName + "\}", "gi" );
+				text = text.replace( fieldPatternRegex, '<span data-field-name="' + fieldName + '"></span>' );
+			}
+
+			$expression.html( text );
+
+			for( fieldName in expression.fields ) {
+				fieldValue      = expression.fields[ fieldName ];
+				$field          = $expression.find( "[data-field-name=" + fieldName + "]" );
+
+				fieldDefinition = definition.fields[ fieldName ] || {};
+
+				this.renderField( fieldName, fieldValue, fieldDefinition, $field );
+			}
+
+			return $expression;
+		};
+
+		RulesEngineCondition.prototype.renderField = function( fieldName, fieldValue, fieldDefinition, $field ) {
+			var cacheKey = JSON.stringify( { fieldName:fieldName, fieldValue:fieldValue, fieldDefinition:fieldDefinition } );
+
+			if ( fieldValue !== null ) {
+				$field.addClass( "rules-engine-condition-builder-field-loading" ).html( "&hellip;" );
+
+				if ( !this.fieldRenderCache[ cacheKey ] ) {
+					this.fieldRenderCache[ cacheKey ] = $.post( renderFieldEndpoint, $.extend( {}, { fieldValue:fieldValue }, fieldDefinition ) );
+				}
+
+				this.fieldRenderCache[ cacheKey ].done( function( response ){
+					$field.html( '<a class="rules-engine-condition-builder-field-link">' + response + '</a>' );
+				} );
+			} else {
+				$field.html( '<a class="rules-engine-condition-builder-field-link">' + "[" + fieldDefinition.defaultLabel + "]" + '</a>' );
+			}
+		}
 
 		return RulesEngineCondition;
 	})();

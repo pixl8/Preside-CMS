@@ -145,20 +145,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( definition ).toBe( { fieldType="boolean", variety="willWillNot" } );
 			} );
 
-			it( "should return 'scope' type when argument name = '_all'", function(){
+			it( "should return 'boolean' type and 'allAny' variety when argument name = '_all'", function(){
 				var service    = _getService();
 				var argument   = { name="_all" };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { fieldType="scope" } );
-			} );
-
-			it( "should return 'scope' type when argument name = '_any'", function(){
-				var service    = _getService();
-				var argument   = { name="_any" };
-				var definition = service.getFieldDefinition( argument );
-
-				expect( definition ).toBe( { fieldType="scope" } );
+				expect( definition ).toBe( { fieldType="boolean", variety="allAny" } );
 			} );
 
 			it( "should merge argument metadata that is not 'name', 'type' or 'hint' into the field definition", function(){
@@ -166,7 +158,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var argument   = { name="_any", type="boolean", hint="Any/all", test="this", stuff=true, required=true };
 				var definition = service.getFieldDefinition( argument );
 
-				expect( definition ).toBe( { fieldType="scope", test="this", stuff=true, required=true } );
+				expect( definition ).toBe( { fieldType="boolean", test="this", stuff=true, required=true } );
 			} );
 
 			it( "should derive the 'fieldType' of the argument from the argument type when no 'fieldType' meta is set for the argument", function(){

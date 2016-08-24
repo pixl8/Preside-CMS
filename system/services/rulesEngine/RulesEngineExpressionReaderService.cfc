@@ -13,6 +13,7 @@ component displayName="RulesEngine Expression Reader Service" {
 		, _has  = "hasHasNot"
 		, _was  = "wasWasNot"
 		, _will = "willWillNot"
+		, _all  = "allAny"
 	};
 
 // CONSTRUCTOR
@@ -135,13 +136,9 @@ component displayName="RulesEngine Expression Reader Service" {
 			case "_has" :
 			case "_was" :
 			case "_will" :
+			case "_all" :
 				definition.fieldType = "boolean";
 				definition.variety   = _booleanVarietyMappings[ argName ];
-			break;
-
-			case "_all" :
-			case "_any" :
-				definition.fieldType = "scope";
 			break;
 		}
 

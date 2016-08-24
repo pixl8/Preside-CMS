@@ -12,7 +12,7 @@ component {
 	private boolean function webRequest(
 		  required string  benefits
 		,          boolean _has=true
-		,          string  _all="all"
+		,          boolean _all=true
 	) {
 		return true; // TODO
 	}
