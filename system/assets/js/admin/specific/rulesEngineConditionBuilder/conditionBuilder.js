@@ -141,12 +141,6 @@
 			this.render();
 		};
 
-		RulesEngineCondition.prototype.saveExpressionFieldValue = function() {
-			console.log( "TODO: saveExpressionFieldValue() logic" );
-			this.persistToHiddenField();
-			this.render();
-		};
-
 		RulesEngineCondition.prototype.renderExpression = function( expression ) {
 			var definition = this.getExpression( expression.expression )
 			  , text       = definition.text || ""
@@ -192,7 +186,7 @@
 					$field.html( '<a class="rules-engine-condition-builder-field-link">' + response + '</a>' );
 				} );
 			} else {
-				$field.html( '<a class="rules-engine-condition-builder-field-link">' + "[" + fieldDefinition.defaultLabel + "]" + '</a>' );
+				$field.html( '<a class="rules-engine-condition-builder-field-link">' + fieldDefinition.defaultLabel + '</a>' );
 			}
 
 			if ( fieldDefinition.fieldType !== "boolean" ) {
@@ -201,11 +195,17 @@
 		};
 
 		RulesEngineCondition.prototype.setupFieldEditModal = function( fieldName, fieldValue, fieldDefinition, $field ){
-			var rulesEngineCondition=this, callbacks, modalOptions, iframeModal;
+			var rulesEngineCondition = this
+			  , iframeUrl            = editFieldEndpoint
+			  , qsDelim              = ( iframeUrl.search( /\?/ ) == -1 ) ? "?" : "&"
+			  , callbacks, modalOptions, iframeModal;
 
 			callbacks = {
 				onLoad : function( iframe ) {
 					iframe.rulesEngineCondition = rulesEngineCondition;
+					iframe.$field = $field;
+					iframe.modal  = iframeModal;
+
 					$field.data( "editIframe", iframe );
 				},
 				onShow : function( modal, iframe ){
@@ -216,39 +216,49 @@
 			};
 
 			modalOptions = {
-				title     : "Some title",
-				className : "full-screen-dialog",
+				title     : i18n.translateResource( "cms:rulesEngine.configure.field.modal.title" ),
+				className : "full-screen-dialog limited-size",
 				buttons   : {
 					cancel : {
 						  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
 						, className : "btn-default"
 					},
-					add : {
+					ok : {
 						  label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" )
 						, className : "btn-primary"
-						, callback  : function(){ return rulesEngineCondition.processFieldDialogSave( $field ); }
+						, callback  : function(){ return rulesEngineCondition.submitFieldDialog( $field ); }
 					}
 				}
 			};
 
-			iframeModal = new PresideIframeModal( editFieldEndpoint, "100%", "100%", callbacks, modalOptions );
+			iframeUrl += qsDelim + $.param( $.extend( {}, { fieldValue:fieldValue }, fieldDefinition ) );
+			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
 
-		RulesEngineCondition.prototype.processFieldDialogSave = function( $field ){
+		RulesEngineCondition.prototype.saveFieldValue = function( $field, value ){
+			var modal           = $field.data( "editIframe" ).modal
+			  , $li             = $field.closest( ".rules-engine-condition-builder-expression" )
+			  , expressionModel = eval( this.getModelIndexString( $li.data( "modelIndex" ) ) )
+			  , fieldName       = $field.data( "fieldName" );
+
+			expressionModel.fields[ fieldName ] = value;
+			this.persistToHiddenField();
+			this.render();
+
+			modal.close();
+		};
+
+		RulesEngineCondition.prototype.submitFieldDialog = function( $field ){
 			var editIframe = $field.data( "editIframe" )
 			  , savedValue;
 
 			if ( typeof editIframe.rulesEngineDialog !== "undefined" ) {
-				savedValue = editIframe.rulesEngineDialog.getValue();
-
-				console.log( savedValue );
-
-				return true;
+				editIframe.rulesEngineDialog.submitForm();
+				return false;
 			}
 
-			console.log( "not yet implemented" );
-			return false;
+			return true;
 		};
 
 		RulesEngineCondition.prototype.setupBehaviors = function() {
@@ -290,6 +300,8 @@
 				newValue         = currentValue === "and" ? "or" : "and";
 
 				eval( modelIndexString + ' = "' + newValue + '"' );
+
+				this.persistToHiddenField();
 				this.render();
 			}
 		};
@@ -309,11 +321,12 @@
 
 				if ( fieldType === "boolean" ) {
 					expressionModel.fields[ fieldName ] = !expressionModel.fields[ fieldName ];
+					this.persistToHiddenField();
+					this.render();
 				} else {
 					$field.data( "editModal" ).open();
 				}
 
-				this.render();
 			}
 		}
 

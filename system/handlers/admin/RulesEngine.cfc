@@ -85,8 +85,28 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public string function editFieldModal( event, rc, prc ) {
+		var fieldConfig = event.getCollectionWithoutSystemVars();
+		var fieldValue  = rc.fieldValue ?: "";
+		var fieldType   = rc.fieldType  ?: "";
+
+		fieldConfig.delete( "fieldValue" );
+		fieldConfig.delete( "fieldType"  );
+
+		prc.configScreen = rulesEngineFieldTypeService.renderConfigScreen(
+			  fieldType          = fieldType
+			, currentValue       = fieldValue
+			, fieldConfiguration = fieldConfig
+		);
+
 		event.setLayout( "adminModalDialog" );
-		// todo, stuff
+	}
+
+	public void function editFieldModalAction() {
+		// TODO: this is the most basic implementation - needs to be more involved here (field types should have ability to validate and process their own submissions)
+		event.renderData( type="json", data={
+			  success = true
+			, value   = ( rc.value ?: "" )
+		} );
 	}
 
 // PRIVATE HELPERS
