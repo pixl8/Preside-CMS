@@ -9,10 +9,14 @@
 }
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list a {
   cursor: pointer;
-  border-bottom: 1px dotted;
+  border-left: 1px solid #cccccc;
+  border-right: 1px solid #cccccc;
+  border-radius: 5px;
+  padding: 0 5px;
 }
-.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list a:hover {
-  text-decoration: none;
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li {
+  text-indent: -1.5em;
+  padding-left: 1.5em;
 }
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-expressions-list {
   height: 400px;

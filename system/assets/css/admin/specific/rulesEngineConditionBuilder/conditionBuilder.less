@@ -15,11 +15,15 @@
 	.rules-engine-condition-builder-rule-list {
 		a {
 			cursor        : pointer;
-			border-bottom : 1px dotted;
+			border-left   : 1px solid @frontendeditor-overlay-label-border-colour;
+			border-right  : 1px solid @frontendeditor-overlay-label-border-colour;
+			border-radius : 5px;
+			padding       : 0 5px;
+		}
 
-			&:hover {
-				text-decoration : none;
-			}
+		li {
+			text-indent  : -1.5em;
+			padding-left : 1.5em;
 		}
 	}
 
