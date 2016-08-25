@@ -84,6 +84,11 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public string function editFieldModal( event, rc, prc ) {
+		event.setLayout( "adminModalDialog" );
+		// todo, stuff
+	}
+
 // PRIVATE HELPERS
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permKey = "rulesEngine." & arguments.key;

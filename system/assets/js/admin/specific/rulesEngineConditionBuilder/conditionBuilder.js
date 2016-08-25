@@ -1,7 +1,8 @@
 ( function( $ ){
 
-	var expressionLib        = cfrequest.rulesEngineExpressions || {}
-	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || "";
+	var expressionLib        = cfrequest.rulesEngineExpressions         || {}
+	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || ""
+	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || "";
 
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition( $formControl, expressions, $ruleList ) {
@@ -193,6 +194,61 @@
 			} else {
 				$field.html( '<a class="rules-engine-condition-builder-field-link">' + "[" + fieldDefinition.defaultLabel + "]" + '</a>' );
 			}
+
+			if ( fieldDefinition.fieldType !== "boolean" ) {
+				this.setupFieldEditModal( fieldName, fieldValue, fieldDefinition, $field );
+			}
+		};
+
+		RulesEngineCondition.prototype.setupFieldEditModal = function( fieldName, fieldValue, fieldDefinition, $field ){
+			var rulesEngineCondition=this, callbacks, modalOptions, iframeModal;
+
+			callbacks = {
+				onLoad : function( iframe ) {
+					iframe.rulesEngineCondition = rulesEngineCondition;
+					$field.data( "editIframe", iframe );
+				},
+				onShow : function( modal, iframe ){
+					modal.on('hidden.bs.modal', function (e) {
+						modal.remove();
+					} );
+				}
+			};
+
+			modalOptions = {
+				title     : "Some title",
+				className : "full-screen-dialog",
+				buttons   : {
+					cancel : {
+						  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+						, className : "btn-default"
+					},
+					add : {
+						  label     : '<i class="fa fa-check"></i> ' + i18n.translateResource( "cms:ok.btn" )
+						, className : "btn-primary"
+						, callback  : function(){ return rulesEngineCondition.processFieldDialogSave( $field ); }
+					}
+				}
+			};
+
+			iframeModal = new PresideIframeModal( editFieldEndpoint, "100%", "100%", callbacks, modalOptions );
+			$field.data( "editModal", iframeModal );
+		};
+
+		RulesEngineCondition.prototype.processFieldDialogSave = function( $field ){
+			var editIframe = $field.data( "editIframe" )
+			  , savedValue;
+
+			if ( typeof editIframe.rulesEngineDialog !== "undefined" ) {
+				savedValue = editIframe.rulesEngineDialog.getValue();
+
+				console.log( savedValue );
+
+				return true;
+			}
+
+			console.log( "not yet implemented" );
+			return false;
 		};
 
 		RulesEngineCondition.prototype.setupBehaviors = function() {
@@ -253,6 +309,8 @@
 
 				if ( fieldType === "boolean" ) {
 					expressionModel.fields[ fieldName ] = !expressionModel.fields[ fieldName ];
+				} else {
+					$field.data( "editModal" ).open();
 				}
 
 				this.render();
