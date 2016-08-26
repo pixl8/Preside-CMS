@@ -4,6 +4,7 @@
 	inputClass   = args.class        ?: "";
 	defaultValue = args.defaultValue ?: "";
 	placeholder  = args.placeholder  ?: "";
+	required     = isBoolean( args.required ?: "" ) && args.required;
 	placeholder  = HtmlEditFormat( translateResource( uri=placeholder, defaultValue=placeholder ) );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
@@ -15,5 +16,5 @@
 </cfscript>
 
 <cfoutput>
-	<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" tabindex="#getNextTabIndex()#">
+	<input type="text" id="#inputId#" placeholder="#placeholder#" name="#inputName#" value="#value#" class="#inputClass# form-control" tabindex="#getNextTabIndex()#" <cfif required>required</cfif> >
 </cfoutput>
