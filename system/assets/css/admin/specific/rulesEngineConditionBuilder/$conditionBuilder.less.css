@@ -18,23 +18,35 @@
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li {
   padding: 5px;
   cursor: default;
+  overflow: auto;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li:hover {
+  background-color: #f0f7fc;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list li:hover .rules-engine-condition-builder-expression-actions {
+  display: block;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-text {
+  display: block;
+  float: left;
+  width: calc(95% - 7em);
 }
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-actions {
   display: none;
+  float: right;
+  text-align: right;
 }
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-actions a {
   border: none;
   border-radius: 0;
   padding: 0;
+  color: #cccccc;
+}
+.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-actions a:hover {
+  color: #aaaaaa;
 }
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-join {
   padding: 1px 5px;
-}
-.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-selected {
-  background-color: #dff0d8;
-}
-.presidecms .rules-engine-condition-builder .rules-engine-condition-builder-rule-list .rules-engine-condition-builder-expression-selected .rules-engine-condition-builder-expression-actions {
-  display: block;
 }
 .presidecms .rules-engine-condition-builder .rules-engine-condition-builder-expressions-list {
   height: 400px;

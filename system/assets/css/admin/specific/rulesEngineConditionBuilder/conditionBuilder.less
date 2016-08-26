@@ -23,30 +23,44 @@
 		}
 
 		li {
-			padding : 5px;
-			cursor  : default;
+			padding  : 5px;
+			cursor   : default;
+			overflow : auto;
+
+			&:hover {
+				background-color : @default-row-hover-colour;
+
+				.rules-engine-condition-builder-expression-actions {
+					display          : block;
+				}
+			}
+		}
+
+		.rules-engine-condition-builder-expression-text {
+			display : block;
+			float   : left;
+			width   : calc(~"95% - 7em");
 		}
 
 		.rules-engine-condition-builder-expression-actions {
-			display : none;
+			display    : none;
+			float      : right;
+			text-align : right;
 
 			a {
 				border        : none;
 				border-radius : 0;
 				padding       : 0;
+				color         : @grey12;
+
+				&:hover {
+					color : @grey10;
+				}
 			}
 		}
 
 		.rules-engine-condition-builder-expression-join {
 			padding : 1px 5px;
-		}
-
-		.rules-engine-condition-builder-expression-selected {
-			background-color : @default-selected-row-colour;
-
-			.rules-engine-condition-builder-expression-actions {
-				display : block;
-			}
 		}
 	}
 

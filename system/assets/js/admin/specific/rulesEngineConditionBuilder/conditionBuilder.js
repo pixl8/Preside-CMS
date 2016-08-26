@@ -53,9 +53,9 @@
 
 			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
 				var lis             = []
-				  , indent          = ( 20 * depth )
-				  , liTemplate      = '<li class="rules-engine-condition-builder-expression" style="margin-left:' + indent + 'px"></li>'
-				  , actionsTemplate = '<span class="rules-engine-condition-builder-expression-actions"><a class="fa fa-fw fa-trash rules-engine-condition-builder-expression-delete"></a></span>'
+				  , liTemplate      = '<li class="rules-engine-condition-builder-expression"></li>'
+				  , actionsTemplate = '<span class="rules-engine-condition-builder-expression-actions"></span>'
+				  , indent          = ( depth * 30 )
 				  , $li, $actions, i, liIndex;
 
 				for( i=0; i<expressions.length; i++ ) {
@@ -66,8 +66,8 @@
 
 					if ( isOddRow ) {
 						$li = $( liTemplate );
-						$li.data( "modelIndex", index.concat([i]) );
-						$li.html( '<a class="rules-engine-condition-builder-join-toggle">' + i18n.translateResource( "cms:rulesEngine.join." + expression ) + "</a>" );
+						$li.data( "modelIndex", liIndex );
+				  		$li.html( '<span class="rules-engine-condition-builder-expression-text" style="margin-left:' + indent + 'px;"><a class="rules-engine-condition-builder-join-toggle">' + i18n.translateResource( "cms:rulesEngine.join." + expression ) + '</a></span>' )
 						$li.addClass( "rules-engine-condition-builder-expression-join" );
 						lis.push( $li );
 					} else if ( Array.isArray( expression ) ) {
@@ -75,7 +75,7 @@
 					} else {
 						$li = $( liTemplate );
 						$li.data( "modelIndex", liIndex );
-						$li.html( rulesEngineCondition.renderExpression( expression ) );
+						$li.html( rulesEngineCondition.renderExpression( expression, depth ) );
 
 						$actions = $( actionsTemplate );
 						$li.append( $actions );
@@ -84,7 +84,12 @@
 						}
 						if ( i ) {
 							$actions.append( '<a class="fa fa-fw fa-arrow-up rules-engine-condition-builder-expression-move-up"></a>' );
+							$actions.append( '<a class="fa fa-fw fa-arrow-right rules-engine-condition-builder-expression-move-indent"></a>' );
 						}
+						if ( depth ) {
+							$actions.append( '<a class="fa fa-fw fa-arrow-left rules-engine-condition-builder-expression-move-unindent"></a>' );
+						}
+						$actions.append( '<a class="fa fa-fw fa-trash rules-engine-condition-builder-expression-delete"></a>' );
 
 						if ( rulesEngineCondition.selectedIndex !== null && rulesEngineCondition.selectedIndex.join() === liIndex.join() ) {
 							$li.addClass( "selected" );
@@ -161,10 +166,11 @@
 			return;
 		};
 
-		RulesEngineCondition.prototype.renderExpression = function( expression ) {
+		RulesEngineCondition.prototype.renderExpression = function( expression, depth ) {
 			var definition = this.getExpression( expression.expression )
 			  , text       = definition.text || ""
-			  , $expression = $( "<span></span>" )
+			  , indent     = ( depth * 30 )
+			  , $expression = $( '<span class="rules-engine-condition-builder-expression-text" style="margin-left:' + indent + 'px;"></span>' )
 			  , fieldName, fieldValue, fieldPatternRegex, fieldDefinition, $field;
 
 			if ( typeof definition.id === "undefined" ) {
@@ -314,23 +320,38 @@
 				e.preventDefault();
 				rulesEngineCondition.processMoveExpressionClick( $( this ), "up" );
 			} );
+
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-move-down", function( e ){
 				e.preventDefault();
 				rulesEngineCondition.processMoveExpressionClick( $( this ), "down" );
 			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-move-indent", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.processIndentExpressionClick( $( this ), "indent" );
+			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-move-unindent", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.processIndentExpressionClick( $( this ), "unindent" );
+			} );
 		};
 
 		RulesEngineCondition.prototype.getModelIndexString = function( index ){
-			var string = "this.model[", i;
+			var string = "this.model", i;
 
-			for( i=0; i<index.length; i++ ) {
-				string += index[i];
-				if ( i < ( index.length-1 ) ) {
-					string += '][';
+			if ( index.length ) {
+				string += "[";
+
+				for( i=0; i<index.length; i++ ) {
+					string += index[i];
+					if ( i < ( index.length-1 ) ) {
+						string += '][';
+					}
 				}
-			}
 
-			string += "]";
+				string += "]";
+			}
 
 			return string;
 		};
@@ -387,8 +408,8 @@
 			  , parentIndex, parentList;
 
 			if ( modelIndex.length > 1 ) {
-				parentIndex = modelIndex.slice( 0, modelIndex.length-2 )
-				parentList  = getModelReferenceFromIndex( parentIndex );
+				parentIndex = modelIndex.slice( 0, modelIndex.length-1 );
+				parentList  = this.getModelReferenceFromIndex( parentIndex );
 			} else {
 				parentList = this.model;
 			}
@@ -439,8 +460,8 @@
 			  , parentIndex, parentList, tmp;
 
 			if ( modelIndex.length > 1 ) {
-				parentIndex = modelIndex.slice( 0, modelIndex.length-2 )
-				parentList  = getModelReferenceFromIndex( parentIndex );
+				parentIndex = modelIndex.slice( 0, modelIndex.length-1 );
+				parentList  = this.getModelReferenceFromIndex( parentIndex );
 			} else {
 				parentList = this.model;
 			}
@@ -457,6 +478,95 @@
 				this.render();
 			}
 
+		};
+
+		RulesEngineCondition.prototype.processIndentExpressionClick = function( $clickedLink, direction ){
+			var $li         = $clickedLink.closest( ".rules-engine-condition-builder-expression" )
+			  , modelIndex  = $li.data( "modelIndex" );
+
+			if ( direction == "indent" ) {
+				this.indentExpression( modelIndex );
+			} else {
+				this.unIndentExpression( modelIndex );
+			}
+		};
+
+		RulesEngineCondition.prototype.indentExpression = function( modelIndex ) {
+			var listPosition = modelIndex[ modelIndex.length-1 ]
+			  , parentIndex, parentList, tmp, i, parentLength;
+
+			if ( modelIndex.length > 1 ) {
+				parentIndex = modelIndex.slice( 0, modelIndex.length-1 );
+				parentList  = this.getModelReferenceFromIndex( parentIndex );
+			} else {
+				parentList = this.model;
+			}
+
+			if ( listPosition ) {
+				tmp = parentList[ listPosition ];
+				parentList[ listPosition ] = [];
+				parentList[ listPosition ].push( tmp );
+				parentLength = parentList.length;
+				for( i=listPosition+1; i<parentLength; i++ ) {
+					parentList[ listPosition ].push( parentList[ i ] );
+				}
+				for( i=parentLength-1; i>listPosition; i-- ) {
+					parentList.splice( i, 1 );
+				}
+
+				this.selectedIndex = modelIndex;
+				this.selectedIndex.push( 0 )
+
+				this.persistToHiddenField();
+				this.render();
+			}
+
+		};
+
+		RulesEngineCondition.prototype.unIndentExpression = function( modelIndex ) {
+			var listPosition       = modelIndex[ modelIndex.length-1 ]
+			  , removeFromPosition
+			  , insertAtPosition
+			  , parentPosition
+			  , parentIndex
+			  , parentList
+			  , grandParentIndex
+			  , grandParentList
+			  , tmp
+			  , i;
+
+			if ( !modelIndex.length ) {
+				return;
+			}
+
+			parentIndex      = modelIndex.slice( 0, modelIndex.length-1 );
+			grandParentIndex = parentIndex.slice( 0, parentIndex.length-1 );
+			parentList       = this.getModelReferenceFromIndex( parentIndex );
+			grandParentList  = this.getModelReferenceFromIndex( grandParentIndex );
+
+			parentPosition     = parentIndex[ parentIndex.length-1 ];
+			parentLength       = parentList.length;
+			removeFromPosition = listPosition ? ( listPosition   - 1 ) : 0
+			insertAtPosition   = listPosition ? ( parentPosition + 1 ) : parentPosition;
+
+			for( i=removeFromPosition; i<parentLength; i++ ) {
+				console.log( parentList[i] );
+				grandParentList.splice( insertAtPosition, 0, parentList[i] );
+				insertAtPosition++;
+				if ( !listPosition ) {
+					parentPosition++;
+				}
+			}
+			for( i=parentLength-1; i>=removeFromPosition; i-- ) {
+				parentList.splice( i, 1 );
+			}
+
+			if ( !parentList.length ) {
+				grandParentList.splice( parentPosition, 1 );
+			}
+
+			this.persistToHiddenField();
+			this.render();
 		};
 
 		return RulesEngineCondition;
