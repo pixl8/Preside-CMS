@@ -54,6 +54,69 @@ component extends="preside.system.base.AdminHandler" {
 
 	}
 
+	public void function addConditionAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="add" );
+
+		runEvent(
+			  event          = "admin.DataManager._addRecordAction"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object           = "rules_engine_condition"
+				, errorAction      = "rulesEngine.addCondition"
+				, viewRecordAction = "rulesEngine.editCondition"
+				, addAnotherAction = "rulesEngine.addCondition"
+				, successAction    = "rulesEngine"
+				, audit             = true
+				, auditType         = "rulesEngine"
+				, auditAction       = "add_rules_engine_condition"
+			}
+		);
+	}
+
+	public void function editCondition( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+
+		var id = rc.id ?: "";
+
+
+		prc.record = rulesEngineConditionService.getConditionRecord( id );
+
+		if ( not prc.record.recordCount ) {
+			messageBox.error( translateResource( uri="cms:rulesEngine.condition.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="rulesEngine" ) );
+		}
+		prc.record = queryRowToStruct( prc.record );
+		rc.context = prc.record.context;
+
+		prc.pageTitle    = translateResource( uri="cms:rulesEngine.edit.condition.page.title", data=[ prc.record.condition_name ] );
+		prc.pageSubTitle = translateResource( uri="cms:rulesEngine.edit.condition.page.subtitle", data=[ prc.record.condition_name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:rulesEngine.edit.condition.breadcrumb.title", data=[ prc.record.condition_name ] )
+			, link  = event.buildAdminLink( linkTo="rulesengine.editCondition", queryString="id=" & id )
+		);
+
+	}
+
+	public void function editConditionAction( event, rc, prc ) {
+		_checkPermissions( argumentCollection=arguments, key="edit" );
+
+		runEvent(
+			  event          = "admin.DataManager._editRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object        = "rules_engine_condition"
+				, errorAction   = "rules_engine_condition.editBenefit"
+				, successUrl    = event.buildAdminLink( linkTo="rulesEngine" )
+				, audit         = true
+				, auditType     = "rulesEngine"
+				, auditAction   = "edit_rules_engine_condition"
+			}
+		);
+	}
+
 	public void function getConditionsForAjaxDataTables( event, rc, prc )  {
 		_checkPermissions( argumentCollection=arguments, key="read" );
 

@@ -127,6 +127,17 @@ component displayName="RulesEngine Condition Service" {
 		return contexts;
 	}
 
+	/**
+	 * Returns a query record of the condition
+	 * matched by the given id
+	 *
+	 * @autodoc
+	 * @conditionId.hint ID of the condition to get.
+	 */
+	public query function getConditionRecord( required string conditionId ) {
+		return $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
+	}
+
 // PRIVATE HELPERS
 	private boolean function _validateConditionGroup(
 		  required array  group
