@@ -311,6 +311,7 @@ component {
 				, filterParams = { "now" = { type="cf_sql_date", value=Now() } }
 			}
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
+			, webRequestConditions   = { filter = { "rules_engine_condition.context" = "webrequest" } }
 		};
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
