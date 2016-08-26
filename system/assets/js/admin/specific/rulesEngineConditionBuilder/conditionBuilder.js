@@ -11,6 +11,7 @@
 			this.model            = this.deserialize( this.$formControl.val() );
 			this.expressions      = expressions;
 			this.fieldRenderCache = {};
+			this.selectedIndex    = null;
 
 			this.setupBehaviors();
 			this.render();
@@ -51,9 +52,10 @@
 			var lis, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
 
 			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
-				var lis        = []
-				  , indent     = ( 20 * depth )
-				  , liTemplate = '<li class="rules-engine-condition-builder-expression" style="margin-left:' + indent + 'px"></li>'
+				var lis             = []
+				  , indent          = ( 20 * depth )
+				  , liTemplate      = '<li class="rules-engine-condition-builder-expression" style="margin-left:' + indent + 'px"></li>'
+				  , actionsTemplate = '<span class="rules-engine-condition-builder-expression-actions"><a class="fa fa-fw fa-trash rules-engine-condition-builder-expression-delete"></a></span>'
 				  , $li, i;
 
 				for( i=0; i<expressions.length; i++ ) {
@@ -65,6 +67,7 @@
 						$li = $( liTemplate );
 						$li.data( "modelIndex", index.concat([i]) );
 						$li.html( '<a class="rules-engine-condition-builder-join-toggle">' + i18n.translateResource( "cms:rulesEngine.join." + expression ) + "</a>" );
+						$li.addClass( "rules-engine-condition-builder-expression-join" );
 						lis.push( $li );
 					} else if ( Array.isArray( expression ) ) {
 						lis = lis.concat( transformExpressionsToHtmlLis( expression, depth+1, index.concat([i]) ) );
@@ -72,6 +75,12 @@
 						$li = $( liTemplate );
 						$li.data( "modelIndex", index.concat([i]) );
 						$li.html( rulesEngineCondition.renderExpression( expression ) );
+						$li.append( actionsTemplate );
+
+						if ( rulesEngineCondition.selectedIndex !== null && rulesEngineCondition.selectedIndex.join() === index.concat([i]).join() ) {
+							$li.addClass( "rules-engine-condition-builder-expression-selected" );
+						}
+
 						lis.push( $li );
 					}
 				}
@@ -93,6 +102,7 @@
 				this.model.push( "and" );
 			}
 			this.model.push( newExpression );
+			this.selectedIndex = [ this.model.length-1 ];
 
 			this.persistToHiddenField();
 			this.render();
@@ -239,7 +249,7 @@
 		RulesEngineCondition.prototype.saveFieldValue = function( $field, value ){
 			var modal           = $field.data( "editIframe" ).modal
 			  , $li             = $field.closest( ".rules-engine-condition-builder-expression" )
-			  , expressionModel = eval( this.getModelIndexString( $li.data( "modelIndex" ) ) )
+			  , expressionModel = this.getModelReferenceFromIndex( $li.data( "modelIndex" ) )
 			  , fieldName       = $field.data( "fieldName" );
 
 			expressionModel.fields[ fieldName ] = value;
@@ -272,6 +282,16 @@
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-field-link", function( e ){
 				e.preventDefault();
 				rulesEngineCondition.processFieldClick( $( this ) );
+			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression:not(.rules-engine-condition-builder-expression-join)", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.selectExpression( $( this ) );
+			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-delete", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.processDeleteExpressionClick( $( this ) );
 			} );
 		};
 
@@ -312,7 +332,7 @@
 
 			if ( $field.length ) {
 				$li = $field.closest( ".rules-engine-condition-builder-expression" );
-				expressionModel = eval( this.getModelIndexString( $li.data( "modelIndex" ) ) );
+				expressionModel = this.getModelReferenceFromIndex( $li.data( "modelIndex" ) );
 
 				fieldDefinition = $field.data( "fieldDefinition" );
 				fieldName       = $field.data( "fieldName" );
@@ -328,7 +348,57 @@
 				}
 
 			}
-		}
+		};
+
+		RulesEngineCondition.prototype.processDeleteExpressionClick = function( $clickedLink ) {
+			var $li         = $clickedLink.closest( ".rules-engine-condition-builder-expression" )
+			  , modelIndex  = $li.data( "modelIndex" );
+
+			this.deleteExpression( modelIndex );
+		};
+
+		RulesEngineCondition.prototype.deleteExpression = function( modelIndex ) {
+			var listPosition = modelIndex[ modelIndex.length-1 ]
+			  , parentIndex, parentList;
+
+			if ( modelIndex.length > 1 ) {
+				parentIndex = modelIndex.slice( 0, modelIndex.length-2 )
+				parentList  = getModelReferenceFromIndex( parentIndex );
+			} else {
+				parentList = this.model;
+			}
+
+			parentList.splice( listPosition, 1 );
+			if ( parentList.length ) {
+				if ( listPosition === 0 ) {
+					parentList.splice( listPosition, 1 );
+				} else {
+					parentList.splice( listPosition-1, 1 );
+				}
+			}
+
+			if ( !parentList.length && modelIndex.length > 1 ) {
+				this.deleteExpression( parentIndex );
+			}
+
+			this.persistToHiddenField();
+			this.render();
+		};
+
+		RulesEngineCondition.prototype.getModelReferenceFromIndex = function( index ) {
+			return eval( this.getModelIndexString( index ) );
+		};
+
+		RulesEngineCondition.prototype.selectExpression = function( $li ){
+			var selectedClass = "rules-engine-condition-builder-expression-selected"
+			  , hasClass      = $li.hasClass( selectedClass );
+
+			this.$ruleList.find( ".rules-engine-condition-builder-expression" ).removeClass( "rules-engine-condition-builder-expression-selected" );
+
+			if ( !hasClass ) {
+				$li.addClass( selectedClass );
+			}
+		};
 
 		return RulesEngineCondition;
 	})();
