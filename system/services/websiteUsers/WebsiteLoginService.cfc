@@ -2,8 +2,12 @@
  * The website login manager object provides methods for member login, logout and session retrieval
  * \n
  * See also: [[websiteusersandpermissioning]]
+ *
+ * @singleton
+ * @presideservice
+ * @autodoc
  */
-component singleton=true autodoc=true displayName="Website login service" {
+component displayName="Website login service" {
 
 // constructor
 	/**
@@ -82,6 +86,14 @@ component singleton=true autodoc=true displayName="Website login service" {
 			userRecord.impersonated          = true;
 
 			_setUserSession( userRecord );
+
+			$audit(
+				  source   = "websiteusermanager"
+				, type     = "websiteusermanager"
+				, action   = "impersonate_website_user"
+				, recordId = userId
+				, detail   = userRecord
+			);
 
 			return true;
 		}
@@ -285,13 +297,29 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @password.hint The new password
 	 * @userId.hint   ID of the user who's password we wish to change (defaults to currently logged in user id)
 	 */
-	public boolean function changePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
+	public boolean function changePassword( required string password, string userId=getLoggedInUserId(), boolean changedByAdmin=false ) autodoc=true {
 		var hashedPw = _getBCryptService().hashPw( arguments.password );
-
-		return _getUserDao().updateData(
+		var result   = _getUserDao().updateData(
 			  id   = arguments.userId
 			, data = { password=hashedPw }
 		);
+
+		if ( arguments.changedByAdmin ) {
+			var userRecord = _getUserDao().selectData( id=userId );
+			for( var u in userRecord ) {
+				userRecord = u;
+			}
+			$audit(
+				  source   = "websiteusermanager"
+				, type     = "websiteusermanager"
+				, action   = "change_website_user_password"
+				, recordId = arguments.userId
+				, detail   = userRecord
+			);
+
+		}
+
+		return result;
 	}
 
 	/**

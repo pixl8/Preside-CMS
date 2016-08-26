@@ -47,7 +47,7 @@ component implements="iRouteHandler" output=false singleton=true {
 
 		var link = "/file/#ToBase64( path )#/";
 
-		return event.getSiteUrl() & link;
+		return event.getSiteUrl( includeLanguageSlug=false ) & link;
 	}
 
 // private getters and setters

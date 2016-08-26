@@ -53,7 +53,7 @@ component implements="iRouteHandler" output=false {
 			link &= "?" & buildArgs.queryString;
 		}
 
-		return event.getSiteUrl( includePath=false ) & link;
+		return event.getSiteUrl( includePath=false, includeLanguageSlug=false ) & link;
 	}
 
 // private helpers

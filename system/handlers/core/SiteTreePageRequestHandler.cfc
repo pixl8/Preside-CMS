@@ -9,8 +9,8 @@ component output=false {
 		announceInterception( "preRenderSiteTreePage" );
 
 		event.initializePresideSiteteePage(
-			  slug      = ( prc.slug      ?: "/" )
-			, subAction = ( prc.subAction ?: "" )
+			  slug               = ( prc.slug      ?: "/" )
+			, subAction          = ( prc.subAction ?: "" )
 		);
 
 		var pageId       = event.getCurrentPageId();

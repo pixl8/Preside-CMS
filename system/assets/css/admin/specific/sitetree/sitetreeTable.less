@@ -33,6 +33,18 @@
 			> td:first-child {
 				padding-left: ( @fontAwesomeFixedWidthSize + 0.5em );
 			}
+
+			&.draft {
+				font-style : italic;
+
+				a {
+					color : @lighter-blue;
+				}
+			}
+
+			&.has-drafts {
+				font-style: italic;
+			}
 		}
 
 		.page-title-cell {

@@ -194,16 +194,21 @@ component output=false singleton=true {
 			}
 		}
 
+		filePattern &= ".properties";
+
 		for( directory in directories ){
 			directory = ReReplace( directory, "[\\/]$", "" );
 
 			siteTemplate = _getSiteTemplateFromPath( directory );
 
 			if ( siteTemplate == "*" || siteTemplate == activeSiteTemplate ) {
-				files = DirectoryList( directory & subDirectory, false, "path", filePattern & ".properties" );
+				files = DirectoryList( directory & subDirectory, false, "path", "*.properties" );
 
 				for( file in files ){
-					StructAppend( bundleData, _propertiesFileToStruct( file ) );
+					if ( filePattern == ListLast( file, "\/" ) ) {
+						StructAppend( bundleData, _propertiesFileToStruct( file ) );
+						break;
+					}
 				}
 			}
 		}

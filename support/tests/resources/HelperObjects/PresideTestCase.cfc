@@ -88,6 +88,7 @@
 				var presideObjectDecorator = new preside.system.services.presideObjects.presideObjectDecorator();
 
 				var coldbox = arguments.coldbox ?: getMockbox().createEmptyMock( "preside.system.coldboxModifications.Controller" );
+				var versioningService = getMockBox().createMock( object=new preside.system.services.presideObjects.VersioningService() );
 
 				mockFilterService = getMockBox().createStub();
 				mockFilterService.$( "getFilter", {} );
@@ -109,6 +110,7 @@
 					, sqlRunner              = sqlRunner
 					, relationshipGuidance   = relationshipGuidance
 					, presideObjectDecorator = presideObjectDecorator
+					, versioningService      = versioningService
 					, filterService          = mockFilterService
 					, cache                  = cachebox.getCache( "PresideSystemCache" )
 					, defaultQueryCache      = cachebox.getCache( "defaultQueryCache" )
@@ -116,6 +118,12 @@
 					, interceptorService     = arguments.interceptorService
 					, reloadDb               = false
 				);
+
+				request[ key ] = getMockbox().createMock( object=request[ key ] );
+
+				versioningService.$( "$getPresideObjectService", request[ key ] );
+				versioningService.$( "$getAdminLoggedInUserId", "" );
+				request[ key ].$( "$isAdminUserLoggedIn", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];

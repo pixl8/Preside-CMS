@@ -9,6 +9,7 @@
 
 			sessionStorage  = new tests.resources.HelperObjects.TestSessionStorage();
 			mockEmailService = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
+			mockCookieService = getMockBox().createEmptyMock( "preside.system.services.cfmlScopes.CookieService" );
 			mockGoogleAuthenticator = getMockBox().createEmptyMock( "preside.system.services.authentication.GoogleAuthenticator" );
 			mockQrCodeGenerator = getMockBox().createEmptyMock( "preside.system.services.qrcodes.QrCodeGenerator" );
 			loginService = new preside.system.services.admin.loginService(
@@ -18,9 +19,15 @@
 				, bCryptService       = _getBCrypt()
 				, systemUserList      = "sysadmin"
 				, emailService        = mockEmailService
+				, cookieService       = mockCookieService
 				, googleAuthenticator = mockGoogleAuthenticator
 				, qrCodeGenerator     = mockQrCodeGenerator
 			);
+
+			loginService = getMockBox().createMock( object=loginService );
+			loginService.$( "$audit" );
+			loginService.$( "_autoLogin", false );
+			loginService.$( "_deleteRememberMeCookie" );
 		</cfscript>
 	</cffunction>
 

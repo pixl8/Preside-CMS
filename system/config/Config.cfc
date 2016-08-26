@@ -31,6 +31,7 @@ component {
 			, modulesExternalLocation   = ["/preside/system/modules"]
 			, handlersExternalLocation  = "preside.system.handlers"
 			, applicationStartHandler   = "General.applicationStart"
+			, applicationEndHandler     = "General.applicationEnd"
 			, requestStartHandler       = "General.requestStart"
 			, missingTemplateHandler    = "General.notFound"
 			, onInvalidEvent            = "General.notFound"
@@ -75,6 +76,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "postUpdateObjectData"                  );
 		interceptorSettings.customInterceptionPoints.append( "postParseSelectFields"                 );
 		interceptorSettings.customInterceptionPoints.append( "postPrepareTableJoins"                 );
+		interceptorSettings.customInterceptionPoints.append( "postPrepareVersionSelect"              );
 		interceptorSettings.customInterceptionPoints.append( "preDbSyncObjects"                      );
 		interceptorSettings.customInterceptionPoints.append( "preDeleteObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preInsertObjectData"                   );
@@ -87,6 +89,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"                  );
 		interceptorSettings.customInterceptionPoints.append( "onApplicationStart"                    );
+		interceptorSettings.customInterceptionPoints.append( "onApplicationEnd"                      );
 		interceptorSettings.customInterceptionPoints.append( "onCreateNotification"                  );
 		interceptorSettings.customInterceptionPoints.append( "preCreateNotification"                 );
 		interceptorSettings.customInterceptionPoints.append( "postCreateNotification"                );
@@ -126,9 +129,16 @@ component {
 				defaultLogAppender = {
 					  class      = 'coldbox.system.logging.appenders.AsyncRollingFileAppender'
 					, properties = { filePath=settings.logsMapping, filename="coldbox.log" }
+				},
+				taskmanagerRequestAppender = {
+					  class      = 'preside.system.services.logger.TaskmanagerLogAppender'
+					, properties = { logName="TASKMANAGER" }
 				}
 			},
-			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' }
+			root = { appenders='defaultLogAppender', levelMin='FATAL', levelMax='WARN' },
+			categories = {
+				taskmanager = { appenders='taskmanagerRequestAppender', levelMin='FATAL', levelMax='INFO' }
+			}
 		};
 
 		settings.eventName                   = "event";
@@ -154,6 +164,7 @@ component {
 		settings.autoSyncDb                  = IsBoolean( settings.injectedConfig.autoSyncDb ?: ""  ) && settings.injectedConfig.autoSyncDb;
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
+		settings.adminLanguages              = [];
 
 		settings.adminApplications = [ {
 			  id                 = "cms"
@@ -179,26 +190,35 @@ component {
 			, "updateManager"
 			, "urlRedirects"
 			, "errorLogs"
+			, "auditTrail"
 			, "maintenanceMode"
+			, "taskmanager"
 			, "systemInformation"
 		];
 
+		settings.uploads_directory = ExpandPath( "/uploads" );
 		settings.storageProviders = {
 			filesystem = { class="preside.system.services.fileStorage.fileSystemStorageProvider" }
 		};
 		settings.assetManager = {
-			  maxFileSize       = "5"
-			, types             = _getConfiguredFileTypes()
-			, derivatives       = _getConfiguredAssetDerivatives()
-			, folders           = {}
+			  maxFileSize = "5"
+			, types       = _getConfiguredFileTypes()
+			, derivatives = _getConfiguredAssetDerivatives()
+			, folders     = {}
+			, storage     = {
+				  public    = ( settings.injectedConfig[ "assetmanager.storage.public"    ] ?: settings.uploads_directory & "/assets" )
+				, private   = ( settings.injectedConfig[ "assetmanager.storage.private"   ] ?: settings.uploads_directory & "/assets" ) // same as public by default for backward compatibility
+				, trash     = ( settings.injectedConfig[ "assetmanager.storage.trash"     ] ?: settings.uploads_directory & "/.trash" )
+				, publicUrl = ( settings.injectedConfig[ "assetmanager.storage.publicUrl" ] ?: "" )
+			  }
 		};
 		settings.assetManager.allowedExtensions = _typesToExtensions( settings.assetManager.types );
 
 		settings.adminPermissions = {
 			  cms                    = [ "access" ]
-			, sitetree               = [ "navigate", "read", "add", "edit", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
+			, sitetree               = [ "navigate", "read", "add", "edit", "activate", "publish", "savedraft", "trash", "viewtrash", "emptytrash", "restore", "delete", "manageContextPerms", "viewversions", "sort", "translate" ]
 			, sites                  = [ "navigate", "manage", "translate" ]
-			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate" ]
+			, datamanager            = [ "navigate", "read", "add", "edit", "delete", "manageContextPerms", "viewversions", "translate", "publish", "savedraft" ]
 			, usermanager            = [ "navigate", "read", "add", "edit", "delete" ]
 			, groupmanager           = [ "navigate", "read", "add", "edit", "delete" ]
 			, passwordPolicyManager  = [ "manage" ]
@@ -211,6 +231,8 @@ component {
 			, systemInformation      = [ "navigate" ]
 			, urlRedirects           = [ "navigate", "addRule", "editRule", "deleteRule" ]
 			, formbuilder            = [ "navigate", "addform", "editform", "lockForm", "activateForm", "deleteSubmissions", "editformactions" ]
+			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
+			, auditTrail             = [ "navigate" ]
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
@@ -223,14 +245,14 @@ component {
 			, assetmanager           = {
 				  general          = [ "navigate" ]
 				, folders          = [ "add", "edit", "delete", "manageContextPerms" ]
-				, assets           = [ "upload", "edit", "delete", "download", "pick" ]
+				, assets           = [ "upload", "edit", "delete", "download", "pick", "translate" ]
 				, storagelocations = [ "manage" ]
 			 }
 		};
 
 		settings.adminRoles = StructNew( "linked" );
 
-		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*" ];
+		settings.adminRoles.sysadmin           = [ "cms.access", "usermanager.*", "groupmanager.*", "systemConfiguration.*", "presideobject.security_user.*", "presideobject.security_group.*", "websiteBenefitsManager.*", "websiteUserManager.*", "sites.*", "presideobject.links.*", "notifications.*", "passwordPolicyManager.*", "urlRedirects.*", "systemInformation.*", "taskmanager.navigate", "taskmanager.viewlogs", "auditTrail.*" ];
 		settings.adminRoles.contentadmin       = [ "cms.access", "sites.*", "presideobject.site.*", "presideobject.link.*", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "formbuilder.*", "!formbuilder.lockForm", "!formbuilder.activateForm" ];
 		settings.adminRoles.contenteditor      = [ "cms.access", "presideobject.link.*", "sites.navigate", "sitetree.*", "presideobject.page.*", "datamanager.*", "assetmanager.*", "presideobject.asset.*", "presideobject.asset_folder.*", "!*.delete", "!*.manageContextPerms", "!assetmanager.folders.add" ];
 		settings.adminRoles.formbuildermanager = [ "cms.access", "formbuilder.*" ];
@@ -239,11 +261,6 @@ component {
 			  pages  = [ "access" ]
 			, assets = [ "access" ]
 		};
-
-		// uploads directory - each site really should override this setting and provide an external location
-		settings.uploads_directory     = ExpandPath( "/uploads" );
-		settings.tmp_uploads_directory = ExpandPath( "/uploads" );
-
 
 		settings.ckeditor = {
 			  defaults    = {
@@ -273,6 +290,7 @@ component {
 			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, auditTrail              = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }
@@ -306,8 +324,13 @@ component {
 			, apis        = {}
 		};
 
+		settings.multilingual = {
+			ignoredUrlPatterns = [ "^/api", "^/preside", "^/assets", "^/file/" ]
+		}
+
 		settings.formbuilder        = _setupFormBuilder();
 		settings.environmentMessage = "";
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

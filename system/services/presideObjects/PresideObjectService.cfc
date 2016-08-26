@@ -2,9 +2,12 @@
  * The Preside Object Service is the main entry point API for interacting with **Preside Data Objects**. It provides CRUD operations for individual objects as well as many other useful utilities.
  * \n
  * For a full developer guide on using Preside Objects and this service, see [[presidedataobjects]].
+ *
+ * @presideservice
+ * @singleton
+ * @autodoc
  */
-
-component singleton=true autodoc=true displayName="Preside Object Service" {
+component displayName="Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
@@ -15,6 +18,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @sqlRunner.inject              SqlRunner
 	 * @relationshipGuidance.inject   RelationshipGuidance
 	 * @presideObjectDecorator.inject PresideObjectDecorator
+	 * @versioningService.inject      VersioningService
 	 * @filterService.inject          presideObjectSavedFilterService
 	 * @cache.inject                  cachebox:PresideSystemCache
 	 * @defaultQueryCache.inject      cachebox:DefaultQueryCache
@@ -29,6 +33,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required any     sqlRunner
 		, required any     relationshipGuidance
 		, required any     presideObjectDecorator
+		, required any     versioningService
 		, required any     filterService
 		, required any     cache
 		, required any     defaultQueryCache
@@ -46,7 +51,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		_setFilterService( arguments.filterService );
 		_setCache( arguments.cache );
 		_setDefaultQueryCache( arguments.defaultQueryCache );
-		_setVersioningService( new VersioningService( this, arguments.coldboxController ) );
+		_setVersioningService( arguments.versioningService );
 		_setCacheMaps( {} );
 		_setInterceptorService( arguments.interceptorService );
 
@@ -135,6 +140,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
 	 * @maxVersion.hint         Can be used to set a maximum version number when selecting from the version table
 	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
 	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
 	 * @selectFields.docdefault []
 	 * @filter.docdefault       {}
@@ -144,20 +150,21 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	public query function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields      = []
-		,          any     filter            = {}
-		,          struct  filterParams      = {}
-		,          array   extraFilters      = []
-		,          array   savedFilters      = []
-		,          string  orderBy           = ""
-		,          string  groupBy           = ""
-		,          numeric maxRows           = 0
-		,          numeric startRow          = 1
-		,          boolean useCache          = true
-		,          boolean fromVersionTable  = false
-		,          string  maxVersion        = "HEAD"
-		,          numeric specificVersion   = 0
-		,          string  forceJoins        = ""
+		,          array   selectFields       = []
+		,          any     filter             = {}
+		,          struct  filterParams       = {}
+		,          array   extraFilters       = []
+		,          array   savedFilters       = []
+		,          string  orderBy            = ""
+		,          string  groupBy            = ""
+		,          numeric maxRows            = 0
+		,          numeric startRow           = 1
+		,          boolean useCache           = true
+		,          boolean fromVersionTable   = false
+		,          string  maxVersion         = "HEAD"
+		,          numeric specificVersion    = 0
+		,          boolean allowDraftVersions = $isAdminUserLoggedIn()
+		,          string  forceJoins         = ""
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
@@ -183,13 +190,20 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		args.adapter = _getAdapter( args.objMeta.dsn );
 
 		args.selectFields   = _parseSelectFields( argumentCollection=args );
+
+		if ( !args.allowDraftVersions && !args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
+			args.extraFilters.append( _getDraftExclusionFilter( args.objectname ) );
+		}
 		args.preparedFilter = _prepareFilter(
 			  argumentCollection = args
 			, adapter            = args.adapter
 			, columnDefinitions  = args.objMeta.properties
 		);
+		args.orderBy     = _parseOrderBy( args.orderBy, args.objectName, args.adapter );
+		args.groupBy     = _autoAliasBareProperty( args.objectName, args.groupBy, args.adapter );
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
+
 
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.result = _selectFromVersionTables(
@@ -247,6 +261,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @objectName.hint              Name of the object in which to to insert a record
 	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
+	 * @isDraft.hint                 Whether or not to save the record as a draft record
 	 * @useVersioning.hint           Whether or not to use the versioning system with the insert. If the object is setup to use versioning (default), this will default to true.
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @useVersioning.docdefault     automatic
@@ -255,6 +270,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		  required string  objectName
 		, required struct  data
 		,          boolean insertManyToManyRecords = false
+		,          boolean isDraft                 = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 
@@ -278,7 +294,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
 
 		for( key in cleanedData ){
-			if ( arguments.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ) eq "many-to-many" ) {
+			if ( arguments.insertManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(many|one)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 			}
 			if ( not ListFindNoCase( obj.dbFieldList, key ) ) {
@@ -302,6 +318,9 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				newId = cleanedData.id;
 			}
 		}
+		if ( objectIsVersioned( arguments.objectName ) ) {
+			cleanedData._version_is_draft = cleanedData._version_has_drafts = arguments.isDraft;
+		}
 
 		transaction {
 			if ( requiresVersioning ) {
@@ -310,6 +329,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					, data           = cleanedData
 					, manyToManyData = manyToManyData
 					, versionNumber  = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
+					, isDraft        = arguments.isDraft
 				);
 			}
 
@@ -330,12 +350,23 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			newId = Len( Trim( newId ) ) ? newId : ( adapter.getGeneratedKey(result) ?: "" );
 			if ( Len( Trim( newId ) ) ) {
 				for( key in manyToManyData ){
-					syncManyToManyData(
-						  sourceObject   = arguments.objectName
-						, sourceProperty = key
-						, sourceId       = newId
-						, targetIdList   = manyToManyData[ key ]
-					);
+					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+
+					if ( relationship == "many-to-many" ) {
+						syncManyToManyData(
+							  sourceObject   = arguments.objectName
+							, sourceProperty = key
+							, sourceId       = newId
+							, targetIdList   = manyToManyData[ key ]
+						);
+					} else if ( relationship == "one-to-many" ) {
+						syncOneToManyData(
+							  sourceObject   = arguments.objectName
+							, sourceProperty = key
+							, sourceId       = newId
+							, targetIdList   = manyToManyData[ key ]
+						);
+					}
 				}
 			}
 		}
@@ -394,6 +425,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * @extraFilters.hint            An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @forceUpdateAll.hint          If no ID and no filters are supplied, this must be set to **true** in order for the update to process
 	 * @updateManyToManyRecords.hint Whether or not to update multiple relationship records for properties that have a many-to-many relationship
+	 * @isDraft.hint                 Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
 	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
 	 * @useVersioning.docdefault     auto
@@ -408,6 +440,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		,          array   savedFilters            = []
 		,          boolean forceUpdateAll          = false
 		,          boolean updateManyToManyRecords = false
+		,          boolean isDraft                 = false
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 		,          boolean forceVersionCreation    = false
@@ -431,7 +464,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var preparedFilter     = "";
 
 		for( key in cleanedData ){
-			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ) eq "many-to-many" ) {
+			if ( arguments.updateManyToManyRecords and getObjectPropertyAttribute( objectName, key, "relationship", "none" ).reFindNoCase( "(one|many)\-to\-many" ) ) {
 				manyToManyData[ key ] = cleanedData[ key ];
 				cleanedData.delete( key );
 			} elseif ( !ListFindNoCase( obj.dbFieldList, key ) ) {
@@ -473,9 +506,19 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 					, filterParams         = preparedFilter.filterParams
 					, data                 = cleanedData
 					, manyToManyData       = manyToManyData
+					, isDraft              = arguments.isDraft
 					, versionNumber        = arguments.versionNumber ? arguments.versionNumber : getNextVersionNumber()
 					, forceVersionCreation = arguments.forceVersionCreation
 				);
+			}
+
+			if ( arguments.useVersioning ) {
+				if ( arguments.isDraft ) {
+					cleanedData = { _version_has_drafts = true };
+				} else {
+					cleanedData._version_is_draft   = false;
+					cleanedData._version_has_drafts = false;
+				}
 			}
 
 			preparedFilter.params = _arrayMerge( preparedFilter.params, _convertDataToQueryParams(
@@ -512,13 +555,26 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				}
 
 				for( key in manyToManyData ){
-					for( var updatedId in updatedRecords ) {
-						syncManyToManyData(
-							  sourceObject   = arguments.objectName
-							, sourceProperty = key
-							, sourceId       = updatedId
-							, targetIdList   = manyToManyData[ key ]
-						);
+					var relationship = getObjectPropertyAttribute( objectName, key, "relationship", "none" );
+
+					if ( relationship == "many-to-many" ) {
+						for( var updatedId in updatedRecords ) {
+							syncManyToManyData(
+								  sourceObject   = arguments.objectName
+								, sourceProperty = key
+								, sourceId       = updatedId
+								, targetIdList   = manyToManyData[ key ]
+							);
+						}
+					} else if ( relationship == "one-to-many" ) {
+						for( var updatedId in updatedRecords ) {
+							syncOneToManyData(
+								  sourceObject   = arguments.objectName
+								, sourceProperty = key
+								, sourceId       = updatedId
+								, targetIdList   = manyToManyData[ key ]
+							);
+						}
 					}
 				}
 			}
@@ -801,6 +857,66 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	}
 
 	/**
+	 * Synchronizes a record's related one-to-many object data for a given property. Returns true on success, false otherwise.
+	 * \n
+	 * ${arguments}
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * presideObjectService.syncOneToManyData(
+	 * \t      sourceObject   = "event"
+	 * \t    , sourceProperty = "sessions"
+	 * \t    , sourceId       = rc.eventId
+	 * \t    , targetIdList   = rc.sessions // e.g. "635,1,52,24"
+	 * );
+	 * ```
+	 *
+	 * @autodoc
+	 * @sourceObject.hint   The object that contains the one-to-many property
+	 * @sourceProperty.hint The name of the property that is defined as a one-to-many relationship
+	 * @sourceId.hint       ID of the record who's related data we are to synchronize
+	 * @targetIdList.hint   Comma separated list of IDs of records representing records in the related object
+	 *
+	 */
+	public boolean function syncOneToManyData(
+		  required string sourceObject
+		, required string sourceProperty
+		, required string sourceId
+		, required string targetIdList
+	) {
+		var prop             = getObjectProperty( arguments.sourceObject, arguments.sourceProperty );
+		var targetObjectName = prop.relatedTo ?: "";
+		var targetObject     = getObject( targetObjectName );
+		var targetFk         = prop.relationshipKey ?: arguments.sourceObject;
+		var targetProp       = getObjectProperty( targetObjectName, targetFk );
+		var records          = ListToArray( arguments.targetIdList );
+
+		if ( !IsBoolean( targetProp.required ?: "" ) || !targetProp.required ) {
+			var filter = "#targetObjectName#.#LCase( targetFk )# = :#targetObjectName#.#targetFk#";
+			var params = { "#targetObjectName#.#targetFk#"=arguments.sourceId };
+
+			if ( records.len() ) {
+				filter &= " and #targetObjectName#.id not in (:#targetObjectName#.id)";
+				params[ "#targetObjectName#.id" ] = records;
+			}
+			targetObject.updateData(
+				  filter       = filter
+				, filterParams = params
+				, data         = { "#targetFk#" = "" }
+			);
+		}
+		if ( records.len() ) {
+			targetObject.updateData(
+				  filter = { id=records }
+				, data   = { "#targetFk#" = arguments.sourceId }
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Returns a structure of many to many data for a given record. Each structure key represents a many-to-many type property on the object. The value for each key will be a comma separated list of IDs of the related data.
 	 * \n
 	 * ${arguments}
@@ -868,9 +984,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		args.append( {
-			  objectName   = getVersionObjectName( arguments.objectName )
-			, orderBy      = "_version_number desc"
-			, useCache     = false
+			  objectName         = getVersionObjectName( arguments.objectName )
+			, orderBy            = "_version_number desc"
+			, useCache           = false
+			, allowDraftVersions = true
 		} );
 
 		if ( args.keyExists( "fieldName" ) ) {
@@ -1007,7 +1124,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 	 * ```
 	 *
 	 * @objectName.hint    Name of the object who's property attribute we wish to get
-	 * @objectName.hint    Name of the property who's attribute we wish to get
+	 * @propertyName.hint  Name of the property who's attribute we wish to get
 	 * @attributeName.hint Name of the attribute who's value we wish to get
 	 * @defaultValue.hint  Default value for the attribute, should it not exist
 	 *
@@ -1179,6 +1296,20 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		return "textinput";
+	}
+
+	public string function mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) {
+		var parsed1 = arguments.dbAdapter.getClauseSql( arguments.filter1, arguments.tableAlias );
+		var parsed2 = arguments.dbAdapter.getClauseSql( arguments.filter2, arguments.tableAlias );
+
+		parsed1 = ReReplace( parsed1, "^\s*where ", "" );
+		parsed2 = ReReplace( parsed2, "^\s*where ", "" );
+
+		if ( Len( Trim( parsed1 ) ) && Len( Trim( parsed2 ) ) ) {
+			return "(" & parsed1 & ") and (" & parsed2 & ")";
+		}
+
+		return Len( Trim( parsed1 ) ) ? parsed1 : parsed2;
 	}
 
 // PRIVATE HELPERS
@@ -1457,7 +1588,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 		var interceptArguments = arguments;
 		interceptArguments.tableJoins = tableJoins;
-		_announceInterception( "postPrepareTableJoins", arguments );
+		_announceInterception( "postPrepareTableJoins", interceptArguments );
 
 		return interceptArguments.tableJoins;
 	}
@@ -1469,6 +1600,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required array   selectFields
 		, required string  maxVersion
 		, required numeric specificVersion
+		, required boolean allowDraftVersions
 		, required any     filter
 		, required array   params
 		, required string  orderBy
@@ -1479,29 +1611,33 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var adapter              = getDbAdapterForObject( arguments.objectName );
 		var versionObj           = _getObject( getVersionObjectName( arguments.objectName ) ).meta;
 		var versionTableName     = versionObj.tableName;
-		var alteredJoins         = _alterJoinsToUseVersionTables( arguments.joins, arguments.originalTableName, versionTableName );
 		var compiledSelectFields = Duplicate( arguments.selectFields );
 		var compiledFilter       = Duplicate( arguments.filter );
 		var sql                  = "";
 		var versionFilter        = "";
 		var versionCheckJoin     = "";
 		var versionCheckFilter   = "";
+		var args                 = {};
+		var alteredJoins         = _alterJoinsToUseVersionTables(
+			  argumentCollection = arguments
+			, versionTableName   = versionTableName
+			, preparedFilter     = { filter=arguments.filter, params=arguments.params }
+		);
 
 		if ( not ArrayLen( arguments.selectFields ) ) {
 			compiledSelectFields = _dbFieldListToSelectFieldsArray( versionObj.dbFieldList, arguments.objectName, adapter );
 		}
 
 		if ( arguments.specificVersion ) {
-			versionFilter = { "#arguments.objectName#._version_number" = arguments.specificVersion };
-			compiledFilter = _mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
+			versionFilter = "#arguments.objectName#._version_number = :#arguments.objectName#._version_number";
+			params.append( { name="#arguments.objectName#___version_number", value=arguments.specificVersion, type="cf_sql_int" } );
 
-			arguments.params = _arrayMerge( arguments.params, _convertDataToQueryParams(
-				  objectName        = arguments.objectName
-				, columnDefinitions = versionObj.properties
-				, data              = versionFilter
-				, dbAdapter         = adapter
-				, tableAlias        = arguments.objectName
-			) );
+			if ( !arguments.allowDraftVersions ) {
+				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
+				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
+			}
+			compiledFilter = mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
+
 		} else {
 			versionCheckJoin   = _getVersionCheckJoin( versionTableName, arguments.objectName, adapter );
 			versionCheckFilter = "_latestVersionCheck.id is null";
@@ -1509,13 +1645,19 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			if ( ReFind( "^[1-9][0-9]*$", arguments.maxVersion ) ) {
 				versionCheckJoin.additionalClauses &= " and _latestVersionCheck._version_number <= #arguments.maxVersion#";
 				versionCheckFilter &= " and #arguments.objectName#._version_number <= #arguments.maxVersion#";
+
+				if ( !arguments.allowDraftVersions ) {
+					versionCheckJoin.additionalClauses &= " and ( _latestVersionCheck._version_is_draft is null or _latestVersionCheck._version_is_draft = 0 )";
+					versionCheckFilter &= " and ( _latestVersionCheck._version_is_draft is null or _latestVersionCheck._version_is_draft = 0 )";
+				}
 			}
 			ArrayAppend( alteredJoins, versionCheckJoin );
 
-			compiledFilter = _mergeFilters( compiledFilter, versionCheckFilter, adapter, arguments.objectName );
+			compiledFilter = mergeFilters( compiledFilter, versionCheckFilter, adapter, arguments.objectName );
 		}
 
-		sql = adapter.getSelectSql(
+		var args = Duplicate( arguments );
+		args.append( {
 			  tableName     = versionTableName
 			, tableAlias    = arguments.objectName
 			, selectColumns = compiledSelectFields
@@ -1525,7 +1667,10 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			, groupBy       = arguments.groupBy
 			, maxRows       = arguments.maxRows
 			, startRow      = arguments.startRow
-		);
+		} );
+		_announceInterception( "postPrepareVersionSelect", args );
+
+		sql = adapter.getSelectSql( argumentCollection=args );
 
 		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
 	}
@@ -1546,11 +1691,22 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		  required array  joins
 		, required string originalTableName
 		, required string versionTableName
+		, required string objectName
+		, required struct preparedFilter
 	) {
 		var manyToManyObjects = {};
+		var isPageType        = isPageType( arguments.objectName );
+		var pageIsVersioned   = objectExists( "page" ) && objectIsVersioned( "page" );
+
 		for( var join in arguments.joins ){
 			if ( Len( Trim( join.manyToManyProperty ?: "" ) ) ) {
 				manyToManyObjects[ join.joinToObject ] = 1;
+			}
+
+			if ( isPageType && pageIsVersioned && join.joinFromObject == arguments.objectName && join.joinToObject == "page" ) {
+				join.joinToObject     = getVersionObjectName( "page" );
+				join.addVersionClause = true;
+				join.tableAlias       = "page";
 			}
 		}
 
@@ -1559,7 +1715,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				StructDelete( manyToManyObjects, obj );
 			}
 		}
-
 
 		if ( manyToManyObjects.len() ) {
 			for( var join in arguments.joins ){
@@ -1574,7 +1729,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 		}
 
-		return _convertObjectJoinsToTableJoins( arguments.joins );
+		return _convertObjectJoinsToTableJoins( argumentCollection=arguments, joins=arguments.joins );
 	}
 
 	private array function _dbFieldListToSelectFieldsArray( required string fieldList, required string tableAlias, required any dbAdapter ) {
@@ -1586,20 +1741,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		return fieldArray;
-	}
-
-	private string function _mergeFilters( required any filter1, required any filter2, required any dbAdapter, required string tableAlias ) {
-		var parsed1 = arguments.dbAdapter.getClauseSql( arguments.filter1, arguments.tableAlias );
-		var parsed2 = arguments.dbAdapter.getClauseSql( arguments.filter2, arguments.tableAlias );
-
-		parsed1 = ReReplace( parsed1, "^\s*where ", "" );
-		parsed2 = ReReplace( parsed2, "^\s*where ", "" );
-
-		if ( Len( Trim( parsed1 ) ) && Len( Trim( parsed2 ) ) ) {
-			return "(" & parsed1 & ") and (" & parsed2 & ")";
-		}
-
-		return Len( Trim( parsed1 ) ) ? parsed1 : parsed2;
 	}
 
 	private string function _generateNewIdWhenNecessary( required string generator ) {
@@ -1684,10 +1825,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		, required struct filterParams
 		, required array  joinTargets
 	) {
-		var cacheMaps = _getCacheMaps();
-		var objId     = "";
-		var id        = "";
-		var joinObj   = "";
+		var cacheMaps   = _getCacheMaps();
+		var objId       = "";
+		var id          = "";
+		var joinObj     = "";
+		var fullIdField = "#arguments.objectName#.id";
 
 		if ( not StructKeyExists( cacheMaps, arguments.objectName ) ) {
 			cacheMaps[ arguments.objectName ] = {
@@ -1695,10 +1837,18 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			};
 		}
 
-		if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
-			objId = arguments.filter.id;
-		} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
-			objId = arguments.filterParams.id;
+		if ( IsStruct( arguments.filter ) ) {
+			if ( arguments.filter.keyExists( "id" ) ) {
+				objId = arguments.filter.id;
+			} else if ( arguments.filter.keyExists( fullIdField ) ) {
+				objId = arguments.filter[ fullIdField ];
+			}
+		} else {
+			if ( arguments.filterParams.keyExists( "id" ) ) {
+				objId = arguments.filterParams.id;
+			} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+				objId = arguments.filterParams[ fullIdField ];
+			}
 		}
 
 		if ( IsStruct( objId ) ) {
@@ -1737,14 +1887,23 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		var keysToClear = "";
 		var objIds      = "";
 		var objId       = "";
+		var fullIdField = "#arguments.objectName#.id";
 
 		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
 			keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
 
-			if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
-				objIds = arguments.filter.id;
-			} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
-				objIds = arguments.filterParams.id;
+			if ( IsStruct( arguments.filter ) ) {
+				if ( arguments.filter.keyExists( "id" ) ) {
+					objIds = arguments.filter.id;
+				} else if ( arguments.filter.keyExists( fullIdField ) ) {
+					objIds = arguments.filter[ fullIdField ];
+				}
+			} else {
+				if ( arguments.filterParams.keyExists( "id" ) ) {
+					objIds = arguments.filterParams.id;
+				} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+					objIds = arguments.filterParams[ fullIdField ];
+				}
 			}
 
 			if ( IsSimpleValue( objIds ) ) {
@@ -1781,12 +1940,11 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 	private array function _parseSelectFields( required string objectName, required array selectFields ) {
 		_announceInterception( "preParseSelectFields", arguments );
-		var fields = arguments.selectFields;
+		var fields  = arguments.selectFields;
+		var obj     = _getObject( arguments.objectName ).meta;
+		var adapter = _getAdapter( obj.dsn ?: "" );
 
-		if ( not ArrayLen( fields ) ) {
-			var obj     = _getObject( arguments.objectName ).meta;
-			var adapter = _getAdapter( obj.dsn ?: "" );
-
+		if ( !fields.len() ) {
 			fields = _dbFieldListToSelectFieldsArray( obj.dbFieldList, arguments.objectName, adapter );
 		}
 
@@ -1815,12 +1973,37 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				}
 				fields[i] = Replace( fields[i], "${labelfield}", labelField, "all" );
 			}
+
+			fields[i] = _autoAliasBareProperty(
+				  objectName   = arguments.objectName
+				, propertyName = fields[i]
+				, dbAdapter    = adapter
+			);
 		}
 
 		arguments.selectFields = fields;
 		_announceInterception( "postParseSelectFields", arguments );
 
 		return fields;
+	}
+
+	private string function _parseOrderBy( required string orderBy, required string objectName, required any dbAdapter ) {
+		var items   = arguments.orderBy.listToArray();
+		var rebuilt = [];
+
+		for( var item in items ) {
+			var propertyName = Trim( ListFirst( item, " " ) );
+			var direction    = ListLen( item, " " ) > 1 ? " " & ListRest( item, " ") : "";
+			var aliased      = _autoAliasBareProperty( arguments.objectName, propertyName, arguments.dbAdapter );
+
+			if ( propertyName != aliased ) {
+				item = aliased & direction;
+			}
+
+			rebuilt.append( Trim( item ) );
+		}
+
+		return rebuilt.toList( ", " );
 	}
 
 	private string function _resolveObjectNameFromColumnJoinSyntax( required string startObject, required string joinSyntax ) {
@@ -1858,7 +2041,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			savedFilter.filterParams = savedFilter.filterParams ?: {};
 
 			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
-			result.filter = _mergeFilters(
+			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = savedFilter.filter
 				, dbAdapter  = arguments.adapter
@@ -1871,7 +2054,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
 
 			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
-			result.filter = _mergeFilters(
+			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = extraFilter.filter
 				, dbAdapter  = arguments.adapter
@@ -1880,6 +2063,14 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		if ( IsStruct( result.filter ) ) {
+			for( var key in result.filter ) {
+				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
+				if ( aliasedKey != key ) {
+					result.filter[ aliasedKey ] = result.filter[ key ];
+					result.filter.delete( key );
+				}
+			}
+
 			result.params = _convertDataToQueryParams(
 				  objectName        = arguments.objectName
 				, columnDefinitions = arguments.columnDefinitions
@@ -1887,6 +2078,15 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				, dbAdapter         = adapter
 			);
 		} else {
+			for( var key in result.filterParams ) {
+				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
+				if ( aliasedKey != key ) {
+					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
+					result.filterParams.delete( key );
+					result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+				}
+			}
+
 			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
 			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
 			result.params = _convertUserFilterParamsToQueryParams(
@@ -1932,6 +2132,33 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		}
 
 		return newData;
+	}
+
+	private struct function _getDraftExclusionFilter( required string objectName ) {
+		return {
+			  filter       = "#arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft"
+			, filterparams = { "#arguments.objectName#._version_is_draft" = false }
+		};
+	}
+
+	private string function _autoAliasBareProperty(
+		  required string  objectName
+		, required string  propertyName
+		, required any     dbAdapter
+		,          string  alias          = arguments.objectName
+		,          boolean escapeEntities = true
+	) {
+		var objMeta       = _getObject( arguments.objectName ).meta;
+		var barePropRegex = "^(" & objMeta.dbFieldList.replace( ",", "|", "all" ) & ")$";
+
+		if ( arguments.propertyName.reFindNoCase( barePropRegex ) ) {
+			if ( escapeEntities ) {
+				return dbAdapter.escapeEntity( arguments.alias ) & "." & dbAdapter.escapeEntity( arguments.propertyName );
+			}
+			return arguments.alias & "." & arguments.propertyName;
+		}
+
+		return arguments.propertyName;
 	}
 
 // SIMPLE PRIVATE PROXIES

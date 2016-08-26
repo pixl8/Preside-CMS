@@ -13,16 +13,18 @@
 	  , allowSearch         = cfrequest.allowSearch
 	  , datasourceUrl       = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 	  , useMultiActions     = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
-	  , isMultilingual      = cfrequest.isMultilingual      || false
+	  , isMultilingual      = cfrequest.isMultilingual || false
+	  , draftsEnabled       = cfrequest.draftsEnabled  || false
 	  , object              = cfrequest.objectName  || ""
 	  , objectTitle         = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 	  , enabledContextHotkeys;
 
 	setupDatatable = function(){
-		var $tableHeaders = $listingTable.find( 'thead > tr > th')
-		  , colConfig     = []
-		  , defaultSort   = []
-		  , i;
+		var $tableHeaders        = $listingTable.find( 'thead > tr > th')
+		  , colConfig            = []
+		  , defaultSort          = []
+		  , dynamicHeadersOffset = 1
+		  , i, $header;
 
 		if ( useMultiActions ) {
 			colConfig.push( {
@@ -33,15 +35,26 @@
 			} );
 		}
 
-		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-1; i++ ){
+		if ( draftsEnabled  ) { dynamicHeadersOffset++; }
+		if ( isMultilingual ) { dynamicHeadersOffset++; }
+
+		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
+			$header = $( $tableHeaders.get(i) );
 			colConfig.push( { "mData":$( $tableHeaders.get(i) ).data( 'field' ) } );
-			if ( typeof $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) !== 'undefined' ) {
-				defaultSort.push( [ i, $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) ]);
+
+			if ( typeof $header.data( 'defaultSortOrder' ) !== 'undefined' ) {
+				defaultSort.push( [ i, $header.data( 'defaultSortOrder' ) ]);
 			}
+		}
+		if( draftsEnabled ) {
+			colConfig.push( {
+				bSortable : false,
+				mData     : "_status",
+				sWidth    : "15em"
+			} );
 		}
 		if( isMultilingual ) {
 			colConfig.push( {
-				sClass    : "center",
 				bSortable : false,
 				mData     : "_translateStatus",
 				sWidth    : "12em"
@@ -54,6 +67,23 @@
 			mData     : "_options",
 			sWidth    : "9em"
 		} );
+		$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );
+
+		for( i=0; i < $tableHeaders.length; i++ ){
+			$header = $( $tableHeaders.get(i) );
+
+			if ( typeof $header.data( 'class' ) !== 'undefined' ) {
+				colConfig[ colConfig.length-1 ].sClass = $header.data( 'defaultSortOrder' );
+			}
+
+			if ( typeof $header.data( 'sortable' ) !== 'undefined' ) {
+				colConfig[ colConfig.length-1 ].bSortable = $header.data( 'sortable' );
+			}
+
+			if ( typeof $header.data( 'width' ) !== 'undefined' ) {
+				colConfig[ colConfig.length-1 ].sWidth = $header.data( 'width' );
+			}
+		}
 
 		$listingTable.dataTable( {
 			aoColumns     : colConfig,
@@ -128,13 +158,23 @@
 
 			$allCBoxes.each( function(){
 				this.checked = $selectAllCBox.is( ':checked' );
-				$(this).closest('tr').toggleClass('selected');
+				if ( this.checked ) {
+					$( this ).closest( 'tr' ).addClass( 'selected' );
+				} else {
+					$( this ).closest( 'tr' ).removeClass( 'selected' );
+				}
 			});
 		});
 
 		$multiActionBtns.data( 'hidden', true );
 		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
 			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+
+			if ( anyBoxesTicked == $listingTable.find( "td input:checkbox" ).length ) {
+				$selectAllCBox.prop( 'checked', true );
+			} else {
+				$selectAllCBox.prop( 'checked', false );
+			}
 
 			enabledContextHotkeys( !anyBoxesTicked );
 
@@ -173,22 +213,9 @@
 	};
 
 	setupTableRowFocusBehaviour = function(){
-		var focusSelector = useMultiActions ? 'tbody :checkbox' : 'tbody tr a';
-
-		$listingTable.on( 'focus', focusSelector, function(){
-			$( this ).closest( 'tr' ).addClass( 'focus' );
-		} );
-		$listingTable.on( 'blur', focusSelector, function(){
-			$( this ).closest( 'tr' ).removeClass( 'focus' );
-		} );
-
 		$listingTable.on( 'click', 'tbody :checkbox', function(){
 			var $cbox = $( this );
 			$cbox.closest( 'tr' ).toggleClass( 'selected', $cbox.is( ':checked' ) );
-		} );
-
-		$listingTable.on( 'keydown', 'tr.focus', 'return', function(){
-			$( this ).click();
 		} );
 	};
 

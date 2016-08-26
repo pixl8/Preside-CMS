@@ -35,7 +35,7 @@ component {
 			path = "/" & path;
 		}
 
-		return event.getSiteUrl() & "/preside/system/assets" & path;
+		return event.getSiteUrl( includeLanguageSlug=false ) & "/preside/system/assets" & path;
 	}
 
 // private getters and setters

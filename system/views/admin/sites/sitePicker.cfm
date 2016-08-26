@@ -20,7 +20,7 @@
 						<i class="fa fa-caret-down"></i>
 					</a>
 
-					<ul class="site-menu pull-left dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+					<ul class="site-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 						<cfloop array="#args.sites#" index="i" item="site">
 							<li>
 								<a href="#event.buildAdminLink( linkTo='sites.setActiveSite', queryString='id=#site.id#' )#">

@@ -34,7 +34,6 @@ component output=false {
 			var assetBinary = "";
 			var type        = assetManagerService.getAssetType( name=asset.asset_type, throwOnMissing=true );
 			var etag        = assetManagerService.getAssetEtag( id=assetId, versionId=versionId, derivativeName=derivativeName, throwOnMissing=true, isTrashed=isTrashed  );
-
 			_doBrowserEtagLookup( etag );
 
 			if ( Len( Trim( derivativeName ) ) ) {

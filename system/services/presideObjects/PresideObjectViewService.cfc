@@ -4,6 +4,7 @@
  *
  * @autodoc
  * @singleton
+ * @presideService
  *
  */
 component displayName="Preside Object View Service" {
@@ -92,10 +93,14 @@ component displayName="Preside Object View Service" {
 		StructDelete( selectDataArgs, "cacheSuffix"            );
 		StructDelete( selectDataArgs, "cacheTimeout"           );
 
-		selectDataArgs.objectName   = arguments.presideObject
-		selectDataArgs.selectFields = viewDetails.selectFields
+		selectDataArgs.objectName         = arguments.presideObject
+		selectDataArgs.selectFields       = viewDetails.selectFields
+		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $isAdminUserLoggedIn();
+
+		selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
+
 		for( record in data ) {
 			var viewArgs = _renderFields( arguments.presideObject, record, viewDetails.fieldOptions );
 			viewArgs.append( arguments.args );
@@ -311,6 +316,65 @@ component displayName="Preside Object View Service" {
 		return cacheKey;
 
 	}
+
+	private struct function _getVersioningArgsForSelectData( required string objectName, string id="", any filter={}, struct filterParams={} ) {
+		var coldbox = $getColdbox();
+		var event   = coldbox.getRequestService().getContext();
+
+		if ( event.isAdminUser() ) {
+			var currentEvent = event.getCurrentEvent();
+
+			if ( currentEvent == "core.SiteTreePageRequestHandler.index" && arguments.objectName == "page" || _getPresideObjectService().isPageType( arguments.objectName ) ) {
+				var currentPageId = event.getCurrentPageId();
+
+				if ( _isSelectDataForCurrentPage( currentPageId, arguments.id, arguments.filter, arguments.filterparams ) ) {
+					var args    = { fromVersionTable=true };
+					var version = Val( event.getValue( "version", 0 ) );
+
+					if ( version ) {
+						args.specificVersion = version;
+					} else {
+						args.maxVersion = "HEAD";
+					}
+
+					return args;
+				}
+			}
+		}
+
+		return {};
+	}
+
+	private boolean function _isSelectDataForCurrentPage(
+		  required string currentPageId
+		, required string id
+		, required any    filter
+		, required struct filterparams
+	) {
+		if ( !Len( Trim( currentPageId ) ) ) {
+			return false;
+		}
+
+		if ( arguments.id == currentPageId ) {
+			return true;
+		}
+
+		if ( IsSimpleValue( arguments.filter.page       ?: [] ) && arguments.filter.page       == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filterParams.page ?: [] ) && arguments.filterParams.page == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filter.id         ?: [] ) && arguments.filter.id         == currentPageId ) {
+			return true;
+		}
+		if ( IsSimpleValue( arguments.filterParams.id   ?: [] ) && arguments.filterParams.id   == currentPageId ) {
+			return true;
+		}
+
+		return false;
+	}
+
 
 // getters and setters
 	private any function _getPresideObjectService() {

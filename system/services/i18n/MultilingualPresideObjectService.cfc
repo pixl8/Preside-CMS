@@ -3,18 +3,20 @@
  * translations of standard preside objects possible in a transparent way. Note: You are
  * unlikely to need to deal with this API directly.
  *
- * @autodoc        true
- * @singleton      true
- * @presideService true
+ * @autodoc
+ * @singleton
+ * @presideService
  */
 component displayName="Multilingual Preside Object Service" {
 
 // CONSTRUCTOR
 	/**
-	 * @relationshipGuidance.inject       relationshipGuidance
+	 * @relationshipGuidance.inject relationshipGuidance
+	 * @cookieService.inject        cookieService
 	 */
-	public any function init( required any relationshipGuidance ) {
+	public any function init( required any relationshipGuidance, required any cookieService ) {
 		_setRelationshipGuidance( arguments.relationshipGuidance );
+		_setCookieService( arguments.cookieService );
 		_setMultiLingualObjectReference( {} );
 
 		return this;
@@ -153,23 +155,6 @@ component displayName="Multilingual Preside Object Service" {
 		dbFieldList.append( "_translation_language" );
 		propertyNames.append( "_translation_language" );
 
-		translationProperties._translation_active = {
-			  name          = "_translation_active"
-			, required      = false
-			, default       = false
-			, type          = "boolean"
-			, dbtype        = "boolean"
-			, uniqueindexes = ""
-			, indexes       = ""
-			, relationship  = "none"
-			, relatedto     = "none"
-			, generator     = "none"
-			, maxLength     = 0
-			, control       = "none"
-		};
-		dbFieldList.append( "_translation_active" );
-		propertyNames.append( "_translation_active" );
-
 		translationObject.dbFieldList   = dbFieldList.toList();
 		translationObject.propertyNames = propertyNames;
 
@@ -247,26 +232,79 @@ component displayName="Multilingual Preside Object Service" {
 	 * @language.hint       The language to filter on
 	 * @preparedFilter.hint The fully prepared and resolved filter that will be used in the select query
 	 */
-	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter ) {
-
+	public void function addLanguageClauseToTranslationJoins( required array tableJoins, required string language, required struct preparedFilter, boolean fromVersionTable=false ) {
 		for( var i=1; i <= arguments.tableJoins.len(); i++ ){
 			if ( ListLast( arguments.tableJoins[ i ].tableAlias, "$" ) == "_translations" ) {
+
 				if ( arguments.tableJoins[ i ].keyExists( "additionalClauses" ) ) {
 					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				} else {
 					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				}
 
-				if ( !$isAdminUserLoggedIn() ) {
-					arguments.tableJoins[ i ].additionalClauses &= " and #arguments.tableJoins[ i ].tableAlias#._translation_active = 1";
+				if ( !$isAdminUserLoggedIn() && $getPresideObjectService().objectIsVersioned( arguments.tableJoins[ i ].joinToTable ) ) {
+					arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = 0 )";
 				}
 
 				arguments.tableJoins[ i ].type = "left";
 
 				arguments.preparedFilter.params.append( { name="_translation_language", type="varchar", value=arguments.language } );
+
+				if ( arguments.fromVersionTable ) {
+					arguments.tableJoins[ i ].tableName = "_version_" & arguments.tableJoins[ i ].tableName;
+				}
 			}
 		}
+	}
 
+	/**
+	 * Works on intercepted select queries to add versioning clauses to translation
+	 * table joins
+	 *
+	 * @autodoc
+	 *
+	 */
+	public void function addVersioningClausesToTranslationJoins( required struct selectDataArgs ) {
+
+		if ( !selectDataArgs.specificVersion ) {
+			var poService          = $getPresideObjectService();
+			var versionedObject    = selectDataArgs.objectName;
+
+			if ( !isMultilingual( selectDataArgs.objectName ) ) {
+				if ( poService.isPageType( selectDataArgs.objectName ) ) {
+					versionedObject = "page";
+				} else {
+					return;
+				}
+			}
+
+			var versionObjectName  = poService.getVersionObjectName( getTranslationObjectName( versionedObject ) );
+			var tableName          = poService.getObjectAttribute( versionObjectName, "tablename", "" );
+
+
+			for( var i=selectDataArgs.joins.len(); i>0; i-- ) {
+				var join = selectDataArgs.joins[i];
+
+				if ( join.tableAlias contains "_translations" ) {
+					var alias              = join.tableAlias;
+					var vCheckAlias        = alias & "$_latestVersionCheck";
+					var versionCheckJoin   = _getVersionCheckJoin( tableName, alias, selectDataArgs.adapter );
+					var versionCheckFilter = "#vCheckAlias#.id is null";
+
+					if ( ReFind( "^[1-9][0-9]*$", selectDataArgs.maxVersion ) ) {
+						versionCheckJoin.additionalClauses &= " and #vCheckAlias#._version_number <= #selectDataArgs.maxVersion#";
+						versionCheckFilter &= " and #vCheckAlias#._version_number <= #selectDataArgs.maxVersion#";
+
+						if ( !selectDataArgs.allowDraftVersions ) {
+							versionCheckJoin.additionalClauses &= " and ( #vCheckAlias#._version_is_draft is null or #vCheckAlias#._version_is_draft = 0 )";
+							versionCheckFilter &= " and ( #vCheckAlias#._version_is_draft is null or #vCheckAlias#._version_is_draft = 0 )";
+						}
+					}
+					selectDataArgs.joins.append( versionCheckJoin );
+					selectDataArgs.filter = poService.mergeFilters( selectDataArgs.filter, versionCheckFilter, selectDataArgs.adapter, selectDataArgs.objectName );
+				}
+			}
+		}
 	}
 
 	/**
@@ -311,21 +349,28 @@ component displayName="Multilingual Preside Object Service" {
 	 * @autoDoc         true
 	 */
 	public array function getTranslationStatus( required string objectName, required string recordId ) {
-		var languages = listLanguages( includeDefault=false );
-		var dbRecords = $getPresideObjectService().selectData(
-			  objectName   = _getTranslationObjectPrefix() & objectName
-			, selectFields = [ "_translation_language", "_translation_active" ]
-			, filter       = { _translation_source_record = arguments.recordId }
+		var languages         = listLanguages( includeDefault=false );
+		var objectIsVersioned = $getPresideObjectService().objectIsVersioned( arguments.objectName );
+		var selectFields      = objectIsVersioned ? [ "_translation_language", "_version_is_draft", "_version_has_drafts" ] : [ "_translation_language" ];
+		var dbRecords         = $getPresideObjectService().selectData(
+			  objectName         = _getTranslationObjectPrefix() & objectName
+			, selectFields       = selectFields
+			, filter             = { _translation_source_record = arguments.recordId }
+			, allowDraftVersions = true
 		);
 		var mappedRecords = {};
 
 		for( var record in dbRecords ){
-			mappedrecords[ record._translation_language ] = record._translation_active;
+			if ( objectIsVersioned ) {
+				mappedrecords[ record._translation_language ] = ( !IsBoolean( record._version_is_draft ) || !record._version_is_draft ) && ( !IsBoolean( record._version_has_drafts ) || !record._version_has_drafts );
+			} else {
+				mappedrecords[ record._translation_language ] = true;
+			}
 		}
 
 		for( var language in languages ) {
 			if ( mappedRecords.keyExists( language.id ) ) {
-				language.status = Val( mappedRecords[ language.id ] ) ? "active" : "inprogress";
+				language.status = mappedRecords[ language.id ] ? "active" : "inprogress";
 			} else {
 				language.status = "notstarted"
 			}
@@ -370,15 +415,18 @@ component displayName="Multilingual Preside Object Service" {
 	 * for the given object record (object name and id)
 	 * and language
 	 *
+	 * @autodoc
+	 *
 	 */
 	public query function selectTranslation( required string objectName, required string id, required string languageId, array selectFields=[], string version="", boolean useCache=true ) {
 		var translationObjectName = getTranslationObjectName( arguments.objectName );
 		var filter                = { _translation_source_record=arguments.id, _translation_language=arguments.languageId };
 		var presideObjectService  = $getPresideObjectService();
 		var args                  = {
-			  objectName   = translationObjectName
-			, filter       = filter
-			, selectFields = arguments.selectFields
+			  objectName         = translationObjectName
+			, filter             = filter
+			, selectFields       = arguments.selectFields
+			, allowDraftVersions = true
 		};
 
 		if ( !arguments.useCache ) {
@@ -397,6 +445,7 @@ component displayName="Multilingual Preside Object Service" {
 	 * Saves a translation record for a given preside object
 	 * and record ID
 	 *
+	 * @autodoc
 	 * @objectName.hint Name of the object who's record we are to save the translation for
 	 * @id.hint         ID of the record we are to save the translation for
 	 * @languageId.hint ID of the language that the translation is for
@@ -404,29 +453,26 @@ component displayName="Multilingual Preside Object Service" {
 	 *
 	 */
 	public string function saveTranslation(
- 		  required string objectName
-		, required string id
-		, required string languageId
-		, required struct data
+ 		  required string  objectName
+		, required string  id
+		, required string  languageId
+		, required struct  data
+		,          boolean isDraft = false
 	){
 		var returnValue = "";
 
 		transaction {
 			var translationObjectName = getTranslationObjectName( arguments.objectName );
-			var existingTranslation = selectTranslation(
-				  objectName   = arguments.objectName
-				, id           = arguments.id
-				, languageId   = arguments.languageId
-				, selectFields = [ "id" ]
-			);
+			var existingId            = getExistingTranslationId( argumentCollection=arguments );
 
-			if ( existingTranslation.recordCount ) {
-				returnValue = existingTranslation.id;
+			if ( existingId.len() ) {
+				returnValue = existingId;
 				$getPresideObjectService().updateData(
 					  objectName              = translationObjectName
-					, id                      = existingTranslation.id
+					, id                      = existingId
 					, data                    = arguments.data
 					, updateManyToManyRecords = true
+					, isDraft                 = arguments.isDraft
 				);
 			} else {
 				var newRecordData = Duplicate( arguments.data );
@@ -437,11 +483,93 @@ component displayName="Multilingual Preside Object Service" {
 					  objectName              = translationObjectName
 					, data                    = newRecordData
 					, insertManyToManyRecords = true
+					, isDraft                 = arguments.isDraft
 				);
 			}
 		}
 
 		return returnValue;
+	}
+
+	public string function getExistingTranslationId(
+		  required string objectName
+		, required string id
+		, required string languageId
+	) {
+		var existing = selectTranslation(
+			  objectName   = arguments.objectName
+			, id           = arguments.id
+			, languageId   = arguments.languageId
+			, selectFields = [ "id" ]
+		);
+
+		return existing.id ?: "";
+	}
+
+	/**
+	 * Returns a query record for the detected language
+	 * for this request.
+	 *
+	 * @autodoc
+	 * @localeSlug.hint locale detected in URL
+	 *
+	 */
+	public query function getDetectedRequestLanguage( required string localeSlug ) {
+		var languageObj  = $getPresideObject( "multilingual_language" );
+		var validateLang = function( required query lang ){
+			var multilingualSettings = $getPresideCategorySettings( "multilingual" );
+			var configuredLanguages  = ListToArray( ListAppend( multilingualSettings.additional_languages ?: "", multilingualSettings.default_language ?: "" ) );
+
+			return configuredLanguages.findNoCase( lang.id ) ? lang : QueryNew( 'id,slug' );
+		}
+
+		if ( Len( Trim( arguments.localeSlug ) ) ) {
+			var languageFromSlug = languageObj.selectData( filter={ slug=arguments.localeSlug } );
+
+			if ( languageFromSlug.recordCount ) {
+				return validateLang( languageFromSlug );
+			}
+		}
+
+		var languageFromCookie = _getCookieService().getVar( "_preside_language", "" );
+		if ( Len( Trim( languageFromCookie ) ) ) {
+			languageFromCookie = languageObj.selectData( id=languageFromCookie );
+			if ( languageFromCookie.recordCount ) {
+				return validateLang( languageFromCookie );
+			}
+		}
+
+		var languageFromAcceptHeader = ListToArray( cgi.http_accept_language ?: "", ";" );
+		if ( languageFromAcceptHeader.len() ) {
+			for( var isoCode in languageFromAcceptHeader ) {
+				if ( !isNumeric( isoCode ) ) {
+					var languageFromIsoCode = languageObj.selectData( filter={ iso_code = isoCode } );
+					if ( languageFromIsoCode.recordCount ) {
+						return validateLang( languageFromIsoCode );
+					}
+				}
+			}
+		}
+
+		var defaultLanguage = $getPresideSetting( "multilingual", "default_language" );
+		if ( defaultLanguage.len() ) {
+			return validateLang( languageObj.selectData( id=defaultLanguage ) );
+		}
+
+		return QueryNew('id,slug');
+	}
+
+	/**
+	 * Persists the user's language choice so that it can be used
+	 * as the default language when it is unclear from the request
+	 * what language to use.
+	 *
+	 * @autodoc
+	 * @languageId.hint The ID of the language to persist
+	 *
+	 */
+	public void function persistUserLanguage( required string languageId ) {
+		_getCookieService().setVar( name="_preside_language", value=arguments.languageId );
 	}
 
 // PRIVATE HELPERS
@@ -527,6 +655,19 @@ component displayName="Multilingual Preside Object Service" {
 		return $getPresideObject( "multilingual_language" );
 	}
 
+	private struct function _getVersionCheckJoin( required string tableName, required string tableAlias, required any adapter ) {
+		var vCheckAlias = arguments.tableAlias & "$_latestVersionCheck";
+		return {
+			  tableName         = arguments.tableName
+			, tableAlias        = vCheckAlias
+			, tableColumn       = "id"
+			, joinToTable       = arguments.tableAlias
+			, joinToColumn      = "id"
+			, type              = "left"
+			, additionalClauses = "#adapter.escapeEntity( vCheckAlias )#.#adapter.escapeEntity( '_version_number' )# > #adapter.escapeEntity( arguments.tableAlias )#.#adapter.escapeEntity( '_version_number' )#"
+		}
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getMultiLingualObjectReference() {
 		return _multiLingualObjectReference;
@@ -540,5 +681,12 @@ component displayName="Multilingual Preside Object Service" {
 	}
 	private void function _setRelationshipGuidance( required any relationshipGuidance ) {
 		_relationshipGuidance = arguments.relationshipGuidance;
+	}
+
+	private any function _getCookieService() {
+		return _cookieService;
+	}
+	private void function _setCookieService( required any cookieService ) {
+		_cookieService = arguments.cookieService;
 	}
 }

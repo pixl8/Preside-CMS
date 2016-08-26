@@ -12,7 +12,6 @@ This form is used as the base "edit page" form for Sitetree pages. See also [[fo
 			<field sortorder="5" binding="page.parent_page" control="sitetreePagePicker" required="true" />
 			<field sortorder="10" binding="page.title" />
 			<field sortorder="20" binding="page.slug" required="true" />
-			<field sortorder="30" binding="page.active" />
 			<field sortorder="40" binding="page.main_image" />
 			<field sortorder="50" binding="page.layout" />
 			<field sortorder="60" binding="page.teaser" />
