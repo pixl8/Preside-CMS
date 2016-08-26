@@ -49,18 +49,19 @@
 		};
 
 		RulesEngineCondition.prototype.render = function() {
-			var lis, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
+			var lis, $selectedLi, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
 
 			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
 				var lis             = []
 				  , indent          = ( 20 * depth )
 				  , liTemplate      = '<li class="rules-engine-condition-builder-expression" style="margin-left:' + indent + 'px"></li>'
 				  , actionsTemplate = '<span class="rules-engine-condition-builder-expression-actions"><a class="fa fa-fw fa-trash rules-engine-condition-builder-expression-delete"></a></span>'
-				  , $li, i;
+				  , $li, $actions, i, liIndex;
 
 				for( i=0; i<expressions.length; i++ ) {
-					var isOddRow = i % 2
-					  , expression = expressions[i];
+					var isOddRow   = i % 2
+					  , expression = expressions[i]
+					  , liIndex    = index.concat( [i] );
 
 
 					if ( isOddRow ) {
@@ -70,21 +71,28 @@
 						$li.addClass( "rules-engine-condition-builder-expression-join" );
 						lis.push( $li );
 					} else if ( Array.isArray( expression ) ) {
-						lis = lis.concat( transformExpressionsToHtmlLis( expression, depth+1, index.concat([i]) ) );
+						lis = lis.concat( transformExpressionsToHtmlLis( expression, depth+1, liIndex ) );
 					} else {
 						$li = $( liTemplate );
-						$li.data( "modelIndex", index.concat([i]) );
+						$li.data( "modelIndex", liIndex );
 						$li.html( rulesEngineCondition.renderExpression( expression ) );
-						$li.append( actionsTemplate );
 
-						if ( rulesEngineCondition.selectedIndex !== null && rulesEngineCondition.selectedIndex.join() === index.concat([i]).join() ) {
-							$li.addClass( "rules-engine-condition-builder-expression-selected" );
+						$actions = $( actionsTemplate );
+						$li.append( $actions );
+						if ( i < expressions.length-1 ) {
+							$actions.append( '<a class="fa fa-fw fa-arrow-down rules-engine-condition-builder-expression-move-down"></a>' );
+						}
+						if ( i ) {
+							$actions.append( '<a class="fa fa-fw fa-arrow-up rules-engine-condition-builder-expression-move-up"></a>' );
+						}
+
+						if ( rulesEngineCondition.selectedIndex !== null && rulesEngineCondition.selectedIndex.join() === liIndex.join() ) {
+							$li.addClass( "selected" );
 						}
 
 						lis.push( $li );
 					}
 				}
-
 				return lis;
 			};
 
@@ -92,6 +100,14 @@
 			this.$ruleList.html( "" );
 			for( i=0; i<lis.length; i++ ) {
 				this.$ruleList.append( lis[i] );
+				if ( lis[i].hasClass( "selected" ) ) {
+					$selectedLi = lis[i];
+					$selectedLi.removeClass( "selected" );
+				}
+			}
+
+			if ( $selectedLi ) {
+				this.selectExpression( $selectedLi );
 			}
 		};
 
@@ -143,12 +159,6 @@
 			}
 
 			return;
-		};
-
-		RulesEngineCondition.prototype.removeExpression = function() {
-			console.log( "TODO: removeExpression() logic" );
-			this.persistToHiddenField();
-			this.render();
 		};
 
 		RulesEngineCondition.prototype.renderExpression = function( expression ) {
@@ -276,12 +286,15 @@
 
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-join-toggle", function( e ){
 				e.preventDefault();
+
+				rulesEngineCondition.selectedIndex = null;
 				rulesEngineCondition.toggleJoin( $( this ) );
 			} );
 
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression:not(.rules-engine-condition-builder-expression-join)", function( e ){
 				e.preventDefault();
-				if ( !$( e.target ).hasClass( "rules-engine-condition-builder-field-link" ) ) {
+
+				if ( !$( e.target ).is( "a" ) ) {
 					rulesEngineCondition.selectExpression( $( this ) );
 				}
 			} );
@@ -295,6 +308,15 @@
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-delete", function( e ){
 				e.preventDefault();
 				rulesEngineCondition.processDeleteExpressionClick( $( this ) );
+			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-move-up", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.processMoveExpressionClick( $( this ), "up" );
+			} );
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-move-down", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.processMoveExpressionClick( $( this ), "down" );
 			} );
 		};
 
@@ -402,6 +424,39 @@
 				$li.addClass( selectedClass );
 				this.selectedIndex = $li.data( "modelIndex" );
 			}
+		};
+
+		RulesEngineCondition.prototype.processMoveExpressionClick = function( $clickedLink, direction ){
+			var $li         = $clickedLink.closest( ".rules-engine-condition-builder-expression" )
+			  , modelIndex  = $li.data( "modelIndex" );
+
+			this.moveExpression( modelIndex, direction );
+		};
+
+		RulesEngineCondition.prototype.moveExpression = function( modelIndex, direction ) {
+			var listPosition = modelIndex[ modelIndex.length-1 ]
+			  , swapIndex    = direction == "up" ? ( listPosition - 2 ) : ( listPosition + 2 )
+			  , parentIndex, parentList, tmp;
+
+			if ( modelIndex.length > 1 ) {
+				parentIndex = modelIndex.slice( 0, modelIndex.length-2 )
+				parentList  = getModelReferenceFromIndex( parentIndex );
+			} else {
+				parentList = this.model;
+			}
+
+			if ( swapIndex >= 0 && swapIndex < parentList.length ) {
+				tmp = parentList[ swapIndex ];
+				parentList[ swapIndex ] = parentList[ listPosition ];
+				parentList[ listPosition ] = tmp;
+
+				this.selectedIndex = modelIndex;
+				this.selectedIndex[ this.selectedIndex.length-1 ] = swapIndex;
+
+				this.persistToHiddenField();
+				this.render();
+			}
+
 		};
 
 		return RulesEngineCondition;
