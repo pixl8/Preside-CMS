@@ -117,6 +117,23 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	function deleteConditionAction( event, rc, prc )  {
+		_checkPermissions( argumentCollection=arguments, key="delete" );
+
+		runEvent(
+			  event          = "admin.DataManager._deleteRecordAction"
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = {
+				  object      = "rules_engine_condition"
+				, postAction  = "rulesEngine"
+				, audit       = true
+				, auditType   = "rulesEngine"
+				, auditAction = "delete_rules_engine_condition"
+			}
+		);
+	}
+
 	public void function getConditionsForAjaxDataTables( event, rc, prc )  {
 		_checkPermissions( argumentCollection=arguments, key="read" );
 
