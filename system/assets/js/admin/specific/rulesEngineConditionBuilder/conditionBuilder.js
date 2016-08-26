@@ -279,14 +279,17 @@
 				rulesEngineCondition.toggleJoin( $( this ) );
 			} );
 
-			this.$ruleList.on( "click", ".rules-engine-condition-builder-field-link", function( e ){
-				e.preventDefault();
-				rulesEngineCondition.processFieldClick( $( this ) );
-			} );
-
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression:not(.rules-engine-condition-builder-expression-join)", function( e ){
 				e.preventDefault();
-				rulesEngineCondition.selectExpression( $( this ) );
+				if ( !$( e.target ).hasClass( "rules-engine-condition-builder-field-link" ) ) {
+					rulesEngineCondition.selectExpression( $( this ) );
+				}
+			} );
+
+			this.$ruleList.on( "click", ".rules-engine-condition-builder-field-link", function( e ){
+				e.preventDefault();
+				rulesEngineCondition.selectExpression( $( this ).closest( ".rules-engine-condition-builder-expression" ) );
+				rulesEngineCondition.processFieldClick( $( this ) );
 			} );
 
 			this.$ruleList.on( "click", ".rules-engine-condition-builder-expression-delete", function( e ){
@@ -397,6 +400,7 @@
 
 			if ( !hasClass ) {
 				$li.addClass( selectedClass );
+				this.selectedIndex = $li.data( "modelIndex" );
 			}
 		};
 
