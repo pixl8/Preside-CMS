@@ -84,10 +84,12 @@
 						}
 						if ( i ) {
 							$actions.append( '<a class="fa fa-fw fa-arrow-up rules-engine-condition-builder-expression-move-up"></a>' );
-							$actions.append( '<a class="fa fa-fw fa-arrow-right rules-engine-condition-builder-expression-move-indent"></a>' );
 						}
 						if ( depth ) {
 							$actions.append( '<a class="fa fa-fw fa-arrow-left rules-engine-condition-builder-expression-move-unindent"></a>' );
+						}
+						if ( i ) {
+							$actions.append( '<a class="fa fa-fw fa-arrow-right rules-engine-condition-builder-expression-move-indent"></a>' );
 						}
 						$actions.append( '<a class="fa fa-fw fa-trash rules-engine-condition-builder-expression-delete"></a>' );
 
