@@ -140,6 +140,13 @@ component displayName="RulesEngine Expression Reader Service" {
 				definition.fieldType = "boolean";
 				definition.variety   = _booleanVarietyMappings[ argName ];
 			break;
+
+			case "_stringOperator":
+			case "_dateOperator":
+			case "_numericOperator":
+				definition.fieldType = "operator";
+				definition.variety   = argName.reReplaceNoCase( "^_(.*)Operator$", "\1" );
+			break;
 		}
 
 		for( var attribName in functionArgumentMeta ) {
