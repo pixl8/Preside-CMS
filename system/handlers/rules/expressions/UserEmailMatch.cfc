@@ -4,6 +4,8 @@
  */
 component {
 
+	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
+
 	/**
 	 * @expression true
 	 * @pattern.placeholder rules.expressions.UserEmailMatch.webrequest:field.pattern.placeholder
@@ -16,6 +18,15 @@ component {
 		if ( !isLoggedIn() ) {
 			return false;
 		}
+
+		var details = getLoggedInUserDetails();
+		var matches = rulesEngineOperatorService.compareStrings(
+			  leftHandSide  = ( details.email_address ?: "" )
+			, operator      = arguments._stringOperator
+			, rightHandSide = arguments.pattern
+		);
+
+		return _does ? matches : !matches;
 	}
 
 }
