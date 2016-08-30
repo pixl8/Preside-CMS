@@ -9,8 +9,9 @@ for the current request
 <form i18nBaseUri="widgets.conditionalContent:" feature="rulesEngine">
 	<tab>
 		<fieldset>
-			<field sortorder="10" name="condition" required="true" control="conditionPicker" ruleContext="webrequest" quickadd="true" />
-			<field sortorder="20" name="content"   required="true" control="richeditor" />
+			<field sortorder="10" name="condition"           required="true"  control="conditionPicker" ruleContext="webrequest" quickadd="true" />
+			<field sortorder="20" name="content"             required="true"  control="richeditor" />
+			<field sortorder="30" name="alternative_content" required="false" control="richeditor" />
 		</fieldset>
 	</tab>
 </form>

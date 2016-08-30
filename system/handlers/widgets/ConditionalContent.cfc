@@ -10,6 +10,8 @@ component {
 
 		if ( conditionIsTrue ) {
 			return args.content;
+		} else if ( Len( Trim( args.alternative_content ?: "" ) ) ) {
+			return args.alternative_content;
 		}
 
 		return "";
