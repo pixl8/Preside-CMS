@@ -144,6 +144,7 @@ component displayName="RulesEngine Expression Reader Service" {
 			case "_stringOperator":
 			case "_dateOperator":
 			case "_numericOperator":
+			case "_periodOperator":
 				definition.fieldType = "operator";
 				definition.variety   = argName.reReplaceNoCase( "^_(.*)Operator$", "\1" );
 			break;

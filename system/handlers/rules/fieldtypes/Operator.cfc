@@ -8,6 +8,7 @@ component {
 	_varietyMappings[ "string"  ] = [ "eq", "neq", "contains", "startswith", "endswith" ];
 	_varietyMappings[ "numeric" ] = [ "eq", "neq", "gt", "gte", "lt", "lte" ];
 	_varietyMappings[ "date"    ] = [ "eq", "neq", "gt", "gte", "lt", "lte" ];
+	_varietyMappings[ "period"  ] = [ "eq", "gt", "gte", "lt", "lte" ];
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
 		var variety = "string";
@@ -15,6 +16,7 @@ component {
 		switch( config.variety ?: "" ) {
 			case "date":
 			case "numeric":
+			case "period":
 				variety = config.variety;
 		}
 
@@ -27,6 +29,7 @@ component {
 		switch( config.variety ?: "" ) {
 			case "date":
 			case "numeric":
+			case "period":
 				variety = config.variety;
 		}
 
