@@ -1,6 +1,7 @@
 /**
  * Expression handler for "User's email address matches pattern"
  *
+ * @feature websiteUsers
  */
 component {
 

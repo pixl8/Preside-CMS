@@ -1,6 +1,7 @@
 /**
  * Expression handler for "User has/does not have any benefits"
  *
+ * @feature websiteUsers
  */
 component {
 

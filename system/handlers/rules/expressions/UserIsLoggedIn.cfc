@@ -1,6 +1,7 @@
 /**
  * Expression handler for "User is/is not logged in"
  *
+ * @feature websiteUsers
  */
 component {
 
