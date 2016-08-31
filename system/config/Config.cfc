@@ -314,7 +314,7 @@ component {
 			, webRequestConditions   = { filter = { "rules_engine_condition.context" = "webrequest" } }
 		};
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
