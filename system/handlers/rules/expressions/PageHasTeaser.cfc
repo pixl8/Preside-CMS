@@ -6,11 +6,12 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		required numeric _has
+		boolean _has = true
 	) {
-		var hasTeaser = Len( Trim( event.getPageProperty( "teaser" ) ) )
+		var hasTeaser = Len( Trim( payload.page.teaser ?: "" ) );
 
 		return _has ? hasTeaser : !hasTeaser;
 	}

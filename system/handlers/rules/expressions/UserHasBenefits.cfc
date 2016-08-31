@@ -8,6 +8,7 @@ component {
 
 	/**
 	 * @expression         true
+	 * @expressionContexts webrequest,user
 	 * @benefits.fieldType object
 	 * @benefits.object    website_benefit
 	 */
@@ -19,17 +20,16 @@ component {
 		var hasBenefits = !arguments.benefits.len();
 
 		if ( !hasBenefits ) {
-			if ( isLoggedIn() ) {
-				var userId       = getLoggedInUserId();
-				var userBenefits = websitePermissionService.listUserBenefits( userId );
+			if ( Len( Trim( payload.user.id ?: "" ) ) ) {
+				var userBenefits     = websitePermissionService.listUserBenefits( payload.user.id );
 				var matchingBenefits = userBenefits.filter( function( benefit ){
 					return benefits.findNoCase( benefit );
 				} );
 
 				if ( _all ) {
-					hasBenefits = matchingBenefits.len() == benefits.len();
+					hasBenefits = _has ? ( matchingBenefits.len() == benefits.len() ) : matchingBenefits.len();
 				} else {
-					hasBenefits = matchingBenefits.len();
+					hasBenefits = _has ? matchingBenefits.len() : ( matchingBenefits.len() == benefits.len() );
 				}
 			}
 		}

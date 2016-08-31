@@ -6,11 +6,12 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		required numeric _has
+		boolean _has = true
 	) {
-		var embargo    = event.getPageProperty( "embargo_date" );
+		var embargo    = payload.page.embargo_date ?: "";
 		var hasEmbargo = IsDate( embargo );
 
 		return _has ? hasEmbargo : !hasEmbargo;

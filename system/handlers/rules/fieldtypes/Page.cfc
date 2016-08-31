@@ -4,7 +4,8 @@
  */
 component {
 
-	property name="pageTypesService" inject="pageTypesService";
+	property name="pageTypesService"     inject="pageTypesService";
+	property name="presideObjectService" inject="presideObjectService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
 		var ids = value.trim().listToArray();

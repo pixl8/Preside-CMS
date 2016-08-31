@@ -8,6 +8,7 @@ component {
 
 	/**
 	 * @expression         true
+	 * @expressionContexts webrequest,user
 	 * @benefits.fieldType object
 	 * @benefits.object    website_benefit
 	 */
@@ -16,9 +17,8 @@ component {
 	) {
 		var hasBenefits = false;
 
-		if ( isLoggedIn() ) {
-			var userId       = getLoggedInUserId();
-			var userBenefits = websitePermissionService.listUserBenefits( userId );
+		if ( Len( Trim( payload.user.id ?: "" )) ) {
+			var userBenefits = websitePermissionService.listUserBenefits( payload.user.id );
 
 			hasBenefits  = userBenefits.len();
 		}

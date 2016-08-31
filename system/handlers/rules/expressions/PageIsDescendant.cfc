@@ -6,13 +6,14 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 * @pages.fieldType page
 	 */
 	private boolean function webRequest(
 		  required string  pages
 		,          boolean _is = true
 	) {
-		var ancestors    = event.getPageProperty( "ancestorList" ).listToArray();
+		var ancestors    = ( payload.page.ancestorList ?: "" ).listToArray();
 		var isDescendant = false;
 
 		for( var ancestor in ancestors ) {

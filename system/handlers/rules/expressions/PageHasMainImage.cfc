@@ -6,11 +6,12 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		required numeric _has
+		  boolean _has = true
 	) {
-		var hasImage = Len( Trim( event.getPageProperty( "main_image" ) ) )
+		var hasImage = Len( Trim( payload.page.main_image ?: "" ) );
 
 		return _has ? hasImage : !hasImage;
 	}

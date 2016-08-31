@@ -6,13 +6,14 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 * @pages.fieldType page
 	 */
 	private boolean function webRequest(
 		  required string  pages
 		,          boolean _is = true
 	) {
-		var parent       = event.getPageProperty( "parent_page" );
+		var parent       = payload.page.parent_page ?: "";
 		var isDescendant = parent.len() && pages.ListFindNoCase( parent );
 
 		return _is ? isDescendant : !isDescendant;

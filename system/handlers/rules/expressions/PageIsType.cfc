@@ -6,13 +6,14 @@ component {
 
 	/**
 	 * @expression          true
+	 * @expressionContexts  webrequest,page
 	 * @pagetypes.fieldType pagetype
 	 */
 	private boolean function webRequest(
 		  required string  pagetypes
 		,          boolean _is  =true
 	) {
-		var currentPageType = event.getCurrentPageType();
+		var currentPageType = payload.page.page_type ?: "";
 		var found           = pageTypes.len() && ListFindNoCase( pageTypes, currentPageType );
 
 		return _is ? found : !found;

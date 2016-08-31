@@ -8,19 +8,20 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
 		  required numeric days
 		,          string  _numericOperator="lt"
 	) {
-		var embargo = event.getPageProperty( "embargo_date" );
+		var embargo = payload.page.embargo_date ?: "";
 
 		if ( !IsDate( embargo ) ) {
 			return false;
 		}
 		var daysFromEmbargo = DateDiff( "d", embargo, Now() );
 
-		return daysFromEmbargo >=0 && rulesEngineOperatorService.compareNumbers( daysFromEmbargo, _periodOperator, arguments.days );
+		return daysFromEmbargo >=0 && rulesEngineOperatorService.compareNumbers( daysFromEmbargo, _numericOperator, arguments.days );
 	}
 
 }

@@ -1,12 +1,8 @@
 component {
-	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
+	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 
 	private function index( event, rc, prc, args={} ) {
-		var conditionIsTrue = rulesEngineConditionService.evaluateCondition(
-			  conditionId = args.condition
-			, context     = "webrequest"
-			, payload     = {}
-		);
+		var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( args.condition ?: "" );
 
 		if ( conditionIsTrue ) {
 			return args.content;

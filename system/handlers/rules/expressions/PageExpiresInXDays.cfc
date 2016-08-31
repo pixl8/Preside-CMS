@@ -8,17 +8,18 @@ component {
 
 	/**
 	 * @expression true
+	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
 		  required numeric days
 		,          string  _periodOperator="lte"
 	) {
-		var expiry = event.getPageProperty( "expiry_date" );
+		var expiry = payload.page.expiry_date ?: "";
 
 		if ( !IsDate( expiry ) ) {
 			return false;
 		}
-		var daysToExpiry = DateDiff( "d", expiry, Now() );
+		var daysToExpiry = DateDiff( "d", Now(), expiry );
 
 		return daysToExpiry >=0 && rulesEngineOperatorService.compareNumbers( daysToExpiry, _periodOperator, arguments.days );
 	}
