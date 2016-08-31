@@ -53,6 +53,20 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( expressions[ "SimpleExpressionHandler.user" ].fields ?: "" ).toBe( dummyDefs );
 			} );
+
+			it( "should return an empty struct when the CFC file is annotated with a disabled feature", function(){
+				var service  = _getService();
+				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
+				var rootPath = "resources.rulesEngine.expressions";
+				var meta     = GetComponentMetadata( cfc );
+				var dummyDefs = { test=CreateUUId() };
+
+				service.$( "$isFeatureEnabled" ).$args( meta.feature ).$results( false );
+
+				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
+
+				expect( expressions.count() ).toBe( 0 );
+			} );
 		} );
 
 		describe( "getExpressionFieldsFromFunctionDefinition()", function(){
@@ -284,9 +298,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		var service = new preside.system.services.rulesEngine.RulesEngineExpressionReaderService();
+		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineExpressionReaderService() );
 
-		return createMock( object=service );
+		service.$( "$isFeatureEnabled", true );
+
+		return service;
 	}
 
 }

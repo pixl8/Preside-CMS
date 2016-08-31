@@ -81,6 +81,12 @@ component displayName="RulesEngine Expression Reader Service" {
 	 */
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
 		var meta        = getComponentMetadata( arguments.componentPath );
+		var feature     = meta.feature ?: "";
+
+		if ( Len( Trim( feature ) ) && !$isFeatureEnabled( feature ) ) {
+			return {};
+		}
+
 		var functions   = meta.functions ?: [];
 		var baseId      = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
 		var expressions = {};
