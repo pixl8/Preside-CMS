@@ -4,7 +4,7 @@
  *
  * @autodoc
  * @singleton
- *
+ * @presideService
  */
 component displayName="RulesEngine Expression Reader Service" {
 
