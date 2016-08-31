@@ -120,6 +120,18 @@ component {
 		return translateResource( uri="auditlog.websitebenefitsmanager:#action#.message", data=[ userLink, benefitLink ] );
 	}
 
+	private string function rulesEngine( event, rc, prc ) {
+		var action        = args.action    ?: "";
+		var known_as      = args.known_as  ?: "";
+		var userLink      = '<a href="#args.userLink#">#args.known_as#</a>';
+		var condition     = args.record_id;
+		var conditionName = args.detail.condition_name ?: "unknown";
+		var conditionUrl  = event.buildAdminLink( linkTo="rulesengine.editCondition", queryString="id=" & condition );
+		var conditionLink = '<a href="#conditionUrl#">#conditionName#</a>';
+
+		return translateResource( uri="auditlog.rulesEngine:#action#.message", data=[ userLink, conditionLink ] );
+	}
+
 	private string function taskmanager( event, rc, prc ) {
 		var action     = args.action    ?: "";
 		var known_as   = args.known_as  ?: "";

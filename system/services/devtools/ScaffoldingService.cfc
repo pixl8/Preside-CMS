@@ -469,6 +469,42 @@ component singleton=true {
 		return filesCreated;
 	}
 
+	public array function scaffoldRuleExpression( required string id, required string label, required string text, required string context, string extension="" ) {
+		var filesCreated = _ensureExtensionExists( arguments.extension );
+		var i18nProps    = StructNew( "linked" );
+
+		var root            = _getScaffoldRoot( arguments.extension );
+		var filePath        = root & "handlers/rules/expressions/" & arguments.id & ".cfc";
+		var fileContent     = "component {" & _nl() & _nl()
+							& "	/**" & _nl()
+							& "	 * @expression" & _nl()
+							& "	 * @expressionContexts #arguments.context#" & _nl()
+							& "	 */" & _nl()
+		                    & "	private boolean function #arguments.context#( " & _nl()
+		                    & "		  required string context" & _nl()
+		                    & "		, required struct payload" & _nl()
+		                    & "	 /* add your own field arguments here */" & _nl()
+		                    & "	) {" & _nl()
+		                    & "		// TODO: create your handler logic here to evaluate the expression" & _nl()
+		                    & "		return true; // or false, depending on whether the input data evaluation" & _nl()
+		                    & "	}" & _nl() & _nl()
+		                    & "}" & _nl();
+
+		_ensureDirectoryExists( GetDirectoryFromPath( filePath ) );
+		FileWrite( filePath, fileContent );
+
+		filesCreated.append( filePath );
+
+		i18nProps["label"] = arguments.label;
+		i18nProps["text"]  = arguments.text;
+
+		filesCreated.append( scaffoldI18nPropertiesFile( bundleName=arguments.context, subDir="rules/expressions/#arguments.id#", extension=arguments.extension, properties=i18nProps ) );
+
+		_getWidgetsService().reload();
+
+		return filesCreated;
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureDirectoryExists( required string dir ) {
 		var parentDir = "";
