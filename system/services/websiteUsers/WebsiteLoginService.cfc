@@ -49,18 +49,26 @@ component displayName="Website login service" {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.count() && ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) ) {
-				userRecord.session_authenticated = true;
+			if ( userRecord.count() ) {
+				if ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) {
+					userRecord.session_authenticated = true;
 
-				_setUserSession( userRecord );
+					_setUserSession( userRecord );
 
-				if ( arguments.rememberLogin ) {
-					_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					if ( arguments.rememberLogin ) {
+						_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					}
+
+					recordLogin();
+
+					return true;
+				} else {
+					$recordWebsiteUserAction(
+						  action = "failedLogin"
+						, type   = "login"
+						, userId = userRecord.id
+					);
 				}
-
-				recordLogin();
-
-				return true;
 			}
 		}
 
