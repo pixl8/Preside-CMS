@@ -253,6 +253,12 @@ component displayName="Website login service" {
 				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
 			);
 
+			$recordWebsiteUserAction(
+				  userId = userRecord.id
+				, action = "sendPasswordResetInstructions"
+				, type   = "login"
+			);
+
 			return true;
 		}
 
@@ -283,11 +289,22 @@ component displayName="Website login service" {
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
 
-			return _getUserDao().updateData(
+			var result = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			if ( result ) {
+				$recordWebsiteUserAction(
+					  userId = record.id
+					, action = "changepassword"
+					, type   = "login"
+				);
+			}
+
+			return result;
 		}
+
 		return false;
 	}
 
@@ -317,6 +334,12 @@ component displayName="Website login service" {
 				, detail   = userRecord
 			);
 
+		} else {
+			$recordWebsiteUserAction(
+				  userId = arguments.userId
+				, action = "changepassword"
+				, type   = "login"
+			);
 		}
 
 		return result;
@@ -386,13 +409,25 @@ component displayName="Website login service" {
 
 	/**
 	 * Sets the last logged in date for the logged in user
+	 * and records the action using [[api-websiteuseractionservice]]
 	 */
 	public boolean function recordLogin() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_in = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "login"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_in = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -403,9 +438,20 @@ component displayName="Website login service" {
 	public boolean function recordLogout() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_out = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "logout"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_out = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

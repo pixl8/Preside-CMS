@@ -462,7 +462,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 		mockEmailService      = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
 
-		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
+		var service = getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
 			  sessionStorage             = mockSessionStorage
 			, cookieService              = mockCookieService
 			, userDao                    = mockUserDao
@@ -471,6 +471,10 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, systemConfigurationService = mockSysConfigService
 			, emailService               = mockEmailService
 		) );
+
+		service.$( "$recordWebsiteUserAction" );
+
+		return service;
 	}
 
 }
