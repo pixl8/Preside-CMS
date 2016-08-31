@@ -12,6 +12,7 @@ component {
 		     	  rulesEngineExpressions         = { "#args.id#" = args.expressions }
 		     	, rulesEngineRenderFieldEndpoint = event.buildAdminLink( linkTo="rulesengine.ajaxRenderField" )
 		     	, rulesEngineEditFieldEndpoint   = event.buildAdminLink( linkTo="rulesengine.editFieldModal" )
+		     	, rulesEngineContext             = args.ruleContext
 		      }  );
 
 		return renderView( view="/formControls/rulesEngineConditionBuilder/index", args=args );
