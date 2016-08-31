@@ -153,6 +153,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( definition ).toBe( { fieldType="boolean", variety="allAny" } );
 			} );
 
+			it( "should return 'operator' type and 'string' variety when argument name = '_stringOperator'", function(){
+				var service    = _getService();
+				var argument   = { name="_stringOperator" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { fieldType="operator", variety="string" } );
+			} );
+
+			it( "should return 'operator' type and 'date' variety when argument name = '_dateOperator'", function(){
+				var service    = _getService();
+				var argument   = { name="_dateOperator" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { fieldType="operator", variety="date" } );
+			} );
+
+			it( "should return 'operator' type and 'numeric' variety when argument name = '_numericOperator'", function(){
+				var service    = _getService();
+				var argument   = { name="_numericOperator" };
+				var definition = service.getFieldDefinition( argument );
+
+				expect( definition ).toBe( { fieldType="operator", variety="numeric" } );
+			} );
+
 			it( "should merge argument metadata that is not 'name', 'type' or 'hint' into the field definition", function(){
 				var service    = _getService();
 				var argument   = { name="_any", type="boolean", hint="Any/all", test="this", stuff=true, required=true };

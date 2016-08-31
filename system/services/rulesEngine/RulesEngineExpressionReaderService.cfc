@@ -12,6 +12,7 @@ component displayName="RulesEngine Expression Reader Service" {
 		  _is   = "isIsNot"
 		, _has  = "hasHasNot"
 		, _was  = "wasWasNot"
+		, _are  = "areAreNot"
 		, _will = "willWillNot"
 		, _all  = "allAny"
 	};
@@ -136,9 +137,18 @@ component displayName="RulesEngine Expression Reader Service" {
 			case "_has" :
 			case "_was" :
 			case "_will" :
+			case "_are" :
 			case "_all" :
 				definition.fieldType = "boolean";
 				definition.variety   = _booleanVarietyMappings[ argName ];
+			break;
+
+			case "_stringOperator":
+			case "_dateOperator":
+			case "_numericOperator":
+			case "_periodOperator":
+				definition.fieldType = "operator";
+				definition.variety   = argName.reReplaceNoCase( "^_(.*)Operator$", "\1" );
 			break;
 		}
 

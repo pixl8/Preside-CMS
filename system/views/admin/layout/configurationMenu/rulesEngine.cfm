@@ -1,4 +1,4 @@
-<cfif hasCmsPermission( "rulesEngine.navigate" )>
+<cfif isFeatureEnabled( "rulesEngine" ) && hasCmsPermission( "rulesEngine.navigate" )>
 	<cfoutput>
 		<li>
 			<a href="#event.buildAdminLink( linkTo='rulesEngine' )#">
