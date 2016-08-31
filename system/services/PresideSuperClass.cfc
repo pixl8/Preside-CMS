@@ -621,12 +621,21 @@ component displayName="Preside Super Class" {
 	}
 
 	/**
-	 * Returns the coldbox controller	 *
+	 * Returns the coldbox controller
 	 *
 	 * @autodoc
 	 */
 	public any function $getColdbox() {
 		return $coldbox;
+	}
+
+	/**
+	 * Returns the current request context object
+	 *
+	 * @autodoc
+	 */
+	public any function $getRequestContext() {
+		return $getColdbox().getRequestService().getContext();
 	}
 
 	/**
