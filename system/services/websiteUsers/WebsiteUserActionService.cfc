@@ -77,6 +77,36 @@ component displayName="Website user action service" {
 		);
 	}
 
+	/**
+	 * Returns the date that an action was last performed
+	 * by the given user / visitor
+	 *
+	 * @autodoc
+	 * @type.hint   Type of the action
+	 * @action.hint Action ID
+	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 */
+	public string function getLastPerformedDate(
+		  required string type
+		, required string action
+		,          string userId = ""
+	) {
+		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			filter[ "website_user_action.user" ] = arguments.userId;
+		} else {
+			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
+		}
+
+		var record = $getPresideObject( "website_user_action" ).selectData(
+			  filter       = filter
+			, selectFields = [ "Max( website_user_action.datecreated ) as datecreated" ]
+		);
+
+		return record.datecreated ?: "";
+	}
+
 // PRIVATE HELPERS
 	private string function _getSessionId() {
 		var sessionStorage = _getSessionStorage();

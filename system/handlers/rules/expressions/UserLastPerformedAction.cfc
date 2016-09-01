@@ -6,6 +6,7 @@
 component {
 
 	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
+	property name="websiteUserActionService"   inject="websiteUserActionService";
 
 	/**
 	 * @expression         true
@@ -19,7 +20,23 @@ component {
 		, required numeric days
 		,          string  _numericOperator = "gt"
 	) {
-		return true;
+		if ( ListLen( action, "." ) != 2 ) {
+			return false;
+		}
+
+		var lastPerformedDate = websiteUserActionService.getLastPerformedDate(
+			  type   = ListFirst( action, "." )
+			, action = ListLast( action, "." )
+			, userId = payload.user.id ?: ""
+		);
+
+		if ( !IsDate( lastPerformedDate ) ) {
+			return false;
+		}
+
+		var daysDifference = DateDiff( "d", lastPerformedDate, Now() );
+
+		return rulesEngineOperatorService.compareNumbers( daysDifference, arguments._numericOperator, arguments.days );
 	}
 
 }

@@ -91,6 +91,48 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.promoteVisitorActionsToUserActions( userId = userId ) ).toBe( recordsUpdated );
 			} );
 		} );
+
+		describe( "getLastPerformedDate()", function(){
+			it( "should query the max date for the given type + action that is performed by the given user", function(){
+				var service    = _getService();
+				var userId     = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+				var date       = Now();
+				var mockResult = QueryNew( 'datecreated', 'date', [ [ date ] ] );
+
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Max( website_user_action.datecreated ) as datecreated" ]
+					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+				).$results( mockResult );
+
+				expect( service.getLastPerformedDate(
+					  type   = type
+					, action = action
+					, userId = userId
+				) ).toBe( date );
+			} );
+
+			it( "should user visitor id to query when user id is empty", function(){
+				var service    = _getService();
+				var visitorId  = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+				var date       = Now();
+				var mockResult = QueryNew( 'datecreated', 'date', [ [ date ] ] );
+
+				mockVisitorService.$( "getVisitorId", visitorId );
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Max( website_user_action.datecreated ) as datecreated" ]
+					, filter       = { "website_user_action.visitor"=visitorId, "website_user_action.type"=type, "website_user_action.action"=action }
+				).$results( mockResult );
+
+				expect( service.getLastPerformedDate(
+					  type   = type
+					, action = action
+				) ).toBe( date );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
