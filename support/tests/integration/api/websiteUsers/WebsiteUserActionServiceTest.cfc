@@ -209,6 +209,70 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeFalse();
 			} );
 		} );
+
+		describe( "getActionCount()", function(){
+			it( "should return result of query matching the given type, action and user", function(){
+				var service    = _getService();
+				var userId     = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+				var count      = Int( Rand() * 100 );
+
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Count(1) as action_count" ]
+					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = []
+				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
+
+				expect( service.getActionCount(
+					  type   = type
+					, action = action
+					, userId = userId
+				) ).toBe( count );
+			} );
+
+			it( "should user visitor id to query when user id is empty", function(){
+				var service    = _getService();
+				var visitorId  = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+				var count      = Int( Rand() * 100 );
+
+				mockVisitorService.$( "getVisitorId", visitorId );
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Count(1) as action_count" ]
+					, filter       = { "website_user_action.visitor"=visitorId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = []
+				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
+
+				expect( service.getActionCount(
+					  type   = type
+					, action = action
+				) ).toBe( count );
+			} );
+
+			it( "should add an extra date filter when a 'since' date is supplied", function(){
+				var service    = _getService();
+				var userId     = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+				var since      = DateAdd( "d", -20, Now() );
+				var count      = Int( Rand() * 100 );
+
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Count(1) as action_count" ]
+					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = [ { filter="website_user_action.datecreated >= :datecreated", filterParams={ datecreated=since } } ]
+				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
+
+				expect( service.getActionCount(
+					  type   = type
+					, action = action
+					, userId = userId
+					, since  = since
+				) ).toBe( count );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

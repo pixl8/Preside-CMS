@@ -143,6 +143,48 @@ component displayName="Website user action service" {
 		return $getPresideObject( "website_user_action" ).dataExists( filter=filter, extraFilters=extraFilters );
 	}
 
+	/**
+	 * Returns number of times the given user
+	 * has performed the given action. Uses
+	 * the current visitor when no user supplied.
+	 *
+	 * @autodoc
+	 * @type.hint   Type of the action
+	 * @action.hint Action ID
+	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 * @since.hint  Optional date from which the user has performed the action
+	 */
+	public numeric function getActionCount(
+		  required string type
+		, required string action
+		,          string userId = ""
+		,          string since  = ""
+	) {
+		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
+		var extraFilters = [];
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			filter[ "website_user_action.user" ] = arguments.userId;
+		} else {
+			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
+		}
+
+		if ( IsDate( arguments.since ) ) {
+			extraFilters.append({
+				  filter       = "website_user_action.datecreated >= :datecreated"
+				, filterParams = { datecreated = arguments.since }
+			});
+		}
+
+		var result = $getPresideObject( "website_user_action" ).selectData(
+			  filter       = filter
+			, extraFilters = extraFilters
+			, selectFields = [ "Count(1) as action_count" ]
+		);
+
+		return Val( result.action_count ?: "" );
+	}
+
 // PRIVATE HELPERS
 	private string function _getSessionId() {
 		var sessionStorage = _getSessionStorage();
