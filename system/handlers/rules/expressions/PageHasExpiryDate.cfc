@@ -9,12 +9,12 @@ component {
 	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		required numeric _has
+		required numeric _posesses
 	) {
 		var expiry = payload.page.expiry_date ?: "";
 		var hasExpiry = IsDate( expiry );
 
-		return _has ? hasExpiry : !hasExpiry;
+		return _posesses ? hasExpiry : !hasExpiry;
 	}
 
 }

@@ -9,11 +9,11 @@ component {
 	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		boolean _has = true
+		boolean _posesses = true
 	) {
 		var hasTeaser = Len( Trim( payload.page.teaser ?: "" ) );
 
-		return _has ? hasTeaser : !hasTeaser;
+		return _posesses ? hasTeaser : !hasTeaser;
 	}
 
 }

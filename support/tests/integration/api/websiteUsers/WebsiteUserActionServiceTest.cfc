@@ -142,7 +142,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var action     = "logout";
 
 				mockActionDao.$( "dataExists" ).$args(
-					filter = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = []
 				).$results( true );
 
 				expect( service.hasPerformedAction(
@@ -159,7 +160,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var action     = "logout";
 
 				mockActionDao.$( "dataExists" ).$args(
-					filter = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = []
 				).$results( false );
 
 				expect( service.hasPerformedAction(
@@ -177,12 +179,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockVisitorService.$( "getVisitorId", visitorId );
 				mockActionDao.$( "dataExists" ).$args(
-					filter = { "website_user_action.visitor"=visitorId, "website_user_action.type"=type, "website_user_action.action"=action }
+					  filter       = { "website_user_action.visitor"=visitorId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = []
 				).$results( false );
 
 				expect( service.hasPerformedAction(
 					  type   = type
 					, action = action
+				) ).toBeFalse();
+			} );
+
+			it( "should add an extra date filter when a 'since' date is supplied", function(){
+				var service    = _getService();
+				var userId     = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+				var since      = DateAdd( "d", -20, Now() );
+
+				mockActionDao.$( "dataExists" ).$args(
+					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = [ { filter="website_user_action.datecreated >= :datecreated", filterParams={ datecreated=since } } ]
+				).$results( false );
+
+				expect( service.hasPerformedAction(
+					  type   = type
+					, action = action
+					, userId = userId
+					, since  = since
 				) ).toBeFalse();
 			} );
 		} );

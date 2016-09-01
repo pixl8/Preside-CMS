@@ -116,13 +116,16 @@ component displayName="Website user action service" {
 	 * @type.hint   Type of the action
 	 * @action.hint Action ID
 	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 * @since.hint  Optional date from which the user has performed the action
 	 */
 	public boolean function hasPerformedAction(
 		  required string type
 		, required string action
 		,          string userId = ""
+		,          string since  = ""
 	) {
 		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
+		var extraFilters = [];
 
 		if ( Len( Trim( arguments.userId ) ) ) {
 			filter[ "website_user_action.user" ] = arguments.userId;
@@ -130,7 +133,14 @@ component displayName="Website user action service" {
 			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
 		}
 
-		return $getPresideObject( "website_user_action" ).dataExists( filter=filter );
+		if ( IsDate( arguments.since ) ) {
+			extraFilters.append({
+				  filter       = "website_user_action.datecreated >= :datecreated"
+				, filterParams = { datecreated = arguments.since }
+			});
+		}
+
+		return $getPresideObject( "website_user_action" ).dataExists( filter=filter, extraFilters=extraFilters );
 	}
 
 // PRIVATE HELPERS
