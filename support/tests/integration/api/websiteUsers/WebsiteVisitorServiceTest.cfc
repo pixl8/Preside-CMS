@@ -37,8 +37,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( setCookieCallLog.len() ).toBe( 1 );
 				expect( setCookieCallLog[1] ).toBe( {
-					  name  = "vid"
-					, value = visitorId
+					  name    = "vid"
+					, value   = visitorId
+					, expires = "never"
 				} );
 			} );
 		} );

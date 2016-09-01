@@ -51,8 +51,9 @@ component displayName="Website visitor service" {
 			var visitorId = LCase( CreateUUId() );
 
 			_getCookieService().setVar(
-				  name  = _getCookieKey()
-				, value = visitorId
+				  name    = _getCookieKey()
+				, value   = visitorId
+				, expires = "never"
 			);
 
 			return visitorId;

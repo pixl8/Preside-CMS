@@ -11,6 +11,7 @@ component displayName="RulesEngine Expression Reader Service" {
 	variables._booleanVarietyMappings = {
 		  _is   = "isIsNot"
 		, _has  = "hasHasNot"
+		, _did  = "didDidNot"
 		, _was  = "wasWasNot"
 		, _are  = "areAreNot"
 		, _will = "willWillNot"
@@ -141,6 +142,7 @@ component displayName="RulesEngine Expression Reader Service" {
 		switch( argName ) {
 			case "_is" :
 			case "_has" :
+			case "_did" :
 			case "_was" :
 			case "_will" :
 			case "_are" :

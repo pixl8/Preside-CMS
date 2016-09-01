@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User's email address matches pattern"
+ * Expression handler for "User's has performed some action within the last x days"
  *
  * @feature websiteUsers
  */
@@ -18,6 +18,7 @@ component {
 	private boolean function webRequest(
 		  required string  action
 		, required numeric days
+		,          boolean _did = true
 		,          string  _numericOperator = "gt"
 	) {
 		if ( ListLen( action, "." ) != 2 ) {
@@ -31,12 +32,13 @@ component {
 		);
 
 		if ( !IsDate( lastPerformedDate ) ) {
-			return false;
+			return !_did;
 		}
 
 		var daysDifference = DateDiff( "d", lastPerformedDate, Now() );
+		var result         = rulesEngineOperatorService.compareNumbers( daysDifference, arguments._numericOperator, arguments.days );
 
-		return rulesEngineOperatorService.compareNumbers( daysDifference, arguments._numericOperator, arguments.days );
+		return _did ? result : !result;
 	}
 
 }

@@ -7,6 +7,7 @@ component {
 	variables._booleanVarietyMappings = {
 		  isIsNot     = { truthy="cms:rulesEngine.boolean.is"  , falsey="cms:rulesEngine.boolean.isNot"   }
 		, hasHasNot   = { truthy="cms:rulesEngine.boolean.has" , falsey="cms:rulesEngine.boolean.hasNot"  }
+		, didDidNot   = { truthy="cms:rulesEngine.boolean.did" , falsey="cms:rulesEngine.boolean.didNot"  }
 		, wasWasNot   = { truthy="cms:rulesEngine.boolean.was" , falsey="cms:rulesEngine.boolean.wasNot"  }
 		, willWillNot = { truthy="cms:rulesEngine.boolean.will", falsey="cms:rulesEngine.boolean.willNot" }
 		, areAreNot   = { truthy="cms:rulesEngine.boolean.are" , falsey="cms:rulesEngine.boolean.areNot" }
@@ -22,6 +23,7 @@ component {
 			case "wasWasNot":
 			case "willWillNot":
 			case "areAreNot":
+			case "didDidNot":
 			case "allAny":
 				variety = config.variety;
 		}
