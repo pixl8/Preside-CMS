@@ -18,8 +18,18 @@ component displayName="Website login service" {
 	 * @bcryptService.inject              bcryptService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @emailService.inject               emailService
+	 * @websiteUserActionService.inject   websiteUserActionService
 	 */
-	public any function init( required any sessionStorage, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
+	public any function init(
+		  required any sessionStorage
+		, required any cookieService
+		, required any userDao
+		, required any userLoginTokenDao
+		, required any bcryptService
+		, required any systemConfigurationService
+		, required any emailService
+		, required any websiteUserActionService
+	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
@@ -27,6 +37,7 @@ component displayName="Website login service" {
 		_setBCryptService( arguments.bcryptService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setEmailService( arguments.emailService );
+		_setWebsiteUserActionService( arguments.websiteUserActionService );
 		_setSessionKey( "website_user" );
 		_setRememberMeCookieKey( "_presidecms-site-persist" );
 
@@ -59,7 +70,9 @@ component displayName="Website login service" {
 						_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
 					}
 
+					_getWebsiteUserActionService().promoteVisitorActionsToUserActions( userRecord.id );
 					recordLogin();
+					_preventSessionFixation();
 
 					return true;
 				} else {
@@ -496,7 +509,6 @@ component displayName="Website login service" {
 
 	private void function _setUserSession( required struct data ) {
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
-		_preventSessionFixation();
 	}
 
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
@@ -552,6 +564,11 @@ component displayName="Website login service" {
 			if ( user.count() ) {
 				user.session_authenticated = false;
 				_setUserSession( user );
+				$recordWebsiteUserAction(
+					  action = "autologin"
+					, type   = "login"
+				);
+				_preventSessionFixation();
 
 				request._presideWebsiteAutoLoginResult = true;
 				return true;
@@ -742,5 +759,12 @@ component displayName="Website login service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getWebsiteUserActionService() {
+		return _websiteUserActionService;
+	}
+	private void function _setWebsiteUserActionService( required any websiteUserActionService ) {
+		_websiteUserActionService = arguments.websiteUserActionService;
 	}
 }

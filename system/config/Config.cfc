@@ -335,6 +335,14 @@ component {
 		settings.formbuilder        = _setupFormBuilder();
 		settings.environmentMessage = "";
 
+		settings.websiteUsers = {
+			actions = {
+				  login       = [ "login", "autologin", "logout", "failedLogin", "sendPasswordResetInstructions", "changepassword" ]
+				, request     = [ "pagevisit" ]
+				, formbuilder = [ "submitform" ]
+			}
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {
