@@ -2,7 +2,8 @@
 
 	var expressionLib        = cfrequest.rulesEngineExpressions         || {}
 	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || ""
-	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || "";
+	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || ""
+	  , context              = cfrequest.rulesEngineContext             || "global";
 
 	var RulesEngineCondition = (function() {
 		function RulesEngineCondition( $formControl, expressions, $ruleList ) {
@@ -259,7 +260,7 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, { fieldValue:fieldValue }, fieldDefinition ) );
+			iframeUrl += qsDelim + $.param( $.extend( {}, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
