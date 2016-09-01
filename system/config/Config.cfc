@@ -340,6 +340,7 @@ component {
 				  login       = [ "login", "autologin", "logout", "failedLogin", "sendPasswordResetInstructions", "changepassword" ]
 				, request     = [ "pagevisit" ]
 				, formbuilder = [ "submitform" ]
+				, asset       = [ "download" ]
 			}
 		};
 
