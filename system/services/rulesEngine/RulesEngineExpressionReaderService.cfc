@@ -4,17 +4,20 @@
  *
  * @autodoc
  * @singleton
- *
+ * @presideService
  */
 component displayName="RulesEngine Expression Reader Service" {
 
 	variables._booleanVarietyMappings = {
-		  _is   = "isIsNot"
-		, _has  = "hasHasNot"
-		, _was  = "wasWasNot"
-		, _are  = "areAreNot"
-		, _will = "willWillNot"
-		, _all  = "allAny"
+		  _is       = "isIsNot"
+		, _has      = "hasHasNot"
+		, _posesses = "hasDoesNotHave"
+		, _did      = "didDidNot"
+		, _was      = "wasWasNot"
+		, _are      = "areAreNot"
+		, _will     = "willWillNot"
+		, _ever     = "everNever"
+		, _all      = "allAny"
 	};
 
 // CONSTRUCTOR
@@ -81,6 +84,12 @@ component displayName="RulesEngine Expression Reader Service" {
 	 */
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
 		var meta        = getComponentMetadata( arguments.componentPath );
+		var feature     = meta.feature ?: "";
+
+		if ( Len( Trim( feature ) ) && !$isFeatureEnabled( feature ) ) {
+			return {};
+		}
+
 		var functions   = meta.functions ?: [];
 		var baseId      = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
 		var expressions = {};
@@ -133,12 +142,15 @@ component displayName="RulesEngine Expression Reader Service" {
 		var definition         = {};
 
 		switch( argName ) {
-			case "_is" :
-			case "_has" :
-			case "_was" :
-			case "_will" :
-			case "_are" :
-			case "_all" :
+			case "_is":
+			case "_has":
+			case "_posesses":
+			case "_did":
+			case "_was":
+			case "_will":
+			case "_are":
+			case "_ever":
+			case "_all":
 				definition.fieldType = "boolean";
 				definition.variety   = _booleanVarietyMappings[ argName ];
 			break;

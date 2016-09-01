@@ -12,7 +12,7 @@ component {
 		return renderFormControl(
 			  name         = "value"
 			, type         = "spinner"
-			, label        = translateResource( "cms:rulesEngine.fieldtype.number.config.label" )
+			, label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.number.config.label" )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true

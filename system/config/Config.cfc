@@ -314,7 +314,7 @@ component {
 			, webRequestConditions   = { filter = { "rules_engine_condition.context" = "webrequest" } }
 		};
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator" ];
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
@@ -334,6 +334,14 @@ component {
 
 		settings.formbuilder        = _setupFormBuilder();
 		settings.environmentMessage = "";
+
+		settings.websiteUsers = {
+			actions = {
+				  login       = [ "login", "autologin", "logout", "failedLogin", "sendPasswordResetInstructions", "changepassword" ]
+				, request     = [ "pagevisit" ]
+				, formbuilder = [ "submitform" ]
+			}
+		};
 
 		_loadConfigurationFromExtensions();
 

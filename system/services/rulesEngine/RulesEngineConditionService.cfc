@@ -138,6 +138,23 @@ component displayName="RulesEngine Condition Service" {
 		return $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 	}
 
+	/**
+	 * Validator for the preside validation service
+	 *
+	 * @validator
+	 * @validatorMessage cms:validation.rulesEngineCondition.default
+	 */
+	public boolean function rulesEngineCondition( required string value, required struct data ) {
+		return validateCondition(
+			  condition        = arguments.value
+			, context          = ( arguments.data.context ?: ( rc.context ?: "global" ) )
+			, validationResult = new preside.system.services.validation.ValidationResult()
+		);
+	}
+	public string function rulesEngineCondition_js() {
+		return "function(){ return true; }";
+	}
+
 // PRIVATE HELPERS
 	private boolean function _validateConditionGroup(
 		  required array  group

@@ -13,6 +13,7 @@ component displayName="Preside Super Class" {
 	 * @adminLoginService.inject          delayedInjector:loginService
 	 * @adminPermissionService.inject     delayedInjector:permissionService
 	 * @websiteLoginService.inject        delayedInjector:websiteLoginService
+	 * @websiteUserActionService.inject   delayedInjector:websiteUserActionService
 	 * @websitePermissionService.inject   delayedInjector:websitePermissionService
 	 * @emailService.inject               delayedInjector:emailService
 	 * @errorLogService.inject            delayedInjector:errorLogService
@@ -30,6 +31,7 @@ component displayName="Preside Super Class" {
 		, required any adminLoginService
 		, required any adminPermissionService
 		, required any websiteLoginService
+		, required any websiteUserActionService
 		, required any websitePermissionService
 		, required any emailService
 		, required any errorLogService
@@ -45,6 +47,7 @@ component displayName="Preside Super Class" {
 		$adminLoginService          = arguments.adminLoginService;
 		$adminPermissionService     = arguments.adminPermissionService;
 		$websiteLoginService        = arguments.websiteLoginService;
+		$websiteUserActionService   = arguments.websiteUserActionService;
 		$websitePermissionService   = arguments.websitePermissionService;
 		$emailService               = arguments.emailService;
 		$errorLogService            = arguments.errorLogService;
@@ -379,6 +382,21 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $hasWebsitePermission() {
 		return $getWebsitePermissionService().hasPermission( argumentCollection=arguments );
+	}
+
+	/**
+	 * Proxy to the [[websiteuseractionservice-recordaction]] method of [[api-websiteuseractionservice]].
+	 * \n
+	 * ## Example
+	 * \n
+	 * ```luceescript
+	 * $recordWebsiteUserAction();
+	 * ```
+	 *
+	 * @autodoc
+	 */
+	public any function $recordWebsiteUserAction( string userId=$getWebsiteLoggedInUserId() ) {
+		return $websiteUserActionService.recordAction( argumentCollection=arguments );
 	}
 
 // EMAIL SERVICE

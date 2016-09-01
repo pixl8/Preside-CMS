@@ -1,6 +1,7 @@
 /**
  * Expression handler for "User has/does not have any benefits"
  *
+ * @feature websiteUsers
  */
 component {
 
@@ -13,7 +14,7 @@ component {
 	 * @benefits.object    website_benefit
 	 */
 	private boolean function webRequest(
-		boolean _has=true
+		boolean _posesses=true
 	) {
 		var hasBenefits = false;
 
@@ -23,7 +24,7 @@ component {
 			hasBenefits  = userBenefits.len();
 		}
 
-		return _has ? hasBenefits : !hasBenefits;
+		return _posesses ? hasBenefits : !hasBenefits;
 	}
 
 }

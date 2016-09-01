@@ -34,4 +34,9 @@
 
 	window.rulesEngineDialog = { submitForm : submitForm };
 
+	$form.on( "submit", function( e ){
+		e.preventDefault();
+		submitForm();
+	} );
+
 } )( presideJQuery );

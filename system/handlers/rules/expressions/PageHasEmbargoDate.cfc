@@ -9,12 +9,12 @@ component {
 	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		boolean _has = true
+		boolean _posesses = true
 	) {
 		var embargo    = payload.page.embargo_date ?: "";
 		var hasEmbargo = IsDate( embargo );
 
-		return _has ? hasEmbargo : !hasEmbargo;
+		return _posesses ? hasEmbargo : !hasEmbargo;
 	}
 
 }

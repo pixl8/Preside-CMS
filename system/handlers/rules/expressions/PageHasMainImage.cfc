@@ -9,11 +9,11 @@ component {
 	 * @expressionContexts webrequest,page
 	 */
 	private boolean function webRequest(
-		  boolean _has = true
+		  boolean _posesses = true
 	) {
 		var hasImage = Len( Trim( payload.page.main_image ?: "" ) );
 
-		return _has ? hasImage : !hasImage;
+		return _posesses ? hasImage : !hasImage;
 	}
 
 }

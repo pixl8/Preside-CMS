@@ -1091,6 +1091,7 @@ component extends="testbox.system.BaseSpec"{
 		service.$( "$getPresideObject" ).$args( "formbuilder_form" ).$results( mockFormDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formitem" ).$results( mockFormItemDao );
 		service.$( "$getPresideObject" ).$args( "formbuilder_formsubmission" ).$results( mockFormSubmissionDao );
+		service.$( "$recordWebsiteUserAction", "" );
 		service.$( "$getColdbox", mockColdbox );
 		service.$( "$announceInterception" );
 
