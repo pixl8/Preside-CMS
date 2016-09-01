@@ -121,8 +121,9 @@ component displayName="Website user action service" {
 	public boolean function hasPerformedAction(
 		  required string type
 		, required string action
-		,          string userId = ""
-		,          string since  = ""
+		,          string userId      = ""
+		,          string since       = ""
+		,          array  identifiers = []
 	) {
 		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
 		var extraFilters = [];
@@ -138,6 +139,10 @@ component displayName="Website user action service" {
 				  filter       = "website_user_action.datecreated >= :datecreated"
 				, filterParams = { datecreated = arguments.since }
 			});
+		}
+
+		if ( arguments.identifiers.len() ) {
+			filter[ "website_user_action.identifier" ] = arguments.identifiers;
 		}
 
 		return $getPresideObject( "website_user_action" ).dataExists( filter=filter, extraFilters=extraFilters );

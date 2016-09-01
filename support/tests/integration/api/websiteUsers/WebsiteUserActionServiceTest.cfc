@@ -208,6 +208,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, since  = since
 				) ).toBeFalse();
 			} );
+
+			it( "should add an extra identifier filter when identifier(s) supplied", function(){
+				var service     = _getService();
+				var userId      = CreateUUId();
+				var type        = "login";
+				var action      = "logout";
+				var identifiers = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockActionDao.$( "dataExists" ).$args(
+					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action, "website_user_action.identifier"=identifiers }
+					, extraFilters = []
+				).$results( false );
+
+				expect( service.hasPerformedAction(
+					  type        = type
+					, action      = action
+					, userId      = userId
+					, identifiers = identifiers
+				) ).toBeFalse();
+			} );
 		} );
 
 		describe( "getActionCount()", function(){
