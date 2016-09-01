@@ -49,12 +49,13 @@ component displayName="Website user action service" {
 			, uri        = cgi.request_url
 			, user_ip    = cgi.remote_addr
 			, user_agent = cgi.http_user_agent
+			, visitor    = _getWebsiteVisitorService().getVisitorId()
 		};
 
 		if ( Len( Trim( arguments.userId ) ) ) {
 			data.user = arguments.userId;
-		} else {
-			data.visitor = _getWebsiteVisitorService().getVisitorId();
+		} else if ( !Len( Trim( data.visitor ) ) ) {
+			return "";
 		}
 
 		return $getPresideObject( "website_user_action" ).insertData( data );
@@ -74,7 +75,7 @@ component displayName="Website user action service" {
 
 		return $getPresideObject( "website_user_action" ).updateData(
 			  filter = { "website_user_action.session_id"=sessionId, "website_user_action.visitor"=visitorId }
-			, data   = { visitor="", user=arguments.userId }
+			, data   = { user=arguments.userId }
 		);
 	}
 

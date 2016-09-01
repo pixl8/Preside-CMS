@@ -6,14 +6,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service    = _getService();
 				var dbId       = CreateUUId();
 				var userId     = CreateUUId();
+				var visitorId  = CreateUUId();
 				var action     = "logout";
 				var type       = "login";
 				var identifier = CreateUUId();
 				var detail     = { test=CreateUUId() };
 				var sessionId  = CreateUUId();
 
+				mockVisitorService.$( "getVisitorId", visitorId );
 				mockActionDao.$( "insertData" ).$args( {
 					  user       = userId
+					, visitor    = visitorId
 					, action     = action
 					, type       = type
 					, detail     = SerializeJson( detail )
@@ -37,28 +40,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( actionId ).toBe( dbId );
 			} );
 
-			it( "should record visitor ID instead of user ID when user ID is not supplied", function(){
+			it( "should not record anything when both visitorID and user ID is blank", function(){
 				var service    = _getService();
-				var dbId       = CreateUUId();
-				var visitorId  = CreateUUId();
 				var action     = "logout";
 				var type       = "login";
 				var identifier = CreateUUId();
 				var detail     = { test=CreateUUId() };
 				var sessionId  = CreateUUId();
 
-				mockVisitorService.$( "getVisitorId", visitorId );
-				mockActionDao.$( "insertData" ).$args( {
-					  visitor    = visitorId
-					, action     = action
-					, type       = type
-					, detail     = SerializeJson( detail )
-					, uri        = cgi.request_url
-					, user_ip    = cgi.remote_addr
-					, user_agent = cgi.http_user_agent
-					, session_id = sessionId
-					, identifier = identifier
-				} ).$results( dbId );
+				mockVisitorService.$( "getVisitorId", "" );
+				mockActionDao.$( "insertData" );
 
 				service.$( "_getSessionId", sessionId )
 
@@ -69,7 +60,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, identifier = identifier
 				);
 
-				expect( actionId ).toBe( dbId );
+				expect( actionId ).toBe( "" );
+
+				expect( mockActionDao.$callLog().insertData.len() ).toBe( 0 );
 			} );
 		} );
 
@@ -85,7 +78,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockVisitorService.$( "getVisitorId", visitorId );
 				mockActionDao.$( "updateData" ).$args(
 					  filter = { "website_user_action.session_id" = sessionId, "website_user_action.visitor" = visitorId }
-					, data   = { visitor = "", user = userId }
+					, data   = { user = userId }
 				).$results( recordsUpdated );
 
 				expect( service.promoteVisitorActionsToUserActions( userId = userId ) ).toBe( recordsUpdated );
