@@ -15,6 +15,7 @@ component displayName="RulesEngine Expression Reader Service" {
 		, _was  = "wasWasNot"
 		, _are  = "areAreNot"
 		, _will = "willWillNot"
+		, _ever = "everNever"
 		, _all  = "allAny"
 	};
 
@@ -146,6 +147,7 @@ component displayName="RulesEngine Expression Reader Service" {
 			case "_was" :
 			case "_will" :
 			case "_are" :
+			case "_ever" :
 			case "_all" :
 				definition.fieldType = "boolean";
 				definition.variety   = _booleanVarietyMappings[ argName ];

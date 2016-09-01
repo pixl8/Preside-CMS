@@ -133,6 +133,59 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( date );
 			} );
 		} );
+
+		describe( "hasPerformedAction()", function(){
+			it( "should return true when an action record exists matching the given type, action and user", function(){
+				var service    = _getService();
+				var userId     = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+
+				mockActionDao.$( "dataExists" ).$args(
+					filter = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+				).$results( true );
+
+				expect( service.hasPerformedAction(
+					  type   = type
+					, action = action
+					, userId = userId
+				) ).toBeTrue();
+			} );
+
+			it( "should return false when no action record exists matching the given type, action and user", function(){
+				var service    = _getService();
+				var userId     = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+
+				mockActionDao.$( "dataExists" ).$args(
+					filter = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+				).$results( false );
+
+				expect( service.hasPerformedAction(
+					  type   = type
+					, action = action
+					, userId = userId
+				) ).toBeFalse();
+			} );
+
+			it( "should user visitor id to query when user id is empty", function(){
+				var service    = _getService();
+				var visitorId  = CreateUUId();
+				var type       = "login";
+				var action     = "logout";
+
+				mockVisitorService.$( "getVisitorId", visitorId );
+				mockActionDao.$( "dataExists" ).$args(
+					filter = { "website_user_action.visitor"=visitorId, "website_user_action.type"=type, "website_user_action.action"=action }
+				).$results( false );
+
+				expect( service.hasPerformedAction(
+					  type   = type
+					, action = action
+				) ).toBeFalse();
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

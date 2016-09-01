@@ -10,7 +10,8 @@ component {
 		, didDidNot   = { truthy="cms:rulesEngine.boolean.did" , falsey="cms:rulesEngine.boolean.didNot"  }
 		, wasWasNot   = { truthy="cms:rulesEngine.boolean.was" , falsey="cms:rulesEngine.boolean.wasNot"  }
 		, willWillNot = { truthy="cms:rulesEngine.boolean.will", falsey="cms:rulesEngine.boolean.willNot" }
-		, areAreNot   = { truthy="cms:rulesEngine.boolean.are" , falsey="cms:rulesEngine.boolean.areNot" }
+		, areAreNot   = { truthy="cms:rulesEngine.boolean.are" , falsey="cms:rulesEngine.boolean.areNot"  }
+		, everNever   = { truthy="cms:rulesEngine.boolean.ever", falsey="cms:rulesEngine.boolean.never"   }
 		, allAny      = { truthy="cms:rulesEngine.boolean.all" , falsey="cms:rulesEngine.boolean.any"     }
 	};
 
@@ -18,14 +19,8 @@ component {
 		var variety    = "isIsNot";
 		var varietyKey = isTrue( value ) ? "truthy" : "falsey";
 
-		switch( config.variety ?: "" ) {
-			case "hasHasNot":
-			case "wasWasNot":
-			case "willWillNot":
-			case "areAreNot":
-			case "didDidNot":
-			case "allAny":
-				variety = config.variety;
+		if ( _booleanVarietyMappings.keyExists( config.variety ?: "" ) ) {
+			variety = config.variety;
 		}
 
 		return translateResource( uri=_booleanVarietyMappings[ variety ][ varietyKey ] );

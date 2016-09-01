@@ -107,6 +107,32 @@ component displayName="Website user action service" {
 		return record.datecreated ?: "";
 	}
 
+	/**
+	 * Returns whether or not the given user
+	 * has performed the given action. Uses
+	 * the current visitor when no user supplied.
+	 *
+	 * @autodoc
+	 * @type.hint   Type of the action
+	 * @action.hint Action ID
+	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 */
+	public boolean function hasPerformedAction(
+		  required string type
+		, required string action
+		,          string userId = ""
+	) {
+		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
+
+		if ( Len( Trim( arguments.userId ) ) ) {
+			filter[ "website_user_action.user" ] = arguments.userId;
+		} else {
+			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
+		}
+
+		return $getPresideObject( "website_user_action" ).dataExists( filter=filter );
+	}
+
 // PRIVATE HELPERS
 	private string function _getSessionId() {
 		var sessionStorage = _getSessionStorage();
