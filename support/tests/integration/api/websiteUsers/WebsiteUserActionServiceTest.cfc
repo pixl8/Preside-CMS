@@ -132,6 +132,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, action = action
 				) ).toBe( date );
 			} );
+
+			it( "should add an 'identifier' filter when identifiers passed", function(){
+				var service     = _getService();
+				var visitorId   = CreateUUId();
+				var type        = "login";
+				var action      = "logout";
+				var date        = Now();
+				var identifiers = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+				var mockResult  = QueryNew( 'datecreated', 'date', [ [ date ] ] );
+
+				mockVisitorService.$( "getVisitorId", visitorId );
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Max( website_user_action.datecreated ) as datecreated" ]
+					, filter       = { "website_user_action.visitor"=visitorId, "website_user_action.type"=type, "website_user_action.action"=action, "website_user_action.identifier"=identifiers }
+				).$results( mockResult );
+
+				expect( service.getLastPerformedDate(
+					  type        = type
+					, action      = action
+					, identifiers = identifiers
+				) ).toBe( date );
+			} );
 		} );
 
 		describe( "hasPerformedAction()", function(){
@@ -290,6 +312,29 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, action = action
 					, userId = userId
 					, since  = since
+				) ).toBe( count );
+			} );
+
+			it( "should add an extra identifier filter when identifier(s) supplied", function(){
+				var service     = _getService();
+				var userId      = CreateUUId();
+				var type        = "login";
+				var action      = "logout";
+				var since       = DateAdd( "d", -20, Now() );
+				var count       = Int( Rand() * 100 );
+				var identifiers = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Count(1) as action_count" ]
+					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action, "website_user_action.identifier"=identifiers }
+					, extraFilters = []
+				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
+
+				expect( service.getActionCount(
+					  type        = type
+					, action      = action
+					, userId      = userId
+					, identifiers = identifiers
 				) ).toBe( count );
 			} );
 		} );

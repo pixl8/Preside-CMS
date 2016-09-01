@@ -27,10 +27,11 @@ component displayName="Website user action service" {
 	 * Records an action for the given user
 	 *
 	 * @autodoc
-	 * @userId.hint ID of the user to record the action for
-	 * @action.hint ID of the action to record, e.g. 'logout'
-	 * @type.hint   Type of the action to record, e.g. 'login'
-	 * @detail.hint Additional detail to record with the action, will be serialized to JSON when saved in the DB
+	 * @userId.hint     ID of the user to record the action for
+	 * @action.hint     ID of the action to record, e.g. 'logout'
+	 * @type.hint       Type of the action to record, e.g. 'login'
+	 * @identifier.hint Unique identifier to the subject of the action, e.g. a page ID for a 'pagevisit' action
+	 * @detail.hint     Additional detail to record with the action, will be serialized to JSON when saved in the DB
 	 */
 	public string function recordAction(
 		  required string action
@@ -82,14 +83,16 @@ component displayName="Website user action service" {
 	 * by the given user / visitor
 	 *
 	 * @autodoc
-	 * @type.hint   Type of the action
-	 * @action.hint Action ID
-	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 * @type.hint        Type of the action
+	 * @action.hint      Action ID
+	 * @identifiers.hint Array of identifiers with which to filter the actions
+	 * @userId.hint      ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
 	 */
 	public string function getLastPerformedDate(
 		  required string type
 		, required string action
-		,          string userId = ""
+		,          string userId      = ""
+		,          array  identifiers = []
 	) {
 		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
 
@@ -97,6 +100,10 @@ component displayName="Website user action service" {
 			filter[ "website_user_action.user" ] = arguments.userId;
 		} else {
 			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
+		}
+
+		if ( arguments.identifiers.len() ) {
+			filter[ "website_user_action.identifier" ] = arguments.identifiers;
 		}
 
 		var record = $getPresideObject( "website_user_action" ).selectData(
@@ -117,6 +124,7 @@ component displayName="Website user action service" {
 	 * @action.hint Action ID
 	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
 	 * @since.hint  Optional date from which the user has performed the action
+	 * @identifiers.hint Array of identifiers with which to filter the actions
 	 */
 	public boolean function hasPerformedAction(
 		  required string type
@@ -158,12 +166,14 @@ component displayName="Website user action service" {
 	 * @action.hint Action ID
 	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
 	 * @since.hint  Optional date from which the user has performed the action
+	 * @identifiers.hint Array of identifiers with which to filter the actions
 	 */
 	public numeric function getActionCount(
 		  required string type
 		, required string action
 		,          string userId = ""
 		,          string since  = ""
+		,          array  identifiers = []
 	) {
 		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
 		var extraFilters = [];
@@ -179,6 +189,10 @@ component displayName="Website user action service" {
 				  filter       = "website_user_action.datecreated >= :datecreated"
 				, filterParams = { datecreated = arguments.since }
 			});
+		}
+
+		if ( arguments.identifiers.len() ) {
+			filter[ "website_user_action.identifier" ] = arguments.identifiers;
 		}
 
 		var result = $getPresideObject( "website_user_action" ).selectData(
