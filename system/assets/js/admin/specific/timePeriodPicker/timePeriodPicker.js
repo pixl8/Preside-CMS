@@ -96,12 +96,12 @@
 
 			getSelectedType = function(){
 				var selected = $typeControl.data( "uberSelect" ).getSelected();
-				return selected.length ? selected[0].value : "";
+				return selected.length ? selected[0].value : $typeControl.val();
 			};
 
 			getSelectedUnit = function(){
 				var selected = $unitControl.data( "uberSelect" ).getSelected();
-				return selected.length ? selected[0].value : "";
+				return selected.length ? selected[0].value : $unitControl.val();
 			};
 
 
