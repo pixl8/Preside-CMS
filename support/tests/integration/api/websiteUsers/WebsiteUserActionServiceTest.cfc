@@ -204,23 +204,43 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeFalse();
 			} );
 
-			it( "should add an extra date filter when a 'since' date is supplied", function(){
+			it( "should add an extra dateFrom filter when a 'dateFrom' date is supplied", function(){
 				var service    = _getService();
 				var userId     = CreateUUId();
 				var type       = "login";
 				var action     = "logout";
-				var since      = DateAdd( "d", -20, Now() );
+				var dateFrom   = DateAdd( "d", -20, Now() );
 
 				mockActionDao.$( "dataExists" ).$args(
 					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
-					, extraFilters = [ { filter="website_user_action.datecreated >= :datecreated", filterParams={ datecreated=since } } ]
+					, extraFilters = [ { filter="website_user_action.datecreated >= :datefrom", filterParams={ datefrom={ type="datetime", value=dateFrom } } } ]
+				).$results( false );
+
+				expect( service.hasPerformedAction(
+					  type     = type
+					, action   = action
+					, userId   = userId
+					, dateFrom = dateFrom
+				) ).toBeFalse();
+			} );
+
+			it( "should add an extra dateTo filter when a 'dateTo' date is supplied", function(){
+				var service = _getService();
+				var userId  = CreateUUId();
+				var type    = "login";
+				var action  = "logout";
+				var dateTo  = DateAdd( "d", -20, Now() );
+
+				mockActionDao.$( "dataExists" ).$args(
+					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = [ { filter="website_user_action.datecreated <= :dateto", filterParams={ dateto={ type="datetime", value=dateTo } } } ]
 				).$results( false );
 
 				expect( service.hasPerformedAction(
 					  type   = type
 					, action = action
 					, userId = userId
-					, since  = since
+					, dateTo = dateTo
 				) ).toBeFalse();
 			} );
 
@@ -286,25 +306,47 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBe( count );
 			} );
 
-			it( "should add an extra date filter when a 'since' date is supplied", function(){
+			it( "should add an extra date filter when a 'dateFrom' date is supplied", function(){
 				var service    = _getService();
 				var userId     = CreateUUId();
 				var type       = "login";
 				var action     = "logout";
-				var since      = DateAdd( "d", -20, Now() );
+				var dateFrom   = DateAdd( "d", -20, Now() );
 				var count      = Int( Rand() * 100 );
 
 				mockActionDao.$( "selectData" ).$args(
 					  selectFields = [ "Count(1) as action_count" ]
 					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
-					, extraFilters = [ { filter="website_user_action.datecreated >= :datecreated", filterParams={ datecreated=since } } ]
+					, extraFilters = [ { filter="website_user_action.datecreated >= :datefrom", filterParams={ datefrom={ type="datetime", value=dateFrom } } } ]
+				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
+
+				expect( service.getActionCount(
+					  type     = type
+					, action   = action
+					, userId   = userId
+					, dateFrom = dateFrom
+				) ).toBe( count );
+			} );
+
+			it( "should add an extra date filter when a 'dateTo' date is supplied", function(){
+				var service = _getService();
+				var userId  = CreateUUId();
+				var type    = "login";
+				var action  = "logout";
+				var dateTo  = DateAdd( "d", -20, Now() );
+				var count   = Int( Rand() * 100 );
+
+				mockActionDao.$( "selectData" ).$args(
+					  selectFields = [ "Count(1) as action_count" ]
+					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
+					, extraFilters = [ { filter="website_user_action.datecreated <= :dateto", filterParams={ dateto={ type="datetime", value=dateTo } } } ]
 				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
 
 				expect( service.getActionCount(
 					  type   = type
 					, action = action
 					, userId = userId
-					, since  = since
+					, dateTo = dateTo
 				) ).toBe( count );
 			} );
 
@@ -313,7 +355,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var userId      = CreateUUId();
 				var type        = "login";
 				var action      = "logout";
-				var since       = DateAdd( "d", -20, Now() );
+				var dateFrom    = DateAdd( "d", -20, Now() );
 				var count       = Int( Rand() * 100 );
 				var identifiers = [ CreateUUId(), CreateUUId(), CreateUUId() ];
 

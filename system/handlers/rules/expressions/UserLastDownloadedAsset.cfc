@@ -5,16 +5,16 @@
  */
 component {
 
-	property name="websiteUserActionService"   inject="websiteUserActionService";
+	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	/**
 	 * @expression         true
 	 * @expressionContexts webrequest,user
-	 * @action.fieldType   websiteUserAction
-	 * @action.multiple    false
+	 * @asset.fieldType    asset
+	 * @asset.multiple     false
 	 */
 	private boolean function webRequest(
-		  required string  action
+		  required string  asset
 		,          struct  _pastTime
 	) {
 		if ( ListLen( action, "." ) != 2 ) {
@@ -22,9 +22,10 @@ component {
 		}
 
 		var lastPerformedDate = websiteUserActionService.getLastPerformedDate(
-			  type   = ListFirst( action, "." )
-			, action = ListLast( action, "." )
-			, userId = payload.user.id ?: ""
+			  type        = "asset"
+			, action      = "download"
+			, userId      = payload.user.id ?: ""
+			, identifiers = [ arguments.asset ]
 		);
 
 		if ( !IsDate( lastPerformedDate ) ) {

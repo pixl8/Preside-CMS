@@ -121,17 +121,19 @@ component displayName="Website user action service" {
 	 * the current visitor when no user supplied.
 	 *
 	 * @autodoc
-	 * @type.hint   Type of the action
-	 * @action.hint Action ID
-	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
-	 * @since.hint  Optional date from which the user has performed the action
+	 * @type.hint        Type of the action
+	 * @action.hint      Action ID
+	 * @userId.hint      ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 * @dateFrom.hint    Optional date from which the user has performed the action
+	 * @dateTo.hint      Optional date to which the user has performed the action
 	 * @identifiers.hint Array of identifiers with which to filter the actions
 	 */
 	public boolean function hasPerformedAction(
 		  required string type
 		, required string action
 		,          string userId      = ""
-		,          string since       = ""
+		,          string dateFrom    = ""
+		,          string dateTo      = ""
 		,          array  identifiers = []
 	) {
 		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
@@ -143,10 +145,17 @@ component displayName="Website user action service" {
 			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
 		}
 
-		if ( IsDate( arguments.since ) ) {
+		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter       = "website_user_action.datecreated >= :datecreated"
-				, filterParams = { datecreated = arguments.since }
+				  filter       = "website_user_action.datecreated >= :datefrom"
+				, filterParams = { datefrom = { type="datetime", value=arguments.dateFrom } }
+			});
+		}
+
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "website_user_action.datecreated <= :dateto"
+				, filterParams = { dateto = { type="datetime", value=arguments.dateTo } }
 			});
 		}
 
@@ -163,17 +172,19 @@ component displayName="Website user action service" {
 	 * the current visitor when no user supplied.
 	 *
 	 * @autodoc
-	 * @type.hint   Type of the action
-	 * @action.hint Action ID
-	 * @userId.hint ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
-	 * @since.hint  Optional date from which the user has performed the action
+	 * @type.hint        Type of the action
+	 * @action.hint      Action ID
+	 * @userId.hint      ID of the user who performed the action (if blank or ommitted, the current visitor ID will be used instead)
+	 * @dateFrom.hint    Optional date from which the user has performed the action
+	 * @dateTo.hint      Optional date to which the user has performed the action
 	 * @identifiers.hint Array of identifiers with which to filter the actions
 	 */
 	public numeric function getActionCount(
 		  required string type
 		, required string action
-		,          string userId = ""
-		,          string since  = ""
+		,          string userId      = ""
+		,          string dateFrom    = ""
+		,          string dateTo      = ""
 		,          array  identifiers = []
 	) {
 		var filter = { "website_user_action.type"=arguments.type, "website_user_action.action"=arguments.action };
@@ -185,10 +196,16 @@ component displayName="Website user action service" {
 			filter[ "website_user_action.visitor" ] = _getWebsiteVisitorService().getVisitorId();
 		}
 
-		if ( IsDate( arguments.since ) ) {
+		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
-				  filter       = "website_user_action.datecreated >= :datecreated"
-				, filterParams = { datecreated = arguments.since }
+				  filter       = "website_user_action.datecreated >= :datefrom"
+				, filterParams = { datefrom = { type="datetime", value=arguments.dateFrom } }
+			});
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "website_user_action.datecreated <= :dateto"
+				, filterParams = { dateto = { type="datetime", value=arguments.dateTo } }
 			});
 		}
 

@@ -162,6 +162,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, eventArguments = eventArgs
 				).$results( false );
 
+				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
+
 				expect( service.evaluateExpression(
 					  expressionId     = expressionId
 					, context          = context
@@ -189,6 +191,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, prepostExempt  = true
 					, eventArguments = eventArgs
 				).$results( true );
+
+				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
 
 				expect( service.evaluateExpression(
 					  expressionId     = expressionId
@@ -323,20 +327,43 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( validationResult.getGeneralMessage() ).toBe( "The [expression3.context1] expression is missing one or more required fields" );
 			} );
 		} );
+
+		describe( "preProcessConfiguredFields()", function(){
+			it( "should put each configured field value through the fieldTypeService's prepareConfiguredFieldData() method", function(){
+				var service          = _getService();
+				var expressionId     = "some.expression";
+				var expression       = { contexts=["webrequest"], fields={ fielda={fieldtype="typea", test=CreateUUId()}, fieldb={fieldtype="typeb", test=CreateUUId()}, fieldc={fieldtype="typec", test=CreateUUId()} } };
+				var configuredFields = { fielda="valuea", fieldb="valueb", fieldc="valuec" };
+
+				service.$( "_getRawExpression" ).$args( expressionId ).$results( expression );
+
+				for( var i in [ "a", "b", "c" ] ) {
+					mockFieldTypeService.$( "prepareConfiguredFieldData" ).$args(
+						  fieldType          = "type" & i
+						, fieldConfiguration = expression.fields[ "field" & i ]
+						, savedValue         = configuredFields[ "field" & i ]
+					).$results( "processed" & i );
+				}
+
+				expect( service.preProcessConfiguredFields( expressionId, configuredFields ) ).toBe( { fielda="processeda", fieldb="processedb", fieldc="processedc" } );
+			} );
+		} );
 	}
 
 
 // PRIVATE HELPERS
 	private any function _getService( struct expressions=_getDefaultTestExpressions() ) {
 		variables.mockReaderService     = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
+		variables.mockFieldTypeService  = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineFieldTypeService" );
 		variables.mockDirectories       = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
 		variables.mockExpressions       = arguments.expressions;
 		variables.mockColdboxController = CreateStub();
 		mockReaderService.$( "getExpressionsFromDirectories" ).$args( mockDirectories ).$results( mockExpressions );
 
 		var service = new preside.system.services.rulesEngine.RulesEngineExpressionService(
-			  expressionReaderService = mockReaderService
-			, expressionDirectories   = mockDirectories
+			  expressionReaderService    = mockReaderService
+			, fieldTypeService           = mockFieldTypeService
+			, expressionDirectories      = mockDirectories
 		);
 
 		service = createMock( object=service );

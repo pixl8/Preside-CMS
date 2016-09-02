@@ -10,21 +10,21 @@ component {
 	/**
 	 * @expression         true
 	 * @expressionContexts webrequest,user
-	 * @pages.fieldType    page
+	 * @assets.fieldType   asset
 	 */
 	private boolean function webRequest(
-		  required string  pages
+		  required string  assets
 		,          boolean _has = true
 		,          boolean _all = false
 		,          struct  _pastTime
 	) {
 		var userId = payload.user.id ?: "";
 
-		if ( pages.listLen() > 1 && _all ) {
-			for( var page in pages.listToArray() ) {
+		if ( assets.listLen() > 1 && _all ) {
+			for( var page in assets.listToArray() ) {
 				var result = websiteUserActionService.hasPerformedAction(
-					  type        = "request"
-					, action      = "pagevisit"
+					  type        = "asset"
+					, action      = "download"
 					, userId      = userId
 					, identifiers = [ page ]
 					, dateFrom    = _pastTime.from ?: ""
@@ -39,10 +39,10 @@ component {
 			return true;
 		} else {
 			var result = websiteUserActionService.hasPerformedAction(
-				  type        = "request"
-				, action      = "pagevisit"
+				  type        = "asset"
+				, action      = "download"
 				, userId      = userId
-				, identifiers = ListToArray( pages )
+				, identifiers = ListToArray( assets )
 				, dateFrom    = _pastTime.from ?: ""
 				, dateTo      = _pastTime.to   ?: ""
 			);

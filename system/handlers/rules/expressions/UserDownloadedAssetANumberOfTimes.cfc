@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has submitted a form builder form a number of times"
+ * Expression handler for "User has visited a page a number of times"
  *
  * @feature websiteUsers
  */
@@ -11,23 +11,22 @@ component {
 	/**
 	 * @expression         true
 	 * @expressionContexts webrequest,user
-	 * @fbform.fieldType   object
-	 * @fbform.object      formbuilder_form
-	 * @fbform.multiple    false
+	 * @asset.fieldType    asset
+	 * @asset.multiple     false
 	 */
 	private boolean function webRequest(
-		  required string  fbform
+		  required string  asset
 		, required numeric times
 		,          string  _numericOperator = "eq"
 		,          boolean _has = true
 		,          struct  _pastTime
 	) {
-		var userId = payload.user.id ?: "";
+		var userId      = payload.user.id ?: "";
 		var actionCount = websiteUserActionService.getActionCount(
-			  type        = "formbuilder"
-			, action      = "submitform"
+			  type        = "asset"
+			, action      = "download"
 			, userId      = userId
-			, identifiers = [ fbform ]
+			, identifiers = [ asset ]
 			, dateFrom    = _pastTime.from ?: ""
 			, dateTo      = _pastTime.to   ?: ""
 		);

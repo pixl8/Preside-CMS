@@ -5,20 +5,17 @@
  */
 component {
 
-	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
-	property name="websiteUserActionService"   inject="websiteUserActionService";
+	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	/**
 	 * @expression         true
 	 * @expressionContexts webrequest,user
 	 * @page.fieldType     page
 	 * @page.multiple      false
-	 * @days.fieldLabel    rules.expressions.UserLastVisitedPage.webrequest:field.days.config.label
 	 */
 	private boolean function webRequest(
 		  required string  page
-		, required numeric days
-		,          string  _numericOperator = "gt"
+		,          struct  _pastTime
 	) {
 		if ( ListLen( action, "." ) != 2 ) {
 			return false;
@@ -35,9 +32,14 @@ component {
 			return false;
 		}
 
-		var daysDifference = DateDiff( "d", lastPerformedDate, Now() );
+		if ( IsDate( _pastTime.from ?: "" ) && lastPerformedDate < _pastTime.from ) {
+			return false;
+		}
+		if ( IsDate( _pastTime.to ?: "" ) && lastPerformedDate > _pastTime.to ) {
+			return false;
+		}
 
-		return rulesEngineOperatorService.compareNumbers( daysDifference, arguments._numericOperator, arguments.days );
+		return true;
 	}
 
 }

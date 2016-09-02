@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has performed action a number of times "
+ * Expression handler for "User has performed some action in some time frame"
  *
  * @feature websiteUsers
  */
@@ -16,23 +16,20 @@ component {
 	 */
 	private boolean function webRequest(
 		  required string  action
-		, required numeric times
-		,          boolean _has            = true
-		,          string _numericOperator = "eq"
-		,          struct _pastTime
+		,          boolean _has = true
+		,          struct  _pastTime
 	) {
 		if ( ListLen( action, "." ) != 2 ) {
 			return false;
 		}
 
-		var actionCount = websiteUserActionService.getActionCount(
-			  type   = ListFirst( action, "." )
-			, action = ListLast( action, "." )
-			, userId = payload.user.id ?: ""
+		var result = websiteUserActionService.hasPerformedAction(
+			  type     = ListFirst( action, "." )
+			, action   = ListLast( action, "." )
+			, userId   = payload.user.id ?: ""
 			, dateFrom = _pastTime.from ?: ""
 			, dateTo   = _pastTime.to   ?: ""
 		);
-		var result = rulesEngineOperatorService.compareNumbers( actionCount, arguments._numericOperator, arguments.times );
 
 		return _has ? result : !result;
 	}

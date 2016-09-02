@@ -1,10 +1,9 @@
 /**
- * Handler for rules engine 'page' type
+ * Handler for rules engine 'asset' type
  *
  */
 component {
 
-	property name="pageTypesService"     inject="pageTypesService";
 	property name="presideObjectService" inject="presideObjectService";
 
 	private string function renderConfiguredField( string value="", struct config={} ) {
@@ -15,11 +14,11 @@ component {
 		}
 
 		if ( ids.len() == 1 ) {
-			return renderLabel( objectName="page", recordId=ids[1] );
+			return renderLabel( objectName="asset", recordId=ids[1] );
 		}
 
 		var records = presideObjectService.selectData(
-			  objectName   = "page"
+			  objectName   = "asset"
 			, selectFields = [ "${labelfield} as label" ]
 			, filter       = { id=ids }
 		);
@@ -33,10 +32,10 @@ component {
 
 		return renderFormControl(
 			  name         = "value"
-			, type         = "siteTreePagePicker"
+			, type         = "assetPicker"
 			, multiple     = multiple
 			, sortable     = sortable
-			, label        = translateResource( "cms:rulesEngine.fieldtype.page.config.label" )
+			, label        = translateResource( "cms:rulesEngine.fieldtype.asset.config.label" )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true
