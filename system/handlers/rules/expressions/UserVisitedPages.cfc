@@ -16,6 +16,7 @@ component {
 		  required string  pages
 		,          boolean _has = true
 		,          boolean _all = false
+		,          struct  _pastTime
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -26,6 +27,8 @@ component {
 					, action      = "pagevisit"
 					, userId      = userId
 					, identifiers = [ page ]
+					, dateFrom    = _pastTime.from ?: ""
+					, dateTo      = _pastTime.to   ?: ""
 				);
 
 				if ( result != _has ) {
@@ -40,6 +43,8 @@ component {
 				, action      = "pagevisit"
 				, userId      = userId
 				, identifiers = ListToArray( pages )
+				, dateFrom    = _pastTime.from ?: ""
+				, dateTo      = _pastTime.to   ?: ""
 			);
 		}
 

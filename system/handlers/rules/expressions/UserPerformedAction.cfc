@@ -1,5 +1,5 @@
 /**
- * Expression handler for "User has performed action recently "
+ * Expression handler for "User has performed some action in some time frame"
  *
  * @feature websiteUsers
  */
@@ -13,22 +13,22 @@ component {
 	 * @expressionContexts webrequest,user
 	 * @action.fieldType   websiteUserAction
 	 * @action.multiple    false
-	 * @days.fieldLabel    rules.expressions.UserPerformedActionRecently.webrequest:field.days.config.label
 	 */
 	private boolean function webRequest(
 		  required string  action
-		, required numeric days
 		,          boolean _has = true
+		,          struct  _pastTime
 	) {
 		if ( ListLen( action, "." ) != 2 ) {
 			return false;
 		}
 
 		var result = websiteUserActionService.hasPerformedAction(
-			  type   = ListFirst( action, "." )
-			, action = ListLast( action, "." )
-			, userId = payload.user.id ?: ""
-			, since  = DateAdd( "d", -days, Now() )
+			  type     = ListFirst( action, "." )
+			, action   = ListLast( action, "." )
+			, userId   = payload.user.id ?: ""
+			, dateFrom = _pastTime.from ?: ""
+			, dateTo   = _pastTime.to   ?: ""
 		);
 
 		return _has ? result : !result;
