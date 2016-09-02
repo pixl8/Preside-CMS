@@ -1,6 +1,7 @@
 component output=false {
 
-	property name="assetManagerService" inject="assetManagerService";
+	property name="assetManagerService"      inject="assetManagerService";
+	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	public function asset( event, rc, prc ) output=false {
 		announceInterception( "preDownloadAsset" );
@@ -50,6 +51,12 @@ component output=false {
 
 			var filename = _getFilenameForAsset( asset.title, type.extension );
 			if ( type.serveAsAttachment ) {
+				websiteUserActionService.recordAction(
+					  action     = "download"
+					, type       = "asset"
+					, userId     = getLoggedInUserId()
+					, identifier = assetId
+				);
 				header name="Content-Disposition" value="attachment; filename=""#filename#""";
 			} else {
 				header name="Content-Disposition" value="inline; filename=""#filename#""";
