@@ -27,7 +27,7 @@ component {
 			, httpOnly = arguments.httpOnly
 		}
 
-		if ( arguments.expires ) {
+		if ( arguments.expires.len() && arguments.expires != 0 ) {
 			args.expires = arguments.expires;
 		}
 
