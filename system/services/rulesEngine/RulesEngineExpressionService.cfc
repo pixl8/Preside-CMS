@@ -12,10 +12,12 @@ component displayName="RulesEngine Expression Service" {
 // CONSTRUCTOR
 	/**
 	 * @expressionReaderService.inject rulesEngineExpressionReaderService
+	 * @fieldTypeService.inject        rulesEngineFieldTypeService
 	 * @expressionDirectories.inject   presidecms:directories:/handlers/rules/expressions
 	 *
 	 */
-	public any function init( required any expressionReaderService, required array expressionDirectories ) {
+	public any function init( required any expressionReaderService, required any fieldTypeService, required array expressionDirectories ) {
+		_setFieldTypeService( fieldTypeService );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) )
 
 		return this;
@@ -157,7 +159,7 @@ component displayName="RulesEngine Expression Service" {
 		var handlerAction = "rules.expressions." & arguments.expressionId;
 		var eventArgs     = { context=arguments.context, payload=arguments.payload };
 
-		eventArgs.append( arguments.configuredFields );
+		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
 		var result = $getColdbox().runEvent(
 			  event          = handlerAction
@@ -212,6 +214,34 @@ component displayName="RulesEngine Expression Service" {
 		return true;
 	}
 
+	/**
+	 * Accepts an expressionId and saved field configuration
+	 * and preprocesses all the field values ready for evaluation.
+	 *
+	 * @autodoc
+	 * @expressionId.hint     ID of the expression who's fields are configured
+	 * @configuredFields.hint Saved field configuration for the expression instance
+	 *
+	 */
+	public struct function preProcessConfiguredFields( required string expressionId, required struct configuredFields ) {
+		var expression       = _getRawExpression( arguments.expressionId );
+		var expressionFields = expression.fields ?: {};
+		var fieldTypeService = _getFieldTypeService();
+		var processed        = {};
+
+		for( var fieldName in configuredFields ) {
+			if ( expressionFields.keyExists( fieldName ) ) {
+				configuredFields[ fieldName ] = fieldTypeService.prepareConfiguredFieldData(
+					  fieldType          = expressionFields[ fieldName ].fieldType
+					, fieldConfiguration = expressionFields[ fieldName ]
+					, savedValue         = configuredFields[ fieldName ]
+				);
+			}
+		}
+
+		return configuredFields;
+	}
+
 // PRIVATE HELPERS
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();
@@ -233,5 +263,12 @@ component displayName="RulesEngine Expression Service" {
 	}
 	private void function _setExpressions( required struct expressions ) {
 		_expressions = arguments.expressions;
+	}
+
+	private any function _getFieldTypeService() {
+		return _fieldTypeService;
+	}
+	private void function _setFieldTypeService( required any fieldTypeService ) {
+		_fieldTypeService = arguments.fieldTypeService;
 	}
 }
