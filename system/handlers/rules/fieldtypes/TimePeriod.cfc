@@ -51,7 +51,7 @@ component {
 			, type         = "timePeriodPicker"
 			, pastOnly     = IsTrue( config.pastOnly ?: "" )
 			, futureOnly   = IsTrue( config.futureOnly ?: "" )
-			, label        = "TODO: time period"
+			, label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true

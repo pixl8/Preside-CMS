@@ -32,8 +32,8 @@
 			  name         = ( inputName & "_period_measure" )
 			, type         = "spinner"
 			, class        = "time-period-measure"
-			, savedValue   = Val( timePeriod.measure ?: "" )
-			, defaultValue = Val( timePeriod.measure ?: "" )
+			, savedValue   = timePeriod.measure ?: 1
+			, defaultValue = timePeriod.measure ?: 1
 			, layout       = ""
 		)#
 
@@ -41,8 +41,8 @@
 			  name         = ( inputName & "_period_unit" )
 			, type         = "timePeriodUnitPicker"
 			, class        = "time-period-unit"
-			, savedValue   = timePeriod.unit ?: ""
-			, defaultValue = timePeriod.unit ?: ""
+			, savedValue   = timePeriod.unit ?: "d"
+			, defaultValue = timePeriod.unit ?: "d"
 			, layout       = ""
 		)#
 
