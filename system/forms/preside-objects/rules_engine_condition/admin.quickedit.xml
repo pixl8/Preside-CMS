@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Rules engine condition: quick edit form
+
+This form is used for editing a rules engine condition through the quick edit interface
+-->
+<form>
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="rules_engine_condition.context"     control="hidden" />
+			<field binding="rules_engine_condition.expressions" control="rulesEngineConditionBuilder">
+				<rule validator="rulesEngineCondition" />
+			</field>
+		</fieldset>
+	</tab>
+</form>

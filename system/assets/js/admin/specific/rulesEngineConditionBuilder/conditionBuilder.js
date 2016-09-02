@@ -23,7 +23,11 @@
 		};
 
 		RulesEngineCondition.prototype.serialize = function() {
-			return JSON.stringify( this.model );
+			if ( this.model.length ) {
+				return JSON.stringify( this.model );
+			}
+
+			return "";
 		};
 
 		RulesEngineCondition.prototype.deserialize = function( initialConditionValue ) {

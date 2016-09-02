@@ -18,8 +18,18 @@ component displayName="Website login service" {
 	 * @bcryptService.inject              bcryptService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @emailService.inject               emailService
+	 * @websiteUserActionService.inject   websiteUserActionService
 	 */
-	public any function init( required any sessionStorage, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
+	public any function init(
+		  required any sessionStorage
+		, required any cookieService
+		, required any userDao
+		, required any userLoginTokenDao
+		, required any bcryptService
+		, required any systemConfigurationService
+		, required any emailService
+		, required any websiteUserActionService
+	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
@@ -27,6 +37,7 @@ component displayName="Website login service" {
 		_setBCryptService( arguments.bcryptService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setEmailService( arguments.emailService );
+		_setWebsiteUserActionService( arguments.websiteUserActionService );
 		_setSessionKey( "website_user" );
 		_setRememberMeCookieKey( "_presidecms-site-persist" );
 
@@ -49,18 +60,28 @@ component displayName="Website login service" {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.count() && ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) ) {
-				userRecord.session_authenticated = true;
+			if ( userRecord.count() ) {
+				if ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) {
+					userRecord.session_authenticated = true;
 
-				_setUserSession( userRecord );
+					_setUserSession( userRecord );
 
-				if ( arguments.rememberLogin ) {
-					_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					if ( arguments.rememberLogin ) {
+						_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					}
+
+					_getWebsiteUserActionService().promoteVisitorActionsToUserActions( userRecord.id );
+					recordLogin();
+					_preventSessionFixation();
+
+					return true;
+				} else {
+					$recordWebsiteUserAction(
+						  action = "failedLogin"
+						, type   = "login"
+						, userId = userRecord.id
+					);
 				}
-
-				recordLogin();
-
-				return true;
 			}
 		}
 
@@ -253,6 +274,12 @@ component displayName="Website login service" {
 				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
 			);
 
+			$recordWebsiteUserAction(
+				  userId = userRecord.id
+				, action = "sendPasswordResetInstructions"
+				, type   = "login"
+			);
+
 			return true;
 		}
 
@@ -283,11 +310,22 @@ component displayName="Website login service" {
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
 
-			return _getUserDao().updateData(
+			var result = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			if ( result ) {
+				$recordWebsiteUserAction(
+					  userId = record.id
+					, action = "changepassword"
+					, type   = "login"
+				);
+			}
+
+			return result;
 		}
+
 		return false;
 	}
 
@@ -317,6 +355,12 @@ component displayName="Website login service" {
 				, detail   = userRecord
 			);
 
+		} else {
+			$recordWebsiteUserAction(
+				  userId = arguments.userId
+				, action = "changepassword"
+				, type   = "login"
+			);
 		}
 
 		return result;
@@ -386,13 +430,25 @@ component displayName="Website login service" {
 
 	/**
 	 * Sets the last logged in date for the logged in user
+	 * and records the action using [[api-websiteuseractionservice]]
 	 */
 	public boolean function recordLogin() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_in = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "login"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_in = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -403,9 +459,20 @@ component displayName="Website login service" {
 	public boolean function recordLogout() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_out = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "logout"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_out = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -442,7 +509,6 @@ component displayName="Website login service" {
 
 	private void function _setUserSession( required struct data ) {
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
-		_preventSessionFixation();
 	}
 
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
@@ -498,6 +564,11 @@ component displayName="Website login service" {
 			if ( user.count() ) {
 				user.session_authenticated = false;
 				_setUserSession( user );
+				$recordWebsiteUserAction(
+					  action = "autologin"
+					, type   = "login"
+				);
+				_preventSessionFixation();
 
 				request._presideWebsiteAutoLoginResult = true;
 				return true;
@@ -688,5 +759,12 @@ component displayName="Website login service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getWebsiteUserActionService() {
+		return _websiteUserActionService;
+	}
+	private void function _setWebsiteUserActionService( required any websiteUserActionService ) {
+		_websiteUserActionService = arguments.websiteUserActionService;
 	}
 }

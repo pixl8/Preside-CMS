@@ -1,6 +1,7 @@
 /**
  * Expression handler for "User has/has not all/any of the following benefits: {benefit list}"
  *
+ * @feature websiteUsers
  */
 component {
 
@@ -14,7 +15,7 @@ component {
 	 */
 	private boolean function webRequest(
 		  required string  benefits
-		,          boolean _has=true
+		,          boolean _posesses=true
 		,          boolean _all=true
 	) {
 		var hasBenefits = !arguments.benefits.len();
@@ -27,14 +28,14 @@ component {
 				} );
 
 				if ( _all ) {
-					hasBenefits = _has ? ( matchingBenefits.len() == benefits.len() ) : matchingBenefits.len();
+					hasBenefits = _posesses ? ( matchingBenefits.len() == benefits.len() ) : matchingBenefits.len();
 				} else {
-					hasBenefits = _has ? matchingBenefits.len() : ( matchingBenefits.len() == benefits.len() );
+					hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefits.len() );
 				}
 			}
 		}
 
-		return _has ? hasBenefits : !hasBenefits;
+		return _posesses ? hasBenefits : !hasBenefits;
 	}
 
 }

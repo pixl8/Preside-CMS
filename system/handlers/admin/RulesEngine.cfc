@@ -100,6 +100,7 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function editConditionAction( event, rc, prc ) {
+		var conditionId = rc.id ?: "";
 		_checkPermissions( argumentCollection=arguments, key="edit" );
 
 		runEvent(
@@ -108,7 +109,7 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, eventArguments = {
 				  object        = "rules_engine_condition"
-				, errorAction   = "rules_engine_condition.editBenefit"
+				, errorUrl      = event.buildAdminLink( linkTo="rulesEngine.editCondition", queryString="id=" & conditionId )
 				, successUrl    = event.buildAdminLink( linkTo="rulesEngine" )
 				, audit         = true
 				, auditType     = "rulesEngine"

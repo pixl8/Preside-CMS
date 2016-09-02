@@ -4,6 +4,7 @@ component output=false {
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="websiteLoginService"      inject="websiteLoginService";
+	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preRenderSiteTreePage" );
@@ -23,6 +24,13 @@ component output=false {
 		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
 			event.notFound();
 		}
+
+		websiteUserActionService.recordAction(
+			  action     = "pagevisit"
+			, type       = "request"
+			, identifier = pageId
+			, userId     = getLoggedInUserId()
+		);
 
 		event.checkPageAccess();
 
