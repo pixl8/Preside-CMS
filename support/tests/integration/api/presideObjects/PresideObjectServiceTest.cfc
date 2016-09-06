@@ -2336,47 +2336,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test072_selectData_shouldSelectLatestVersionBeneathSuppliedMaxVersionNumber" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var catIds    = [];
-
-			poService.dbSync();
-
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 1" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 2" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 3" } ) );
-
-			var newId = poService.insertData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, data = {
-					  label             = "myLabel"
-					, a_category_object = ArrayToList( catIds )
-				  }
-			);
-
-			poService.updateData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, id      = newId
-				, data = { label="changed" }
-			);
-
-			var record = poService.selectData(
-				  objectName       = "an_object_with_versioning"
-				, id               = newId
-				, fromVersionTable = true
-				, maxVersion       = 4
-			);
-
-			super.assertEquals( 1, record.recordCount );
-			super.assertEquals( "myLabel", record.label );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="test073_selectData_shouldSelectSpecificVersion_whenSpecificVersionNumberSupplied" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );

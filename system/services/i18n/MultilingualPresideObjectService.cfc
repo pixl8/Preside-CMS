@@ -281,25 +281,11 @@ component displayName="Multilingual Preside Object Service" {
 
 
 			for( var i=selectDataArgs.joins.len(); i>0; i-- ) {
-				var join = selectDataArgs.joins[i];
+				var join             = selectDataArgs.joins[i];
+				var latestCheckField = IsBoolean( selectDataArgs.allowDraftVersions ?: "" ) && selectDataArgs.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
 
-				if ( join.tableAlias contains "_translations" ) {
-					var alias              = join.tableAlias;
-					var vCheckAlias        = alias & "$_latestVersionCheck";
-					var versionCheckJoin   = _getVersionCheckJoin( tableName, alias, selectDataArgs.adapter );
-					var versionCheckFilter = "#vCheckAlias#.id is null";
-
-					if ( ReFind( "^[1-9][0-9]*$", selectDataArgs.maxVersion ) ) {
-						versionCheckJoin.additionalClauses &= " and #vCheckAlias#._version_number <= #selectDataArgs.maxVersion#";
-						versionCheckFilter &= " and #vCheckAlias#._version_number <= #selectDataArgs.maxVersion#";
-
-						if ( !selectDataArgs.allowDraftVersions ) {
-							versionCheckJoin.additionalClauses &= " and ( #vCheckAlias#._version_is_draft is null or #vCheckAlias#._version_is_draft = 0 )";
-							versionCheckFilter &= " and ( #vCheckAlias#._version_is_draft is null or #vCheckAlias#._version_is_draft = 0 )";
-						}
-					}
-					selectDataArgs.joins.append( versionCheckJoin );
-					selectDataArgs.filter = poService.mergeFilters( selectDataArgs.filter, versionCheckFilter, selectDataArgs.adapter, selectDataArgs.objectName );
+				if ( join.tableAlias contains "_translations" && join.tableName.startsWith( "_version" ) ) {
+					join.additionalClauses &= " and #join.tableAlias#.#latestCheckField# = 1";
 				}
 			}
 		}
@@ -572,19 +558,6 @@ component displayName="Multilingual Preside Object Service" {
 
 	private any function _getLanguageDao() {
 		return $getPresideObject( "multilingual_language" );
-	}
-
-	private struct function _getVersionCheckJoin( required string tableName, required string tableAlias, required any adapter ) {
-		var vCheckAlias = arguments.tableAlias & "$_latestVersionCheck";
-		return {
-			  tableName         = arguments.tableName
-			, tableAlias        = vCheckAlias
-			, tableColumn       = "id"
-			, joinToTable       = arguments.tableAlias
-			, joinToColumn      = "id"
-			, type              = "left"
-			, additionalClauses = "#adapter.escapeEntity( vCheckAlias )#.#adapter.escapeEntity( '_version_number' )# > #adapter.escapeEntity( arguments.tableAlias )#.#adapter.escapeEntity( '_version_number' )#"
-		}
 	}
 
 // GETTERS AND SETTERS
