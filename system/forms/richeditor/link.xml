@@ -30,7 +30,7 @@ This form is used for the add/edit link screen in the richeditor.
 
 	<tab id="advanced" sortorder="20" title="cms:ckeditor.linkpicker.advanced.tab">
 		<fieldset id="advanced" sortorder="10">
-			<field sortorder="10" name="link_target" control="select"    required="false"                 label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" />
+			<field sortorder="10" name="link_target" control="select"    required="false"                 label="cms:ckeditor.linkpicker.link_target.label" values="_self,_blank,_parent,_top" labels="cms:ckeditor.linkpicker.link_target._self,cms:ckeditor.linkpicker.link_target._blank,cms:ckeditor.linkpicker.link_target._parent,cms:ckeditor.linkpicker.link_target._top" />
 			<field sortorder="20" name="title"       control="textinput" required="false" maxlength="200" label="cms:ckeditor.linkpicker.title.label" placeholder="cms:ckeditor.linkpicker.title.placeholder" />
 		</fieldset>
 	</tab>
