@@ -92,7 +92,7 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="websiteUserManager" ) );
 		}
 		prc.record = queryRowToStruct( prc.record );
-		prc.record.permissions = websitePermissionService.listUserPermissions( userId = id ).toList();
+		prc.record.permissions = websitePermissionService.listUserPermissions( userId = rc.id ?: "" ).toList();
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:websiteUserManager.editUser.page.title", data=[ prc.record.display_name ] )
