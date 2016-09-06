@@ -5,7 +5,7 @@
 			, args = {
 				  active  = ListLast( event.getCurrentHandler(), ".") eq "formbuilder"
 				, link    = event.buildAdminLink( linkTo="formbuilder" )
-				, gotoKey = "s"
+				, gotoKey = "f"
 				, icon    = "fa-check-square-o"
 				, title   = translateResource( 'formbuilder:admin.menu.title' )
 			  }
