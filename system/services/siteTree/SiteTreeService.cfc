@@ -160,7 +160,6 @@ component {
 			args.specificVersion  = arguments.version
 		} else if ( arguments.getLatest ) {
 			args.fromVersionTable = true
-			args.maxVersion       = "HEAD";
 		}
 
 		return _getPObj().selectData( argumentCollection = args );
@@ -210,7 +209,6 @@ component {
 		var args  = { filter={ page=arguments.id }, allowDraftVersions=arguments.allowDrafts };
 		if ( arguments.getLatest ) {
 			args.fromVersionTable = true
-			args.maxVersion       = "HEAD";
 		}
 
 		var record = pobj.selectData( argumentCollection=args );
@@ -460,7 +458,6 @@ component {
 			homepageArgs.specificVersion  = arguments.version;
 		} else if ( arguments.getLatest ) {
 			homepageArgs.fromVersionTable = true;
-			homepageArgs.maxVersion       = "HEAD";
 		}
 
 		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );

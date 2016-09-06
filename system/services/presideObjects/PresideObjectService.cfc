@@ -138,7 +138,6 @@ component displayName="Preside Object Service" {
 	 * @startRow.hint           Offset the recordset when using maxRows
 	 * @useCache.hint           Whether or not to automatically cache the result internally
 	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
-	 * @maxVersion.hint         Can be used to set a maximum version number when selecting from the version table
 	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
 	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
 	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
@@ -161,7 +160,6 @@ component displayName="Preside Object Service" {
 		,          numeric startRow           = 1
 		,          boolean useCache           = true
 		,          boolean fromVersionTable   = false
-		,          string  maxVersion         = "HEAD"
 		,          numeric specificVersion    = 0
 		,          boolean allowDraftVersions = $isAdminUserLoggedIn()
 		,          string  forceJoins         = ""
@@ -428,6 +426,7 @@ component displayName="Preside Object Service" {
 	 * @isDraft.hint                 Whether or not the record update is a draft change. Draft changes are only saved against the version table until published.
 	 * @useVersioning.hint           Whether or not to use the versioning system with the update. If the object is setup to use versioning (default), this will default to true.
 	 * @versionNumber.hint           If using versioning, specify a version number to save against (if none specified, one will be created automatically)
+	 * @setDateModified.hint         If true (default), updateData will automatically set the datelastmodified date on your record to the current date/time
 	 * @useVersioning.docdefault     auto
 	 */
 	public numeric function updateData(
@@ -444,6 +443,7 @@ component displayName="Preside Object Service" {
 		,          boolean useVersioning           = objectIsVersioned( arguments.objectName )
 		,          numeric versionNumber           = 0
 		,          boolean forceVersionCreation    = false
+		,          boolean setDateModified         = true
 	) autodoc=true {
 		var interceptorResult = _announceInterception( "preUpdateObjectData", arguments );
 
@@ -480,7 +480,7 @@ component displayName="Preside Object Service" {
 			);
 		}
 
-		if ( StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
+		if ( arguments.setDateModified && StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
 			cleanedData.datemodified = DateFormat( Now(), "yyyy-mm-dd" ) & " " & TimeFormat( Now(), "HH:mm:ss" );
 		}
 
@@ -935,14 +935,12 @@ component displayName="Preside Object Service" {
 	 * @objectName.hint       Name of the object who's related data we wish to retrieve
 	 * @id.hint               ID of the record who's related data we wish to retrieve
 	 * @fromVersionTable.hint Whether or not to retrieve the data from the version history table for the object
-	 * @maxVersion.hint       If retrieving from the version history, set a max version number
 	 * @specificVersion.hint  If retrieving from the version history, set a specific version number to retrieve
 	 */
 	public struct function getDeNormalizedManyToManyData(
 		  required string  objectName
 		, required string  id
 		,          boolean fromVersionTable = false
-		,          string  maxVersion       = "HEAD"
 		,          numeric specificVersion  = 0
 		,          array   selectFields     = []
 	) autodoc=true {
@@ -957,7 +955,6 @@ component displayName="Preside Object Service" {
 					, id               = arguments.id
 					, selectFields     = [ "#prop#.id" ]
 					, fromVersionTable = arguments.fromVersionTable
-					, maxVersion       = arguments.maxVersion
 					, specificVersion  = arguments.specificVersion
 				);
 
@@ -1598,7 +1595,6 @@ component displayName="Preside Object Service" {
 		, required string  originalTableName
 		, required array   joins
 		, required array   selectFields
-		, required string  maxVersion
 		, required numeric specificVersion
 		, required boolean allowDraftVersions
 		, required any     filter
@@ -1615,8 +1611,6 @@ component displayName="Preside Object Service" {
 		var compiledFilter       = Duplicate( arguments.filter );
 		var sql                  = "";
 		var versionFilter        = "";
-		var versionCheckJoin     = "";
-		var versionCheckFilter   = "";
 		var args                 = {};
 		var alteredJoins         = _alterJoinsToUseVersionTables(
 			  argumentCollection = arguments
@@ -1636,25 +1630,14 @@ component displayName="Preside Object Service" {
 				versionFilter &= " and ( #arguments.objectName#._version_is_draft is null or #arguments.objectName#._version_is_draft = :#arguments.objectName#._version_is_draft )";
 				params.append( { name="#arguments.objectName#___version_is_draft", value=false, type="cf_sql_bit" } );
 			}
-			compiledFilter = mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
 		} else {
-			versionCheckJoin   = _getVersionCheckJoin( versionTableName, arguments.objectName, adapter );
-			versionCheckFilter = "_latestVersionCheck.id is null";
-
-			if ( ReFind( "^[1-9][0-9]*$", arguments.maxVersion ) ) {
-				versionCheckJoin.additionalClauses &= " and _latestVersionCheck._version_number <= #arguments.maxVersion#";
-				versionCheckFilter &= " and #arguments.objectName#._version_number <= #arguments.maxVersion#";
-
-				if ( !arguments.allowDraftVersions ) {
-					versionCheckJoin.additionalClauses &= " and ( _latestVersionCheck._version_is_draft is null or _latestVersionCheck._version_is_draft = 0 )";
-					versionCheckFilter &= " and ( _latestVersionCheck._version_is_draft is null or _latestVersionCheck._version_is_draft = 0 )";
-				}
-			}
-			ArrayAppend( alteredJoins, versionCheckJoin );
-
-			compiledFilter = mergeFilters( compiledFilter, versionCheckFilter, adapter, arguments.objectName );
+			var latestVersionField = arguments.allowDraftVersions ? "_version_is_latest_draft" : "_version_is_latest";
+			versionFilter = "#arguments.objectName#.#latestVersionField# = :#arguments.objectName#.#latestVersionField#";
+			params.append( { name="#arguments.objectName#__#latestVersionField#", value=true, type="cf_sql_boolean" } );
 		}
+
+		compiledFilter = mergeFilters( compiledFilter, versionFilter, adapter, arguments.objectName );
 
 		var args = Duplicate( arguments );
 		args.append( {
@@ -1673,18 +1656,6 @@ component displayName="Preside Object Service" {
 		sql = adapter.getSelectSql( argumentCollection=args );
 
 		return _runSql( sql=sql, dsn=versionObj.dsn, params=arguments.params );
-	}
-
-	private struct function _getVersionCheckJoin( required string tableName, required string tableAlias, required any adapter ) {
-		return {
-			  tableName         = arguments.tableName
-			, tableAlias        = "_latestVersionCheck"
-			, tableColumn       = "id"
-			, joinToTable       = arguments.tableAlias
-			, joinToColumn      = "id"
-			, type              = "left"
-			, additionalClauses = "#adapter.escapeEntity( '_latestVersionCheck' )#.#adapter.escapeEntity( '_version_number' )# > #adapter.escapeEntity( arguments.tableAlias )#.#adapter.escapeEntity( '_version_number' )#"
-		}
 	}
 
 	private array function _alterJoinsToUseVersionTables(

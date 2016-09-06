@@ -2336,47 +2336,6 @@
 		</cfscript>
 	</cffunction>
 
-	<cffunction name="test072_selectData_shouldSelectLatestVersionBeneathSuppliedMaxVersionNumber" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var catIds    = [];
-
-			poService.dbSync();
-
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 1" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 2" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 3" } ) );
-
-			var newId = poService.insertData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, data = {
-					  label             = "myLabel"
-					, a_category_object = ArrayToList( catIds )
-				  }
-			);
-
-			poService.updateData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, id      = newId
-				, data = { label="changed" }
-			);
-
-			var record = poService.selectData(
-				  objectName       = "an_object_with_versioning"
-				, id               = newId
-				, fromVersionTable = true
-				, maxVersion       = 4
-			);
-
-			super.assertEquals( 1, record.recordCount );
-			super.assertEquals( "myLabel", record.label );
-		</cfscript>
-	</cffunction>
-
 	<cffunction name="test073_selectData_shouldSelectSpecificVersion_whenSpecificVersionNumberSupplied" returntype="void">
 		<cfscript>
 			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
@@ -2544,7 +2503,7 @@
 			var versions = poService.getRecordVersions( objectName="a_category_object", id=id );
 
 			super.assertEquals( 5, versions.recordCount );
-			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts", versions.columnList );
+			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft", versions.columnList );
 			for( var i=1; i <= versions.recordCount; i++ ) {
 				super.assertEquals( 6-i, versions._version_number[i] );
 			}

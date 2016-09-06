@@ -1,5 +1,6 @@
 component {
 	property name="applicationReloadService"  inject="applicationReloadService";
+	property name="databaseMigrationService"  inject="databaseMigrationService";
 	property name="applicationsService"       inject="applicationsService";
 	property name="websiteLoginService"       inject="websiteLoginService";
 	property name="adminLoginService"         inject="loginService";
@@ -8,6 +9,8 @@ component {
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
+
+		_performDbMigrations();
 		announceInterception( "onApplicationStart" );
 	}
 
@@ -164,5 +167,9 @@ component {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
 		}
+	}
+
+	private void function _performDbMigrations() {
+		databaseMigrationService.migrate();
 	}
 }

@@ -328,16 +328,10 @@ component displayName="Preside Object View Service" {
 				var currentPageId = event.getCurrentPageId();
 
 				if ( _isSelectDataForCurrentPage( currentPageId, arguments.id, arguments.filter, arguments.filterparams ) ) {
-					var args    = { fromVersionTable=true };
-					var version = Val( event.getValue( "version", 0 ) );
-
-					if ( version ) {
-						args.specificVersion = version;
-					} else {
-						args.maxVersion = "HEAD";
-					}
-
-					return args;
+					return {
+						  fromVersionTable = true
+						, specificVersion  = Val( event.getValue( "version", 0 ) )
+					};
 				}
 			}
 		}
