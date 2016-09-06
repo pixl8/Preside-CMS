@@ -162,11 +162,25 @@ component displayName="RulesEngine Expression Reader Service" {
 				definition.fieldType = "operator";
 				definition.variety   = argName.reReplaceNoCase( "^_(.*)Operator$", "\1" );
 			break;
+
+			case "_time":
+			case "_pastTime":
+			case "_futureTime":
+				definition.fieldType  = "timePeriod";
+				definition.futureOnly = ( argName == "_futureTime" );
+				definition.pastOnly   = ( argName == "_pastTime" );
+				definition.default    = "";
+			break;
 		}
 
 		for( var attribName in functionArgumentMeta ) {
 			if ( !argAttribsToIgnore.findNoCase( attribName ) ) {
-				definition[ attribName ] = functionArgumentMeta[ attribName ];
+				if ( attribName == "default" && functionArgumentMeta[ attribName ] == "[runtime expression]" ) {
+					definition[ attribName ] = "";
+				} else {
+					definition[ attribName ] = functionArgumentMeta[ attribName ];
+
+				}
 			}
 		}
 

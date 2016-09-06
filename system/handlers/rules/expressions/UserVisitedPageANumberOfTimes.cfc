@@ -19,13 +19,16 @@ component {
 		, required numeric times
 		,          string  _numericOperator = "eq"
 		,          boolean _has = true
+		,          struct  _pastTime
 	) {
-		var userId = payload.user.id ?: "";
+		var userId      = payload.user.id ?: "";
 		var actionCount = websiteUserActionService.getActionCount(
 			  type        = "request"
 			, action      = "pagevisit"
 			, userId      = userId
 			, identifiers = [ page ]
+			, dateFrom    = _pastTime.from ?: ""
+			, dateTo      = _pastTime.to   ?: ""
 		);
 
 		var result = rulesEngineOperatorService.compareNumbers( actionCount, arguments._numericOperator, arguments.times );

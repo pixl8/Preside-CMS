@@ -19,6 +19,7 @@ component {
 		, required numeric times
 		,          boolean _has            = true
 		,          string _numericOperator = "eq"
+		,          struct _pastTime
 	) {
 		if ( ListLen( action, "." ) != 2 ) {
 			return false;
@@ -28,6 +29,8 @@ component {
 			  type   = ListFirst( action, "." )
 			, action = ListLast( action, "." )
 			, userId = payload.user.id ?: ""
+			, dateFrom = _pastTime.from ?: ""
+			, dateTo   = _pastTime.to   ?: ""
 		);
 		var result = rulesEngineOperatorService.compareNumbers( actionCount, arguments._numericOperator, arguments.times );
 

@@ -31042,6 +31042,12 @@ fieldset[disabled] .presidecms .btn {
   background-color: #eeeeee;
   border-radius: 5px;
 }
+.presidecms .bootstrap-datetimepicker-widget.dropdown-menu.usetwentyfour.timepicker-sbs .datepicker {
+  margin-left: 9px;
+}
+.presidecms .bootstrap-datetimepicker-widget.dropdown-menu.usetwentyfour.timepicker-sbs .timepicker {
+  margin-left: -19px;
+}
 .modal-dialog-layout-container .main-content {
   margin-left: 0;
 }
@@ -31114,6 +31120,7 @@ fieldset[disabled] .presidecms .btn {
 .full-screen-dialog .modal-dialog .modal-content .modal-body {
   height: calc(100% - 116px);
   padding: 0;
+  overflow: scroll;
 }
 .full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body {
   height: 100%;

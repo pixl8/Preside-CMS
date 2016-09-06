@@ -145,13 +145,31 @@ component {
 		var versionedData     = Duplicate( arguments.data );
 		var recordId          = versionedData.id ?: "";
 
-		versionedData._version_number         = arguments.versionNumber;
-		versionedData._version_author         = arguments.versionAuthor;
-		versionedData._version_is_draft       = versionedData._version_has_drafts = arguments.isDraft;
-		versionedData._version_changed_fields = ',' & arguments.changedFields.toList() & ",";
+		versionedData._version_number          = arguments.versionNumber;
+		versionedData._version_author          = arguments.versionAuthor;
+		versionedData._version_is_draft        = versionedData._version_has_drafts = arguments.isDraft;
+		versionedData._version_changed_fields  = ',' & arguments.changedFields.toList() & ",";
+		versionedData._version_is_latest       = !arguments.isDraft;
+		versionedData._version_is_latest_draft = true;
 
 		if ( poService.fieldExists( versionObjectName, "id" ) ) {
 			versionedData.id = versionedData.id ?: NullValue();
+		}
+
+		if ( Len( Trim( versionedData.id ?: "" ) ) ) {
+			var cleanLatestData = { _version_is_latest_draft=false };
+			if ( !arguments.isDraft ) {
+				cleanLatestData._version_is_latest = false;
+			}
+
+			poService.updateData(
+				  objectName              = versionObjectName
+				, data                    = cleanLatestData
+				, filter                  = { id = versionedData.id }
+				, useVersioning           = false
+				, skipTrivialInterceptors = true
+				, setDateModified         = false
+			);
 		}
 
 		poService.insertData(
@@ -159,6 +177,7 @@ component {
 			, data                    = versionedData
 			, insertManyToManyRecords = false
 			, useVersioning           = false
+			, skipTrivialInterceptors = true
 		);
 
 		for( var propertyName in manyToManyData ){
@@ -444,7 +463,35 @@ component {
 			, default      = false
 		};
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts" );
+		objMeta.properties[ "_version_is_latest" ] = {
+			  name         = "_version_is_latest"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.properties[ "_version_is_latest_draft" ] = {
+			  name         = "_version_is_latest_draft"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
@@ -454,6 +501,8 @@ component {
 		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_number" ] = { unique=false, fields="_version_number" };
 		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_author" ] = { unique=false, fields="_version_author" };
 		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_draft"       ] = { unique=false, fields="_version_is_draft" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_latest"      ] = { unique=false, fields="_version_is_latest" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_latest_drft" ] = { unique=false, fields="_version_is_latest_draft" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
 			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id" ] = { unique=false, fields="id,_version_number" };
 		}

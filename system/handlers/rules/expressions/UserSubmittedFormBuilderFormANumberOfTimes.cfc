@@ -20,6 +20,7 @@ component {
 		, required numeric times
 		,          string  _numericOperator = "eq"
 		,          boolean _has = true
+		,          struct  _pastTime
 	) {
 		var userId = payload.user.id ?: "";
 		var actionCount = websiteUserActionService.getActionCount(
@@ -27,6 +28,8 @@ component {
 			, action      = "submitform"
 			, userId      = userId
 			, identifiers = [ fbform ]
+			, dateFrom    = _pastTime.from ?: ""
+			, dateTo      = _pastTime.to   ?: ""
 		);
 
 		var result = rulesEngineOperatorService.compareNumbers( actionCount, arguments._numericOperator, arguments.times );

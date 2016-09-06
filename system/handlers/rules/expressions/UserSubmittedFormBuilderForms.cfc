@@ -17,6 +17,7 @@ component {
 		  required string  forms
 		,          boolean _has = true
 		,          boolean _all = false
+		,          struct  _pastTime
 	) {
 		var userId = payload.user.id ?: "";
 
@@ -27,6 +28,8 @@ component {
 					, action      = "submitform"
 					, userId      = userId
 					, identifiers = [ fbform ]
+					, dateFrom    = _pastTime.from ?: ""
+					, dateTo      = _pastTime.to   ?: ""
 				);
 
 				if ( result != _has ) {
@@ -41,6 +44,8 @@ component {
 				, action      = "submitform"
 				, userId      = userId
 				, identifiers = ListToArray( forms )
+				, dateFrom    = _pastTime.from ?: ""
+				, dateTo      = _pastTime.to   ?: ""
 			);
 		}
 
