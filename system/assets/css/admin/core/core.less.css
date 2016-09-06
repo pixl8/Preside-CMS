@@ -31086,6 +31086,7 @@ td.presidecms .visible-print {
 .full-screen-dialog .modal-dialog .modal-content .modal-body {
   height: calc(100% - 116px);
   padding: 0;
+  overflow: scroll;
 }
 .full-screen-dialog .modal-dialog .modal-content .modal-body .bootbox-body {
   height: 100%;
