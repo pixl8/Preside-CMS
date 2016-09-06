@@ -5,6 +5,7 @@
 	param name="args.multiActionUrl"      type="string"  default="";
 	param name="args.gridFields"          type="array";
 	param name="args.allowSearch"         type="boolean" default=true;
+	param name="args.clickableRows"       type="boolean" default=true;
 	param name="args.batchEditableFields" type="array"   default=[];
 	param name="args.datasourceUrl"       type="string"  default=event.buildAdminLink( linkTo="ajaxProxy", queryString="id=#args.objectName#&action=dataManager.getObjectRecordsForAjaxDataTables&useMultiActions=#args.useMultiActions#&gridFields=#ArrayToList( args.gridFields )#&isMultilingual=#args.isMultilingual#" );
 	objectTitle          = translateResource( uri="preside-objects.#args.objectName#:title", defaultValue=args.objectName )
@@ -19,6 +20,7 @@
 		, useMultiActions     = args.useMultiActions
 		, allowSearch         = args.allowSearch
 		, isMultilingual      = args.isMultilingual
+		, clickableRows       = args.clickableRows
 	} );
 
 </cfscript>

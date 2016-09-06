@@ -11,6 +11,7 @@
 	  , setupTableRowFocusBehaviour
 	  , object              = cfrequest.objectName || ""
 	  , allowSearch         = cfrequest.allowSearch
+	  , clickableRows       = cfrequest.clickableRows
 	  , datasourceUrl       = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 	  , useMultiActions     = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
 	  , isMultilingual      = cfrequest.isMultilingual      || false
@@ -69,7 +70,10 @@
 			fnRowCallback : function( row ){
 				$row = $( row );
 				$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
-				$row.addClass( "clickable" ); // make work with clickable tr Preside system
+				
+				if( clickableRows ) {
+					$row.addClass( "clickable" ); // make work with clickable tr Preside system
+				}
 			},
 			fnInitComplete : function( settings ){
 				if ( allowSearch ) {
