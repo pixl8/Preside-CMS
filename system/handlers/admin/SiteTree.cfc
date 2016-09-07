@@ -1147,6 +1147,7 @@ component extends="preside.system.base.AdminHandler" {
 			, includeInactive = true
 			, includeTrash    = arguments.includeTrash
 			, allowDrafts     = true
+			, useCache        = false
 		);
 
 		if ( !page.recordCount ) {
