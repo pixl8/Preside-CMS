@@ -979,6 +979,7 @@ component extends="preside.system.base.AdminHandler" {
 			, version         = Val( version )
 			, includeInactive = true
 			, includeTrash    = arguments.includeTrash
+			, useCache        = false
 		);
 
 		if ( not page.recordCount ) {
