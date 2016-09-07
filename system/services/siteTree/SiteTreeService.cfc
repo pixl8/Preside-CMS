@@ -813,6 +813,9 @@ component {
 					, newData = data
 				);
 			}
+
+			_getPresideObjectService().clearRelatedCaches( "page" );
+			_getPresideObjectService().clearRelatedCaches( existingPage.page_type );
 		}
 
 		if ( updated && !arguments.skipAudit ) {
