@@ -11,11 +11,6 @@ This form is used for configuring aspects of the asset manager
 			<field sortorder="20" name="retrieve_metadata" control="yesnoswitch" required="false" />
 		</fieldset>
 	</tab>
-	<tab id="meta" sortorder="10">
-		<fieldset id="meta" sortorder="10">
-		</fieldset>
-	</tab>
-
 	<tab id="imagemagick" sortorder="10">
 		<fieldset id="imagemagick" sortorder="10">
 			<field sortorder="10" name="use_imagemagick"         control="yesnoswitch" required="false" />
