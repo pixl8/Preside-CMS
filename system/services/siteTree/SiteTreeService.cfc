@@ -671,7 +671,7 @@ component {
 		return pageId;
 	}
 
-	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean forceVersionCreation ) {
+	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean skipVersioning=false, boolean forceVersionCreation ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -772,6 +772,7 @@ component {
 			updated = pobj.updateData(
 				  data                    = data
 				, id                      = arguments.id
+				, useVersioning           = !arguments.skipVersioning
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
 				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
@@ -787,6 +788,7 @@ component {
 						, updateManyToManyRecords = true
 						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
 						, isDraft                 = arguments.isDraft
+						, useVersioning           = !arguments.skipVersioning
 					);
 				} else {
 					var insertData = Duplicate( arguments );

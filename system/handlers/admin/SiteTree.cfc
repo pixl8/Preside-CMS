@@ -819,9 +819,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( i=1; i lte ArrayLen( sortedPages ); i++ ){
 			siteTreeService.editPage(
-				  id         = sortedPages[i]
-				, sort_order = i
-				, skipAudit  = true
+				  id             = sortedPages[i]
+				, sort_order     = i
+				, skipAudit      = true
+				, skipVersioning = true
 			);
 		}
 		event.audit(
