@@ -15,18 +15,6 @@
 	objectTitleSingular = translateResource( uri="preside-objects.#args.object#:title.singular", defaultValue=args.object );
 	editRecordPrompt    = translateResource( uri="preside-objects.#args.object#:editRecord.prompt", defaultValue="" );
 	formId              = "editForm-" & CreateUUId();
-
-	actions = [];
-	if ( args.draftsEnabled ) {
-		if ( args.canSaveDraft ) {
-			actions.append( { key="savedraft", title=translateResource( uri="cms:datamanager.edit.record.draft.btn", data=[ LCase( objectTitleSingular ) ] ) } );
-		}
-		if ( args.canPublish ) {
-			actions.append( { key="publish", title=translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ LCase( objectTitleSingular ) ] ) } );
-		}
-	} else {
-		actions.append( { key="add", title=translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] ) } );
-	}
 </cfscript>
 
 <cfoutput>
@@ -53,35 +41,26 @@
 
 		<div class="form-actions row">
 			<div class="col-md-offset-2">
-				<div class="btn-group">
-					<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
-						<i class="fa fa-reply bigger-110"></i>
-						#translateResource( "cms:datamanager.cancel.btn" )#
-					</a>
-				</div>
+				<a href="#args.cancelAction#" class="btn btn-default" data-global-key="c">
+					<i class="fa fa-reply bigger-110"></i>
+					#translateResource( "cms:datamanager.cancel.btn" )#
+				</a>
 
-				<input name="_saveAction" type="hidden" value="#actions[1].key#">
-				<cfif actions.len() == 1>
-					<div class="btn-group">
-						<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-							<i class="fa fa-save bigger-110"></i>
-							#actions[1].title#
+				<cfif args.draftsEnabled>
+					<cfif args.canSaveDraft>
+						<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.edit.record.draft.btn", data=[ LCase( objectTitleSingular ) ] )#
 						</button>
-					</div>
+					</cfif>
+					<cfif args.canPublish>
+						<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+							<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.edit.record.publish.btn", data=[ LCase( objectTitleSingular ) ] )#
+						</button>
+					</cfif>
 				<cfelse>
-					<div class="btn-group" data-multi-submit-field="_saveAction">
-						<button type="submit" class="btn btn-info">
-							<i class="fa fa-save bigger-110"></i> #actions[1].title#
-						</button>
-						<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							<i class="fa fa-caret-down bigger-110"></i><span class="sr-only">Toggle Dropdown</span>
-						</button>
-						<ul class="dropdown-menu">
-							<cfloop array="#actions#" index="i" item="action">
-								<li><a href="##" data-action-key="#action.key#">#action.title#</a></li>
-							</cfloop>
-						</ul>
-					</div>
+					<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.savechanges.btn", data=[ LCase( objectTitleSingular ) ] )#
+					</button>
 				</cfif>
 			</div>
 		</div>
