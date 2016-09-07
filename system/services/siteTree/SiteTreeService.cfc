@@ -735,6 +735,9 @@ component singleton=true {
 					, newData = data
 				);
 			}
+
+			_getPresideObjectService().clearRelatedCaches( "page" );
+			_getPresideObjectService().clearRelatedCaches( existingPage.page_type );
 		}
 
 		return updated;

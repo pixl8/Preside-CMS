@@ -340,7 +340,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 		}
 
-		_clearRelatedCaches(
+		clearRelatedCaches(
 			  objectName              = arguments.objectName
 			, filter                  = ""
 			, filterParams            = {}
@@ -524,7 +524,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 			}
 		}
 
-		_clearRelatedCaches(
+		clearRelatedCaches(
 			  objectName   = arguments.objectName
 			, filter       = preparedFilter.filter
 			, filterParams = preparedFilter.filterParams
@@ -617,7 +617,7 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 
 		result = _runSql( sql=sql, dsn=obj.dsn, params=preparedFilter.params, returnType="info" );
 
-		_clearRelatedCaches(
+		clearRelatedCaches(
 			  objectName   = arguments.objectName
 			, filter       = preparedFilter.filter
 			, filterParams = preparedFilter.filterParams
@@ -1181,6 +1181,64 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 		return "textinput";
 	}
 
+	/**
+	 * Clears related selectData caches
+	 * for the given object and optional filters
+	 *
+	 * @autodoc
+	 */
+	public void function clearRelatedCaches(
+		  required string  objectName
+		,          any     filter                  = ""
+		,          struct  filterParams            = {}
+		,          boolean clearSingleRecordCaches = true
+	) {
+		var cacheMaps   = _getCacheMaps();
+		var keysToClear = "";
+		var objIds      = "";
+		var objId       = "";
+
+		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
+			keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
+
+			if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
+				objIds = arguments.filter.id;
+			} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
+				objIds = arguments.filterParams.id;
+			}
+
+			if ( IsSimpleValue( objIds ) ) {
+				objIds = ListToArray( objIds );
+			}
+
+			if ( IsArray( objIds ) and ArrayLen( objIds ) ) {
+				for( objId in objIds ){
+					if ( StructKeyExists( cacheMaps[ arguments.objectName ], objId ) ) {
+						keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+						StructDelete( cacheMaps[ arguments.objectName ], objId );
+					}
+				}
+				StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
+			} elseif ( arguments.clearSingleRecordCaches ) {
+				for( objId in cacheMaps[ arguments.objectName ] ) {
+					if ( objId neq "__complexFilter" ) {
+						keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+					}
+				}
+				StructDelete( cacheMaps, arguments.objectName );
+			}
+
+			if ( ListLen( keysToClear ) ) {
+				_getDefaultQueryCache().clearMulti( keysToClear );
+			}
+		}
+
+		var derivedFrom = getObjectAttribute( arguments.objectName, "derivedFrom", "" );
+		if ( Len( Trim( derivedFrom ) ) ) {
+			clearRelatedCaches( argumentCollection=arguments, objectName=derivedFrom );
+		}
+	}
+
 // PRIVATE HELPERS
 	private void function _loadObjects() {
 		var objectPaths = _getAllObjectPaths();
@@ -1724,58 +1782,6 @@ component singleton=true autodoc=true displayName="Preside Object Service" {
 				};
 			}
 			cacheMaps[ joinObj ].__complexFilter[ arguments.cacheKey ] = 1;
-		}
-	}
-
-	private void function _clearRelatedCaches(
-		  required string  objectName
-		, required any     filter
-		, required struct  filterParams
-		,          boolean clearSingleRecordCaches = true
-	) {
-		var cacheMaps   = _getCacheMaps();
-		var keysToClear = "";
-		var objIds      = "";
-		var objId       = "";
-
-		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
-			keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
-
-			if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
-				objIds = arguments.filter.id;
-			} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
-				objIds = arguments.filterParams.id;
-			}
-
-			if ( IsSimpleValue( objIds ) ) {
-				objIds = ListToArray( objIds );
-			}
-
-			if ( IsArray( objIds ) and ArrayLen( objIds ) ) {
-				for( objId in objIds ){
-					if ( StructKeyExists( cacheMaps[ arguments.objectName ], objId ) ) {
-						keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
-						StructDelete( cacheMaps[ arguments.objectName ], objId );
-					}
-				}
-				StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
-			} elseif ( arguments.clearSingleRecordCaches ) {
-				for( objId in cacheMaps[ arguments.objectName ] ) {
-					if ( objId neq "__complexFilter" ) {
-						keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
-					}
-				}
-				StructDelete( cacheMaps, arguments.objectName );
-			}
-
-			if ( ListLen( keysToClear ) ) {
-				_getDefaultQueryCache().clearMulti( keysToClear );
-			}
-		}
-
-		var derivedFrom = getObjectAttribute( arguments.objectName, "derivedFrom", "" );
-		if ( Len( Trim( derivedFrom ) ) ) {
-			_clearRelatedCaches( argumentCollection=arguments, objectName=derivedFrom );
 		}
 	}
 
