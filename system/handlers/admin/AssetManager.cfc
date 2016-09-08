@@ -452,10 +452,6 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:assetManager" );
 		prc.pageSubTitle = translateResource( "cms:assetmanager.upload.assets.title" );
 
-		event.include( "/js/admin/specific/assetmanager/uploadassets/"  )
-	         .include( "/css/admin/specific/assetmanager/uploadassets/" )
-	         .includeData( { parallelUploads=Val( getSystemSetting( "asset-manager", "max_parallel_uploads", 5 ) ) } );
-
 		event.addAdminBreadCrumb(
 			  title = prc.pageSubTitle
 			, link  = event.buildAdminLink( linkTo="assetmanager.uploadAssets", queryString="folder=#folderId#" )
