@@ -51,7 +51,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		if ( arguments.includeLanguageSlug ) {
 			var languageSlug = this.getLanguageSlug();
 			if ( Len( Trim( languageSlug ) ) ) {
-				siteUrl &= "/" & languageSlug;
+				siteUrl = ReReplace( siteUrl, "/$", "" ) & "/" & languageSlug;
 			}
 		}
 
