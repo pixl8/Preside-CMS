@@ -11,7 +11,7 @@
 		, allowSearch     = false
 	} );
 
-	gridFields = [ "data", "datecreated" ];
+	gridFields = [ { name="topic", sortable=true }, { name="datecreated", sortable=true }, { name="data", sortable=false } ];
 </cfscript>
 
 <cfoutput>
@@ -57,8 +57,8 @@
 								<span class="lbl"></span>
 							</label>
 						</th>
-						<cfloop array="#gridFields#" index="fieldName">
-							<th data-field="#fieldName#">#translateResource( uri="preside-objects.admin_notification_consumer:field.#fieldName#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#fieldName#.title" ) )#</th>
+						<cfloop array="#gridFields#" index="field">
+							<th data-field="#field.name#" data-sortable="#field.sortable#">#translateResource( uri="preside-objects.admin_notification_consumer:field.#field.name#.title", defaultValue=translateResource( "cms:preside-objects.default.field.#field.name#.title" ) )#</th>
 						</cfloop>
 						<th>&nbsp;</th>
 					</tr>
