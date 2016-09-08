@@ -73,15 +73,15 @@
 			$header = $( $tableHeaders.get(i) );
 
 			if ( typeof $header.data( 'class' ) !== 'undefined' ) {
-				colConfig[ colConfig.length-1 ].sClass = $header.data( 'defaultSortOrder' );
+				colConfig[ i ].sClass = $header.data( 'class' );
 			}
 
 			if ( typeof $header.data( 'sortable' ) !== 'undefined' ) {
-				colConfig[ colConfig.length-1 ].bSortable = $header.data( 'sortable' );
+				colConfig[ i ].bSortable = $header.data( 'sortable' );
 			}
 
 			if ( typeof $header.data( 'width' ) !== 'undefined' ) {
-				colConfig[ colConfig.length-1 ].sWidth = $header.data( 'width' );
+				colConfig[ i ].sWidth = $header.data( 'width' );
 			}
 		}
 
