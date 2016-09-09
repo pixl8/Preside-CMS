@@ -7,10 +7,9 @@ component {
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 
 	/**
-	 * @expression           true
 	 * @conditions.fieldType condition
 	 */
-	private boolean function global(
+	private boolean function evaluateExpression(
 		  required string  conditions
 		,          boolean _all = true
 		,          boolean _are = true

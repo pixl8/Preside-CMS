@@ -2,6 +2,7 @@
  * Expression handler for "User has submitted a form builder form a number of times"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
@@ -9,13 +10,11 @@ component {
 	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @fbform.fieldType   object
 	 * @fbform.object      formbuilder_form
 	 * @fbform.multiple    false
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  fbform
 		, required numeric times
 		,          string  _numericOperator = "eq"

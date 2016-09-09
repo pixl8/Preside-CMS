@@ -2,17 +2,16 @@
  * Expression handler for "User's email address matches pattern"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
 	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
 
 	/**
-	 * @expression true
-	 * @expressionContexts webrequest,user
 	 * @pattern.placeholder rules.expressions.UserEmailMatch.webrequest:field.pattern.placeholder
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  pattern
 		,          string  _stringOperator = "eq"
 		,          boolean _does           = true

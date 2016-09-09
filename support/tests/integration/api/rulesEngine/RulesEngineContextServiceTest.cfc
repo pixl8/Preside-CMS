@@ -31,6 +31,56 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.listContexts() ).toBe( expected );
 			} );
 		} );
+
+		describe( "listValidExpressionContextsForParentContexts()", function(){
+			it( "should return an array of all sub contexts (and their sub contexts) along with the parent context when the given context has sub contexts", function(){
+				var contexts = {
+					  webrequest = { subcontexts=[ "user", "page" ] }
+					, user       = { subcontexts=[ "somethingelse" ] }
+					, page       = {}
+					, somethingelse = {}
+				};
+				var service  = _getService( contexts );
+
+				var validContexts = service.listValidExpressionContextsForParentContexts( [ "webrequest", "test" ] );
+
+				validContexts.sort( "textnocase" );
+
+				expect( validContexts ).toBe( [ "page", "somethingelse", "test", "user", "webrequest" ] );
+			} );
+
+			it( "should return an array with just the given parent context when the context has no sub contexts", function(){
+				var contexts = {
+					  webrequest = { subcontexts=[ "user", "page" ] }
+					, user       = { subcontexts=[ "somethingelse" ] }
+					, page       = {}
+					, somethingelse = {}
+				};
+				var service  = _getService( contexts );
+
+				var validContexts = service.listValidExpressionContextsForParentContexts( [ "page" ] );
+
+				expect( validContexts ).toBe( [ "page" ] );
+			} );
+		} );
+
+		describe( "expandContexts()", function(){
+			it( "should expand an array of context to include any parent contexts", function(){
+				var contexts = {
+					  webrequest = { subcontexts=[ "user", "page" ] }
+					, user       = { subcontexts=[ "somethingelse" ] }
+					, page       = {}
+					, somethingelse = {}
+				};
+				var service  = _getService( contexts );
+
+				var expandedContexts = service.expandContexts( [ "somethingelse", "test" ] );
+
+				expandedContexts.sort( "textnocase" );
+
+				expect( expandedContexts ).toBe( [ "somethingelse", "test", "user", "webrequest" ] );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

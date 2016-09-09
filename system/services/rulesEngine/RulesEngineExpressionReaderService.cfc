@@ -21,7 +21,13 @@ component displayName="RulesEngine Expression Reader Service" {
 	};
 
 // CONSTRUCTOR
-	public any function init() {
+	/**
+	 * @contextService.inject rulesEngineContextService
+	 *
+	 */
+	public any function init( required any contextService ) {
+		_setContextService( arguments.contextService );
+
 		return this;
 	}
 
@@ -95,11 +101,12 @@ component displayName="RulesEngine Expression Reader Service" {
 		var expressions = {};
 
 		for( var func in functions ) {
-			if ( IsBoolean( func.expression ?: "" ) && func.expression ) {
-				expressions[ baseId & "." & func.name ] = {
-					  contexts = ListToArray( func.expressionContexts ?: func.name )
+			if ( func.name == "evaluateExpression" ) {
+				expressions[ baseId ] = {
+					  contexts = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
 					, fields   = getExpressionFieldsFromFunctionDefinition( func )
 				};
+				break;
 			}
 		}
 
@@ -209,6 +216,14 @@ component displayName="RulesEngine Expression Reader Service" {
 		}
 
 		return "text";
+	}
+
+// GETTERS AND SETTERS
+	private any function _getContextService() {
+		return _contextService;
+	}
+	private void function _setContextService( required any contextService ) {
+		_contextService = arguments.contextService;
 	}
 
 }

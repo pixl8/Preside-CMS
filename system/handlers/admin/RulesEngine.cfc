@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
+	property name="dataManagerService"          inject="dataManagerService";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );
@@ -189,6 +190,20 @@ component extends="preside.system.base.AdminHandler" {
 			  success = true
 			, value   = ( rc.value ?: "" )
 		} );
+	}
+
+	public void function getConditionsForAjaxSelectControl() {
+		var context       = rc.context ?: "";
+		var validContexts = rulesEngineContextService.listValidExpressionContextsForParentContexts( [ context ] );
+		var records       = dataManagerService.getRecordsForAjaxSelect(
+			  objectName   = "rules_engine_condition"
+			, maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, extraFilters = [ { filter={ "rules_engine_condition.context" = validContexts } } ]
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
 	}
 
 // PRIVATE HELPERS

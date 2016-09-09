@@ -2,6 +2,7 @@
  * Expression handler for "User has performed action a number of times "
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
@@ -9,12 +10,10 @@ component {
 	property name="websiteUserActionService"   inject="websiteUserActionService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @action.fieldType   websiteUserAction
 	 * @action.multiple    false
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  action
 		, required numeric times
 		,          boolean _has            = true

@@ -2,6 +2,7 @@
  * Expression handler for "User has visited any/all of the following pages"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
@@ -9,10 +10,9 @@ component {
 
 	/**
 	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @pages.fieldType    page
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  pages
 		,          boolean _has = true
 		,          boolean _all = false

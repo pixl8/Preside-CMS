@@ -1,16 +1,13 @@
 /**
  * Expression handler for "Current page expires in x days"
  *
+ * @expressionContexts page
  */
 component {
 
 	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
 
-	/**
-	 * @expression true
-	 * @expressionContexts webrequest,page
-	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required numeric days
 		,          string  _periodOperator="lte"
 	) {

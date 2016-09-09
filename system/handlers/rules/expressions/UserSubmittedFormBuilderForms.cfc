@@ -2,18 +2,17 @@
  * Expression handler for "User has visited any/all of the following pages"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
 	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @forms.fieldType    object
 	 * @forms.object       formbuilder_form
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  forms
 		,          boolean _has = true
 		,          boolean _all = false
