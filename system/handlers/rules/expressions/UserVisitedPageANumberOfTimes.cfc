@@ -2,6 +2,7 @@
  * Expression handler for "User has visited a page a number of times"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
@@ -9,12 +10,10 @@ component {
 	property name="rulesEngineOperatorService" inject="rulesEngineOperatorService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @page.fieldType     page
 	 * @page.multiple      false
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  page
 		, required numeric times
 		,          string  _numericOperator = "eq"

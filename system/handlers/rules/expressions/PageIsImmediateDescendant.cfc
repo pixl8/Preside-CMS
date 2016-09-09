@@ -1,15 +1,14 @@
 /**
  * Expression handler for "Current page is/is not an immediate descendant of any of the following pages:"
  *
+ * @expressionContexts page
  */
 component {
 
 	/**
-	 * @expression true
-	 * @expressionContexts webrequest,page
 	 * @pages.fieldType page
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  pages
 		,          boolean _is = true
 	) {

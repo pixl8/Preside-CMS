@@ -2,18 +2,17 @@
  * Expression handler for "User has/has not all/any of the following benefits: {benefit list}"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
 	property name="websitePermissionService" inject="websitePermissionService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @benefits.fieldType object
 	 * @benefits.object    website_benefit
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  benefits
 		,          boolean _posesses=true
 		,          boolean _all=true

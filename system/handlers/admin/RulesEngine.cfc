@@ -1,7 +1,9 @@
 component extends="preside.system.base.AdminHandler" {
 
+	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
+	property name="dataManagerService"          inject="dataManagerService";
 
 	function preHandler() {
 		super.preHandler( argumentCollection=arguments );
@@ -24,14 +26,14 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:rulesEngine.page.title" );
 		prc.pageSubTitle = translateResource( "cms:rulesEngine.page.subtitle" );
 
-		prc.contexts     = rulesEngineConditionService.listContexts();
+		prc.contexts     = rulesEngineContextService.listContexts();
 	}
 
 	public void function addCondition( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="add" );
 
 		var contextId = rc.context ?: "";
-		var contexts  = rulesEngineConditionService.listContexts();
+		var contexts  = rulesEngineContextService.listContexts();
 
 		for( var context in contexts ) {
 			if ( context.id == contextId ) {
@@ -188,6 +190,20 @@ component extends="preside.system.base.AdminHandler" {
 			  success = true
 			, value   = ( rc.value ?: "" )
 		} );
+	}
+
+	public void function getConditionsForAjaxSelectControl() {
+		var context       = rc.context ?: "";
+		var validContexts = rulesEngineContextService.listValidExpressionContextsForParentContexts( [ context ] );
+		var records       = dataManagerService.getRecordsForAjaxSelect(
+			  objectName   = "rules_engine_condition"
+			, maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, extraFilters = [ { filter={ "rules_engine_condition.context" = validContexts } } ]
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
 	}
 
 // PRIVATE HELPERS

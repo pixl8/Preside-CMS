@@ -2,8 +2,6 @@
  * Rules expression handler for "User (is/is not) a member of (any/all/none) of the groups (groups)"
  * Defines two contexts: user (logged in user/user in general) and event_booking (user who made a booking)
  *
- * @feature myfeature
- * @expressionContexts user,marketing
  */
 component {
 

@@ -5,11 +5,10 @@
 component {
 
 	/**
-	 * @expression         true
 	 * @dateFrom.fieldType date
 	 * @dateTo.fieldType   date
 	 */
-	private boolean function global(
+	private boolean function evaluateExpression(
 		  required string  dateFrom
 		, required string  dateTo
 		,          boolean _is = true

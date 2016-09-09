@@ -1,18 +1,13 @@
 /**
  * Expression handler for "Current page is/is not available to public search engines"
  *
+ * @expressionContexts page
  */
 component {
 
 	property name="siteTreeService" inject="siteTreeService";
 
-	/**
-	 * @expression true
-	 * @expressionContexts webrequest,page
-	 */
-	private boolean function webRequest(
-		boolean _is = true
-	) {
+	private boolean function evaluateExpression( boolean _is = true ) {
 		var availability = siteTreeService.getPageProperty(
 			  propertyName = "search_engine_access"
 			, page         = payload.page           ?: {}

@@ -156,7 +156,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				eventArgs.append( fields );
 
 				mockColdboxController.$( "runEvent" ).$args(
-					  event          = "rules.expressions.#expressionId#"
+					  event          = "rules.expressions.#expressionId#.evaluateExpression"
 					, private        = true
 					, prepostExempt  = true
 					, eventArguments = eventArgs
@@ -186,7 +186,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				eventArgs.append( fields );
 
 				mockColdboxController.$( "runEvent" ).$args(
-					  event          = "rules.expressions.#expressionId#"
+					  event          = "rules.expressions.#expressionId#.evaluateExpression"
 					, private        = true
 					, prepostExempt  = true
 					, eventArguments = eventArgs

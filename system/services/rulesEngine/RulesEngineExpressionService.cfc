@@ -156,7 +156,7 @@ component displayName="RulesEngine Expression Service" {
 			);
 		}
 
-		var handlerAction = "rules.expressions." & arguments.expressionId;
+		var handlerAction = "rules.expressions." & arguments.expressionId & ".evaluateExpression";
 		var eventArgs     = { context=arguments.context, payload=arguments.payload };
 
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );

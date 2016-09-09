@@ -1,15 +1,14 @@
 /**
  * Expression handler for "Current page is/is not all/any of the following types: {type list}"
  *
+ * @expressionContexts  page
  */
 component {
 
 	/**
-	 * @expression          true
-	 * @expressionContexts  webrequest,page
 	 * @pagetypes.fieldType pagetype
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  pagetypes
 		,          boolean _is  =true
 	) {
