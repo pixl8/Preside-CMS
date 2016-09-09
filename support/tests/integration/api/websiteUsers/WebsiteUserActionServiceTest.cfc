@@ -213,7 +213,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockActionDao.$( "dataExists" ).$args(
 					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
-					, extraFilters = [ { filter="website_user_action.datecreated >= :datefrom", filterParams={ datefrom={ type="datetime", value=dateFrom } } } ]
+					, extraFilters = [ { filter="website_user_action.datecreated >= :datefrom", filterParams={ datefrom={ type="timestamp", value=dateFrom } } } ]
 				).$results( false );
 
 				expect( service.hasPerformedAction(
@@ -233,7 +233,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockActionDao.$( "dataExists" ).$args(
 					  filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
-					, extraFilters = [ { filter="website_user_action.datecreated <= :dateto", filterParams={ dateto={ type="datetime", value=dateTo } } } ]
+					, extraFilters = [ { filter="website_user_action.datecreated <= :dateto", filterParams={ dateto={ type="timestamp", value=dateTo } } } ]
 				).$results( false );
 
 				expect( service.hasPerformedAction(
@@ -317,7 +317,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockActionDao.$( "selectData" ).$args(
 					  selectFields = [ "Count(1) as action_count" ]
 					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
-					, extraFilters = [ { filter="website_user_action.datecreated >= :datefrom", filterParams={ datefrom={ type="datetime", value=dateFrom } } } ]
+					, extraFilters = [ { filter="website_user_action.datecreated >= :datefrom", filterParams={ datefrom={ type="timestamp", value=dateFrom } } } ]
 				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
 
 				expect( service.getActionCount(
@@ -339,7 +339,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockActionDao.$( "selectData" ).$args(
 					  selectFields = [ "Count(1) as action_count" ]
 					, filter       = { "website_user_action.user"=userId, "website_user_action.type"=type, "website_user_action.action"=action }
-					, extraFilters = [ { filter="website_user_action.datecreated <= :dateto", filterParams={ dateto={ type="datetime", value=dateTo } } } ]
+					, extraFilters = [ { filter="website_user_action.datecreated <= :dateto", filterParams={ dateto={ type="timestamp", value=dateTo } } } ]
 				).$results( QueryNew( "action_count", "int", [ [ count ] ] ) );
 
 				expect( service.getActionCount(

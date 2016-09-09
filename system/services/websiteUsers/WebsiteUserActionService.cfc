@@ -148,14 +148,14 @@ component displayName="Website user action service" {
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
 				  filter       = "website_user_action.datecreated >= :datefrom"
-				, filterParams = { datefrom = { type="datetime", value=arguments.dateFrom } }
+				, filterParams = { datefrom = { type="timestamp", value=arguments.dateFrom } }
 			});
 		}
 
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
 				  filter       = "website_user_action.datecreated <= :dateto"
-				, filterParams = { dateto = { type="datetime", value=arguments.dateTo } }
+				, filterParams = { dateto = { type="timestamp", value=arguments.dateTo } }
 			});
 		}
 
@@ -199,13 +199,13 @@ component displayName="Website user action service" {
 		if ( IsDate( arguments.dateFrom ) ) {
 			extraFilters.append({
 				  filter       = "website_user_action.datecreated >= :datefrom"
-				, filterParams = { datefrom = { type="datetime", value=arguments.dateFrom } }
+				, filterParams = { datefrom = { type="timestamp", value=arguments.dateFrom } }
 			});
 		}
 		if ( IsDate( arguments.dateTo ) ) {
 			extraFilters.append({
 				  filter       = "website_user_action.datecreated <= :dateto"
-				, filterParams = { dateto = { type="datetime", value=arguments.dateTo } }
+				, filterParams = { dateto = { type="timestamp", value=arguments.dateTo } }
 			});
 		}
 
