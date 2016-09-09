@@ -344,6 +344,11 @@ component {
 			}
 		};
 
+		settings.rulesEngine = { contexts={} };
+		settings.rulesEngine.contexts.webrequest = { subcontexts=[ "user", "page" ] };
+		settings.rulesEngine.contexts.page       = {};
+		settings.rulesEngine.contexts.user       = {};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

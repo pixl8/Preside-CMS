@@ -1,5 +1,6 @@
 component extends="preside.system.base.AdminHandler" {
 
+	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
 
@@ -24,14 +25,14 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( "cms:rulesEngine.page.title" );
 		prc.pageSubTitle = translateResource( "cms:rulesEngine.page.subtitle" );
 
-		prc.contexts     = rulesEngineConditionService.listContexts();
+		prc.contexts     = rulesEngineContextService.listContexts();
 	}
 
 	public void function addCondition( event, rc, prc ) {
 		_checkPermissions( argumentCollection=arguments, key="add" );
 
 		var contextId = rc.context ?: "";
-		var contexts  = rulesEngineConditionService.listContexts();
+		var contexts  = rulesEngineContextService.listContexts();
 
 		for( var context in contexts ) {
 			if ( context.id == contextId ) {
