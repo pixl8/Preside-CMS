@@ -2,14 +2,11 @@
  * Expression handler for "User is/is not logged in"
  *
  * @feature websiteUsers
+ * @expressionContexts webrequest
  */
 component {
 
-	/**
-	 * @expression true
-	 *
-	 */
-	private boolean function webRequest( boolean _is=true ) {
+	private boolean function evaluateExpression( boolean _is=true ) {
 		if ( arguments._is ) {
 			return isLoggedIn();
 		}

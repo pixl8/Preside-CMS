@@ -3,7 +3,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	function run() {
 
 		describe( "getExpressionsFromCfc()", function(){
-			it( "should return a struct of expression IDs relative to the base folder. Where expression id is made up of CFC name + handler action and where only handler actions tagged as '@expression' are included", function(){
+			it( "should return a struct of expression IDs relative to the base folder. Where expression id is based on CFC name", function(){
 				var service  = _getService();
 				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
 				var rootPath = "resources.rulesEngine.expressions";
@@ -12,34 +12,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
-				expect( expressions.keyArray().sort( "textnocase" ) ).toBe( [ "SimpleExpressionHandler.global", "SimpleExpressionHandler.user" ] );
+				expect( expressions.keyArray().sort( "textnocase" ) ).toBe( [ "SimpleExpressionHandler" ] );
 			} );
 
-			it( "should detail the contexts of each expression as configured by the @expressionContexts tag on the function", function(){
+			it( "should detail the expanded contexts as configured by the @expressionContexts tag on the CFC", function(){
 				var service  = _getService();
 				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
 				var rootPath = "resources.rulesEngine.expressions";
+				var expandedContexts = [ "test", "another", "context", CreateUUId() ];
 
 				service.$( "getExpressionFieldsFromFunctionDefinition", {} );
+				mockContextService.$( "expandContexts" ).$args( [ "user", "marketing" ] ).$results( expandedContexts );
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
-				expect( expressions[ "SimpleExpressionHandler.user" ].contexts ?: "" ).toBe( [ "user", "marketing" ] );
+				expect( expressions[ "SimpleExpressionHandler" ].contexts ?: "" ).toBe( expandedContexts );
 			} );
 
-			it( "should set a default context using the function name when the expression handler function does not set an @expressionContexts", function(){
-				var service  = _getService();
-				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
-				var rootPath = "resources.rulesEngine.expressions";
+			it( "should set expand a default 'global' context when the expression CFC does not set an @expressionContexts attribute", function(){
+				var service          = _getService();
+				var cfc              = "resources.rulesEngine.expressions.GlobalExpressionHandler";
+				var rootPath         = "resources.rulesEngine.expressions";
+				var expandedContexts = [ "test", "another", "context" ];
 
 				service.$( "getExpressionFieldsFromFunctionDefinition", {} );
+				mockContextService.$( "expandContexts" ).$args( [ "global" ] ).$results( expandedContexts );
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
-				expect( expressions[ "SimpleExpressionHandler.global" ].contexts ?: "" ).toBe( [ "global" ] );
+				expect( expressions[ "GlobalExpressionHandler" ].contexts ?: "" ).toBe( expandedContexts );
 			} );
 
-			it( "should set field definitions for each expression based on the function metadata", function(){
+			it( "should set field definitions based on the 'evaluate' function metadata", function(){
 				var service  = _getService();
 				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
 				var rootPath = "resources.rulesEngine.expressions";
@@ -47,11 +51,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummyDefs = { test=CreateUUId() };
 
 				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( meta.functions[1] ).$results( dummyDefs );
-				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( meta.functions[2] ).$results( {} );
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
-				expect( expressions[ "SimpleExpressionHandler.user" ].fields ?: "" ).toBe( dummyDefs );
+				expect( expressions[ "SimpleExpressionHandler" ].fields ?: "" ).toBe( dummyDefs );
 			} );
 
 			it( "should return an empty struct when the CFC file is annotated with a disabled feature", function(){
@@ -251,6 +254,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var rootDir = "/resources/rulesEngine/expressions";
 				var files   = [
 					  { path="resources.rulesEngine.expressions.SimpleExpressionHandler"             , expressions={ test1=CreateUUId(), fubar={ test=CreateUUId() } } }
+					, { path="resources.rulesEngine.expressions.GlobalExpressionHandler"             , expressions={ test5=CreateUUId() } }
 					, { path="resources.rulesEngine.expressions.subfolder.AGreatHandler"             , expressions={ test2=CreateUUId() } }
 					, { path="resources.rulesEngine.expressions.subfolder.AnotherHandler"            , expressions={ test3=CreateUUId() } }
 					, { path="resources.rulesEngine.expressions.subfolder.subagain.ExpressionHandler", expressions={ test4=CreateUUId() } }
@@ -265,6 +269,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 					expected.append( file.expressions );
 				}
+				service.getExpressionsFromDirectory( rootDir );
 
 				expect( service.getExpressionsFromDirectory( rootDir ) ).toBe( expected );
 			} );
@@ -298,9 +303,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 // PRIVATE HELPERS
 	private any function _getService() {
-		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineExpressionReaderService() );
+		mockContextService = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
+		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineExpressionReaderService(
+			contextService = mockContextService
+		) );
 
 		service.$( "$isFeatureEnabled", true );
+
+		mockContextService.$( "expandContexts", [ "global" ] );
 
 		return service;
 	}

@@ -355,6 +355,7 @@ component {
 		,          array   ids          = []
 		,          array   selectFields = []
 		,          array   savedFilters = []
+		,          array   extraFilters = []
 		,          string  searchQuery  = ""
 		,          numeric maxRows      = 1000
 		,          string  orderBy      = "label asc"
@@ -365,6 +366,7 @@ component {
 			  objectName   = arguments.objectName
 			, selectFields = arguments.selectFields
 			, savedFilters = arguments.savedFilters
+			, extraFilters = arguments.extraFilters
 			, maxRows      = arguments.maxRows
 			, orderBy      = arguments.orderBy
 		};

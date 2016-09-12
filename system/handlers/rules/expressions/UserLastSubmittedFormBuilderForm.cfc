@@ -2,19 +2,18 @@
  * Expression handler for "User's has submitted a specific form within the last x days"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
 	property name="websiteUserActionService"   inject="websiteUserActionService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @fbform.fieldType   object
 	 * @fbform.object      formbuilder_form
 	 * @fbform.multiple    false
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  fbform
 		,          struct  _pastTime
 	) {

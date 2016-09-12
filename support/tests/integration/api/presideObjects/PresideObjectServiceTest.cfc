@@ -1691,12 +1691,14 @@
 			poService.updateData( objectName="object_1", data={ label="changed" }, filter={ id = objId } );
 
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -1736,12 +1738,14 @@
 			poService.deleteData( objectName="object_1", filter={ id = objId } );
 
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>

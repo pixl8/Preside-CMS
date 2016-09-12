@@ -1,16 +1,11 @@
 /**
  * Expression handler for "Current page has/does not have an expiry date"
  *
+ * @expressionContexts page
  */
 component {
 
-	/**
-	 * @expression true
-	 * @expressionContexts webrequest,page
-	 */
-	private boolean function webRequest(
-		required numeric _posesses
-	) {
+	private boolean function evaluateExpression( boolean _posesses=true ) {
 		var expiry = payload.page.expiry_date ?: "";
 		var hasExpiry = IsDate( expiry );
 

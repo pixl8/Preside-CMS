@@ -37,16 +37,18 @@ component displayName="Audit Service" {
 		,          string recordId = ""
 		,          any    detail   = {}
 	) {
-		_getDao().insertData( {
-			  detail     = SerializeJSON( arguments.detail )
-			, action     = arguments.action
-			, type       = arguments.type
-			, user       = arguments.userId
-			, record_id  = arguments.recordId
-			, uri        = cgi.request_url
-			, user_ip    = cgi.remote_addr
-			, user_agent = cgi.http_user_agent
-		} );
+		if ( Len( Trim( arguments.userId ) ) ) {
+			_getDao().insertData( {
+				  detail     = SerializeJSON( arguments.detail )
+				, action     = arguments.action
+				, type       = arguments.type
+				, user       = arguments.userId
+				, record_id  = arguments.recordId
+				, uri        = cgi.request_url
+				, user_ip    = cgi.remote_addr
+				, user_agent = cgi.http_user_agent
+			} );
+		}
 	}
 
 	public query function getTrail(

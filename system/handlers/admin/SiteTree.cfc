@@ -93,7 +93,7 @@ component extends="preside.system.base.AdminHandler" {
 			, reorderChildrenBaseLink     = event.buildAdminLink( linkTo="sitetree.reorderChildren"    , queryString="id={id}"                           )
 			, previewPageBaseLink         = event.buildAdminLink( linkTo="sitetree.previewPage"        , queryString="id={id}"                           )
 			, permission_context          = []
-			, parent_restriction          = "inherited"
+			, parent_restriction          = "inherit"
 		};
 
 		if ( ancestors.recordCount ) {
@@ -102,11 +102,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 		additionalNodeArgs.permission_context.prepend( parentId );
 
-		if ( parentPage.access_restriction != "inherited" ) {
+		if ( parentPage.access_restriction != "inherit" ) {
 			additionalNodeArgs.parent_restriction = parentPage.access_restriction;
 		} else {
 			for( var i=ancestors.recordcount; i>0; i-- ) {
-				if ( ancestors.access_restriction[i] != "inherited" ) {
+				if ( ancestors.access_restriction[i] != "inherit" ) {
 					additionalNodeArgs.parent_restriction = ancestors.access_restriction[i];
 					break;
 				}
@@ -826,9 +826,10 @@ component extends="preside.system.base.AdminHandler" {
 
 		for( i=1; i lte ArrayLen( sortedPages ); i++ ){
 			siteTreeService.editPage(
-				  id         = sortedPages[i]
-				, sort_order = i
-				, skipAudit  = true
+				  id             = sortedPages[i]
+				, sort_order     = i
+				, skipAudit      = true
+				, skipVersioning = true
 			);
 		}
 		event.audit(
@@ -1147,6 +1148,7 @@ component extends="preside.system.base.AdminHandler" {
 			, includeInactive = true
 			, includeTrash    = arguments.includeTrash
 			, allowDrafts     = true
+			, useCache        = false
 		);
 
 		if ( !page.recordCount ) {

@@ -36,7 +36,7 @@ component {
 		_setWebsitePermissionService( arguments.websitePermissionService );
 		_setPageSlugsAreMultilingual();
 
-		_ensureSystemPagesExistInTree();
+		_ensureTreeIsCleanAndUpToDate();
 
 		return this;
 	}
@@ -676,7 +676,7 @@ component {
 		return pageId;
 	}
 
-	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean forceVersionCreation ) {
+	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean skipVersioning=false, boolean forceVersionCreation ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
@@ -777,6 +777,7 @@ component {
 			updated = pobj.updateData(
 				  data                    = data
 				, id                      = arguments.id
+				, useVersioning           = !arguments.skipVersioning
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
 				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
@@ -792,6 +793,7 @@ component {
 						, updateManyToManyRecords = true
 						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
 						, isDraft                 = arguments.isDraft
+						, useVersioning           = !arguments.skipVersioning
 					);
 				} else {
 					var insertData = Duplicate( arguments );
@@ -811,6 +813,9 @@ component {
 					, newData = data
 				);
 			}
+
+			_getPresideObjectService().clearRelatedCaches( "page" );
+			_getPresideObjectService().clearRelatedCaches( existingPage.page_type );
 		}
 
 		if ( updated && !arguments.skipAudit ) {
@@ -981,6 +986,34 @@ component {
 					_createSystemPage( pageType );
 				}
 			}
+		}
+
+		event.setSite( originalActiveSite );
+	}
+
+	public void function ensurePageTypesAreAllValidForSite( required string siteId ) {
+		var siteService        = _getSiteService();
+		var pageTypesService   = _getPageTypesService();
+		var site               = siteService.getSite( arguments.siteId );
+		var event              = _getColdboxController().getRequestService().getContext();
+		var originalActiveSite = event.getSite();
+
+		event.setSite( site );
+
+		var pageTypes = pageTypesService.listPageTypes();
+
+		for( var i=1; i<=pageTypes.len(); i++ ) {
+			pageTypes[i] = pageTypes[i].getId();
+		}
+
+		var invalidPages = _getPobj().selectData(
+			  filter       = "page.page_type not in (:page_type) and trashed = :trashed"
+			, filterParams = { page_type=pageTypes, trashed=false }
+			, selectFields = [ "id", "slug" ]
+		);
+		for( var page in invalidPages ) {
+			_getPobj().updateData( id=page.id, data={ page_type = "standard_page" } );
+			trashPage( page.id );
 		}
 
 		event.setSite( originalActiveSite );
@@ -1281,10 +1314,11 @@ component {
 		return "";
 	}
 
-	private void function _ensureSystemPagesExistInTree() {
+	private void function _ensureTreeIsCleanAndUpToDate() {
 		_getSiteService().ensureDefaultSiteExists();
 		for( var site in _getSiteService().listSites() ) {
 			ensureSystemPagesExistForSite( site.id );
+			ensurePageTypesAreAllValidForSite( site.id );
 		}
 	}
 

@@ -2,18 +2,17 @@
  * Expression handler for "User's has performed some action within the last x days"
  *
  * @feature websiteUsers
+ * @expressionContexts user
  */
 component {
 
 	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	/**
-	 * @expression         true
-	 * @expressionContexts webrequest,user
 	 * @page.fieldType     page
 	 * @page.multiple      false
 	 */
-	private boolean function webRequest(
+	private boolean function evaluateExpression(
 		  required string  page
 		,          struct  _pastTime
 	) {

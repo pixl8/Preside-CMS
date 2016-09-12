@@ -107,27 +107,6 @@ component displayName="RulesEngine Condition Service" {
 	}
 
 	/**
-	 * Returns an array of valid contexts for the rules
-	 * engine
-	 *
-	 * @autodoc
-	 */
-	public array function listContexts() {
-		var contexts = [{
-			  id          = "webrequest"
-			, title       = $translateResource( "cms:rulesEngine.context.webrequest.title"       )
-			, iconClass   = $translateResource( "cms:rulesEngine.context.webrequest.iconClass"   )
-			, description = $translateResource( "cms:rulesEngine.context.webrequest.description" )
-		}];
-
-		contexts.sort( function( a, b ){
-			return a.title > b.title ? 1 : -1;
-		} );
-
-		return contexts;
-	}
-
-	/**
 	 * Returns a query record of the condition
 	 * matched by the given id
 	 *

@@ -5,13 +5,12 @@
 component {
 
 	/**
-	 * @expression        true
 	 * @days.fieldType    select
 	 * @days.values       2,3,4,5,6,7,1
 	 * @days.labelUriRoot cms:rulesEngine.daysOfWeek.
 	 * @days.fieldLabel   cms:rulesEngine.daysOfWeek.label
 	 */
-	private boolean function global(
+	private boolean function evaluateExpression(
 		  required string  days
 		,          boolean _is = true
 	) {
