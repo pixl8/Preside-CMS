@@ -7,7 +7,6 @@
 		var searchDelay        = 400
 		, object               = $( this ).data( "objectname" ) || ""
 		, allowSearch          = $( this ).data( "allowsearch" )
-		, clickableRows        = $( this ).data( "clickablerows" ) || true
 		, datasourceUrl        = $( this ).data( "datasourceurl" ) || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 		, useMultiActions      = typeof $( this ).data( "usemultiactions" ) === "undefined" ? true : $( this ).data( "usemultiactions" )
 		, isMultilingual       = $( this ).data( "ismultilingual" ) || false
@@ -33,7 +32,7 @@
 		if ( draftsEnabled  ) { dynamicHeadersOffset++; }
 		if ( isMultilingual ) { dynamicHeadersOffset++; }
 
-		for( var i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
+		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
 			$header = $( $tableHeaders.get(i) );
 			colConfig.push( { "mData":$( $tableHeaders.get(i) ).data( 'field' ) } );
 
@@ -95,7 +94,7 @@
 				$row = $( row );
 				$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
 
-				if( clickableRows ) {
+				if( $( this ).data( "clickablerows" ) ) {
 					$row.addClass( "clickable" ); // make work with clickable tr Preside system
 				}
 			},

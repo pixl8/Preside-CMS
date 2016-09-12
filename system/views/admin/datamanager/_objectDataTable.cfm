@@ -28,7 +28,7 @@
 			<form id="multi-action-form" class="form-horizontal multi-action-form" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
-		<table id="object-listing-table-#LCase( tableId )#" class="table table-hover object-listing-table" data-objectname="#args.objectName#" data-datasourceurl="#args.datasourceUrl#" data-usemultiactions="#args.useMultiActions#" data-llowsearch="#args.allowSearch#" data-ismultilingual="#args.isMultilingual#" data-draftsenabled="#args.draftsEnabled#" data-clickablerows="#args.clickableRows#">
+		<table id="object-listing-table-#LCase( tableId )#" class="table table-hover object-listing-table" data-objectname="#args.objectName#" data-datasourceurl="#args.datasourceUrl#" data-usemultiactions="#args.useMultiActions#" data-allowsearch="#args.allowSearch#" data-ismultilingual="#args.isMultilingual#" data-draftsenabled="#args.draftsEnabled#" data-clickablerows="#args.clickableRows#">
 			<thead>
 				<tr>
 					<cfif args.useMultiActions>
