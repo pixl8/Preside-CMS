@@ -3,26 +3,23 @@
  */
 
 ( function( $ ){
-
-	var $listingTable  = $( '.object-listing-table:first' )
-	  , searchDelay    = 400
-	  , setupDatatable
-	  , setupCheckboxBehaviour
-	  , setupTableRowFocusBehaviour
-	  , object              = cfrequest.objectName || ""
-	  , allowSearch         = cfrequest.allowSearch
-	  , datasourceUrl       = cfrequest.datasourceUrl || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
-	  , useMultiActions     = typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions
-	  , isMultilingual      = cfrequest.isMultilingual      || false
-	  , object              = cfrequest.objectName  || ""
-	  , objectTitle         = cfrequest.objectTitle || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
-	  , enabledContextHotkeys;
-
-	setupDatatable = function(){
-		var $tableHeaders = $listingTable.find( 'thead > tr > th')
-		  , colConfig     = []
-		  , defaultSort   = []
-		  , i;
+	$( '.object-listing-table' ).each( function() {
+		var searchDelay        = 400
+		, object               = $( this ).data( "objectname" ) || ""
+		, allowSearch          = $( this ).data( "allowsearch" )
+		, clickableRows        = $( this ).data( "clickablerows" ) || true
+		, datasourceUrl        = $( this ).data( "datasourceurl" ) || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
+		, useMultiActions      = typeof $( this ).data( "usemultiactions" ) === "undefined" ? true : $( this ).data( "usemultiactions" )
+		, isMultilingual       = $( this ).data( "ismultilingual" ) || false
+		, draftsEnabled        = $( this ).data( "draftsenabled" )  || false
+		, objectTitle          = $( this ).data( "objecttitle" ) || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
+		, $tableHeaders        = $(this).find( 'thead > tr > th')
+		, $elementOfTable      = $( "#"+$(this).attr( "id" ) )
+		, colConfig            = []
+	  	, defaultSort          = []
+	  	, dynamicHeadersOffset = 1
+	  	, i
+	  	, $header;
 
 		if ( useMultiActions ) {
 			colConfig.push( {
@@ -33,15 +30,26 @@
 			} );
 		}
 
-		for( i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-1; i++ ){
+		if ( draftsEnabled  ) { dynamicHeadersOffset++; }
+		if ( isMultilingual ) { dynamicHeadersOffset++; }
+
+		for( var i=( useMultiActions ? 1 : 0 ); i < $tableHeaders.length-dynamicHeadersOffset; i++ ){
+			$header = $( $tableHeaders.get(i) );
 			colConfig.push( { "mData":$( $tableHeaders.get(i) ).data( 'field' ) } );
-			if ( typeof $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) !== 'undefined' ) {
-				defaultSort.push( [ i, $( $tableHeaders.get(i) ).data( 'defaultSortOrder' ) ]);
+
+			if ( typeof $header.data( 'defaultSortOrder' ) !== 'undefined' ) {
+				defaultSort.push( [ i, $header.data( 'defaultSortOrder' ) ]);
 			}
+		}
+		if( draftsEnabled ) {
+			colConfig.push( {
+				bSortable : false,
+				mData     : "_status",
+				sWidth    : "15em"
+			} );
 		}
 		if( isMultilingual ) {
 			colConfig.push( {
-				sClass    : "center",
 				bSortable : false,
 				mData     : "_translateStatus",
 				sWidth    : "12em"
@@ -54,8 +62,25 @@
 			mData     : "_options",
 			sWidth    : "9em"
 		} );
+		$header = $( $tableHeaders.get( $tableHeaders.length-1 ) );
 
-		$listingTable.dataTable( {
+		for( i=0; i < $tableHeaders.length; i++ ){
+			$header = $( $tableHeaders.get(i) );
+
+			if ( typeof $header.data( 'class' ) !== 'undefined' ) {
+				colConfig[ i ].sClass = $header.data( 'class' );
+			}
+
+			if ( typeof $header.data( 'sortable' ) !== 'undefined' ) {
+				colConfig[ i ].bSortable = $header.data( 'sortable' );
+			}
+
+			if ( typeof $header.data( 'width' ) !== 'undefined' ) {
+				colConfig[ i ].sWidth = $header.data( 'width' );
+			}
+		}
+
+		$elementOfTable.dataTable( {
 			aoColumns     : colConfig,
 			aaSorting     : defaultSort,
 			bServerSide   : true,
@@ -69,7 +94,10 @@
 			fnRowCallback : function( row ){
 				$row = $( row );
 				$row.attr( 'data-context-container', "1" ); // make work with context aware Preside hotkeys system
-				$row.addClass( "clickable" ); // make work with clickable tr Preside system
+
+				if( clickableRows ) {
+					$row.addClass( "clickable" ); // make work with clickable tr Preside system
+				}
 			},
 			fnInitComplete : function( settings ){
 				if ( allowSearch ) {
@@ -84,7 +112,7 @@
 					$input.after( '<i class="fa fa-search data-table-search-icon"></i>' );
 
 					$input.keydown( "down", function( e ){
-						var $firstResult = $listingTable.find( useMultiActions ? 'tbody :checkbox:first' : 'tbody tr:first' );
+						var $firstResult = $(this).find( useMultiActions ? 'tbody :checkbox:first' : 'tbody tr:first' );
 
 						if ( $firstResult.length ) {
 							$firstResult.focus();
@@ -117,87 +145,67 @@
 				sInfoPostFix : ''
     		}
 		} ).fnSetFilteringDelay( searchDelay );
-	};
+		
+		if( useMultiActions ) {
+		  	var $selectAllCBox   = $elementOfTable.find( "th input:checkbox" )
+		  	  , $multiActionBtns = $elementOfTable.parents( ".dataTables_wrapper" ).siblings( ".multi-action-buttons" );
 
-	setupCheckboxBehaviour = function(){
-	  	var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
-	  	  , $multiActionBtns = $( "#multi-action-buttons" );
+			$selectAllCBox.on( 'click' , function(){
+				var $allCBoxes = $elementOfTable.find( 'tr > td:first-child input:checkbox' );
 
-		$selectAllCBox.on( 'click' , function(){
-			var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
-
-			$allCBoxes.each( function(){
-				this.checked = $selectAllCBox.is( ':checked' );
-				$(this).closest('tr').toggleClass('selected');
+				$allCBoxes.each( function(){
+					this.checked = $selectAllCBox.is( ':checked' );
+					if ( this.checked ) {
+						$( this ).closest( 'tr' ).addClass( 'selected' );
+					} else {
+						$( this ).closest( 'tr' ).removeClass( 'selected' );
+					}
+				});
 			});
-		});
 
-		$multiActionBtns.data( 'hidden', true );
-		$listingTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
-			var anyBoxesTicked = $listingTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
+			$multiActionBtns.data( 'hidden', true );
+			$elementOfTable.on( "click", "th input:checkbox,tbody tr > td:first-child input:checkbox", function( e ){
+				var anyBoxesTicked = $elementOfTable.find( 'tr > td:first-child input:checkbox:checked' ).length;
 
-			enabledContextHotkeys( !anyBoxesTicked );
+				if ( anyBoxesTicked == $elementOfTable.find( "td input:checkbox" ).length ) {
+					$selectAllCBox.prop( 'checked', true );
+				} else {
+					$selectAllCBox.prop( 'checked', false );
+				}
 
-			if ( anyBoxesTicked && $multiActionBtns.data( 'hidden' ) ) {
-				$multiActionBtns
-					.slideDown( 250 )
-					.data( 'hidden', false )
-					.find( "button" ).prop( 'disabled', false );
+				$elementOfTable.find( 'tbody > tr' ).each( function(){
+					if ( !anyBoxesTicked ) {
+						$( this ).removeAttr( 'data-context-container' );
+					} else {
+						$( this ).attr( 'data-context-container', '1' );
+					}
+				} );
 
-			} else if ( !anyBoxesTicked && !$multiActionBtns.data( 'hidden' ) ) {
-				$multiActionBtns
-					.slideUp( 250 )
-					.data( 'hidden', true )
-					.find( "button" ).prop( 'disabled', true );
-			}
-		} );
-	};
+				if ( anyBoxesTicked && $multiActionBtns.data( 'hidden' ) ) {
+					$multiActionBtns
+						.slideDown( 250 )
+						.data( 'hidden', false )
+						.find( "button" ).prop( 'disabled', false );
 
-	setupMultiActionButtons = function(){
-		var $form              = $( '#multi-action-form' )
-		  , $hiddenActionField = $form.find( '[name=multiAction]' );
+				} else if ( !anyBoxesTicked && !$multiActionBtns.data( 'hidden' ) ) {
+					$multiActionBtns
+						.slideUp( 250 )
+						.data( 'hidden', true )
+						.find( "button" ).prop( 'disabled', true );
+				}
+			} );
 
-		$( "#multi-action-buttons button" ).click( function( e ){
-			$hiddenActionField.val( $( this ).attr( 'name' ) );
-		} );
-	};
+			var $form              = $elementOfTable.parents( '.multi-action-form' )
+		  	, $hiddenActionField   = $form.find( '[name=multiAction]' );
 
-	enabledContextHotkeys = function( enabled ){
-		$listingTable.find( 'tbody > tr' ).each( function(){
-			if ( enabled ) {
-				$( this ).attr( 'data-context-container', '1' );
-			} else {
-				$( this ).removeAttr( 'data-context-container' );
-			}
-		} );
-	};
+			$multiActionBtns.find( "button" ).click( function( e ){
+				$hiddenActionField.val( $( this ).attr( 'name' ) );
+			} );
+		}
 
-	setupTableRowFocusBehaviour = function(){
-		var focusSelector = useMultiActions ? 'tbody :checkbox' : 'tbody tr a';
-
-		$listingTable.on( 'focus', focusSelector, function(){
-			$( this ).closest( 'tr' ).addClass( 'focus' );
-		} );
-		$listingTable.on( 'blur', focusSelector, function(){
-			$( this ).closest( 'tr' ).removeClass( 'focus' );
-		} );
-
-		$listingTable.on( 'click', 'tbody :checkbox', function(){
+		$elementOfTable.on( 'click', 'tbody :checkbox', function(){
 			var $cbox = $( this );
 			$cbox.closest( 'tr' ).toggleClass( 'selected', $cbox.is( ':checked' ) );
 		} );
-
-		$listingTable.on( 'keydown', 'tr.focus', 'return', function(){
-			$( this ).click();
-		} );
-	};
-
-	setupDatatable();
-	setupTableRowFocusBehaviour();
-
-	if ( useMultiActions ) {
-		setupCheckboxBehaviour();
-		setupMultiActionButtons();
-	}
-
+	});
 } )( presideJQuery );
