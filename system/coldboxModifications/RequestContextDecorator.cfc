@@ -173,8 +173,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getAdminPath() output=false {
-		var overridenSetting = getModel( "systemConfigurationService" ).getSetting( "general", "admin_url" );
-		var path             = Len( Trim( overridenSetting ) ) ? overridenSetting : getController().getSetting( "preside_admin_path" );
+		var path = getController().getSetting( "preside_admin_path" );
 
 		return Len( Trim( path ) ) ? "/#path#/" : "/";
 	}
@@ -190,6 +189,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var loginSvc = getModel( "loginService" );
 
 		return loginSvc.isLoggedIn();
+	}
+
+	public boolean function showDrafts() output=false {
+		if ( this.isAdminRequest() ) {
+			return true;
+		}
+
+		var loginSvc = getModel( "loginService" );
+
+		return loginSvc.isShowDraftsEnabled();
 	}
 
 	public struct function getAdminUserDetails() output=false {
@@ -358,7 +367,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var rc          = getRequestContext().getCollection();
 		var prc         = getRequestContext().getCollection( private = true );
 		var getLatest   = this.isAdminUser();
-		var allowDrafts = this.isAdminUser();
+		var allowDrafts = this.showDrafts();
 		var page        = "";
 		var parentPages = "";
 		var getPageArgs = {};

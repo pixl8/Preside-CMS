@@ -227,6 +227,28 @@ component displayName="Admin login service" {
 		return result;
 	}
 
+	public boolean function isShowDraftsEnabled() {
+		if ( isLoggedIn() ) {
+			var showDrafts = _getSessionStorage().getVar( name="_presideAdminShowDrafts", default="" );
+
+			if ( IsBoolean( showDrafts ) ) {
+				return showDrafts;
+			}
+
+			showDrafts = $getColdbox().getSetting( name="showDraftsByDefault", defaultValue="" );
+
+			return IsBoolean( showDrafts ) ? showDrafts : true;
+		}
+
+		return false;
+	}
+
+	public void function toggleShowDrafts() {
+		if ( isLoggedIn() ) {
+			_getSessionStorage().setVar( name="_presideAdminShowDrafts", value=!isShowDraftsEnabled() );
+		}
+	}
+
 	/**
 	 * Sends password reset instructions to the supplied user. Returns true if successful, false otherwise.
 	 *

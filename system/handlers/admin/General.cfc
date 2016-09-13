@@ -1,5 +1,6 @@
 component {
 
+	property name="loginService"         inject="loginService";
 	property name="updateManagerService" inject="updateManagerService";
 	property name="i18n"                 inject="coldbox:plugin:i18n";
 
@@ -11,6 +12,14 @@ component {
 		}
 
 		var redirectUrl = Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : event.buildAdminLink();
+
+		setNextEvent( url=redirectUrl );
+	}
+
+	public void function toggleShowDrafts( event, rc, prc ) {
+ 		var redirectUrl = Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : event.buildLink( page="homepage" );
+
+ 		loginService.toggleShowDrafts();
 
 		setNextEvent( url=redirectUrl );
 	}

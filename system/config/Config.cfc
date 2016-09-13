@@ -165,6 +165,7 @@ component {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
+		settings.showDraftsByDefault         = true;
 
 		settings.adminApplications = [ {
 			  id                 = "cms"

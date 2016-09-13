@@ -31,6 +31,9 @@
 
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
+
+		toggleDraftsLink = event.buildAdminLink( linkTo="general.toggleShowDrafts" );
+		editPageLink     = event.getEditPageLink();
 	</cfscript>
 
 	<cfoutput>
@@ -51,17 +54,19 @@
 										</label>
 									</a>
 
-									<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
-										<i class="fa fa-caret-down"></i>
+									<a href="#editPageLink#">
+										<i class="fa fa-pencil fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.edit.page' )#
 									</a>
-									<ul class="user-menu pull-left dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
-										<li>
-											<a href="#event.getEditPageLink()#">
-												<i class="fa fa-pencil fa-lg"></i>
-												#translateResource( 'cms:admintoolbar.edit.page' )#
-											</a>
-										</li>
-									</ul>
+
+									<cfif event.showDrafts()>
+										<a href="#toggleDraftsLink#">
+											<i class="fa fa-eye-slash fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.hide.drafts' )#
+										</a>
+									<cfelse>
+										<a href="#toggleDraftsLink#">
+											<i class="fa fa-eye fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.show.drafts' )#
+										</a>
+									</cfif>
 								</li>
 							</ul>
 						</div>
