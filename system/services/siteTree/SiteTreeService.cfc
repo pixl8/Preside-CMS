@@ -203,7 +203,6 @@ component {
 		if ( arguments.getLatest ) {
 			args.fromVersionTable = true
 		}
-
 		var record = pobj.selectData( argumentCollection=args );
 
 		if ( !record.recordCount ) {

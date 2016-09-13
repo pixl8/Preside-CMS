@@ -366,8 +366,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
 		var prc         = getRequestContext().getCollection( private = true );
-		var getLatest   = this.isAdminUser();
 		var allowDrafts = this.showDrafts();
+		var getLatest   = allowDrafts;
 		var page        = "";
 		var parentPages = "";
 		var getPageArgs = {};
