@@ -16,10 +16,8 @@
 				<cfloop array="#contexts#" item="context" index="i">
 					<li>
 						<a href="#event.buildAdminLink( linkTo='rulesEngine.addCondition', queryString='context=' & context.id )#">
-							<i class="fa fa-fw #context.iconClass#"></i>&nbsp; #context.title#
-							<br>
-							<i class="fa fa-fw"></i>&nbsp; <em class="grey">#context.description#</em>
-
+							<p class="title"><i class="fa fa-fw #context.iconClass#"></i>&nbsp; #context.title#</p>
+							<p class="description"><em class="light-grey">#context.description#</em></p>
 						</a>
 					</li>
 				</cfloop>
