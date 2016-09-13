@@ -2,10 +2,10 @@ component {
 
 	property name="updateManagerService" inject="updateManagerService";
 
-	public void function toggleShowDrafts( event, rc, prc ) {
+	public void function toggleNonLiveContent( event, rc, prc ) {
  		var redirectUrl = Len( Trim( cgi.http_referer ) ) ? cgi.http_referer : event.buildLink( page="homepage" );
 
- 		loginService.toggleShowDrafts();
+ 		loginService.toggleShowNonLiveContent();
 
 		setNextEvent( url=redirectUrl );
 	}

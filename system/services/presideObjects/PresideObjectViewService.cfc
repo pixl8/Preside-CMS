@@ -95,7 +95,7 @@ component displayName="Preside Object View Service" {
 
 		selectDataArgs.objectName         = arguments.presideObject
 		selectDataArgs.selectFields       = viewDetails.selectFields
-		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $getRequestContext().showDrafts();
+		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $getRequestContext().showNonLiveContent();
 
 		selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
 

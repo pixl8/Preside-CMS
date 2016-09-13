@@ -32,8 +32,8 @@
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
 
-		toggleDraftsLink = event.buildAdminLink( linkTo="general.toggleShowDrafts" );
-		editPageLink     = event.getEditPageLink();
+		toggleLiveContentLink = event.buildAdminLink( linkTo="general.toggleNonLiveContent" );
+		editPageLink          = event.getEditPageLink();
 	</cfscript>
 
 	<cfoutput>
@@ -57,16 +57,37 @@
 									<a href="#editPageLink#">
 										<i class="fa fa-pencil fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.edit.page' )#
 									</a>
+								</li>
+								<li class="no-border-left">
+									<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
+										<i class="fa fa-eye-slash fa-lg fa-fw"></i>
+										#translateResource( 'cms:admintoolbar.show.hide' )#
+										<i class="fa fa-caret-down"></i>
+									</a>
 
-									<cfif event.showDrafts()>
-										<a href="#toggleDraftsLink#">
-											<i class="fa fa-eye-slash fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.hide.drafts' )#
-										</a>
-									<cfelse>
-										<a href="#toggleDraftsLink#">
-											<i class="fa fa-eye fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.show.drafts' )#
-										</a>
-									</cfif>
+									<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+										<li>
+											<a href="#toggleLiveContentLink#">
+												<cfif event.showNonLiveContent()>
+													<i class="fa fa-fw smaller-80"></i>
+												<cfelse>
+													<i class="fa fa-check fa-fw grey smaller-80"></i>
+												</cfif>
+												#translateResource( 'cms:admintoolbar.show.live.only' )#
+											</a>
+										</li>
+										<li>
+											<a href="#toggleLiveContentLink#">
+												<cfif event.showNonLiveContent()>
+													<i class="fa fa-check fa-fw grey smaller-80"></i>
+												<cfelse>
+													<i class="fa fa-fw smaller-80"></i>
+												</cfif>
+												#translateResource( 'cms:admintoolbar.show.non.live' )#
+											</a>
+										</li>
+									</ul>
+
 								</li>
 							</ul>
 						</div>

@@ -49,7 +49,7 @@ component {
 			  objectName         = arguments.objectName
 			, filter             = { "#keyField#"=arguments.recordId }
 			, selectFields       = [ "${labelfield} as label" ]
-			, allowDraftVersions = $getRequestContext().showDrafts()
+			, allowDraftVersions = $getRequestContext().showNonLiveContent()
 		);
 
 		if ( record.recordCount ) {

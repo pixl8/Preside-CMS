@@ -176,14 +176,12 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return loginSvc.isLoggedIn();
 	}
 
-	public boolean function showDrafts() output=false {
+	public boolean function showNonLiveContent() output=false {
 		if ( this.isAdminRequest() ) {
 			return true;
 		}
 
-		var loginSvc = getModel( "loginService" );
-
-		return loginSvc.isShowDraftsEnabled();
+		return getModel( "loginService" ).isShowNonLiveEnabled();
 	}
 
 	public struct function getAdminUserDetails() output=false {
@@ -351,8 +349,8 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
 		var prc         = getRequestContext().getCollection( private = true );
-		var getLatest   = this.isAdminUser();
-		var allowDrafts = this.showDrafts();
+		var allowDrafts = this.showNonLiveContent();
+		var getLatest   = allowDrafts;
 		var page        = "";
 		var parentPages = "";
 		var getPageArgs = {};

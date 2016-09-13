@@ -20,7 +20,7 @@ component output=false {
 		var viewlet      = "";
 		var view         = "";
 
-		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
+		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.showNonLiveContent() ) ) {
 			event.notFound();
 		}
 
