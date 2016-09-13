@@ -32,7 +32,7 @@
 		    data-allow-search="#args.allowSearch#"
 		    data-is-multilingual="#args.isMultilingual#"
 		    data-drafts-enabled="#args.draftsEnabled#"
-		    data-clickable-rows="true"
+		    data-clickable-rows="#args.clickableRows#"
 		>
 			<thead>
 				<tr>
