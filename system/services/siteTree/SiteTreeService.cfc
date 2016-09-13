@@ -48,7 +48,7 @@ component {
 		, boolean useCache     = true
 		, string  rootPageId   = ""
 		, numeric maxDepth     = -1
-		, boolean allowDrafts  = _getLoginService().isLoggedIn()
+		, boolean allowDrafts  = $getRequestContext().showDrafts()
 
 	) {
 		var tree             = "";
@@ -118,7 +118,7 @@ component {
 		, boolean useCache     = true
 		, numeric version      = 0
 		, boolean getLatest    = false
-		, boolean allowDrafts  = _getLoginService().isLoggedIn()
+		, boolean allowDrafts  = $getRequestContext().showDrafts()
 
 	) {
 		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
@@ -192,7 +192,7 @@ component {
 		  required string  id
 		, required string  pageType
 		,          boolean getLatest   = false
-		,          boolean allowDrafts = _getLoginService().isLoggedIn()
+		,          boolean allowDrafts = $getRequestContext().showDrafts()
 	) {
 		var ptSvc = _getPageTypesService();
 
@@ -309,7 +309,7 @@ component {
 		  required string  id
 		,          numeric depth        = 0
 		,          array   selectFields = []
-		,          boolean allowDrafts  = _getLoginService().isLoggedIn()
+		,          boolean allowDrafts  = $getRequestContext().showDrafts()
 	) {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
@@ -392,7 +392,7 @@ component {
 		,          numeric depth           = 0
 		,          array   selectFields    = []
 		,          boolean includeSiblings = false
-		,          boolean allowDrafts     = _getLoginService().isLoggedIn()
+		,          boolean allowDrafts     = $getRequestContext().showDrafts()
 	) {
 		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
@@ -482,7 +482,7 @@ component {
 		, boolean expandAllSiblings = true
 		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
 		, boolean isSubMenu         = false
-		, boolean allowDrafts       = _getLoginService().isLoggedIn()
+		, boolean allowDrafts       = $getRequestContext().showDrafts()
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ]
