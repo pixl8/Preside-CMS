@@ -132,7 +132,10 @@ component implements="iRouteHandler" output=false singleton=true {
 		var ptService       = _getPageTypesService();
 		var siteTreeService = _getSiteTreeService();
 		var getPageArgs     = {
-			selectFields = [ "page.id", "page._hierarchy_slug as slug", "page.site" ]
+			  selectFields = [ "page.id", "page._hierarchy_slug as slug", "page.site" ]
+			, version      = 0
+			, getLatest    = false
+			, allowDrafts  = true
 		};
 
 		if ( ptService.pageTypeExists( arguments.page ) && ptService.isSystemPageType( arguments.page ) ) {

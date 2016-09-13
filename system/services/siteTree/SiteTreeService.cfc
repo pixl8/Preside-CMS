@@ -122,23 +122,16 @@ component {
 		, boolean allowDrafts  = $getRequestContext().showDrafts()
 
 	) {
-		var args = { filter="", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
+		var args = { filter="page.id = :id", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
-			args.filter          = "page.id = :id";
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
-			if ( arePageSlugsMultilingual() ) {
-				return _getPageWithMultilingualSlug( argumentCollection=arguments );
-			}
-			args.filter                       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug"; // this double match is for performance - the full slug cannot be indexed because of its potential size
-			args.filterParams.slug            = ListLast( arguments.slug, "/" );
-			args.filterParams._hierarchy_slug = arguments.slug;
+			args.filterParams.id = getPageIdBySlug( argumentCollection=arguments );
 
 		} else if ( StructKeyExists( arguments, "systemPage" ) ) {
-			args.filter                 = "page.page_type = :page_type";
-			args.filterParams.page_type = arguments.systemPage;
+			args.filterParams.id = getPageIdBySystemPageType( arguments.systemPage );
 
 		} else {
 			throw(
@@ -807,7 +800,7 @@ component {
 				}
 			}
 
-			if ( sortOrderChanged or parentChanged or slugChanged ) {
+			if ( !arguments.isDraft && ( sortOrderChanged or parentChanged or slugChanged ) ) {
 				pobj.updateChildHierarchyHelpers(
 					  oldData = existingPage
 					, newData = data
@@ -1189,6 +1182,30 @@ component {
 		return false;
 	}
 
+	public string function getPageIdBySlug( required string slug ) {
+		if ( arePageSlugsMultilingual() ) {
+			return _getPageIdWithMultilingualSlug( arguments.slug );
+		}
+		var page = _getPObj().selectData(
+			  selectFields = [ "page.id" ]
+			, filter       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug" // this double match is for performance - the full slug cannot be indexed because of its potential size
+			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
+		);
+
+		return page.id ?: "";
+	}
+
+	public string function getPageIdBySystemPageType( required string pageType ) {
+		var page = _getPObj().selectData(
+			  selectFields = [ "page.id" ]
+			, filter       = "page.page_type = :page_type"
+			, filterParams = { page_type = arguments.pageType }
+		);
+
+		return page.id ?: "";
+	}
+
+
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
 		var result       = "";
@@ -1433,29 +1450,12 @@ component {
 		return sqlFields;
 	}
 
-	private query function _getPageWithMultilingualSlug(
-		  required string  slug
-		, required boolean includeTrash
-		, required array   selectFields
-		, required boolean useCache
-		, required numeric version
-	) {
+	private query function _getPageIdWithMultilingualSlug( required string slug ) {
 		var slugPieces      = slug.listToArray( "/" );
 		var pageObject      = _getPobj();
 		var page            = getSiteHomepage( selectFields=[ "page.id" ] );
-		var args            = { filter={}, extraFilters=[ filter={} ], selectFields=[ "page.id" ] };
+		var args            = { filter={}, selectFields=[ "page.id" ] };
 		var currentLanguage = $getColdbox().getRequestContext().getLanguage();
-
-		if ( !arguments.includeTrash ) {
-			args.extraFilters = [ { filter={ trashed = false } } ];
-		} else {
-			args.savedFilters = [ "livepages" ];
-		}
-
-		if ( arguments.version ) {
-			args.fromVersionTable = true
-			args.specificVersion  = arguments.version
-		}
 
 		for( var i=1; i<=slugPieces.len(); i++ ) {
 			args.filter       = "( IfNull( _translations.slug, page.slug ) = :page.slug and ( _translations.slug is null or _translations._translation_language = :_translations._translation_language ) ) and page.parent_page = :page.parent_page"
@@ -1465,10 +1465,6 @@ component {
 				, "page.parent_page"                    = page.id
 			};
 
-			if ( i==slugPieces.len() ) {
-				args.selectFields = arguments.selectFields;
-			}
-
 			page = pageObject.selectData( argumentCollection=args );
 
 			if ( !page.recordCount ) {
@@ -1476,7 +1472,7 @@ component {
 			}
 		}
 
-		return page;
+		return page.id ?: "";
 	}
 
 // GETTERS AND SETTERS
