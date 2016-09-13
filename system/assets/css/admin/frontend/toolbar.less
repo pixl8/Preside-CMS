@@ -37,6 +37,14 @@ html {
 			&:before {
 				content : unset;
 			}
+
+			&.no-border-left, &.no-border-left.open {
+				border-left-width : 0!important;
+
+				&::after {
+					content : unset;
+				}
+			}
 		}
 	}
 }
