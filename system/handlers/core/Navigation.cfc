@@ -11,7 +11,7 @@ component {
 			  rootPage        = args.rootPage     ?: siteTreeSvc.getSiteHomepage().id
 			, depth           = args.depth        ?: 1
 			, selectFields    = args.selectFields ?: [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation" ]
-			, includeInactive = event.isAdminUser()
+			, includeInactive = event.showNonLiveContent()
 			, activeTree      = activeTree
 		);
 
@@ -39,7 +39,7 @@ component {
 		args.menuItems = siteTreeSvc.getPagesForNavigationMenu(
 			  rootPage          = rootPageId
 			, depth             = args.depth ?: 3
-			, includeInactive   = event.isAdminUser()
+			, includeInactive   = event.showNonLiveContent()
 			, activeTree        = activeTree
 			, expandAllSiblings = false
 			, isSubMenu         = true

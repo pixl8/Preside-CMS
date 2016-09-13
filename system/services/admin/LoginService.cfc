@@ -227,15 +227,15 @@ component displayName="Admin login service" {
 		return result;
 	}
 
-	public boolean function isShowDraftsEnabled() {
+	public boolean function isShowNonLiveEnabled() {
 		if ( isLoggedIn() ) {
-			var showDrafts = _getSessionStorage().getVar( name="_presideAdminShowDrafts", default="" );
+			var showDrafts = _getSessionStorage().getVar( name="_presideAdminShowNonLiveContent", default="" );
 
 			if ( IsBoolean( showDrafts ) ) {
 				return showDrafts;
 			}
 
-			showDrafts = $getColdbox().getSetting( name="showDraftsByDefault", defaultValue="" );
+			showDrafts = $getColdbox().getSetting( name="showNonLiveContentByDefault", defaultValue="" );
 
 			return IsBoolean( showDrafts ) ? showDrafts : true;
 		}
@@ -243,9 +243,9 @@ component displayName="Admin login service" {
 		return false;
 	}
 
-	public void function toggleShowDrafts() {
+	public void function toggleShowNonLiveContent() {
 		if ( isLoggedIn() ) {
-			_getSessionStorage().setVar( name="_presideAdminShowDrafts", value=!isShowDraftsEnabled() );
+			_getSessionStorage().setVar( name="_presideAdminShowNonLiveContent", value=!isShowNonLiveEnabled() );
 		}
 	}
 

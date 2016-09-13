@@ -125,7 +125,7 @@
 				versioningService.$( "$getAdminLoggedInUserId", "" );
 				request[ key ].$( "$isAdminUserLoggedIn", false );
 				request[ key ].$( "$getRequestContext", mockRequestContext );
-				mockRequestContext.$( "showDrafts", false );
+				mockRequestContext.$( "showNonLiveContent", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];

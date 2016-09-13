@@ -139,7 +139,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		service.$( "$getRequestContext", mockRequestContext );
 		service.$( "_getVersioningArgsForSelectData", {} );
 
-		mockRequestContext.$( "showDrafts", false );
+		mockRequestContext.$( "showNonLiveContent", false );
 
 		return service;
 	}
