@@ -30834,10 +30834,8 @@ td.presidecms .visible-print {
 .presidecms .chosen-container.asset-picker.chosen-container-single .chosen-single .remove-choice-link {
   top: 10px;
 }
-.presidecms .chosen-container.asset-picker .result-container {
-  height: 36px;
-}
 .presidecms .chosen-container.asset-picker .result-container .icon-container {
+  height: 36px;
   display: inline-block;
   margin-right: 5px;
   vertical-align: top;
