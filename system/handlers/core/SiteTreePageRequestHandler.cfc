@@ -13,6 +13,8 @@ component output=false {
 			, subAction = ( prc.subAction ?: "" )
 		);
 
+		announceInterception( "postInitializePresideSiteteePage" );
+
 		var pageId       = event.getCurrentPageId();
 		var pageType     = event.getPageProperty( "page_type" );
 		var layout       = event.getPageProperty( "layout", "index" );
