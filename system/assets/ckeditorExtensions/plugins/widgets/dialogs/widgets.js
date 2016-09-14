@@ -15,8 +15,8 @@
 
 	CKEDITOR.dialog.add( 'widgets', function( editor ) {
 		var lang = editor.lang.widgets
-		  , associatedWidget
-
+		  , dialogOptions = { widgetCategories : ( editor.config.widgetCategories || "" ) }
+		  , associatedWidget;
 
 		return {
 			title: lang.title,
@@ -57,11 +57,11 @@
 									, method : "POST"
 									, data   : params
 									, success: function(){
-										dlg.getElement().$.src = buildAdminLink( "widgets", "dialog" );
+										dlg.getElement().$.src = buildAdminLink( "widgets", "dialog", dialogOptions );
 									 }
 								});
 							} else {
-								dlg.getElement().$.src = buildAdminLink( "widgets", "dialog" );
+								dlg.getElement().$.src = buildAdminLink( "widgets", "dialog", dialogOptions );
 							}
 						},
 						commit : function() {

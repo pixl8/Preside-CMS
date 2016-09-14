@@ -35,6 +35,9 @@ component hint="Create various preside system entities such as widgets and page 
 		if ( !StructKeyExists( params, "name" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Widget name: ", required=true, paramName="name"} );
 		}
+		if ( !StructKeyExists( params, "categories" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Categories (e.g. newlsetter - leave blank for no category): ", required=false, paramName="categories" } );
+		}
 		if ( !StructKeyExists( params, "description" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
 		}
@@ -69,6 +72,7 @@ component hint="Create various preside system entities such as widgets and page 
 				, icon          = params.icon
 				, options       = params.options
 				, extension     = params.extension
+				, categories    = params.categories
 				, createHandler = ( params.createHandler == "y" ? true : false )
 			);
 		} catch ( any e ) {
