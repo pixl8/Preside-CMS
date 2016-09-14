@@ -338,11 +338,11 @@ component {
 		var widgetCategories = getWidget( arguments.widgetId ).categories ?: [];
 
 		if ( !widgetCategories.len() ) {
-			widgetCategories = [ "*" ];
+			widgetCategories = [ "default" ];
 		}
 
 		if ( !arguments.categories.len() ) {
-			arguments.categories = [ "*" ];
+			arguments.categories = [ "default" ];
 		}
 
 		for( var widgetCategory in widgetCategories ) {
