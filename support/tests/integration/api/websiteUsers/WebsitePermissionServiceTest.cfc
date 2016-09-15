@@ -250,14 +250,16 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockUserDao            = getMockbox().createStub();
 		mockAppliedPermDao     = getMockbox().createStub();
 		mockCacheProvider      = getMockbox().createStub();
+		mockConditionService   = getMockbox().createStub();
 
 		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsitePermissionService(
-			  websiteLoginService = mockWebsiteLoginService
-			, cacheProvider      = mockCacheProvider
-			, permissionsConfig  = arguments.permissionsConfig
-			, benefitsDao        = mockBenefitsDao
-			, userDao            = mockUserDao
-			, appliedPermDao     = mockAppliedPermDao
+			  websiteLoginService         = mockWebsiteLoginService
+			, rulesEngineConditionService = mockConditionService
+			, cacheProvider               = mockCacheProvider
+			, permissionsConfig           = arguments.permissionsConfig
+			, benefitsDao                 = mockBenefitsDao
+			, userDao                     = mockUserDao
+			, appliedPermDao              = mockAppliedPermDao
 		) );
 	}
 
