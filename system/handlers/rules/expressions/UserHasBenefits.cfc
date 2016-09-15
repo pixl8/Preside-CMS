@@ -17,7 +17,8 @@ component {
 		,          boolean _posesses=true
 		,          boolean _all=true
 	) {
-		var hasBenefits = !arguments.benefits.len();
+		var hasBenefits     = !arguments.benefits.len();
+		var benefitsToMatch = arguments.benefits.trim().listToArray();
 
 		if ( !hasBenefits ) {
 			if ( Len( Trim( payload.user.id ?: "" ) ) ) {
@@ -26,10 +27,11 @@ component {
 					return benefits.findNoCase( benefit );
 				} );
 
+
 				if ( _all ) {
-					hasBenefits = _posesses ? ( matchingBenefits.len() == benefits.len() ) : matchingBenefits.len();
+					hasBenefits = _posesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
 				} else {
-					hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefits.len() );
+					hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
 				}
 			}
 		}
