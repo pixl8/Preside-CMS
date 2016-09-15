@@ -11,15 +11,17 @@ component displayName="Website permissions service" {
 
 // CONSTRUCTOR
 	/**
-	 * @websiteLoginService.inject websiteLoginService
-	 * @cacheProvider.inject       cachebox:WebsitePermissionsCache
-	 * @permissionsConfig.inject   coldbox:setting:websitePermissions
-	 * @benefitsDao.inject         presidecms:object:website_benefit
-	 * @userDao.inject             presidecms:object:website_user
-	 * @appliedPermDao.inject      presidecms:object:website_applied_permission
+	 * @websiteLoginService.inject         websiteLoginService
+	 * @rulesEngineConditionService.inject rulesEngineConditionService
+	 * @cacheProvider.inject               cachebox:WebsitePermissionsCache
+	 * @permissionsConfig.inject           coldbox:setting:websitePermissions
+	 * @benefitsDao.inject                 presidecms:object:website_benefit
+	 * @userDao.inject                     presidecms:object:website_user
+	 * @appliedPermDao.inject              presidecms:object:website_applied_permission
 	 */
 	public any function init(
 		  required any    websiteLoginService
+		, required any    rulesEngineConditionService
 		, required any    cacheProvider
 		, required struct permissionsConfig
 		, required any    benefitsDao
@@ -27,6 +29,7 @@ component displayName="Website permissions service" {
 		, required any    appliedPermDao
 	) {
 		_setWebsiteLoginService( arguments.websiteLoginService );
+		_setRulesEngineConditionService( arguments.rulesEngineConditionService );
 		_setCacheProvider( arguments.cacheProvider )
 		_setBenefitsDao( arguments.benefitsDao );
 		_setUserDao( arguments.userDao );
@@ -111,8 +114,9 @@ component displayName="Website permissions service" {
 	 *
 	 */
 	public array function listUserBenefits( required string userId ) {
-		var comboBenefits = _getComboBenefits();
-		var benefits      = _getUserDao().selectManyToManyData(
+		var conditionalBenefits = _getConditionalBenefits();
+		var comboBenefits       = _getComboBenefits();
+		var benefits            = _getUserDao().selectManyToManyData(
 			  propertyName = "benefits"
 			, id           = arguments.userId
 			, selectFields = [ "benefits.id" ]
@@ -121,6 +125,26 @@ component displayName="Website permissions service" {
 
 		var userBenefits = ValueArray( benefits.id );
 		var comboFound   = false;
+
+		if ( conditionalBenefits.recordCount ) {
+			var conditionService = _getRulesEngineConditionService();
+			var user = _getUserDao().selectData( id=arguments.userId );
+			for( var u in user ){ user = u; break; }
+
+			for( var benefit in conditionalBenefits ) {
+				if ( !userBenefits.findNoCase( benefit.id ) ) {
+					var conditionIsTrue = conditionService.evaluateCondition(
+						  conditionId = benefit.rules_engine_condition
+						, context     = "user"
+						, payload     = { user=user }
+					);
+
+					if ( conditionIsTrue ) {
+						userBenefits.append( benefit.id );
+					}
+				}
+			}
+		}
 
 		do {
 			comboFound = false;
@@ -519,6 +543,13 @@ component displayName="Website permissions service" {
 		);
 	}
 
+	private query function _getConditionalBenefits() {
+		return _getBenefitsDao().selectData(
+			  selectFields = [ "website_benefit.id", "website_benefit.rules_engine_condition" ]
+			, filter       = "website_benefit.rules_engine_condition is not null"
+		);
+	}
+
 // GETTERS AND SETTERS
 	private array function _getPermissions() {
 		return _permissions;
@@ -560,5 +591,12 @@ component displayName="Website permissions service" {
 	}
 	private void function _setAppliedPermDao( required any appliedPermDao ) {
 		_appliedPermDao = arguments.appliedPermDao;
+	}
+
+	private any function _getRulesEngineConditionService() {
+		return _rulesEngineConditionService;
+	}
+	private void function _setRulesEngineConditionService( required any rulesEngineConditionService ) {
+		_rulesEngineConditionService = arguments.rulesEngineConditionService;
 	}
 }

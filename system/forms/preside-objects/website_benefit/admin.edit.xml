@@ -9,9 +9,17 @@ This form is used for the "edit website benefit" form in the website user manage
 		<fieldset id="basic" sortorder="10">
 			<field binding="website_benefit.label"                           sortorder="10"  />
 			<field binding="website_benefit.description"                     sortorder="20"  />
-			<field binding="website_benefit.combined_benefits"               sortorder="30"  />
-			<field binding="website_benefit.combined_benefits_are_inclusive" sortorder="40" control="select" values="0,1" labels="preside-objects.website_benefit:exclusive.label,preside-objects.website_benefit:inclusive.label" defaultValue="0" />
-			<field name="permissions"                    sortorder="50" control="websitePermissionsPicker" label="cms:website.permissions.picker.label" help="cms:website.permissions.picker.help" />
+			<field name="permissions"                                        sortorder="30" control="websitePermissionsPicker" label="cms:website.permissions.picker.label" help="cms:website.permissions.picker.help" />
+		</fieldset>
+	</tab>
+
+	<tab id="rules" sortorder="20">
+		<fieldset id="combo" sortorder="10">
+			<field binding="website_benefit.combined_benefits"               sortorder="10"  />
+			<field binding="website_benefit.combined_benefits_are_inclusive" sortorder="20" control="select" values="0,1" labels="preside-objects.website_benefit:exclusive.label,preside-objects.website_benefit:inclusive.label" defaultValue="0" />
+		</fieldset>
+		<fieldset id="condition" sortorder="20" feature="rulesengine">
+			<field binding="website_benefit.rules_engine_condition"          sortorder="30" control="conditionPicker" ruleContext="user" quickAdd="true" quickEdit="true" />
 		</fieldset>
 	</tab>
 </form>
