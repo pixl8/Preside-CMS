@@ -180,6 +180,62 @@ component displayName="Website permissions service" {
 	}
 
 	/**
+	 * Returns whether or not the user has the given benefit
+	 * \n
+	 * See [[websiteusersandpermissioning]] for a full guide to website users and permissions.
+	 *
+	 * @autodoc
+	 * @userId    ID of the user
+	 * @benefitId ID of the benefit
+	 *
+	 */
+	public boolean function userHasBenefit( required string userId, required string benefitId ) {
+		var benefits = _getUserDao().selectManyToManyData(
+			  propertyName = "benefits"
+			, id           = arguments.userId
+			, selectFields = [ "benefits.id" ]
+			, orderby      = "benefits.priority desc"
+		);
+		var userBenefits = ValueArray( benefits.id );
+
+		if ( userBenefits.findNoCase( arguments.benefitId ) ) {
+			return true;
+		}
+
+		var benefit = _getBenefitsDao().selectData(
+			  selectFields = [ "website_benefit.id", "website_benefit.combined_benefits_are_inclusive", "group_concat( distinct combined_benefits.id ) as combined_benefits", "rules_engine_condition" ]
+			, groupBy      = "website_benefit.id"
+		);
+
+		if ( Len( Trim( benefit.rules_engine_condition ) ) ) {
+			var user = _getUserDao().selectData( id=arguments.userId );
+			for( var u in user ){ user = u; break; }
+
+			return conditionService.evaluateCondition(
+				  conditionId = benefit.rules_engine_condition
+				, context     = "user"
+				, payload     = { user=user }
+			);
+		} else if ( Len( Trim( benefit.combined_benefits ) ) ) {
+			for( var combinedBenefit in benefit.combined_benefits.listToArray() ) {
+				if ( combinedBenefit != arguments.benefitId ) {
+					var hasBenefit = userHasBenefit( arguments.userId, combinedBenefit );
+
+					if ( Val( benefit.combined_benefits_are_inclusive ) && !hasBenefit ) {
+						return false;
+					} else if ( !Val( benefit.combined_benefits_are_inclusive ) && hasBenefit ) {
+						return true;
+					}
+				}
+
+				return Val( benefit.combined_benefits_are_inclusive );
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns an array of permission keys that the user
 	 * has access to
 	 * \n
