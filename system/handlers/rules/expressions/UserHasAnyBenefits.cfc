@@ -1,7 +1,7 @@
 /**
  * Expression handler for "User has/does not have any benefits"
  *
- * @feature websiteUsers
+ * @feature websiteBenefits
  * @expressionContexts user
  */
 component {

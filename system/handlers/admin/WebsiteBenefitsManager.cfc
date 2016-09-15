@@ -8,7 +8,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	function prehandler( event, rc, prc ) output=false {
 		super.preHandler( argumentCollection = arguments );
 
-		if ( !isFeatureEnabled( "websiteUsers" ) ) {
+		if ( !isFeatureEnabled( "websiteUsers" ) || !isFeatureEnabled( "websiteBenefits" ) ) {
 			event.notFound();
 		}
 
