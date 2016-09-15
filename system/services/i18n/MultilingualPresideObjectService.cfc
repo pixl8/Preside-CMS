@@ -227,6 +227,7 @@ component displayName="Multilingual Preside Object Service" {
 	 *
 	 * @autodoc             true
 	 * @tableJoins.hint     Array of table joins as calculated by the SelectData() logic
+	 * @joins.hint          Array of raw joins as calculated by the SelectData() logic that match the table joins
 	 * @language.hint       The language to filter on
 	 * @preparedFilter.hint The fully prepared and resolved filter that will be used in the select query
 	 */
@@ -240,8 +241,11 @@ component displayName="Multilingual Preside Object Service" {
 					arguments.tableJoins[ i ].additionalClauses = "#arguments.tableJoins[ i ].tableAlias#._translation_language = :_translation_language";
 				}
 
-				if ( !$isAdminUserLoggedIn() && $getPresideObjectService().objectIsVersioned( arguments.tableJoins[ i ].joinToTable ) ) {
-					arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = 0 )";
+				if ( !$getRequestContext().showNonLiveContent() ) {
+					var joinTarget = arguments.joins[ i ].joinToObject ?: "";
+					if ( joinTarget.len() && $getPresideObjectService().objectIsVersioned( joinTarget ) ) {
+						arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = 0 )";
+					}
 				}
 
 				arguments.tableJoins[ i ].type = "left";
