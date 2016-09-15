@@ -1449,7 +1449,7 @@ component {
 		return sqlFields;
 	}
 
-	private query function _getPageIdWithMultilingualSlug( required string slug ) {
+	private string function _getPageIdWithMultilingualSlug( required string slug ) {
 		var slugPieces      = slug.listToArray( "/" );
 		var pageObject      = _getPobj();
 		var page            = getSiteHomepage( selectFields=[ "page.id" ] );
