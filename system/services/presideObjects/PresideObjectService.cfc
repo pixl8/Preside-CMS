@@ -161,7 +161,7 @@ component displayName="Preside Object Service" {
 		,          boolean useCache           = true
 		,          boolean fromVersionTable   = false
 		,          numeric specificVersion    = 0
-		,          boolean allowDraftVersions = $isAdminUserLoggedIn()
+		,          boolean allowDraftVersions = $getRequestContext().showNonLiveContent()
 		,          string  forceJoins         = ""
 
 	) autodoc=true {

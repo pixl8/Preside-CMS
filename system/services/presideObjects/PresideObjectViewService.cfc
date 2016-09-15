@@ -95,9 +95,11 @@ component displayName="Preside Object View Service" {
 
 		selectDataArgs.objectName         = arguments.presideObject
 		selectDataArgs.selectFields       = viewDetails.selectFields
-		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $isAdminUserLoggedIn();
+		selectDataArgs.allowDraftVersions = selectDataArgs.allowDraftVersions ?: $getRequestContext().showNonLiveContent();
 
-		selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
+		if ( selectDataArgs.allowDraftVersions ) {
+			selectDataArgs.append( _getVersioningArgsForSelectData( argumentCollection=selectDataArgs ), false );
+		}
 
 		data = _getPresideObjectService().selectData( argumentCollection = selectDataArgs );
 

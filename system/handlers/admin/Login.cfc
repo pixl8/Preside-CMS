@@ -121,15 +121,13 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( !Len( Trim( emailAddress ) ) || !Len( Trim( password ) ) ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
-				  message = "EMPTY_PASSWORD"
-				, token   = token
+				message = "EMPTY_PASSWORD"
 			} );
 		}
 
 		if ( password != passwordConfirmation ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="login" ), persistStruct={
-				  message = "PASSWORDS_DO_NOT_MATCH"
-				, token   = token
+				message = "PASSWORDS_DO_NOT_MATCH"
 			} );
 		}
 

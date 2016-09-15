@@ -122,6 +122,7 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		mockRendererService      = createMock( "preside.system.services.rendering.ContentRendererService" );
 		mockRendererPlugin       = createMock( "preside.system.coldboxModifications.plugins.Renderer" );
 		mockColdbox              = createEmptyMock( "preside.system.coldboxModifications.Controller" );
+		mockRequestContext       = createStub();
 
 		var service = new preside.system.services.presideObjects.presideObjectViewService(
 			  viewDirectories        = folders
@@ -135,7 +136,10 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase"{
 		service = createMock( object=service );
 		service.$( "$isAdminUserLoggedIn", false );
 		service.$( "$getColdbox", mockColdbox );
+		service.$( "$getRequestContext", mockRequestContext );
 		service.$( "_getVersioningArgsForSelectData", {} );
+
+		mockRequestContext.$( "showNonLiveContent", false );
 
 		return service;
 	}

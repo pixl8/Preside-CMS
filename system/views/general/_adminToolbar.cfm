@@ -31,6 +31,9 @@
 
 
 		ckEditorJs = renderView( "admin/layout/ckeditorjs" );
+
+		toggleLiveContentLink = event.buildAdminLink( linkTo="general.toggleNonLiveContent" );
+		editPageLink          = event.getEditPageLink();
 	</cfscript>
 
 	<cfoutput>
@@ -51,17 +54,40 @@
 										</label>
 									</a>
 
+									<a href="#editPageLink#">
+										<i class="fa fa-pencil fa-lg fa-fw"></i> #translateResource( 'cms:admintoolbar.edit.page' )#
+									</a>
+								</li>
+								<li class="no-border-left">
 									<a data-toggle="preside-dropdown" href="##" class="dropdown-toggle">
+										<i class="fa fa-eye-slash fa-lg fa-fw"></i>
+										#translateResource( 'cms:admintoolbar.show.hide' )#
 										<i class="fa fa-caret-down"></i>
 									</a>
-									<ul class="user-menu pull-left dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+
+									<ul class="user-menu dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
 										<li>
-											<a href="#event.getEditPageLink()#">
-												<i class="fa fa-pencil fa-lg"></i>
-												#translateResource( 'cms:admintoolbar.edit.page' )#
+											<a href="#toggleLiveContentLink#">
+												<cfif event.showNonLiveContent()>
+													<i class="fa fa-fw smaller-80"></i>
+												<cfelse>
+													<i class="fa fa-check fa-fw grey smaller-80"></i>
+												</cfif>
+												#translateResource( 'cms:admintoolbar.show.live.only' )#
+											</a>
+										</li>
+										<li>
+											<a href="#toggleLiveContentLink#">
+												<cfif event.showNonLiveContent()>
+													<i class="fa fa-check fa-fw grey smaller-80"></i>
+												<cfelse>
+													<i class="fa fa-fw smaller-80"></i>
+												</cfif>
+												#translateResource( 'cms:admintoolbar.show.non.live' )#
 											</a>
 										</li>
 									</ul>
+
 								</li>
 							</ul>
 						</div>

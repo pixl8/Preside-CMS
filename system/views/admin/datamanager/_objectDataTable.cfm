@@ -16,16 +16,8 @@
 	batchEditTitle       = translateResource( uri="cms:datamanager.batchEditSelected.title" );
 	event.include( "/js/admin/specific/datamanager/object/");
 	event.include( "/css/admin/specific/datamanager/object/");
-	event.includeData( {
-		  objectName          = args.objectName
-		, datasourceUrl       = args.datasourceUrl
-		, useMultiActions     = args.useMultiActions
-		, allowSearch         = args.allowSearch
-		, isMultilingual      = args.isMultilingual
-		, draftsEnabled       = args.draftsEnabled
-		, clickableRows       = args.clickableRows
-	} );
 
+	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
@@ -33,7 +25,15 @@
 			<form id="multi-action-form" class="form-horizontal" method="post" action="#args.multiActionUrl#">
 				<input type="hidden" name="multiAction" value="" />
 		</cfif>
-		<table id="object-listing-table-#LCase( args.objectName )#" class="table table-hover object-listing-table">
+		<table id="#tableId#" class="table table-hover object-listing-table"
+			data-object-name="#args.objectName#"
+		    data-datasource-url="#args.datasourceUrl#"
+		    data-use-multi-actions="#args.useMultiActions#"
+		    data-allow-search="#args.allowSearch#"
+		    data-is-multilingual="#args.isMultilingual#"
+		    data-drafts-enabled="#args.draftsEnabled#"
+		    data-clickable-rows="#args.clickableRows#"
+		>
 			<thead>
 				<tr>
 					<cfif args.useMultiActions>

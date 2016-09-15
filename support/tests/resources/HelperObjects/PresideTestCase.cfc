@@ -55,6 +55,7 @@
 			if ( arguments.forceNewInstance || !request.keyExists( key ) ) {
 				var logger = _getTestLogger();
 				var mockFeatureService = getMockBox().createEmptyMock( "preside.system.services.features.FeatureService" );
+				var mockRequestContext = getMockBox().createStub();
 				var objReader = new preside.system.services.presideObjects.PresideObjectReader(
 					  dsn = application.dsn
 					, tablePrefix = arguments.defaultPrefix
@@ -124,6 +125,8 @@
 				versioningService.$( "$getPresideObjectService", request[ key ] );
 				versioningService.$( "$getAdminLoggedInUserId", "" );
 				request[ key ].$( "$isAdminUserLoggedIn", false );
+				request[ key ].$( "$getRequestContext", mockRequestContext );
+				mockRequestContext.$( "showNonLiveContent", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];

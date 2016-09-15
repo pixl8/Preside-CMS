@@ -61,6 +61,7 @@
 					, interceptorService = arguments.interceptorService
 					, featureService = mockFeatureService
 				);
+				var mockRequestContext = getMockBox().createStub();
 				var cachebox       = arguments.cachebox ?: _getCachebox( cacheKey="_cacheBox" & key, forceNewInstance=arguments.forceNewInstance );
 				var dbInfoService  = new preside.system.services.database.DbInfoService();
 				var sqlRunner      = new preside.system.services.database.sqlRunner( logger = logger );
@@ -123,6 +124,8 @@
 				versioningService.$( "$getPresideObjectService", request[ key ] );
 				versioningService.$( "$getAdminLoggedInUserId", "" );
 				request[ key ].$( "$isAdminUserLoggedIn", false );
+				request[ key ].$( "$getRequestContext", mockRequestContext );
+				mockRequestContext.$( "showNonLiveContent", false );
 			}
 
 			request[ '_mostRecentPresideObjectFetch' ] = request[ key ];

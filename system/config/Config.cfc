@@ -85,6 +85,7 @@ component {
 		interceptorSettings.customInterceptionPoints.append( "prePrepareObjectFilter"                );
 		interceptorSettings.customInterceptionPoints.append( "preReadPresideObject"                  );
 		interceptorSettings.customInterceptionPoints.append( "preRenderSiteTreePage"                 );
+		interceptorSettings.customInterceptionPoints.append( "postInitializePresideSiteteePage"      );
 		interceptorSettings.customInterceptionPoints.append( "preSelectObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preUpdateObjectData"                   );
 		interceptorSettings.customInterceptionPoints.append( "preParseSelectFields"                  );
@@ -165,6 +166,7 @@ component {
 		settings.autoRestoreDeprecatedFields = true;
 		settings.devConsoleToggleKeyCode     = 96;
 		settings.adminLanguages              = [];
+		settings.showNonLiveContentByDefault = true;
 
 		settings.adminApplications = [ {
 			  id                 = "cms"

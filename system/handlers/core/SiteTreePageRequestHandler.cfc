@@ -14,6 +14,8 @@ component output=false {
 			, subAction          = ( prc.subAction ?: "" )
 		);
 
+		announceInterception( "postInitializePresideSiteteePage" );
+
 		var pageId       = event.getCurrentPageId();
 		var pageType     = event.getPageProperty( "page_type" );
 		var layout       = event.getPageProperty( "layout", "index" );
@@ -21,7 +23,7 @@ component output=false {
 		var viewlet      = "";
 		var view         = "";
 
-		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
+		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.showNonLiveContent() ) ) {
 			event.notFound();
 		}
 
