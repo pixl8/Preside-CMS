@@ -17,26 +17,32 @@ component {
 		,          boolean _posesses=true
 		,          boolean _all=true
 	) {
-		var hasBenefits     = !arguments.benefits.len();
-		var benefitsToMatch = arguments.benefits.trim().listToArray();
+		if ( !Len( Trim( payload.user.id ?: "" ) ) ) {
+			return false;
+		}
+		if ( !arguments.benefits.len() ) {
+			return false;
+		}
 
-		if ( !hasBenefits ) {
-			if ( Len( Trim( payload.user.id ?: "" ) ) ) {
-				var userBenefits     = websitePermissionService.listUserBenefits( payload.user.id );
-				var matchingBenefits = userBenefits.filter( function( benefit ){
-					return benefits.findNoCase( benefit );
-				} );
+		for( var benefit in arguments.benefits.listToArray() ) {
+			var userHasBenefit = websitePermissionService.userHasBenefit( payload.user.id, benefit );
 
-
-				if ( _all ) {
-					hasBenefits = _posesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
-				} else {
-					hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
+			if ( _posesses ) {
+				if ( _all && !userHasBenefit ) {
+					return false;
+				} else if ( !_all && userHasBenefit ) {
+					return true;
+				}
+			} else {
+				if ( _all && userHasBenefit ) {
+					return false;
+				} else if ( !_all && !userHasBenefit ) {
+					return true;
 				}
 			}
 		}
 
-		return _posesses ? hasBenefits : !hasBenefits;
+		return _posesses ? _all : !_all;
 	}
 
 }
