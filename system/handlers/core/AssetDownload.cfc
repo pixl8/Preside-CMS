@@ -1,7 +1,8 @@
 component output=false {
 
-	property name="assetManagerService"      inject="assetManagerService";
-	property name="websiteUserActionService" inject="websiteUserActionService";
+	property name="assetManagerService"          inject="assetManagerService";
+	property name="websiteUserActionService"     inject="websiteUserActionService";
+	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
 
 	public function asset( event, rc, prc ) output=false {
 		announceInterception( "preDownloadAsset" );
@@ -98,6 +99,18 @@ component output=false {
 		var permissionSettings = assetManagerService.getAssetPermissioningSettings( assetId );
 
 		if ( permissionSettings.restricted ) {
+			if ( Len( Trim( permissionSettings.conditionId ) ) ) {
+				var conditionIsTrue = rulesEngineWebRequestService.evaluateCondition( permissionSettings.conditionId );
+
+				if ( !conditionIsTrue ) {
+					if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
+						event.accessDenied( reason="LOGIN_REQUIRED" );
+					} else {
+						event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+					}
+				}
+				return;
+			}
 			var hasPerm = event.isAdminUser() && hasCmsPermission(
 				  permissionKey       = "assetmanager.assets.download"
 				, context             = "assetmanagerfolder"

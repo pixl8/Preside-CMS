@@ -1248,6 +1248,7 @@ component displayName="AssetManager Service" {
 			, restricted                         = false
 			, fullLoginRequired                  = false
 			, grantAcessToAllLoggedInUsers       = false
+			, conditionId                        = ""
 		}
 
 		if ( !asset.recordCount ){ return settings; }
@@ -1260,6 +1261,7 @@ component displayName="AssetManager Service" {
 			settings.restricted                   = asset.access_restriction == "full";
 			settings.fullLoginRequired            = IsBoolean( asset.full_login_required ) && asset.full_login_required;
 			settings.grantAcessToAllLoggedInUsers = IsBoolean( asset.grantaccess_to_all_logged_in_users ) && asset.grantaccess_to_all_logged_in_users;
+			settings.conditionId                  = asset.access_condition;
 
 			return settings;
 		}
@@ -1270,6 +1272,7 @@ component displayName="AssetManager Service" {
 				settings.restricted                   = folder.access_restriction == "full";
 				settings.fullLoginRequired            = IsBoolean( folder.full_login_required ) && folder.full_login_required;
 				settings.grantAcessToAllLoggedInUsers = IsBoolean( folder.grantaccess_to_all_logged_in_users ) && folder.grantaccess_to_all_logged_in_users;
+				settings.conditionId                  = folder.access_condition;
 
 				return settings;
 			}

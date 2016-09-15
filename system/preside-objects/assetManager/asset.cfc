@@ -27,7 +27,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="full_login_required"                  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="grantaccess_to_all_logged_in_users"   type="boolean" dbtype="boolean"               required=false default=false;
 
-
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

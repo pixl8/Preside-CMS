@@ -17,23 +17,25 @@ component {
 		,          boolean _posesses=true
 		,          boolean _all=true
 	) {
-		var hasBenefits     = !arguments.benefits.len();
-		var benefitsToMatch = arguments.benefits.trim().listToArray();
+		if ( !Len( Trim( payload.user.id ?: "" ) ) ) {
+			return false;
+		}
 
-		if ( !hasBenefits ) {
-			if ( Len( Trim( payload.user.id ?: "" ) ) ) {
-				var userBenefits     = websitePermissionService.listUserBenefits( payload.user.id );
-				var matchingBenefits = userBenefits.filter( function( benefit ){
-					return benefits.findNoCase( benefit );
-				} );
+		if ( !arguments.benefits.len() ) {
+			return false;
+		}
+
+		var benefitsToMatch  = arguments.benefits.trim().listToArray();
+		var userBenefits     = websitePermissionService.listUserBenefits( payload.user.id );
+		var matchingBenefits = userBenefits.filter( function( benefit ){
+			return benefits.findNoCase( benefit );
+		} );
 
 
-				if ( _all ) {
-					hasBenefits = _posesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
-				} else {
-					hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
-				}
-			}
+		if ( _all ) {
+			hasBenefits = _posesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
+		} else {
+			hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
 		}
 
 		return _posesses ? hasBenefits : !hasBenefits;

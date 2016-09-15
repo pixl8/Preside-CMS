@@ -1012,11 +1012,12 @@ component {
 	}
 
 	public struct function getAccessRestrictionRulesForPage( required string pageId ) {
-		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "full_login_required", "grantaccess_to_all_logged_in_users" ] );
+		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "access_condition", "full_login_required", "grantaccess_to_all_logged_in_users" ] );
 
 		if ( !page.recordCount ) {
 			return {
 				  access_restriction                 = "none"
+				, access_condition                   = ""
 				, full_login_required                = false
 				, grantaccess_to_all_logged_in_users = false
 			};
@@ -1027,6 +1028,7 @@ component {
 			} else {
 				return {
 					  access_restriction                 = "none"
+					, access_condition                   = ""
 					, full_login_required                = false
 					, grantaccess_to_all_logged_in_users = false
 				};
@@ -1035,6 +1037,7 @@ component {
 
 		return {
 			  access_restriction                 = page.access_restriction
+			, access_condition                   = page.access_condition
 			, full_login_required                = page.full_login_required
 			, grantaccess_to_all_logged_in_users = page.grantaccess_to_all_logged_in_users
 			, access_defining_page               = page.id
