@@ -36,7 +36,7 @@ component {
 		_setWebsitePermissionService( arguments.websitePermissionService );
 		_setPageSlugsAreMultilingual();
 
-		_ensureTreeIsCleanAndUpToDate();
+		_ensureSystemPagesExistInTree();
 
 		return this;
 	}
@@ -983,34 +983,6 @@ component {
 		event.setSite( originalActiveSite );
 	}
 
-	public void function ensurePageTypesAreAllValidForSite( required string siteId ) {
-		var siteService        = _getSiteService();
-		var pageTypesService   = _getPageTypesService();
-		var site               = siteService.getSite( arguments.siteId );
-		var event              = _getColdboxController().getRequestService().getContext();
-		var originalActiveSite = event.getSite();
-
-		event.setSite( site );
-
-		var pageTypes = pageTypesService.listPageTypes();
-
-		for( var i=1; i<=pageTypes.len(); i++ ) {
-			pageTypes[i] = pageTypes[i].getId();
-		}
-
-		var invalidPages = _getPobj().selectData(
-			  filter       = "page.page_type not in (:page_type) and trashed = :trashed"
-			, filterParams = { page_type=pageTypes, trashed=false }
-			, selectFields = [ "id", "slug" ]
-		);
-		for( var page in invalidPages ) {
-			_getPobj().updateData( id=page.id, data={ page_type = "standard_page" } );
-			trashPage( page.id );
-		}
-
-		event.setSite( originalActiveSite );
-	}
-
 	public struct function getAccessRestrictionRulesForPage( required string pageId ) {
 		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "access_condition", "full_login_required", "grantaccess_to_all_logged_in_users" ] );
 
@@ -1333,11 +1305,10 @@ component {
 		return "";
 	}
 
-	private void function _ensureTreeIsCleanAndUpToDate() {
+	private void function _ensureSystemPagesExistInTree() {
 		_getSiteService().ensureDefaultSiteExists();
 		for( var site in _getSiteService().listSites() ) {
 			ensureSystemPagesExistForSite( site.id );
-			ensurePageTypesAreAllValidForSite( site.id );
 		}
 	}
 
