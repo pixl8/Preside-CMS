@@ -474,19 +474,31 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			var fullLoginRequired = IsBoolean( accessRules.full_login_required ) && accessRules.full_login_required;
 			var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
 
-			if ( !loggedIn ) {
-				accessDenied( reason="LOGIN_REQUIRED" );
-			}
+			if ( Len( Trim( accessRules.access_condition ) ) ) {
+				var conditionIsTrue = getModel( "rulesEngineWebRequestService" ).evaluateCondition( accessRules.access_condition );
 
-			hasPermission = getModel( "websitePermissionService" ).hasPermission(
-				  permissionKey       = "pages.access"
-				, context             = "page"
-				, contextKeys         = [ accessRules.access_defining_page ]
-				, forceGrantByDefault = IsBoolean( accessRules.grantaccess_to_all_logged_in_users ) && accessRules.grantaccess_to_all_logged_in_users
-			);
+				if ( !conditionIsTrue ) {
+					if ( !loggedIn ) {
+						accessDenied( reason="LOGIN_REQUIRED" );
+					} else {
+						accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+					}
+				}
+			} else {
+				if ( !loggedIn ) {
+					accessDenied( reason="LOGIN_REQUIRED" );
+				}
 
-			if ( !hasPermission ) {
-				accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				hasPermission = getModel( "websitePermissionService" ).hasPermission(
+					  permissionKey       = "pages.access"
+					, context             = "page"
+					, contextKeys         = [ accessRules.access_defining_page ]
+					, forceGrantByDefault = IsBoolean( accessRules.grantaccess_to_all_logged_in_users ) && accessRules.grantaccess_to_all_logged_in_users
+				);
+
+				if ( !hasPermission ) {
+					accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				}
 			}
 		}
 	}
