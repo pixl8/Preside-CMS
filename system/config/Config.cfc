@@ -289,6 +289,7 @@ component {
 			, sites                   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, assetManager            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, websiteUsers            = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, websiteBenefits         = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, datamanager             = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemConfiguration     = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
