@@ -1599,12 +1599,17 @@ component displayName="Preside Object Service" {
 		return objects;
 	}
 
-	private array function _getJoinsFromJoinTargets( required string objectName, required array joinTargets, required string forceJoins, required boolean fromVersionTable ) {
+	private array function _getJoinsFromJoinTargets(
+		  required string  objectName
+		, required array   joinTargets
+		, required string  forceJoins
+		, required boolean fromVersionTable
+	) {
 		var joins = [];
 
 		if ( ArrayLen( arguments.joinTargets ) ) {
 			var joinsCache    = _getCache();
-			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#. From version table: #arguments.fromVersionTable#."
+			var joinsCacheKey = "SQL Joins for #arguments.objectName# with join targets: #ArrayToList( arguments.joinTargets )#. From version table: #arguments.fromVersionTable#. Forcing joins: [#arguments.forceJoins#]."
 
 			joins = joinsCache.get( joinsCacheKey );
 
