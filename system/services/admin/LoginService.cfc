@@ -205,9 +205,10 @@ component displayName="Admin login service" {
 	}
 
 	public boolean function isUserDatabaseNotConfigured() {
-		var user = _getUserDao().selectData( selectFields=[ "login_id", "password" ], maxRows=2 );
+		var systemUserid = getSystemUserId();
+		var user         = _getUserDao().selectData( selectFields=[ "id", "password" ], maxRows=2 );
 
-		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.login_id == ListFirst( _getSystemUserList() );
+		return user.recordCount == 1 && !Len( Trim( user.password ) ) && user.id == systemUserid;
 	}
 
 	public boolean function firstTimeUserSetup( required string emailAddress, required string password ) {
