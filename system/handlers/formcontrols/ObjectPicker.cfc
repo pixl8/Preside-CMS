@@ -22,7 +22,7 @@ component output=false {
 				, querystring = "object=#targetObject#&savedFilters=#savedFilters#&q=%QUERY"
 			);
 		} else {
-			args.records = presideObjectService.selectData(
+			args.records = IsQuery( args.records ?: "" ) ? args.records : presideObjectService.selectData(
 				  objectName   = targetObject
 				, selectFields = [ "#targetObject#.id", "${labelfield} as label" ]
 				, orderBy      = "label"
