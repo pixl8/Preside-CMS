@@ -198,8 +198,8 @@ component output=false singleton=true {
 
 						if ( !property.relationshipIsSource ) {
 							var tmp = pivotObjArgs.sourceObject;
-							pivotObjArgs.sourceObject = pivotArgs.targetObject;
-							pivotObjArgs.targetObject = pivotArgs.tmp;
+							pivotObjArgs.sourceObject = pivotObjArgs.targetObject;
+							pivotObjArgs.targetObject = tmp;
 						}
 
 						autoObject = _getObjectReader().getAutoPivotObjectDefinition( argumentCollection=pivotObjArgs );
