@@ -8,11 +8,6 @@ addons:
   mariadb: '10.1'
 services:
   - docker
-env:
-  global:
-  - ARTIFACTS_S3_BUCKET=downloads.presidecms.com
-  - secure: jvsE21m7x0RdzxWGdbcxoxiCdXnUfhb654tkfbuK67DJ5/Suk3P1QfPSFpWpanuzm+X1kNzcrKnz84iTG+Me0m+ypd3eeHWL6e4qFyoYunpFxCxx0GPlto+bcZ8mARNt6HmTwTpsbwMpJxiP5c2DqTu85go5blaITmgpFlT/bkU=
-  - secure: F6I7UIinztbSglyuvR1QxfNHmi3ZjsV9kqx0NeKm5zzAoYJWg5vF8/WMkn8NI80Q+89CRZwb56JPMedCLJndum6t7/NS1fpBW8/bP0FzRU+1/KvG0U99UiESnEAKcMGSgh5lq/74+sn0qApuTSVuSg9fsar/h3Gg5Xj0A+6Jias=
 before_install:
 - mkdir /tmp/bin
 - export PATH=$PATH:/tmp/bin
