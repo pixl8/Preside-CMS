@@ -199,13 +199,13 @@
 				$field.data( "fieldDefinition", fieldDefinition );
 				$field.data( "fieldValue", fieldValue );
 
-				this.renderField( fieldName, fieldValue, fieldDefinition, $field );
+				this.renderField( fieldName, fieldValue, fieldDefinition, $field, expression.fields );
 			}
 
 			return $expression;
 		};
 
-		RulesEngineCondition.prototype.renderField = function( fieldName, fieldValue, fieldDefinition, $field ) {
+		RulesEngineCondition.prototype.renderField = function( fieldName, fieldValue, fieldDefinition, $field, fields ) {
 			var cacheKey = JSON.stringify( { fieldName:fieldName, fieldValue:fieldValue, fieldDefinition:fieldDefinition } );
 
 			if ( fieldValue !== null ) {
@@ -223,15 +223,15 @@
 			}
 
 			if ( fieldDefinition.fieldType !== "boolean" ) {
-				this.setupFieldEditModal( fieldName, fieldValue, fieldDefinition, $field );
+				this.setupFieldEditModal( fieldName, fieldValue, fieldDefinition, $field, fields );
 			}
 		};
 
-		RulesEngineCondition.prototype.setupFieldEditModal = function( fieldName, fieldValue, fieldDefinition, $field ){
+		RulesEngineCondition.prototype.setupFieldEditModal = function( fieldName, fieldValue, fieldDefinition, $field, fields ){
 			var rulesEngineCondition = this
 			  , iframeUrl            = editFieldEndpoint
 			  , qsDelim              = ( iframeUrl.search( /\?/ ) == -1 ) ? "?" : "&"
-			  , callbacks, modalOptions, iframeModal;
+			  , callbacks, modalOptions, iframeModal, fieldValues;
 
 			callbacks = {
 				onLoad : function( iframe ) {
@@ -264,7 +264,7 @@
 				}
 			};
 
-			iframeUrl += qsDelim + $.param( $.extend( {}, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
+			iframeUrl += qsDelim + $.param( $.extend( {}, fields, { fieldValue:fieldValue, context:context }, fieldDefinition ) );
 			iframeModal = new PresideIframeModal( iframeUrl, "100%", "100%", callbacks, modalOptions );
 			$field.data( "editModal", iframeModal );
 		};
