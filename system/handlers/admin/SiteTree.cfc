@@ -793,7 +793,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function getPageHistoryForAjaxDataTables( event, rc, prc ) {
 		var pageId = rc.id     ?: "";
 
-		_checkPermissions( argumentCollection=arguments, key="viewversion", pageId=pageId );
+		_checkPermissions( argumentCollection=arguments, key="viewversions", pageId=pageId );
 
 		runEvent(
 			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
