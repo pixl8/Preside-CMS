@@ -672,6 +672,7 @@ component {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
+		var parent           = "";
 		var newParent        = "";
 		var updated          = 0;
 		var sortOrderChanged = false;
@@ -741,12 +742,13 @@ component {
 						);
 					}
 
-				} else {
+				} else if ( sortOrderChanged || slugChanged ) {
+					parent = getPage( id=existingPage.parent_page, useCache=false );
 					if ( sortOrderChanged ) {
-						data._hierarchy_sort_order = ReReplace( existingPage._hierarchy_sort_order, "/#ListLast( existingPage._hierarchy_sort_order, '/' )#/$", "/#_paddedSortOrder( data.sort_order )#/" );
+						data._hierarchy_sort_order = parent._hierarchy_sort_order & "#_paddedSortOrder( data.sort_order )#/";
 					}
 					if ( slugChanged ) {
-						data._hierarchy_slug = ReReplace( existingPage._hierarchy_slug, "/#existingPage.slug#/$", "/#data.slug#/" );
+						data._hierarchy_slug = parent._hierarchy_slug & "#data.slug#/";
 					}
 				}
 			}
