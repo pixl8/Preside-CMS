@@ -28,7 +28,7 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 				showAndHideFieldsBasedOnPeriodType();
-				$form.on( "click change", function(){
+				$form.on( "click change dp.change", function(){
 					showAndHideFieldsBasedOnPeriodType();
 					saveToHiddenField();
 				} );
