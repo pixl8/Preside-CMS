@@ -956,7 +956,7 @@ component {
 
 	public struct function getActivePageFilter( string pageTableAlais="page" ) {
 		return {
-			  filter       = "#pageTableAlais#.trashed != 1 and #pageTableAlais#.active = 1 and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
+			  filter       = "#pageTableAlais#.trashed != '1' and #pageTableAlais#.active = '1' and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
 			, filterParams = {}
 		};
 	}

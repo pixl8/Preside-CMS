@@ -493,9 +493,8 @@ component displayName="Preside Object Service" {
 		joinTargets = _extractForeignObjectsFromArguments( argumentCollection=arguments, data=cleanedData, preparedFilter=preparedFilter );
 		if ( ArrayLen( joinTargets ) ) {
 			joins = _getRelationshipGuidance().calculateJoins( objectName = arguments.objectName, joinTargets = joinTargets );
-			joins = _convertObjectJoinsToTableJoins( joins );
+			joins = _convertObjectJoinsToTableJoins( joins = joins, argumentCollection = arguments );
 		}
-
 
 		transaction {
 			if ( requiresVersioning ) {
@@ -1625,18 +1624,18 @@ component displayName="Preside Object Service" {
 
 	private array function _convertObjectJoinsToTableJoins( required array joins ) {
 		var tableJoins = [];
-		var objJoin = "";
-		var objects = _getObjects();
-		var tableJoin = "";
+		var objJoin    = "";
+		var objects    = _getObjects();
+		var tableJoin  = "";
 
 		for( objJoin in arguments.joins ){
 			var join = {
-				  tableName         = objects[ objJoin.joinToObject ].meta.tableName
-				, tableAlias        = objJoin.tableAlias ?: objJoin.joinToObject
-				, tableColumn       = objJoin.joinToProperty
-				, joinToTable       = objJoin.joinFromAlias ?: objJoin.joinFromObject
-				, joinToColumn      = objJoin.joinFromProperty
-				, type              = objJoin.type
+				  tableName    = objects[ objJoin.joinToObject ].meta.tableName
+				, tableAlias   = objJoin.tableAlias ?: objJoin.joinToObject
+				, tableColumn  = objJoin.joinToProperty
+				, joinToTable  = objJoin.joinFromAlias ?: objJoin.joinFromObject
+				, joinToColumn = objJoin.joinFromProperty
+				, type         = objJoin.type
 			};
 
 			if ( IsBoolean( objJoin.addVersionClause ?: "" ) && objJoin.addVersionClause ) {

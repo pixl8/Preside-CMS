@@ -246,7 +246,7 @@ component displayName="Multilingual Preside Object Service" {
 				if ( !$getRequestContext().showNonLiveContent() ) {
 					var joinTarget = arguments.joins[ i ].joinToObject ?: "";
 					if ( joinTarget.len() && $getPresideObjectService().objectIsVersioned( joinTarget ) ) {
-						arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = 0 )";
+						arguments.tableJoins[ i ].additionalClauses &= " and ( #arguments.tableJoins[ i ].tableAlias#._version_is_draft is null or #arguments.tableJoins[ i ].tableAlias#._version_is_draft = '0' )";
 					}
 				}
 
