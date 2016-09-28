@@ -59,7 +59,7 @@ component singleton=true {
 		var existingHash = _getCurrentVersionHash( argumentCollection=arguments );
 
 		if ( existingHash == arguments.version ) {
-			return existingHash;
+			return;
 		}
 
 		var ts     = DateFormat( Now(), "yyyy-mm-dd " ) & TimeFormat( Now(), "HH:mm:ss" );
