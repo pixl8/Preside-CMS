@@ -402,10 +402,11 @@ component {
 	}
 
 	private void function _cleanupCookies() {
-		var pc           = getPageContext();
-		var resp         = pc.getResponse();
-		var cbController = _getColdboxController();
-		var allCookies   = resp.getHeaders( "Set-Cookie" );
+		var pc             = getPageContext();
+		var resp           = pc.getResponse();
+		var cbController   = _getColdboxController();
+		var allCookies     = resp.getHeaders( "Set-Cookie" );
+		var sessionCookies = [ "CFID", "CFTOKEN" ];
 
 		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
 			if ( ArrayLen( allCookies ) ) {
@@ -425,6 +426,12 @@ component {
 			var cooky = allCookies[ i ];
 			if ( !Len( Trim( cooky ) ) ) {
 				continue;
+			}
+
+
+			if ( sessionCookies.findNoCase( cooky.listFirst( "=" ) ) ) {
+				cooky = _stripExpiryDateFromCookieToMakeASessionCookie( cooky );
+				anyCookiesChanged = true;
 			}
 
 			if ( !ReFindNoCase( httpRegex, cooky ) ) {
@@ -575,4 +582,16 @@ component {
 		return ExpandPath( request._presideMappings.logsMapping ?: "/logs" ) & "/sqlupgrade.sql";
 	}
 
+	private string function _stripExpiryDateFromCookieToMakeASessionCookie( required string cooky ) {
+		var cookieParts = arguments.cooky.listToArray( ";" );
+		var stripped    = "";
+
+		for( var part in cookieParts ) {
+			if ( !part.reFindNoCase( "^expires" ) ) {
+				stripped = stripped.listAppend( part, ";" );
+			}
+		}
+
+		return stripped;
+	}
 }
