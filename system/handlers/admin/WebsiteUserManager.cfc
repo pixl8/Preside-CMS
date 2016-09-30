@@ -26,6 +26,11 @@ component extends="preside.system.base.AdminHandler" {
 
 	function getUsersForAjaxDataTables( event, rc, prc ) {
 		_checkPermissions( event=event, key="websiteUserManager.read" );
+		var filter = {};
+
+		if( rc.active ){
+			filter = { active = rc.active };
+		};
 
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -34,6 +39,7 @@ component extends="preside.system.base.AdminHandler" {
 			, eventArguments = {
 				  object          = "website_user"
 				, gridFields      = "active,login_id,display_name,email_address,last_request_made"
+				, filter          = filter
 				, actionsView     = "/admin/websiteUserManager/_usersGridActions"
 				, useMultiActions = false
 			}
