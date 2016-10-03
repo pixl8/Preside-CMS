@@ -1029,6 +1029,21 @@ component displayName="AssetManager Service" {
 		var derivativeSlug  = ReReplace( arguments.derivativeName, "\W", "_", "all" ) & "_" & signature;
 		var storagePath     = "/derivatives/#derivativeSlug#/#filename#";
 
+		if( fileext == 'pdf' ){
+			var pdfAttributes = {
+				  action      = "getinfo"
+				, source      = assetBinary
+				, name        = 'result'
+			};
+			try{
+				pdf attributeCollection=pdfAttributes;
+			} catch( e ) {
+				if( e.detail == 'Bad user Password' ){
+					throw( type = "AssetManager.Password error" );
+				}
+			}
+		}
+
 		for( var transformation in transformations ) {
 			if ( not Len( Trim( transformation.inputFileType ?: "" ) ) or transformation.inputFileType eq fileext ) {
 				assetBinary = _applyAssetTransformation(

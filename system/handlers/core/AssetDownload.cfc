@@ -13,6 +13,7 @@ component output=false {
 		var isTrashed       = IsTrue( rc.isTrashed ) ?: "";
 		var asset           = "";
 		var assetSelectFields = [ "asset.title", ( Len( Trim( versionId ) ) ? "asset_version.asset_type" : "asset.asset_type" ) ];
+		var passwordProtected = false;
 
 		if ( Len( Trim( derivativeName ) ) ) {
 			try {
@@ -23,6 +24,9 @@ component output=false {
 				asset = QueryNew('');
 			} catch ( "storageProvider.objectNotFound" e ) {
 				asset = QueryNew('');
+			} catch( "AssetManager.Password error" e ){
+				asset = QueryNew('');
+				passwordProtected = true;
 			}
 		} elseif( Len( Trim( versionId ) ) ) {
 			asset = assetManagerService.getAssetVersion( assetId=assetId, versionId=versionId, selectFields=assetSelectFields );
@@ -62,6 +66,14 @@ component output=false {
 				reset    = true
 				variable = assetBinary
 				type     = type.mimeType;
+			abort;
+		} else if( passwordProtected ){
+			assetBinary = fileReadBinary(event.buildLink( systemStaticAsset = "/images/asset-type-icons/48px/locked-pdf.png" ));
+			header name="Content-Disposition" value="inline; filename=""ProctedPDF""";
+			content
+				reset    = true
+				variable = assetBinary
+				type     = 'png';
 			abort;
 		}
 
