@@ -34,4 +34,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.emailProtection = 'encode';
 
 	config.scayt_sLang = "en_GB";
+
+	// enable the SCAYT by default
+	config.scayt_autoStartup = true;
 };
