@@ -176,6 +176,7 @@ component {
 
 	private void function _clearExistingApplication() {
 		application.clear();
+		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
