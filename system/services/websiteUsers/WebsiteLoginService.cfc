@@ -61,12 +61,6 @@ component singleton=true autodoc=true displayName="Website login service" {
 				if( val( arguments.loginAttempt ) ) {
 					recordLoginAttempts( userId=userRecord.id, login_attempts=val( userRecord.login_attempts )+1 );
 				}
-
-				$recordWebsiteUserAction(
-					  action = "failedLogin"
-					, type   = "login"
-					, userId = userRecord.id
-				);
 			}
 		}
 
@@ -376,7 +370,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 			last_logged_in = Now()
 		} );
 	}
-	
+
 	public void function recordLoginAttempts( userId, login_attempts ) autodoc=true {
 		_getUserDao().updateData( id=arguments.userId, data={
 			login_attempts = arguments.login_attempts
