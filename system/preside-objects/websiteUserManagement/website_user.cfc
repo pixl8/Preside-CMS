@@ -14,6 +14,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="display_
 	property name="last_logged_in"              type="datetime" dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 	property name="last_logged_out"             type="datetime" dbtype="datetime"                required=false ignoreChangesForVersioning=true;
 	property name="last_request_made"           type="datetime" dbtype="datetime"                required=false ignoreChangesForVersioning=true;
+	property name="login_attempts"              type="numeric"  dbtype="int"                     required=false default=0;
 
 	property name="benefits" relationship="many-to-many" relatedTo="website_benefit";
 }

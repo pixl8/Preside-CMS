@@ -14,11 +14,30 @@ component output=false {
 		var password     = rc.password ?: "";
 		var postLoginUrl = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( cgi.http_referer );
 		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
+
+		if( val( _getLoginAttempt() ) ) {
+			var checkAttempts = websiteLoginService._getUserByLoginId( loginId=loginId );
+
+			if( checkAttempts.count() && val( checkAttempts.login_attempts ) >= _getLoginAttempt() ) {
+				announceInterception( "onLoginFailure"  );
+
+				websiteLoginService.setPostLoginUrl( postLoginUrl );
+				setNextEvent( url=event.buildLink( page="login" ), persistStruct={
+					  loginId      = loginId
+					, password     = password
+					, postLoginUrl = postLoginUrl
+					, rememberMe   = rememberMe
+					, message      = "LOGIN_ATTEMPT_REACHED"
+				} );
+			}
+		}
+		
 		var loggedIn     = websiteLoginService.login(
 			  loginId              = loginId
 			, password             = password
 			, rememberLogin        = rememberMe
 			, rememberExpiryInDays = _getRememberMeExpiry()
+			, loginAttempt         = val( _getLoginAttempt() )
 		);
 
 		if ( loggedIn ) {
@@ -174,6 +193,10 @@ component output=false {
 
 	private boolean function _getRememberMeExpiry() output=false {
 		return getSystemSetting( "website_users", "remember_me_expiry", 90 );
+	}
+
+	private string function _getLoginAttempt() output=false {
+		return getSystemSetting( "website_users", "login_attempt", 0 );
 	}
 
 }
