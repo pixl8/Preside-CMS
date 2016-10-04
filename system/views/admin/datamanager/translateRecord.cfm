@@ -13,6 +13,7 @@
 	deleteRecordPrompt  = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] );
 	deleteRecordTitle   = translateResource( uri="cms:datamanager.deleteRecord.btn" );
 
+	translationFlag     = prc.translationFlag  ?: "";
 	canDelete           = prc.canDelete;
 	translations        = prc.translations     ?: [];
 	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
@@ -53,7 +54,10 @@
 	<cfif useVersioning>
 		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "", language=currentLanguageId } )#
 	</cfif>
-
+	<p class="alert alert-warning">
+		#translateResource( uri="cms:datamanager.translation.flag", data=[ currentLanguage.name ] )#
+		<img src="/preside/system/assets/images/flags/16x16/#translationFlag#" class="locale-flag" />
+	</p>
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
 		<input type="hidden" name="object"   value="#object#" />
 		<input type="hidden" name="id"       value="#id#" />

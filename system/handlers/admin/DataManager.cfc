@@ -777,6 +777,9 @@
 				prc.cancelAction     = event.buildAdminLink( linkTo="datamanager.object", querystring='id=#object#' );
 				prc.formAction       = event.buildAdminLink( linkTo="datamanager.translateRecordAction", querystring='fromDataGrid=#fromDataGrid#' );
 				prc.translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&fromDataGrid=#fromDataGrid#&language=" );
+				var languageCode     = ListFirst( prc.language.iso_code, "_" );
+				var country          = ListLen( prc.language.iso_code, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+				prc.translationFlag  = translateResource( uri="locale:flag" , language=languageCode, country=country );
 			}
 			prc.pageIcon  = "pencil";
 			prc.pageTitle = translateResource( uri="cms:datamanager.translaterecord.title", data=[ objectName, prc.recordLabel, prc.language.name ] );
