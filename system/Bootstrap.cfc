@@ -178,6 +178,7 @@ component {
 	private void function _clearExistingApplication() {
 		onApplicationEnd( application );
 		application.clear();
+		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
@@ -484,11 +485,7 @@ component {
 	}
 
 	private string function _getPresideRoot() {
-		var trace        = CallStackGet();
-		var thisFilePath = trace[ 1 ].template;
-		var dir          = GetDirectoryFromPath( thisFilePath );
-
-		return ReReplace( dir, "[\\/]system[\\/]?$", "" );
+		return ExpandPath( "/preside" );
 	}
 
 	private boolean function _clearoutDuplicateCookies( required array cookieSet ) {
@@ -511,11 +508,7 @@ component {
 	}
 
 	private string function _getApplicationRoot() {
-		var trace      = CallStackGet();
-		var appCfcPath = trace[ trace.len() ].template;
-		var dir        = GetDirectoryFromPath( appCfcPath );
-
-		return ReReplace( dir, "[\\/]$", "" );
+		return ExpandPath( "/" );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
