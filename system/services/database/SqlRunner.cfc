@@ -41,14 +41,13 @@ component output=false singleton=true {
 					param.value = IsBoolean( param.value ) and param.value ? 'true' : 'false';
 				}
 
-				if ( not Len( Trim( param.value ) ) ) {
-					param.null = true;
-					arguments.sql = _transformNullClauses( arguments.sql, param.name );
-				}
-
 				param.cfsqltype = param.type; // mistakenly had thought we could do param.type - alas no, so need to fix it to the correct argument name here
 
-				q.addParam( argumentCollection = param );
+				if ( not Len( Trim( param.value ) ) ) {
+					arguments.sql = _transformNullClauses( arguments.sql, param.name );
+				} else {
+					q.addParam( argumentCollection = param );
+				}
 			}
 		}
 		q.setSQL( arguments.sql );
@@ -72,8 +71,8 @@ component output=false singleton=true {
 		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
 		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
 
-		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not :#arguments.paramName#", "all" );
-		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is :#arguments.paramName#", "all" );
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not null", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is null", "all" );
 
 		return preClause & postClause
 	}
