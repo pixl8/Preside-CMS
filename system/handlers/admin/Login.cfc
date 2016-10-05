@@ -46,6 +46,10 @@ component extends="preside.system.base.AdminHandler" {
 				, instance = user.id
 			);
 
+			if ( Len( Trim( user.user_language ) ) ) {
+				i18n.setFwLocale( Trim( user.user_language ) );
+			}
+
 			if ( loginService.twoFactorAuthenticationRequired( ipAddress = event.getClientIp(), userAgent = event.getUserAgent() ) ) {
 				setNextEvent( url=event.buildAdminLink( linkto="login.twoStep" ), persistStruct={ postLoginUrl = postLoginUrl } );
 			}
