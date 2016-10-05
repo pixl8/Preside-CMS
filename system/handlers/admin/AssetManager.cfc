@@ -608,11 +608,15 @@ component extends="preside.system.base.AdminHandler" {
 			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="asset=#id#" ) );
 		}
-		prc.record       = queryRowToStruct( prc.record );
-		prc.recordLabel  = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield",  defaultValue="label" ) ] ?: "";
-		prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
-		prc.formName     = "preside-objects.#translationObjectName#.admin.edit";
-		
+		prc.record          = queryRowToStruct( prc.record );
+		prc.recordLabel     = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield",     defaultValue="label" ) ] ?: "";
+		prc.translations    = multilingualPresideObjectService.getTranslationStatus( object, id );
+		prc.formName        = "preside-objects.#translationObjectName#.admin.edit";
+
+		var languageCode    = ListFirst( prc.language.iso_code, "_" );
+		var country         = ListLen( prc.language.iso_code, "_" ) > 1 ? ListRest( locale, "_" ) : "";
+		prc.translationFlag = translateResource( uri="locale:flag" , language=languageCode, country=country );
+
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:assetManager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
 			, link  = ""

@@ -1,11 +1,12 @@
 <cfscript>
-	object              = rc.object        ?: "";
-	currentLanguage     = prc.language     ?: {};
-	currentLanguageId   = rc.language      ?: "";
-	id                  = rc.id            ?: "";
-	recordLabel         = prc.recordLabel  ?: "";
-	formName            = prc.formName     ?: "";
-	translations        = prc.translations ?: [];
+	object              = rc.object           ?: "";
+	currentLanguage     = prc.language        ?: {};
+	currentLanguageId   = rc.language         ?: "";
+	id                  = rc.id               ?: "";
+	recordLabel         = prc.recordLabel     ?: "";
+	formName            = prc.formName        ?: "";
+	translations        = prc.translations    ?: [];
+	translationFlag     = prc.translationFlag ?: "";
 	formId              = "assetTranslate-record-form";
 	translateUrlBase    = event.buildAdminLink( linkTo="assetManager.translateAssetRecord", queryString="object=#object#&id=#id#&language=" );
 </cfscript>
@@ -30,7 +31,10 @@
 			</ul>
 		</cfif>
 	</div>
-
+	<p class="alert alert-warning">
+		#translateResource( uri="cms:assetmanager.translation.flag", data=[ currentLanguage.name ] )#
+ 		<img src="/preside/system/assets/images/flags/16x16/#translationFlag#" class="locale-flag" />
+	</p>
 	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-assetTranslation-form" method="post" action="#event.buildAdminLink( linkTo='assetManager.translateAssetRecordAction' )#">
 		<input type="hidden" name="object"   value="#object#" />
 		<input type="hidden" name="id"       value="#id#" />
