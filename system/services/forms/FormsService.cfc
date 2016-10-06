@@ -176,8 +176,9 @@ component displayName="Forms service" {
 	 * @formName.hint Name of the form who's fields you wish to list.
 	 */
 	public array function listFields( required string formName ) {
-		var frm    = getForm( arguments.formName );
-		var fields = [];
+		var frm            = getForm( arguments.formName );
+		var ignoreControls = [ "readonly", "oneToManyManager" ]
+		var fields         = [];
 
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
@@ -188,7 +189,7 @@ component displayName="Forms service" {
 					continue;
 				}
 				for( var field in fieldset.fields ) {
-					if ( ( field.control ?: "" ) != "readonly" && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
+					if ( !ignoreControls.findNoCase( field.control ?: "" ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}
