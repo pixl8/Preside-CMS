@@ -6,6 +6,13 @@
 
 	starCount = Val( args.starCount ?: "5" );
 	step      = IsTrue( args.allowHalfStars ?: "" ) ? 0.5 : 1;
+
+	value  = rc[ inputName ] ?: defaultValue;
+	if ( !IsSimpleValue( value ) ) {
+		value = "";
+	}
+
+	value = Val( value );
 </cfscript>
 
 <cfoutput>
