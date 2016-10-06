@@ -466,6 +466,9 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prePostExempt  = true
 		);
+		var imageExtensions = "png,gif,jpg,jpeg,jpe,jif,jfif,jfi";
+		var tempFileInfo    = rc.file.tempFileInfo ?: {};
+		var fileExtensions  = listLast( tempFileInfo.serverFile, "." );
 
 		var result   = { success=true, message="",  id="" };
 		var fileName = rc.file.tempFileInfo.clientFile ?: "";
@@ -476,6 +479,10 @@ component extends="preside.system.base.AdminHandler" {
 		} else if ( !Len( Trim( rc.asset_folder ?: "" ) ) ) {
 			result.success = false;
 			result.message = translateResource( "cms:assetmanager.file.upload.error.missing.folder" );
+		} else if( ListFind( imageExtensions , fileExtensions ) && !isImageFile( tempFileInfo.serverDirectory & "/" & tempFileInfo.serverFile ) ) {
+			result.success = false;
+			result.message = translateResource( "cms:assetmanager.uploader.image.format.failure" );
+
 		} else {
 			var assetData = event.getCollectionWithoutSystemVars();
 
