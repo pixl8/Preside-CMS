@@ -70,6 +70,11 @@
 			.initArg( name="trashDirectory", value=settings.tmp_uploads_directory & "/.trash" )
 			.initArg( name="rootUrl"       , value="" );
 
+		map( "rootFolderStorageProvider" ).asSingleton().to( "preside.system.services.fileStorage.FileSystemStorageProvider" ).parent( "baseService" ).noAutoWire()
+			.initArg( name="rootDirectory"   , value= expandPath( "/" ) )
+			.initArg( name="trashDirectory"  , value= expandPath( "/" ) )
+			.initArg( name="rootUrl"         , value="" );
+
 		map( "spreadsheetLib" ).asSingleton().to( "spreadsheetlib.Spreadsheet" );
 	}
 
