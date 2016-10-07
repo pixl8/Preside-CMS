@@ -179,6 +179,7 @@ component {
 			, "updateManager"
 			, "urlRedirects"
 			, "errorLogs"
+			, "emailLogs"
 			, "maintenanceMode"
 			, "systemInformation"
 		];
@@ -273,6 +274,7 @@ component {
 			, updateManager           = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, cmsUserManager          = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, errorLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
+			, emailLogs               = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, systemInformation       = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, passwordPolicyManager   = { enabled=true , siteTemplates=[ "*" ], widgets=[] }
 			, formbuilder             = { enabled=false, siteTemplates=[ "*" ], widgets=[ "formbuilderform" ] }

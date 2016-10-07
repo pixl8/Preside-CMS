@@ -6,14 +6,16 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 
 // CONSTRUCTOR
 	/**
-	 * @emailTemplateDirectories.inject presidecms:directories:handlers/emailTemplates
+	 * @emailTemplateDirectories.inject   presidecms:directories:handlers/emailTemplates
+	 * @emailLogService.inject            emailLogService
 	 * @systemConfigurationService.inject systemConfigurationService
-	 * @coldbox.inject                  coldbox
+	 * @coldbox.inject                    coldbox
 	 */
-	public any function init( required array emailTemplateDirectories, required any coldbox, required any systemConfigurationService ) output=false {
+	public any function init( required array emailTemplateDirectories, required any coldbox, required any systemConfigurationService, required any emailLogService ) output=false {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
 		_setColdbox( arguments.coldbox );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
+		_setEmailLogService( arguments.emailLogService );
 
 		_loadTemplates();
 
@@ -51,6 +53,17 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		var hasTemplate = Len( Trim( arguments.template ) );
 		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
 		    sendArgs    = _addDefaultsForMissingArguments( sendArgs );
+
+		for( var i=1; i<=arrayLen( sendArgs.to ); i++ ) {
+			_getEmailLogService().saveEmailLogs( argumentCollection={
+				  from_address = sendArgs.from
+				, to_address   = sendArgs.to[i]
+				, subject      = sendArgs.subject
+				, text_body    = sendArgs.textBody
+				, html_body    = sendArgs.htmlBody
+				, status       = "sent"
+			} );
+		}
 
 		_validateArguments( sendArgs );
 
@@ -276,5 +289,12 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 	}
 	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
 		_systemConfigurationService = arguments.systemConfigurationService;
+	}
+
+	private any function _getEmailLogService() {
+		return _emailLogService;
+	}
+	private void function _setEmailLogService( required any emailLogService ) {
+		_emailLogService = arguments.emailLogService;
 	}
 }

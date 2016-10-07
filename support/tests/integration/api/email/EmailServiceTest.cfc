@@ -24,6 +24,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, params   = {}
 		};
 
+		mockEmailLogService.$( "saveEmailLogs" ).$args( data={
+			  from_address = "someone@test.com"
+			, to_address   = "user@test.com"
+			, subject      = "This is a subject"
+			, text_body    = "test text_body"
+			, html_body    = "test html_body"
+			, status       = "sent"
+		} ).$results( createUUID() );
+
 		expectedSendArgs.append( testHandlerResult );
 
 
@@ -57,6 +66,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, textBody = ""
 			, params   = {}
 		};
+
+		mockEmailLogService.$( "saveEmailLogs" ).$args( data={
+			  from_address = "someone@test.com"
+			, to_address   = "user@test.com"
+			, subject      = "This is a subject"
+			, text_body    = "test text_body"
+			, html_body    = "test html_body"
+			, status       = "sent"
+		} ).$results( createUUID() );
 
 		expectedSendArgs.append( testHandlerResult );
 
@@ -98,6 +116,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		emailService.$( "_send", true );
 		mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
+		mockEmailLogService.$( "saveEmailLogs" ).$args( data={
+			  from_address = "someone@test.com"
+			, to_address   = "user@test.com"
+			, subject      = "This is a subject"
+			, text_body    = "test text_body"
+			, html_body    = "test html_body"
+			, status       = "sent"
+		} ).$results( createUUID() );
+
 		try {
 			emailService.send( to=[ "test@test.com" ], subject="Test subject", htmlBody="not really html" );
 		} catch( "EmailService.missingSender" e ) {
@@ -137,6 +164,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		emailService.$( "_send", true );
 		mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
+		mockEmailLogService.$( "saveEmailLogs" ).$args( data={
+			  from_address = "someone@test.com"
+			, to_address   = "user@test.com"
+			, subject      = "This is a subject"
+			, text_body    = "test text_body"
+			, html_body    = "test html_body"
+			, status       = "sent"
+		} ).$results( createUUID() );
+
 		try {
 			emailService.send( from="from@test.com", to=["to@test.com"], htmlBody="not really html" );
 		} catch( "EmailService.missingSubject" e ) {
@@ -156,6 +192,15 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		emailService.$( "_send", true );
 		mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
+		mockEmailLogService.$( "saveEmailLogs" ).$args( data={
+			  from_address = "someone@test.com"
+			, to_address   = "user@test.com"
+			, subject      = "This is a subject"
+			, text_body    = "test text_body"
+			, html_body    = "test html_body"
+			, status       = "sent"
+		} ).$results( createUUID() );
+
 		try {
 			emailService.send( from="from@test.com", to=["to@test.com"], subject="This is the subject" );
 		} catch( "EmailService.missingBody" e ) {
@@ -173,11 +218,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		templateDirs                   = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
 		mockColdBox                    = getMockBox().createMock( "preside.system.coldboxModifications.Controller" );
 		mockSystemConfigurationService = getMockBox().createMock( "preside.system.services.configuration.SystemConfigurationService" );
+		mockEmailLogService            = getMockbox().createMock( "preside.system.services.email.emailLogService" );
 
 		return getMockBox().createMock( object=new preside.system.services.email.EmailService(
 			  emailTemplateDirectories   = templateDirs
 			, coldbox                    = mockColdBox
 			, systemConfigurationService = mockSystemConfigurationService
+			, emailLogService            = mockEmailLogService
 		) );
 	}
 
