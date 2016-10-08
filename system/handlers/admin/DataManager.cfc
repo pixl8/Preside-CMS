@@ -45,7 +45,9 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var objectName   = event.getValue( name="id", default="" );
+			var objectName              = event.getValue( name="id", default="" );
+			var translationStatusColumn = dataManagerService.isTranslationStatusColumn( objectName );
+			var multilingual            = multilingualPresideObjectService.isMultilingual( objectName );
 			_checkObjectExists( argumentCollection=arguments, object=objectName );
 			_checkPermission( argumentCollection=arguments, key="navigate", object=objectName );
 
@@ -59,7 +61,7 @@
 
 			prc.gridFields          = _getObjectFieldsForGrid( objectName );
 			prc.batchEditableFields = dataManagerService.listBatchEditableFields( objectName );
-			prc.isMultilingual      = multilingualPresideObjectService.isMultilingual( objectName );
+			prc.isMultilingual  	= isTrue( multilingual ) && isTrue( translationStatusColumn );
 		</cfscript>
 	</cffunction>
 
@@ -660,11 +662,12 @@
 		<cfargument name="prc"   type="struct" required="true" />
 
 		<cfscript>
-			var object     = rc.object  ?: "";
-			var id         = rc.id      ?: "";
-			var version    = rc.version ?: "";
-			var objectName = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
-			var record     = "";
+			var object                  = rc.object  ?: "";
+			var id                      = rc.id      ?: "";
+			var version                 = rc.version ?: "";
+			var objectName              = translateResource( uri="preside-objects.#object#:title.singular", defaultValue=object );
+			var record                  = "";
+			var translationStatusColumn = dataManagerService.isTranslationStatusColumn( object );
 
 			_checkObjectExists( argumentCollection=arguments, object=object );
 			_objectCanBeViewedInDataManager( event=event, objectName=object, relocateIfNoAccess=true );
@@ -686,7 +689,7 @@
 			prc.recordLabel = prc.record[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield", defaultValue="label" ) ] ?: "";
 
 			prc.isMultilingual = multilingualPresideObjectService.isMultilingual( object );
-			prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] )
+			prc.canTranslate   = prc.isMultilingual && translationStatusColumn && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 			prc.canDelete      = datamanagerService.isOperationAllowed( object, "delete" ) && hasCmsPermission( permissionKey="datamanager.delete", context="datamanager", contextKeys=[ object ] );
 
 			if ( prc.canTranslate ) {

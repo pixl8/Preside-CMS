@@ -387,7 +387,16 @@ component output="false" singleton=true {
 
 		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
+	public boolean function isTranslationStatusColumn( required string objectName ) {
+		var poService    = _getPresideObjectService();
+		var statusColumn = poService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "showTranslationStatusColumn"
+			, defaultValue  = ""
+		);
 
+		return IsBoolean( statusColumn ) && statusColumn;
+	}
 // PRIVATE HELPERS
 	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
 		var sqlFields                = Duplicate( arguments.gridFields );
