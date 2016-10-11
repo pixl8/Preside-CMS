@@ -180,6 +180,7 @@ component displayName="Forms service" {
 		var ignoreControls = [ "readonly", "oneToManyManager" ]
 		var fields         = [];
 
+
 		for( var tab in frm.tabs ){
 			if ( IsBoolean( tab.deleted ?: "" ) && tab.deleted ) {
 				continue;
@@ -189,7 +190,9 @@ component displayName="Forms service" {
 					continue;
 				}
 				for( var field in fieldset.fields ) {
-					if ( !ignoreControls.findNoCase( field.control ?: "" ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
+					var control = ( field.control ?: "default" ) == "default" ? _getDefaultFormControl( argumentCollection=field ) : field.control;
+
+					if ( !ignoreControls.findNoCase( control ) && !( IsBoolean( field.deleted ?: "" ) && field.deleted ) ) {
 						ArrayAppend( fields, field.name ?: "" );
 					}
 				}
