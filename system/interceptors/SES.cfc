@@ -117,6 +117,7 @@ component extends="coldbox.system.interceptors.SES" output=false {
 			if ( language.recordCount ) {
 				event.setLanguage( language.id );
 				event.setLanguageSlug( language.slug );
+				event.setLanguageCode( language.iso_code );
 
 				if ( language.slug != localeSlug ) {
 					var qs          = Len( Trim( request[ "preside.query_string" ] ?: "" ) ) ? "?#request[ "preside.query_string" ]#" : "";

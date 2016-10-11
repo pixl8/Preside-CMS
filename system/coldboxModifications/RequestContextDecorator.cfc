@@ -635,8 +635,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	public void function setLanguage( required string language ) output=false {
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
 		getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
-
-
 	}
 
 	public string function getLanguageSlug() output=false {
@@ -644,6 +642,13 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 	public void function setLanguageSlug( required string languageSlug ) output=false {
 		getRequestContext().setValue( name="_languageSlug", value=arguments.languageSlug, private=true );
+	}
+
+	public string function getLanguageCode() output=false {
+		return getRequestContext().getValue( name="_languageCode", defaultValue="en", private=true );
+	}
+	public void function setLanguageCode( required string languageCode ) output=false {
+		getRequestContext().setValue( name="_languageCode", value=arguments.languageCode, private=true );
 	}
 
 // HTTP Header helpers
