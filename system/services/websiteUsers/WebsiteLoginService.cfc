@@ -41,7 +41,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @rememberExpiryInDays.hint When setting a remember me cookie, how long (in days) before the cookie should expire
 	 *
 	 */
-	public boolean function login( required string loginId, string password="", boolean rememberLogin=false, rememberExpiryInDays=90, boolean skipPasswordCheck=false, numeric loginAttempt=0 ) autodoc=true {
+	public boolean function login( required string loginId, string password="", boolean rememberLogin=false, rememberExpiryInDays=90, boolean skipPasswordCheck=false ) autodoc=true {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
@@ -57,10 +57,6 @@ component singleton=true autodoc=true displayName="Website login service" {
 				recordLogin();
 
 				return true;
-			} else {
-				if( val( arguments.loginAttempt ) ) {
-					recordLoginAttempts( userId=userRecord.id, login_attempts=val( userRecord.login_attempts )+1 );
-				}
 			}
 		}
 
@@ -371,12 +367,6 @@ component singleton=true autodoc=true displayName="Website login service" {
 		} );
 	}
 
-	public void function recordLoginAttempts( userId, login_attempts ) autodoc=true {
-		_getUserDao().updateData( id=arguments.userId, data={
-			login_attempts = arguments.login_attempts
-		} );
-	}
-
 	/**
 	 * Sets the last logged out date for the logged in user. Note, must be
 	 * called before logging the user out
@@ -403,7 +393,8 @@ component singleton=true autodoc=true displayName="Website login service" {
 		} );
 	}
 
-	public struct function _getUserByLoginId( required string loginId ) {
+// private helpers
+	private struct function _getUserByLoginId( required string loginId ) {
 		var record = _getUserDao().selectData(
 			  filter       = "( login_id = :login_id or email_address = :login_id ) and active = '1'"
 			, filterParams = { login_id = arguments.loginId }
@@ -417,7 +408,6 @@ component singleton=true autodoc=true displayName="Website login service" {
 		return {};
 	}
 
-// private helpers
 	private boolean function _validatePassword( required string plainText, required string hashed ) {
 		return _getBCryptService().checkPw( plainText=arguments.plainText, hashed=arguments.hashed );
 	}
