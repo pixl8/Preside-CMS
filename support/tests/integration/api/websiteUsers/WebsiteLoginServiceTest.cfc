@@ -95,7 +95,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test09_login_shouldReturnFalse_whenUserExistsButPasswordDoesNotMatch() output=false {
 		var userService = _getUserService();
-		var mockRecord  = QueryNew( 'password,id', 'varchar,varchar', ['blah',CreateUUId()] );
+		var mockRecord  = QueryNew( 'password,id,invalid_login_attempts', 'varchar,varchar,integer', ['blah',CreateUUId(),1] );
 
 		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
@@ -103,6 +103,8 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, filterParams = { login_id = "dummy" }
 			, useCache     = false
 		).$results( mockRecord );
+		mockUserDao.$( "updateData" ).$results();
+
 		mockBCryptService.$( "checkpw" ).$args( plainText="whatever", hashed=mockRecord.password ).$results( false );
 
 		super.assertFalse( userService.login( loginId="dummy", password="whatever" ) );
