@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Widget configuration form: Conditional content
+
+This form is used for the configuration of the "Conditional content" widget. This widget
+allows you to show content only when a configured rules engine condition is true
+for the current request
+-->
+<form i18nBaseUri="widgets.conditionalContent:" feature="rulesEngine" categories="system,default,rulesengine">
+	<tab>
+		<fieldset>
+			<field sortorder="10" name="condition"           required="true"  control="conditionPicker" ruleContext="webrequest" quickadd="true" quickedit="true" />
+			<field sortorder="20" name="content"             required="true"  control="richeditor" />
+			<field sortorder="30" name="alternative_content" required="false" control="richeditor" />
+		</fieldset>
+	</tab>
+</form>

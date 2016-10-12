@@ -145,21 +145,50 @@ component autodoc=true displayName="Notification Service" {
 	public query function getNotifications(
 		  required string  userId
 		,          string  topic       = ""
+		,          string  dateFrom    = ""
+		,          string  dateTo      = ""
 		,          numeric startRow    = 1
 		,          numeric maxRows     = 10
+		,          string  orderBy     = ""
 	) autodoc=true {
-		var filter  = { "admin_notification_consumer.security_user" = arguments.userId };
+		var filter         = { "admin_notification_consumer.security_user" = arguments.userId };
+		var extraFilters   = [];
+		var sortableFields = [ "topic", "datecreated" ];
+		var sortableTables = { topic="admin_notification", datecreated="admin_notification_consumer" }
 
 		if ( Len( Trim( arguments.topic ) ) ) {
 			filter[ "admin_notification.topic" ] = arguments.topic;
 		}
 
+		var sortColumn = ListFirst( arguments.orderBy, " " );
+		var sortDir    = ListLen( arguments.orderBy, " " ) > 1 ? ListRest( arguments.orderBy, " " ) : "asc";
+
+		if ( !Len( Trim( sortColumn ) ) || !sortableFields.findNoCase( sortColumn ) ) {
+			sortColumn = "datecreated";
+			sortDir    = "desc";
+		}
+		sortDir = sortDir == "asc" ? "asc" : "desc";
+
+		if ( IsDate( arguments.dateFrom ) ) {
+			extraFilters.append({
+				  filter       = "admin_notification.datecreated >= :dateFrom"
+				, filterParams = { dateFrom = { type="date", value=arguments.dateFrom } }
+			} );
+		}
+		if ( IsDate( arguments.dateTo ) ) {
+			extraFilters.append({
+				  filter       = "admin_notification.datecreated <= :dateTo"
+				, filterParams = { dateTo = { type="date", value=arguments.dateTo } }
+			} );
+		}
+
 		var records = _getConsumerDao().selectData(
 			  selectFields = [ "admin_notification.id", "admin_notification.topic", "admin_notification.data", "admin_notification.type", "admin_notification.datecreated", "admin_notification_consumer.read" ]
 			, filter       = filter
+			, extraFilters = extraFilters
 			, startRow     = arguments.startRow
 			, maxRows      = arguments.maxRows
-			, orderby      = "admin_notification_consumer.datecreated desc"
+			, orderby      = "#sortableTables[ sortColumn ]#.#sortColumn# #sortDir#"
 		);
 
 		var notifications = Duplicate( records );

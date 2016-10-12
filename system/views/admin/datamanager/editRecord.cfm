@@ -48,7 +48,12 @@
 	</div>
 
 	<cfif useVersioning>
-		#renderViewlet( event='admin.datamanager.versionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "" } )#
+		#renderViewlet( event='admin.datamanager.versionNavigator', args={
+			  object  = rc.object ?: ""
+			, id      = rc.id ?: ""
+			, version = rc.version ?: ""
+			, isDraft = IsTrue( prc.record._version_is_draft ?: "" )
+		} )#
 	</cfif>
 
 
@@ -58,6 +63,9 @@
 		, id            = ( rc.id      ?: "" )
 		, version       = ( rc.version ?: "" )
 		, record        = ( prc.record ?: {} )
-		, useVersioning = ( prc.useVersioning ?: false )
+		, useVersioning = IsTrue( prc.useVersioning ?: "" )
+		, draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
+		, canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
+		, canPublish    = IsTrue( prc.canPublish    ?: "" )
 	} )#
 </cfoutput>

@@ -19,10 +19,29 @@
 	permissionContext = prc.permissionContext ?: [];
 	hasDeletePermission  = hasCmsPermission( permissionKey="assetmanager.assets.delete" , context="assetmanagerfolder", contextKeys=permissionContext );
 	hasDownloadPermission  = hasCmsPermission( permissionKey="assetmanager.assets.download" , context="assetmanagerfolder", contextKeys=permissionContext );
+	canTranslate       = prc.canTranslate      ?:false;
+	assetTranslations  = prc.assetTranslations ?: [];
+	translateUrlBase   = event.buildAdminLink( linkTo="assetManager.translateAssetRecord", queryString="object=asset&id=#assetId#&language=" );
 </cfscript>
 
 <cfoutput>
 	<div class="top-right-button-group">
+		<cfif canTranslate && assetTranslations.len()>
+			<button data-toggle="dropdown" class="btn btn-sm btn-info pull-right inline">
+				<span class="fa fa-caret-down"></span>
+				<i class="fa fa-fw fa-globe"></i>&nbsp; #translateResource( uri="cms:assetManager.translate.record.btn" )#
+			</button>
+
+			<ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dLabel">
+				<cfloop array="#assetTranslations#" index="i" item="language">
+					<li>
+						<a href="#translateUrlBase##language.id#">
+							<i class="fa fa-fw fa-pencil"></i>&nbsp; #language.name# (#translateResource( 'cms:multilingal.status.#language.status#' )#)
+						</a>
+					</li>
+				</cfloop>
+			</ul>
+		</cfif>
 		<cfif hasDeletePermission>
 			<a class="pull-right inline confirmation-prompt" href="#event.buildAdminLink( linkTo="assetmanager.trashAssetAction", queryString="asset=#assetId#")#" data-global-key="d" title="#HtmlEditFormat( translateResource( uri="cms:assetmanager.trash.asset.link", data=[ asset.title ] ) )#">
 				<button class="btn btn-danger btn-sm">

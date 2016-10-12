@@ -4,14 +4,17 @@ component output=false {
 	property name="presideObjectService"     inject="presideObjectService";
 	property name="websitePermissionService" inject="websitePermissionService";
 	property name="websiteLoginService"      inject="websiteLoginService";
+	property name="websiteUserActionService" inject="websiteUserActionService";
 
 	public function index( event, rc, prc ) output=false {
 		announceInterception( "preRenderSiteTreePage" );
 
 		event.initializePresideSiteteePage(
-			  slug      = ( prc.slug      ?: "/" )
-			, subAction = ( prc.subAction ?: "" )
+			  slug               = ( prc.slug      ?: "/" )
+			, subAction          = ( prc.subAction ?: "" )
 		);
+
+		announceInterception( "postInitializePresideSiteteePage" );
 
 		var pageId       = event.getCurrentPageId();
 		var pageType     = event.getPageProperty( "page_type" );
@@ -20,9 +23,16 @@ component output=false {
 		var viewlet      = "";
 		var view         = "";
 
-		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.isAdminUser() ) ) {
+		if ( !Len( Trim( pageId ) ) || !pageTypesService.pageTypeExists( pageType ) || ( !event.isCurrentPageActive() && !event.showNonLiveContent() ) ) {
 			event.notFound();
 		}
+
+		websiteUserActionService.recordAction(
+			  action     = "pagevisit"
+			, type       = "request"
+			, identifier = pageId
+			, userId     = getLoggedInUserId()
+		);
 
 		event.checkPageAccess();
 

@@ -12,5 +12,8 @@
 		  objectName            = objectName
 		, addRecordAction       = event.buildAdminLink( linkTo='datamanager.addRecordAction', queryString="object=#objectName#" )
 		, allowAddAnotherSwitch = true
+		, draftsEnabled         = IsTrue( prc.draftsEnabled ?: "" )
+		, canSaveDraft          = IsTrue( prc.canSaveDraft  ?: "" )
+		, canPublish            = IsTrue( prc.canPublish    ?: "" )
 	} )#
 </cfoutput>
