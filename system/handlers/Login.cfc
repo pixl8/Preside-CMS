@@ -1,7 +1,9 @@
 component output=false {
 
-	property name="websiteLoginService"   inject="websiteLoginService";
-	property name="passwordPolicyService" inject="passwordPolicyService";
+	property name="websiteLoginService"          inject="websiteLoginService";
+	property name="passwordPolicyService"        inject="passwordPolicyService";
+	property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService";
+	property name="rulesEngineConditionService"  inject="rulesEngineConditionService";
 
 // core events
 	public void function attemptLogin( event, rc, prc ) output=false {
@@ -10,10 +12,27 @@ component output=false {
 		if ( websiteLoginService.isLoggedIn() && !websiteLoginService.isAutoLoggedIn() ) {
 			setNextEvent( url=_getDefaultPostLoginUrl( argumentCollection=arguments ) );
 		}
-		var loginId      = rc.loginId  ?: "";
-		var password     = rc.password ?: "";
-		var postLoginUrl = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( cgi.http_referer );
-		var rememberMe   = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
+		var loginId               = rc.loginId  ?: "";
+		var password              = rc.password ?: "";
+		var postLoginUrl          = Len( Trim( rc.postLoginUrl ?: "" ) ) ? rc.postLoginUrl : websiteLoginService.getPostLoginUrl( cgi.http_referer );
+		var rememberMe            = _getRememberMeAllowed() && IsBoolean( rc.rememberMe ?: "" ) && rc.rememberMe;
+		var userHasNoLoginattempt = len( _getLoginAttemptCondition() ) ? rulesEngineWebRequestService.evaluateConditionForNonLoggedInUser( conditionId=_getLoginAttemptCondition(), loginId=loginId ) : false;
+
+		if( userHasNoLoginattempt ) {
+			var condition = rulesEngineConditionService.getCondition( conditionId=_getLoginAttemptCondition() );
+			var message   = condition.expressions[1].fields.lockoutMessage ?: "";
+
+			announceInterception( "onLoginFailure"  );
+
+			websiteLoginService.setPostLoginUrl( postLoginUrl );
+			setNextEvent( url=event.buildLink( page="login" ), persistStruct={
+				  loginId      = loginId
+				, password     = password
+				, postLoginUrl = postLoginUrl
+				, rememberMe   = rememberMe
+				, message      = message
+			} );
+		}
 
 		var loggedIn     = websiteLoginService.login(
 			  loginId              = loginId
@@ -175,5 +194,9 @@ component output=false {
 
 	private boolean function _getRememberMeExpiry() output=false {
 		return getSystemSetting( "website_users", "remember_me_expiry", 90 );
+	}
+
+	private string function _getLoginAttemptCondition() output=false {
+		return getSystemSetting( "website_users", "login_attempt_condition", "" );
 	}
 }
