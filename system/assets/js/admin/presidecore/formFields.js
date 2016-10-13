@@ -9,7 +9,7 @@
 		  , $basedOn = $this.parents("form:first").find("[name='" + $this.data( 'basedOn' ) + "']");
 
 		$basedOn.keyup( function(e){
-            var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).replace( /^-/, "" ).replace( /-$/, "" ).toLowerCase();
+			var slug = $basedOn.val().replace( /\W/g, "-" ).replace( /-+/g, "-" ).replace( /^-/, "" ).replace( /-$/, "" ).toLowerCase();
 
 			$this.val( slug );
 		} );
