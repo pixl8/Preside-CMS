@@ -72,8 +72,8 @@ component output=false singleton=true {
 		var preClause  = arguments.sql.reReplaceNoCase( "^(.*?\swhere)\s.*$", "\1" );
 		var postClause = arguments.sql.reReplaceNoCase( "^.*?\swhere\s", " " );
 
-		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not :#arguments.paramName#", "all" );
-		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is :#arguments.paramName#", "all" );
+		postClause = postClause.reReplaceNoCase("\s!= :#arguments.paramName#", " is not null", "all" );
+		postClause = postClause.reReplaceNoCase("\s= :#arguments.paramName#", " is null", "all" );
 
 		return preClause & postClause
 	}
