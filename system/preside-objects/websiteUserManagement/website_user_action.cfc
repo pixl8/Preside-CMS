@@ -16,7 +16,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Website
 	property name="detail"     type="string"  dbtype="text"                   required=true;
 	property name="uri"        type="string"  dbtype="varchar" maxLength=2083 required=true;
 	property name="user_ip"    type="string"  dbtype="varchar" maxLength=255  required=true;
-	property name="user_agent" type="string"  dbtype="varchar" maxLength=255  required=false;
+	property name="user_agent" type="string"  dbtype="text";
 
 	property name="datecreated" indexes="logged";
 }
