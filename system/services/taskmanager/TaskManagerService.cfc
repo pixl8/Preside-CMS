@@ -454,7 +454,6 @@ component displayName="Task Manager Service" {
 		var lastRunJodaTime   = _createJodaTimeObject( DateAdd( 'n', 1, arguments.lastRun ) ); // add 1 minute to the time so that we don't get a mini loop of repeated task running due to interesting way the java lib calcs the next time
 
 		return cronTabExpression.nextTimeAfter( lastRunJodaTime  ).toDate();
-
 	}
 
 	public void function registerMasterScheduledTask() {
@@ -645,11 +644,11 @@ component displayName="Task Manager Service" {
 
 // PRIVATE HELPERS
 	private any function _createJodaTimeObject( required date cfmlDateTime ) {
-		return CreateObject( "java", "org.joda.time.DateTime", "/preside/system/services/taskmanager/lib/cron-1.0.jar" ).init( cfmlDateTime );
+		return CreateObject( "java", "org.joda.time.DateTime", _getLib() ).init( cfmlDateTime );
 	}
 
 	private any function _getCrontabExpressionObject( required string expression ) {
-		return CreateObject( "java", "fc.cron.CronExpression", "/preside/system/services/taskmanager/lib/cron-1.0.jar" ).init( arguments.expression );
+		return CreateObject( "java", "fc.cron.CronExpression", _getLib() ).init( arguments.expression );
 	}
 
 	private void function _initialiseDb() {
@@ -664,7 +663,7 @@ component displayName="Task Manager Service" {
 		if ( arguments.expression == "disabled" ) {
 			return "disabled";
 		}
-		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", [ "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar", "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar" ] ).getDescription( arguments.expression );
+		return CreateObject( "java", "net.redhogs.cronparser.CronExpressionDescriptor", _getLib() ).getDescription( arguments.expression );
 	}
 
 	private string function _getScheduledTaskUrl( required string siteId ) {
@@ -673,6 +672,15 @@ component displayName="Task Manager Service" {
 		var serverName = ( site.domain ?: cgi.server_name );
 
 		return "http://" & serverName & "/taskmanager/runtasks/";
+	}
+
+	private array function _getLib() {
+		return [
+			  "/preside/system/services/taskmanager/lib/cron-parser-2.6-SNAPSHOT.jar"
+			, "/preside/system/services/taskmanager/lib/commons-lang3-3.3.2.jar"
+			, "/preside/system/services/taskmanager/lib/joda-time-2.9.4.jar"
+			, "/preside/system/services/taskmanager/lib/cron-1.0.jar"
+		];
 	}
 
 // GETTERS AND SETTERS
