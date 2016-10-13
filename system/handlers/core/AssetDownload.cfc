@@ -89,8 +89,8 @@ component output=false {
 	}
 
 	private void function _checkDownloadPermissions( event, rc, prc ) output=false {
-		var assetId        = rc.assetId      ?: "";
-		var derivativeName = rc.derivativeId ?: "";
+		var assetId        = rc.assetId       ?: "";
+		var derivativeName = rc.derivativeId  ?: "";
 
 		if ( Len( Trim( derivativeName ) ) && assetManagerService.isDerivativePubliclyAccessible( derivativeName ) ) {
 			return;
@@ -104,7 +104,7 @@ component output=false {
 
 				if ( !conditionIsTrue ) {
 					if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-						event.accessDenied( reason="LOGIN_REQUIRED" );
+						event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
 					} else {
 						event.accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
 					}
@@ -120,7 +120,7 @@ component output=false {
 			if ( hasPerm ) { return; }
 
 			if ( !isLoggedIn() || ( permissionSettings.fullLoginRequired && isAutoLoggedIn() ) ) {
-				event.accessDenied( reason="LOGIN_REQUIRED" );
+				event.accessDenied( reason="LOGIN_REQUIRED", postLoginUrl=( cgi.http_referer ?: "" ) );
 			}
 
 			hasPerm = hasWebsitePermission(

@@ -44,7 +44,7 @@ component {
 		rc.body = renderViewlet( event=notFoundViewlet );
 	}
 
-	public void function accessDenied( event, rc, prc ) {
+	private void function accessDenied( event, rc, prc, args={} ) {
 		var accessDeniedViewlet = getSetting( name="accessDeniedViewlet", defaultValue="errors.accessDenied" );
 		var accessDeniedLayout  = getSetting( name="accessDeniedLayout" , defaultValue="Main" );
 
