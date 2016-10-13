@@ -194,6 +194,9 @@ component extends="preside.system.base.AdminHandler" {
 			} catch( "PresideCMS.AssetManager.folder.in.different.location" e ) {
 				messagebox.error( translateResource( "cms:assetmanager.assets.could.not.be.moved.across.locations.error" ) );
 				success = false;
+			} catch ("PresideCMS.AssetManager.asset.file.exist.in.folder" e ){
+				messagebox.error( translateResource( "cms:assetmanager.assets.file.is.exist.in.folder.error" ) );
+				success = false;
 			}
 
 			if ( !success ) {
