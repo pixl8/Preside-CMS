@@ -31,7 +31,7 @@ component displayName="Database Migration Service" {
 	}
 
 	public void function migrate() {
-		var currentPresideVersion = _getUpdateManagerService().getCurrentVersion();
+		var currentPresideVersion = _getUpdateManagerService().detectCurrentVersion();
 
 		if ( currentPresideVersion != "unknown" ) {
 			var currentDbVersion  = getCurrentDatabaseVersion();

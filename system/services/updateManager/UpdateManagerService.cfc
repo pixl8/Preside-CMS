@@ -52,6 +52,46 @@ component {
 		return versionInfo.version ?: "unknown";
 	}
 
+	public string function getCurrentVersionFromBoxFile() {
+		var boxFile = ListAppend( _getPresidePath(), "box.json", "/" );
+		var boxFileContent = "";
+
+		if ( !FileExists( boxFile ) ) {
+			return "unknown";
+		}
+
+		try {
+			boxFileContent = DeSerializeJson( FileRead( boxFile ) );
+		} catch ( any e ) {
+			return "unknown";
+		}
+
+		return boxFileContent.version ?: "unknown";
+	}
+
+	public string function detectCurrentVersion() {
+		var version = getCurrentVersion();
+
+		if ( version != "unknown" ) {
+			return version;
+		}
+
+		version = getCurrentVersionFromBoxFile();
+
+		if ( version != "unknown" ) {
+			return version;
+		}
+
+		if ( isGitClone() ) {
+			var gitbranch = getGitBranch();
+			if ( listFirst( gitbranch, "-" ) == "release" ) {
+				return listLast( gitbranch, "-" );
+			}
+		}
+
+		return "unknown";
+	}
+
 	public boolean function isGitClone() {
 		var gitDir = _getPresidePath() & "/.git/";
 
