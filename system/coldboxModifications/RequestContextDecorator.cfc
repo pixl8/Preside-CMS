@@ -690,7 +690,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 	public void function accessDenied( required string reason ) output=false {
 		announceInterception( "onAccessDenied" , arguments );
-		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments } );
+		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
 		WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 	}
 
