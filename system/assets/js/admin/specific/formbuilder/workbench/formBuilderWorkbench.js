@@ -181,6 +181,12 @@
 		} );
 
 		modal.open();
+		$( 'button[class="bootbox-close-button close"]' ).on( "click", function( e ){
+			var itemData = $item.data();
+			if ( typeof itemData.id === "undefined" ) {
+				$item.remove();
+			}
+		});
 	};
 
 	editItem = function( e ) {

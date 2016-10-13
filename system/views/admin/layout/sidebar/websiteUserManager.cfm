@@ -1,27 +1,41 @@
 <cfscript>
-	if ( isFeatureEnabled( "websiteUsers" ) && ( hasCmsPermission( "websiteUserManager.navigate" ) || hasCmsPermission( "websiteBenefitsManager.navigate" ) ) ) {
+	if ( isFeatureEnabled( "websiteUsers" ) ) {
 		subMenuItems = [];
 		if ( hasCmsPermission( "websiteUserManager.navigate" ) ) {
 			subMenuItems.append( {
 				  link  = event.buildAdminLink( linkTo="websiteUserManager" )
 				, title = translateResource( "cms:websiteUserManager.users" )
+				, active = ReFindNoCase( "\.?websiteUserManager$", event.getCurrentHandler() )
 			} );
 		}
-		if ( hasCmsPermission( "websiteBenefitsManager.navigate" ) ) {
+		if ( isFeatureEnabled( "websiteBenefits" ) && hasCmsPermission( "websiteBenefitsManager.navigate" ) ) {
 			subMenuItems.append( {
 				  link  = event.buildAdminLink( linkTo="websitebenefitsmanager" )
 				, title = translateResource( "cms:websiteUserManager.benefits" )
+				, active = ReFindNoCase( "\.?websiteBenefitsManager$", event.getCurrentHandler() )
 			} );
 		}
 
-		WriteOutput( renderView(
-			  view = "/admin/layout/sidebar/_menuItem"
-			, args = {
-				  active       = ReFindNoCase( "\.?website(user|benefits)manager$", event.getCurrentHandler() )
-				, icon         = "fa-group"
-				, title        = translateResource( 'cms:websiteUserManager' )
-				, subMenuItems = subMenuItems
-			  }
-		) );
+		if ( subMenuItems.len() == 2 ) {
+			WriteOutput( renderView(
+				  view = "/admin/layout/sidebar/_menuItem"
+				, args = {
+					  active       = subMenuItems[1].active || subMenuItems[2].active
+					, icon         = "fa-group"
+					, title        = translateResource( 'cms:websiteUserManager' )
+					, subMenuItems = subMenuItems
+				  }
+			) );
+		} else if ( subMenuItems.len() == 1 ) {
+			WriteOutput( renderView(
+				  view = "/admin/layout/sidebar/_menuItem"
+				, args = {
+					  active = subMenuItems[1].active
+					, title  = subMenuItems[1].title
+					, link   = subMenuItems[1].link
+					, icon   = "fa-group"
+				  }
+			) );
+		}
 	}
 </cfscript>

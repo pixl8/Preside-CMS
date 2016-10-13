@@ -21,7 +21,7 @@
 
 			<i class="fa fa-fw fa-info-circle"></i>
 			#translateResource( uri="cms:assetmanager.versionpreview.info", data=[ FileSizeFormat( args.size ), args.asset_type, renderContent( 'datetime', args.datecreated ) ] )#<br><br>
-			
+
 			<cfif args.hasDownloadPermission>
 				<a href="#event.buildLink( assetId=args.asset, versionId=args.id )#" target="_blank">
 					<i class="fa fa-fw fa-download blue"></i>

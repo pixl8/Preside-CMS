@@ -1,5 +1,6 @@
 component {
 	property name="applicationReloadService"  inject="applicationReloadService";
+	property name="databaseMigrationService"  inject="databaseMigrationService";
 	property name="applicationsService"       inject="applicationsService";
 	property name="websiteLoginService"       inject="websiteLoginService";
 	property name="adminLoginService"         inject="loginService";
@@ -8,7 +9,15 @@ component {
 
 	public void function applicationStart( event, rc, prc ) {
 		prc._presideReloaded = true;
+
+		_performDbMigrations();
 		announceInterception( "onApplicationStart" );
+	}
+
+	public void function applicationEnd( event, rc, prc ) {
+		applicationReloadService.gracefulShutdown(
+			force = url.keyExists( "force" )
+		);
 	}
 
 	public void function requestStart( event, rc, prc ) {
@@ -158,5 +167,9 @@ component {
 			websiteLoginService.recordVisit();
 			adminLoginService.recordVisit();
 		}
+	}
+
+	private void function _performDbMigrations() {
+		databaseMigrationService.migrate();
 	}
 }

@@ -1,7 +1,6 @@
 <cfscript>
 	renderedContent = args.renderedContent ?: "";
 	rawContent      = args.rawContent      ?: "";
-	draftContent    = args.draftContent    ?: "";
 	control         = args.control         ?: "";
 	label           = args.label           ?: "";
 	renderer        = args.renderer        ?: "";
@@ -9,7 +8,6 @@
 	property        = args.property        ?: "";
 	recordId        = args.recordId        ?: "";
 	pageId          = event.getCurrentPageId();
-	hasDraft        = Len( Trim( draftContent ) );
 	containerId     = "_" & Left( LCase( Hash( CreateUUId() ) ), 8 );
 
 	if ( not Len( Trim( label ) ) ) {
@@ -17,7 +15,13 @@
 	}
 
 	if ( event.isAdminUser() ) {
-		prc.hasCmsPageEditPermissions = prc.hasCmsPageEditPermissions ?: hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
+		prc.hasCmsSaveDraftPermissions = prc.hasCmsSaveDraftPermissions ?: hasCmsPermission( permissionKey="sitetree.saveDraft", context="page", contextKeys=event.getPagePermissionContext() );
+		prc.hasCmsPublishPermissions   = prc.hasCmsPublishPermissions   ?: hasCmsPermission( permissionKey="sitetree.publish", context="page", contextKeys=event.getPagePermissionContext() );
+		prc.hasCmsPageEditPermissions  = prc.hasCmsPageEditPermissions  ?: ( prc.hasCmsSaveDraftPermissions || prc.hasCmsPublishPermissions ) && hasCmsPermission( permissionKey="sitetree.edit", context="page", contextKeys=event.getPagePermissionContext() );
+
+		saveAction            = event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' );
+		publishAction         = event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.publishAction' );
+		publishPromptEndpoint = event.buildAdminLink( linkTo='ajaxProxy.index', queryString='action=frontendEditing.getPublishPrompt' );
 	}
 </cfscript>
 
@@ -27,7 +31,7 @@
 	<cfelse>
 		<!-- container: #containerId# -->#Trim( renderedContent )#<!-- !container: #containerId# -->
 		<script type="text/template" class="content-editor">
-			<div class="presidecms content-editor #LCase( control )#<cfif hasDraft> has-draft</cfif>" id="#containerId#">
+			<div class="presidecms content-editor #LCase( control )#" id="#containerId#">
 				<div class="content-editor-overlay" title="#translateResource( 'cms:frontendeditor.overlay.hint' )#">
 					<div class="inner"></div>
 				</div>
@@ -35,12 +39,7 @@
 					#translateResource( label, property )# <span class="draft-warning">#translateResource( "cms:frontendeditor.draft.warning.label" )#</span>
 				</div>
 				<div class="presidecms content-editor-editor-container">
-					<form method="post"
-					    class                     = "content-editor-form"
-						action                    = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveAction' )#"
-						data-save-draft-action    = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.saveDraftAction' )#"
-						data-discard-draft-action = "#event.buildAdminLink( linkTo='ajaxProxy.index', querystring='action=frontendEditing.discardDraftAction' )#">
-
+					<form method="post" class="content-editor-form preside-theme" action="#saveAction#" data-publish-prompt-endpoint="#publishPromptEndpoint#" data-publish-action="#publishAction#">
 						<input type="hidden" name="pageId"   value="#pageId#"   />
 						<input type="hidden" name="object"   value="#object#"   />
 						<input type="hidden" name="property" value="#property#" />
@@ -59,7 +58,6 @@
 								, id           = ""
 								, layout       = ""
 							)#
-							<textarea name="draftContent" class="hide">#draftContent#</textarea>
 						<cfelse>
 							#renderFormControl(
 								  name         = "content"
@@ -78,10 +76,17 @@
 							<a href="##versiontable#containerId#" class="version-history-link" title="#translateResource( 'cms:frontendeditor.field.history.title' )#"
 							   data-title="#translateResource( 'cms:frontendeditor.field.history.title' )#" data-modal-class="version-history" data-buttons="ok"><i class="fa fa-history fa-lg"></i></a>
 
-							<button class="btn btn-primary editor-btn-save" type="submit" disabled="disabled">
-								<i class="fa fa-check"></i>
-								#translateResource( "cms:frontendeditor.editor.save.btn" )#
-							</button>
+							<cfif prc.hasCmsSaveDraftPermissions>
+								<button type="button" name="_saveAction" value="savedraft" class="btn btn-info editor-btn-save" tabindex="#getNextTabIndex()#">
+									<i class="fa fa-save bigger-110"></i> #translateResource( "cms:frontendeditor.editor.save.btn" )#
+								</button>
+							</cfif>
+							<cfif prc.hasCmsPublishPermissions>
+								<button type="button" name="_saveAction" value="publish" class="btn btn-warning editor-btn-publish" tabindex="#getNextTabIndex()#">
+									<i class="fa fa-globe bigger-110"></i> #translateResource( "cms:frontendeditor.editor.publish.btn" )#
+								</button>
+							</cfif>
+
 							<button class="btn editor-btn-cancel">
 								<i class="fa fa-reply"></i>
 								#translateResource( "cms:frontendeditor.editor.cancel.btn" )#

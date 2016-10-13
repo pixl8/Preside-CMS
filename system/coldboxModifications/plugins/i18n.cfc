@@ -4,6 +4,10 @@ component extends="coldbox.system.plugins.i18n" output=false {
 	property name="widgetsService"        inject="widgetsService";
 	property name="presideObjectService"  inject="presideObjectService";
 
+	public void function init_i18n() {
+		// do nothing to override behaviour we don't want for Preside
+	}
+
 	public string function translateResource(
 		  required string uri
 		,          string defaultValue = getController().getSetting( "UnknownTranslation" )

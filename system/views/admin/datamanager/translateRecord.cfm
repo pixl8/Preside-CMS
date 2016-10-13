@@ -9,15 +9,22 @@
 	useVersioning       = prc.useVersioning ?: false;
 	formName            = prc.formName ?: "";
 
-	deleteRecordLink   = event.buildAdminLink( linkTo="datamanager.deleteTranslationAction", queryString="object=#object#&id=#id#&language=#currentLanguageId#" );
-	deleteRecordPrompt = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] )
-	deleteRecordTitle = translateResource( uri="cms:datamanager.deleteRecord.btn" )
+	deleteRecordLink    = event.buildAdminLink( linkTo="datamanager.deleteTranslationAction", queryString="object=#object#&id=#id#&language=#currentLanguageId#" );
+	deleteRecordPrompt  = translateResource( uri="cms:datamanager.deleteTranslation.prompt", data=[ currentLanguage.name, objectTitleSingular, recordLabel ] );
+	deleteRecordTitle   = translateResource( uri="cms:datamanager.deleteRecord.btn" );
 
-	canDelete        = prc.canDelete;
-	translations     = prc.translations ?: [];
-	translateUrlBase = event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
+	canDelete           = prc.canDelete;
+	translations        = prc.translations     ?: [];
+	translateUrlBase    = prc.translateUrlBase ?: event.buildAdminLink( linkTo="datamanager.translateRecord", queryString="object=#object#&id=#id#&language=" );
+	cancelAction        = prc.cancelAction     ?: event.buildAdminLink( linkTo="datamanager.editRecord", querystring='object=#object#&id=#id#' );
+	formAction          = prc.formAction       ?: event.buildAdminLink( linkTo='datamanager.translateRecordAction');
+	formId              = "translate-record-form";
 
-	formId = "translate-record-form";
+	draftsEnabled = IsTrue( prc.draftsEnabled ?: "" )
+	canSaveDraft  = IsTrue( prc.canSaveDraft  ?: "" )
+	canPublish    = IsTrue( prc.canPublish    ?: "" )
+
+
 </cfscript>
 <cfoutput>
 	<div class="top-right-button-group">
@@ -53,7 +60,7 @@
 		#renderViewlet( event='admin.datamanager.translationVersionNavigator', args={ object=rc.object ?: "", id=rc.id ?: "", version=rc.version ?: "", language=currentLanguageId } )#
 	</cfif>
 
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#event.buildAdminLink( linkTo='datamanager.translateRecordAction' )#">
+	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
 		<input type="hidden" name="object"   value="#object#" />
 		<input type="hidden" name="id"       value="#id#" />
 		<input type="hidden" name="language" value="#currentLanguageId#" />
@@ -69,29 +76,28 @@
 			, validationResult   = rc.validationResult ?: ""
 		)#
 
-		<div class="form-actions row">
-			#renderFormControl(
-				  type         = "yesNoSwitch"
-				, context      = "admin"
-				, name         = "_translation_active"
-				, id           = "_translation_active"
-				, label        = translateResource( uri="cms:datamanager.translation.active" )
-				, savedData    = prc.record ?: {}
-				, defaultValue = IsTrue( prc.record._translation_active ?: "" )
-			)#
+		<div class="col-md-offset-2">
+			<a href="#cancelAction#" class="btn btn-default" data-global-key="c">
+				<i class="fa fa-reply bigger-110"></i>
+				#translateResource( "cms:datamanager.cancel.btn" )#
+			</a>
 
-			<div class="col-md-offset-2">
-				<a href="#event.buildAdminLink( linkTo='datamanager.editRecord', queryString='object=#object#&id=#id#' )#" class="btn btn-default" data-global-key="c">
-					<i class="fa fa-reply bigger-110"></i>
-					#translateResource( "cms:datamanager.cancel.btn" )#
-				</a>
-
-				<button class="btn btn-info" type="submit" tabindex="#getNextTabIndex()#">
-
-					<i class="fa fa-check bigger-110"></i>
-					#translateResource( "cms:datamanager.savechanges.btn" )#
+			<cfif draftsEnabled>
+				<cfif canSaveDraft>
+					<button type="submit" name="_saveAction" value="savedraft" class="btn btn-info" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.draft.btn", data=[ LCase( objectTitleSingular ) ] )#
+					</button>
+				</cfif>
+				<cfif canPublish>
+					<button type="submit" name="_saveAction" value="publish" class="btn btn-warning" tabindex="#getNextTabIndex()#">
+						<i class="fa fa-globe bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.publish.btn", data=[ LCase( objectTitleSingular ) ] )#
+					</button>
+				</cfif>
+			<cfelse>
+				<button type="submit" name="_saveAction" value="add" class="btn btn-info" tabindex="#getNextTabIndex()#">
+					<i class="fa fa-save bigger-110"></i> #translateResource( uri="cms:datamanager.translate.record.btn", data=[ LCase( objectTitleSingular ) ] )#
 				</button>
-			</div>
+			</cfif>
 		</div>
 	</form>
 </cfoutput>

@@ -114,28 +114,23 @@
 
 	$.fn.presideFrontEndEditor = function( command ){
 		return this.each( function(){
-			var $scriptContainer   = $( this )
-			  , $editor            = $( $scriptContainer.html() )
-			  , $editorContainer   = $editor.find( '.content-editor-editor-container' )
-			  , $overlay           = $editor.find( ".content-editor-overlay .inner" )
-			  , $form              = $editorContainer.find( "form" )
-			  , $contentInput      = $form.find( "[name=content]" )
-			  , $drafttextarea     = $editorContainer.find( "textarea[name=draftContent]" )
-			  , $editorParent      = $scriptContainer.parent()
-			  , $notificationsArea = $editor.find( ".content-editor-editor-notifications" )
-			  , $versioningLink    = $editorContainer.find( ".version-history-link" )
-			  , isRichEditor       = $editor.hasClass( "richeditor" )
-			  , saveAction         = $form.attr( "action" )
-			  , saveDraftAction    = $form.data( "saveDraftAction" )
-			  , discardDraftAction = $form.data( "discardDraftAction" )
-			  , originalValue      = $contentInput.val()
-			  , savedDraftValue    = $drafttextarea.length && $drafttextarea.val().length ? $drafttextarea.val() : originalValue
-			  , formEnabled        = false
-			  , autoSaveInterval   = 1500 // auto save draft 1.5 seconds after typing stopped
-			  , autoSaveTimeout    = null
-			  , discardDraftIcon   = '<i class="preside-icon fa fa-trash-o discard-draft" title="' + i18n.translateResource( "cms:frontendeditor.discard.draft.link" ) + '"></i> '
-			  , versionIcon        = '<i class="preside-icon fa fa-history"></i> '
-			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, confirmAndSave, notify, clearNotifications, disableEditForm, autoSave, discardDraft, clearLocalDraft, draftIsDirty, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent;
+			var $scriptContainer      = $( this )
+			  , $editor               = $( $scriptContainer.html() )
+			  , $editorContainer      = $editor.find( '.content-editor-editor-container' )
+			  , $overlay              = $editor.find( ".content-editor-overlay .inner" )
+			  , $form                 = $editorContainer.find( "form" )
+			  , $contentInput         = $form.find( "[name=content]" )
+			  , $editorParent         = $scriptContainer.parent()
+			  , $notificationsArea    = $editor.find( ".content-editor-editor-notifications" )
+			  , $versioningLink       = $editorContainer.find( ".version-history-link" )
+			  , isRichEditor          = $editor.hasClass( "richeditor" )
+			  , saveAction            = $form.attr( "action" )
+			  , publishAction         = $form.data( "publishAction" )
+			  , publishPromptEndpoint = $form.data( "publishPromptEndpoint" )
+			  , originalValue         = $contentInput.val()
+			  , formEnabled           = false
+			  , versionIcon           = '<i class="preside-icon fa fa-history"></i> '
+			  , editor, toggleEditMode, disableOrEnableSaveButtons, saveContent, saveDraft, publishChanges, fetchPublishPrompt, notify, clearNotifications, disableEditForm, isDirty, exitProtectionListener, ensureEditorIsNotMaximized, setupCkEditor, tearDownCkEditor, setupPlainControl, setContent, setupVersionTableUi, setVersionContent, commonSuccessHandler, commonFailHandler, commonAlwaysHandler;
 
 			$scriptContainer.appendTo( "body" );
 			$editor.appendTo( "body" );
@@ -171,19 +166,10 @@
 
 			setupCkEditor = function(){
 				$editor.data( "_rawContent", $contentInput.val() );
-				if ( $drafttextarea.val().length ) {
-					notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.draft.loaded.notification" ) );
-					$contentInput.val( $drafttextarea.val() );
-				}
 				editor = new PresideRichEditor( $contentInput.get(0) ).editor;
 				editor.on( "change", function( e ){ disableOrEnableSaveButtons(); } );
 				editor.on( "instanceReady", function( e ){
-					if ( originalValue === savedDraftValue ) {
-						originalValue = e.editor.getData();
-					} else {
-						savedDraftValue = e.editor.getData();
-					}
-
+					originalValue = e.editor.getData();
 					disableOrEnableSaveButtons();
 					e.editor.focus();
 					$('html, body').scrollTop( $editor.offset().top - 20 );
@@ -202,7 +188,7 @@
 
 						if ( code === ctrlEnter ) {
 							if ( isDirty() ) {
-								confirmAndSave();
+								saveDraft();
 								return false;
 							}
 						}
@@ -211,17 +197,11 @@
 							editor.execCommand( "maximize" );
 							return false;
 						}
-
-						if ( autoSaveTimeout !== null ) {
-							window.clearTimeout( autoSaveTimeout );
-						}
-						autoSaveTimeout = window.setTimeout( autoSave, autoSaveInterval );
 					}
 				} );
 			};
 
 			tearDownCkEditor = function(){
-				autoSave();
 				$contentInput.val( $editor.data( "_rawContent" ) );
 				ensureEditorIsNotMaximized();
 				editor.destroy();
@@ -238,16 +218,13 @@
 				}
 			};
 
-			draftIsDirty = function(){
-				return editor.getData() != savedDraftValue && editor.getData() != originalValue;
-			};
 			isDirty = function(){
 				return true; // temporarily always enabling save buttons due to ckeditor bugs, etc. return ( isRichEditor ? editor.getData() : $contentInput.val() ) != originalValue;
 			};
 
 			disableOrEnableSaveButtons = function() {
 				if ( formEnabled ) {
-					$editorContainer.find( ".editor-btn-save" ).prop( "disabled", !isDirty() );
+					$editorContainer.find( ".editor-btn" ).prop( "disabled", !isDirty() );
 				}
 			};
 
@@ -272,16 +249,67 @@
 				}
 			};
 
-			confirmAndSave = function(){
+			saveDraft = function(){
 				if ( isRichEditor ) {
 					ensureEditorIsNotMaximized();
 				}
 
-				if ( confirm( i18n.translateResource( "cms:frontendeditor.confirm.save.prompt" ) ) ) {
-					saveContent();
-				} else {
-					editor.focus();
+				saveContent();
+			};
+
+			publishChanges = function(){
+				var formData = $form.serializeArray();
+				if ( isRichEditor ) {
+					ensureEditorIsNotMaximized();
 				}
+
+				saveContent( function( data ) {
+					if ( data.success && typeof data.rendered != "undefined" ) {
+						originalValue = $contentInput.val();
+						setContent( data.rendered );
+
+						clearNotifications();
+						disableEditForm( false );
+
+						fetchPublishPrompt( function( data ){
+							if ( data.publishable ) {
+								presideBootbox.confirm( data.prompt, function( confirmed ) {
+									if ( confirmed ) {
+										notify( i18n.translateResource( "cms:frontendeditor.publishing.notification" ) );
+										disableEditForm();
+
+										$.post( publishAction, formData, function( data ){
+											if ( data.success ) {
+												toggleEditMode( false );
+
+												if ( data.message ) {
+													$.alert( { message : data.message } );
+												}
+
+											} else if ( data.error ) {
+												$.alert( { type : "error", message : data.error, sticky : true } );
+											} else {
+												$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+											}
+										} ).fail( commonFailHandler ).always( commonAlwaysHandler );
+									}
+								});
+							} else {
+								presideBootbox.alert( data.prompt );
+							}
+						} );
+					} else if ( data.error ) {
+						$.alert( { type : "error", message : data.error, sticky : true } );
+					} else {
+						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+					}
+				} );
+			};
+
+			fetchPublishPrompt = function( callback ){
+				var formData = $form.serializeArray();
+
+				$.post( publishPromptEndpoint, formData, callback );
 			};
 
 			setContent = function( content ){
@@ -312,119 +340,27 @@
 				}
 			};
 
-			saveContent = function( options ){
-				var formData, content;
+			saveContent = function( success, fail, always ){
+				var formData;
 
-				options = $.extend( {
-					  draft : false
-					, url   : saveAction
-				}, options );
+				success = success || commonSuccessHandler;
+				fail    = fail    || commonFailHandler;
+				always  = always  || commonAlwaysHandler;
 
 				if ( isRichEditor ) {
 					$contentInput.val( editor.getData() );
-					if ( !options.draft ) {
-						$editor.data( "_rawContent", $contentInput.val() );
-					}
+					$editor.data( "_rawContent", $contentInput.val() );
 				}
-				content = $contentInput.val();
 
 				formData = $form.serializeArray();
 
-				if ( options.draft ) {
-					notify( i18n.translateResource( "cms:frontendeditor.saving.draft.notification" ) );
-				} else {
-					notify( i18n.translateResource( "cms:frontendeditor.saving.notification" ) );
-				}
+				notify( i18n.translateResource( "cms:frontendeditor.saving.notification" ) );
 				disableEditForm();
 
-				$.post( options.url, formData, function( data ) {
-					if ( data.success && ( options.draft || typeof data.rendered != "undefined" ) )  {
-						savedDraftValue = content;
-
-						if ( options.draft ) {
-							$drafttextarea.val( content );
-							$editor.addClass( "has-draft" );
-							notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.saved.draft.notification", { data : [ $.dateformat.date( new Date(), "HH:mm:ss" ) ] } ) );
-						} else {
-							originalValue = content;
-							setContent( data.rendered );
-							toggleEditMode( false );
-							if ( isRichEditor ) {
-								clearLocalDraft();
-							}
-
-							if ( data.message ) {
-								$.alert( { message : data.message } );
-							}
-						}
-
-					} else if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).fail( function( xhr ){
-					var data = xhr.responseJSON || {};
-
-					if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).always( function( xhr ){
-					if ( !options.draft || !xhr.success ) {
-						clearNotifications();
-					}
-					disableEditForm( false );
-				} );
-			};
-
-			discardDraft = function(){
-				notify( discardDraftIcon + i18n.translateResource( "cms:frontendeditor.discarding.draft.notification" ) );
-				$.post( discardDraftAction, $form.serializeArray(), function( data ) {
-					if ( data.success )  {
-						clearLocalDraft();
-						if ( data.message ) {
-							$.alert( { message : data.message } );
-						}
-					} else if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).fail( function( xhr ){
-					var data = xhr.responseJSON || {};
-
-					if ( data.error ) {
-						$.alert( { type : "error", message : data.error, sticky : true } );
-					} else {
-						$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
-					}
-				} ).always( function(){
-					clearNotifications();
-				} );
-			};
-
-			clearLocalDraft = function(){
-				$drafttextarea.val("");
-				$contentInput.val( $editor.data( "_rawContent" ) );
-				$editor.removeClass( "has-draft" );
-				originalValue = savedDraftValue = $contentInput.val();
-				editor.setData( originalValue );
-				disableOrEnableSaveButtons();
-			};
-
-			autoSave = function(){
-				if ( draftIsDirty() ) {
-					saveContent( {
-						  draft : true
-						, url   : saveDraftAction
-					} );
-				}
+				$.post( saveAction, formData, success ).fail( fail ).always( always );
 			};
 
 			exitProtectionListener = function(){
-				autoSave();
 				if ( isDirty() ) {
 					return i18n.translateResource( "cms:frontendeditor.browser.exit.warning" );
 				}
@@ -549,14 +485,42 @@
 			setVersionContent = function( content ){
 				$editor.data( "_rawContent", content );
 
-				if ( isRichEditor ) {
-					clearLocalDraft();
-				} else {
-					originalValue = content;
-					$contentInput.val( content );
-				}
+				originalValue = content;
+				$contentInput.val( content );
 
 				notify( versionIcon + i18n.translateResource( "cms:frontendeditor.version.loaded.notification" ) );
+			};
+
+			commonSuccessHandler = function( data ) {
+				if ( data.success && typeof data.rendered != "undefined" ) {
+					originalValue = $contentInput.val();
+					setContent( data.rendered );
+					toggleEditMode( false );
+
+					if ( data.message ) {
+						$.alert( { message : data.message } );
+					}
+
+				} else if ( data.error ) {
+					$.alert( { type : "error", message : data.error, sticky : true } );
+				} else {
+					$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+				}
+			};
+
+			commonFailHandler = function( xhr ){
+				var data = xhr.responseJSON || {};
+
+				if ( data.error ) {
+					$.alert( { type : "error", message : data.error, sticky : true } );
+				} else {
+					$.alert( { type : "error", message : i18n.translateResource( "cms:frontendeditor.save.unknown.error" ), sticky : true } );
+				}
+			};
+
+			commonAlwaysHandler = function( xhr ){
+				clearNotifications();
+				disableEditForm( false );
 			};
 
 			$editor.on( "click", ".content-editor-overlay,.content-editor-label", function( e ){
@@ -578,12 +542,12 @@
 
 			$editorContainer.on( "click", ".editor-btn-save", function( e ){
 				e.preventDefault();
-				confirmAndSave();
+				saveDraft();
 			} );
 
-			$editorContainer.on( "click", ".discard-draft", function( e ){
+			$editorContainer.on( "click", ".editor-btn-publish", function( e ){
 				e.preventDefault();
-				discardDraft();
+				publishChanges();
 			} );
 
 			$editorContainer.on( "submit", ".content-editor-form", function( e ){

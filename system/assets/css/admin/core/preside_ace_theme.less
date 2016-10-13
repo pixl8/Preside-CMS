@@ -24,10 +24,24 @@
 
 	.ace-nav {
 		> li, > li.open {
+			position    : relative;
+			z-index     : 2;
 			border-left : 1px solid @preside-bar-separator-shadow-colour;
+
+			&:after {
+				border-left : 1px solid @preside-bar-separator-highlight-colour;
+				width       : 1px;
+				content     : "";
+				position    : absolute;
+				top         : 0;
+				left        : 0;
+				bottom      : 0;
+			}
+
 			> a, > a:hover,  > a:focus, > a:active {
 				background-color : @preside-bar-background-colour !important;
-				border-left : 1px solid @preside-bar-separator-highlight-colour;
+				border-left : none;
+				display : inline;
 			}
 
 			&:last-child {
@@ -46,7 +60,7 @@
 				}
 
 				.application-menu-toggle {
-					margin: 0 5px 0 -25px;
+					margin: 0 4px 0 -25px;
 				}
 
 				.application-list-item {
@@ -93,6 +107,14 @@
 	.nav-list li.active>a:after {
 		border-right-color       : @nav-list-selected-highlight-colour;
 		-moz-border-right-colors : @nav-list-selected-highlight-colour;
+	}
+
+	.dropdown-menu {
+		> li {
+			list-style   : none !important;
+			margin-left  : 0;
+			padding-left : 0;
+		}
 	}
 
 	.sitewide-alert {

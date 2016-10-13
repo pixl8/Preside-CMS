@@ -5,12 +5,12 @@ System config form: Asset manager
 This form is used for configuring aspects of the asset manager
 -->
 <form i18nBaseUri="system-config.asset-manager:">
-	<tab id="meta" sortorder="10">
-		<fieldset id="meta" sortorder="10">
-			<field sortorder="10" name="retrieve_metadata" control="yesnoswitch" required="false" />
+	<tab id="uploads" sortorder="10">
+		<fieldset id="uploads" sortorder="10">
+			<field sortorder="10" name="max_parallel_uploads" control="spinner" required="false" defaultvalue="5" />
+			<field sortorder="20" name="retrieve_metadata" control="yesnoswitch" required="false" />
 		</fieldset>
 	</tab>
-
 	<tab id="imagemagick" sortorder="10">
 		<fieldset id="imagemagick" sortorder="10">
 			<field sortorder="10" name="use_imagemagick"         control="yesnoswitch" required="false" />

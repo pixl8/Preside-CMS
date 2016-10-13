@@ -12,6 +12,7 @@
 			  autoclose : true
 			, startDate : pickerConfig.startDate || null
 			, endDate   : pickerConfig.endDate   || null
+			, language  : $thisPicker.data( "language" ) || "en"
 			, onRender : function( date ){
 				var dateValue  = date.valueOf()
 				  , startDate  = this.startDate
