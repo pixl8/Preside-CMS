@@ -40,6 +40,10 @@ component displayName="Website user action service" {
 		,          string identifier = ""
 		,          any    detail     = {}
 	) {
+		if ( _sessionsAreDisabled() ) {
+			return "";
+		}
+
 		var data = {
 			  action     = arguments.action
 			, type       = arguments.type
@@ -223,6 +227,12 @@ component displayName="Website user action service" {
 	}
 
 // PRIVATE HELPERS
+	private boolean function _sessionsAreDisabled() {
+		var applicationSettings = getApplicationSettings( true );
+
+		return !IsBoolean( applicationSettings.sessionManagement ?: "" ) || !applicationSettings.sessionManagement;
+	}
+
 	private string function _getSessionId() {
 		var sessionStorage = _getSessionStorage();
 		var sessionId      = sessionStorage.getVar( name="_presideSessionId", default="" );
