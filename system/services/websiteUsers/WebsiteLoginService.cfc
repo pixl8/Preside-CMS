@@ -375,7 +375,7 @@ component displayName="Website login service" {
 	public string function getPostLoginUrl( required string defaultValue ) {
 		var sessionSavedValue = _getSessionStorage().getVar( "websitePostLoginUrl", "" );
 
-		if ( Len( Trim( sessionSavedValue ) ) ) {
+		if ( Len( Trim( sessionSavedValue ?: "" ) ) ) {
 			return sessionSavedValue;
 		}
 
