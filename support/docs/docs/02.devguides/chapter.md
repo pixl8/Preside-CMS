@@ -8,6 +8,7 @@ In this chapter, you should find detailed guides on developing with the PresideC
 * [[presidedataobjects]]
 * [[presidedataobjectviews]]
 * [[presideviewlets]]
+* [[presidewidgets]]
 * [[workingwithpagetypes]]
 * [[workingwithmultiplesites]]
 * [[workingwiththericheditor]]
