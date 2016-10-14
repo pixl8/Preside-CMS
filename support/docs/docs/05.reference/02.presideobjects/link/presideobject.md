@@ -29,7 +29,7 @@ property name="email_body"        type="string"  dbtype="varchar" maxlength="255
 property name="email_anti_spam"   type="boolean" dbtype="boolean"                 required=false default=true;
 
 property name="page"  relationship="many-to-one" relatedto="page"  required=false;
-property name="asset" relationship="many-to-one" relatedto="asset" required=false;
-property name="image" relationship="many-to-one" relatedto="asset" required=false allowedTypes="image";
+property name="asset" relationship="many-to-one" relatedto="asset" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+property name="image" relationship="many-to-one" relatedto="asset" required=false ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check" allowedTypes="image";
 
 ```
