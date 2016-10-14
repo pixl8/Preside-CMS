@@ -147,6 +147,102 @@ Notice the annotations around the `emsEvent` argument above. Here they define th
 >>>>>> We prefer to leave the `event`, `rc`, `prc` and `payload` arguments out of the function definition to more cleanly show the expression fields; this is a preference though, and you can define them if you wish.
 
 
+## Field types
+
+
+### System field types
+
+The system comes with several built in expression field types. These may be automatically configured based on your expression handlers argument _type_ or they may need strict configuration. See the documentation for each for further details:
+
+* `Asset`: TODO
+* `Boolean`: TODO
+* `Condition`: TODO
+* `Date`: TODO
+* `Number`: TODO
+* `Object`: TODO
+* `Operator`: TODO
+* `Page`: TODO
+* `PageType`: TODO
+* `Select`: TODO
+* `Text`: TODO
+* `TimePeriod`: TODO
+* `WebsiteUserAction`: TODO
+
+### Creating custom field types
+
+New field types can be created for your expressions. They are defined by creating a ColdBox handler at `/handlers/rules/fieldtypes/{idoffieldtype}.cfc`, that the following actions:
+
+* `renderConfiguredField()` (required) should return a string that is a rendered representation of the configured field. This will appear in the condition builder
+* `renderConfigScreen()` (required) should return a string with a render configuration screen (just the innards of a form). The most simple implementation is to render a form with a single field named 'value'. If you do so, the system will take care of the rest
+* `prepareConfiguredFieldData()` (optional) Allows you to prepare a configured value at runtime before it is passed to the `evaluateExpression()` method of an expression. The raw value from the config form will be used by default if this method is not provided.
+
+Here is the handler for our most complex field type, the `TimePeriod` type:
+
+```luceescript
+// /handlers/rules/fieldtypes/TimePeriod.cfc
+component {
+
+    property name="presideObjectService" inject="presideObjectService";
+    property name="timePeriodService"    inject="rulesEngineTimePeriodService";
+
+    private string function renderConfiguredField( string value="", struct config={} ) {
+        var timePeriod = {};
+        var data       = [];
+        var type       = "alltime"
+
+        try {
+            timePeriod = DeserializeJson( arguments.value );
+        } catch( any e ){
+            timePeriod = { type="alltime" };
+        };
+
+        switch( timePeriod.type ?: "alltime" ){
+            case "between":
+                type = timePeriod.type;
+                data = [ timePeriod.date1 ?: "", timePeriod.date2 ?: "" ];
+            break;
+            case "since":
+            case "before":
+            case "until":
+            case "after":
+                type = timePeriod.type;
+                data = [ timePeriod.date1 ?: "" ];
+            break;
+            case "recent":
+            case "upcoming":
+                type = timePeriod.type;
+                data = [
+                      NumberFormat( Val( timePeriod.measure ?: "" ) )
+                    , translateResource( "cms:time.period.unit.#( timePeriod.unit ?: 'd' )#" )
+                ];
+            break;
+            default:
+                type = "alltime";
+        }
+
+        return translateResource( uri="cms:rulesEngine.time.period.type.#type#.configured", data=data );
+    }
+
+    private string function renderConfigScreen( string value="", struct config={} ) {
+        return renderFormControl(
+              name         = "value"
+            , type         = "timePeriodPicker"
+            , pastOnly     = IsTrue( config.pastOnly ?: "" )
+            , futureOnly   = IsTrue( config.futureOnly ?: "" )
+            , label        = translateResource( config.fieldLabel ?: "cms:rulesEngine.fieldtype.timePeriod.config.label" )
+            , savedValue   = arguments.value
+            , defaultValue = arguments.value
+            , required     = true
+        );
+    }
+
+    private struct function prepareConfiguredFieldData( string value="", struct config={} ) {
+        return timePeriodService.convertTimePeriodToDateRange( arguments.value );
+    }
+
+}
+```
+
 ## Magic field names
 
 The system provides a set of core expression field names that will auto configure themselves so that you do not need to provide resource translations or configure the field through annotations in your handler.
@@ -253,3 +349,79 @@ component {
 
 }
 ```
+
+### Direct APIs for evaluating conditions
+
+There are two main methods for evaluating conditions in your code:
+
+[[rulesengineconditionservice-evaluatecondition||rulesEngineConditionService.evaluateCondition()]]
+and
+[[rulesenginewebrequestservice-evaluatecondition||rulesEngineWebRequestService.evaluateCondition()]]
+
+The first method should be used for everything except conditions in a web request context. The second should be used exclusively for web request conditions.
+
+#### An example
+
+Let's imagine we have a slide show slide object that allows you to configure picture, link, title, etc. for a slide in a slide show. It would be great if we could configure it to show only when the chosen _condition_ is true (e.g. only show the promo for our Conference if you have not already booked on it). Our Preside Object might look like this:
+
+```luceescript
+component {
+    // ...
+    property name="condition" relationship="many-to-one" relatedTo="rules_engine_condition";
+    // ...
+}
+```
+
+The logic to then decide whether or not to show the slide:
+
+```luceescript
+// /handlers/somehandler.cfc
+component {
+    property name="slidesService"                inject="slidesService";
+    property name="rulesEngineWebRequestService" inject="rulesEngineWebRequestService"; 
+
+    private string function slides() {
+        var slides         = slidesService.getMySlides( ... );
+        var renderedSlides = "";
+
+        for( var slide in slides ) {
+            // evaluate the configured condition against the current web request
+            if ( !Len( Trim( slide.condition ) ) || rulesEngineWebRequestService.evaluateCondition( slide.condition ) ) {
+                renderedSlides &= renderView( view="/slides/_slide", args=slide );
+            }
+        }
+
+        return renderedSlides;
+    }
+}
+```
+
+### Creating custom contexts
+
+Context are loosely defined. They are nothing more than an entry in `Config.cfc` and some resource properties. The contract that says that a particular context expects a particular payload, is entirely up to the developer to honour. You can configure a new context, and then use the service APIs directly to evaluate conditions against those new contexts.
+
+Here is the core configuration in `Config.cfc$configure()` for contexts:
+
+```luceescript
+settings.rulesEngine = { contexts={} };
+settings.rulesEngine.contexts.webrequest = { subcontexts=[ "user", "page" ] };
+settings.rulesEngine.contexts.page       = {};
+settings.rulesEngine.contexts.user       = {};
+``` 
+
+Notice how contexts can define an array of subcontexts. This is the full extent of what is configurable in `Config.cfc`. i18n properties for contexts live at `/i18n/rules/contexts.properties` and look like this:
+
+```properties
+webrequest.title=Web request
+webrequest.description=Conditions that apply to a web page request (includes user and web page expressions)
+webrequest.iconClass=fa-globe
+
+page.title=Web page
+page.description=Conditions that apply to a site tree page
+page.iconClass=fa-file-o
+
+user.title=User
+user.description=Conditions that apply to a user
+user.iconClass=fa-user
+```
+
