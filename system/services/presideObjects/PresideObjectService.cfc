@@ -54,6 +54,7 @@ component displayName="Preside Object Service" {
 		_setVersioningService( arguments.versioningService );
 		_setCacheMaps( {} );
 		_setInterceptorService( arguments.interceptorService );
+		_setInstanceId( CreateObject('java','java.lang.System').identityHashCode( this ) );
 
 		_loadObjects();
 
@@ -1321,42 +1322,47 @@ component displayName="Preside Object Service" {
 		,          boolean clearSingleRecordCaches = true
 	) {
 		var cacheMaps   = _getCacheMaps();
+		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
 		var keysToClear = "";
 		var objIds      = "";
 		var objId       = "";
 
 		if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
-			keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
+			lock name=lockName type="exclusive" timeout=10 {
+				if ( StructKeyExists( cacheMaps, arguments.objectName ) ) {
+					keysToClear = StructKeyList( cacheMaps[ arguments.objectName ].__complexFilter );
 
-			if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
-				objIds = arguments.filter.id;
-			} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
-				objIds = arguments.filterParams.id;
-			}
+					if ( IsStruct( arguments.filter ) and StructKeyExists( arguments.filter, "id" ) ) {
+						objIds = arguments.filter.id;
+					} elseif ( StructKeyExists( arguments.filterParams, "id" ) ) {
+						objIds = arguments.filterParams.id;
+					}
 
-			if ( IsSimpleValue( objIds ) ) {
-				objIds = ListToArray( objIds );
-			}
+					if ( IsSimpleValue( objIds ) ) {
+						objIds = ListToArray( objIds );
+					}
 
-			if ( IsArray( objIds ) and ArrayLen( objIds ) ) {
-				for( objId in objIds ){
-					if ( StructKeyExists( cacheMaps[ arguments.objectName ], objId ) ) {
-						keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
-						StructDelete( cacheMaps[ arguments.objectName ], objId );
+					if ( IsArray( objIds ) and ArrayLen( objIds ) ) {
+						for( objId in objIds ){
+							if ( StructKeyExists( cacheMaps[ arguments.objectName ], objId ) ) {
+								keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+								StructDelete( cacheMaps[ arguments.objectName ], objId );
+							}
+						}
+						StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
+					} elseif ( arguments.clearSingleRecordCaches ) {
+						for( objId in cacheMaps[ arguments.objectName ] ) {
+							if ( objId neq "__complexFilter" ) {
+								keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
+							}
+						}
+						StructDelete( cacheMaps, arguments.objectName );
+					}
+
+					if ( ListLen( keysToClear ) ) {
+						_getDefaultQueryCache().clearMulti( keysToClear );
 					}
 				}
-				StructClear( cacheMaps[ arguments.objectName ].__complexFilter );
-			} elseif ( arguments.clearSingleRecordCaches ) {
-				for( objId in cacheMaps[ arguments.objectName ] ) {
-					if ( objId neq "__complexFilter" ) {
-						keysToClear = ListAppend( keysToClear, StructKeyList( cacheMaps[ arguments.objectName ][ objId ] ) );
-					}
-				}
-				StructDelete( cacheMaps, arguments.objectName );
-			}
-
-			if ( ListLen( keysToClear ) ) {
-				_getDefaultQueryCache().clearMulti( keysToClear );
 			}
 		}
 
@@ -1859,54 +1865,57 @@ component displayName="Preside Object Service" {
 		, required array  joinTargets
 	) {
 		var cacheMaps   = _getCacheMaps();
+		var lockName    = _getInstanceId() & "cachemaps" & arguments.objectName;
+		var fullIdField = "#arguments.objectName#.id";
 		var objId       = "";
 		var id          = "";
 		var joinObj     = "";
-		var fullIdField = "#arguments.objectName#.id";
 
-		if ( not StructKeyExists( cacheMaps, arguments.objectName ) ) {
-			cacheMaps[ arguments.objectName ] = {
-				__complexFilter = {}
-			};
-		}
-
-		if ( IsStruct( arguments.filter ) ) {
-			if ( arguments.filter.keyExists( "id" ) ) {
-				objId = arguments.filter.id;
-			} else if ( arguments.filter.keyExists( fullIdField ) ) {
-				objId = arguments.filter[ fullIdField ];
-			}
-		} else {
-			if ( arguments.filterParams.keyExists( "id" ) ) {
-				objId = arguments.filterParams.id;
-			} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
-				objId = arguments.filterParams[ fullIdField ];
-			}
-		}
-
-		if ( IsStruct( objId ) ) {
-			if ( Len( Trim( objId.value ?: "" ) ) ) {
-				objId = ( objId.list ?: false ) ? ListToArray( objId.value, objId.separator ?: "," ) : [ objId.value ];
-			}
-		}
-
-		if ( IsArray( objId ) ) {
-			for( id in objId ){
-				cacheMaps[ arguments.objectName ][ id ][ arguments.cacheKey ] = 1;
-			}
-		} elseif ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
-			cacheMaps[ arguments.objectName ][ objId ][ arguments.cacheKey ] = 1;
-		} else {
-			cacheMaps[ arguments.objectName ].__complexFilter[ arguments.cacheKey ] = 1;
-		}
-
-		for( joinObj in arguments.joinTargets ) {
-			if ( not StructKeyExists( cacheMaps, joinObj ) ) {
-				cacheMaps[ joinObj ] = {
+		lock name=lockName type="exclusive" timeout=10 {
+			if ( not StructKeyExists( cacheMaps, arguments.objectName ) ) {
+				cacheMaps[ arguments.objectName ] = {
 					__complexFilter = {}
 				};
 			}
-			cacheMaps[ joinObj ].__complexFilter[ arguments.cacheKey ] = 1;
+
+			if ( IsStruct( arguments.filter ) ) {
+				if ( arguments.filter.keyExists( "id" ) ) {
+					objId = arguments.filter.id;
+				} else if ( arguments.filter.keyExists( fullIdField ) ) {
+					objId = arguments.filter[ fullIdField ];
+				}
+			} else {
+				if ( arguments.filterParams.keyExists( "id" ) ) {
+					objId = arguments.filterParams.id;
+				} else if ( arguments.filterParams.keyExists( fullIdField ) ) {
+					objId = arguments.filterParams[ fullIdField ];
+				}
+			}
+
+			if ( IsStruct( objId ) ) {
+				if ( Len( Trim( objId.value ?: "" ) ) ) {
+					objId = ( objId.list ?: false ) ? ListToArray( objId.value, objId.separator ?: "," ) : [ objId.value ];
+				}
+			}
+
+			if ( IsArray( objId ) ) {
+				for( id in objId ){
+					cacheMaps[ arguments.objectName ][ id ][ arguments.cacheKey ] = 1;
+				}
+			} elseif ( IsSimpleValue( objId ) and Len( Trim( objId) ) ) {
+				cacheMaps[ arguments.objectName ][ objId ][ arguments.cacheKey ] = 1;
+			} else {
+				cacheMaps[ arguments.objectName ].__complexFilter[ arguments.cacheKey ] = 1;
+			}
+
+			for( joinObj in arguments.joinTargets ) {
+				if ( not StructKeyExists( cacheMaps, joinObj ) ) {
+					cacheMaps[ joinObj ] = {
+						__complexFilter = {}
+					};
+				}
+				cacheMaps[ joinObj ].__complexFilter[ arguments.cacheKey ] = 1;
+			}
 		}
 	}
 
@@ -2252,5 +2261,12 @@ component displayName="Preside Object Service" {
 	}
 	private void function _setDsns( required array dsns ) {
 		_dsns = arguments.dsns;
+	}
+
+	private string function _getInstanceId() {
+		return _instanceId;
+	}
+	private void function _setInstanceId( required string instanceId ) {
+		_instanceId = arguments.instanceId;
 	}
 }
