@@ -16,6 +16,7 @@ for a full guide to CMS admin users.<div class="table-responsive"><table class="
 ## Public API Methods
 
 * [[loginservice-login]]
+* [[loginservice-ispasswordcorrect]]
 * [[loginservice-logout]]
 * [[loginservice-isloggedin]]
 * [[loginservice-getloggedinuserdetails]]
@@ -29,3 +30,13 @@ for a full guide to CMS admin users.<div class="table-responsive"><table class="
 * [[loginservice-recordlogin]]
 * [[loginservice-recordlogout]]
 * [[loginservice-recordvisit]]
+* [[loginservice-twofactorauthenticationrequired]]
+* [[loginservice-istwofactorauthenticated]]
+* [[loginservice-gettwofactorauthenticationkey]]
+* [[loginservice-istwofactorauthenticationsetupforuser]]
+* [[loginservice-istwofactorauthenticationenabled]]
+* [[loginservice-istwofactorauthenticationenabledforuser]]
+* [[loginservice-generatetwofactorauthenticationkey]]
+* [[loginservice-attempttwofactorauthentication]]
+* [[loginservice-enabletwofactorauthenticationforuser]]
+* [[loginservice-disabletwofactorauthenticationforuser]]
