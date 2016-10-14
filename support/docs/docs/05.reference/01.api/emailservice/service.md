@@ -15,3 +15,4 @@ The email service takes care of sending emails through the PresideCMS's email te
 
 * [[emailservice-send]]
 * [[emailservice-listtemplates]]
+* [[emailservice-validateconnectionsettings]]

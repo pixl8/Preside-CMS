@@ -43,6 +43,10 @@ room_name.label=Room name
 use_html_notification.label=Use HTML notifications
 ```
 
+## Multiple sites
+
+As of Preside 10.7.0, if you have multiple sites, each configuration form can now be configured globally and then per-site if you wish to override global defaults in a particular site.
+
 ## Retrieving settings
 
 ### From handlers and views

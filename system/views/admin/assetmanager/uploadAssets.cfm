@@ -2,7 +2,8 @@
 	uploadCompleteView = prc.uploadCompleteView ?: '/admin/assetmanager/_batchUploadCompleteMessaging';
 
 	event.include( "/js/admin/specific/assetmanager/uploadassets/"  )
-	     .include( "/css/admin/specific/assetmanager/uploadassets/" );
+         .include( "/css/admin/specific/assetmanager/uploadassets/" )
+         .includeData( { parallelUploads=Val( getSystemSetting( "asset-manager", "max_parallel_uploads", 5 ) ) } );
 </cfscript>
 
 <cfoutput>

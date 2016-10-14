@@ -1,7 +1,12 @@
 component extends="coldbox.system.interceptors.SES" output=false {
 
-	property name="siteService"       inject="delayedInjector:siteService";
-	property name="adminRouteHandler" inject="delayedInjector:adminRouteHandler";
+	property name="featureService"                   inject="delayedInjector:featureService";
+	property name="systemConfigurationService"       inject="delayedInjector:systemConfigurationService";
+	property name="urlRedirectsService"              inject="delayedInjector:urlRedirectsService";
+	property name="siteService"                      inject="delayedInjector:siteService";
+	property name="adminRouteHandler"                inject="delayedInjector:adminRouteHandler";
+	property name="multilingualPresideObjectService" inject="delayedInjector:multilingualPresideObjectService";
+	property name="multilingualIgnoredUrlPatterns"   inject="coldbox:setting:multilingual.ignoredUrlPatterns";
 
 	public void function configure() output=false {
 		instance.presideRoutes = [];
@@ -12,12 +17,16 @@ component extends="coldbox.system.interceptors.SES" output=false {
 // the interceptor method
 	public void function onRequestCapture( event, interceptData ) output=false {
 		_checkRedirectDomains( argumentCollection=arguments );
-		_detectIncomingSite( argumentCollection=arguments );
+		_detectIncomingSite  ( argumentCollection=arguments );
+		_checkUrlRedirects   ( argumentCollection=arguments );
+		_detectLanguage      ( argumentCollection=arguments );
+		_setPresideUrlPath   ( argumentCollection=arguments );
 
-		if ( !_routePresideSESRequest( argumentCollection = arguments ) ) {
+		if ( !_routePresideSESRequest( argumentCollection=arguments ) ) {
 			super.onRequestCapture( argumentCollection=arguments );
 		}
 	}
+
 
 	public void function onBuildLink( event, interceptData ) output=false {
 		for( var route in instance.presideRoutes ){
@@ -46,6 +55,20 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		$include( arguments.location );
 
 		return this;
+	}
+
+// overriding getModel() to ensure we always use delayed injector in our Routes.cfm which loads while the interceptors are loading
+	public any function getModel( string name, string dsl, struct initArguments={} ) {
+		if ( arguments.keyExists( "name" ) ) {
+			arguments.dsl = "delayedInjector:" & arguments.name;
+		} else if ( arguments.keyExists( "dsl" ) && !arguments.dsl.startsWith( "delayedInjector:" ) && !arguments.dsl.startsWith( "provider:" ) ) {
+			arguments.dsl = "delayedInjector:" & arguments.dsl;
+		}
+
+		return super.getModel(
+			  dsl           = arguments.dsl ?: NullValue()
+			, initArguments = arguments.initArguments
+		);
 	}
 
 // private utility methods
@@ -78,8 +101,80 @@ component extends="coldbox.system.interceptors.SES" output=false {
 		event.setSite( site );
 	}
 
-	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
+	private void function _detectLanguage( event, interceptor ) output=false {
+		if ( !_skipLanguageDetection( argumentCollection=arguments ) ) {
+			var path     = super.getCGIElement( "path_info", event );
+			var site     = event.getSite();
+			var sitePath = site.path.reReplace( "/$", "" );
+
+			if ( sitePath.len() ) {
+				path = path.replaceNoCase( sitePath, "" );
+			}
+
+			var localeSlug = Trim( ListFirst( path, "/" ) );
+			var language   = multilingualPresideObjectService.getDetectedRequestLanguage( localeSlug=localeSlug );
+
+			if ( language.recordCount ) {
+				event.setLanguage( language.id );
+				event.setLanguageSlug( language.slug );
+				event.setLanguageCode( language.iso_code );
+
+				if ( language.slug != localeSlug ) {
+					var qs          = Len( Trim( request[ "preside.query_string" ] ?: "" ) ) ? "?#request[ "preside.query_string" ]#" : "";
+					var redirectUrl = sitePath & "/" & language.slug & path & qs;
+
+					location url=redirectUrl addtoken=false;
+				}
+			}
+		}
+	}
+
+	private boolean function _skipLanguageDetection( event, interceptor ) output=false {
+		if ( !featureService.isFeatureEnabled( "multilingual" ) ) {
+			return true;
+		}
+
+		var multilingualUrlsEnabled = systemConfigurationService.getSetting( "multilingual", "urls_enabled", false );
+		if ( !IsBoolean( multilingualUrlsEnabled ) || !multilingualUrlsEnabled ) {
+			return true;
+		}
+
 		var path = super.getCGIElement( "path_info", event );
+		if ( adminRouteHandler.match( path, event ) ) {
+			return true;
+		}
+
+		for( var pattern in multilingualIgnoredUrlPatterns) {
+			if ( path.reFindNoCase( pattern ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void function _setPresideUrlPath( event, interceptor ) output=false {
+		var site         = event.getSite();
+		var pathToRemove = ( site.path ?: "" ).reReplace( "/$", "" );
+		var fullPath     = super.getCGIElement( "path_info", event );
+		var presidePath  = "";
+		var languageSlug = event.getLanguageSlug();
+		if ( Len( Trim( languageSlug ) ) ) {
+			pathToRemove = pathToRemove & "/" & languageSlug & "/";
+		}
+		if ( pathToRemove.len() ) {
+			presidePath = fullPath.replaceNoCase( pathToRemove, "" );
+			presidePath = presidePath.reReplace( "^([^/]|$)", "/\1" );
+		} else {
+			presidePath = fullPath;
+		}
+
+
+		event.setCurrentPresideUrlPath( presidePath );
+	}
+
+	private boolean function _routePresideSESRequest( event, interceptData ) output=false {
+		var path = event.getCurrentPresideUrlPath();
 
 		for( var route in instance.presideRoutes ){
 			if ( route.match( path=path, event=event ) ) {
@@ -107,6 +202,20 @@ component extends="coldbox.system.interceptors.SES" output=false {
 
 			rc[ instance.eventName ] = evName;
 		}
+	}
+
+	private void function _checkUrlRedirects( event, interceptData ) output=false {
+		if ( event.isAjax() ) {
+			return;
+		}
+
+		var path    = event.getCurrentUrl( includeQueryString=true );
+		var fullUrl = event.getBaseUrl() & path;
+
+		urlRedirectsService.redirectOnMatch(
+			  path    = path
+			, fullUrl = fullUrl
+		);
 	}
 
 	private void function _checkRedirectDomains( event, interceptData ) output=false {

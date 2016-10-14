@@ -1,0 +1,111 @@
+.message-item {
+    margin-bottom: 25px;
+    margin-left: 40px;
+    position: relative;
+    .message-inner {
+        background: #ffffff;
+        border-radius: 3px;
+        border: 1px solid #dddddd;
+        padding: 10px;
+        position: relative;
+        &:before {
+            border-right: 10px solid #dddddd;
+            border-style: solid;
+            border-width: 10px;
+            color: rgba(0, 0, 0, 0);
+            content: "";
+            display: block;
+            height: 0;
+            left: -20px;
+            position: absolute;
+            top: 6px;
+            width: 0;
+        }
+        &:after {
+            border-right: 10px solid #ffffff;
+            border-style: solid;
+            border-width: 10px;
+            color: rgba(0, 0, 0, 0);
+            content: "";
+            display: block;
+            height: 0;
+            left: -18px;
+            position: absolute;
+            top: 6px;
+            width: 0;
+        }
+    }
+    &:before {
+        background: #ffffff;
+        border-radius: 2px;
+        bottom: -30px;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+        content: "";
+        height: 100%;
+        left: -30px;
+        position: absolute;
+        width: 3px;
+    }
+    &:after {
+        background: #ffffff;
+        border-radius: 50%;
+        border: 2px solid #cccccc;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        content: "";
+        height: 15px;
+        left: -36px;
+        position: absolute;
+        top: 10px;
+        width: 15px;
+    }
+    .message-head {
+        border-bottom: 1px solid #eeeeee;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        .avatar {
+            margin-right: 20px;
+        }
+        .user-detail {
+            overflow: hidden;
+            h5 {
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0;
+            }
+        }
+        .post-meta {
+            float: left;
+            padding: 0 15px 0 0;
+        }
+        .post-meta>div {
+            color: #333333;
+            color: #333333;
+            font-weight: bold;
+            font-weight: bold;
+            text-align: right;
+            text-align: right;
+        }
+    }
+}
+.clearfix {
+    &:before {
+        content: " ";
+        display: table;
+    }
+    &:after {
+        content: " ";
+        display: table;
+    }
+}
+.post-meta>div {
+    color: #777777;
+    color: #777777;
+    font-size: 12px;
+    font-size: 12px;
+    line-height: 22px;
+    line-height: 22px;
+}
+.user-photo {
+    border-radius: 100%;
+    max-height: 40px;
+}

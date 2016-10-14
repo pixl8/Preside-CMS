@@ -2,8 +2,12 @@
  * The website login manager object provides methods for member login, logout and session retrieval
  * \n
  * See also: [[websiteusersandpermissioning]]
+ *
+ * @singleton
+ * @presideservice
+ * @autodoc
  */
-component singleton=true autodoc=true displayName="Website login service" {
+component displayName="Website login service" {
 
 // constructor
 	/**
@@ -14,8 +18,18 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @bcryptService.inject              bcryptService
 	 * @systemConfigurationService.inject systemConfigurationService
 	 * @emailService.inject               emailService
+	 * @websiteUserActionService.inject   websiteUserActionService
 	 */
-	public any function init( required any sessionStorage, required any cookieService, required any userDao, required any userLoginTokenDao, required any bcryptService, required any systemConfigurationService, required any emailService ) {
+	public any function init(
+		  required any sessionStorage
+		, required any cookieService
+		, required any userDao
+		, required any userLoginTokenDao
+		, required any bcryptService
+		, required any systemConfigurationService
+		, required any emailService
+		, required any websiteUserActionService
+	) {
 		_setSessionStorage( arguments.sessionStorage );
 		_setCookieService( arguments.cookieService );
 		_setUserDao( arguments.userDao );
@@ -23,6 +37,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 		_setBCryptService( arguments.bcryptService );
 		_setSystemConfigurationService( arguments.systemConfigurationService );
 		_setEmailService( arguments.emailService );
+		_setWebsiteUserActionService( arguments.websiteUserActionService );
 		_setSessionKey( "website_user" );
 		_setRememberMeCookieKey( "_presidecms-site-persist" );
 
@@ -45,18 +60,28 @@ component singleton=true autodoc=true displayName="Website login service" {
 		if ( !isLoggedIn() || isAutoLoggedIn() ) {
 			var userRecord = _getUserByLoginId( arguments.loginId );
 
-			if ( userRecord.count() && ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) ) {
-				userRecord.session_authenticated = true;
+			if ( userRecord.count() ) {
+				if ( arguments.skipPasswordCheck || _validatePassword( arguments.password, userRecord.password ) ) {
+					userRecord.session_authenticated = true;
 
-				_setUserSession( userRecord );
+					_setUserSession( userRecord );
 
-				if ( arguments.rememberLogin ) {
-					_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					if ( arguments.rememberLogin ) {
+						_setRememberMeCookie( userId=userRecord.id, loginId=userRecord.login_id, expiry=arguments.rememberExpiryInDays );
+					}
+
+					_getWebsiteUserActionService().promoteVisitorActionsToUserActions( userRecord.id );
+					recordLogin();
+					_preventSessionFixation();
+
+					return true;
+				} else {
+					$recordWebsiteUserAction(
+						  action = "failedLogin"
+						, type   = "login"
+						, userId = userRecord.id
+					);
 				}
-
-				recordLogin();
-
-				return true;
 			}
 		}
 
@@ -82,6 +107,14 @@ component singleton=true autodoc=true displayName="Website login service" {
 			userRecord.impersonated          = true;
 
 			_setUserSession( userRecord );
+
+			$audit(
+				  source   = "websiteusermanager"
+				, type     = "websiteusermanager"
+				, action   = "impersonate_website_user"
+				, recordId = userId
+				, detail   = userRecord
+			);
 
 			return true;
 		}
@@ -241,6 +274,12 @@ component singleton=true autodoc=true displayName="Website login service" {
 				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
 			);
 
+			$recordWebsiteUserAction(
+				  userId = userRecord.id
+				, action = "sendPasswordResetInstructions"
+				, type   = "login"
+			);
+
 			return true;
 		}
 
@@ -271,11 +310,22 @@ component singleton=true autodoc=true displayName="Website login service" {
 		if ( record.recordCount ) {
 			var hashedPw = _getBCryptService().hashPw( password );
 
-			return _getUserDao().updateData(
+			var result = _getUserDao().updateData(
 				  id   = record.id
 				, data = { password=hashedPw, reset_password_token="", reset_password_key="", reset_password_token_expiry="" }
 			);
+
+			if ( result ) {
+				$recordWebsiteUserAction(
+					  userId = record.id
+					, action = "changepassword"
+					, type   = "login"
+				);
+			}
+
+			return result;
 		}
+
 		return false;
 	}
 
@@ -285,13 +335,35 @@ component singleton=true autodoc=true displayName="Website login service" {
 	 * @password.hint The new password
 	 * @userId.hint   ID of the user who's password we wish to change (defaults to currently logged in user id)
 	 */
-	public boolean function changePassword( required string password, string userId=getLoggedInUserId() ) autodoc=true {
+	public boolean function changePassword( required string password, string userId=getLoggedInUserId(), boolean changedByAdmin=false ) autodoc=true {
 		var hashedPw = _getBCryptService().hashPw( arguments.password );
-
-		return _getUserDao().updateData(
+		var result   = _getUserDao().updateData(
 			  id   = arguments.userId
 			, data = { password=hashedPw }
 		);
+
+		if ( arguments.changedByAdmin ) {
+			var userRecord = _getUserDao().selectData( id=userId );
+			for( var u in userRecord ) {
+				userRecord = u;
+			}
+			$audit(
+				  source   = "websiteusermanager"
+				, type     = "websiteusermanager"
+				, action   = "change_website_user_password"
+				, recordId = arguments.userId
+				, detail   = userRecord
+			);
+
+		} else {
+			$recordWebsiteUserAction(
+				  userId = arguments.userId
+				, action = "changepassword"
+				, type   = "login"
+			);
+		}
+
+		return result;
 	}
 
 	/**
@@ -303,7 +375,7 @@ component singleton=true autodoc=true displayName="Website login service" {
 	public string function getPostLoginUrl( required string defaultValue ) {
 		var sessionSavedValue = _getSessionStorage().getVar( "websitePostLoginUrl", "" );
 
-		if ( Len( Trim( sessionSavedValue ) ) ) {
+		if ( Len( Trim( sessionSavedValue ?: "" ) ) ) {
 			return sessionSavedValue;
 		}
 
@@ -358,13 +430,25 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 	/**
 	 * Sets the last logged in date for the logged in user
+	 * and records the action using [[api-websiteuseractionservice]]
 	 */
 	public boolean function recordLogin() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_in = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "login"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_in = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -375,9 +459,20 @@ component singleton=true autodoc=true displayName="Website login service" {
 	public boolean function recordLogout() autodoc=true {
 		var userId = getLoggedInUserId();
 
-		return !Len( Trim( userId ) ) ? false : _getUserDao().updateData( id=userId, data={
-			last_logged_out = Now()
-		} );
+		if ( Len( Trim( userId ) ) ) {
+			$recordWebsiteUserAction(
+				  action = "logout"
+				, type   = "login"
+			);
+
+			_getUserDao().updateData( id=userId, data={
+				last_logged_out = Now()
+			} );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -414,7 +509,6 @@ component singleton=true autodoc=true displayName="Website login service" {
 
 	private void function _setUserSession( required struct data ) {
 		_getSessionStorage().setVar( name=_getSessionKey(), value=arguments.data );
-		_preventSessionFixation();
 	}
 
 	private void function _setRememberMeCookie( required string userId, required string loginId, required string expiry ) {
@@ -470,6 +564,11 @@ component singleton=true autodoc=true displayName="Website login service" {
 			if ( user.count() ) {
 				user.session_authenticated = false;
 				_setUserSession( user );
+				$recordWebsiteUserAction(
+					  action = "autologin"
+					, type   = "login"
+				);
+				_preventSessionFixation();
 
 				request._presideWebsiteAutoLoginResult = true;
 				return true;
@@ -660,5 +759,12 @@ component singleton=true autodoc=true displayName="Website login service" {
 	}
 	private void function _setEmailService( required any emailService ) {
 		_emailService = arguments.emailService;
+	}
+
+	private any function _getWebsiteUserActionService() {
+		return _websiteUserActionService;
+	}
+	private void function _setWebsiteUserActionService( required any websiteUserActionService ) {
+		_websiteUserActionService = arguments.websiteUserActionService;
 	}
 }

@@ -1,16 +1,17 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="assetManagerService"      inject="assetManagerService";
-	property name="websitePermissionService" inject="websitePermissionService";
-	property name="formsService"             inject="formsService";
-	property name="presideObjectService"     inject="presideObjectService";
-	property name="contentRendererService"   inject="contentRendererService";
-	property name="imageManipulationService" inject="imageManipulationService";
-	property name="errorLogService"          inject="errorLogService";
-	property name="storageProviderService"   inject="storageProviderService";
-	property name="storageLocationService"   inject="storageLocationService";
-	property name="messageBox"               inject="coldbox:plugin:messageBox";
-	property name="datatableHelper"          inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="assetManagerService"              inject="assetManagerService";
+	property name="websitePermissionService"         inject="websitePermissionService";
+	property name="formsService"                     inject="formsService";
+	property name="presideObjectService"             inject="presideObjectService";
+	property name="contentRendererService"           inject="contentRendererService";
+	property name="imageManipulationService"         inject="imageManipulationService";
+	property name="errorLogService"                  inject="errorLogService";
+	property name="storageProviderService"           inject="storageProviderService";
+	property name="storageLocationService"           inject="storageLocationService";
+	property name="messageBox"                       inject="coldbox:plugin:messageBox";
+	property name="datatableHelper"                  inject="coldbox:myplugin:JQueryDatatablesHelpers";
+	property name="multilingualPresideObjectService" inject="multilingualPresideObjectService";
 
 	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -529,6 +530,12 @@ component extends="preside.system.base.AdminHandler" {
 
 		prc.versions = assetManagerService.getAssetVersions( rc.asset );
 		prc.assetType = assetManagerService.getAssetType( name=prc.asset.asset_type );
+
+		prc.isMultilingual = multilingualPresideObjectService.isMultilingual( "asset" );
+		prc.canTranslate   = prc.isMultilingual && hasCmsPermission( permissionKey="assetmanager.assets.translate" , context="assetmanagerfolder", contextKeys= prc.permissionContext );
+		if ( prc.canTranslate ) {
+			prc.assetTranslations = multilingualPresideObjectService.getTranslationStatus( "asset", rc.asset );
+		}
 	}
 
 	function editAssetAction( event, rc, prc ) {
@@ -580,6 +587,93 @@ component extends="preside.system.base.AdminHandler" {
 			persist = formData;
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", queryString="asset=#assetId#" ), persistStruct=persist );
 		}
+	}
+	function translateAssetRecord( event, rc, prc ) {
+		var object                = rc.object ?: "";
+		var id                    = rc.id     ?: "";
+		var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+		var record                = "";
+		prc.language              = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#id#" ) );
+		}
+		_checkPermissions( argumentCollection=arguments, key="assets.translate" );
+
+		prc.sourceRecord = presideObjectService.selectData( objectName=object, filter={ id=id }, useCache=false );
+		prc.record       = multiLingualPresideObjectService.selectTranslation( objectName=object, id=id, languageId=prc.language.id, useCache=false );
+		
+		if ( not prc.sourceRecord.recordCount ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="asset=#id#" ) );
+		}
+		prc.record       = queryRowToStruct( prc.record );
+		prc.recordLabel  = prc.sourceRecord[ presideObjectService.getObjectAttribute( objectName=object, attributeName="labelfield",  defaultValue="label" ) ] ?: "";
+		prc.translations = multilingualPresideObjectService.getTranslationStatus( object, id );
+		prc.formName     = "preside-objects.#translationObjectName#.admin.edit";
+		
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:assetManager.translaterecord.breadcrumb.title", data=[ prc.language.name ] )
+			, link  = ""
+		);
+		prc.pageIcon  = "pencil";
+		prc.pageTitle = translateResource( uri="cms:assetManager.translaterecord.title", data=[ prc.recordLabel, prc.language.name ] );
+	}
+	function translateAssetRecordAction( event, rc, prc ) {
+		var id                    = rc.id       ?: "";
+		var object                = rc.object   ?: "";
+		var languageId            = rc.language ?: "";
+		var persist               = "";
+		var translationObjectName = multilingualPresideObjectService.getTranslationObjectName( object );
+		
+		_checkPermissions( argumentCollection=arguments, key="assets.translate" );
+		prc.language = multilingualPresideObjectService.getLanguage( rc.language ?: "" );
+
+		if ( prc.language.isempty() ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.language.not.active.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#id#" ) );
+		}
+
+		if ( not presideObjectService.dataExists( objectName=object, filter={ id=id } ) ) {
+			messageBox.error( translateResource( uri="cms:assetManager.translation.recordNotFound.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", queryString="asset=#id#" ) );
+		}
+
+		var formName         = "preside-objects.#translationObjectName#.admin.edit";
+		var formData         = event.getCollectionForForm( formName );
+		var existingTranslation = multilingualPresideObjectService.selectTranslation(
+			  objectName   = object
+			, id           = id
+			, languageId   = languageId
+			, selectFields = [ "id" ]
+		);
+
+		formData._translation_language = languageId;
+		if ( existingTranslation.recordCount ) {
+			formData.id = existingTranslation.id;
+		}
+		var validationResult = validateForm( formName=formName, formData=formData );
+
+		if ( not validationResult.validated() ) {
+			messageBox.error( translateResource( "cms:assetManager.translation.validation.error" ) );
+			persist                  = formData;
+			persist.validationResult = validationResult;
+			persist.delete( "id" );
+
+			setNextEvent( url=event.buildAdminLink( linkTo="assetManager.editAsset", querystring="object=#object#&id=#id#&language=#languageId#" ), persistStruct=persist );
+		}
+
+		formData._translation_active = IsTrue( rc._translation_active ?: "" );
+		multilingualPresideObjectService.saveTranslation(
+			  objectName = object
+			, id         = id
+			, data       = formData
+			, languageId = languageId
+		);
+
+		messageBox.info( translateResource( uri="cms:assetManager.recordTranslated.confirmation" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.editAsset", querystring="asset=#id#" ) );
 	}
 
 	function makeVersionActiveAction( event, rc, prc ) {
@@ -802,7 +896,12 @@ component extends="preside.system.base.AdminHandler" {
 			for( var field in gridFields ){
 				records[ field ][ records.currentRow ] = renderField( "asset", field, record[ field ], [ "adminDataTable", "admin" ] );
 				if ( field == "title" ) {
-					records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickericon" ) & "</span> " & records[ field ][ records.currentRow ];
+					var type = assetManagerService.getAssetType( name=record.asset_type );
+					if ( ( type.groupName ?: "" ) == "image" ) {
+						records[ field ][ records.currentRow ] = '<span class="asset-preview"><img class="lazy" src="#event.buildLink( assetId=record.id, trashed=true )#"></span> ' & records[ field ][ records.currentRow ];
+					} else {
+						records[ field ][ records.currentRow ] = '<span class="asset-preview">' & renderAsset( assetId=record.id, context="pickerIcon" ) & '</span> ' & records[ field ][ records.currentRow ];
+					}
 				}
 			}
 
@@ -910,6 +1009,12 @@ component extends="preside.system.base.AdminHandler" {
 		_checkPermissions( argumentCollection=arguments, key="folders.manageContextPerms" );
 
 		if ( runEvent( event="admin.Permissions.saveContextPermsAction", private=true ) ) {
+			event.audit(
+				  action   = "edit_asset_folder_admin_permissions"
+				, type     = "assetmanager"
+				, detail   = QueryRowToStruct( folderRecord )
+				, recordId = folderId
+			);
 			messageBox.info( translateResource( uri="cms:assetmanager.permsSaved.confirmation", data=[ folderRecord.label ] ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="assetmanager.index", queryString="folder=#folderId#" ) );
 		}

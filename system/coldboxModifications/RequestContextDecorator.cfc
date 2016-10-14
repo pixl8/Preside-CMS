@@ -35,7 +35,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return {};
 	}
 
-	public string function getSiteUrl( string siteId="", boolean includePath=true ) output=false {
+	public string function getSiteUrl( string siteId="", boolean includePath=true, boolean includeLanguageSlug=true ) output=false {
 		var fetchSite = Len( Trim( arguments.siteId ) ) && arguments.siteId != getSiteId();
 		var site      = fetchSite ? getModel( "siteService" ).getSite( arguments.siteId ) : getSite();
 		var siteUrl   = ( site.protocol ?: "http" ) & "://" & ( site.domain ?: cgi.server_name );
@@ -47,6 +47,15 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		if ( arguments.includePath ) {
 			siteUrl &= site.path ?: "/";
 		}
+
+		if ( arguments.includeLanguageSlug ) {
+			var languageSlug = this.getLanguageSlug();
+			if ( Len( Trim( languageSlug ) ) ) {
+				siteUrl = ReReplace( siteUrl, "/$", "" ) & "/" & languageSlug;
+			}
+		}
+
+		siteUrl = siteUrl.reReplace( "/$", "" );
 
 		return siteUrl;
 	}
@@ -85,9 +94,6 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			link = getRequestContext().buildLink( argumentCollection = arguments );
 		}
 
-		link = Replace( link, "//", "/", "all" );
-		link = ReReplace( link, "^(https?):/", "\1://" );
-
 		return link;
 	}
 
@@ -103,6 +109,23 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		return getProtocol() & "://" & getServerName();
 	}
 
+	public string function getCurrentUrl( boolean includeQueryString=true ) output=false {
+		var currentUrl  = request[ "preside.path_info"    ] ?: "";
+		var qs          = request[ "preside.query_string" ] ?: "";
+		var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
+
+		return includeQs ? currentUrl & "?" & qs : currentUrl;
+	}
+
+	public void function setCurrentPresideUrlPath( required string presideUrlPath ) {
+		getRequestContext().setValue( name="_presideUrlPath", private=true, value=arguments.presideUrlPath );
+	}
+
+	public string function getCurrentPresideUrlPath() {
+		return getRequestContext().getValue( name="_presideUrlPath", private=true, defaultValue="/" );
+	}
+
+// REQUEST DATA
 	public struct function getCollectionWithoutSystemVars() output=false {
 		var collection = Duplicate( getRequestContext().getCollection() );
 
@@ -150,18 +173,9 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public string function getAdminPath() output=false {
-		var overridenSetting = getModel( "systemConfigurationService" ).getSetting( "general", "admin_url" );
-		var path             = Len( Trim( overridenSetting ) ) ? overridenSetting : getController().getSetting( "preside_admin_path" );
+		var path = getController().getSetting( "preside_admin_path" );
 
 		return Len( Trim( path ) ) ? "/#path#/" : "/";
-	}
-
-	public string function getCurrentUrl( boolean includeQueryString=true ) output=false {
-		var currentUrl  = request[ "preside.path_info"    ] ?: "";
-		var qs          = request[ "preside.query_string" ] ?: "";
-		var includeQs   = arguments.includeQueryString && Len( Trim( qs ) );
-
-		return includeQs ? currentUrl & "?" & qs : currentUrl;
 	}
 
 	public boolean function isAdminRequest() output=false {
@@ -175,6 +189,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var loginSvc = getModel( "loginService" );
 
 		return loginSvc.isLoggedIn();
+	}
+
+	public boolean function showNonLiveContent() output=false {
+		if ( this.isAdminRequest() ) {
+			return true;
+		}
+
+		return getModel( "loginService" ).isShowNonLiveEnabled();
 	}
 
 	public struct function getAdminUserDetails() output=false {
@@ -199,9 +221,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		content reset=true type="text/html";header statusCode="401";WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 	}
 
-	public void function audit() output=false {
-		arguments.userId = getAdminUserId();
-
+	public void function audit( userId=getAdminUserId() ) output=false {
 		return getModel( "AuditService" ).log( argumentCollection = arguments );
 	}
 
@@ -276,7 +296,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 
 	public any function getModel( required string beanName ) output=false {
-		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService" ];
+		var singletons = [ "siteService", "sitetreeService", "formsService", "systemConfigurationService", "loginService", "AuditService", "csrfProtectionService", "websiteLoginService", "websitePermissionService", "multilingualPresideObjectService" ];
 
 		if ( singletons.findNoCase( arguments.beanName ) ) {
 			var args = arguments;
@@ -336,14 +356,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 // FRONT END, dealing with current page
 	public void function initializePresideSiteteePage (
-		  string slug
-		, string pageId
-		, string systemPage
-		, string subaction
+		  string  slug
+		, string  pageId
+		, string  systemPage
+		, string  subaction
 	) output=false {
 		var sitetreeSvc = getModel( "sitetreeService" );
 		var rc          = getRequestContext().getCollection();
 		var prc         = getRequestContext().getCollection( private = true );
+		var allowDrafts = this.showNonLiveContent();
+		var getLatest   = allowDrafts;
 		var page        = "";
 		var parentPages = "";
 		var getPageArgs = {};
@@ -352,7 +374,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		}
 
 		if ( ( arguments.slug ?: "/" ) == "/" && !Len( Trim( arguments.pageId ?: "" ) ) && !Len( Trim( arguments.systemPage ?: "" ) ) ) {
-			page = sitetreeSvc.getSiteHomepage();
+			page = sitetreeSvc.getSiteHomepage( getLatest=getLatest, allowDrafts=allowDrafts );
 			parentPages = QueryNew( page.columnlist );
 		} else {
 			if ( Len( Trim( arguments.pageId ?: "" ) ) ) {
@@ -362,16 +384,16 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			} else {
 				getPageArgs.slug = arguments.slug;
 			}
-			page = sitetreeSvc.getPage( argumentCollection = getPageArgs );
+			page = sitetreeSvc.getPage( argumentCollection=getPageArgs, getLatest=getLatest, allowDrafts=allowDrafts );
 		}
 
-		if ( not page.recordCount ) {
+		if ( !page.recordCount ) {
 			return;
 		}
 
 		for( p in page ){ page = p; break; } // quick query row to struct hack
 
-		StructAppend( page, sitetreeSvc.getExtendedPageProperties( page.id, page.page_type ) );
+		StructAppend( page, sitetreeSvc.getExtendedPageProperties( id=page.id, pageType=page.page_type, getLatest=getLatest, allowDrafts=allowDrafts ) );
 		var ancestors = sitetreeSvc.getAncestors( id = page.id );
 		page.ancestors = [];
 
@@ -452,19 +474,31 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 			var fullLoginRequired = IsBoolean( accessRules.full_login_required ) && accessRules.full_login_required;
 			var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
 
-			if ( !loggedIn ) {
-				accessDenied( reason="LOGIN_REQUIRED" );
-			}
+			if ( Len( Trim( accessRules.access_condition ) ) ) {
+				var conditionIsTrue = getModel( "rulesEngineWebRequestService" ).evaluateCondition( accessRules.access_condition );
 
-			hasPermission = getModel( "websitePermissionService" ).hasPermission(
-				  permissionKey       = "pages.access"
-				, context             = "page"
-				, contextKeys         = [ accessRules.access_defining_page ]
-				, forceGrantByDefault = IsBoolean( accessRules.grantaccess_to_all_logged_in_users ) && accessRules.grantaccess_to_all_logged_in_users
-			);
+				if ( !conditionIsTrue ) {
+					if ( !loggedIn ) {
+						accessDenied( reason="LOGIN_REQUIRED" );
+					} else {
+						accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+					}
+				}
+			} else {
+				if ( !loggedIn ) {
+					accessDenied( reason="LOGIN_REQUIRED" );
+				}
 
-			if ( !hasPermission ) {
-				accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				hasPermission = getModel( "websitePermissionService" ).hasPermission(
+					  permissionKey       = "pages.access"
+					, context             = "page"
+					, contextKeys         = [ accessRules.access_defining_page ]
+					, forceGrantByDefault = IsBoolean( accessRules.grantaccess_to_all_logged_in_users ) && accessRules.grantaccess_to_all_logged_in_users
+				);
+
+				if ( !hasPermission ) {
+					accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+				}
 			}
 		}
 	}
@@ -600,6 +634,21 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 	}
 	public void function setLanguage( required string language ) output=false {
 		getRequestContext().setValue( name="_language", value=arguments.language, private=true );
+		getModel( "multilingualPresideObjectService" ).persistUserLanguage( arguments.language );
+	}
+
+	public string function getLanguageSlug() output=false {
+		return getRequestContext().getValue( name="_languageSlug", defaultValue="", private=true );
+	}
+	public void function setLanguageSlug( required string languageSlug ) output=false {
+		getRequestContext().setValue( name="_languageSlug", value=arguments.languageSlug, private=true );
+	}
+
+	public string function getLanguageCode() output=false {
+		return getRequestContext().getValue( name="_languageCode", defaultValue="en", private=true );
+	}
+	public void function setLanguageCode( required string languageCode ) output=false {
+		getRequestContext().setValue( name="_languageCode", value=arguments.languageCode, private=true );
 	}
 
 // HTTP Header helpers
@@ -641,7 +690,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 	public void function accessDenied( required string reason ) output=false {
 		announceInterception( "onAccessDenied" , arguments );
-		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments } );
+		getController().runEvent( event="general.accessDenied", eventArguments={ args=arguments }, private=true );
 		WriteOutput( getController().getPlugin("Renderer").renderLayout() );abort;
 	}
 

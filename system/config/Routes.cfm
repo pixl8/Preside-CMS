@@ -41,13 +41,12 @@
 		}
 	} );
 
-	addRouteHandler( getModel( "errorRouteHandler" ) );
-	addRouteHandler( getModel( "adminRouteHandler" ) );
-	addRouteHandler( getModel( "assetRouteHandler" ) );
-	addRouteHandler( getModel( "plainStoredFileRouteHandler" ) );
-	addRouteHandler( getModel( "staticAssetRouteHandler" ) );
-	addRouteHandler( getModel( "urlRewritesRouteHandler" ) );
-	addRouteHandler( getModel( "defaultPresideRouteHandler" ) );
-	addRouteHandler( getModel( "restRouteHandler" ) );
-	addRouteHandler( getModel( "standardRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:errorRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:adminRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:assetRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:plainStoredFileRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:staticAssetRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:defaultPresideRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:restRouteHandler" ) );
+	addRouteHandler( getModel( dsl="delayedInjector:standardRouteHandler" ) );
 </cfscript>

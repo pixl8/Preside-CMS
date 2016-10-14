@@ -13,7 +13,7 @@ This form is used for the "edit user" form in the user admin section of the admi
 <form>
     <tab id="basic" sortorder="10">
         <fieldset id="basic" sortorder="10" title="preside-objects.security_user:fieldset.details" description="preside-objects.security_user:fieldset.details.description">
-            <field binding="security_user.email_address" required="true" />
+            <field binding="security_user.email_address" required="true" control="emailinput"/>
             <field binding="security_user.known_as" />
             <field binding="security_user.active" />
             <field binding="security_user.groups" />

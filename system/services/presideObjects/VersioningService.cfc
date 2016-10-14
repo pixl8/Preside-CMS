@@ -1,19 +1,18 @@
-component output=false singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+
+component {
 
 // CONSTRUCTOR
-	/**
-	 * @presideObjectService.inject PresideObjectService
-	 * @coldboxController.inject    coldbox
-	 */
-	public any function init( required any presideObjectService, required any coldboxController ) output=false {
-		_setPresideObjectService( arguments.presideObjectService );
-		_setColdboxController( arguments.coldboxController );
-
+	public any function init() {
 		return this;
 	}
 
 // PUBLIC API METHODS
-	public void function setupVersioningForVersionedObjects( required struct objects, required string primaryDsn ) output=false {
+	public void function setupVersioningForVersionedObjects( required struct objects, required string primaryDsn ) {
 		var versionedObjects = {};
 
 		for( var objectName in objects ){
@@ -30,7 +29,8 @@ component output=false singleton=true {
 
 				_removeUniqueIndexes( objMeta );
 				_removeRelationships( objMeta );
-				_addAdditionalVersioningPropertiesToVersionObject( objMeta, versionObjectName );
+				_addAdditionalVersioningPropertiesToVersionObject( objMeta, versionObjectName, objectName );
+				_addAdditionalVersioningPropertiesToSourceObject( obj.meta, objectName );
 
 				versionedObjects[ versionObjectName ] = { meta = objMeta, instance="auto_created" };
 			}
@@ -44,23 +44,25 @@ component output=false singleton=true {
 
 	}
 
-	public numeric function getNextVersionNumber() output=false {
-		return _getPresideObjectService().insertData( objectName="version_number_sequence", data={} );
+	public numeric function getNextVersionNumber() {
+		return $getPresideObjectService().insertData( objectName="version_number_sequence", data={} );
 	}
 
 	public numeric function saveVersionForInsert(
 		  required string  objectName
 		, required struct  data
 		, required struct  manyToManyData
-		,          string  versionAuthor = _getLoggedInUserId()
+		,          string  versionAuthor = $getAdminLoggedInUserId()
 		,          numeric versionNumber = getNextVersionNumber()
-	) output=false {
+		,          boolean isDraft       = false
+	) {
 		return saveVersion(
 			  objectName        = arguments.objectName
 			, data              = arguments.data
 			, versionNumber     = arguments.versionNumber
 			, versionAuthor     = arguments.versionAuthor
 			, manyToManyData    = arguments.manyToManyData
+			, isDraft           = arguments.isDraft
 			, changedFields     = StructKeyArray( arguments.data )
 		);
 	}
@@ -72,13 +74,14 @@ component output=false singleton=true {
 		, required struct  filterParams
 		, required struct  data
 		, required struct  manyToManyData
-		,          numeric versionNumber = getNextVersionNumber()
+		,          numeric versionNumber        = getNextVersionNumber()
 		,          boolean forceVersionCreation = false
-		,          string  versionAuthor = _getLoggedInUserId()
-	) output=false {
-		var poService              = _getPresideObjectService();
-		var existingRecords        = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams );
-		var newData                = Duplicate( arguments.data );
+		,          string  versionAuthor        = $getAdminLoggedInUserId()
+		,          boolean isDraft              = false
+	) {
+		var poService       = $getPresideObjectService();
+		var existingRecords = poService.selectData( objectName = arguments.objectName, id=( arguments.id ?: NullValue() ), filter=arguments.filter, filterParams=arguments.filterParams, allowDraftVersions=true, fromVersionTable=true );
+		var newData         = Duplicate( arguments.data );
 
 		StructDelete( newData, "datecreated" );
 		StructDelete( newData, "datemodified" );
@@ -121,6 +124,7 @@ component output=false singleton=true {
 				, versionAuthor  = arguments.versionAuthor
 				, manyToManyData = mergedManyToManyData
 				, changedFields  = changedFields
+				, isDraft        = arguments.isDraft
 			);
 		}
 
@@ -133,19 +137,39 @@ component output=false singleton=true {
 		, required struct  manyToManyData
 		, required array   changedFields
 		,          numeric versionNumber = getNextVersionNumber()
-		,          string  versionAuthor = _getLoggedInUserId()
-	) output=false {
-		var poService         = _getPresideObjectService();
+		,          string  versionAuthor = $getAdminLoggedInUserId()
+		,          boolean isDraft       = false
+	) {
+		var poService         = $getPresideObjectService();
 		var versionObjectName = poService.getVersionObjectName( arguments.objectName );
 		var versionedData     = Duplicate( arguments.data );
 		var recordId          = versionedData.id ?: "";
 
-		versionedData._version_number         = arguments.versionNumber;
-		versionedData._version_author         = arguments.versionAuthor;
-		versionedData._version_changed_fields = ',' & arguments.changedFields.toList() & ",";
+		versionedData._version_number          = arguments.versionNumber;
+		versionedData._version_author          = arguments.versionAuthor;
+		versionedData._version_is_draft        = versionedData._version_has_drafts = arguments.isDraft;
+		versionedData._version_changed_fields  = ',' & arguments.changedFields.toList() & ",";
+		versionedData._version_is_latest       = !arguments.isDraft;
+		versionedData._version_is_latest_draft = true;
 
 		if ( poService.fieldExists( versionObjectName, "id" ) ) {
 			versionedData.id = versionedData.id ?: NullValue();
+		}
+
+		if ( Len( Trim( versionedData.id ?: "" ) ) ) {
+			var cleanLatestData = { _version_is_latest_draft=false };
+			if ( !arguments.isDraft ) {
+				cleanLatestData._version_is_latest = false;
+			}
+
+			poService.updateData(
+				  objectName              = versionObjectName
+				, data                    = cleanLatestData
+				, filter                  = { id = versionedData.id }
+				, useVersioning           = false
+				, skipTrivialInterceptors = true
+				, setDateModified         = false
+			);
 		}
 
 		poService.insertData(
@@ -153,24 +177,33 @@ component output=false singleton=true {
 			, data                    = versionedData
 			, insertManyToManyRecords = false
 			, useVersioning           = false
+			, skipTrivialInterceptors = true
 		);
 
 		for( var propertyName in manyToManyData ){
-			_saveManyToManyVersion(
-				  sourceObjectName = arguments.objectName
-				, sourceObjectId   = recordId
-				, joinPropertyName = propertyName
-				, values           = manyToManyData[ propertyName ]
-				, versionNumber    = arguments.versionNumber
-				, versionAuthor    = arguments.versionAuthor
+			var relationship = poService.getObjectPropertyAttribute(
+				  objectName    = arguments.objectName
+				, propertyName  = propertyName
+				, attributeName = "relationship"
 			);
+
+			if ( relationship == "many-to-many" ) {
+				_saveManyToManyVersion(
+					  sourceObjectName = arguments.objectName
+					, sourceObjectId   = recordId
+					, joinPropertyName = propertyName
+					, values           = manyToManyData[ propertyName ]
+					, versionNumber    = arguments.versionNumber
+					, versionAuthor    = arguments.versionAuthor
+				);
+			}
 		}
 
 		return arguments.versionNumber;
 	}
 
 	public array function getChangedFields( required string objectName, required string recordId, required struct newData, struct existingData, struct existingManyToManyData ) {
-		var poService            = _getPresideObjectService();
+		var poService            = $getPresideObjectService();
 		var changedFields        = [];
 		var oldData              = arguments.existingData ?: NullValue();
 		var oldManyToManyData    = arguments.existingManyToManyData ?: NullValue();
@@ -184,7 +217,7 @@ component output=false singleton=true {
 			);
 		}
 		if ( IsNull( oldData ) ) {
-			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId );
+			oldData = poService.selectData( objectName = arguments.objectName, id=arguments.recordId, allowDraftVersions=true );
 			for( var d in oldData ) { oldData = d; } // query to struct hack
 		}
 
@@ -218,8 +251,128 @@ component output=false singleton=true {
 		return getChangedFields( argumentCollection=arguments ).len() > 0;
 	}
 
+	public numeric function getLatestVersionNumber(
+		  required string  objectName
+		,          string  recordId
+		,          any     filter        = ""
+		,          struct  filterParams  = {}
+		,          boolean publishedOnly = false
+	) {
+		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var extraFilters      = [];
+
+		if ( arguments.keyExists( "recordId" ) ) {
+			arguments.filter = { id = arguments.recordId };
+			arguments.filterParams = {};
+		}
+
+		if ( arguments.publishedOnly ) {
+			extraFilters.append( { filter="_version_is_draft is null or _version_is_draft = 0" } );
+		}
+
+		var record            = $getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "Max( _version_number ) as version_number" ]
+			, filter       = arguments.filter
+			, filterParams = arguments.filterParams
+			, extraFilters = extraFilters
+			, useCache     = false
+		);
+
+		return Val( record.version_number ?: "" );
+	}
+
+	public array function getDraftChangedFields( required string objectName, required string recordId ) {
+		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var latestPublished   = getLatestVersionNumber(
+			  objectName    = arguments.objectName
+			, recordId      = arguments.recordId
+			, publishedOnly = true
+		);
+		var versionRecords = $getPresideObjectService().selectData(
+			  objectName   = versionObjectName
+			, selectFields = [ "_version_changed_fields", "_version_is_draft" ]
+			, filter       = "id = :id and _version_number > :_version_number"
+			, filterParams = { id=arguments.recordId, _version_number=latestPublished }
+		);
+		var changedFields = {};
+
+		for( var record in versionRecords ) {
+			for( var field in ListToArray( record._version_changed_fields ) ) {
+				changedFields[ field ] = "";
+			}
+		}
+
+		changedFields = changedFields.keyArray().sort( "textnocase" );
+
+		return changedFields;
+	}
+
+	public boolean function publishLatestDraft( required string objectName, required string recordId ) {
+		var changedFields = getDraftChangedFields( argumentCollection=arguments );
+		var dataToPublish = {};
+		var record        = $getPresideObjectService().selectData(
+			  objectName         = arguments.objectName
+			, id                 = recordId
+			, fromVersionTable   = true
+			, allowDraftVersions = true
+		);
+
+		if ( record.recordCount ) {
+			for( var r in record ) { record = r; }
+			for( var field in changedFields ) {
+				if ( record.keyExists( field ) ) {
+					dataToPublish[ field ] = record[ field ];
+				}
+			}
+
+			if ( dataToPublish.count() ) {
+				return $getPresideObjectService().updateData(
+					  objectName           = arguments.objectName
+					, id                   = arguments.recordId
+					, data                 = dataToPublish
+					, isDraft              = false
+					, forceVersionCreation = true
+				);
+			}
+		}
+
+		return false;
+	}
+
+	public boolean function promoteVersion(
+		  required string  objectName
+		, required string  recordId
+		, required numeric versionNumber
+		,          numeric newVersionNumber = getNextVersionNumber()
+	) {
+		var versionObjectName = $getPresideObjectService().getVersionObjectName( arguments.objectName );
+		var versionRecord     = $getPresideObjectService().selectData(
+			  objectName = versionObjectName
+			, filter     = { id=arguments.recordId, _version_number=arguments.versionNumber }
+		);
+
+		if ( versionRecord.recordCount ) {
+			for( var v in versionRecord ) { versionRecord = v; }
+			versionRecord.delete( "id"           );
+			versionRecord.delete( "datemodified" );
+			versionRecord.delete( "datecreated"  );
+
+			return $getPresideObjectService().updateData(
+				  objectName           = arguments.objectName
+				, id                   = arguments.recordId
+				, data                 = versionRecord
+				, isDraft              = IsBoolean( versionRecord._version_is_draft ) && versionRecord._version_is_draft
+				, versionNumber        = arguments.newVersionNumber
+				, forceVersionCreation = true
+			);
+		}
+
+		return false;
+	}
+
 // PRIVATE HELPERS
-	private void function _removeUniqueIndexes( required struct objMeta ) output=false {
+	private void function _removeUniqueIndexes( required struct objMeta ) {
 		for( var ixName in objMeta.indexes ) {
 			var ix = objMeta.indexes[ ixName ];
 			if ( IsBoolean( ix.unique ?: "" ) && ix.unique ) {
@@ -228,13 +381,13 @@ component output=false singleton=true {
 		}
 	}
 
-	private void function _removeRelationships( required struct objMeta ) output=false {
+	private void function _removeRelationships( required struct objMeta ) {
 		objMeta.relationships = objMeta.relationships ?: {};
 
 		StructClear( objMeta.relationships );
 	}
 
-	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string objectName ) output=false {
+	private void function _addAdditionalVersioningPropertiesToVersionObject( required struct objMeta, required string versionedObjectName, required string originalObjectName ) {
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
 			if ( ( objMeta.properties.id.generator ?: "" ) == "increment" ) {
 				throw( type="VersioningService.pkLimitiation", message="We currently cannot version objects with a an auto incrementing id.", detail="Please either use the default UUID generator for the id or turn versioning off on the object with versioned=false" );
@@ -282,31 +435,117 @@ component output=false singleton=true {
 			, generator    = "none"
 		};
 
+		objMeta.properties[ "_version_is_draft" ] = {
+			  name         = "_version_is_draft"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
 
+		objMeta.properties[ "_version_has_drafts" ] = {
+			  name         = "_version_has_drafts"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
 
-		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields" );
+		objMeta.properties[ "_version_is_latest" ] = {
+			  name         = "_version_is_latest"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.properties[ "_version_is_latest_draft" ] = {
+			  name         = "_version_is_latest_draft"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft" );
 
 		objMeta.indexes = objMeta.indexes ?: {};
 		for(indexKey in objMeta.indexes){
-			objMeta.indexes[ _renameTableIndexes(indexKey) ] = duplicate( objMeta.indexes[indexKey]);
+			objMeta.indexes[ _renameTableIndexes(indexKey, arguments.originalObjectName, arguments.versionedObjectName ) ] = duplicate( objMeta.indexes[indexKey]);
 			structDelete(objMeta.indexes, indexKey);
 		}
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_number" ] = { unique=false, fields="_version_number" };
-		objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_version_author" ] = { unique=false, fields="_version_author" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_number" ] = { unique=false, fields="_version_number" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_version_author" ] = { unique=false, fields="_version_author" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_draft"       ] = { unique=false, fields="_version_is_draft" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_latest"      ] = { unique=false, fields="_version_is_latest" };
+		objMeta.indexes[ "ix_#arguments.versionedObjectName#_is_latest_drft" ] = { unique=false, fields="_version_is_latest_draft" };
 		if ( StructKeyExists( objMeta.properties, "id" ) ) {
-			objMeta.indexes[ "ix#_removeTablePrefix(objMeta.tableName)#_record_id" ]      = { unique=false, fields="id,_version_number" };
+			objMeta.indexes[ "ix_#arguments.versionedObjectName#_record_id" ] = { unique=false, fields="id,_version_number" };
 		}
 	}
 
-	private any function _renameTableIndexes( required string indexKey ) output=false {
-		return _removeTablePrefix( RereplaceNoCase( arguments.indexKey, '^([iu]x_)', '\1version_' ) );
+	private void function _addAdditionalVersioningPropertiesToSourceObject( required struct objMeta, required string objectName ) {
+		objMeta.properties[ "_version_is_draft" ] = {
+			  name         = "_version_is_draft"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+		objMeta.properties[ "_version_has_drafts" ] = {
+			  name         = "_version_has_drafts"
+			, required     = false
+			, type         = "boolean"
+			, dbtype       = "boolean"
+			, indexes      = ""
+			, control      = "none"
+			, maxLength    = 0
+			, relationship = "none"
+			, relatedto    = "none"
+			, generator    = "none"
+			, default      = false
+		};
+
+		objMeta.dbFieldList = ListAppend( objMeta.dbFieldList, "_version_is_draft,_version_has_drafts" );
+		objMeta.indexes[ "ix_#arguments.objectName#_is_draft" ] = { unique=false, fields="_version_is_draft" };
+		objMeta.indexes[ "ix_#arguments.objectName#_has_drafts" ] = { unique=false, fields="_version_has_drafts" };
 	}
 
-	private any function _removeTablePrefix( required string indexKey ) output=false {
-		return replaceNoCase( arguments.indexKey, '_psys_', '_' );
+	private any function _renameTableIndexes( required string indexKey, required string objectName, required string versionedObjectName ) {
+		return ReplaceNoCase( arguments.indexKey, arguments.objectName, arguments.versionedObjectName );
 	}
 
-	private any function _createVersionNumberSequenceObject( required string primaryDsn ) output=false {
+	private any function _createVersionNumberSequenceObject( required string primaryDsn ) {
 		return { instance="auto_created", meta={
 			  dbFieldList = "id,datecreated"
 			, dsn         = primaryDsn
@@ -329,8 +568,8 @@ component output=false singleton=true {
 		, required string  values
 		, required numeric versionNumber
 		, required string  versionAuthor
-	) output=false {
-		var poService      = _getPresideObjectService();
+	) {
+		var poService      = $getPresideObjectService();
 		var prop           = poService.getObjectProperty( arguments.sourceObjectName, arguments.joinPropertyName );
 		var targetObject   = prop.relatedTo ?: "";
 		var pivotTable     = prop.relatedVia ?: "";
@@ -357,15 +596,9 @@ component output=false singleton=true {
 		}
 	}
 
-	private string function _getLoggedInUserId() output=false {
-		var event = _getColdboxController().getRequestContext();
-
-		return event.isAdminUser() ? event.getAdminUserId() : "";
-	}
-
 	private array function _getIgnoredFieldsForVersioning( required string objectName ) {
 		var ignoredFields = [ "datemodified" ];
-		var properties    = _getPresideObjectService().getObjectProperties( arguments.objectName );
+		var properties    = $getPresideObjectService().getObjectProperties( arguments.objectName );
 
 		for( var propertyName in properties ) {
 			var ignore = ( properties[ propertyName ].ignoreChangesForVersioning ?: false );
@@ -379,7 +612,7 @@ component output=false singleton=true {
 	}
 
 	private array function _getVersionedManyToManyFieldsForObject( required string objectName ) {
-		var poService       = _getPresideObjectService();
+		var poService       = $getPresideObjectService();
 		var properties      = poService.getObjectProperties( arguments.objectName );
 		var versionedFields = [];
 
@@ -396,20 +629,5 @@ component output=false singleton=true {
 		}
 
 		return versionedFields;
-	}
-
-// GETTERS AND SETTERS
-	private any function _getPresideObjectService() output=false {
-		return _presideObjectService;
-	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
-		_presideObjectService = arguments.presideObjectService;
-	}
-
-	private any function _getColdboxController() output=false {
-		return _coldboxController;
-	}
-	private void function _setColdboxController( required any coldboxController ) output=false {
-		_coldboxController = arguments.coldboxController;
 	}
 }

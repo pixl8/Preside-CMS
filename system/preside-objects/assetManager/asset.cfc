@@ -8,6 +8,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 
 	property name="title"             type="string"  dbtype="varchar" maxLength=150     required=true   uniqueindexes="assetfolder|2";
 	property name="storage_path"      type="string"  dbtype="varchar" maxLength=255     required=true   uniqueindexes="assetpath";
+	property name="asset_url"         type="string"  dbtype="varchar" maxLength=255     required=false  uniqueindexes="asseturl";
 	property name="description"       type="string"  dbtype="text"    maxLength=0       required=false;
 	property name="author"            type="string"  dbtype="varchar" maxLength=100     required=false;
 	property name="size"              type="numeric" dbtype="int"                       required=true;
@@ -26,7 +27,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="full_login_required"                  type="boolean" dbtype="boolean"               required=false default=false;
 	property name="grantaccess_to_all_logged_in_users"   type="boolean" dbtype="boolean"               required=false default=false;
 
-
-	property name="created_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
-	property name="updated_by"  relationship="many-to-one" relatedTo="security_user" required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="access_condition" relationship="many-to-one" relatedto="rules_engine_condition" required=false control="conditionPicker" ruleContext="webrequest";
+	property name="created_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
+	property name="updated_by"       relationship="many-to-one" relatedTo="security_user"          required=false generator="loggedInUserId" ondelete="cascade-if-no-cycle-check" onupdate="cascade-if-no-cycle-check";
 }

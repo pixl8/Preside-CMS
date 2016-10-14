@@ -1691,12 +1691,14 @@
 			poService.updateData( objectName="object_1", data={ label="changed" }, filter={ id = objId } );
 
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -1736,12 +1738,14 @@
 			poService.deleteData( objectName="object_1", filter={ id = objId } );
 
 			cacheKeys = cache.getKeys();
-			super.assertEquals( 4, ArrayLen( cacheKeys ), "Related caches not cleared" );
+			super.assertEquals( 2, ArrayLen( cacheKeys ), "Related caches not cleared" );
 
 			for( key in cacheKeys ){
 				cachedData = cache.get( key );
 				super.assertNotEquals( data.set1, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set2, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set3, cachedData, "Incorrect caches cleared" );
+				super.assertNotEquals( data.set4, cachedData, "Incorrect caches cleared" );
 				super.assertNotEquals( data.set5, cachedData, "Incorrect caches cleared" );
 			}
 		</cfscript>
@@ -1952,13 +1956,14 @@
 	<cffunction name="test057_versionedObjectsShouldHaveVersionTableAutoCreatedInTheDatabase" returntype="void">
 		<cfscript>
 			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", left("_version_ptest_a_category_object__join__an_object_with_versioning",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_a_category_object__join__an_object_with_versioning", "ptest_an_object_with_versioning" ];
+			var expectedTables = [ "_preside_generated_entity_versions", "_version_number_sequence", "_version_ptest_a_category_object", left("_version_ptest_category_join_object",_getDbAdapter().getTableNameMaxLength() ), "_version_ptest_an_object_with_versioning", "ptest_a_category_object", "ptest_category_join_object", "ptest_an_object_with_versioning" ];
 			var tables         = "";
 
 			poService.dbSync();
 
 			tables = ListToArray( _getDbTables() );
 			tables.sort( "textnocase" );
+			expectedTables.sort( "textnocase" );
 
 			super.assertEquals( expectedTables, tables );
 		</cfscript>
@@ -2065,7 +2070,7 @@
 			var versionRecord = poService.selectData( "vrsn_an_object_with_versioning" );
 
 			super.assertEquals( 1, versionRecord.recordCount );
-			var multiRecords  = poService.selectData( objectName="vrsn_a_category_object__join__an_object_with_versioning", filter={ _version_number = versionRecord._version_number } );
+			var multiRecords  = poService.selectData( objectName="vrsn_category_join_object", filter={ _version_number = versionRecord._version_number } );
 
 			super.assertEquals( 4, multiRecords.recordCount );
 			for( var record in multiRecords ){
@@ -2093,8 +2098,8 @@
 
 			poService.updateData(
 				  objectName   = "a_category_object"
-				, filter       = "label like :label"
-				, filterParams = { label = "my new label%" }
+				, filter       = "a_category_object.label like :a_category_object.label"
+				, filterParams = { "a_category_object.label" = "my new label%" }
 				, data         = { label = "changed" }
 			);
 
@@ -2185,7 +2190,7 @@
 			super.assertEquals( catIds[1], versionRecord.a_many_to_one_relationship );
 
 			var versionedRecords = poService.selectData(
-				  objectName = "vrsn_a_category_object__join__an_object_with_versioning"
+				  objectName = "vrsn_category_join_object"
 				, filter     = { _version_number = versionRecord._version_number }
 			);
 			super.assertEquals( catIds.len(), versionedRecords.recordCount );
@@ -2232,7 +2237,7 @@
 			super.assertEquals( 1, versionRecord.recordCount );
 
 			var versionedRecords = poService.selectData(
-				  objectName = "vrsn_a_category_object__join__an_object_with_versioning"
+				  objectName = "vrsn_category_join_object"
 				, filter     = { _version_number = versionRecord._version_number }
 			);
 			super.assertEquals( 2, versionedRecords.recordCount );
@@ -2283,7 +2288,7 @@
 			super.assertEquals( catIds[1], versionRecord.a_many_to_one_relationship );
 
 			var versionedRecords = poService.selectData(
-				  objectName = "vrsn_a_category_object__join__an_object_with_versioning"
+				  objectName = "vrsn_category_join_object"
 				, filter     = { _version_number = versionRecord._version_number }
 			);
 			super.assertEquals( catIds.len(), versionedRecords.recordCount );
@@ -2332,47 +2337,6 @@
 
 			super.assertEquals( 1, record.recordCount );
 			super.assertEquals( "changed", record.label );
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test072_selectData_shouldSelectLatestVersionBeneathSuppliedMaxVersionNumber" returntype="void">
-		<cfscript>
-			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/objectsWithVersioning" ] );
-			var catIds    = [];
-
-			poService.dbSync();
-
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 1" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 2" } ) );
-			catIds.append( poService.insertData( "a_category_object", { label="my new label 3" } ) );
-
-			var newId = poService.insertData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, data = {
-					  label             = "myLabel"
-					, a_category_object = ArrayToList( catIds )
-				  }
-			);
-
-			poService.updateData(
-				  objectName = "an_object_with_versioning"
-				, insertManyToManyRecords = true
-				, publish = false
-				, id      = newId
-				, data = { label="changed" }
-			);
-
-			var record = poService.selectData(
-				  objectName       = "an_object_with_versioning"
-				, id               = newId
-				, fromVersionTable = true
-				, maxVersion       = 4
-			);
-
-			super.assertEquals( 1, record.recordCount );
-			super.assertEquals( "myLabel", record.label );
 		</cfscript>
 	</cffunction>
 
@@ -2543,7 +2507,7 @@
 			var versions = poService.getRecordVersions( objectName="a_category_object", id=id );
 
 			super.assertEquals( 5, versions.recordCount );
-			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields", versions.columnList );
+			super.assertEquals( "id,label,datecreated,datemodified,_version_number,_version_author,_version_changed_fields,_version_is_draft,_version_has_drafts,_version_is_latest,_version_is_latest_draft", versions.columnList );
 			for( var i=1; i <= versions.recordCount; i++ ) {
 				super.assertEquals( 6-i, versions._version_number[i] );
 			}

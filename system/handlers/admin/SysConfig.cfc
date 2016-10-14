@@ -1,11 +1,12 @@
-component extends="preside.system.base.AdminHandler" output=false {
+component extends="preside.system.base.AdminHandler" {
 
 	property name="systemConfigurationService" inject="systemConfigurationService";
+	property name="siteService"                inject="siteService";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
 
 
 // LIFECYCLE EVENTS
-	function preHandler( event, rc, prc ) output=false {
+	function preHandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
 
 		if ( !isFeatureEnabled( "systemConfiguration" ) ) {
@@ -23,7 +24,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // FIRST CLASS EVENTS
-	public any function index( event, rc, prc ) output=false {
+	public any function index( event, rc, prc ) {
 		prc.categories = systemConfigurationService.listConfigCategories();
 
 		prc.pageTitle    = translateResource( uri="cms:sysconfig" );
@@ -31,17 +32,34 @@ component extends="preside.system.base.AdminHandler" output=false {
 		prc.pageIcon     = "cogs";
 	}
 
-	public any function category( event, rc, prc ) output=false {
-		var categoryId = rc.id ?: "";
+	public any function category( event, rc, prc ) {
+		var categoryId = Trim( rc.id   ?: "" );
+		var siteId     = Trim( rc.site ?: "" );
 
 		try {
 			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
 		} catch( "SystemConfigurationService.category.notFound" e ) {
 			event.notFound();
 		}
-		prc.savedData           = systemConfigurationService.getCategorySettings( category = categoryId );
+		prc.sites = siteService.listSites();
+
+		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
+		if ( isSiteConfig ) {
+			prc.savedData = systemConfigurationService.getCategorySettings(
+				  category        = categoryId
+				, includeDefaults = false
+				, siteId          = siteId
+			);
+		} else {
+			prc.savedData = systemConfigurationService.getCategorySettings(
+				  category           = categoryId
+				, globalDefaultsOnly = true
+			);
+		}
+
 		prc.categoryName        = translateResource( uri=prc.category.getName(), defaultValue=prc.category.getId() );
 		prc.categoryDescription = translateResource( uri=prc.category.getDescription(), defaultValue="" );
+		prc.formName            = isSiteConfig ? prc.category.getSiteForm() : prc.category.getForm();
 
 		event.addAdminBreadCrumb(
 			  title = prc.categoryName
@@ -57,8 +75,9 @@ component extends="preside.system.base.AdminHandler" output=false {
 		}
 	}
 
-	public any function saveCategoryAction( event, rc, prc ) output=false {
+	public any function saveCategoryAction( event, rc, prc ) {
 		var categoryId = rc.id ?: "";
+		var siteId     = rc.site ?: "";
 
 		try {
 			prc.category = systemConfigurationService.getConfigCategory( id = categoryId );
@@ -66,9 +85,27 @@ component extends="preside.system.base.AdminHandler" output=false {
 			event.notFound();
 		}
 
-		var formName         = prc.category.getForm();
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
+		var formName = Len( Trim( siteId ) ) ? prc.category.getSiteForm() : prc.category.getForm();
+		var formData = event.getCollectionForForm( formName );
+
+		if ( Len( Trim( siteId ) ) ) {
+			for( var setting in formData ){
+				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
+					formData.delete( setting );
+					systemConfigurationService.deleteSetting(
+						  category = categoryId
+						, setting  = setting
+						, siteId   = siteId
+					);
+				}
+			}
+		}
+
+		var validationResult = validateForm(
+			  formName      = formName
+			, formData      = formData
+			, ignoreMissing = Len( Trim( siteId ) )
+		);
 
 		announceInterception( "preSaveSystemConfig", {
 			  category         = categoryId
@@ -92,8 +129,16 @@ component extends="preside.system.base.AdminHandler" output=false {
 				  category = categoryId
 				, setting  = setting
 				, value    = formData[ setting ]
+				, siteId   = siteId
 			);
 		}
+
+		event.audit(
+			  action   = "save_sysconfig_category"
+			, type     = "sysconfig"
+			, recordId = categoryId
+			, detail   = formData
+		);
 
 		announceInterception( "postSaveSystemConfig", {
 			  category         = categoryId
@@ -105,7 +150,7 @@ component extends="preside.system.base.AdminHandler" output=false {
 	}
 
 // VIEWLETS
-	private string function categoryMenu( event, rc, prc, args ) output=false {
+	private string function categoryMenu( event, rc, prc, args ) {
 		args.categories = systemConfigurationService.listConfigCategories();
 
 		return renderView( view="admin/sysconfig/categoryMenu", args=args );
