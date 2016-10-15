@@ -69,21 +69,29 @@ component {
 
 					case "PostgreSQL":
 						draftSql     = "update    #escapedTable# as #latestAlias#
-						                set       _version_is_latest_draft = '1'
-						                from 	    #escapedTable# #olderAlias#
-						                where			#olderAlias#.id = latest.id
-						                and 			#olderAlias#._version_number > latest._version_number
-						                and       #olderAlias#.id is null";
+														set       _version_is_latest_draft = '1'
+														where not exists(
+																select 		1
+																from 			#escapedTable# as #olderAlias#
+																where			#olderAlias#.id = #latestAlias#.id
+																and 			#olderAlias#._version_number > #latestAlias#._version_number
+														)";
 
 						publishedSql = "update    #escapedTable# as #latestAlias#
-						                set       _version_is_latest = '1'
-						                from			#escapedTable# #olderAlias# 
-						                where			#olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number
-						                and 			( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
-						                and       #olderAlias#.id is null
-						                and       ( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = '0' )";
+														set       _version_is_latest = '1'
+														where not exists (
+																select 		1
+																from			#escapedTable# as #olderAlias# 
+																where			#olderAlias#.id = #latestAlias#.id and #olderAlias#._version_number > #latestAlias#._version_number
+																and 			( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
+														)
+														and 			( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = '0' )";
 					break;
 				}
+
+				;
+
+
 
 				sqlRunner.runSql(
 					  sql = cleanSql
