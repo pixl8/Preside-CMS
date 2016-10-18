@@ -8,4 +8,4 @@ COPY artifacts/build.zip temp.zip
 RUN mkdir /opt/preside && \
 	unzip temp -d /opt/preside/ && \
 	rm -f temp.zip && \
-	wget http://urlrewritefilter.googlecode.com/files/urlrewritefilter-4.0.3.jar -O /usr/local/tomcat/lib/urlrewritefilter-4.0.3.jar
+	wget http://search.maven.org/remotecontent?filepath=org/tuckey/urlrewritefilter/4.0.3/urlrewritefilter-4.0.3.jar -O /usr/local/tomcat/lib/urlrewritefilter-4.0.3.jar
