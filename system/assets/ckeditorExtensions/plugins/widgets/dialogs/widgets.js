@@ -37,7 +37,9 @@
 						height : dialogHeight + 'px',
 						setup  : function( widget ) {
 							var params = {}
-							  , dlg    = this;
+							  , dlg       = this
+							  , iframeQs  = { cacheBuster : Math.random().toString(36).substring(7) }
+							  , iframeSrc = buildAdminLink( "widgets", "dialog", iframeQs );
 
 							associatedWidget = widget;
 
@@ -57,11 +59,11 @@
 									, method : "POST"
 									, data   : params
 									, success: function(){
-										dlg.getElement().$.src = buildAdminLink( "widgets", "dialog" );
+										dlg.getElement().$.src = iframeSrc;
 									 }
 								});
 							} else {
-								dlg.getElement().$.src = buildAdminLink( "widgets", "dialog" );
+								dlg.getElement().$.src = iframeSrc;
 							}
 						},
 						commit : function() {
