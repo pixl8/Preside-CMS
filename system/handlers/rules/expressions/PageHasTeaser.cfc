@@ -5,10 +5,10 @@
  */
 component {
 
-	private boolean function evaluateExpression( boolean _posesses = true ) {
+	private boolean function evaluateExpression( boolean _possesses = true ) {
 		var hasTeaser = Len( Trim( payload.page.teaser ?: "" ) );
 
-		return _posesses ? hasTeaser : !hasTeaser;
+		return _possesses ? hasTeaser : !hasTeaser;
 	}
 
 }

@@ -5,11 +5,11 @@
  */
 component {
 
-	private boolean function evaluateExpression( boolean _posesses = true ) {
+	private boolean function evaluateExpression( boolean _possesses = true ) {
 		var embargo    = payload.page.embargo_date ?: "";
 		var hasEmbargo = IsDate( embargo );
 
-		return _posesses ? hasEmbargo : !hasEmbargo;
+		return _possesses ? hasEmbargo : !hasEmbargo;
 	}
 
 }

@@ -14,8 +14,8 @@
 	if ( dialogHeight < 300 ) { dialogHeight = 300; }
 
 	CKEDITOR.dialog.add( 'widgets', function( editor ) {
-		var lang = editor.lang.widgets
-		  , dialogOptions = { widgetCategories : ( editor.config.widgetCategories || "" ) }
+		var lang             = editor.lang.widgets
+		  , widgetCategories = ( editor.config.widgetCategories || "" )
 		  , associatedWidget;
 
 		return {
@@ -36,8 +36,10 @@
 						width  : dialogWidth  + 'px',
 						height : dialogHeight + 'px',
 						setup  : function( widget ) {
-							var params = {}
-							  , dlg    = this;
+							var params    = {}
+							  , iframeQs  = { widgetCategories : widgetCategories, cacheBuster : Math.random().toString(36).substring(7) }
+							  , iframeSrc = buildAdminLink( "widgets", "dialog", iframeQs )
+							  , dlg       = this;
 
 							associatedWidget = widget;
 
@@ -57,11 +59,11 @@
 									, method : "POST"
 									, data   : params
 									, success: function(){
-										dlg.getElement().$.src = buildAdminLink( "widgets", "dialog", dialogOptions );
+										dlg.getElement().$.src = iframeSrc;
 									 }
 								});
 							} else {
-								dlg.getElement().$.src = buildAdminLink( "widgets", "dialog", dialogOptions );
+								dlg.getElement().$.src = iframeSrc;
 							}
 						},
 						commit : function() {

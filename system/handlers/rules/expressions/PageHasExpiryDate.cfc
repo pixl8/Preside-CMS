@@ -5,11 +5,11 @@
  */
 component {
 
-	private boolean function evaluateExpression( boolean _posesses=true ) {
+	private boolean function evaluateExpression( boolean _possesses=true ) {
 		var expiry = payload.page.expiry_date ?: "";
 		var hasExpiry = IsDate( expiry );
 
-		return _posesses ? hasExpiry : !hasExpiry;
+		return _possesses ? hasExpiry : !hasExpiry;
 	}
 
 }

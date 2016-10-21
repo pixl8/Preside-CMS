@@ -14,7 +14,7 @@ component {
 	 */
 	private boolean function evaluateExpression(
 		  required string  benefits
-		,          boolean _posesses=true
+		,          boolean _possesses=true
 		,          boolean _all=true
 	) {
 		if ( !Len( Trim( payload.user.id ?: "" ) ) ) {
@@ -33,12 +33,12 @@ component {
 
 
 		if ( _all ) {
-			hasBenefits = _posesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
+			hasBenefits = _possesses ? ( matchingBenefits.len() == benefitsToMatch.len() ) : matchingBenefits.len();
 		} else {
-			hasBenefits = _posesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
+			hasBenefits = _possesses ? matchingBenefits.len() : ( matchingBenefits.len() == benefitsToMatch.len() );
 		}
 
-		return _posesses ? hasBenefits : !hasBenefits;
+		return _possesses ? hasBenefits : !hasBenefits;
 	}
 
 }

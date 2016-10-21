@@ -8,7 +8,7 @@ component {
 
 	property name="websitePermissionService" inject="websitePermissionService";
 
-	private boolean function evaluateExpression( boolean _posesses=true ) {
+	private boolean function evaluateExpression( boolean _possesses=true ) {
 		var hasBenefits = false;
 
 		if ( Len( Trim( payload.user.id ?: "" )) ) {
@@ -17,7 +17,7 @@ component {
 			hasBenefits  = userBenefits.len();
 		}
 
-		return _posesses ? hasBenefits : !hasBenefits;
+		return _possesses ? hasBenefits : !hasBenefits;
 	}
 
 }

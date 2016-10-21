@@ -253,7 +253,7 @@ These magic fields will always evaluate to `true` or `false` but show different 
 
 * `_is`: "is" or "is not"
 * `_has`: "has" or "has not" (refers to has/has not performed some action)
-* `_posesses`: "has" or "does not have"
+* `_possesses`: "has" or "does not have"
 * `_did`: "did" or "did not" (e.g. do some action)
 * `_was`: "was" or "was not"
 * `_are`: "are" or "are not"
