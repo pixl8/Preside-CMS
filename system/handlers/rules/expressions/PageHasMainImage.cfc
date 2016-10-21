@@ -5,10 +5,10 @@
  */
 component {
 
-	private boolean function evaluateExpression( boolean _posesses = true ) {
+	private boolean function evaluateExpression( boolean _possesses = true ) {
 		var hasImage = Len( Trim( payload.page.main_image ?: "" ) );
 
-		return _posesses ? hasImage : !hasImage;
+		return _possesses ? hasImage : !hasImage;
 	}
 
 }
