@@ -815,7 +815,7 @@ component displayName="Admin login service" {
 	private query function _getUserRecordFromCookie( required struct cookieValue ) {
 		if ( StructCount( arguments.cookieValue ) ) {
 			var tokenRecord = $getPresideObject( "security_user_login_token" ).selectData(
-				  selectFields = [ "security_user_login_token.id", "security_user_login_token.token", "user.login_id" ]
+				  selectFields = [ "security_user_login_token.id", "security_user_login_token.token", "security_user.login_id" ]
 				, filter       = { series = arguments.cookieValue.series }
 			);
 
