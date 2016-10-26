@@ -11,6 +11,7 @@ component {
 		prc._presideReloaded = true;
 
 		_performDbMigrations();
+		_populateDefaultLanguages();
 		announceInterception( "onApplicationStart" );
 	}
 
@@ -171,5 +172,11 @@ component {
 
 	private void function _performDbMigrations() {
 		databaseMigrationService.migrate();
+	}
+
+	private void function _populateDefaultLanguages() {
+		if ( isFeatureEnabled( "multilingual" ) ) {
+			getModel( "multilingualPresideObjectService" ).populateCoreLanguageSet();
+		}
 	}
 }
