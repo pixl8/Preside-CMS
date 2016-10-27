@@ -83,10 +83,10 @@ component validationProvider=true {
 		if ( not Len( Trim( arguments.value ) ) ) {
 			return true;
 		}
-		return ReFind( "^[a-zA-Z]{2}([_][a-zA-Z]{2})?$", arguments.value );
+		return ReFind( "^[a-zA-Z]{2,3}([_][a-zA-Z]{2,4})?([_][a-zA-Z]{2})?$", arguments.value );
 	}
 	public string function languageCode_js() {
-		return "function( value, el, params ){ return !value.length || value.match( /^[a-zA-Z]{2}([_][a-zA-Z]{2})?$/ ) !== null }";
+		return "function( value, el, params ){ return !value.length || value.match( /^[a-zA-Z]{2,3}([_][a-zA-Z]{2,4})?([_][a-zA-Z]{2})?$/ ) !== null }";
 	}
 
 	public boolean function match( required string fieldName, string value="", required string regex ) validatorMessage="cms:validation.match.default" {

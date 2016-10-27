@@ -934,6 +934,7 @@
 			if ( this.result_deselect( item ) ) {
 				$li.remove();
 
+				this.hidden_field.trigger("change");
 				this.form_field_jq.trigger("change", {
 					deselected: item.value
 				});
@@ -957,6 +958,7 @@
 			this.single_set_selected_text();
 			this.show_search_field_default();
 			this.results_reset_cleanup();
+			this.hidden_field.trigger("change");
 			this.form_field_jq.trigger("change");
 			if (this.active_field) {
 				return this.results_hide();
@@ -997,6 +999,7 @@
 					this.results_hide();
 				}
 				this.search_field.val( "" );
+				this.hidden_field.trigger("change");
 				this.form_field_jq.trigger("change", {
 					'selected': this.hidden_field.val()
 				});
