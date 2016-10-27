@@ -279,3 +279,17 @@ public void function addCommentAction( event, rc, prc ) {
 >>> When checking a context permission, you pass an array of context keys to the `hasWebsitePermission()` method. The returned grant or deny permission will be the one associated with the first found context key in the array.
 
 >>>This allows us to implement cascading permission schemes. For site tree access permissions for example, we pass an array of page ids. The first page id is the current page, the next id is it's parent, and so on.
+
+## Partial restrictions in site tree pages
+
+The site tree pages system allows you to define that a page is "Partially restricted". You can check that a user does not have full access to a partially restricted page with `event.isPagePartiallyRestricted()`. This then allows you to implement alternative content to show when the user does not have full access. It is down to you to implement this alternative content. A simple example:
+
+```lucee
+<!-- /views/page-types/standard_page/index.cfm -->
+
+<cfif event.isPagePartiallyRestricted()>
+    #renderView( "/general/_partiallyRestricted" )
+<cfelse>
+    #args.main_content#
+</cfif>
+```
