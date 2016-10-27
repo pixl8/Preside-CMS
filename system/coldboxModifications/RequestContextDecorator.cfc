@@ -470,7 +470,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		var websiteLoginService = getModel( "websiteLoginService" );
 		var accessRules         = getPageAccessRules();
 
-		if ( accessRules.access_restriction == "full" ){
+		if ( accessRules.access_restriction == "full" || accessRules.access_restriction == "partial" ){
 			var fullLoginRequired = IsBoolean( accessRules.full_login_required ) && accessRules.full_login_required;
 			var loggedIn          = websiteLoginService.isLoggedIn() && (!fullLoginRequired || !websiteLoginService.isAutoLoggedIn() );
 
@@ -479,14 +479,14 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 
 				if ( !conditionIsTrue ) {
 					if ( !loggedIn ) {
-						accessDenied( reason="LOGIN_REQUIRED" );
+						accessRules.access_restriction == "full" ? accessDenied( reason="LOGIN_REQUIRED" ) : this.setPartiallyRestricted( true );
 					} else {
-						accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+						accessRules.access_restriction == "full" ? accessDenied( reason="INSUFFICIENT_PRIVILEGES" ) : this.setPartiallyRestricted( true );
 					}
 				}
 			} else {
 				if ( !loggedIn ) {
-					accessDenied( reason="LOGIN_REQUIRED" );
+					accessRules.access_restriction == "full" ? accessDenied( reason="LOGIN_REQUIRED" ) : this.setPartiallyRestricted( true );
 				}
 
 				hasPermission = getModel( "websitePermissionService" ).hasPermission(
@@ -497,7 +497,7 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 				);
 
 				if ( !hasPermission ) {
-					accessDenied( reason="INSUFFICIENT_PRIVILEGES" );
+					accessRules.access_restriction == "full" ? accessDenied( reason="INSUFFICIENT_PRIVILEGES" ) : this.setPartiallyRestricted( true );
 				}
 			}
 		}
@@ -511,6 +511,18 @@ component extends="coldbox.system.web.context.RequestContextDecorator" output=fa
 		}
 
 		return prc.pageAccessRules;
+	}
+
+	public void function setPartiallyRestricted( required boolean isRestricted ) {
+		var prc = getRequestContext().getCollection( private = true );
+
+		prc.isPartiallyRestricted = arguments.isRestricted;
+	}
+
+	public boolean function isPagePartiallyRestricted() {
+		var prc = getRequestContext().getCollection( private = true );
+
+		return IsBoolean( prc.isPartiallyRestricted ?: "" ) && prc.isPartiallyRestricted;
 	}
 
 	public void function preventPageCache() output=false {
