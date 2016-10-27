@@ -267,7 +267,7 @@ component {
 		}
 
 		if ( arguments.publishedOnly ) {
-			extraFilters.append( { filter="_version_is_draft is null or _version_is_draft = 0" } );
+			extraFilters.append( { filter="_version_is_draft is null or _version_is_draft = '0'" } );
 		}
 
 		var record            = $getPresideObjectService().selectData(

@@ -27,7 +27,7 @@ component {
 				var escapedTable      = dbAdapter.escapeEntity( tableName );
 				var latestAlias       = dbAdapter.escapeEntity( "latest" );
 				var olderAlias        = dbAdapter.escapeEntity( "older" );
-				var cleanSql          = "update #escapedTable# set _version_is_latest = 0, _version_is_latest_draft = 0";
+				var cleanSql          = "update #escapedTable# set _version_is_latest = '0', _version_is_latest_draft = '0'";
 				var draftSql          = "";
 				var publishedSql      = "";
 
@@ -43,31 +43,55 @@ component {
 					case "MySQL":
 						draftSql     = "update    #escapedTable# #latestAlias#
 						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number
-						                set       #latestAlias#._version_is_latest_draft = 1
+						                set       #latestAlias#._version_is_latest_draft = '1'
 						                where     #olderAlias#.id is null";
 
 						publishedSql = "update    #escapedTable# #latestAlias#
-						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number and ( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = 0 )
-						                set       #latestAlias#._version_is_latest = 1
+						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number and ( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
+						                set       #latestAlias#._version_is_latest = '1'
 						                where     #olderAlias#.id is null
-						                and       ( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = 0 )";
+						                and       ( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = '0' )";
 					break;
 
 					case "Microsoft SQL Server":
-					case "PostgreSQL":
 						draftSql     = "update    #latestAlias#
-						                set       #latestAlias#._version_is_latest_draft = 1
+						                set       #latestAlias#._version_is_latest_draft = '1'
 						                from      #escapedTable# #latestAlias#
 						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number
 						                where     #olderAlias#.id is null";
 
 						publishedSql = "update    #escapedTable# #latestAlias#
-						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number and ( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = 0 )
-						                set       #latestAlias#._version_is_latest = 1
+						                left join #escapedTable# #olderAlias# on #olderAlias#.id = latest.id and #olderAlias#._version_number > latest._version_number and ( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
+						                set       #latestAlias#._version_is_latest = '1'
 						                where     #olderAlias#.id is null
-						                and       ( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = 0 )";
+						                and       ( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = '0' )";
+					break;
+
+					case "PostgreSQL":
+						draftSql     = "update    #escapedTable# as #latestAlias#
+														set       _version_is_latest_draft = '1'
+														where not exists(
+																select 		1
+																from 			#escapedTable# as #olderAlias#
+																where			#olderAlias#.id = #latestAlias#.id
+																and 			#olderAlias#._version_number > #latestAlias#._version_number
+														)";
+
+						publishedSql = "update    #escapedTable# as #latestAlias#
+														set       _version_is_latest = '1'
+														where not exists (
+																select 		1
+																from			#escapedTable# as #olderAlias# 
+																where			#olderAlias#.id = #latestAlias#.id and #olderAlias#._version_number > #latestAlias#._version_number
+																and 			( #olderAlias#._version_is_draft is null or #olderAlias#._version_is_draft = '0' )
+														)
+														and 			( #latestAlias#._version_is_draft is null or #latestAlias#._version_is_draft = '0' )";
 					break;
 				}
+
+				;
+
+
 
 				sqlRunner.runSql(
 					  sql = cleanSql
