@@ -83,7 +83,7 @@
 
 	private void function _registerAopListener() {
 		wirebox.listeners = [
-			{ class="coldbox.system.aop.Mixer",properties={} }
+			{ class="coldbox.system.aop.Mixer", properties={ generationPath="/aoptmp" } }
 		];
 	}
 
