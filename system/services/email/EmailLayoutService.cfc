@@ -1,6 +1,7 @@
 /**
  * @singleton      true
  * @presideService true
+ * @autodoc        true
  *
  */
 component {
@@ -17,6 +18,14 @@ component {
 	}
 
 // PUBLIC API
+	/**
+	 * Returns an array of structs describing the application's
+	 * available email layouts. Each struct contains `id`, `title`
+	 * and `description` keys. Layouts are ordered by title (ascending).
+	 *
+	 * @autodoc
+	 *
+	 */
 	public array function listLayouts() {
 		var layoutIds = _getLayouts();
 		var layouts   = [];
@@ -35,6 +44,36 @@ component {
 
 		return layouts;
 	}
+
+	/**
+	 * Returns the rendering of an email layout with the given
+	 * arguments.
+	 *
+	 * @autodoc true
+	 *
+	 */
+	public string function renderLayout(
+		  required string layout
+		, required string type
+		, required string subject
+		, required string body
+		,          string unsubscribeLink = ""
+		,          string viewOnlineLink  = ""
+	) {
+		var renderType   = arguments.type == "text" ? "text" : "html";
+		var viewletEvent = "email.layout.#arguments.layout#.#renderType#";
+		var viewletArgs  = {};
+
+		for( var key in arguments ) {
+			if ( ![ "layout", "type" ].findNoCase( key ) ) {
+				viewletArgs[ key ] = arguments[ key ];
+			}
+		}
+
+		return $renderViewlet( event=viewletEvent, args=viewletArgs );
+	}
+
+
 
 // PRIVATE HELPERS
 	private void function _loadLayoutsFromViewlets() {

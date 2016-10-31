@@ -28,6 +28,68 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "renderLayout", function() {
+			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments", function(){
+				var service       = _getService();
+				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
+				var dummyRendered = CreateUUId();
+
+				service.$( "$renderViewlet" ).$args(
+					  event = "email.layout.layout2.html"
+					, args  = args
+				).$results( dummyRendered );
+
+
+				var rendered = service.renderLayout(
+					  argumentCollection = args
+					, layout             = "layout2"
+					, type               = "html"
+				);
+
+				expect( rendered ).toBe( dummyRendered );
+			} );
+
+			it( "should call the layout's text viewlet (by convention), passing in supplied arguments", function(){
+				var service       = _getService();
+				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
+				var dummyRendered = CreateUUId();
+
+				service.$( "$renderViewlet" ).$args(
+					  event = "email.layout.layout2.text"
+					, args  = args
+				).$results( dummyRendered );
+
+
+				var rendered = service.renderLayout(
+					  argumentCollection = args
+					, layout             = "layout2"
+					, type               = "text"
+				);
+
+				expect( rendered ).toBe( dummyRendered );
+			} );
+
+			it( "should pass arbitrary arguments to the layout viewlet's args", function(){
+				var service       = _getService();
+				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId(), test=CreateUUId() };
+				var dummyRendered = CreateUUId();
+
+				service.$( "$renderViewlet" ).$args(
+					  event = "email.layout.layout2.text"
+					, args  = args
+				).$results( dummyRendered );
+
+
+				var rendered = service.renderLayout(
+					  argumentCollection = args
+					, layout             = "layout2"
+					, type               = "text"
+				);
+
+				expect( rendered ).toBe( dummyRendered );
+			} );
+		} );
+
 	}
 
 	private any function _getService(
