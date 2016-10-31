@@ -1,81 +1,39 @@
 ---
-id: emailtemplating
+id: emailtemplatingv2
 title: Email templating
 ---
 
 ## Overview
 
-PresideCMS comes with a very simple email templating system that allows you to define email templates by creating ColdBox handlers.
+As of 10.8.0, Preside comes with a sophisticated but simple system for email templating that allows developers and content editors to work together to create a highly tailored system of delivering both marketing and transactional email.
 
-Emails are sent through the core email service which in turn invokes template handlers to render the emails and return any other necessary mail parameters.
+>>> See [[emailtemplating]] for documentation on the basic email templating system prior to 10.8.0
 
-## Creating an email template handler
+## Concepts
 
-To create an email template handler, you must create a regular Coldbox handler under the `/handlers/emailTemplates` directory. The handler needs to implement a single *private* action, `prepareMessage()` that returns a structure containing any message parameters that it needs to set. For example:
+### Email layouts
 
-```luceescript
-// /mysite/application/handlers/emailTemplates/adminNotification.cfc
-component {
+Email "layouts" are provided by developers and designers to provide content administrators with a basic set of styles and layout for their emails. Each template can be given configuration options that allow content administrators to tweak the behaviour of the template globally and per email.
 
-    private struct function prepareMessage( event, rc, prc, args={} ) {
-        return {
-              to      = [ getSystemSetting( "email", "admin_notification_address", "" ) ]
-            , from    = getSystemSetting( "email", "default_from_address", "" )
-            , subject = "Admin notification: #( args.notificationTitle ?: '' )#"
-            , htmlBody = renderView( view="/emailTemplates/adminNotification/html", layout="email", args=args )
-            , textBody = renderView( view="/emailTemplates/adminNotification/text", args=args )
-        };
-    }
+An example layout might include a basic header and footer with configurable social media links and company contact details.
 
-}
-```
+### Email blueprint
 
-An example send() call for this template might look like this:
+An email _blueprint_ defines the input parameters that an email that uses the blueprint will receive. For example, a *reset password* blueprint, will receive a `{{resetEmailLink}}` parameter (among others).
 
-```luceescript
- emailService.send( template="adminNotification", args={
-      notificationTitle   = "Something just happened"
-    , notificationMessage = "Some message" 
-} );
-```
+System transactional email templates will have a pre-set blueprint, while other blueprints might be available for editorially created emails templates.
 
-## Supplying message arguments to the send() method
+### Email template
 
-Your email template handlers are not required to supply all the details of the message; these can be left to the calling code to supply. For example, we could refactor the above example so that the `to` and `subject` parameters need to be supplied by the calling code:
+An email _template_ is the main body of any email and is editorially driven, though developers may provide default content. When creating or configuring an email template, users may choose a layout and possibly choose a blueprint (depending on the type of email and blueprints available).
 
-```luceescript
-// /mysite/application/handlers/emailTemplates/adminNotification.cfc
-component {
+Any variables defined by the blueprint are available for editors to easily insert into their content and required variables are validated when saving the template.
 
-    private struct function prepareMessage( event, rc, prc, args={} ) {
-        return {
-              htmlBody = renderView( view="/emailTemplates/adminNotification/html", layout="email", args=args )
-            , textBody = renderView( view="/emailTemplates/adminNotification/text", args=args )
-        };
-    }
+### System vs Editorial email templates
 
-}
-```
+The development team may provide system transactional email templates such as "reset password" or "Event booking confirmation". These templates are known as *system* templates and are available through the UI for content editors to _edit_. They cannot be created or deleted.
 
-```luceescript
-emailService.send( 
-      template = "adminNotification"
-    , args     = { notificationMessage = "Some message" }
-    , to       = user.email_address
-    , subject  = "Alert: something just happend"
-);
-```
-
->>> Note the missing "from" parameter. The core send() implementation will attempt to use the system configuration setting `email.default_from_address` when encountering messages with a missing **from** address. This default address can be configured by users through the PresideCMS administrator (see [[editablesystemsettings]]).
-
-## Mail server and other configuration settings
-
-The core system comes with a system configuration form for mail server settings. See [[editablesystemsettings]] for more details on how this is implemented.
-
-The system uses these configuration values to set the server and port when sending emails. The "default from address" setting is used when sending mail without a specified from address.
-
-This form may be useful to extend in your site should you want to configure other mail related settings. i.e. you might have default "to" addresses for particular admin notification emails, etc.
-
+Editorial emails are entirely created by the editorial team and can be used for custom marketing mail outs, etc.
 
 
 
