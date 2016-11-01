@@ -9,7 +9,7 @@ title: Creating an email layout
 
 ### 1. Create viewlets for HTML and plain text renders
 
-Email layouts are created by convention. Each layout is defined as a pair of [[presideViewlets|Preside viewlets]]), one for the HTML version of the layout, another for the text only version of the layout. The convention based viewlet ids are `email.layout.{layoutid}.html` and `email.layout.{layoutid}.text`.
+Email layouts are created by convention. Each layout is defined as a pair of [[presideViewlets|Preside viewlets]], one for the HTML version of the layout, another for the text only version of the layout. The convention based viewlet ids are `email.layout.{layoutid}.html` and `email.layout.{layoutid}.text`.
 
 The viewlets receive four common variables in their `args` argument:
 
