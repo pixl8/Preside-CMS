@@ -17,6 +17,8 @@ Email "layouts" are provided by developers and designers to provide content admi
 
 An example layout might include a basic header and footer with configurable social media links and company contact details.
 
+See [[creatingAnEmailLayout]]
+
 ### Email blueprint
 
 An email _blueprint_ defines the input parameters that an email that uses the blueprint will receive. For example, a *reset password* blueprint, will receive a `{{resetEmailLink}}` parameter (among others).
