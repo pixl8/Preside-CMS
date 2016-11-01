@@ -98,6 +98,56 @@ component {
 		return params;
 	}
 
+	/**
+	 * Runs an email template's 'prepareParameters' handler action
+	 * to prepare dynamic parameters for the email render.
+	 *
+	 * @autodoc       true
+	 * @template.hint The template who's parameters are to be prepared
+	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 *
+	 */
+	public struct function prepareParameters( required string template, struct args={} ) {
+		var handlerAction = "email.template.#arguments.template#.prepareParameters";
+
+		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = arguments.args
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return {};
+
+	}
+
+	/**
+	 * Runs an email template's 'prepareAttachments' handler action
+	 * to prepare dynamic attachments for the email send.
+	 *
+	 * @autodoc       true
+	 * @template.hint The template who's attachments are to be prepared
+	 * @args.hint     A struct of args that have been passed to the email sending logic that will inform the building of this email
+	 *
+	 */
+	public array function prepareAttachments( required string template, struct args={} ) {
+		var handlerAction = "email.template.#arguments.template#.prepareAttachments";
+
+		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = arguments.args
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return [];
+
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTemplates() {
 		return _configuredTemplates;

@@ -72,12 +72,99 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "prepareParameters()", function(){
+			it( "should call the 'prepareParameters' method on the corresponding handler for the given template, passing any args through to the method, and return the result", function(){
+				var service    = _getService();
+				var template   = "adminWelcome"
+				var args       = { moreTesting = CreateUUId() };
+				var mockResult = { test=CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.prepareParameters" ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = "email.template.#template#.prepareParameters"
+					, eventArguments = args
+					, private        = true
+					, prePostExempt  = true
+				).$results( mockResult );
+
+				expect( service.prepareParameters(
+					  template = template
+					, args     = args
+				) ).toBe( mockResult );
+			} );
+
+			it( "should return an empty struct when the template does not exist", function(){
+				expect( _getService().prepareParameters(
+					  template = CreateUUId()
+					, args     = {}
+				) ).toBe( {} );
+			} );
+
+			it( "should return an empty struct when the template does not have a corresponding prepareParameters handler action", function(){
+				var service    = _getService();
+				var template   = "adminWelcome"
+				var args       = { moreTesting = CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.prepareParameters" ).$results( false );
+
+				expect( service.prepareParameters(
+					  template = template
+					, args     = args
+				) ).toBe( {} );
+			} );
+		} );
+
+		describe( "prepareAttachments()", function(){
+			it( "should call the 'prepareAttachments' method on the corresponding handler for the given template, passing any args through to the method, and return the result", function(){
+				var service    = _getService();
+				var template   = "adminWelcome"
+				var args       = { moreTesting = CreateUUId() };
+				var mockResult = [{ name="test", location="/path/to/file.jpg" }];
+
+				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.prepareAttachments" ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = "email.template.#template#.prepareAttachments"
+					, eventArguments = args
+					, private        = true
+					, prePostExempt  = true
+				).$results( mockResult );
+
+				expect( service.prepareAttachments(
+					  template = template
+					, args     = args
+				) ).toBe( mockResult );
+			} );
+
+			it( "should return an empty array when the template does not exist", function(){
+				expect( _getService().prepareAttachments(
+					  template = CreateUUId()
+					, args     = {}
+				) ).toBe( [] );
+			} );
+
+			it( "should return an empty array when the template does not have a corresponding prepareAttachments handler action", function(){
+				var service    = _getService();
+				var template   = "adminWelcome"
+				var args       = { moreTesting = CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.prepareAttachments" ).$results( false );
+
+				expect( service.prepareAttachments(
+					  template = template
+					, args     = args
+				) ).toBe( [] );
+			} );
+		} );
+
 	}
 
 	private any function _getService( struct configuredTemplates=_getDefaultConfiguredTemplates() ){
 		var service = createMock( object=new preside.system.services.email.SystemEmailTemplateService(
 			configuredTemplates = arguments.configuredTemplates
 		) );
+
+		mockColdboxController = createStub();
+		service.$( "$getColdbox", mockColdboxController );
 
 		return service;
 	}
