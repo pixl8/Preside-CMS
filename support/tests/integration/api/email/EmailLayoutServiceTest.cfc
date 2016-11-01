@@ -33,20 +33,27 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "renderLayout", function() {
-			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments", function(){
+			it( "should call the layout's HTML viewlet (by convention), passing in supplied arguments combined with retrieved config for the layout/email", function(){
 				var service       = _getService();
+				var layout        = "layout2";
+				var emailTemplate = CreateUUId();
 				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
 				var dummyRendered = CreateUUId();
+				var config        = { dummy=CreateUUId(), test=Now() };
+				var argsPlusConfig = Duplicate( args );
 
+				argsPlusConfig.append( config, false );
+
+				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.html"
-					, args  = args
+					, args  = argsPlusConfig
 				).$results( dummyRendered );
-
 
 				var rendered = service.renderLayout(
 					  argumentCollection = args
-					, layout             = "layout2"
+					, layout             = layout
+					, emailTemplate      = emailTemplate
 					, type               = "html"
 				);
 
@@ -55,18 +62,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should call the layout's text viewlet (by convention), passing in supplied arguments", function(){
 				var service       = _getService();
+				var layout        = "layout2";
+				var emailTemplate = CreateUUId();
 				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId() };
 				var dummyRendered = CreateUUId();
+				var config        = { dummy=CreateUUId(), test=Now() };
+				var argsPlusConfig = Duplicate( args );
 
+				argsPlusConfig.append( config, false );
+
+				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.text"
-					, args  = args
+					, args  = argsPlusConfig
 				).$results( dummyRendered );
 
 
 				var rendered = service.renderLayout(
 					  argumentCollection = args
-					, layout             = "layout2"
+					, layout             = layout
+					, emailTemplate      = emailTemplate
 					, type               = "text"
 				);
 
@@ -74,19 +89,27 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 
 			it( "should pass arbitrary arguments to the layout viewlet's args", function(){
-				var service       = _getService();
-				var args          = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId(), test=CreateUUId() };
-				var dummyRendered = CreateUUId();
+				var service        = _getService();
+				var layout         = "layout2";
+				var emailTemplate  = CreateUUId();
+				var dummyRendered  = CreateUUId();
+				var args           = { subject="Blah #CreateUUId()#", body=CreateUUId(), unsubscribeLink=CreateUUId(), viewOnlineLink=CreateUUId(), test=CreateUUId() };
+				var config         = { dummy=CreateUUId(), test=Now() };
+				var argsPlusConfig = Duplicate( args );
 
+				argsPlusConfig.append( config, false );
+
+				service.$( "getLayoutConfig" ).$args( layout, emailTemplate, true ).$results( config );
 				service.$( "$renderViewlet" ).$args(
 					  event = "email.layout.layout2.text"
-					, args  = args
+					, args  = argsPlusConfig
 				).$results( dummyRendered );
 
 
 				var rendered = service.renderLayout(
 					  argumentCollection = args
-					, layout             = "layout2"
+					, layout             = layout
+					, emailTemplate      = emailTemplate
 					, type               = "text"
 				);
 

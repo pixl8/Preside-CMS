@@ -66,11 +66,19 @@ component {
 	 * Returns the rendering of an email layout with the given
 	 * arguments.
 	 *
-	 * @autodoc true
+	 * @autodoc              true
+	 * @layout.hint          ID of the layout to render
+	 * @emailTemplate.hint   ID of the email template that is being rendered within the layout
+	 * @type.hint            Type of render, either HTML or TEXT
+	 * @subject.hint         Subject of the email
+	 * @body.hint            Body of the email
+	 * @unsubscribeLink.hint Optional link for unsubscribing from emails
+	 * @viewOnlineLink.hint  Optional link for viewling email online
 	 *
 	 */
 	public string function renderLayout(
 		  required string layout
+		, required string emailTemplate
 		, required string type
 		, required string subject
 		, required string body
@@ -82,10 +90,13 @@ component {
 		var viewletArgs  = {};
 
 		for( var key in arguments ) {
-			if ( ![ "layout", "type" ].findNoCase( key ) ) {
+			if ( ![ "layout", "type", "emailTemplate" ].findNoCase( key ) ) {
 				viewletArgs[ key ] = arguments[ key ];
 			}
 		}
+
+		var config = getLayoutConfig( arguments.layout, arguments.emailTemplate, true );
+		viewletArgs.append( config, false );
 
 		return $renderViewlet( event=viewletEvent, args=viewletArgs );
 	}
