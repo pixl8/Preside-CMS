@@ -45,6 +45,17 @@ component {
 	}
 
 	/**
+	 * Returns whether or not the provided template
+	 * is configured in the system.
+	 *
+	 * @autodoc       true
+	 * @template.hint The ID of the template to check
+	 */
+	public boolean function templateExists( required string template ) {
+		return _getConfiguredTemplates().keyExists( arguments.template );
+	}
+
+	/**
 	 * Returns an array of configurable parameters for the given
 	 * system email template. Each item in the array is a struct
 	 * with the keys, `id`, `title`, `description` and `required`.

@@ -62,6 +62,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "templateExists()", function(){
+			it( "should return true if the provided template is configured in the system", function(){
+				expect( _getService().templateExists( "websiteResetPassword" ) ).toBe( true );
+			} );
+
+			it( "should return false if the provided template is not configured in the system", function(){
+				expect( _getService().templateExists( CreateUUId() ) ).toBe( false );
+			} );
+		} );
+
 	}
 
 	private any function _getService( struct configuredTemplates=_getDefaultConfiguredTemplates() ){
