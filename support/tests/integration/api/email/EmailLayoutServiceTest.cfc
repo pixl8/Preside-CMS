@@ -6,22 +6,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return an array of layouts derived from view and handler directories (base on convention, 'email.layout.(layoutid).html/text') including transated titles and descriptions based on i18n convention", function(){
 				var service          = _getService();
 				var expectedLayouts  = [ {
-					  id          = "layout1"
-					, title       = "Layout 1 title"
-					, description = "Layout 1 description"
+					  id           = "layout1"
+					, title        = "Layout 1 title"
+					, description  = "Layout 1 description"
+					, configurable = false
 				},{
-					  id          = "layout2"
-					, title       = "Layout 2 title here"
-					, description = "Layout 2 description here"
+					  id           = "layout2"
+					, title        = "Layout 2 title here"
+					, description  = "Layout 2 description here"
+					, configurable = true
 				},{
-					  id          = "layout3"
-					, title       = "Layout 3"
-					, description = "Layout 3 is cool"
+					  id           = "layout3"
+					, title        = "Layout 3"
+					, description  = "Layout 3 is cool"
+					, configurable = false
 				} ]
 
 				for( var layout in expectedLayouts ) {
-					service.$( "$translateResource" ).$args( uri="email.layout:#layout.id#.title"      , defaultValue=layout.id ).$results( layout.title       );
-					service.$( "$translateResource" ).$args( uri="email.layout:#layout.id#.description", defaultValue=""        ).$results( layout.description );
+					service.$( "$translateResource" ).$args( uri="email.layout.#layout.id#:title"      , defaultValue=layout.id ).$results( layout.title       );
+					service.$( "$translateResource" ).$args( uri="email.layout.#layout.id#:description", defaultValue=""        ).$results( layout.description );
+					mockFormsService.$( "formExists" ).$args( "email.layout.#layout.id#" ).$results( layout.configurable );
 				}
 
 				expect( service.listLayouts() ).toBe( expectedLayouts );
@@ -96,11 +100,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		array layoutViewlets=_getDefaultLayoutViewlets()
 	){
 		variables.mockViewletsService = createEmptyMock( "preside.system.services.viewlets.ViewletsService" );
+		variables.mockFormsService    = createEmptyMock( "preside.system.services.forms.FormsService" );
 
 		mockViewletsService.$( "listPossibleViewlets" ).$args( filter="email\.layout\.(.*?)\.(html|text)" ).$results( layoutViewlets );
 
 		var service = createMock( object=new preside.system.services.email.EmailLayoutService(
-			viewletsService = mockViewletsService
+			  viewletsService = mockViewletsService
+			, formsService    = mockFormsService
 		) );
 
 		return service;

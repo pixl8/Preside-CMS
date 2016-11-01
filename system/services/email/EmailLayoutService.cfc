@@ -8,10 +8,13 @@ component {
 
 	/**
 	 * @viewletsService.inject viewletsService
+	 * @formsService.inject    formsService
 	 *
 	 */
-	public any function init( required any viewletsService ) {
+	public any function init( required any viewletsService, required any formsService ) {
 		_setViewletsService( arguments.viewletsService );
+		_setFormsService( arguments.formsService );
+
 		_loadLayoutsFromViewlets();
 
 		return this;
@@ -27,14 +30,16 @@ component {
 	 *
 	 */
 	public array function listLayouts() {
-		var layoutIds = _getLayouts();
-		var layouts   = [];
+		var layoutIds    = _getLayouts();
+		var formsService = _getFormsService();
+		var layouts      = [];
 
 		for( var layoutId in layoutIds ) {
 			layouts.append( {
-				  id          = layoutId
-				, title       = $translateResource( uri="email.layout:#layoutId#.title"      , defaultValue=layoutId )
-				, description = $translateResource( uri="email.layout:#layoutId#.description", defaultValue=""       )
+				  id           = layoutId
+				, title        = $translateResource( uri="email.layout.#layoutId#:title"      , defaultValue=layoutId )
+				, description  = $translateResource( uri="email.layout.#layoutId#:description", defaultValue=""       )
+				, configurable = formsService.formExists( "email.layout.#layoutId#" )
 			} );
 		}
 
@@ -101,5 +106,12 @@ component {
 	}
 	private void function _setViewletsService( required any viewletsService ) {
 		_viewletsService = arguments.viewletsService;
+	}
+
+	private any function _getFormsService() {
+		return _formsService;
+	}
+	private void function _setFormsService( required any formsService ) {
+		_formsService = arguments.formsService;
 	}
 }
