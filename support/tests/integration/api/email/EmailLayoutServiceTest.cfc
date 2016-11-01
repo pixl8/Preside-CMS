@@ -197,6 +197,72 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "getLayoutConfig", function(){
+			it( "should return all the globally saved configuration items for the layout in a struct, when no email template supplied", function(){
+				var service       = _getService();
+				var layout        = "layout3";
+				var mockDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
+				var expected      = {};
+
+				for( var record in mockDbRecords ) {
+					expected[ record.item ] = record.value;
+				}
+
+				mockConfigDao.$( "selectData" ).$args(
+					  filter       = { layout=layout, email_template="" }
+					, selectFields = [ "item", "value" ]
+				).$results( mockDbRecords );
+
+				expect( service.getLayoutConfig( layout ) ).toBe( expected );
+			} );
+
+			it( "should return email template specific configuration when email template ID supplied", function(){
+				var service       = _getService();
+				var layout        = "layout3";
+				var emailTemplate = CreateUUId();
+				var mockDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
+				var expected      = {};
+
+				for( var record in mockDbRecords ) {
+					expected[ record.item ] = record.value;
+				}
+
+				mockConfigDao.$( "selectData" ).$args(
+					  filter       = { layout=layout, email_template=emailTemplate }
+					, selectFields = [ "item", "value" ]
+				).$results( mockDbRecords );
+
+				expect( service.getLayoutConfig( layout, emailTemplate ) ).toBe( expected );
+			} );
+
+			it( "should return a merged set of global and email template specific configuration when email template ID supplied and merge set to true", function(){
+				var service               = _getService();
+				var layout                = "layout3";
+				var emailTemplate         = CreateUUId();
+				var mockSpecificDbRecords = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["data",CreateUUId()],["fun",Now()]] );
+				var mockGlobalDbRecords   = QueryNew( 'item,value', 'varchar,varchar', [["test",CreateUUId()],["fun",Now()],["boo","hoo"]] );
+				var expected              = {};
+
+				for( var record in mockGlobalDbRecords ) {
+					expected[ record.item ] = record.value;
+				}
+				for( var record in mockSpecificDbRecords ) {
+					expected[ record.item ] = record.value;
+				}
+
+				mockConfigDao.$( "selectData" ).$args(
+					  filter       = { layout=layout, email_template=emailTemplate }
+					, selectFields = [ "item", "value" ]
+				).$results( mockSpecificDbRecords );
+				mockConfigDao.$( "selectData" ).$args(
+					  filter       = { layout=layout, email_template="" }
+					, selectFields = [ "item", "value" ]
+				).$results( mockGlobalDbRecords );
+
+				expect( service.getLayoutConfig( layout, emailTemplate, true ) ).toBe( expected );
+			} );
+		} );
+
 	}
 
 	private any function _getService(
