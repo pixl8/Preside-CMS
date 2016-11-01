@@ -1,6 +1,6 @@
 <cfcomponent output="false" hint="I am a base Handler for all admin handlers. All admin handlers should extend me">
 	<cfproperty name="applicationsService" inject="applicationsService" />
-	<cfproperty name="loginService" inject="loginService" />
+	<cfproperty name="loginService"        inject="loginService" />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
 		<cfargument name="event"          type="any"    required="true" />
@@ -32,7 +32,8 @@
 		<cfargument name="event"          type="any"    required="true" />
 
 		<cfscript>
-			var loginExcempt = event.getCurrentEvent() contains 'admin.login' or event.getCurrentEvent() contains 'admin.ajaxProxy'; // ajaxProxy does its own login handling...
+			var currentEvent = event.getCurrentEvent();
+			var loginExcempt = currentEvent.reFindNoCase( "^admin\.(login|ajaxProxy|general\.setlocale)" );
 			var postLoginUrl = "";
 
 			if ( !loginExcempt ) {
@@ -55,7 +56,7 @@
 						}
 
 					} else {
-						postLoginUrl = "";
+						postLoginUrl = rc.postLoginUrl ?: event.getCurrentUrl();
 					}
 
 					if ( isAdminUser ) {

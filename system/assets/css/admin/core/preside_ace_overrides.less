@@ -41,7 +41,7 @@ body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom
 input[type="checkbox"], input[type="radio"] {
 	&.ace, &.ace.ace-checkbox-2 {
 		+ .lbl {
-			z-index : 2;
+			z-index : 0;
 		}
 
 		&:focus + .lbl::before {
@@ -192,15 +192,28 @@ span.input-icon {
 }
 
 .user-photo {
-	margin        : -4px 8px 0 0;
-	border-radius : 100%;
-	border        : 2px solid @white;
-	max-width     : 40px;
+	margin          : -4px 8px 0 0;
+	border-radius   : 100%;
+	border          : 2px solid @white;
+	width           : 40px;
+	height          : 40px;
+	display         : inline-block;
+	background      : url( ../../../images/avatars/unknown.png ) center center no-repeat;
+	background-size : cover;
 
 	&.tiny {
-		max-width    : 20px;
+		width        : 20px;
+		height       : 20px;
 		border       : none;
 		margin-right : 2px;
+	}
+}
+
+.timeline-info {
+	.user-photo {
+		margin-top   : 0px;
+		margin-left  : 0px;
+		margin-right : 0px;
 	}
 }
 

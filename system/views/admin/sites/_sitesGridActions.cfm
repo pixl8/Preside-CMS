@@ -3,7 +3,7 @@
 
 <cfoutput>
 	<div class="action-buttons">
-		<a class="blue" href="#event.buildAdminLink( linkTo="sites.editSite", queryString="id=#args.id#")#" data-context-key="e">
+		<a class="blue" href="#event.buildAdminLink( linkTo="sites.editSite", queryString="id=#args.id#&action=manage")#" data-context-key="e">
 			<i class="fa fa-pencil bigger-130"></i>
 		</a>
 

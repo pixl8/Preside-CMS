@@ -434,7 +434,7 @@ component extends="BaseAdapter" {
 				columnType &= " primary key";
 			}
 
-			columnAlter['columnSet'] = ( isNullable ? "" : escapeEntity( arguments.columnName ) & " Set not null" );
+			columnAlter['columnSet'] = escapeEntity( arguments.columnName ) & ( isNullable ? " Drop not null" : " Set not null" );
 			columnAlter['columnType'] = columnType;
 			return columnAlter;
    }

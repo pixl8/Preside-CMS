@@ -7,7 +7,7 @@ This form is used for the "edit my profile" form
 <form>
 	<tab id="basic" sortorder="10">
 		<fieldset id="basic" sortorder="10">
-			<field binding="security_user.email_address" required="true" />
+			<field binding="security_user.email_address" required="true" control="emailinput" />
 			<field binding="security_user.known_as" />
 		</fieldset>
 	</tab>

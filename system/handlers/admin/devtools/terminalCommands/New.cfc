@@ -5,7 +5,7 @@ component hint="Create various preside system entities such as widgets and page 
 
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol", "emailtemplate" ];
+		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol", "emailtemplate", "ruleexpression" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -19,6 +19,7 @@ component hint="Create various preside system entities such as widgets and page 
 			               & "    [[b;white;]configform]      : Creates a new system config form." & Chr(10)
 			               & "    [[b;white;]formcontrol]     : Creates a new form control." & Chr(10)
 			               & "    [[b;white;]emailtemplate]   : Creates a new email template." & Chr(10)
+			               & "    [[b;white;]ruleexpression]  : Creates a new rules engine expression" & Chr(10)
 			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
 		}
 
@@ -34,6 +35,9 @@ component hint="Create various preside system entities such as widgets and page 
 		}
 		if ( !StructKeyExists( params, "name" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Widget name: ", required=true, paramName="name"} );
+		}
+		if ( !StructKeyExists( params, "categories" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Categories (e.g. newlsetter - leave blank for no category): ", required=false, paramName="categories" } );
 		}
 		if ( !StructKeyExists( params, "description" ) ) {
 			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description"} );
@@ -69,6 +73,7 @@ component hint="Create various preside system entities such as widgets and page 
 				, icon          = params.icon
 				, options       = params.options
 				, extension     = params.extension
+				, categories    = params.categories
 				, createHandler = ( params.createHandler == "y" ? true : false )
 			);
 		} catch ( any e ) {
@@ -364,6 +369,57 @@ component hint="Create various preside system entities such as widgets and page 
 		}
 
 		return msg;
+	}
+
+	private function ruleexpression( event, rc, prc ) {
+		var params           = jsonRpc2Plugin.getRequestParams();
+		var userInputPrompts = [];
+
+		if ( !StructKeyExists( params, "id" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Expression ID (e.g. 'loggedIn'): ", required=true, paramName="id" } );
+		}
+		if ( !StructKeyExists( params, "label" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Expression label (e.g. 'User is logged in'): ", required=true, paramName="label" } );
+		}
+		if ( !StructKeyExists( params, "text" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Expression text (e.g. 'User {_is} logged in'): ", required=true, paramName="text" } );
+		}
+		if ( !StructKeyExists( params, "context" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Context (e.g. webrequest):", required=false, default="webrequest", paramName="context" } );
+		}
+		if ( !StructKeyExists( params, "extension" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
+		}
+
+
+		if ( ArrayLen( userInputPrompts ) ) {
+			return {
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new rule expression wizard]" & Chr(10) & Chr(10)
+				, inputPrompt = userInputPrompts
+				, method      = "new"
+				, params      = params
+			};
+		}
+
+		try {
+			filesCreated = scaffoldingService.scaffoldRuleExpression(
+				  id        = params.id
+				, label     = params.label
+				, text      = params.text
+				, context   = params.context
+				, extension = params.extension
+			);
+		} catch ( any e ) {
+			return Chr(10) & "[[b;red;]Error creating rule expression:] [[b;white;]#e.message#]" & Chr(10);
+		}
+
+		var msg = Chr(10) & "[[b;white;]Your rule expression has been created!] The following files were created:" & Chr(10) & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
+
+		return msg;
+
 	}
 
 	private function terminalCommand( event, rc, prc ) {

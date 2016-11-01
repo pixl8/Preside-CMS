@@ -1,4 +1,9 @@
-component output="false" singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+component {
 
 // CONSTRUCTOR
 
@@ -9,7 +14,7 @@ component output="false" singleton=true {
 	 * @permissionService.inject    PermissionService
 	 * @siteService.inject          SiteService
 	 */
-	public any function init( required any presideObjectService, required any contentRenderer, required any i18nPlugin, required any permissionService, required any siteService ) output=false {
+	public any function init( required any presideObjectService, required any contentRenderer, required any i18nPlugin, required any permissionService, required any siteService ) {
 		_setPresideObjectService( arguments.presideObjectService );
 		_setContentRenderer( arguments.contentRenderer );
 		_setI18nPlugin( arguments.i18nPlugin );
@@ -20,7 +25,7 @@ component output="false" singleton=true {
 	}
 
 // PUBLIC METHODS
-	public array function getGroupedObjects() output=false {
+	public array function getGroupedObjects() {
 		var poService          = _getPresideObjectService();
 		var permsService       = _getPermissionService();
 		var activeSiteTemplate = _getSiteService().getActiveSiteTemplate();
@@ -65,13 +70,13 @@ component output="false" singleton=true {
 
 	}
 
-	public boolean function isObjectAvailableInDataManager( required string objectName ) output=false {
+	public boolean function isObjectAvailableInDataManager( required string objectName ) {
 		var groupId = _getPresideObjectService().getObjectAttribute( objectName=arguments.objectName, attributeName="datamanagerGroup", defaultValue="" );
 
 		return Len( Trim( groupId ) );
 	}
 
-	public array function listGridFields( required string objectName ) output=false {
+	public array function listGridFields( required string objectName ) {
 		var labelfield = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "labelfield"
@@ -86,7 +91,7 @@ component output="false" singleton=true {
 		return ListToArray( fields );
 	}
 
-	public array function listBatchEditableFields( required string objectName ) output=false {
+	public array function listBatchEditableFields( required string objectName ) {
 		var fields               = [];
 		var objectAttributes     = _getPresideObjectService().getObjectProperties( objectName );
 		var forbiddenFields      = [ "id", "datecreated", "datemodified", _getPresideObjectService().getObjectAttribute( arguments.objectName, "labelfield", "label" ) ];
@@ -98,6 +103,9 @@ component output="false" singleton=true {
 				return false;
 			}
 			if ( Len( Trim( attributes.uniqueindexes ?: "" ) ) ) {
+				return false;
+			}
+			if ( propertyName.startsWith( "_" ) ) {
 				return false;
 			}
 			if ( IsBoolean( attributes.batcheditable ?: "" ) && !attributes.batcheditable ) {
@@ -116,7 +124,7 @@ component output="false" singleton=true {
 		return fields;
 	}
 
-	public boolean function isOperationAllowed( required string objectName, required string operation ) output=false {
+	public boolean function isOperationAllowed( required string objectName, required string operation ) {
 		var operations = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerAllowedOperations"
@@ -126,7 +134,7 @@ component output="false" singleton=true {
 		return operations != "none" && ListFindNoCase( operations, arguments.operation );
 	}
 
-	public boolean function isSortable( required string objectName ) output=false {
+	public boolean function isSortable( required string objectName ) {
 		var sortable = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerSortable"
@@ -135,11 +143,19 @@ component output="false" singleton=true {
 		return IsBoolean( sortable ) && sortable;
 	}
 
-	public string function getSortField( required string objectName ) output=false {
+	public string function getSortField( required string objectName ) {
 		return _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "datamanagerSortField"
 			, defaultValue  = "sortorder"
+		);
+	}
+
+	public string function getDefaultSortOrderForDataGrid( required string objectName ) output=false {
+		return _getPresideObjectService().getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerDefaultSortOrder"
+			, defaultValue  = ""
 		);
 	}
 
@@ -165,7 +181,6 @@ component output="false" singleton=true {
 	}
 
 	public struct function getRecordsForGridListing(
-
 		  required string  objectName
 		, required array   gridFields
 		,          numeric startRow     = 1
@@ -175,18 +190,19 @@ component output="false" singleton=true {
 		,          any     filter       = {}
 		,          struct  filterParams = {}
 
-	) output=false {
+	) {
 
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
-			  objectName       = arguments.objectName
-			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
-			, startRow         = arguments.startRow
-			, maxRows          = arguments.maxRows
-			, orderBy          = arguments.orderBy
-			, filter           = arguments.filter
-			, filterParams     = arguments.filterParams
-			, extraFilters     = []
+			  objectName         = arguments.objectName
+			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
+			, startRow           = arguments.startRow
+			, maxRows            = arguments.maxRows
+			, orderBy            = arguments.orderBy
+			, filter             = arguments.filter
+			, filterParams       = arguments.filterParams
+			, allowDraftVersions = true
+			, extraFilters       = []
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -202,10 +218,11 @@ component output="false" singleton=true {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			result.totalRecords = _getPresideObjectService().selectData(
-				  objectName       = arguments.objectName
-				, selectFields     = [ "count( * ) as nRows" ]
-				, filter           = arguments.filter
-				, filterParams     = arguments.filterParams
+				  objectName         = arguments.objectName
+				, selectFields       = [ "count( * ) as nRows" ]
+				, filter             = arguments.filter
+				, filterParams       = arguments.filterParams
+				, allowDraftVersions = true
 			).nRows;
 		}
 
@@ -215,19 +232,18 @@ component output="false" singleton=true {
 	public struct function getRecordHistoryForGridListing(
 		  required string  objectName
 		, required string  recordId
-		, required array   gridFields
 		,          string  property     = ""
 		,          numeric startRow     = 1
 		,          numeric maxRows      = 10
 		,          string  orderBy      = ""
 		,          any     filter       = ""
 		,          any     filterParams = {}
-	) output=false {
+	) {
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
 			  objectName       = arguments.objectName
 			, id               = arguments.recordId
-			, selectFields     = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName, true )
+			, selectFields     = [ "id", "_version_is_draft as published", "datemodified", "_version_author", "_version_changed_fields", "_version_number" ]
 			, startRow         = arguments.startRow
 			, maxRows          = arguments.maxRows
 			, orderBy          = arguments.orderBy
@@ -238,9 +254,14 @@ component output="false" singleton=true {
 		if ( Len( Trim( arguments.property ) ) ) {
 			args.fieldName = arguments.property;
 		}
-		result.records = _getPresideObjectService().getRecordVersions( argumentCollection = args );
+		result.records = Duplicate( _getPresideObjectService().getRecordVersions( argumentCollection = args ) );
 
-		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
+		// odd looking, just a reversal of the _version_is_draft field that we're aliasing as 'published'
+		for( var i=1; i<=result.records.recordCount; i++ ) {
+			result.records.published[ i ] = !IsBoolean( result.records.published[ i ] ) || !result.records.published[ i ];
+		}
+
+		if ( arguments.startRow == 1 && result.records.recordCount < arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
 			args = {
@@ -264,13 +285,19 @@ component output="false" singleton=true {
 		, required array  sourceIds
 		, required string value
 		,          string multiEditBehaviour = "append"
-	) output=false {
+	) {
 		var pobjService  = _getPresideObjectService();
 		var isMultiValue = pobjService.isManyToManyProperty( arguments.objectName, arguments.fieldName );
 
-		if ( isMultiValue ) {
-			transaction {
-				for( var sourceId in sourceIds ) {
+		transaction {
+			for( var sourceId in sourceIds ) {
+				if ( !isMultiValue ) {
+					pobjService.updateData(
+						  objectName = objectName
+						, data       = { "#arguments.fieldName#" = value }
+						, filter     = { id=sourceId }
+					);
+				} else {
 					var existingIds  = [];
 					var targetIdList = [];
 					var newChoices   = ListToArray( arguments.value );
@@ -309,13 +336,14 @@ component output="false" singleton=true {
 						, targetIdList   = targetIdList
 					);
 				}
+
+				$audit(
+					  action   = "datamanager_batch_edit_record"
+					, type     = "datamanager"
+					, recordId = sourceid
+					, detail   = Duplicate( arguments )
+				);
 			}
-		} else {
-			pobjService.updateData(
-				  objectName = objectName
-				, data       = { "#arguments.fieldName#" = value }
-				, filter     = { id=arguments.sourceIds }
-			);
 		}
 
 		return true;
@@ -327,20 +355,22 @@ component output="false" singleton=true {
 		,          array   ids          = []
 		,          array   selectFields = []
 		,          array   savedFilters = []
+		,          array   extraFilters = []
 		,          string  searchQuery  = ""
 		,          numeric maxRows      = 1000
 		,          string  orderBy      = "label asc"
-	) output=false {
+	) {
 		var result = [];
 		var records = "";
 		var args   = {
 			  objectName   = arguments.objectName
 			, selectFields = arguments.selectFields
 			, savedFilters = arguments.savedFilters
+			, extraFilters = arguments.extraFilters
 			, maxRows      = arguments.maxRows
 			, orderBy      = arguments.orderBy
 		};
-		var transormResult = function( required struct result ) output=false {
+		var transormResult = function( required struct result ) {
 			result.text = result.label;
 			result.value = result.id;
 			result.delete( "label" );
@@ -380,7 +410,7 @@ component output="false" singleton=true {
 		return result;
 	}
 
-	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) output=false {
+	public string function getPrefetchCachebusterForAjaxSelect( required string  objectName ) {
 		var records = _getPresideObjectService().getObject( arguments.objectName ).selectData(
 			selectFields = [ "Max( datemodified ) as lastmodified" ]
 		);
@@ -388,8 +418,24 @@ component output="false" singleton=true {
 		return IsDate( records.lastmodified ) ? Hash( records.lastmodified ) : Hash( Now() );
 	}
 
+	public boolean function areDraftsEnabledForObject( required string objectName ) {
+		var poService = _getPresideObjectService();
+
+		if ( !poService.objectIsVersioned( arguments.objectName ) ) {
+			return false;
+		}
+
+		var draftsEnabled = poService.getObjectAttribute(
+			  objectName    = arguments.objectName
+			, attributeName = "datamanagerAllowDrafts"
+			, defaultValue  = ""
+		);
+
+		return IsBoolean( draftsEnabled ) && draftsEnabled;
+	}
+
 // PRIVATE HELPERS
-	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) output=false {
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
 		var field                    = "";
 		var i                        = "";
@@ -405,6 +451,11 @@ component output="false" singleton=true {
 		if ( !labelFieldIsRelationship && sqlFields.find( labelField ) ) {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
+		}
+
+		if ( areDraftsEnabledForObject( arguments.objectName ) ) {
+			sqlFields.append( "_version_has_drafts" );
+			sqlFields.append( "_version_is_draft"   );
 		}
 
 		// ensure all fields are valid + get labels from join tables
@@ -445,7 +496,7 @@ component output="false" singleton=true {
 		return sqlFields;
 	}
 
-	private string function _buildSearchFilter( required string q, required string objectName, required array gridFields ) output=false {
+	private string function _buildSearchFilter( required string q, required string objectName, required array gridFields ) {
 		var field  = "";
 		var filter = "";
 		var delim  = "";
@@ -466,7 +517,7 @@ component output="false" singleton=true {
 		return filter;
 	}
 
-	private string function _getFullFieldName( required string field, required string objectName ) output=false {
+	private string function _getFullFieldName( required string field, required string objectName ) {
 		var poService = "";
 		var fieldName = arguments.field;
 		var objName   = arguments.objectName;
@@ -497,7 +548,7 @@ component output="false" singleton=true {
 		return objName & "." & fieldName;
 	}
 
-	private string function _propertyIsSearchable( required string field, required string objectName ) output=false {
+	private string function _propertyIsSearchable( required string field, required string objectName ) {
 		if ( ListFindNoCase( "#arguments.objectName#.id,datecreated,datemodified", field ) ){
 			return false;
 		}
@@ -512,38 +563,38 @@ component output="false" singleton=true {
 	}
 
 // GETTERS AND SETTERS
-	private any function _getPresideObjectService() output=false {
+	private any function _getPresideObjectService() {
 		return _presideObjectService;
 	}
-	private void function _setPresideObjectService( required any presideObjectService ) output=false {
+	private void function _setPresideObjectService( required any presideObjectService ) {
 		_presideObjectService = arguments.presideObjectService;
 	}
 
-	private any function _getContentRenderer() output=false {
+	private any function _getContentRenderer() {
 		return _contentRenderer;
 	}
-	private void function _setContentRenderer( required any contentRenderer ) output=false {
+	private void function _setContentRenderer( required any contentRenderer ) {
 		_contentRenderer = arguments.contentRenderer;
 	}
 
-	private any function _getI18nPlugin() output=false {
+	private any function _getI18nPlugin() {
 		return _i18nPlugin;
 	}
-	private void function _setI18nPlugin( required any i18nPlugin ) output=false {
+	private void function _setI18nPlugin( required any i18nPlugin ) {
 		_i18nPlugin = arguments.i18nPlugin;
 	}
 
-	private any function _getPermissionService() output=false {
+	private any function _getPermissionService() {
 		return _permissionService;
 	}
-	private void function _setPermissionService( required any permissionService ) output=false {
+	private void function _setPermissionService( required any permissionService ) {
 		_permissionService = arguments.permissionService;
 	}
 
-	private any function _getSiteService() output=false {
+	private any function _getSiteService() {
 		return _siteService;
 	}
-	private void function _setSiteService( required any siteService ) output=false {
+	private void function _setSiteService( required any siteService ) {
 		_siteService = arguments.siteService;
 	}
 

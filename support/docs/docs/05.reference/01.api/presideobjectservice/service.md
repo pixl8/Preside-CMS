@@ -24,6 +24,7 @@ For a full developer guide on using Preside Objects and this service, see [[pres
 * [[presideobjectservice-dataexists]]
 * [[presideobjectservice-selectmanytomanydata]]
 * [[presideobjectservice-syncmanytomanydata]]
+* [[presideobjectservice-synconetomanydata]]
 * [[presideobjectservice-getdenormalizedmanytomanydata]]
 * [[presideobjectservice-getrecordversions]]
 * [[presideobjectservice-dbsync]]
@@ -37,3 +38,4 @@ For a full developer guide on using Preside Objects and this service, see [[pres
 * [[presideobjectservice-getversionobjectname]]
 * [[presideobjectservice-objectisversioned]]
 * [[presideobjectservice-getnextversionnumber]]
+* [[presideobjectservice-clearrelatedcaches]]

@@ -11,10 +11,8 @@
 </cfscript>
 
 <cfoutput>
-	#renderView( view="/admin/datamanager/_objectDataTable", args={
+	#renderView( view="/admin/datamanager/_objectVersionHistoryTable", args={
 		  objectName    = object
-		, gridFields    = [ "datemodified", "_version_author", "label" ]
 		, datasourceUrl = event.buildAdminLink( linkTo="ajaxProxy", queryString="object=#object#&id=#id#&action=dataManager.getTranslationRecordHistoryForAjaxDataTables&gridFields=datemodified,_version_author,label&language=#language.id#" )
-		, allowSearch   = false
 	} )#
 </cfoutput>

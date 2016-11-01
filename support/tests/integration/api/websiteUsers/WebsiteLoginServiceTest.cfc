@@ -95,7 +95,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 
 	function test09_login_shouldReturnFalse_whenUserExistsButPasswordDoesNotMatch() output=false {
 		var userService = _getUserService();
-		var mockRecord  = QueryNew( 'password', 'varchar', ['blah'] );
+		var mockRecord  = QueryNew( 'password,id', 'varchar,varchar', ['blah',CreateUUId()] );
 
 		userService.$( "isLoggedIn" ).$results( false );
 		mockUserDao.$( "selectData" ).$args(
@@ -461,8 +461,9 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService     = getMockBox().createEmptyMock( "preside.system.services.encryption.bcrypt.BCryptService" );
 		mockSysConfigService  = getMockBox().createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
 		mockEmailService      = getMockBox().createEmptyMock( "preside.system.services.email.EmailService" );
+		mockActionsService    = getMockBox().createEmptyMock( "preside.system.services.websiteUsers.WebsiteUserActionService" );
 
-		return getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
+		var service = getMockBox().createMock( object= new preside.system.services.websiteUsers.WebsiteLoginService(
 			  sessionStorage             = mockSessionStorage
 			, cookieService              = mockCookieService
 			, userDao                    = mockUserDao
@@ -470,7 +471,13 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 			, bcryptService              = mockBCryptService
 			, systemConfigurationService = mockSysConfigService
 			, emailService               = mockEmailService
+			, websiteUserActionService   = mockActionsService
 		) );
+
+		mockActionsService.$( "promoteVisitorActionsToUserActions", 1 );
+		service.$( "$recordWebsiteUserAction" );
+
+		return service;
 	}
 
 }

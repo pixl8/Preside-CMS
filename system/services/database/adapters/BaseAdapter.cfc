@@ -376,6 +376,9 @@ component {
 			case "timestamp":
 				return "cf_sql_timestamp";
 
+			case "time":
+				return "cf_sql_time";
+
 			case "tinyint unsigned":
 				return "cf_sql_tinyint";
 
@@ -433,7 +436,7 @@ component {
 	public boolean function supportsRenameInAlterColumnStatement() {
 		return true;
 	}
-	
+
 	public boolean function supportsCascadeUpdateDelete() {
 		return true;
 	}

@@ -1,4 +1,9 @@
-component singleton=true {
+/**
+ * @singleton
+ * @presideservice
+ *
+ */
+component {
 
 // CONSTRUCTOR
 	/**
@@ -29,6 +34,7 @@ component singleton=true {
 		_setI18nService( arguments.i18nService );
 		_setVersioningService( arguments.versioningService );
 		_setWebsitePermissionService( arguments.websitePermissionService );
+		_setPageSlugsAreMultilingual();
 
 		_ensureSystemPagesExistInTree();
 
@@ -43,6 +49,7 @@ component singleton=true {
 		, boolean useCache     = true
 		, string  rootPageId   = ""
 		, numeric maxDepth     = -1
+		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
 
 	) {
 		var tree             = "";
@@ -54,13 +61,14 @@ component singleton=true {
 			filter &= " and page.page_type in (:page_type)"
 		}
 
-		var maxDepth         = arguments.maxDepth;
-		var args = {
-			  orderBy      = "page._hierarchy_sort_order"
-			, filter       = filter
-			, filterParams = { trashed = arguments.trash, page_type = allowedPageTypes }
-			, useCache     = arguments.useCache
-			, groupBy      = "page.id"
+		var maxDepth = arguments.maxDepth;
+		var args     = {
+			  orderBy            = "page._hierarchy_sort_order"
+			, filter             = filter
+			, filterParams       = { trashed = arguments.trash, page_type = allowedPageTypes }
+			, useCache           = arguments.useCache
+			, groupBy            = "page.id"
+			, allowDraftVersions = arguments.allowDrafts
 		};
 
 		if ( ArrayLen( arguments.selectFields ) ) {
@@ -90,7 +98,6 @@ component singleton=true {
 			args.filterParams._hierarchy_depth = maxDepth;
 		}
 
-
 		tree = _getPObj().selectData( argumentCollection = args );
 
 		if ( arguments.format eq "nestedArray" ) {
@@ -111,22 +118,20 @@ component singleton=true {
 		, array   selectFields = []
 		, boolean useCache     = true
 		, numeric version      = 0
+		, boolean getLatest    = false
+		, boolean allowDrafts  = $getRequestContext().showNonLiveContent()
 
 	) {
-		var args = { filter="", filterParams={}, useCache=arguments.useCache };
+		var args = { filter="page.id = :id", filterParams={}, useCache=arguments.useCache, allowDraftVersions=arguments.allowDrafts };
 
 		if ( StructKeyExists( arguments, "id" ) ) {
-			args.filter          = "page.id = :id";
 			args.filterParams.id = arguments.id;
 
 		} else if ( StructKeyExists( arguments, "slug" ) ) {
-			args.filter                       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug"; // this double match is for performance - the full slug cannot be indexed because of its potential size
-			args.filterParams.slug            = ListLast( arguments.slug, "/" );
-			args.filterParams._hierarchy_slug = arguments.slug;
+			args.filterParams.id = getPageIdBySlug( argumentCollection=arguments );
 
 		} else if ( StructKeyExists( arguments, "systemPage" ) ) {
-			args.filter                 = "page.page_type = :page_type";
-			args.filterParams.page_type = arguments.systemPage;
+			args.filterParams.id = getPageIdBySystemPageType( arguments.systemPage );
 
 		} else {
 			throw(
@@ -146,6 +151,8 @@ component singleton=true {
 		if ( arguments.version ) {
 			args.fromVersionTable = true
 			args.specificVersion  = arguments.version
+		} else if ( arguments.getLatest ) {
+			args.fromVersionTable = true
 		}
 
 		return _getPObj().selectData( argumentCollection = args );
@@ -169,15 +176,21 @@ component singleton=true {
 		}
 
 		return _getPobj().selectData(
-			  selectFields = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
-			, filter       = filter
-			, filterParams = params
-			, maxRows      = arguments.maxRows
-			, orderBy      = "page._hierarchy_sort_order"
+			  selectFields       = [ "page.id as value", "page.title as text", "parent_page.title as parent", "page._hierarchy_depth as depth", "page.page_type" ]
+			, filter             = filter
+			, filterParams       = params
+			, maxRows            = arguments.maxRows
+			, orderBy            = "page._hierarchy_sort_order"
+			, allowDraftVersions = true
 		);
 	}
 
-	public struct function getExtendedPageProperties( required string id, required string pageType ) {
+	public struct function getExtendedPageProperties(
+		  required string  id
+		, required string  pageType
+		,          boolean getLatest   = false
+		,          boolean allowDrafts = $getRequestContext().showNonLiveContent()
+	) {
 		var ptSvc = _getPageTypesService();
 
 		if ( !ptSvc.pageTypeExists( arguments.pageType ) ) {
@@ -186,7 +199,11 @@ component singleton=true {
 
 		var pt = ptSvc.getPageType( arguments.pageType );
 		var pobj   = _getPresideObject( pt.getPresideObject() );
-		var record = pobj.selectData( filter={ page = arguments.id } );
+		var args  = { filter={ page=arguments.id }, allowDraftVersions=arguments.allowDrafts };
+		if ( arguments.getLatest ) {
+			args.fromVersionTable = true
+		}
+		var record = pobj.selectData( argumentCollection=args );
 
 		if ( !record.recordCount ) {
 			return {};
@@ -284,15 +301,21 @@ component singleton=true {
 		return arguments.defaultValue;
 	}
 
-	public query function getDescendants( required string id, numeric depth=0, array selectFields=[] ) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ] );
+	public query function getDescendants(
+		  required string  id
+		,          numeric depth        = 0
+		,          array   selectFields = []
+		,          boolean allowDrafts  = $getRequestContext().showNonLiveContent()
+	) {
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_child_selector", "_hierarchy_depth" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount ) {
 			args = {
-				  filter       = "_hierarchy_lineage like :_hierarchy_lineage"
-				, filterParams = { _hierarchy_lineage = page._hierarchy_child_selector }
-				, orderBy      = "_hierarchy_sort_order"
+				  filter             = "_hierarchy_lineage like :_hierarchy_lineage"
+				, filterParams       = { _hierarchy_lineage = page._hierarchy_child_selector }
+				, orderBy            = "_hierarchy_sort_order"
+				, allowDraftVersions = arguments.allowDrafts
 			};
 
 			if ( arguments.depth ) {
@@ -312,7 +335,7 @@ component singleton=true {
 
 	public struct function getManagedChildrenForDataTable(
 		  required string  parentId
-		  required string  pageType
+		, required string  pageType
 		, required string  objectName
 		,          array   selectFields = []
 		,          numeric startRow     = 1
@@ -322,13 +345,14 @@ component singleton=true {
 	) {
 		var result = {};
 		var args = {
-			  objectName   = arguments.objectName
-			, selectFields = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
-			, maxRows      = arguments.maxRows
-			, startRow     = arguments.startRow
-			, orderBy      = arguments.orderBy
-			, filter       = "page.parent_page = :page.parent_page and page.page_type = :page.page_type and page.trashed = :page.trashed"
-			, filterParams = { "page.parent_page"=arguments.parentId, "page.page_type"=arguments.pageType, "page.trashed"=false }
+			  objectName         = arguments.objectName
+			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.selectFields, arguments.objectName )
+			, maxRows            = arguments.maxRows
+			, startRow           = arguments.startRow
+			, orderBy            = arguments.orderBy
+			, filter             = "page.parent_page = :page.parent_page and page.page_type = :page.page_type and page.trashed = :page.trashed"
+			, filterParams       = { "page.parent_page"=arguments.parentId, "page.page_type"=arguments.pageType, "page.trashed"=false }
+			, allowDraftVersions = true
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -359,20 +383,27 @@ component singleton=true {
 		return result;
 	}
 
-	public query function getAncestors( required string id, numeric depth=0, array selectFields=[], boolean includeSiblings=false ) {
-		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ] );
+	public query function getAncestors(
+		  required string  id
+		,          numeric depth           = 0
+		,          array   selectFields    = []
+		,          boolean includeSiblings = false
+		,          boolean allowDrafts     = $getRequestContext().showNonLiveContent()
+	) {
+		var page = getPage( id = arguments.id, selectField = [ "_hierarchy_depth", "_hierarchy_lineage" ], allowDrafts=arguments.allowDrafts );
 		var args = "";
 
 		if ( page.recordCount and page._hierarchy_lineage neq "/" ) {
 			args = {
-				  filter       = "( _hierarchy_id in (:_hierarchy_id)"
-				, filterParams = { _hierarchy_id = { value=page._hierarchy_lineage, list=true, separator="/" } }
-				, orderBy      = "_hierarchy_sort_order"
+				  filter             = "( _hierarchy_id in (:_hierarchy_id)"
+				, filterParams       = { _hierarchy_id = { value=page._hierarchy_lineage, list=true, separator="/" } }
+				, orderBy            = "_hierarchy_sort_order"
+				, allowDraftVersions = arguments.allowDrafts
 			};
 
 			if ( arguments.includeSiblings ) {
 				// would be nice not to have to make this additional call here, necessary due to using _hierarchy_id instead of id to form lineage
-				var ancestors = getAncestors( id=arguments.id, selectFields=[ "id" ] );
+				var ancestors = getAncestors( id=arguments.id, selectFields=[ "id" ], allowDraftVersions=arguments.allowDrafts );
 				args.filter &= " or parent_page in (:parent_page) or parent_page is null";
 				args.filterParams.parent_page = { value=ValueList( ancestors.id ), list=true };
 			}
@@ -394,20 +425,37 @@ component singleton=true {
 		return QueryNew('');
 	}
 
-	public query function getSiteHomepage( array selectFields=[], boolean createIfNotExists=true ) {
+	public query function getSiteHomepage(
+		  array   selectFields      = []
+		, boolean createIfNotExists = true
+		, boolean getLatest         = false
+		, boolean allowDrafts       = false
+		, numeric version           = 0
+	) {
 		var loginSvc       = _getLoginService();
-		var homepage       = _getPobj().selectData(
-			  maxRows      = 1
-			, orderBy      = "_hierarchy_sort_order"
-			, selectFields = arguments.selectFields
-			, filter       = {
+		var homepageArgs   = {
+			  maxRows            = 1
+			, orderBy            = "_hierarchy_sort_order"
+			, selectFields       = arguments.selectFields
+			, allowDraftVersions = arguments.allowDrafts
+			, filter             = {
 				  _hierarchy_depth = 0
 				, active           = true
 				, trashed          = false
 			  }
-		);
+		}
 
-		if ( homepage.recordCount or not arguments.createIfNotExists ) {
+		if ( arguments.version ) {
+			homepageArgs.fromVersionTable = true;
+			homepageArgs.specificVersion  = arguments.version;
+		} else if ( arguments.getLatest ) {
+			homepageArgs.fromVersionTable = true;
+		}
+
+		var homepage = _getPobj().selectData( argumentCollection=homepageArgs );
+
+
+		if ( homepage.recordCount || !arguments.createIfNotExists ) {
 			return homepage;
 		}
 
@@ -419,7 +467,7 @@ component singleton=true {
 			, userId        = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 		);
 
-		return getPage( id=homepage, selectFields=arguments.selectFields );
+		return getPage( argumentCollection=arguments, id=homepage );
 	}
 
 	public array function getPagesForNavigationMenu(
@@ -430,6 +478,7 @@ component singleton=true {
 		, boolean expandAllSiblings = true
 		, array   selectFields      = [ "page.id", "page.title", "page.navigation_title", "page.exclude_children_from_navigation", "page.page_type" ]
 		, boolean isSubMenu         = false
+		, boolean allowDrafts       = $getRequestContext().showNonLiveContent()
 	) {
 		var args = arguments;
 		var requiredSelectFields = [ "id", "title", "navigation_title", "exclude_children_from_navigation", "page_type", "exclude_from_navigation_when_restricted", "access_restriction" ]
@@ -453,11 +502,12 @@ component singleton=true {
 			}
 
 			var children = _getPObj().selectData(
-				  selectFields = args.selectFields
-				, filter       = filter
-				, filterParams = filterParams
-				, extraFilters = extraFilters
-				, orderBy      = "sort_order"
+				  selectFields       = args.selectFields
+				, filter             = filter
+				, filterParams       = filterParams
+				, extraFilters       = extraFilters
+				, orderBy            = "sort_order"
+				, allowDraftVersions = args.allowDrafts
 			);
 
 			for( var child in children ){
@@ -527,12 +577,13 @@ component singleton=true {
 	}
 
 	public string function addPage(
-		  required string title
-		, required string slug
-		, required string page_type
-		,          string parent_page
-		,          string userId      = _getLoginService().getLoggedInUserId()
-
+		  required string  title
+		, required string  slug
+		, required string  page_type
+		,          string  parent_page
+		,          string  userId      = _getLoginService().getLoggedInUserId()
+		,          boolean isDraft     = false
+		,          boolean audit       = true
 	) {
 		var data            = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var homepage        = getSiteHomepage( [ "id" ], false );
@@ -590,23 +641,38 @@ component singleton=true {
 			data._hierarchy_child_selector = "#data._hierarchy_lineage##data._hierarchy_id#/%";
 
 			versionNumber = _getPresideObjectService().getNextVersionNumber();
-			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, skipTrivialInterceptors=pageType.isSystemPageType() );
+
+			pageId = pobj.insertData( data=data, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft, skipTrivialInterceptors=pageType.isSystemPageType() );
+
 			if ( not Len( pageId ) and StructKeyExists( arguments, "id" ) ) {
 				pageId = arguments.id;
 			}
 
 			pageTypeObjData = Duplicate( arguments );
 			pageTypeObjData.page = pageTypeObjData.id = pageId;
-			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, skipTrivialInterceptors=pageType.isSystemPageType() );
+			_getPresideObject( pageType.getPresideObject() ).insertData( data=pageTypeObjData, versionNumber=versionNumber, insertManyToManyRecords=true, isDraft=arguments.isDraft, skipTrivialInterceptors=pageType.isSystemPageType() );
+		}
+
+		if ( Len( Trim( pageId ) ) && arguments.audit ) {
+			var auditDetail = Duplicate( arguments );
+			auditDetail.id = pageId;
+
+			$audit(
+				  action   = arguments.isDraft ? "add_draft_page" : "add_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = pageId
+			);
 		}
 
 		return pageId;
 	}
 
-	public boolean function editPage( required string id ) {
+	public boolean function editPage( required string id, boolean isDraft=false, boolean skipAudit=false, boolean skipVersioning=false, boolean forceVersionCreation ) {
 		var data             = _getValidAddAndEditPageFieldsFromArguments( argumentCollection = arguments );
 		var pobj             = _getPObj();
 		var existingPage     = "";
+		var parent           = "";
 		var newParent        = "";
 		var updated          = 0;
 		var sortOrderChanged = false;
@@ -619,7 +685,7 @@ component singleton=true {
 		_checkForBadHomepageOperations( argumentCollection = arguments );
 
 		transaction {
-			existingPage = getPage( id = arguments.id, includeTrash = true, useCache = false );
+			existingPage = getPage( id=arguments.id, includeTrash=true, useCache=false, allowDrafts=true );
 			if ( not existingPage.recordCount ) {
 				return false;
 			}
@@ -676,12 +742,13 @@ component singleton=true {
 						);
 					}
 
-				} else {
+				} else if ( sortOrderChanged || slugChanged ) {
+					parent = getPage( id=existingPage.parent_page, useCache=false );
 					if ( sortOrderChanged ) {
-						data._hierarchy_sort_order = ReReplace( existingPage._hierarchy_sort_order, "/#ListLast( existingPage._hierarchy_sort_order, '/' )#/$", "/#_paddedSortOrder( data.sort_order )#/" );
+						data._hierarchy_sort_order = parent._hierarchy_sort_order & "#_paddedSortOrder( data.sort_order )#/";
 					}
 					if ( slugChanged ) {
-						data._hierarchy_slug = ReReplace( existingPage._hierarchy_slug, "/#existingPage.slug#/$", "/#data.slug#/" );
+						data._hierarchy_slug = parent._hierarchy_slug & "#data.slug#/";
 					}
 				}
 			}
@@ -704,19 +771,23 @@ component singleton=true {
 			updated = pobj.updateData(
 				  data                    = data
 				, id                      = arguments.id
+				, useVersioning           = !arguments.skipVersioning
 				, versionNumber           = versionNumber
 				, updateManyToManyRecords = true
-				, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+				, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
+				, isDraft                 = arguments.isDraft
 			);
 
 			if ( _getPageTypesService().pageTypeExists( existingPage.page_type ) ) {
-				if ( pageTypeObj.dataExists( filter={ page=arguments.id } ) ) {
+				if ( pageTypeObj.dataExists( filter={ page=arguments.id }, allowDraftVersions=true ) ) {
 					_getPresideObject( pageType.getPresideObject() ).updateData(
 						  data                    = arguments
 						, filter                  = { page=arguments.id }
 						, versionNumber           = versionNumber
 						, updateManyToManyRecords = true
-						, forceVersionCreation    = pageDataHasChanged || pageTypeDataHasChanged
+						, forceVersionCreation    = arguments.forceVersionCreation ?: ( pageDataHasChanged || pageTypeDataHasChanged )
+						, isDraft                 = arguments.isDraft
+						, useVersioning           = !arguments.skipVersioning
 					);
 				} else {
 					var insertData = Duplicate( arguments );
@@ -725,16 +796,30 @@ component singleton=true {
 						  data                    = insertData
 						, versionNumber           = versionNumber
 						, insertManyToManyRecords = true
+						, isDraft                 = arguments.isDraft
 					);
 				}
 			}
 
-			if ( sortOrderChanged or parentChanged or slugChanged ) {
+			if ( !arguments.isDraft && ( sortOrderChanged or parentChanged or slugChanged ) ) {
 				pobj.updateChildHierarchyHelpers(
 					  oldData = existingPage
 					, newData = data
 				);
 			}
+
+			_getPresideObjectService().clearRelatedCaches( "page" );
+			_getPresideObjectService().clearRelatedCaches( existingPage.page_type );
+		}
+
+		if ( updated && !arguments.skipAudit ) {
+			for( var p in existingPage ) { existingPage = p };
+			$audit(
+				  action   = arguments.isDraft ? "save_draft_page" : "edit_page"
+				, type     = "sitetree"
+				, detail   = existingPage
+				, recordId = arguments.id
+			);
 		}
 
 		return updated;
@@ -762,8 +847,19 @@ component singleton=true {
 					, trashed     = true
 					, old_slug    = page.slug
 					, slug        = CreateUUId()
+					, skipAudit   = true
 				);
 			}
+		}
+
+		if ( updated ) {
+			for( var p in page ) { var auditDetail = p; }
+			$audit(
+				  action   = "trash_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
 		}
 
 		return updated;
@@ -790,8 +886,19 @@ component singleton=true {
 					, slug        = arguments.slug
 					, active      = arguments.active
 					, trashed     = false
+					, skipAudit   = true
 				);
 			}
+		}
+
+		if ( updated ) {
+			for( var p in page ) { var auditDetail = p; }
+			$audit(
+				  action   = "restore_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
 		}
 
 		return updated;
@@ -821,16 +928,35 @@ component singleton=true {
 			}
 		}
 
+		if ( nDeleted ) {
+			for( var p in rootPage ) { var auditDetail = p; }
+			$audit(
+				  action   = "permanently_delete_page"
+				, type     = "sitetree"
+				, detail   = auditDetail
+				, recordId = auditDetail.id
+			);
+		}
+
 		return nDeleted;
 	}
 
 	public boolean function emptyTrash() {
-		return _getPObj().deleteData( filter = { trashed = true } );
+		var pagesDeleted = _getPObj().deleteData( filter = { trashed = true } );
+
+		if ( pagesDeleted ) {
+			$audit(
+				  action = "empty_trash"
+				, type   = "sitetree"
+			);
+		}
+
+		return pagesDeleted;
 	}
 
 	public struct function getActivePageFilter( string pageTableAlais="page" ) {
 		return {
-			  filter       = "#pageTableAlais#.trashed != 1 and #pageTableAlais#.active = 1 and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
+			  filter       = "#pageTableAlais#.trashed != '1' and #pageTableAlais#.active = '1' and ( #pageTableAlais#.embargo_date is null or now() > #pageTableAlais#.embargo_date ) and ( #pageTableAlais#.expiry_date is null or now() < #pageTableAlais#.expiry_date )"
 			, filterParams = {}
 		};
 	}
@@ -860,11 +986,12 @@ component singleton=true {
 	}
 
 	public struct function getAccessRestrictionRulesForPage( required string pageId ) {
-		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "full_login_required", "grantaccess_to_all_logged_in_users" ] );
+		var page = getPage( id=arguments.pageId, selectFields=[ "id", "parent_page", "access_restriction", "access_condition", "full_login_required", "grantaccess_to_all_logged_in_users" ] );
 
 		if ( !page.recordCount ) {
 			return {
 				  access_restriction                 = "none"
+				, access_condition                   = ""
 				, full_login_required                = false
 				, grantaccess_to_all_logged_in_users = false
 			};
@@ -875,6 +1002,7 @@ component singleton=true {
 			} else {
 				return {
 					  access_restriction                 = "none"
+					, access_condition                   = ""
 					, full_login_required                = false
 					, grantaccess_to_all_logged_in_users = false
 				};
@@ -883,6 +1011,7 @@ component singleton=true {
 
 		return {
 			  access_restriction                 = page.access_restriction
+			, access_condition                   = page.access_condition
 			, full_login_required                = page.full_login_required
 			, grantaccess_to_all_logged_in_users = page.grantaccess_to_all_logged_in_users
 			, access_defining_page               = page.id
@@ -916,6 +1045,142 @@ component singleton=true {
 	public array function getManagedChildTypesForParentType( required string parentType ) {
 		return _getPageTypesService().getPageType( arguments.parentType ).getManagedChildTypes().listToArray();
 	}
+
+	public boolean function arePageSlugsMultilingual() {
+		if ( _pageSlugsAreMultilingual ) {
+			var featureEnabled = $getPresideSetting( "multilingual", "urls_enabled", false );
+
+			return IsBoolean( featureEnabled ) && featureEnabled;
+		}
+
+		return false;
+	}
+
+	public array function getDraftChangedFields( required string pageId, string pageType ) {
+		if ( !arguments.keyExists( "pageType" ) ) {
+			var page = getPage(
+				  id          = arguments.pageId
+				, getLatest   = true
+				, allowDrafts = true
+				, selectFields = [ "page.page_type" ]
+			);
+
+			if ( !page.recordCount ) {
+				return [];
+			}
+
+			arguments.pageType = page.page_type;
+		}
+
+		var changedFields = _getVersioningService().getDraftChangedFields( "page", arguments.pageId );
+		    changedFields.append( _getVersioningService().getDraftChangedFields( arguments.pageType, arguments.pageId ), true );
+
+		return changedFields;
+	}
+
+	public boolean function publishDraft( required string pageId ) {
+		var page = getPage(
+			  id          = arguments.pageId
+			, getLatest   = true
+			, allowDrafts = true
+		);
+
+		if ( page.recordCount ) {
+			for( var p in page ) { page = p; }
+
+			page.append( getExtendedPageProperties(
+				  id          = page.id
+				, pageType    = page.page_type
+				, getLatest   = true
+				, allowDrafts = true
+			) );
+
+			var changedFields = getDraftChangedFields( page.id, page.page_type );
+			var dataToSubmit = {};
+			for( var field in changedFields ) {
+				if ( page.keyExists( field ) ) {
+					dataToSubmit[ field ] = page[ field ];
+				}
+			}
+
+			if ( dataToSubmit.count() ) {
+				return editPage( argumentCollection=dataToSubmit, id=page.id, isDraft=false, forceVersionCreation=true );
+			}
+		}
+
+		return false;
+	}
+
+	public boolean function discardDrafts( required string pageId ) {
+		var page = getPage(
+			  id          = arguments.pageId
+			, getLatest   = true
+			, allowDrafts = true
+		);
+
+		if ( page.recordCount ) {
+			var versioningService = _getVersioningService();
+			var latestPublishedVersion = versioningService.getLatestVersionNumber(
+				  objectName    = "page"
+				, recordId      = arguments.pageId
+				, publishedOnly = true
+			);
+
+			if ( latestPublishedVersion ) {
+				var newVersionNumber = versioningService.getNextVersionNumber();
+
+				versioningService.promoteVersion(
+					  objectName       = "page"
+					, recordId         = arguments.pageId
+					, versionNumber    = latestPublishedVersion
+					, newVersionNumber = newVersionNumber
+				);
+
+				versioningService.promoteVersion(
+					  objectName    = page.page_type
+					, recordId      = arguments.pageId
+					, versionNumber = latestPublishedVersion
+					, newVersionNumber = newVersionNumber
+				);
+
+				for( var p in page ) { var auditDetail = p; }
+				$audit(
+					  action   = "discard_page_drafts"
+					, type     = "sitetree"
+					, detail   = auditDetail
+					, recordId = page.id
+				);
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public string function getPageIdBySlug( required string slug ) {
+		if ( arePageSlugsMultilingual() ) {
+			return _getPageIdWithMultilingualSlug( arguments.slug );
+		}
+		var page = _getPObj().selectData(
+			  selectFields = [ "page.id" ]
+			, filter       = "page.slug = :slug and page._hierarchy_slug = :_hierarchy_slug" // this double match is for performance - the full slug cannot be indexed because of its potential size
+			, filterParams = { slug = ListLast( arguments.slug, "/" ), _hierarchy_slug = arguments.slug }
+		);
+
+		return page.id ?: "";
+	}
+
+	public string function getPageIdBySystemPageType( required string pageType ) {
+		var page = _getPObj().selectData(
+			  selectFields = [ "page.id" ]
+			, filter       = "page.page_type = :page_type"
+			, filterParams = { page_type = arguments.pageType }
+		);
+
+		return page.id ?: "";
+	}
+
 
 // PRIVATE HELPERS
 	private numeric function _calculateSortOrder( string parent_page ) {
@@ -987,7 +1252,7 @@ component singleton=true {
 	}
 
 	private numeric function _getNextAvailableHierarchyId() {
-		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ] );
+		var qry = _getPObj().selectData( selectFields=[ "Max( _hierarchy_id ) as max_id" ], allowDraftVersions=true );
 
 		return IsNull( qry.max_id ) ? 1 : Val( qry.max_id ) + 1;
 	}
@@ -1070,6 +1335,7 @@ component singleton=true {
 			, active                  = 1
 			, userId                  = ( loginSvc.isLoggedIn() ? loginSvc.getLoggedInUserId() : loginSvc.getSystemUserId() )
 			, exclude_from_navigation = pageType.getId() != "homepage"
+			, audit                   = false
 		};
 		if ( Len( Trim( parent ?: "" ) ) ) {
 			addPageArgs.parent_page = parent;
@@ -1086,7 +1352,7 @@ component singleton=true {
 		var fields = _getPresideObjectService().getObjectAttribute(
 			  objectName    = arguments.objectName
 			, attributeName = "sitetreeGridFields"
-			, defaultValue  = "page.title,page.active,page.datemodified"
+			, defaultValue  = "page.title,page.datemodified"
 		);
 
 		return ListToArray( fields );
@@ -1109,6 +1375,11 @@ component singleton=true {
 			sqlFields.delete( labelField );
 			sqlFields.append( replacedLabelField );
 		}
+		sqlFields.append( "page._version_is_draft"   );
+		sqlFields.append( "page._version_has_drafts" );
+		sqlFields.append( "page.active"              );
+		sqlFields.append( "page.embargo_date"        );
+		sqlFields.append( "page.expiry_date"         );
 
 		// ensure all fields are valid + get labels from join tables
 		for( i=ArrayLen( sqlFields ); i gt 0; i-- ){
@@ -1152,6 +1423,31 @@ component singleton=true {
 		}
 
 		return sqlFields;
+	}
+
+	private string function _getPageIdWithMultilingualSlug( required string slug ) {
+		var slugPieces      = slug.listToArray( "/" );
+		var pageObject      = _getPobj();
+		var page            = getSiteHomepage( selectFields=[ "page.id" ] );
+		var args            = { filter={}, selectFields=[ "page.id" ] };
+		var currentLanguage = $getColdbox().getRequestContext().getLanguage();
+
+		for( var i=1; i<=slugPieces.len(); i++ ) {
+			args.filter       = "( IfNull( _translations.slug, page.slug ) = :page.slug and ( _translations.slug is null or _translations._translation_language = :_translations._translation_language ) ) and page.parent_page = :page.parent_page"
+			args.filterParams = {
+				  "page.slug"                           = slugPieces[ i ]
+				, "_translations._translation_language" = currentLanguage
+				, "page.parent_page"                    = page.id
+			};
+
+			page = pageObject.selectData( argumentCollection=args );
+
+			if ( !page.recordCount ) {
+				break;
+			}
+		}
+
+		return page.id ?: "";
 	}
 
 // GETTERS AND SETTERS
@@ -1217,5 +1513,17 @@ component singleton=true {
 	}
 	private void function _setWebsitePermissionService( required any websitePermissionService ) {
 		_websitePermissionService = arguments.websitePermissionService;
+	}
+
+	private void function _setPageSlugsAreMultilingual() {
+		var featureEnabled    = $isFeatureEnabled( "multilingual" );
+		var slugMultilingual = $getPresideObjectService().getObjectPropertyAttribute(
+			  objectName    = "page"
+			, propertyName  = "slug"
+			, attributeName = "multilingual"
+			, defaultValue  = false
+		);
+
+		_pageSlugsAreMultilingual = featureEnabled && IsBoolean( slugMultilingual ) && slugMultilingual;
 	}
 }

@@ -121,6 +121,9 @@ component {
 		this.mappings[ arguments.assetsMapping  ] = arguments.assetsPath;
 		this.mappings[ arguments.logsMapping    ] = arguments.logsPath;
 
+		DirectoryCreate( "ram://aoptmp", false, true );
+		this.mappings[ "/aoptmp" ] = "ram://aoptmp";
+
 		variables.COLDBOX_APP_ROOT_PATH = arguments.appPath;
 		variables.COLDBOX_APP_KEY       = arguments.appPath;
 		variables.COLDBOX_APP_MAPPING   = arguments.appMapping;
@@ -156,6 +159,7 @@ component {
 					log file="application" text="Application starting up (fwreinit called, or application starting for the first time).";
 
 					_clearExistingApplication();
+					_ensureCaseSensitiveStructSettingsAreActive();
 					_fetchInjectedSettings();
 					_setupInjectedDatasource();
 					_initColdBox();
@@ -175,7 +179,9 @@ component {
 	}
 
 	private void function _clearExistingApplication() {
+		onApplicationEnd( application );
 		application.clear();
+		SystemCacheClear( "template" );
 
 		if ( ( server.coldfusion.productName ?: "" ) == "Lucee" ) {
 			getPageContext().getCFMLFactory().resetPageContext();
@@ -201,6 +207,26 @@ component {
 		}
 
 		return application.cbBootStrap.isfwReinit();
+	}
+
+	private void function _ensureCaseSensitiveStructSettingsAreActive() {
+		var check         = { sensiTivity=true };
+		var caseSensitive = check.keyArray().find( "sensiTivity" );
+
+		if ( !caseSensitive ) {
+			var luceeCompilerSettings = "";
+
+			try {
+				admin action="getCompilerSettings" returnVariable="luceeCompilerSettings";
+				admin action               = "updateCompilerSettings"
+				      dotNotationUpperCase = false
+					  suppressWSBeforeArg  = luceeCompilerSettings.suppressWSBeforeArg
+					  nullSupport          = luceeCompilerSettings.nullSupport
+					  templateCharset      = luceeCompilerSettings.templateCharset;
+			} catch( security e ) {
+				throw( type="security", message="PresideCMS could not automatically update Lucee settings to ensure dot notation for structs preserves case (rather than the default behaviour of converting to uppercase). Please either allow open access to admin APIs or change the setting in Lucee server settings." );
+			}
+		}
 	}
 
 	private void function _fetchInjectedSettings() {
@@ -402,10 +428,11 @@ component {
 	}
 
 	private void function _cleanupCookies() {
-		var pc           = getPageContext();
-		var resp         = pc.getResponse();
-		var cbController = _getColdboxController();
-		var allCookies   = resp.getHeaders( "Set-Cookie" );
+		var pc             = getPageContext();
+		var resp           = pc.getResponse();
+		var cbController   = _getColdboxController();
+		var allCookies     = resp.getHeaders( "Set-Cookie" );
+		var sessionCookies = [ "CFID", "CFTOKEN" ];
 
 		if ( IsNull( cbController ) || isStatelessRequest( _getUrl() ) ) {
 			if ( ArrayLen( allCookies ) ) {
@@ -425,6 +452,12 @@ component {
 			var cooky = allCookies[ i ];
 			if ( !Len( Trim( cooky ) ) ) {
 				continue;
+			}
+
+
+			if ( sessionCookies.findNoCase( cooky.listFirst( "=" ) ) ) {
+				cooky = _stripExpiryDateFromCookieToMakeASessionCookie( cooky );
+				anyCookiesChanged = true;
 			}
 
 			if ( !ReFindNoCase( httpRegex, cooky ) ) {
@@ -455,11 +488,7 @@ component {
 	}
 
 	private string function _getPresideRoot() {
-		var trace        = CallStackGet();
-		var thisFilePath = trace[ 1 ].template;
-		var dir          = GetDirectoryFromPath( thisFilePath );
-
-		return ReReplace( dir, "[\\/]system[\\/]?$", "" );
+		return ExpandPath( "/preside" );
 	}
 
 	private boolean function _clearoutDuplicateCookies( required array cookieSet ) {
@@ -482,11 +511,7 @@ component {
 	}
 
 	private string function _getApplicationRoot() {
-		var trace      = CallStackGet();
-		var appCfcPath = trace[ trace.len() ].template;
-		var dir        = GetDirectoryFromPath( appCfcPath );
-
-		return ReReplace( dir, "[\\/]$", "" );
+		return ExpandPath( "/" );
 	}
 
 	private void function _friendlyError( required any exception, numeric statusCode=500 ) {
@@ -575,4 +600,16 @@ component {
 		return ExpandPath( request._presideMappings.logsMapping ?: "/logs" ) & "/sqlupgrade.sql";
 	}
 
+	private string function _stripExpiryDateFromCookieToMakeASessionCookie( required string cooky ) {
+		var cookieParts = arguments.cooky.listToArray( ";" );
+		var stripped    = "";
+
+		for( var part in cookieParts ) {
+			if ( !part.reFindNoCase( "^expires" ) ) {
+				stripped = stripped.listAppend( part, ";" );
+			}
+		}
+
+		return stripped;
+	}
 }

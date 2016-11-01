@@ -16,7 +16,7 @@ You can, of course, use your web server of choice's own rewriting engine, but fo
 
 ### Installing the filter
 
-Installing the filter comes in two steps. Firstly, download the [urlrewritefilter-4.0.3.jar](http://urlrewritefilter.googlecode.com/files/urlrewritefilter-4.0.3.jar) file and copy to `/{lucee-home}/lib/`; ensure that the user that Lucee runs with can access the file.
+Installing the filter comes in two steps. Firstly, download the [urlrewritefilter-4.0.3.jar](http://search.maven.org/remotecontent?filepath=org/tuckey/urlrewritefilter/4.0.3/urlrewritefilter-4.0.3.jar) file and copy to `/{lucee-home}/lib/`; ensure that the user that Lucee runs with can access the file.
 
 Next, you will need to edit your servlet's `web.xml` file. For a default Lucee install with Tomcat, this lives at `/{lucee-home}/tomcat/conf/web.xml`. You will need to add the following code _before_ the very first `<servlet>` definition:
 
