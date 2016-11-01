@@ -94,6 +94,51 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getLayoutConfigFormName", function(){
+
+			it( "should return the convention based form name when the form exists (i.e. 'email.layout.{layoutId}')", function(){
+				var service  = _getService();
+				var layout   = "layout1";
+				var formName = "email.layout.layout1";
+
+				mockFormsService.$( "formExists" ).$args( formName ).$results( true );
+
+				expect( service.getLayoutConfigFormName( layout ) ).toBe( formName );
+			} );
+
+			it( "should return an empty string when the layout does not have a corresponding form", function(){
+				var service  = _getService();
+				var layout   = "layout1";
+				var formName = "email.layout.layout1";
+
+				mockFormsService.$( "formExists" ).$args( formName ).$results( false );
+
+				expect( service.getLayoutConfigFormName( layout ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the layout does not exist", function(){
+				var service  = _getService();
+				var layout   = CreateUUId();
+
+				expect( service.getLayoutConfigFormName( layout ) ).toBe( "" );
+			} );
+
+		} );
+
+		describe( "layoutExists", function(){
+			it( "should return true when the layout is recognized by the system", function(){
+				var service = _getService();
+
+				expect( service.layoutExists( "layout1" ) ).toBe( true );
+			} );
+
+			it( "should return false when the layout is not recognized by the system", function(){
+				var service = _getService();
+
+				expect( service.layoutExists( CreateUUId() ) ).toBe( false );
+			} );
+		} );
+
 	}
 
 	private any function _getService(

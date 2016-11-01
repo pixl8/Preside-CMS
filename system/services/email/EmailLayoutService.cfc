@@ -51,6 +51,18 @@ component {
 	}
 
 	/**
+	 * Returns whether or not the given layout
+	 * exists within the system.
+	 *
+	 * @autodoc true
+	 * @layout  The ID of the layout who's existance you want to check
+	 *
+	 */
+	public boolean function layoutExists( required string layout ) {
+		return _getLayouts().findNoCase( arguments.layout ) > 0;
+	}
+
+	/**
 	 * Returns the rendering of an email layout with the given
 	 * arguments.
 	 *
@@ -78,7 +90,26 @@ component {
 		return $renderViewlet( event=viewletEvent, args=viewletArgs );
 	}
 
+	/**
+	 * Returns the form name used for configuring the
+	 * given layout. If the layout does not exist, or
+	 * does not have a corresponding configuration form,
+	 * an empty string is returned.
+	 *
+	 * @autodoc     true
+	 * @layout.hint ID of the layout who's form name you wish to get
+	 */
+	public string function getLayoutConfigFormName( required string layout ) {
+		if ( layoutExists( arguments.layout ) ) {
+			var formName = 'email.layout.#arguments.layout#';
 
+			if ( _getFormsService().formExists( formName ) ) {
+				return 'email.layout.#arguments.layout#';
+			}
+		}
+
+		return "";
+	}
 
 // PRIVATE HELPERS
 	private void function _loadLayoutsFromViewlets() {
