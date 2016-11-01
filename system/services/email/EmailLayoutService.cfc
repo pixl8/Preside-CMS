@@ -111,6 +111,38 @@ component {
 		return "";
 	}
 
+	/**
+	 * Saves the given layout configuration in the database.
+	 *
+	 * @autodoc            true
+	 * @layout.hint        ID of the layout who's configuration you want to save
+	 * @config.hint        Struct of configuration data to save
+	 * @emailTemplate.hint Optional ID of a specific email template who's layout configuration you wish to save
+	 *
+	 */
+	public boolean function saveLayoutConfig(
+		  required string layout
+		, required struct config
+		,          string emailTemplate = ""
+	){
+		var configDao = $getPresideObject( "email_layout_config_item" );
+
+		transaction {
+			configDao.deleteData( filter={ layout=arguments.layout, email_template=arguments.emailTemplate } );
+
+			for( var item in arguments.config ) {
+				configDao.insertData( {
+					  layout         = arguments.layout
+					, item           = item
+					, value          = arguments.config[ item ]
+					, email_template = arguments.emailTemplate
+				});
+			}
+		}
+
+		return true;
+	}
+
 // PRIVATE HELPERS
 	private void function _loadLayoutsFromViewlets() {
 		var viewletRegex     = "email\.layout\.(.*?)\.(html|text)";

@@ -139,6 +139,64 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "saveLayoutConfig", function(){
+
+			it( "should insert a global (no email template ID) configuration record for each config item supplied after deleting any potential previously saved records", function(){
+				var service = _getService();
+				var layout  = "layout2";
+				var config  = StructNew( "linked" );
+
+				config.test   = CreateUUId();
+				config.all    = "the";
+				config.things = Now();
+
+				mockConfigDao.$( "deleteData", 1 );
+				mockConfigDao.$( "insertData", CreateUUId() );
+
+				service.saveLayoutConfig(
+					  layout = layout
+					, config = config
+				);
+
+				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template="" } } );
+
+				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template="", item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template="", item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template="", item="things", value=config.things } ] );
+			} );
+
+			it( "should insert an email specific configuration record for each config item supplied after deleting any potential previously saved records", function(){
+				var service       = _getService();
+				var layout        = "layout2";
+				var emailTemplate = CreateUUId();
+				var config        = StructNew( "linked" );
+
+				config.test   = CreateUUId();
+				config.all    = "the";
+				config.things = Now();
+
+				mockConfigDao.$( "deleteData", 1 );
+				mockConfigDao.$( "insertData", CreateUUId() );
+
+				service.saveLayoutConfig(
+					  layout        = layout
+					, emailTemplate = emailTemplate
+					, config        = config
+				);
+
+				expect( mockConfigDao.$callLog().deleteData.len() ).toBe( 1 );
+				expect( mockConfigDao.$callLog().deleteData[1] ).toBe( { filter={ layout=layout, email_template=emailTemplate } } );
+
+				expect( mockConfigDao.$callLog().insertData.len() ).toBe( 3 );
+				expect( mockConfigDao.$callLog().insertData[1] ).toBe( [ { layout=layout, email_template=emailTemplate, item="test"  , value=config.test   } ] );
+				expect( mockConfigDao.$callLog().insertData[2] ).toBe( [ { layout=layout, email_template=emailTemplate, item="all"   , value=config.all    } ] );
+				expect( mockConfigDao.$callLog().insertData[3] ).toBe( [ { layout=layout, email_template=emailTemplate, item="things", value=config.things } ] );
+			} );
+
+		} );
+
 	}
 
 	private any function _getService(
@@ -146,6 +204,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	){
 		variables.mockViewletsService = createEmptyMock( "preside.system.services.viewlets.ViewletsService" );
 		variables.mockFormsService    = createEmptyMock( "preside.system.services.forms.FormsService" );
+		variables.mockConfigDao       = createStub();
 
 		mockViewletsService.$( "listPossibleViewlets" ).$args( filter="email\.layout\.(.*?)\.(html|text)" ).$results( layoutViewlets );
 
@@ -153,6 +212,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			  viewletsService = mockViewletsService
 			, formsService    = mockFormsService
 		) );
+
+		service.$( "$getPresideObject" ).$args( "email_layout_config_item" ).$results( mockConfigDao );
 
 		return service;
 	}
