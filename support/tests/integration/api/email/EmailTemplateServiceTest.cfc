@@ -113,14 +113,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getTemplate()", function(){
-			it( "should return the DB record for the given template", function(){
+			it( "should return the DB record for the given template converted to a struct", function(){
 				var service    = _getService();
 				var template   = CreateUUId();
-				var mockResult = QueryNew( 'blah', 'varchar', [[CreateUUId()]])
+				var mockResult = QueryNew( 'blah', 'varchar', [[CreateUUId()]]);
+				var expected   = {};
+
+				for( var r in mockResult ) { expected = r; }
 
 				mockTemplateDao.$( "selectData" ).$args( id=template ).$results( mockResult );
 
-				expect( service.getTemplate( template ) ).toBe( mockResult );
+				expect( service.getTemplate( template ) ).toBe( expected );
 			} );
 		} );
 

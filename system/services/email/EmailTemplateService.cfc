@@ -67,8 +67,14 @@ component {
 	 * @id.hint ID of the template to get
 	 *
 	 */
-	public query function getTemplate( required string id ){
-		return $getPresideObject( "email_template" ).selectData( id=arguments.id );
+	public struct function getTemplate( required string id ){
+		var template = $getPresideObject( "email_template" ).selectData( id=arguments.id );
+
+		for( var t in template ) {
+			return t;
+		}
+
+		return {};
 	}
 
 	/**
