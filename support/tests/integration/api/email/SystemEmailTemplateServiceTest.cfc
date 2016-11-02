@@ -156,6 +156,93 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getDefaultSubject()", function(){
+			it( "should return result of calling 'email.template.{templateid}.defaultSubject' viewlet", function(){
+				var service    = _getService();
+				var template   = "websiteWelcome";
+				var mockResult = CreateUUId();
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultSubject" ).$results( true );
+				service.$( "$renderViewlet" ).$args( "email.template.#template#.defaultSubject" ).$results( mockResult );
+
+				expect( service.getDefaultSubject( template ) ).toBe( mockResult );
+			} );
+
+			it( "should return templateid, if no viewlet exists", function(){
+				var service  = _getService();
+				var template = "websiteWelcome";
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultSubject" ).$results( false );
+
+				expect( service.getDefaultSubject( template ) ).toBe( template );
+			} );
+
+			it( "should return templateid, if the template does not exist", function(){
+				var service  = _getService();
+				var template = CreateUUId();
+
+				expect( service.getDefaultSubject( template ) ).toBe( template );
+			} );
+		} );
+
+		describe( "getDefaultHtmlBody()", function(){
+			it( "should return result of calling 'email.template.{templateid}.defaultHtmlBody' viewlet", function(){
+				var service    = _getService();
+				var template   = "websiteWelcome";
+				var mockResult = CreateUUId();
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultHtmlBody" ).$results( true );
+				service.$( "$renderViewlet" ).$args( "email.template.#template#.defaultHtmlBody" ).$results( mockResult );
+
+				expect( service.getDefaultHtmlBody( template ) ).toBe( mockResult );
+			} );
+
+			it( "should return empty string, if no viewlet exists", function(){
+				var service  = _getService();
+				var template = "websiteWelcome";
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultHtmlBody" ).$results( false );
+
+				expect( service.getDefaultHtmlBody( template ) ).toBe( "" );
+			} );
+
+			it( "should return empty string, if the template does not exist", function(){
+				var service  = _getService();
+				var template = CreateUUId();
+
+				expect( service.getDefaultHtmlBody( template ) ).toBe( "" );
+			} );
+		} );
+
+		describe( "getDefaultTextBody()", function(){
+			it( "should return result of calling 'email.template.{templateid}.defaultTextBody' viewlet", function(){
+				var service    = _getService();
+				var template   = "websiteWelcome";
+				var mockResult = CreateUUId();
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultTextBody" ).$results( true );
+				service.$( "$renderViewlet" ).$args( "email.template.#template#.defaultTextBody" ).$results( mockResult );
+
+				expect( service.getDefaultTextBody( template ) ).toBe( mockResult );
+			} );
+
+			it( "should return empty string, if no viewlet exists", function(){
+				var service  = _getService();
+				var template = "websiteWelcome";
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultTextBody" ).$results( false );
+
+				expect( service.getDefaultTextBody( template ) ).toBe( "" );
+			} );
+
+			it( "should return empty string, if the template does not exist", function(){
+				var service  = _getService();
+				var template = CreateUUId();
+
+				expect( service.getDefaultTextBody( template ) ).toBe( "" );
+			} );
+		} );
+
 	}
 
 	private any function _getService( struct configuredTemplates=_getDefaultConfiguredTemplates() ){
