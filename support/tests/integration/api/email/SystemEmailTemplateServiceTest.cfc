@@ -244,22 +244,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getDefaultLayout()", function(){
-			it( "should return result of calling 'email.template.{templateid}.defaultLayout' viewlet", function(){
-				var service    = _getService();
-				var template   = "websiteWelcome";
-				var mockResult = CreateUUId();
+			it( "should return configured default layout from template configuration", function(){
+				var service  = _getService();
+				var template = "adminWelcome";
 
-				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultLayout" ).$results( true );
-				service.$( "$renderViewlet" ).$args( "email.template.#template#.defaultLayout" ).$results( mockResult );
-
-				expect( service.getDefaultLayout( template ) ).toBe( mockResult );
+				expect( service.getDefaultLayout( template ) ).toBe( "blah" );
 			} );
 
 			it( "should return 'default', if no viewlet exists", function(){
 				var service  = _getService();
 				var template = "websiteWelcome";
-
-				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultLayout" ).$results( false );
 
 				expect( service.getDefaultLayout( template ) ).toBe( "default" );
 			} );
@@ -289,7 +283,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getDefaultConfiguredTemplates() {
 		return {
 			  adminResetPassword   = { parameters=[ { id="resetLink", required=true }, "testParam" ] }
-			, adminWelcome         = {}
+			, adminWelcome         = { layout="blah" }
 			, websiteResetPassword = {}
 			, websiteWelcome       = {}
 		};

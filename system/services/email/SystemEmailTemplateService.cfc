@@ -149,20 +149,16 @@ component {
 	}
 
 	/**
-	 * Returns the default layout for a given template, derived from its 'defaultLayout'
-	 * viewlet. If no viewlet is supplied, a value of 'default' will be assumed.
+	 * Returns the default layout for a given template, read from the global
+	 * email template configuration set in Config.cfc.
 	 *
 	 * @autodoc       true
 	 * @template.hint ID of the template who's default layout you wish to get
 	 */
 	public string function getDefaultLayout( required string template ) {
-		var viewlet = "email.template.#arguments.template#.defaultLayout";
+		var templates = _getConfiguredTemplates();
 
-		if ( templateExists( arguments.template ) && $getColdbox().viewletExists( viewlet ) ) {
-			return $renderViewlet( viewlet );
-		}
-
-		return "default";
+		return templates[ arguments.template ].layout ?: "default";
 	}
 
 	/**
