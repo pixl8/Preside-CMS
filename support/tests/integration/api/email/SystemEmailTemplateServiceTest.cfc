@@ -243,6 +243,35 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getDefaultLayout()", function(){
+			it( "should return result of calling 'email.template.{templateid}.defaultLayout' viewlet", function(){
+				var service    = _getService();
+				var template   = "websiteWelcome";
+				var mockResult = CreateUUId();
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultLayout" ).$results( true );
+				service.$( "$renderViewlet" ).$args( "email.template.#template#.defaultLayout" ).$results( mockResult );
+
+				expect( service.getDefaultLayout( template ) ).toBe( mockResult );
+			} );
+
+			it( "should return 'default', if no viewlet exists", function(){
+				var service  = _getService();
+				var template = "websiteWelcome";
+
+				mockColdboxController.$( "viewletexists" ).$args( "email.template.#template#.defaultLayout" ).$results( false );
+
+				expect( service.getDefaultLayout( template ) ).toBe( "default" );
+			} );
+
+			it( "should return 'default', if the template does not exist", function(){
+				var service  = _getService();
+				var template = CreateUUId();
+
+				expect( service.getDefaultLayout( template ) ).toBe( "default" );
+			} );
+		} );
+
 	}
 
 	private any function _getService( struct configuredTemplates=_getDefaultConfiguredTemplates() ){
