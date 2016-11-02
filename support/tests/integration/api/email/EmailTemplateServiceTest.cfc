@@ -112,6 +112,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getTemplate()", function(){
+			it( "should return the DB record for the given template", function(){
+				var service    = _getService();
+				var template   = CreateUUId();
+				var mockResult = QueryNew( 'blah', 'varchar', [[CreateUUId()]])
+
+				mockTemplateDao.$( "selectData" ).$args( id=template ).$results( mockResult );
+
+				expect( service.getTemplate( template ) ).toBe( mockResult );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {

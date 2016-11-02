@@ -60,6 +60,17 @@ component {
 		return $getPresideObject( "email_template" ).dataExists( id=arguments.id );
 	}
 
+	/**
+	 * Returns the saved template from the database
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the template to get
+	 *
+	 */
+	public query function getTemplate( required string id ){
+		return $getPresideObject( "email_template" ).selectData( id=arguments.id );
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
