@@ -71,6 +71,34 @@ component {
 		return $getPresideObject( "email_template" ).selectData( id=arguments.id );
 	}
 
+	/**
+	 * Replaces parameter tokens in strings (subject, body) with
+	 * passed in values.
+	 *
+	 * @autodoc true
+	 * @text    The raw text that contains the parameter tokens
+	 * @params  A struct of params. Each param can either be a simple value or a struct with simple values for `html` and `text` keys
+	 * @type    Either 'text' or 'html'
+	 *
+	 */
+	public string function replaceParameterTokens(
+		  required string text
+		, required struct params
+		, required string type
+	) {
+		arguments.type = arguments.type == "text" ? "text" : "html";
+		var replaced = arguments.text;
+
+		for( var paramName in arguments.params ) {
+			var token = "${#paramName#}";
+			var value = IsSimpleValue( arguments.params[ paramName ] ) ? arguments.params[ paramName ] : ( arguments.params[ paramName ][ arguments.type ] ?: "" );
+
+			replaced = replaced.replaceNoCase( token, value, "all" );
+		}
+
+		return replaced;
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();

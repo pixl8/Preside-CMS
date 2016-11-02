@@ -124,6 +124,25 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "replaceParameterTokens()", function(){
+			it( "it should replace all occurrences of param tokens (${param}) with the supplied params, using the appropriate html/text version of the param according to the passed type", function(){
+				var service = _getService();
+				var raw     = "${param1} was a ${param2} which was ${param1} and very ${param3}. Indeed! ${param4}";
+				var type    = "text";
+				var params  = {
+					  param1 = { html="html 1", text="text1" }
+					, param2 = "just text"
+					, param3 = { html="html 3", text="text 3" }
+				};
+
+				expect( service.replaceParameterTokens(
+					  text   = raw
+					, params = params
+					, type   = type
+				) ).toBe( "text1 was a just text which was text1 and very text 3. Indeed! ${param4}" );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {
