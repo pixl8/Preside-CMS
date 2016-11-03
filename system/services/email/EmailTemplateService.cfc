@@ -8,10 +8,15 @@ component {
 
 	/**
 	 * @systemEmailTemplateService.inject systemEmailTemplateService
+	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 *
 	 */
-	public any function init( required any systemEmailTemplateService ) {
+	public any function init(
+		  required any systemEmailTemplateService
+		, required any emailRecipientTypeService
+	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
+		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_ensureSystemTemplatesHaveDbEntries();
 
 		return this;
@@ -105,6 +110,35 @@ component {
 		return replaced;
 	}
 
+	/**
+	 * Prepares params (for use in replacing tokens in subject and body)
+	 * for the given email template, recipient type and sending args.
+	 *
+	 * @autodoc       true
+	 * @template      ID of the template of the email that is being prepared
+	 * @recipientType ID of the recipient type of the email that is being prepared
+	 * @args          Structure of variables that are being used to send / prepare the email
+	 */
+	public struct function prepareParameters(
+		  required string template
+		, required string recipientType
+		, required struct args
+	) {
+		var params = _getEmailRecipientTypeService().prepareParameters(
+			  recipientType = arguments.recipientType
+			, args          = arguments.args
+		);
+
+		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+			params.append( _getSystemEmailTemplateService().prepareParameters(
+				  template = arguments.template
+				, args     = arguments.args
+			) );
+		}
+
+		return params;
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
@@ -129,5 +163,12 @@ component {
 	}
 	private void function _setSystemEmailTemplateService( required any systemEmailTemplateService ) {
 		_systemEmailTemplateService = arguments.systemEmailTemplateService;
+	}
+
+	private any function _getEmailRecipientTypeService() {
+		return _emailRecipientTypeService;
+	}
+	private void function _setEmailRecipientTypeService( required any emailRecipientTypeService ) {
+		_emailRecipientTypeService = arguments.emailRecipientTypeService;
 	}
 }

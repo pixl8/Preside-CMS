@@ -86,7 +86,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					mockSystemEmailTemplateService.$( "getDefaultTextBody" ).$args( t.id ).$results( t.id & "text" );
 				}
 
-				service.init( systemEmailTemplateService = mockSystemEmailTemplateService );
+				service.init(
+					  systemEmailTemplateService = mockSystemEmailTemplateService
+					, emailRecipientTypeService  = mockEmailRecipientTypeService
+				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
 				expect( service.$callLog().saveTemplate[1] ).toBe( {
@@ -146,6 +149,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "prepareParameters()", function(){
+			it( "should combine prepared parameters from system email template + recipient type (when template is system type)", function(){
+				var service        = _getService();
+				var template       = "eventBookingConfirmation";
+				var recipientType  = "websiteUser";
+				var mockArgs       = { userId=CreateUUId(), bookingId=CreateUUId() };
+				var sysEmailParams = { eventName="My event", bookingSummary=CreateUUId() };
+				var recipientTypeParams = { known_as="Harry" };
+				var finalParams         = Duplicate( sysEmailParams );
+
+				finalParams.append( recipientTypeParams );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockSystemEmailTemplateService.$( "prepareParameters" ).$args( template=template, args=mockArgs ).$results( sysEmailParams );
+				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, args=mockArgs ).$results( recipientTypeParams );
+
+				expect( service.prepareParameters(
+					  template      = template
+					, recipientType = recipientType
+					, args          = mockArgs
+				) ).toBe( finalParams );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {
@@ -154,11 +181,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockTemplateDao = createStub();
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
+		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
 			service.init(
-				systemEmailTemplateService = mockSystemEmailTemplateService
+				  systemEmailTemplateService = mockSystemEmailTemplateService
+				, emailRecipientTypeService  = mockEmailRecipientTypeService
 			);
 		}
 
