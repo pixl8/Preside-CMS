@@ -266,6 +266,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getRecipientType()", function(){
+			it( "should return configured recipient type from template configuration", function(){
+				var service  = _getService();
+				var template = "websiteResetPassword";
+
+				expect( service.getRecipientType( template ) ).toBe( "websiteUser" );
+			} );
+
+			it( "should return 'anonymous', if no viewlet exists", function(){
+				var service  = _getService();
+				var template = "websiteWelcome";
+
+				expect( service.getRecipientType( template ) ).toBe( "anonymous" );
+			} );
+
+			it( "should return 'anonymous', if the template does not exist", function(){
+				var service  = _getService();
+				var template = CreateUUId();
+
+				expect( service.getRecipientType( template ) ).toBe( "anonymous" );
+			} );
+		} );
 	}
 
 	private any function _getService( struct configuredTemplates=_getDefaultConfiguredTemplates() ){
@@ -284,7 +306,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		return {
 			  adminResetPassword   = { parameters=[ { id="resetLink", required=true }, "testParam" ] }
 			, adminWelcome         = { layout="blah" }
-			, websiteResetPassword = {}
+			, websiteResetPassword = { recipientType="websiteUser" }
 			, websiteWelcome       = {}
 		};
 	}

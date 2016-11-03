@@ -213,6 +213,20 @@ component {
 		return "";
 	}
 
+
+	/**
+	 * Returns the recipient type for a given template, read from the global
+	 * email template configuration set in Config.cfc.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template who's recipient type you wish to get
+	 */
+	public string function getRecipientType( required string template ) {
+		var templates = _getConfiguredTemplates();
+
+		return templates[ arguments.template ].recipientType ?: "anonymous";
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredTemplates() {
 		return _configuredTemplates;
