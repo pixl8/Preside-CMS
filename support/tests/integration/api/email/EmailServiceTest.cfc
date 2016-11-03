@@ -44,6 +44,48 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( emailService.$callLog()._send[1] ).toBe( expectedSendArgs );
 			} );
 
+			it( "should use new (as of 10.8.0) email template service to prepare message data when the template is registered with the new service", function(){
+				var emailService        = _getEmailService();
+				var testArgs            = { some="test", data=true };
+				var testPreparedMessage = { from="someone@test.com", to="to@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject", textBody="text only body" };
+				var expectedSendArgs  = {
+					  from     = ""
+					, subject  = ""
+					, to       = ""
+					, cc       = []
+					, bcc      = []
+					, htmlBody = ""
+					, textBody = ""
+					, params   = {}
+				};
+				expectedPrepArgs = {
+					template = "notification"
+				  , args     = testArgs
+				  , to       = []
+				  , from     = ""
+				  , subject  = ""
+				  , cc       = []
+				  , bcc      = []
+				  , htmlBody = ""
+				  , textBody = ""
+				  , params   = {}
+				};
+
+				expectedSendArgs.append( testPreparedMessage );
+
+				emailService.$( "_send", true );
+				mockEmailTemplateService.$( "templateExists" ).$args( "notification" ).$results( true );
+				mockEmailTemplateService.$( "prepareMessage" ).$args( argumentCollection=expectedPrepArgs ).$results( testPreparedMessage );
+
+				emailService.send(
+					  template = "notification"
+					, args     = testArgs
+				);
+
+				expect( emailService.$callLog()._send.len() ).toBe( 1 );
+				expect( emailService.$callLog()._send[1] ).toBe( expectedSendArgs );
+			} );
+
 			it( "should use default from email setting when no from address is returned from the template handler", function(){
 				var emailService      = _getEmailService();
 				var testToAddresses   = [ "dominic.watson@test.com", "another@test.com" ];
@@ -176,12 +218,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 
 	private any function _getEmailService() output=false {
-		templateDirs = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
-		mockColdBox  = createMock( "preside.system.coldboxModifications.Controller" );
+		templateDirs             = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
+		mockColdBox              = createMock( "preside.system.coldboxModifications.Controller" );
+		mockEmailTemplateService = createMock( "preside.system.services.email.EmailTemplateService" );
 
-		var service = createMock( object=new preside.system.services.email.EmailService( emailTemplateDirectories = templateDirs ) );
+		var service = createMock( object=new preside.system.services.email.EmailService(
+			  emailTemplateDirectories = templateDirs
+			, emailTemplateService     = mockEmailTemplateService
+		) );
 
 		service.$( "$getColdbox", mockColdbox );
+		mockEmailTemplateService.$( "templateExists", false );
 
 		return service;
 	}

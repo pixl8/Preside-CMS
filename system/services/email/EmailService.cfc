@@ -10,11 +10,15 @@ component displayName="Email service" {
 // CONSTRUCTOR
 	/**
 	 * @emailTemplateDirectories.inject presidecms:directories:handlers/emailTemplates
+	 * @emailTemplateService.inject     emailTemplateService
 	 */
 	public any function init(
 		  required array emailTemplateDirectories
+		, required any   emailTemplateService
 	) {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
+		_setEmailTemplateService( arguments.emailTemplateService );
+
 		_loadTemplates();
 
 		return this;
@@ -184,24 +188,32 @@ component displayName="Email service" {
 	}
 
 	private struct function _mergeArgumentsWithTemplateHandlerResult( required string template, required struct args ) {
-		if ( !_getTemplates().findNoCase( arguments.template ) ) {
+		var sendArgs = {};
+
+		// new (as of 10.8.0) template system
+		if ( _getEmailTemplateService().templateExists( arguments.template ) ) {
+			sendArgs = _getEmailTemplateService().prepareMessage( argumentCollection=arguments );
+
+
+		// legacy template system
+		} else if ( _getTemplates().findNoCase( arguments.template ) ) {
+			var handlerArgs = Duplicate( arguments.args  );
+			    handlerArgs.append( arguments, false );
+			    handlerArgs.delete( "template" );
+			    handlerArgs.delete( "args" );
+
+			sendArgs = $getColdbox().runEvent(
+				  event          = "emailTemplates.#arguments.template#.prepareMessage"
+				, private        = true
+				, eventArguments = { args=handlerArgs }
+			);
+		} else {
 			throw(
 				  type    = "EmailService.missingTemplate"
 				, message = "Missing email template [#arguments.template#]"
 				, detail  = "Expected to find a handler at [/handlers/emailTemplates/#arguments.template#.cfc]"
 			);
 		}
-
-		var handlerArgs = Duplicate( arguments.args  );
-		    handlerArgs.append( arguments, false );
-		    handlerArgs.delete( "template" );
-		    handlerArgs.delete( "args" );
-
-		var sendArgs = $getColdbox().runEvent(
-			  event          = "emailTemplates.#arguments.template#.prepareMessage"
-			, private        = true
-			, eventArguments = { args=handlerArgs }
-		);
 
 		sendArgs.append( arguments, false );
 		sendArgs.delete( "template" );
@@ -263,5 +275,12 @@ component displayName="Email service" {
 	}
 	private void function _setTemplates( required array templates ) {
 		_templates = arguments.templates;
+	}
+
+	private any function _getEmailTemplateService() {
+		return _emailTemplateService;
+	}
+	private void function _setEmailTemplateService( required any emailTemplateService ) {
+		_emailTemplateService = arguments.emailTemplateService;
 	}
 }
