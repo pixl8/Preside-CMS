@@ -238,7 +238,11 @@ component {
 			, taskmanager            = [ "navigate", "run", "toggleactive", "viewlogs", "configure" ]
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
-			, emailCenter            = [ "navigate" ]
+			, emailCenter            = {
+				  layouts         = [ "navigate" ]
+				, userTemplates   = [ "navigate" ]
+				, systemTemplates = [ "navigate" ]
+			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]
 				, security_group = [ "read", "add", "edit", "delete", "viewversions" ]
