@@ -213,7 +213,6 @@ component {
 			  recipientType = arguments.recipientType
 			, args          = arguments.args
 		);
-
 		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
 			params.append( _getSystemEmailTemplateService().prepareParameters(
 				  template = arguments.template

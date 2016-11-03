@@ -10,7 +10,7 @@ component displayName="Email service" {
 // CONSTRUCTOR
 	/**
 	 * @emailTemplateDirectories.inject presidecms:directories:handlers/emailTemplates
-	 * @emailTemplateService.inject     emailTemplateService
+	 * @emailTemplateService.inject     delayedInjector:emailTemplateService
 	 */
 	public any function init(
 		  required array emailTemplateDirectories

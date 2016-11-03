@@ -351,6 +351,16 @@ component {
 		settings.rulesEngine.contexts.page       = {};
 		settings.rulesEngine.contexts.user       = {};
 
+		settings.email = {};
+		settings.email.templates = {
+			cmsWelcome = { parameters=[ { name="resetPasswordLink", required=true }, { name="welcomeMessage", required=true }, "createdBy", "siteUrl" ], recipientType="adminUser" }
+		};
+		settings.email.recipientTypes = {
+			  adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] }
+			, websiteUser = { parameters=[ "display_name", "login_id", "email_address" ] }
+			, anonymous   = {}
+		};
+
 		_loadConfigurationFromExtensions();
 
 		environments = {

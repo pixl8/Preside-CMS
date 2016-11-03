@@ -8,7 +8,7 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="layout"         type="string" dbtype="varchar" maxlength=200 required=true;
 	property name="recipient_type" type="string" dbtype="varchar" maxlength=200 required=true;
 	property name="subject"        type="string" dbtype="varchar" maxlength=255 required=true;
-	property name="from_address"   type="string" dbtype="varchar" maxlength=255 required=true;
+	property name="from_address"   type="string" dbtype="varchar" maxlength=255 required=false;
 
 	property name="html_body" type="string" dbtype="longtext";
 	property name="text_body" type="string" dbtype="longtext";

@@ -296,14 +296,12 @@ component displayName="Admin login service" {
 
 			_getEmailService().send(
 				  template = "cmsWelcome"
-				, to       = [ "#(userRecord.known_as ?: '')# <#(userRecord.email_address ?: '')#>" ]
 				, args     = {
 					  resetToken     = "#tokenInfo.resetToken#-#tokenInfo.resetKey#"
 					, expires        = tokenInfo.resetExpiry
-					, username       = userRecord.known_as
+					, userId         = arguments.userId
 					, welcomeMessage = arguments.welcomeMessage
 					, createdBy      = arguments.createdBy
-					, loginId        = userRecord.login_id
 				}
 			);
 

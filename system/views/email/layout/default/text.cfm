@@ -3,4 +3,4 @@
 
 <cfoutput>#args.body#<cfif Len( Trim( args.signature_text ) )>
 
-#args.signature</cfif></cfoutput>
+#args.signature#</cfif></cfoutput>
