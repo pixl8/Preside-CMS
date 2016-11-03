@@ -65,7 +65,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				emailService.$( "_send", true );
 				mockColdBox.$( "runEvent" ).$results( testHandlerResult );
-				mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( testDefaultFrom );
+				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( testDefaultFrom );
 
 				emailService.send(
 					  template = "notification"
@@ -99,7 +99,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var errorThrown  = false;
 
 				emailService.$( "_send", true );
-				mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
+				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
 					emailService.send( to=[ "test@test.com" ], subject="Test subject", htmlBody="not really html" );
@@ -119,7 +119,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var errorThrown  = false;
 
 				emailService.$( "_send", true );
-				mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
+				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
 					emailService.send( from="test@test.com", subject="Test subject", htmlBody="not really html" );
@@ -138,7 +138,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var errorThrown  = false;
 
 				emailService.$( "_send", true );
-				mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
+				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
 					emailService.send( from="test@test.com", subject="Test subject", htmlBody="not really html" );
@@ -157,7 +157,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var errorThrown  = false;
 
 				emailService.$( "_send", true );
-				mockSystemConfigurationService.$( "getSetting" ).$args( "email", "default_from_address" ).$results( "" );
+				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
 					emailService.send( from="from@test.com", to=["to@test.com"], subject="This is the subject" );
@@ -176,15 +176,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 
 	private any function _getEmailService() output=false {
-		templateDirs                   = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
-		mockColdBox                    = createMock( "preside.system.coldboxModifications.Controller" );
-		mockSystemConfigurationService = createMock( "preside.system.services.configuration.SystemConfigurationService" );
+		templateDirs = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
+		mockColdBox  = createMock( "preside.system.coldboxModifications.Controller" );
 
-		return createMock( object=new preside.system.services.email.EmailService(
-			  emailTemplateDirectories   = templateDirs
-			, coldbox                    = mockColdBox
-			, systemConfigurationService = mockSystemConfigurationService
-		) );
+		var service = createMock( object=new preside.system.services.email.EmailService( emailTemplateDirectories = templateDirs ) );
+
+		service.$( "$getColdbox", mockColdbox );
+
+		return service;
 	}
 
 }

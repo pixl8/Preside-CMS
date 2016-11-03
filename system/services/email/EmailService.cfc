@@ -1,20 +1,20 @@
 /**
  * The email service takes care of sending emails through the PresideCMS's email templating system (see [[emailtemplating]]).
  *
+ * @autodoc        true
+ * @singleton      true
+ * @presideService true
  */
-component output=false singleton=true autodoc=true displayName="Email service" {
+component displayName="Email service" {
 
 // CONSTRUCTOR
 	/**
 	 * @emailTemplateDirectories.inject presidecms:directories:handlers/emailTemplates
-	 * @systemConfigurationService.inject systemConfigurationService
-	 * @coldbox.inject                  coldbox
 	 */
-	public any function init( required array emailTemplateDirectories, required any coldbox, required any systemConfigurationService ) output=false {
+	public any function init(
+		  required array emailTemplateDirectories
+	) {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
-		_setColdbox( arguments.coldbox );
-		_setSystemConfigurationService( arguments.systemConfigurationService );
-
 		_loadTemplates();
 
 		return this;
@@ -47,7 +47,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		, string htmlBody = ""
 		, string textBody = ""
 		, struct params   = {}
-	) output=false autodoc=true {
+	) autodoc=true {
 		var hasTemplate = Len( Trim( arguments.template ) );
 		var sendArgs    = hasTemplate ? _mergeArgumentsWithTemplateHandlerResult( argumentCollection=arguments ) : arguments;
 		    sendArgs    = _addDefaultsForMissingArguments( sendArgs );
@@ -64,7 +64,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 	 * directory
 	 *
 	 */
-	public array function listTemplates() output=false autodoc=true {
+	public array function listTemplates() autodoc=true {
 		return _getTemplates();
 	}
 
@@ -104,7 +104,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 	}
 
 // PRIVATE HELPERS
-	private void function _loadTemplates() output=false {
+	private void function _loadTemplates() {
 		var dirs      = _getEmailTemplateDirectories();
 		var templates = {};
 
@@ -136,12 +136,13 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		,          string htmlBody = ""
 		,          string textBody = ""
 		,          struct params   = {}
-	) output=false {
+	) {
 		var m          = new Mail();
-		var mailServer = _getSystemConfigurationService().getSetting( "email", "server", "" );
-		var port       = _getSystemConfigurationService().getSetting( "email", "port"  , "" );
-		var username   = _getSystemConfigurationService().getSetting( "email", "username", "" );
-		var password   = _getSystemConfigurationService().getSetting( "email", "password", "" );
+		var settings   = $getPresideCategorySettings( "email" );
+		var mailServer = settings.server   ?: "";
+		var port       = settings.port     ?: "";
+		var username   = settings.username ?: "";
+		var password   = settings.password ?: "";
 
 		m.setTo( arguments.to.toList( ";" ) );
 		m.setFrom( arguments.from );
@@ -182,7 +183,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		return true;
 	}
 
-	private struct function _mergeArgumentsWithTemplateHandlerResult( required string template, required struct args ) output=false {
+	private struct function _mergeArgumentsWithTemplateHandlerResult( required string template, required struct args ) {
 		if ( !_getTemplates().findNoCase( arguments.template ) ) {
 			throw(
 				  type    = "EmailService.missingTemplate"
@@ -196,7 +197,7 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		    handlerArgs.delete( "template" );
 		    handlerArgs.delete( "args" );
 
-		var sendArgs = _getColdbox().runEvent(
+		var sendArgs = $getColdbox().runEvent(
 			  event          = "emailTemplates.#arguments.template#.prepareMessage"
 			, private        = true
 			, eventArguments = { args=handlerArgs }
@@ -209,15 +210,15 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 		return sendArgs;
 	}
 
-	private struct function _addDefaultsForMissingArguments( required struct sendArgs ) output=false {
+	private struct function _addDefaultsForMissingArguments( required struct sendArgs ) {
 		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
-			sendArgs.from = _getSystemConfigurationService().getSetting( "email", "default_from_address" );
+			sendArgs.from = $getPresideSetting( "email", "default_from_address" );
 		}
 
 		return sendArgs;
 	}
 
-	private void function _validateArguments( required struct sendArgs ) output=false {
+	private void function _validateArguments( required struct sendArgs ) {
 		if ( !Len( Trim( sendArgs.from ?: "" ) ) ) {
 			throw(
 				  type   = "EmailService.missingSender"
@@ -250,31 +251,17 @@ component output=false singleton=true autodoc=true displayName="Email service" {
 
 
 // GETTERS AND SETTERS
-	private any function _getEmailTemplateDirectories() output=false {
+	private any function _getEmailTemplateDirectories() {
 		return _emailTemplateDirectories;
 	}
-	private void function _setEmailTemplateDirectories( required any emailTemplateDirectories ) output=false {
+	private void function _setEmailTemplateDirectories( required any emailTemplateDirectories ) {
 		_emailTemplateDirectories = arguments.emailTemplateDirectories;
 	}
 
-	private array function _getTemplates() output=false {
+	private array function _getTemplates() {
 		return _templates;
 	}
-	private void function _setTemplates( required array templates ) output=false {
+	private void function _setTemplates( required array templates ) {
 		_templates = arguments.templates;
-	}
-
-	private any function _getColdbox() output=false {
-		return _coldbox;
-	}
-	private void function _setColdbox( required any coldbox ) output=false {
-		_coldbox = arguments.coldbox;
-	}
-
-	private any function _getSystemConfigurationService() output=false {
-		return _systemConfigurationService;
-	}
-	private void function _setSystemConfigurationService( required any systemConfigurationService ) output=false {
-		_systemConfigurationService = arguments.systemConfigurationService;
 	}
 }
