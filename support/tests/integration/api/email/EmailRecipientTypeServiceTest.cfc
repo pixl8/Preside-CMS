@@ -33,7 +33,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-		describe( "prepareParameters", function(){
+		describe( "prepareParameters()", function(){
 			it( "should invoke the corresponding handler action for the given recipient type, passing through any passed args", function(){
 				var service         = _getService();
 				var recipientType   = "websiteUser";
@@ -69,6 +69,45 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockArgs        = { userId=CreateUUId() };
 
 				expect( service.prepareParameters( recipientType=recipientType, args=mockArgs ) ).toBe( {} );
+			} );
+		} );
+
+		describe( "getToAddress()", function(){
+			it( "should invoke the corresponding handler action for the given recipient type, passing through any passed args", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getToAddress";
+				var mockArgs        = { userId=CreateUUId() };
+				var mockAddress     = "test-#CreateUUId()#@test.com";
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( true );
+				mockColdboxController.$( "runEvent"      ).$args(
+					  event          = expectedHandler
+					, eventArguments = { args=mockArgs }
+					, private        = true
+					, prePostExempt  = true
+				).$results( mockAddress );
+
+				expect( service.getToAddress( recipientType=recipientType, args=mockArgs ) ).toBe( mockAddress );
+			} );
+
+			it( "should return an empty string when no handler action exists", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getToAddress";
+				var mockArgs        = { userId=CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( false );
+
+				expect( service.getToAddress( recipientType=recipientType, args=mockArgs ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the recipient type does not exist", function(){
+				var service         = _getService();
+				var recipientType   = CreateUUId();
+				var mockArgs        = { userId=CreateUUId() };
+
+				expect( service.getToAddress( recipientType=recipientType, args=mockArgs ) ).toBe( "" );
 			} );
 		} );
 	}

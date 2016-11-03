@@ -84,6 +84,32 @@ component displayName="Email Recipient Type Service" {
 		return {};
 	}
 
+	/**
+	 * Returns the to address for the given recipient type and message
+	 * args.
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type who's to address we are to get
+	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to get the address. e.g. { userId=idofUserToSendEmailTo }.
+	 */
+	public string function getToAddress(
+		  required string recipientType
+		,          struct args = {}
+	) {
+		var handlerAction = "email.recipientType.#recipientType#.getToAddress";
+
+		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = { args=arguments.args }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return "";
+	}
+
 // GETTERS AND SETTERS
 	private any function _getConfiguredRecipientTypes() {
 		return _configuredRecipientTypes;
