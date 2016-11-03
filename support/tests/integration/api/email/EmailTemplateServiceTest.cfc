@@ -74,6 +74,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "init()", function(){
 			it( "should populate template records for any system email templates that do not already have a record in the DB", function(){
 				var service = _getService( initialize=false );
+				var recipientType = CreateUUId();
 				var systemTemplates = [ { id="t1", title="Template 1" }, { id="t2", title="Template 2" }, { id="t3", title="Template 3" } ];
 
 				mockSystemEmailTemplateService.$( "listTemplates", systemTemplates );
@@ -84,32 +85,36 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					mockSystemEmailTemplateService.$( "getDefaultSubject" ).$args( t.id ).$results( t.id & "subject" );
 					mockSystemEmailTemplateService.$( "getDefaultHtmlBody" ).$args( t.id ).$results( t.id & "html" );
 					mockSystemEmailTemplateService.$( "getDefaultTextBody" ).$args( t.id ).$results( t.id & "text" );
+					mockSystemEmailTemplateService.$( "getRecipientType" ).$args( t.id ).$results( recipientType );
 				}
 
 				service.init(
 					  systemEmailTemplateService = mockSystemEmailTemplateService
 					, emailRecipientTypeService  = mockEmailRecipientTypeService
+					, emailLayoutService         = mockEmailLayoutService
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
 				expect( service.$callLog().saveTemplate[1] ).toBe( {
 					  id = "t1"
 					, template = {
-						  name      = "Template 1"
-						, layout    = "t1layout"
-						, subject   = "t1subject"
-						, html_body = "t1html"
-						, text_body = "t1text"
+						  name           = "Template 1"
+						, layout         = "t1layout"
+						, subject        = "t1subject"
+						, html_body      = "t1html"
+						, text_body      = "t1text"
+						, recipient_type = recipientType
 					}
 				} );
 				expect( service.$callLog().saveTemplate[2] ).toBe( {
 					  id = "t3"
 					, template = {
-						  name      = "Template 3"
-						, layout    = "t3layout"
-						, subject   = "t3subject"
-						, html_body = "t3html"
-						, text_body = "t3text"
+						  name           = "Template 3"
+						, layout         = "t3layout"
+						, subject        = "t3subject"
+						, html_body      = "t3html"
+						, text_body      = "t3text"
+						, recipient_type = recipientType
 					}
 				} );
 			} );
@@ -173,6 +178,147 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "prepareMessage()", function(){
+			it( "should build a message by fetching template from DB, substiting prepared params and adding system email template attachments", function() {
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockSubject            = CreateUUId();
+				var mockTo                 = CreateUUId();
+				var mockTextBody           = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
+				var mockParams             = { test=CreateUUId(), params=Now() };
+				var mockTemplate           = {
+					  layout         = "testLayout"
+					, recipient_type = "testRecipientType"
+					, subject        = "Test subject"
+					, from_address   = "From address"
+					, html_body      = "HTML BODY HERE"
+					, text_body      = "TEXT BODY OH YEAH"
+				};
+
+				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "prepareParameters" ).$args(
+					  template      = template
+					, recipientType = mockTemplate.recipient_type
+					, args          = mockArgs
+				).$results( mockParams );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, type          = "text"
+					, subject       = mockSubject
+					, body          = mockTextBody
+				).$results( mockTextBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, type          = "html"
+					, subject       = mockSubject
+					, body          = mockHtmlBody
+				).$results( mockHtmlBodyWithLayout );
+
+				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, args=mockArgs ).$results( mockTo );
+
+				expect( service.prepareMessage( template=template, args=mockArgs ) ).toBe( {
+					  subject  = mockSubject
+					, from     = mockTemplate.from_address
+					, to       = [ mockTo ]
+					, textBody = mockTextBodyWithLayout
+					, htmlBody = mockHtmlBodyWithLayout
+					, cc       = []
+					, bcc      = []
+					, params   = {}
+				} );
+			} );
+
+			it( "should use default from address when template from address is empty", function() {
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockSubject            = CreateUUId();
+				var mockTo                 = CreateUUId();
+				var mockFrom               = CreateUUId();
+				var mockTextBody           = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
+				var mockParams             = { test=CreateUUId(), params=Now() };
+				var mockTemplate           = {
+					  layout         = "testLayout"
+					, recipient_type = "testRecipientType"
+					, subject        = "Test subject"
+					, from_address   = ""
+					, html_body      = "HTML BODY HERE"
+					, text_body      = "TEXT BODY OH YEAH"
+				};
+
+				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( mockFrom );
+				service.$( "prepareParameters" ).$args(
+					  template      = template
+					, recipientType = mockTemplate.recipient_type
+					, args          = mockArgs
+				).$results( mockParams );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, type          = "text"
+					, subject       = mockSubject
+					, body          = mockTextBody
+				).$results( mockTextBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, type          = "html"
+					, subject       = mockSubject
+					, body          = mockHtmlBody
+				).$results( mockHtmlBodyWithLayout );
+
+				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, args=mockArgs ).$results( mockTo );
+
+				expect( service.prepareMessage( template=template, args=mockArgs ) ).toBe( {
+					  subject  = mockSubject
+					, from     = mockFrom
+					, to       = [ mockTo ]
+					, textBody = mockTextBodyWithLayout
+					, htmlBody = mockHtmlBodyWithLayout
+					, cc       = []
+					, bcc      = []
+					, params   = {}
+				} );
+			} );
+
+			it( "should throw an informative error when the email template is not found", function(){
+				var service     = _getService();
+				var template    = CreateUUId();
+				var errorThrown = false;
+
+				service.$( "getTemplate" ).$args( template ).$results( {} );
+
+				try {
+					service.prepareMessage( template, {} );
+				} catch( "preside.emailtemplateservice.missing.template" e ) {
+					expect( e.message ).toBe( "The email template, [#template#], could not be found." );
+					errorThrown = true;
+				}
+
+				expect( errorThrown ).toBe( true );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {
@@ -182,12 +328,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
+		mockEmailLayoutService = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
 			service.init(
 				  systemEmailTemplateService = mockSystemEmailTemplateService
 				, emailRecipientTypeService  = mockEmailRecipientTypeService
+				, emailLayoutService  = mockEmailLayoutService
 			);
 		}
 
