@@ -107,7 +107,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
-
 		describe( "getToAddress()", function(){
 			it( "should invoke the corresponding handler action for the given recipient type, passing through any passed args", function(){
 				var service         = _getService();
@@ -144,6 +143,39 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockArgs        = { userId=CreateUUId() };
 
 				expect( service.getToAddress( recipientType=recipientType, args=mockArgs ) ).toBe( "" );
+			} );
+		} );
+
+		describe( "listRecipientTypeParameters()", function(){
+			it( "should return configured parameters for the given recipient type with translated titles and descriptions", function(){
+				var service       = _getService();
+				var recipientType = "websiteUser"
+				var expected      = [{
+					  id          = "known_as"
+					, title       = "Known as"
+					, description = "Blah blah blah test"
+					, required    = true
+				},{
+					  id          = "login_id"
+					, title       = "Login ID"
+					, description = "Blah blah blah test 2"
+					, required    = false
+				}];
+
+				for( var param in expected ) {
+					service.$( "$translateResource" ).$args( uri="email.recipientType.#recipientType#:param.#param.id#.title"      , defaultValue=param.id ).$results( param.title );
+					service.$( "$translateResource" ).$args( uri="email.recipientType.#recipientType#:param.#param.id#.description", defaultValue=""       ).$results( param.description );
+				}
+
+				expect( service.listRecipientTypeParameters( recipientType ) ).toBe( expected );
+			} );
+
+			it( "should return an empty array when the recipient type does not have any defined parameters", function(){
+				expect( _getService().listRecipientTypeParameters( "anonymous" )  ).toBe( [] );
+			} );
+
+			it( "should return an empty array when the recipient type does not exist", function(){
+				expect( _getService().listRecipientTypeParameters( CreateUUId() )  ).toBe( [] );
 			} );
 		} );
 	}

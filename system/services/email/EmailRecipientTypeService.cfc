@@ -59,6 +59,49 @@ component displayName="Email Recipient Type Service" {
 	}
 
 	/**
+	 * Returns an array of configurable parameters for the given
+	 * recipient type. Each item in the array is a struct
+	 * with the keys, `id`, `title`, `description` and `required`.
+	 * The array is sorted by title.
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint ID of the recipient type who's parameters you wish to get
+	 *
+	 */
+	public array function listRecipientTypeParameters( required string recipientType ) {
+		var params     = [];
+		var types      = _getConfiguredRecipientTypes();
+		var typeParams = types[ arguments.recipientType ].parameters ?: [];
+
+		for( var param in typeParams ) {
+			var translatedParam = {};
+
+			if ( IsSimpleValue( param ) ) {
+				translatedParam = {
+					  id = param
+					, required = false
+				};
+			} else {
+				translatedParam = {
+					  id       = param.id ?: CreateUUId()
+					, required = IsBoolean( param.required ?: "" ) && param.required
+				};
+			}
+
+			translatedParam.title       = $translateResource( uri="email.recipientType.#arguments.recipientType#:param.#translatedParam.id#.title"      , defaultValue=translatedParam.id );
+			translatedParam.description = $translateResource( uri="email.recipientType.#arguments.recipientType#:param.#translatedParam.id#.description", defaultValue="" );
+
+			params.append( translatedParam );
+		}
+
+		params.sort( function( a, b ){
+			return a.title > b.title ? 1 : -1;
+		} );
+
+		return params;
+	}
+
+	/**
 	 * Prepares email parameters (variables for substituting in subject + body)
 	 * for the given recipient type and provided args (e.g. could contain user id)
 	 *
