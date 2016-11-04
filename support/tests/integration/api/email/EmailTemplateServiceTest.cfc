@@ -173,9 +173,22 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				for( var r in mockResult ) { expected = r; }
 
-				mockTemplateDao.$( "selectData" ).$args( id=template ).$results( mockResult );
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false ).$results( mockResult );
 
 				expect( service.getTemplate( template ) ).toBe( expected );
+			} );
+
+			it( "should return the _draft_ DB record for the given template converted to a struct when allowDrafts is set to true", function(){
+				var service    = _getService();
+				var template   = CreateUUId();
+				var mockResult = QueryNew( 'blah', 'varchar', [[CreateUUId()]]);
+				var expected   = {};
+
+				for( var r in mockResult ) { expected = r; }
+
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=true, fromversionTable=true ).$results( mockResult );
+
+				expect( service.getTemplate( id=template, allowDrafts=true ) ).toBe( expected );
 			} );
 		} );
 
@@ -406,7 +419,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body      = "TEXT BODY OH YEAH"
 				};
 
-				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=true ).$results( mockTemplate );
 				service.$( "getPreviewParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
@@ -431,7 +444,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, body          = mockHtmlBody
 				).$results( mockHtmlBodyWithLayout );
 
-				expect( service.previewTemplate( template=template ) ).toBe( {
+				expect( service.previewTemplate( template=template, allowDrafts=true ) ).toBe( {
 					  subject  = mockSubject
 					, textBody = mockTextBodyWithLayout
 					, htmlBody = mockHtmlBodyWithLayout

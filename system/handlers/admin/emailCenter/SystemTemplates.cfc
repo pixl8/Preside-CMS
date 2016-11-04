@@ -29,13 +29,13 @@ component extends="preside.system.base.AdminHandler" {
 	public void function template( event, rc, prc ) {
 		var templateId = rc.template ?: "";
 
-		prc.template = emailTemplateService.getTemplate( templateId );
+		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
 			event.adminNotFound();
 		}
 
-		prc.preview = emailTemplateService.previewTemplate( templateId );
+		prc.preview = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true );
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.template.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.template.page.subTitle", data=[ prc.template.name ] );
@@ -49,7 +49,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function edit( event, rc, prc ) {
 		var templateId = rc.template ?: "";
 
-		prc.template = emailTemplateService.getTemplate( templateId );
+		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
 			event.adminNotFound();

@@ -112,11 +112,12 @@ component {
 	 * Prepares an email message ready for preview (returns a struct with
 	 * subject, htmlBody + textBody keys)
 	 *
-	 * @autodoc true
-	 * @template.hint The ID of the template to send
+	 * @autodoc          true
+	 * @template.hint    The ID of the template to send
+	 * @allowDrafts.hint Whether or not to allow draft versions of the template
 	 */
-	public struct function previewTemplate( required string template ) {
-		var messageTemplate  = getTemplate( arguments.template );
+	public struct function previewTemplate( required string template, boolean allowDrafts=false ) {
+		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
@@ -239,12 +240,13 @@ component {
 	/**
 	 * Returns the saved template from the database
 	 *
-	 * @autodoc true
-	 * @id.hint ID of the template to get
+	 * @autodoc          true
+	 * @id.hint          ID of the template to get
+	 * @allowDrafts.hint Whether or not to allow draft versions of the template
 	 *
 	 */
-	public struct function getTemplate( required string id ){
-		var template = $getPresideObject( "email_template" ).selectData( id=arguments.id );
+	public struct function getTemplate( required string id, boolean allowDrafts=false ){
+		var template = $getPresideObject( "email_template" ).selectData( id=arguments.id, allowDraftVersions=arguments.allowDrafts, fromversionTable=arguments.allowDrafts );
 
 		for( var t in template ) {
 			return t;
