@@ -123,6 +123,30 @@ component {
 
 	}
 
+
+	/**
+	 * Runs an email template's 'getPreviewParameters' handler action
+	 * to prepare parameters for the email preview render.
+	 *
+	 * @autodoc       true
+	 * @template.hint The template who's parameters are to be previewed
+	 *
+	 */
+	public struct function getPreviewParameters( required string template ) {
+		var handlerAction = "email.template.#arguments.template#.getPreviewParameters";
+
+		if ( templateExists( arguments.template ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return {};
+
+	}
+
 	/**
 	 * Runs an email template's 'prepareAttachments' handler action
 	 * to prepare dynamic attachments for the email send.

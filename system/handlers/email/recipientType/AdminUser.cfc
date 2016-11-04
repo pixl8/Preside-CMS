@@ -15,6 +15,14 @@ component {
 		return {};
 	}
 
+	private struct function getPreviewParameters( event, rc, prc, args={} ) {
+		return {
+			  known_as      = "Jane Smith"
+			, login_id      = "jane"
+			, email_address = "jane.smith@test.com"
+		};
+	}
+
 	private string function getToAddress( event, rc, prc, args={} ) {
 		var user = adminUserDao.selectData( id=args.userId ?: "" );
 

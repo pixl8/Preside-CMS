@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
+	property name="emailTemplateService"       inject="emailTemplateService";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -22,6 +23,26 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:emailcenter.systemTemplates.page.subTitle" );
 
 		prc.templates = systemEmailTemplateService.listTemplates();
+	}
+
+	public void function template( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.adminNotFound();
+		}
+
+		prc.preview = emailTemplateService.previewTemplate( templateId );
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.template.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.template.page.subTitle", data=[ prc.template.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.template.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates" )
+		);
 	}
 
 }

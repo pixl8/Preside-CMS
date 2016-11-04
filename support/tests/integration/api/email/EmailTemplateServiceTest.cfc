@@ -178,6 +178,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getPreviewParameters()", function(){
+			it( "should combine preview parameters from system email template + recipient type (when template is system type)", function(){
+				var service             = _getService();
+				var template            = "eventBookingConfirmation";
+				var recipientType       = "websiteUser";
+				var sysEmailParams      = { eventName="My event", bookingSummary=CreateUUId() };
+				var recipientTypeParams = { known_as="Harry" };
+				var finalParams         = Duplicate( sysEmailParams );
+
+				finalParams.append( recipientTypeParams );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockSystemEmailTemplateService.$( "getPreviewParameters" ).$args( template=template ).$results( sysEmailParams );
+				mockEmailRecipientTypeService.$( "getPreviewParameters" ).$args( recipientType=recipientType ).$results( recipientTypeParams );
+
+				expect( service.getPreviewParameters(
+					  template      = template
+					, recipientType = recipientType
+				) ).toBe( finalParams );
+			} );
+		} );
+
 		describe( "prepareMessage()", function(){
 			it( "should build a message by fetching template from DB, substiting prepared params and adding system email template attachments", function() {
 				var service                = _getService();
@@ -316,6 +338,60 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				expect( errorThrown ).toBe( true );
+			} );
+		} );
+
+		describe( "previewTemplate()", function(){
+			it( "should return a struct with html body, text body, subject retrieved from the DB and mixed in with 'preview parameters' from recipient type and system template type + finally wrapped in layout", function(){
+				var service                = _getService();
+				var template               = "mytemplate";
+				var mockSubject            = CreateUUId();
+				var mockTo                 = CreateUUId();
+				var mockTextBody           = CreateUUId();
+				var mockHtmlBody           = CreateUUId();
+				var mockTextBodyWithLayout = CreateUUId();
+				var mockHtmlBodyWithLayout = CreateUUId();
+				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
+				var mockParams             = { test=CreateUUId(), params=Now() };
+				var mockTemplate           = {
+					  layout         = "testLayout"
+					, recipient_type = "testRecipientType"
+					, subject        = "Test subject"
+					, from_address   = "From address"
+					, html_body      = "HTML BODY HERE"
+					, text_body      = "TEXT BODY OH YEAH"
+				};
+
+				service.$( "getTemplate" ).$args( template ).$results( mockTemplate );
+				service.$( "getPreviewParameters" ).$args(
+					  template      = template
+					, recipientType = mockTemplate.recipient_type
+				).$results( mockParams );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.text_body, mockParams, "text" ).$results( mockTextBody );
+				service.$( "replaceParameterTokens" ).$args( mockTemplate.html_body, mockParams, "html" ).$results( mockHtmlBody );
+
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, type          = "text"
+					, subject       = mockSubject
+					, body          = mockTextBody
+				).$results( mockTextBodyWithLayout );
+				mockEmailLayoutService.$( "renderLayout" ).$args(
+					  layout        = mockTemplate.layout
+					, emailTemplate = template
+					, type          = "html"
+					, subject       = mockSubject
+					, body          = mockHtmlBody
+				).$results( mockHtmlBodyWithLayout );
+
+				expect( service.previewTemplate( template=template ) ).toBe( {
+					  subject  = mockSubject
+					, textBody = mockTextBodyWithLayout
+					, htmlBody = mockHtmlBodyWithLayout
+				} );
 			} );
 		} );
 

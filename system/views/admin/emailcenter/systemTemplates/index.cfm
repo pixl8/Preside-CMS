@@ -10,7 +10,7 @@
 		</p>
 	<cfelse>
 		<div class="table-responsive">
-			<table class="table table-striped">
+			<table class="table table-striped table-hover">
 				<thead>
 					<tr>
 						<th>#translateResource( "cms:th.title"       )#</th>
@@ -20,10 +20,16 @@
 				</thead>
 				<tbody>
 					<cfloop array="#templates#" item="template" index="i">
-						<tr>
+						<tr class="clickable">
 							<td>#template.title#</td>
 							<td>#template.description#</td>
-							<td><em class="grey">TODO: actions</em></td>
+							<td>
+								<div class="action-buttons btn-group">
+									<a href="#event.buildAdminLink( linkto="emailcenter.systemtemplates.template", queryString='template=#template.id#' )#" data-context-key="v" title="#HtmlEditFormat( translateResource( uri="cms:datatable.contextmenu.edit" ) )#">
+										<i class="fa fa-pencil"></i>
+									</a>
+								</div>
+							</td>
 						</tr>
 					</cfloop>
 				</tbody>

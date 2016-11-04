@@ -1,0 +1,7 @@
+.html-preview {
+  background-color: #fff;
+  border: 1px solid #eee;
+}
+.html-preview iframe {
+  width: 900px;
+}

@@ -72,6 +72,42 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getPreviewParameters()", function(){
+			it( "should invoke the corresponding handler action for the given recipient type, passing through any passed args", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getPreviewParameters";
+				var mockParams      = { first_name="test", login_id="me" };
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( true );
+				mockColdboxController.$( "runEvent"      ).$args(
+					  event          = expectedHandler
+					, private        = true
+					, prePostExempt  = true
+				).$results( mockParams );
+
+				expect( service.getPreviewParameters( recipientType=recipientType ) ).toBe( mockParams );
+			} );
+
+			it( "should return an empty struct when no handler action exists", function(){
+				var service         = _getService();
+				var recipientType   = "websiteUser";
+				var expectedHandler = "email.recipientType.websiteUser.getPreviewParameters";
+
+				mockColdboxController.$( "handlerExists" ).$args( expectedHandler ).$results( false );
+
+				expect( service.getPreviewParameters( recipientType=recipientType ) ).toBe( {} );
+			} );
+
+			it( "should return an empty struct when the recipient type does not exist", function(){
+				var service         = _getService();
+				var recipientType   = CreateUUId();
+
+				expect( service.getPreviewParameters( recipientType=recipientType ) ).toBe( {} );
+			} );
+		} );
+
+
 		describe( "getToAddress()", function(){
 			it( "should invoke the corresponding handler action for the given recipient type, passing through any passed args", function(){
 				var service         = _getService();

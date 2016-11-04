@@ -114,6 +114,36 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getPreviewParameters()", function(){
+			it( "should call the 'getPreviewParameters' method on the corresponding handler for the given template and return the result", function(){
+				var service    = _getService();
+				var template   = "adminWelcome"
+				var mockResult = { test=CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.getPreviewParameters" ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = "email.template.#template#.getPreviewParameters"
+					, private        = true
+					, prePostExempt  = true
+				).$results( mockResult );
+
+				expect( service.getPreviewParameters( template = template ) ).toBe( mockResult );
+			} );
+
+			it( "should return an empty struct when the template does not exist", function(){
+				expect( _getService().getPreviewParameters( template = CreateUUId() ) ).toBe( {} );
+			} );
+
+			it( "should return an empty struct when the template does not have a corresponding getPreviewParameters handler action", function(){
+				var service    = _getService();
+				var template   = "adminWelcome"
+
+				mockColdboxController.$( "handlerExists" ).$args( "email.template.#template#.getPreviewParameters" ).$results( false );
+
+				expect( service.getPreviewParameters( template = template ) ).toBe( {} );
+			} );
+		} );
+
 		describe( "prepareAttachments()", function(){
 			it( "should call the 'prepareAttachments' method on the corresponding handler for the given template, passing any args through to the method, and return the result", function(){
 				var service    = _getService();

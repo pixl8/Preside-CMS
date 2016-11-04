@@ -85,6 +85,27 @@ component displayName="Email Recipient Type Service" {
 	}
 
 	/**
+	 * Returns a struct of "preview" parameters that can be used to preview an
+	 * email template.
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type who's preview params we are to get
+	 */
+	public struct function getPreviewParameters( required string recipientType ) {
+		var handlerAction = "email.recipientType.#recipientType#.getPreviewParameters";
+
+		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return {};
+	}
+
+	/**
 	 * Returns the to address for the given recipient type and message
 	 * args.
 	 *

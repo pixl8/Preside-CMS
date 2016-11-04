@@ -109,6 +109,44 @@ component {
 	}
 
 	/**
+	 * Prepares an email message ready for preview (returns a struct with
+	 * subject, htmlBody + textBody keys)
+	 *
+	 * @autodoc true
+	 * @template.hint The ID of the template to send
+	 */
+	public struct function previewTemplate( required string template ) {
+		var messageTemplate  = getTemplate( arguments.template );
+
+		if ( messageTemplate.isEmpty() ) {
+			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );
+		}
+
+		var params = getPreviewParameters(
+			  template      = arguments.template
+			, recipientType = messageTemplate.recipient_type
+		);
+
+		var message = { subject = replaceParameterTokens( messageTemplate.subject, params, "text" ) };
+		message.textBody = _getEmailLayoutService().renderLayout(
+			  layout        = messageTemplate.layout
+			, emailTemplate = arguments.template
+			, type          = "text"
+			, subject       = message.subject
+			, body          = replaceParameterTokens( messageTemplate.text_body, params, "text" )
+		);
+		message.htmlBody = _getEmailLayoutService().renderLayout(
+			  layout        = messageTemplate.layout
+			, emailTemplate = arguments.template
+			, type          = "html"
+			, subject       = message.subject
+			, body          = replaceParameterTokens( messageTemplate.html_body, params, "html" )
+		);
+
+		return message;
+	}
+
+	/**
 	 * Inserts or updates the given email template
 	 *
 	 * @autodoc  true
@@ -217,6 +255,30 @@ component {
 			params.append( _getSystemEmailTemplateService().prepareParameters(
 				  template = arguments.template
 				, args     = arguments.args
+			) );
+		}
+
+		return params;
+	}
+
+	/**
+	 * Returns preview  params (for use in replacing tokens in subject and body)
+	 * for the given email template and recipient type.
+	 *
+	 * @autodoc       true
+	 * @template      ID of the template of the email that is being prepared
+	 * @recipientType ID of the recipient type of the email that is being prepared
+	 */
+	public struct function getPreviewParameters(
+		  required string template
+		, required string recipientType
+	) {
+		var params = _getEmailRecipientTypeService().getPreviewParameters(
+			recipientType = arguments.recipientType
+		);
+		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+			params.append( _getSystemEmailTemplateService().getPreviewParameters(
+				template = arguments.template
 			) );
 		}
 

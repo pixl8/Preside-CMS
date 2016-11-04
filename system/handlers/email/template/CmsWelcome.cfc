@@ -16,6 +16,17 @@ component {
 		};
 	}
 
+	private struct function getPreviewParameters() {
+		var welcomeMessage = "Hey Jane, welcome to the CMS - I'll help you get setup after lunch :)";
+
+		return {
+			  welcomeMessage    = { text=welcomeMessage, html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args={ welcomeMessage=welcomeMessage } ) }
+			, createdBy         = "Mia Thornstone"
+			, siteUrl           = event.getSite().domain
+			, resetPasswordLink = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/reset/passwordlink/"
+		};
+	}
+
 	private string function defaultSubject() {
 		return "Welcome to PresideCMS";
 	}
