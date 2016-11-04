@@ -359,7 +359,7 @@ component {
 
 		settings.email = {};
 		settings.email.templates = {
-			cmsWelcome = { parameters=[ { name="resetPasswordLink", required=true }, { name="welcomeMessage", required=true }, "createdBy", "siteUrl" ], recipientType="adminUser" }
+			cmsWelcome = { parameters=[ { id="resetPasswordLink", required=true }, { id="welcomeMessage", required=true }, "createdBy", "siteUrl" ], recipientType="adminUser" }
 		};
 		settings.email.recipientTypes = {
 			  adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] }
@@ -556,7 +556,15 @@ component {
 					 & '|NumberedList,BulletedList,-,Outdent,Indent,-,Blockquote,CreateDiv,-,JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 					 & '|Styles,Format',
 
-			bolditaliconly = 'Bold,Italic'
+			bolditaliconly = 'Bold,Italic',
+
+			email = 'Maximize,-,Source,'
+					 & '|Cut,Copy,Paste,PasteText,PasteFromWord,-,Undo,Redo'
+					 & '|Find,Replace,-,SelectAll,-,Scayt'
+					 & '|PresideLink,PresideUnlink,-,ImagePicker,AttachmentPicker,,SpecialChar'
+					 & '|Bold,Italic,Underline,Strike,Subscript,Superscript,RemoveFormat'
+					 & '|NumberedList,BulletedList,Table,HorizontalRule-,Outdent,Indent,-,Blockquote,CreateDiv'
+					 & '|JustifyLeft,JustifyCenter,JustifyRight,JustifyBlock,-,BidiLtr,BidiRtl,Language'
 		};
 
 	}

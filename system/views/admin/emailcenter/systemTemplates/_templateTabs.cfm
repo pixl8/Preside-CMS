@@ -14,14 +14,14 @@
 	});
 	tabs.append({
 		  id     = "edit"
-		, icon   = "fa-cogs grey"
+		, icon   = "fa-pencil green"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.edit" )
 		, active = ( args.tab == "edit" )
 		, link   = ( args.tab == "edit" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=" & templateId )
 	});
 	tabs.append({
 		  id     = "layout"
-		, icon   = "fa-pencil green"
+		, icon   = "fa-cogs grey"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.layout" )
 		, active = ( args.tab == "layout" )
 		, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.configurelayout", queryString="template=" & templateId )

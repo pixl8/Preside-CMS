@@ -7,7 +7,7 @@
 			<field binding="email_template.from_address" control="textinput"         sortorder="30" />
 		</fieldset>
 		<fieldset id="body" sortorder="20">
-			<field binding="email_template.html_body"    control="richeditor"        sortorder="40" />
+			<field binding="email_template.html_body"    control="richeditor"        sortorder="40" toolbar="email" />
 			<field binding="email_template.text_body"    control="textarea"          sortorder="50" />
 		</fieldset>
 	</tab>
