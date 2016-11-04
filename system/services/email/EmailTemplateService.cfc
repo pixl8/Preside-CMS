@@ -188,24 +188,39 @@ component {
 	 *
 	 */
 	public string function saveTemplate(
-		  required struct template
-		,          string id       = ""
+		  required struct  template
+		,          string  id       = ""
+		,          boolean isDraft  = false
 	) {
 		transaction {
 			if ( Len( Trim( arguments.id ) ) ) {
 				var updated = $getPresideObject( "email_template" ).updateData(
-					  id   = arguments.id
-					, data = arguments.template
+					  id      = arguments.id
+					, data    = arguments.template
+					, isDraft = arguments.isDraft
 				);
 
 				if ( updated ) {
+					$audit(
+						  action   = arguments.isDraft ? "saveDraftEmailTemplate" : "editEmailTemplate"
+						, type     = "emailtemplate"
+						, recordId = arguments.id
+						, detail   = { isSystemEmail = _getSystemEmailTemplateService().templateExists( id ) }
+					);
+
 					return arguments.id;
 				}
 
 				arguments.template.id = arguments.id;
 
 			}
-			var newId = $getPresideObject( "email_template" ).insertData( data=arguments.template );
+			var newId = $getPresideObject( "email_template" ).insertData( data=arguments.template, isDraft=arguments.isDraft );
+			$audit(
+				  action   = arguments.isDraft ? "createDraftEmailTemplate" : "insertEmailTemplate"
+				, type     = "emailtemplate"
+				, recordId = arguments.id
+				, detail   = { isSystemEmail = _getSystemEmailTemplateService().templateExists( id ) }
+			);
 
 			return arguments.template.id ?: newId;
 		}

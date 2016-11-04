@@ -107,8 +107,8 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( validationResult.validated() ) {
-			emailTemplateService.saveTemplate( id=templateId, template=formData ); // TODO: draft/publish
-			// TODO: audit!
+			emailTemplateService.saveTemplate( id=templateId, template=formData, isDraft=( saveAction=="savedraft" ) );
+
 			messagebox.info( "TODO: success message" );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#templateId#" ) );
 		}

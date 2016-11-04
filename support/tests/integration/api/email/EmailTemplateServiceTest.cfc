@@ -14,7 +14,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body = CreateUUId()
 				};
 
-				mockTemplateDao.$( "insertData" ).$args( data=template ).$results( id );
+				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=false ).$results( id );
 
 				expect( service.saveTemplate( template=template ) ).toBe( id );
 			} );
@@ -38,8 +38,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
 
 				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
-					  id   = id
-					, data = template
+					  id      = id
+					, data    = template
+					, isDraft = false
 				});
 			} );
 
@@ -57,7 +58,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var insertDataArgs = Duplicate( template );
 				insertDataArgs.id = id;
 
-				mockTemplateDao.$( "insertData" ).$args( data=insertDataArgs ).$results( id );
+				mockTemplateDao.$( "insertData" ).$args( data=insertDataArgs, isDraft=false ).$results( id );
 				mockTemplateDao.$( "updateData", 0 );
 
 				expect( service.saveTemplate( id=id, template=template ) ).toBe( id );
@@ -65,10 +66,53 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
 
 				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
-					  id   = id
-					, data = template
+					  id      = id
+					, data    = template
+					, isDraft = false
 				});
 			} );
+
+			it( "should insert a draft when 'saveDraft' is passed as true", function(){
+				var service  = _getService();
+				var id       = CreateUUId();
+				var template = {
+					  name      = "Some template"
+					, layout    = "default"
+					, subject   = "Reset password instructions"
+					, html_body = CreateUUId()
+					, text_body = CreateUUId()
+				};
+
+				mockTemplateDao.$( "insertData" ).$args( data=template, isDraft=true ).$results( id );
+
+				expect( service.saveTemplate( template=template, isDraft=true ) ).toBe( id );
+			} );
+
+			it( "should make a draft update when 'saveDraft' is passed as true (for an existing template)", function(){
+				var service  = _getService();
+				var id       = CreateUUId();
+				var template = {
+					  name      = "Some template"
+					, layout    = "default"
+					, subject   = "Reset password instructions"
+					, html_body = CreateUUId()
+					, text_body = CreateUUId()
+				};
+
+				mockTemplateDao.$( "insertData", CreateUUId() );
+				mockTemplateDao.$( "updateData", 1 );
+
+				expect( service.saveTemplate( id=id, template=template, isDraft=true ) ).toBe( id );
+				expect( mockTemplateDao.$callLog().insertData.len() ).toBe( 0 );
+				expect( mockTemplateDao.$callLog().updateData.len() ).toBe( 1 );
+
+				expect( mockTemplateDao.$callLog().updateData[1] ).toBe({
+					  id      = id
+					, data    = template
+					, isDraft = true
+				});
+			} );
+
 		} );
 
 		describe( "init()", function(){
@@ -447,9 +491,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		mockTemplateDao = createStub();
 		service.$( "$getPresideObject" ).$args( "email_template" ).$results( mockTemplateDao );
+		service.$( "$audit" );
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 		mockEmailLayoutService = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
+		mockSystemEmailTemplateService.$( "templateExists", false );
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
