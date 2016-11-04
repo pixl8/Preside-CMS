@@ -4,8 +4,8 @@
 	formName           = prc.formName             ?: "";
 	editTemplateAction = prc.editTemplateAction   ?: "";
 	cancelAction       = prc.cancelAction         ?: "";
-	canSaveDraft       = true; // IsTrue( prc.canSaveDraft ?: "" )
-	canPublish         = true; // IsTrue( prc.canPublish   ?: "" )
+	canSaveDraft       = IsTrue( prc.canSaveDraft ?: "" )
+	canPublish         = IsTrue( prc.canPublish   ?: "" )
 	formId             = "edit-system-email-template";
 </cfscript>
 

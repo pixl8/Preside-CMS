@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailTemplateService"       inject="emailTemplateService";
+	property name="messagebox"                 inject="coldbox:plugin:messagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -54,13 +55,69 @@ component extends="preside.system.base.AdminHandler" {
 			event.adminNotFound();
 		}
 
+		prc.canSaveDraft = hasCmsPermission( "emailcenter.systemtemplates.savedraft" );
+		prc.canPublish   = hasCmsPermission( "emailcenter.systemtemplates.publish"   );
+
+		if ( !prc.canSaveDraft && !prc.canPublish ) {
+			event.adminAccessDenied();
+		}
+
+		prc.formName           = "preside-objects.email_template.system.admin.edit";
+		prc.editTemplateAction = event.buildAdminLink( linkto="emailcenter.systemtemplates.editaction" );
+		prc.cancelAction       = event.buildAdminLink( linkto="emailcenter.systemtemplates.template", queryString="template=#templateId#" );
+
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.edit.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.edit.page.subTitle", data=[ prc.template.name ] );
-		prc.formName     = "preside-objects.email_template.system.admin.edit"
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.systemTemplates.edit.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=" & templateId )
+		);
+	}
+
+	public void function editAction( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.#saveAction#" ) ) {
+			event.adminAccessDenied();
+		}
+		if ( !emailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		var formName         = "preside-objects.email_template.system.admin.edit";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		var missingHtmlParams = emailTemplateService.listMissingParams(
+			  template = templateId
+			, content  = ( formData.html_body ?: "" )
+		);
+		var missingTextParams = emailTemplateService.listMissingParams(
+			  template = templateId
+			, content  = ( formData.text_body ?: "" )
+		);
+
+		if ( missingHtmlParams.len() ) {
+			validationResult.addError( "html_body", "cms:emailcenter.variables.missing.validation.error", [ missingHtmlParams.toList( ", " ) ] );
+		}
+		if ( missingTextParams.len() ) {
+			validationResult.addError( "text_body", "cms:emailcenter.variables.missing.validation.error", [ missingTextParams.toList( ", " ) ] );
+		}
+
+		if ( validationResult.validated() ) {
+			emailTemplateService.saveTemplate( id=templateId, template=formData ); // TODO: draft/publish
+			// TODO: audit!
+			messagebox.info( "TODO: success message" );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.systemtemplates.template", queryString="template=#templateId#" ) );
+		}
+
+		formData.validationResult = validationResult;
+		messagebox.error( "TODO: error message" );
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="emailcenter.systemtemplates.edit", queryString="template=#templateId#" )
+			, persistStruct = formData
 		);
 	}
 
