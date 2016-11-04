@@ -147,6 +147,39 @@ component {
 	}
 
 	/**
+	 * Returns an array of required email params that are missing
+	 * from the given content.
+	 *
+	 * @autodoc       true
+	 * @template.hint ID of the template to check against
+	 * @content.hint  Text content to check
+	 */
+	public array function listMissingParams(
+		  required string template
+		, required string content
+	) {
+		var messageTemplate = getTemplate( arguments.template );
+
+		var expectedParams  = [];
+		var missingParams   = [];
+
+		if ( messageTemplate.count() ) {
+			if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {
+				expectedParams.append( _getSystemEmailTemplateService().listTemplateParameters( arguments.template ), true );
+			}
+			expectedParams.append( _getEmailRecipientTypeService().listRecipientTypeParameters( messageTemplate.recipient_type ), true );
+
+			for( var param in expectedParams ) {
+				if ( param.required && !arguments.content.findNoCase( "${#param.id#}" ) ) {
+					missingParams.append( "${#param.id#}" );
+				}
+			}
+		}
+
+		return missingParams;
+	}
+
+	/**
 	 * Inserts or updates the given email template
 	 *
 	 * @autodoc  true

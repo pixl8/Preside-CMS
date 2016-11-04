@@ -395,6 +395,51 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "listMissingParams()", function(){
+			it( "should return an empty array when content contains all required params for the given template", function(){
+				var service                 = _getService();
+				var content                 = "${dummy} ${test} right here";
+				var templateId              = "mytemplate";
+				var mockTemplateParams      = [ { id="test", required=true } ];
+				var mockRecipientTypeParams = [ { id="dummy", required=true }, { id="another", required=false } ];
+				var mockTemplate            = { recipient_type="test" };
+
+				service.$( "getTemplate" ).$args( templateId ).$results( mockTemplate );
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( mockTemplate.recipient_type ).$results( mockRecipientTypeParams );
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( templateId ).$results( true );
+				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( templateId ).$results( mockTemplateParams );
+
+				expect( service.listMissingParams( content=content, template=templateId ) ).toBe( [] );
+			} );
+
+			it( "should return an array of all the parameters that are missing for the given template", function(){
+				var service                 = _getService();
+				var content                 = "blah blah ${another} blah";
+				var templateId              = "mytemplate";
+				var mockTemplateParams      = [ { id="test", required=true } ];
+				var mockRecipientTypeParams = [ { id="dummy", required=true }, { id="another", required=false } ];
+				var mockTemplate            = { recipient_type="test" };
+
+				service.$( "getTemplate" ).$args( templateId ).$results( mockTemplate );
+				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( mockTemplate.recipient_type ).$results( mockRecipientTypeParams );
+				mockSystemEmailTemplateService.$( "templateExists" ).$args( templateId ).$results( true );
+				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( templateId ).$results( mockTemplateParams );
+
+				expect( service.listMissingParams( content=content, template=templateId ) ).toBe( [ "${test}", "${dummy}" ] );
+			} );
+
+			it( "should return an empty array when the template is not found", function(){
+				var service                 = _getService();
+				var content                 = "blah blah ${another} blah";
+				var templateId              = "mytemplate";
+				var mockTemplate            = {};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( mockTemplate );
+
+				expect( service.listMissingParams( content=content, template=templateId ) ).toBe( [] );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {
