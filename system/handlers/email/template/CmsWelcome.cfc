@@ -6,10 +6,10 @@ component {
 		, required string resetToken
 	) {
 		return {
-			  welcomeMessage    = { text=arguments.welcomeMessage ?: "", html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args=arguments ) }
-			, createdBy         = ( arguments.createdBy   ?: "" )
-			, siteUrl           = event.getSite().domain
-			, resetPasswordLink = event.buildAdminLink(
+			  welcome_message     = { text=arguments.welcomeMessage ?: "", html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args=arguments ) }
+			, created_by          = ( arguments.createdBy   ?: "" )
+			, site_url            = event.getSite().domain
+			, reset_password_link = event.buildAdminLink(
 				  linkto      = "login.resetpassword"
 				, querystring = "token=" & ( arguments.resetToken ?: "" )
 			  )
@@ -20,10 +20,10 @@ component {
 		var welcomeMessage = "Hey Jane, welcome to the CMS - I'll help you get setup after lunch :)";
 
 		return {
-			  welcomeMessage    = { text=welcomeMessage, html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args={ welcomeMessage=welcomeMessage } ) }
-			, createdBy         = "Mia Thornstone"
-			, siteUrl           = event.getSite().domain
-			, resetPasswordLink = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/reset/passwordlink/"
+			  welcome_message     = { text=welcomeMessage, html=renderView( view="/email/template/cmsWelcome/_welcomeMessage", args={ welcomeMessage=welcomeMessage } ) }
+			, created_by          = "Mia Thornstone"
+			, site_url            = event.getSite().domain
+			, reset_password_link = event.getSite().protocol & "://" & event.getSite().domain & "/dummy/reset/passwordlink/"
 		};
 	}
 

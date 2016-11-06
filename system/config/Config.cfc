@@ -359,7 +359,7 @@ component {
 
 		settings.email = {};
 		settings.email.templates = {
-			cmsWelcome = { parameters=[ { id="resetPasswordLink", required=true }, { id="welcomeMessage", required=true }, "createdBy", "siteUrl" ], recipientType="adminUser" }
+			cmsWelcome = { parameters=[ { id="reset_password_link", required=true }, { id="welcome_message", required=true }, "created_by", "site_url" ], recipientType="adminUser" }
 		};
 		settings.email.recipientTypes = {
 			  adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] }
