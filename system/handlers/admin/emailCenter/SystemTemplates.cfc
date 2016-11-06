@@ -28,14 +28,15 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function template( event, rc, prc ) {
 		var templateId = rc.template ?: "";
+		var version    = Val( rc.version ?: "" );
 
-		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, version=version );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
 			event.adminNotFound();
 		}
 
-		prc.preview = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true );
+		prc.preview = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true, version=version );
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.template.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.template.page.subTitle", data=[ prc.template.name ] );

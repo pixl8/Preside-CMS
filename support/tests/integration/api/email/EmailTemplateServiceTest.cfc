@@ -429,6 +429,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockHtmlBodyWithLayout = CreateUUId();
 				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
+				var version                = 49545;
 				var mockTemplate           = {
 					  layout         = "testLayout"
 					, recipient_type = "testRecipientType"
@@ -438,7 +439,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, text_body      = "TEXT BODY OH YEAH"
 				};
 
-				service.$( "getTemplate" ).$args( id=template, allowDrafts=true ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=template, allowDrafts=true, version=version ).$results( mockTemplate );
 				service.$( "getPreviewParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
@@ -463,7 +464,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, body          = mockHtmlBody
 				).$results( mockHtmlBodyWithLayout );
 
-				expect( service.previewTemplate( template=template, allowDrafts=true ) ).toBe( {
+				expect( service.previewTemplate( template=template, allowDrafts=true, version=version ) ).toBe( {
 					  subject  = mockSubject
 					, textBody = mockTextBodyWithLayout
 					, htmlBody = mockHtmlBodyWithLayout

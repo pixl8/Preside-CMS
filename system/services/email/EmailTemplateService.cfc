@@ -115,9 +115,10 @@ component {
 	 * @autodoc          true
 	 * @template.hint    The ID of the template to send
 	 * @allowDrafts.hint Whether or not to allow draft versions of the template
+	 * @version.hint     A specific version number to preview (default is latest)
 	 */
-	public struct function previewTemplate( required string template, boolean allowDrafts=false ) {
-		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts );
+	public struct function previewTemplate( required string template, boolean allowDrafts=false, numeric version=0 ) {
+		var messageTemplate  = getTemplate( id=arguments.template, allowDrafts=arguments.allowDrafts, version=arguments.version );
 
 		if ( messageTemplate.isEmpty() ) {
 			throw( type="preside.emailtemplateservice.missing.template", message="The email template, [#arguments.template#], could not be found." );

@@ -3,6 +3,7 @@
 
 <cfscript>
 	templateId = rc.template ?: "";
+	version    = rc.version  ?: "";
 	tabs       = [];
 
 	tabs.append({
@@ -10,14 +11,14 @@
 		, icon   = "fa-eye blue"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.preview" )
 		, active = ( args.tab == "preview" )
-		, link   = ( args.tab == "preview" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId )
+		, link   = ( args.tab == "preview" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=#templateId#&version=#version#" )
 	});
 	tabs.append({
 		  id     = "edit"
 		, icon   = "fa-pencil green"
 		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.edit" )
 		, active = ( args.tab == "edit" )
-		, link   = ( args.tab == "edit" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=" & templateId )
+		, link   = ( args.tab == "edit" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=#templateId#&version=#version#" )
 	});
 	tabs.append({
 		  id     = "layout"

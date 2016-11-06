@@ -1,5 +1,9 @@
 <cfscript>
-	preview = prc.preview ?: {};
+    templateid    = rc.template  ?: "";
+    version       = rc.version   ?: "";
+    savedTemplate = prc.template ?: {};
+	preview       = prc.preview  ?: {};
+
 	event.include( "/js/admin/specific/htmliframepreview/" );
 	event.include( "/css/admin/specific/htmliframepreview/" );
 </cfscript>
@@ -23,4 +27,15 @@
 	</cfoutput>
 </cfsavecontent>
 
-<cfoutput>#renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args={ body=body, tab="preview" } )#</cfoutput>
+<cfoutput>
+	#renderViewlet( event='admin.datamanager.versionNavigator', args={
+		  object           = "email_template"
+		, id               = templateId
+		, version          = rc.version ?: ""
+		, isDraft          = IsTrue( savedTemplate._version_is_draft ?: "" )
+		, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.template", queryString="template=#templateId#&version=" )
+		, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
+	} )#
+
+	#renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args={ body=body, tab="preview" } )#
+</cfoutput>
