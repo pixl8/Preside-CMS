@@ -357,15 +357,7 @@ component {
 		settings.rulesEngine.contexts.page       = {};
 		settings.rulesEngine.contexts.user       = {};
 
-		settings.email = {};
-		settings.email.templates = {
-			cmsWelcome = { parameters=[ { id="reset_password_link", required=true }, { id="welcome_message", required=true }, "created_by", "site_url" ], recipientType="adminUser" }
-		};
-		settings.email.recipientTypes = {
-			  adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] }
-			, websiteUser = { parameters=[ "display_name", "login_id", "email_address" ] }
-			, anonymous   = {}
-		};
+		settings.email = _getEmailTemplatingSettings();
 
 		_loadConfigurationFromExtensions();
 
@@ -608,5 +600,26 @@ component {
 		fbSettings.actions = [ "email" ];
 
 		return fbSettings;
+	}
+
+	private struct function _getEmailTemplatingSettings() {
+		var templates      = {};
+		var recipientTypes = {};
+
+		templates.cmsWelcome = { recipientType="adminUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, { id="welcome_message", required=true }
+			, "created_by"
+			, "site_url"
+		] };
+
+		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] };
+		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ] };
+		recipientTypes.anonymous   = {};
+
+		return {
+			  templates      = templates
+			, recipientTypes = recipientTypes
+		};
 	}
 }
