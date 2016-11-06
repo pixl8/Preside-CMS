@@ -55,4 +55,15 @@
 	</cfoutput>
 </cfsavecontent>
 
-<cfoutput>#renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args={ body=body, tab="edit" } )#</cfoutput>
+<cfoutput>
+	#renderViewlet( event='admin.datamanager.versionNavigator', args={
+		  object           = "email_template"
+		, id               = templateId
+		, version          = rc.version ?: ""
+		, isDraft          = IsTrue( savedTemplate._version_is_draft ?: "" )
+		, baseUrl          = event.buildAdminLink( linkto="emailCenter.systemTemplates.edit", queryString="template=#templateId#&version=" )
+		, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
+	} )#
+
+	#renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args={ body=body, tab="edit" } )#
+</cfoutput>

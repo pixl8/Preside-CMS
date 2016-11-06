@@ -243,10 +243,20 @@ component {
 	 * @autodoc          true
 	 * @id.hint          ID of the template to get
 	 * @allowDrafts.hint Whether or not to allow draft versions of the template
+	 * @version.hint     Specific version from version history to get
 	 *
 	 */
-	public struct function getTemplate( required string id, boolean allowDrafts=false ){
-		var template = $getPresideObject( "email_template" ).selectData( id=arguments.id, allowDraftVersions=arguments.allowDrafts, fromversionTable=arguments.allowDrafts );
+	public struct function getTemplate(
+		  required string  id
+		,          boolean allowDrafts = false
+		,          numeric version     = 0
+	){
+		var template = $getPresideObject( "email_template" ).selectData(
+			  id                 = arguments.id
+			, allowDraftVersions = arguments.allowDrafts
+			, fromversionTable   = arguments.allowDrafts || arguments.version
+			, specificVersion    = arguments.version
+		);
 
 		for( var t in template ) {
 			return t;

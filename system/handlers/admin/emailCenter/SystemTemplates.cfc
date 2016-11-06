@@ -48,8 +48,9 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function edit( event, rc, prc ) {
 		var templateId = rc.template ?: "";
+		var version    = Val( rc.version ?: "" );
 
-		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, version=version );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
 			event.adminNotFound();

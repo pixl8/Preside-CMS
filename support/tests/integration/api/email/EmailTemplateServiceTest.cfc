@@ -173,7 +173,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				for( var r in mockResult ) { expected = r; }
 
-				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false ).$results( mockResult );
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=false, fromversionTable=false, specificVersion=0 ).$results( mockResult );
 
 				expect( service.getTemplate( template ) ).toBe( expected );
 			} );
@@ -186,9 +186,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				for( var r in mockResult ) { expected = r; }
 
-				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=true, fromversionTable=true ).$results( mockResult );
+				mockTemplateDao.$( "selectData" ).$args( id=template, allowDraftVersions=true, fromversionTable=true, specificVersion=0 ).$results( mockResult );
 
 				expect( service.getTemplate( id=template, allowDrafts=true ) ).toBe( expected );
+			} );
+
+			it( "should return the specific version DB record for the given template when a specific version id is passed", function(){
+				var service    = _getService();
+				var template   = CreateUUId();
+				var mockResult = QueryNew( 'blah', 'varchar', [[CreateUUId()]]);
+				var version    = 3498;
+				var expected   = {};
+
+				for( var r in mockResult ) { expected = r; }
+
+				mockTemplateDao.$( "selectData" ).$args(
+					  id                 = template
+					, allowDraftVersions = false
+					, fromversionTable   = true
+					, specificVersion    = version
+				).$results( mockResult );
+
+				expect( service.getTemplate( id=template, version=version ) ).toBe( expected );
 			} );
 		} );
 
