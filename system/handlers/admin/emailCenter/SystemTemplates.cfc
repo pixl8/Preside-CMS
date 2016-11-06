@@ -122,4 +122,43 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function versionHistory( event, rc, prc ) {
+		var templateId = url.id = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.adminNotFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.page.subTitle", data=[ prc.template.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.versionHistory", queryString="template=" & templateId )
+		);
+	}
+
+	public void function getHistoryForAjaxDatatables( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.adminNotFound();
+		}
+
+		runEvent(
+			  event          = "admin.DataManager._getRecordHistoryForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object     = "email_template"
+				, recordId   = templateId
+				, actionsView = "admin/emailCenter/systemTemplates/_historyActions"
+			}
+		);
+	}
+
 }
