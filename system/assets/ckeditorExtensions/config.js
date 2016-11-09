@@ -34,4 +34,7 @@ CKEDITOR.editorConfig = function( config ) {
 	config.emailProtection = 'encode';
 
 	config.scayt_sLang = "en_GB";
+
+	// To Remove the CKeditor IFrame plugin by default
+	config.removePlugins = 'iframe';
 };
