@@ -1639,7 +1639,7 @@
 				if ( Len( successAction ?: "" ) ) {
 					setNextEvent( url=event.buildAdminLink( linkTo=successAction, queryString="id=#newId#" ) );
 				} else {
-					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.object", queryString="id=#object#" ) );
+					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.editRecord", queryString="object=#object#&id=#newId#" ) );
 				}
 			}
 		</cfscript>
