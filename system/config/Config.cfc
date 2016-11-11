@@ -620,6 +620,11 @@ component {
 			  { id="admin_link"        , required=true }
 			, { id="submission_preview", required=true }
 		] };
+		templates.notification = { recipientType="adminUser", parameters=[
+			  { id="admin_link"          , required=true  }
+			, { id="notification_body"   , required=true  }
+			, { id="notification_subject", required=false }
+		] };
 
 		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] };
 		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ] };
