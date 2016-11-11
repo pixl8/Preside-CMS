@@ -8,7 +8,7 @@ component {
 			, args     = args
 			, to       = ListToArray( args.configuration.recipients ?: "", ";," )
 			, from     = args.configuration.send_from ?: ""
-			, subject  = args.configuration.subject ?: "Form submission notification"
+			, subject  = args.configuration.subject ?: ""
 		);
 	}
 

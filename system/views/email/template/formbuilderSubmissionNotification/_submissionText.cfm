@@ -1,6 +1,4 @@
 <cfparam name="args.submissionData" type="struct">
-<cfparam name="args.adminLink"      type="string">
-<cfparam name="args.adminLinkText"  type="string">
 
 <cfoutput>
 ==============
@@ -14,7 +12,4 @@
 #translateResource( "formbuilder:submission.responses.title" )#
 ==============
 #renderField( 'formbuilder_formsubmission', 'submitted_data', args.submissionData.submitted_data, ["textemail"] )#
-
----
-#args.adminLinkText#: #args.adminLink#
 </cfoutput>

@@ -1,6 +1,4 @@
 <cfparam name="args.submissionData" type="struct">
-<cfparam name="args.adminLink"      type="string">
-<cfparam name="args.adminLinkText"  type="string">
 
 <cfoutput>
 	<table style="border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; margin: 0 auto; padding: 0;">
@@ -33,12 +31,4 @@
 
 		#renderField( 'formbuilder_formsubmission', 'submitted_data', args.submissionData.submitted_data, ["htmlEmail"] )#
 	</table>
-
-	<br />
-	<hr />
-	<br />
-
-	<p><a href="#args.adminLink#">#args.adminLinkText#</a></p>
-
-
 </cfoutput>
