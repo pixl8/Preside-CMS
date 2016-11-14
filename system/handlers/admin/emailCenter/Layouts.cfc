@@ -24,4 +24,33 @@ component extends="preside.system.base.AdminHandler" {
 		prc.layouts = emailLayoutService.listLayouts();
 	}
 
+	public void function layout( event, rc, prc ) {
+		var layoutId = rc.layout ?: "";
+		prc.layout = emailLayoutService.getLayout( layoutId );
+		if ( !prc.layout.count() ) {
+			event.adminNotFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.layouts.layout.page.title"   , data=[ prc.layout.title ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.layouts.layout.page.subTitle", data=[ prc.layout.title ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.layouts.layout.breadcrumb.title"  , data=[ prc.layout.title ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.layouts.layout", queryString="layout=" & layoutId )
+		);
+
+
+
+
+		// prc.preview = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true, version=version );
+
+		// prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.template.page.title"   , data=[ prc.template.name ] );
+		// prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.template.page.subTitle", data=[ prc.template.name ] );
+
+		// event.addAdminBreadCrumb(
+		// 	  title = translateResource( uri="cms:emailcenter.systemTemplates.template.breadcrumb.title"  , data=[ prc.template.name ] )
+		// 	, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=" & templateId )
+		// );
+	}
+
 }

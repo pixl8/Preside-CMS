@@ -30,17 +30,11 @@ component {
 	 *
 	 */
 	public array function listLayouts() {
-		var layoutIds    = _getLayouts();
-		var formsService = _getFormsService();
-		var layouts      = [];
+		var layoutIds = _getLayouts();
+		var layouts   = [];
 
 		for( var layoutId in layoutIds ) {
-			layouts.append( {
-				  id           = layoutId
-				, title        = $translateResource( uri="email.layout.#layoutId#:title"      , defaultValue=layoutId )
-				, description  = $translateResource( uri="email.layout.#layoutId#:description", defaultValue=""       )
-				, configurable = formsService.formExists( "email.layout.#layoutId#" )
-			} );
+			layouts.append( getLayout( layoutId ) );
 		}
 
 		layouts.sort( function( a, b ){
@@ -48,6 +42,27 @@ component {
 		} );
 
 		return layouts;
+	}
+
+	/**
+	 * Returns a struct with details of the given layout.
+	 *
+	 * @autodoc
+	 * @layout.hint ID of the layout you wish to get
+	 */
+	public struct function getLayout( required string layout ) {
+		var formsService = _getFormsService();
+
+		if ( layoutExists( arguments.layout ) ) {
+			return {
+				  id           = arguments.layout
+				, title        = $translateResource( uri="email.layout.#arguments.layout#:title"      , defaultValue=arguments.layout )
+				, description  = $translateResource( uri="email.layout.#arguments.layout#:description", defaultValue=""       )
+				, configurable = formsService.formExists( "email.layout.#arguments.layout#" )
+			};
+		}
+
+		return {};
 	}
 
 	/**
