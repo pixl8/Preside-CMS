@@ -68,6 +68,9 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			event.adminNotFound();
 		}
 
+		prc.layoutFormName = emailLayoutService.getLayoutConfigFormName( layoutId );
+		prc.savedConfig    = emailLayoutService.getLayoutConfig( layoutId );
+
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.layouts.configure.page.title"   , data=[ prc.layout.title ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.layouts.configure.page.subTitle", data=[ prc.layout.title ] );
 
