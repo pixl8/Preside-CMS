@@ -343,8 +343,7 @@ component output="false" extends="tests.resources.HelperObjects.PresideTestCase"
 		mockBCryptService.$( "hashpw" ).$args( testTempKey ).$results( testTempKeyHashed );
 		mockEmailService.$( "send" ).$args(
 			  template = "resetWebsitePassword"
-			, to       = [ testUserRecord.email_address ]
-			, args     = { resetToken = testTempToken & "-" & testTempKey, expires=testExpiryDate, username=testUserRecord.display_name, loginid=testUserRecord.login_id }
+			, args     = { resetToken = testTempToken & "-" & testTempKey, userid = testUserRecord.id }
 		).$results( true );
 		mockUserDao.$( "updateData" ).$args(
 			  id   = testUserRecord.id
