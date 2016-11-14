@@ -269,8 +269,10 @@ component displayName="Website login service" {
 
 			_getEmailService().send(
 				  template = "resetWebsitePassword"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#resetToken#-#resetKey#", expires=resetTokenExpiry, username=userRecord.display_name, loginId=userRecord.login_id }
+				, args     = {
+					  resetToken = "#resetToken#-#resetKey#"
+					, userId     = userRecord.id
+				  }
 			);
 
 			$recordWebsiteUserAction(
