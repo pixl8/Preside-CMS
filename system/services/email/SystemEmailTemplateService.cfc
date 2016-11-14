@@ -256,7 +256,14 @@ component {
 		return _configuredTemplates;
 	}
 	private void function _setConfiguredTemplates( required struct configuredTemplates ) {
-		_configuredTemplates = arguments.configuredTemplates;
+		_configuredTemplates = {};
+		for( var templateId in configuredTemplates ) {
+			var feature = Trim( configuredTemplates[ templateId ].feature ?: "" );
+
+			if ( !feature.len() || $isFeatureEnabled( feature ) ) {
+				_configuredTemplates[ templateId ] = configuredTemplates[ templateId ];
+			}
+		}
 	}
 
 }

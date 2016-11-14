@@ -606,31 +606,31 @@ component {
 		var templates      = {};
 		var recipientTypes = {};
 
-		templates.cmsWelcome = { recipientType="adminUser", parameters=[
+		templates.cmsWelcome = { feature="cms", recipientType="adminUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, { id="welcome_message", required=true }
 			, "created_by"
 			, "site_url"
 		] };
-		templates.resetCmsPassword = { recipientType="adminUser", parameters=[
+		templates.resetCmsPassword = { feature="cms", recipientType="adminUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.formbuilderSubmissionNotification = { recipientType="anonymous", parameters=[
+		templates.formbuilderSubmissionNotification = { feature="formbuilder", recipientType="anonymous", parameters=[
 			  { id="admin_link"          , required=true }
 			, { id="submission_preview"  , required=true }
 			, { id="notification_subject", required=false }
 		] };
-		templates.notification = { recipientType="adminUser", parameters=[
+		templates.notification = { feature="cms", recipientType="adminUser", parameters=[
 			  { id="admin_link"          , required=true  }
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
 		] };
-		templates.websiteWelcome = { recipientType="websiteUser", parameters=[
+		templates.websiteWelcome = { feature="websiteUsers", recipientType="websiteUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.resetWebsitePassword = { recipientType="websiteUser", parameters=[
+		templates.resetWebsitePassword = { feature="websiteUsers", recipientType="websiteUser", parameters=[
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
