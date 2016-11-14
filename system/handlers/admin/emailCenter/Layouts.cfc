@@ -60,4 +60,24 @@ cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		);
 	}
+
+	public void function configure( event, rc, prc ) {
+		var layoutId = rc.layout ?: "";
+		prc.layout = emailLayoutService.getLayout( layoutId );
+		if ( !prc.layout.count() ) {
+			event.adminNotFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.layouts.configure.page.title"   , data=[ prc.layout.title ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.layouts.configure.page.subTitle", data=[ prc.layout.title ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.layouts.layout.breadcrumb.title"  , data=[ prc.layout.title ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.layouts.layout", queryString="layout=" & layoutId )
+		);
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.layouts.configure.breadcrumb.title"  , data=[ prc.layout.title ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.layouts.configure", queryString="layout=" & layoutId )
+		);
+	}
 }
