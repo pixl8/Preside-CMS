@@ -94,35 +94,19 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			event.adminNotFound();
 		}
 
-		var formName         = emailLayoutService.getLayoutConfigFormName( layoutId );
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
-
-		if ( validationResult.validated() ) {
-			emailLayoutService.saveLayoutConfig(
-				  layout = layoutId
-				, config = formData
-			);
-
-			event.audit(
-				  action   = "save_email_layout"
-				, type     = "emaillayout"
-				, recordId = layoutId
-				, detail   = formData
-			);
-
-			messagebox.info( translateResource( "cms:emailcenter.layouts.configuration.saved.message") );
-
-			setNextEvent( url=event.buildAdminLink( linkto="emailcenter.layouts.layout", queryString="layout=" & layoutId ) );
-		}
-
-		var persist = formdata;
-		persist.validationResult = validationResult;
-		messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
-		setNextEvent( url=event.buildAdminLink( linkto="emailcenter.layouts.configure", queryString="layout=" & layoutId ), persistStruct=persist );
+		runEvent(
+			  event          = "admin.emailCenter.layouts._saveConfiguration"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = {
+				  successUrl = event.buildAdminLink( linkto="emailcenter.layouts.layout", queryString="layout=" & layoutId )
+				, failureUrl = event.buildAdminLink( linkto="emailcenter.layouts.configure", queryString="layout=" & layoutId )
+				, layoutId   = layoutId
+			  }
+		);
 	}
 
-// VIEWLETS
+// VIEWLETS & HELPER ACTIONS
 	private string function _configForm( event, rc, prc, args={} ) {
 		var layoutId   = args.layoutId   ?: "";
 		var templateId = args.templateId ?: "";
@@ -135,5 +119,62 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		);
 
 		return renderView( view="/admin/emailcenter/layouts/_configForm", args=args );
+	}
+
+	private void function _saveConfiguration(
+		  required string layoutId
+		, required string successUrl
+		, required string failureUrl
+		,          string templateId = ""
+	) {
+		/*
+		   TODO: make this work for template saving too
+		*/
+
+		var formName         = emailLayoutService.getLayoutConfigFormName( layoutId );
+		var formData         = event.getCollectionForForm( formName );
+
+		if ( Len( Trim( arguments.templateId ) ) ) {
+			for( var setting in formData ){
+				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
+					formData.delete( setting );
+				}
+			}
+		}
+
+		var validationResult = validateForm( formName, formData );
+		if ( validationResult.validated() ) {
+			emailLayoutService.saveLayoutConfig(
+				  layout        = layoutId
+				, emailTemplate = templateId
+				, config        = formData
+			);
+
+			if ( Len( Trim( arguments.templateId ) ) ) {
+				event.audit(
+					  action   = "save_template_layout_configuration"
+					, type     = "emailtemplate"
+					, recordId = templateId
+					, detail   = formData
+				);
+				messagebox.info( translateResource( "cms:emailcenter.systemTemplates.layout.configuration.saved.message") );
+			} else {
+				event.audit(
+					  action   = "save_email_layout"
+					, type     = "emaillayout"
+					, recordId = layoutId
+					, detail   = formData
+				);
+				messagebox.info( translateResource( "cms:emailcenter.layouts.configuration.saved.message") );
+			}
+
+
+			setNextEvent( url=arguments.successUrl );
+		}
+
+		var persist = formdata;
+		persist.validationResult = validationResult;
+		messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+		setNextEvent( url=arguments.failureUrl, persistStruct=persist );
 	}
 }

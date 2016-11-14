@@ -189,4 +189,30 @@ component extends="preside.system.base.AdminHandler" {
 			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
 		);
 	}
+
+	public void function saveLayoutConfigurationAction() {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.adminNotFound();
+		}
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
+			event.adminAccessDenied();
+		}
+
+		runEvent(
+			  event          = "admin.emailCenter.layouts._saveConfiguration"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = {
+				  successUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.template", queryString="template=" & templateId )
+				, failureUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
+				, layoutId   = prc.template.layout
+				, templateId = templateId
+			  }
+		);
+	}
 }
