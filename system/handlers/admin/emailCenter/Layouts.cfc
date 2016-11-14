@@ -69,8 +69,10 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			event.adminNotFound();
 		}
 
-		prc.layoutFormName = emailLayoutService.getLayoutConfigFormName( layoutId );
-		prc.savedConfig    = emailLayoutService.getLayoutConfig( layoutId );
+		prc.configForm = renderViewlet( event="admin.emailCenter.layouts._configForm", args={
+			  layoutId   = layoutId
+			, formAction = event.buildAdminLink( linkTo='emailcenter.layouts.saveConfigurationAction' )
+		} );
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.layouts.configure.page.title"   , data=[ prc.layout.title ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.layouts.configure.page.subTitle", data=[ prc.layout.title ] );
@@ -118,5 +120,20 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		persist.validationResult = validationResult;
 		messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 		setNextEvent( url=event.buildAdminLink( linkto="emailcenter.layouts.configure", queryString="layout=" & layoutId ), persistStruct=persist );
+	}
+
+// VIEWLETS
+	private string function _configForm( event, rc, prc, args={} ) {
+		var layoutId   = args.layoutId   ?: "";
+		var templateId = args.templateId ?: "";
+
+		args.layoutFormName = emailLayoutService.getLayoutConfigFormName( layoutId );
+		args.savedConfig    = emailLayoutService.getLayoutConfig(
+			  layout        = layoutId
+			, emailTemplate = templateId
+			, merged        = false
+		);
+
+		return renderView( view="/admin/emailcenter/layouts/_configForm", args=args );
 	}
 }

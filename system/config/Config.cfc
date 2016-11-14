@@ -241,7 +241,7 @@ component {
 			, emailCenter            = {
 				  layouts         = [ "navigate" ]
 				, userTemplates   = [ "navigate" ]
-				, systemTemplates = [ "navigate" ]
+				, systemTemplates = [ "navigate", "savedraft", "publish", "configurelayout" ]
 			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]

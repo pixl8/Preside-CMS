@@ -162,4 +162,31 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function configureLayout( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.adminNotFound();
+		}
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
+			event.adminAccessDenied();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.configureLayout.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.configureLayout.page.subTitle", data=[ prc.template.name ] );
+
+		prc.configForm = renderViewlet( event="admin.emailCenter.layouts._configForm", args={
+			  layoutId   = prc.template.layout
+			, templateId = templateId
+			, formAction = event.buildAdminLink( linkTo='emailcenter.systemTemplates.saveLayoutConfigurationAction' )
+		} );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.configureLayout.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
+		);
+	}
 }
