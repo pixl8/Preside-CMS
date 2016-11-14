@@ -1,5 +1,7 @@
-<cfparam name="args.body" default="" />
-<cfparam name="args.tab"  default="preview" />
+<cfparam name="args.body"                              default="" />
+<cfparam name="args.tab"                               default="preview" />
+<cfparam name="args.canEdit" type="boolean"            default="false" />
+<cfparam name="args.canConfigureLayout" type="boolean" default="false" />
 
 <cfscript>
 	templateId = rc.template ?: "";
@@ -13,20 +15,26 @@
 		, active = ( args.tab == "preview" )
 		, link   = ( args.tab == "preview" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.template", queryString="template=#templateId#&version=#version#" )
 	});
-	tabs.append({
-		  id     = "edit"
-		, icon   = "fa-pencil green"
-		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.edit" )
-		, active = ( args.tab == "edit" )
-		, link   = ( args.tab == "edit" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=#templateId#&version=#version#" )
-	});
-	tabs.append({
-		  id     = "layout"
-		, icon   = "fa-cogs grey"
-		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.layout" )
-		, active = ( args.tab == "layout" )
-		, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.configurelayout", queryString="template=" & templateId )
-	});
+
+	if ( args.canEdit ) {
+		tabs.append({
+			  id     = "edit"
+			, icon   = "fa-pencil green"
+			, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.edit" )
+			, active = ( args.tab == "edit" )
+			, link   = ( args.tab == "edit" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.edit", queryString="template=#templateId#&version=#version#" )
+		});
+	}
+
+	if ( args.canConfigureLayout ) {
+		tabs.append({
+			  id     = "layout"
+			, icon   = "fa-cogs grey"
+			, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.layout" )
+			, active = ( args.tab == "layout" )
+			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.configurelayout", queryString="template=" & templateId )
+		});
+	}
 </cfscript>
 
 <cfoutput>

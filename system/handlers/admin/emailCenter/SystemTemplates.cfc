@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailTemplateService"       inject="emailTemplateService";
+	property name="emailLayoutService"         inject="emailLayoutService";
 	property name="messagebox"                 inject="coldbox:plugin:messagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
@@ -214,5 +215,18 @@ component extends="preside.system.base.AdminHandler" {
 				, templateId = templateId
 			  }
 		);
+	}
+
+// VIEWLETS AND HELPERS
+	private string function _templateTabs( event, rc, prc, args={} ) {
+		var template     = prc.template ?: {};
+		var layout       = emailLayoutService.getLayout( template.layout ?: "" );
+		var canSaveDraft = hasCmsPermission( "emailcenter.systemtemplates.savedraft" );
+		var canPublish   = hasCmsPermission( "emailcenter.systemtemplates.publish"   );
+
+		args.canEdit            = canSaveDraft || canPublish;
+		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.systemtemplates.configureLayout" );
+
+		return renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args=args );
 	}
 }

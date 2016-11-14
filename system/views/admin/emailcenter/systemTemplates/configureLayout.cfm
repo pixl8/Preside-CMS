@@ -11,5 +11,5 @@
 		#configForm#
 	</cfsavecontent>
 
-	#renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args={ body=body, tab="layout" } )#
+	#renderViewlet( event="admin.emailcenter.systemtemplates._templateTabs", args={ body=body, tab="layout" } )#
 </cfoutput>

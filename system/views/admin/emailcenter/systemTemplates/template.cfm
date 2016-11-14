@@ -37,5 +37,5 @@
 		, allVersionsUrl   = event.buildAdminLink( linkto="emailCenter.systemTemplates.versionHistory", queryString="template=#templateId#" )
 	} )#
 
-	#renderView( view="/admin/emailcenter/systemtemplates/_templateTabs", args={ body=body, tab="preview" } )#
+	#renderViewlet( event="admin.emailcenter.systemtemplates._templateTabs", args={ body=body, tab="preview" } )#
 </cfoutput>
