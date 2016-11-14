@@ -33,7 +33,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, version=version );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-			event.adminNotFound();
+			event.notFound();
 		}
 
 		prc.preview = emailTemplateService.previewTemplate( template=templateId, allowDrafts=true, version=version );
@@ -54,7 +54,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, version=version );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-			event.adminNotFound();
+			event.notFound();
 		}
 
 		prc.canSaveDraft = hasCmsPermission( "emailcenter.systemtemplates.savedraft" );
@@ -129,7 +129,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-			event.adminNotFound();
+			event.notFound();
 		}
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.versionHistory.page.title"   , data=[ prc.template.name ] );
@@ -147,7 +147,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-			event.adminNotFound();
+			event.notFound();
 		}
 
 		runEvent(
@@ -168,7 +168,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-			event.adminNotFound();
+			event.notFound();
 		}
 
 		if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
@@ -196,7 +196,7 @@ component extends="preside.system.base.AdminHandler" {
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
 		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
-			event.adminNotFound();
+			event.notFound();
 		}
 
 		if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
