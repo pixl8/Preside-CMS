@@ -64,11 +64,9 @@
     <body style="background:#fff; min-height:1000px; color:#333;font-family:Arial, Helvetica, sans-serif; font-size:16px" alink="#2A5DB0" link="#2A5DB0" bgcolor="#FFFFFF" text="#333333" yahoo="fix">
         <div id="body_style" style="padding:15px">
             <cfoutput>#args.body#</cfoutput>
+            <cfif Len( Trim( args.signature_html ) )>
+                <cfoutput>#args.signature_html#</cfoutput>
+            </cfif>
         </div>
-        <cfif Len( Trim( args.signature_html ) )>
-	        <div id="body_style" style="padding:15px">
-	            <cfoutput>#args.signature_html#</cfoutput>
-	        </div>
-        </cfif>
     </body>
 </html>

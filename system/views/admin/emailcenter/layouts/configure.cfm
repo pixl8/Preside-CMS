@@ -9,7 +9,7 @@
 <cfoutput>
 	<cfsavecontent variable="body">
 		<form id="#formId#" method="post" action="#formAction#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal">
-			<input type="hidden" name="id" value="#layoutId#">
+			<input type="hidden" name="layout" value="#layoutId#">
 
 
 			#renderForm(

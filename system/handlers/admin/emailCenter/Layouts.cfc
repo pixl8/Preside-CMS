@@ -1,6 +1,7 @@
 component extends="preside.system.base.AdminHandler" {
 
 	property name="emailLayoutService" inject="emailLayoutService";
+	property name="messagebox"         inject="coldbox:plugin:messagebox";
 
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
@@ -82,5 +83,40 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			  title = translateResource( uri="cms:emailcenter.layouts.configure.breadcrumb.title"  , data=[ prc.layout.title ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.layouts.configure", queryString="layout=" & layoutId )
 		);
+	}
+
+	public void function saveConfigurationAction( event, rc, prc ) {
+		var layoutId = rc.layout ?: "";
+		prc.layout = emailLayoutService.getLayout( layoutId );
+		if ( !prc.layout.count() ) {
+			event.adminNotFound();
+		}
+
+		var formName         = emailLayoutService.getLayoutConfigFormName( layoutId );
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			emailLayoutService.saveLayoutConfig(
+				  layout = layoutId
+				, config = formData
+			);
+
+			event.audit(
+				  action   = "save_email_layout"
+				, type     = "emaillayout"
+				, recordId = layoutId
+				, detail   = formData
+			);
+
+			messagebox.info( translateResource( "cms:emailcenter.layouts.configuration.saved.message") );
+
+			setNextEvent( url=event.buildAdminLink( linkto="emailcenter.layouts.layout", queryString="layout=" & layoutId ) );
+		}
+
+		var persist = formdata;
+		persist.validationResult = validationResult;
+		messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+		setNextEvent( url=event.buildAdminLink( linkto="emailcenter.layouts.configure", queryString="layout=" & layoutId ), persistStruct=persist );
 	}
 }
