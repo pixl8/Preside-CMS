@@ -12,7 +12,11 @@ component {
 			return u;
 		}
 
-		return {};
+		u = {};
+		for( var col in ListToArray( user.columnList ) ) {
+			u[ col ] = "";
+		}
+		return u;
 	}
 
 	private struct function getPreviewParameters( event, rc, prc, args={} ) {
