@@ -17,6 +17,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.listRecipientTypes() ).toBe( expected );
 			} );
+
+			it( "should exclude recipient types who's feature is disabled", function(){
+				var service = _getService( enabledFeatures=[ "cms" ], disabledFeatures=[ "websiteUsers" ] );
+				var expected = [
+					  { id="adminUser"  , title="Admin user"             , description=CreateUUId() }
+					, { id="anonymous"  , title="Non-authenticated users", description=CreateUUId() }
+				];
+
+				for( var type in expected ) {
+					service.$( "$translateResource" ).$args( uri="email.recipienttype.#type.id#:title"      , defaultValue=type.id ).$results( type.title       );
+					service.$( "$translateResource" ).$args( uri="email.recipienttype.#type.id#:description", defaultValue=""      ).$results( type.description );
+				}
+
+				expect( service.listRecipientTypes() ).toBe( expected );
+			} );
 		} );
 
 		describe( "recipientTypeExists()", function(){
@@ -181,21 +196,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	}
 
 // PRIVATE HELPERS
-	private any function _getService( struct recipientTypes=_getTestRecipientTypes() ) {
-		var service = createMock( object=new preside.system.services.email.EmailRecipientTypeService(
-			  configuredRecipientTypes = arguments.recipientTypes
-		) );
+	private any function _getService(
+		  struct recipientTypes   = _getTestRecipientTypes()
+		, array  enabledFeatures  = [ "cms", "websiteUsers" ]
+		, array  disabledFeatures = []
+	) {
+		var service = createMock( object=CreateObject( "preside.system.services.email.EmailRecipientTypeService" ) );
 
 		mockColdboxController = createStub();
 		service.$( "$getColdbox", mockColdboxController );
+
+		for( var feature in enabledFeatures ) {
+			service.$( "$isFeatureEnabled" ).$args( feature ).$results( true );
+		}
+		for( var feature in disabledFeatures  ) {
+			service.$( "$isFeatureEnabled" ).$args( feature ).$results( false );
+		}
+
+		service.init( configuredRecipientTypes = arguments.recipientTypes );
 
 		return service;
 	}
 
 	private struct function _getTestRecipientTypes() {
 		return {
-			  websiteUser = { parameters=[ { id="known_as", required=true }, "login_id" ] }
-			, adminUser   = { parameters=[ "display_name", "login_id" ] }
+			  websiteUser = { feature="websiteUsers", parameters=[ { id="known_as", required=true }, "login_id" ] }
+			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ] }
 			, anonymous   = {}
 		};
 	}

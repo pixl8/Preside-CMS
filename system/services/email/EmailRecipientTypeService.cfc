@@ -179,6 +179,15 @@ component displayName="Email Recipient Type Service" {
 		return _configuredRecipientTypes;
 	}
 	private void function _setConfiguredRecipientTypes( required any configuredRecipientTypes ) {
-		_configuredRecipientTypes = arguments.configuredRecipientTypes;
+		_configuredRecipientTypes = {};
+
+		for( var typeId in arguments.configuredRecipientTypes ) {
+			var type    = arguments.configuredRecipientTypes[ typeId ];
+			var feature = Trim( type.feature ?: "" );
+
+			if ( !feature.len() || $isFeatureEnabled( feature ) ) {
+				_configuredRecipientTypes[ typeId ] = type;
+			}
+		}
 	}
 }
