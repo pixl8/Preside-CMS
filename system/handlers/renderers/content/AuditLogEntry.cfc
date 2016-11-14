@@ -3,6 +3,7 @@ component {
 	property name="presideObjectService"       inject="presideObjectService";
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="taskmanagerService"         inject="taskmanagerService";
+	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -165,7 +166,7 @@ component {
 		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
 		var recordId   = args.record_id         ?: "";
 		var label      = renderLabel( "email_template", recordId );
-		var type       = IsTrue( args.detail.isSystemEmail ?: "" ) ? "systemtemplates" : "usertemplates";
+		var type       = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "usertemplates";
 		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.#type#.template", queryString="template=" & recordId );
 		var recordLink = '<a href="#recordUrl#">#label#</a>';
 
