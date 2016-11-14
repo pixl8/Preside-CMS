@@ -626,6 +626,10 @@ component {
 			, { id="notification_body"   , required=true  }
 			, { id="notification_subject", required=false }
 		] };
+		templates.websiteWelcome = { recipientType="websiteUser", parameters=[
+			  { id="reset_password_link", required=true }
+			, "site_url"
+		] };
 
 		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] };
 		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ] };
