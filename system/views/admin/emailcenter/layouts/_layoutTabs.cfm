@@ -4,7 +4,7 @@
 <cfscript>
 	layoutId     = rc.layout ?: "";
 	layout       = prc.layout ?: {};
-	configurable = IsTrue( layout.configurable ?: "" );
+	configurable = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.layouts.configure" );
 	tabs         = [];
 
 	tabs.append({

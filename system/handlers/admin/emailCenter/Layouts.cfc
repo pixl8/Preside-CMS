@@ -69,6 +69,10 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 			event.adminNotFound();
 		}
 
+		if ( !hasCmsPermission( "emailcenter.layouts.configure" ) ) {
+			event.adminAccessDenied();
+		}
+
 		prc.configForm = renderViewlet( event="admin.emailCenter.layouts._configForm", args={
 			  layoutId   = layoutId
 			, formAction = event.buildAdminLink( linkTo='emailcenter.layouts.saveConfigurationAction' )
@@ -92,6 +96,10 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		prc.layout = emailLayoutService.getLayout( layoutId );
 		if ( !prc.layout.count() ) {
 			event.adminNotFound();
+		}
+
+		if ( !hasCmsPermission( "emailcenter.layouts.configure" ) ) {
+			event.adminAccessDenied();
 		}
 
 		runEvent(

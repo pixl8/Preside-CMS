@@ -239,7 +239,7 @@ component {
 			, auditTrail             = [ "navigate" ]
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
 			, emailCenter            = {
-				  layouts         = [ "navigate" ]
+				  layouts         = [ "navigate", "configure" ]
 				, userTemplates   = [ "navigate" ]
 				, systemTemplates = [ "navigate", "savedraft", "publish", "configurelayout" ]
 			  }
