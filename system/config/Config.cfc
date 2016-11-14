@@ -616,9 +616,10 @@ component {
 			  { id="reset_password_link", required=true }
 			, "site_url"
 		] };
-		templates.formbuilderSubmissionNotification = { recipientType="adminUser", parameters=[
-			  { id="admin_link"        , required=true }
-			, { id="submission_preview", required=true }
+		templates.formbuilderSubmissionNotification = { recipientType="anonymous", parameters=[
+			  { id="admin_link"          , required=true }
+			, { id="submission_preview"  , required=true }
+			, { id="notification_subject", required=false }
 		] };
 		templates.notification = { recipientType="adminUser", parameters=[
 			  { id="admin_link"          , required=true  }

@@ -2,6 +2,7 @@ component {
 
 	private struct function prepareParameters(
 		  required struct submissionData
+		, required struct configuration
 	) {
 		var link      = event.buildAdminLink( linkto="formbuilder.submissions", queryString="id=" & ( arguments.submissionData.form ?: "" ) );
 		var linkTitle = translateResource( "formbuilder:email.notificatio.admin.link.text" );
@@ -15,6 +16,7 @@ component {
 				  html = renderView( view="/email/template/formbuilderSubmissionNotification/_submissionHtml", args=arguments )
 				, text = renderView( view="/email/template/formbuilderSubmissionNotification/_submissiontext", args=arguments )
 			  }
+			, notification_subject = arguments.configuration.subject ?: "Form builder submission"
 		};
 	}
 
@@ -43,7 +45,7 @@ component {
 	}
 
 	private string function defaultSubject() {
-		return "Form submission notification";
+		return "${notification_subject}";
 	}
 
 	private string function defaultHtmlBody() {
