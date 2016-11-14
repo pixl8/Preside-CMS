@@ -4,6 +4,7 @@ component {
 	property name="systemConfigurationService" inject="systemConfigurationService";
 	property name="taskmanagerService"         inject="taskmanagerService";
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
+	property name="emailLayoutService"         inject="emailLayoutService";
 
 	private string function datamanager( event, rc, prc, args={} ) {
 		var action       = args.action            ?: "";
@@ -171,5 +172,18 @@ component {
 		var recordLink = '<a href="#recordUrl#">#label#</a>';
 
 		return translateResource( uri="auditlog.emailtemplate:#action#.message", data=[ userLink, recordLink ] );
+	}
+
+	private string function emailLayout( event, rc, prc, args={} ) {
+		var action     = args.action            ?: "";
+		var known_as   = args.known_as          ?: "";
+		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
+		var recordId   = args.record_id         ?: "";
+		var layout     = emailLayoutService.getLayout( recordId );
+		var label      = layout.title ?: "Unknown";
+		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.layouts.layout", queryString="layout=" & recordId );
+		var recordLink = '<a href="#recordUrl#">#label#</a>';
+
+		return translateResource( uri="auditlog.emaillayout:#action#.message", data=[ userLink, recordLink ] );
 	}
 }
