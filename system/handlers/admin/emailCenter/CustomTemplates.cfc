@@ -181,6 +181,7 @@ component extends="preside.system.base.AdminHandler" {
 				  object        = "email_template"
 				, gridFields    = "name"
 				, actionsView   = "admin.emailCenter/customTemplates._gridActions"
+				, filter        = { "email_template.is_system_email" = false }
 				, draftsEnabled = true
 			}
 		);

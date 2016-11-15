@@ -354,12 +354,13 @@ component {
 		for( var template in systemTemplates ) {
 			if ( !templateExists( template.id ) ) {
 				saveTemplate( id=template.id, template={
-					  name           = template.title
-					, layout         = sysTemplateService.getDefaultLayout( template.id )
-					, subject        = sysTemplateService.getDefaultSubject( template.id )
-					, html_body      = sysTemplateService.getDefaultHtmlBody( template.id )
-					, text_body      = sysTemplateService.getDefaultTextBody( template.id )
-					, recipient_type = sysTemplateService.getRecipientType( template.id )
+					  name            = template.title
+					, layout          = sysTemplateService.getDefaultLayout( template.id )
+					, subject         = sysTemplateService.getDefaultSubject( template.id )
+					, html_body       = sysTemplateService.getDefaultHtmlBody( template.id )
+					, text_body       = sysTemplateService.getDefaultTextBody( template.id )
+					, recipient_type  = sysTemplateService.getRecipientType( template.id )
+					, is_system_email = true
 				} );
 			}
 		}
