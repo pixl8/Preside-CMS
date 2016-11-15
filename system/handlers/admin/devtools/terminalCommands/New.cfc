@@ -489,6 +489,13 @@ component hint="Create various preside system entities such as widgets and page 
 			msg &= "    " & file & Chr(10);
 		}
 
+		msg &= Chr( 10 ) & Chr( 10 );
+		msg &= "You should also add the following to your [[b;white;]Config.cfc$configure()] method to ensure permissions are setup correctly:";
+		msg &= Chr( 10 ) & Chr( 10 );
+		msg &= "    settings.adminPermissions[ ""#params.permissionKey#"" ] = [ ""add"", ""edit"", ""delete"", ""savedraft"", ""publish"", ""read"" ];";
+		msg &= Chr( 10 ) & "    settings.adminRoles.sysAdmin.append( ""#params.permissionKey#.*"" );";
+		msg &= Chr( 10 ) & Chr( 10 );
+
 		return msg;
 	}
 
