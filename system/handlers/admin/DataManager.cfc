@@ -1330,14 +1330,15 @@
 				sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( object );
 			}
 
-			var results             = dataManagerService.getRecordsForGridListing(
-				  objectName  = object
-				, gridFields  = gridFields
-				, filter      = arguments.filter
-				, startRow    = dtHelper.getStartRow()
-				, maxRows     = dtHelper.getMaxRows()
-				, orderBy     = sortOrder
-				, searchQuery = dtHelper.getSearchQuery()
+			var results = dataManagerService.getRecordsForGridListing(
+				  objectName    = object
+				, gridFields    = gridFields
+				, filter        = arguments.filter
+				, startRow      = dtHelper.getStartRow()
+				, maxRows       = dtHelper.getMaxRows()
+				, orderBy       = sortOrder
+				, searchQuery   = dtHelper.getSearchQuery()
+				, draftsEnabled = arguments.draftsEnabled
 			);
 			var records = Duplicate( results.records );
 			for( var record in records ){
