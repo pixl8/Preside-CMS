@@ -183,19 +183,20 @@ component {
 	public struct function getRecordsForGridListing(
 		  required string  objectName
 		, required array   gridFields
-		,          numeric startRow     = 1
-		,          numeric maxRows      = 10
-		,          string  orderBy      = ""
-		,          string  searchQuery  = ""
-		,          any     filter       = {}
-		,          struct  filterParams = {}
+		,          numeric startRow      = 1
+		,          numeric maxRows       = 10
+		,          string  orderBy       = ""
+		,          string  searchQuery   = ""
+		,          any     filter        = {}
+		,          struct  filterParams  = {}
+		,          boolean draftsEnabled = areDraftsEnabledForObject( arguments.objectName )
 
 	) {
 
 		var result = { totalRecords = 0, records = "" };
 		var args   = {
 			  objectName         = arguments.objectName
-			, selectFields       = _prepareGridFieldsForSqlSelect( arguments.gridFields, arguments.objectName )
+			, selectFields       = _prepareGridFieldsForSqlSelect( gridFields=arguments.gridFields, objectName=arguments.objectName, draftsEnabled=arguments.draftsEnabled )
 			, startRow           = arguments.startRow
 			, maxRows            = arguments.maxRows
 			, orderBy            = arguments.orderBy
@@ -435,7 +436,7 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false ) {
+	private array function _prepareGridFieldsForSqlSelect( required array gridFields, required string objectName, boolean versionTable=false, boolean draftsEnabled=areDraftsEnabledForObject( arguments.objectName ) ) {
 		var sqlFields                = Duplicate( arguments.gridFields );
 		var field                    = "";
 		var i                        = "";
@@ -453,7 +454,7 @@ component {
 			sqlFields.append( replacedLabelField );
 		}
 
-		if ( areDraftsEnabledForObject( arguments.objectName ) ) {
+		if ( arguments.draftsEnabled ) {
 			sqlFields.append( "_version_has_drafts" );
 			sqlFields.append( "_version_is_draft"   );
 		}

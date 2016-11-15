@@ -5,7 +5,7 @@ component hint="Create various preside system entities such as widgets and page 
 
 	private function index( event, rc, prc ) {
 		var params = jsonRpc2Plugin.getRequestParams();
-		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol", "emailtemplate", "ruleexpression" ];
+		var validTargets = [ "widget", "terminalcommand", "pagetype", "object", "extension", "configform", "formcontrol", "emailtemplate", "crudadmin", "ruleexpression" ];
 
 		params = IsArray( params.commandLineArgs ?: "" ) ? params.commandLineArgs : [];
 
@@ -20,6 +20,7 @@ component hint="Create various preside system entities such as widgets and page 
 			               & "    [[b;white;]formcontrol]     : Creates a new form control." & Chr(10)
 			               & "    [[b;white;]emailtemplate]   : Creates a new email template." & Chr(10)
 			               & "    [[b;white;]ruleexpression]  : Creates a new rules engine expression" & Chr(10)
+			               & "    [[b;white;]crudadmin]       : Creates a new set of 'CRUD' admin screens for a given preside object" & Chr(10)
 			               & "    [[b;white;]terminalcommand] : Creates a new terminal command!" & Chr(10);
 		}
 
@@ -419,7 +420,76 @@ component hint="Create various preside system entities such as widgets and page 
 		}
 
 		return msg;
+	}
 
+	private function crudadmin( event, rc, prc ) {
+		var params               = jsonRpc2Plugin.getRequestParams();
+		var userInputPrompts     = [];
+
+		if ( !StructKeyExists( params, "object" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Object: ", required=true, paramName="object" } );
+		}
+		if ( !StructKeyExists( params, "objectName" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Friendly name: ", required=true, paramName="objectName" } );
+		}
+		if ( !StructKeyExists( params, "objectNamePlural" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Friendly name (plural): ", required=true, paramName="objectNamePlural" } );
+		}
+		if ( !StructKeyExists( params, "icon" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Icon (e.g. fa-envelope): ", required=true, paramName="icon" } );
+		}
+		if ( !StructKeyExists( params, "description" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Description: ", required=false, paramName="description" } );
+		}
+		if ( !StructKeyExists( params, "handler" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Handler (e.g. 'EventsManager'): ", required=true, paramName="handler" } );
+		}
+		if ( !StructKeyExists( params, "permissionKey" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Permission key (e.g. 'eventsmanager'): ", required=true, paramName="permissionKey" } );
+		}
+		if ( !StructKeyExists( params, "auditCategory" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Audit log category (e.g. 'eventsmanager'): ", required=true, paramName="auditCategory" } );
+		}
+		if ( !StructKeyExists( params, "i18nFile" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="i18n filename (e.g. 'eventsmanager'): ", required=true, paramName="i18nFile" } );
+		}
+		if ( !StructKeyExists( params, "extension" ) ) {
+			ArrayAppend( userInputPrompts, { prompt="Extension name, leave blank for no extension: ", required=false, paramName="extension"} );
+		}
+
+		if ( ArrayLen( userInputPrompts ) ) {
+			return {
+				  echo        = Chr(10) & "[[b;white;]:: Welcome to the new admin CRUD wizard. This wizard will scaffold you a whole set of admin screens and handlers for CRUD operations on an object]" & Chr(10) & Chr(10)
+				, inputPrompt = userInputPrompts
+				, method      = "new"
+				, params      = params
+			};
+		}
+
+		var filesCreated = [];
+		try {
+			filesCreated = scaffoldingService.scaffoldCrudAdmin(
+				  objectId         = params.object
+				, objectName       = params.objectName
+				, objectNamePlural = params.objectNamePlural
+				, handler          = params.handler
+				, permissionKey    = params.permissionKey
+				, auditCategory    = params.auditCategory
+				, i18nFile         = params.i18nFile
+				, icon             = params.icon
+				, description      = params.description
+				, extension        = params.extension
+			);
+		} catch ( any e ) {
+			return Chr(10) & "[[b;red;]Error creating #params.object# CRUD admin:] [[b;white;]#e.message#]" & Chr(10);
+		}
+
+		var msg = Chr(10) & "[[b;white;]Your CRUD admin screens for object, '#params.object#', have been scaffolded.] The following files were created:" & Chr(10) & Chr(10);
+		for( var file in filesCreated ) {
+			msg &= "    " & file & Chr(10);
+		}
+
+		return msg;
 	}
 
 	private function terminalCommand( event, rc, prc ) {
