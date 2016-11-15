@@ -79,21 +79,16 @@ component extends="preside.system.base.AdminHandler" {
 		var id      = rc.id ?: "";
 		var version = Val( rc.version ?: "" );
 
-		prc.record = dao.selectData(
-			  filter             = { id=id }
-			, fromVersionTable   = true
-			, allowDraftVersions = true
-			, specificVersion    = version
-		);
+		prc.record = prc.template = emailTemplateService.getTemplate( id=id, allowDrafts=true, version=version );
 
-		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
+		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
 			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
 		}
-		prc.record = queryRowToStruct( prc.record );
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.preview.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.preview.page.subtitle", data=[ prc.record.name ] );
+		prc.preview      = emailTemplateService.previewTemplate( template=id, allowDrafts=true, version=version );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.preview.page.breadcrumb", data=[ prc.record.name ] )
