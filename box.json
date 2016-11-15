@@ -1,6 +1,6 @@
 {
     "name":"PresideCMS",
-    "version":"10.7.6",
+    "version":"10.7.7",
     "author":"Pixl8 Interactive",
     "createPackageDirectory":true,
     "packageDirectory":"preside",
