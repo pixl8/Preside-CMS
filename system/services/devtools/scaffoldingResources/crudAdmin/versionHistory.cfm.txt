@@ -1,0 +1,7 @@
+<cfset id = rc.id ?: ""/>
+<cfoutput>
+	#renderView( view="/admin/datamanager/_objectVersionHistoryTable", args={
+		  objectName    = "${objectId}"
+		, datasourceUrl = event.buildAdminLink( linkTo="${handlerRoot}.getHistoryForAjaxDatatables", queryString="id=#id#" )
+	} )#
+</cfoutput>
