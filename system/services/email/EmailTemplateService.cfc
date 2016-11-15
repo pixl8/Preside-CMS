@@ -219,7 +219,7 @@ component {
 			$audit(
 				  action   = arguments.isDraft ? "createDraftEmailTemplate" : "insertEmailTemplate"
 				, type     = "emailtemplate"
-				, recordId = arguments.id
+				, recordId = newId
 				, detail   = { isSystemEmail = _getSystemEmailTemplateService().templateExists( id ) }
 			);
 

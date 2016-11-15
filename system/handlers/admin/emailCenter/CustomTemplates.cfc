@@ -52,26 +52,22 @@ component extends="preside.system.base.AdminHandler" {
 		var saveAction = ( rc._saveAction ?: "savedraft" ) == "publish" ? "publish" : "savedraft";
 		_checkPermissions( event=event, key=saveAction );
 
-		prc.canPublish   = hasCmsPermission( "emailCenter.customTemplates.saveDraft" );
-		prc.canSaveDraft = hasCmsPermission( "emailCenter.customTemplates.publish"   );
+		var formName         = "preside-objects.email_template.admin.add";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
 
-		runEvent(
-			  event          = "admin.DataManager._addRecordAction"
-			, prePostExempt  = true
-			, private        = true
-			, eventArguments = {
-				  object            = "email_template"
-				, errorAction       = "emailCenter.customTemplates.add"
-				, addAnotherAction  = "emailCenter.customTemplates.add"
-				, successAction     = "emailCenter.customTemplates.edit"
-				, redirectOnSuccess = true
-				, audit             = true
-				, auditType         = "customEmailTemplates"
-				, auditAction       = saveAction == "publish" ? "add_record" : "add_draft_record"
-				, draftsEnabled     = true
-				, canPublish        = prc.canPublish
-				, canSaveDraft      = prc.canSaveDraft
-			}
+		if ( validationResult.validated() ) {
+			var id=emailTemplateService.saveTemplate( template=formData, isDraft=( saveAction=="savedraft" ) );
+
+			messagebox.info( "TODO: success message" );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.edit", queryString="id=#id#" ) );
+		}
+
+		formData.validationResult = validationResult;
+		messagebox.error( "TODO: error message" );
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.add" )
+			, persistStruct = formData
 		);
 	}
 
@@ -161,23 +157,18 @@ component extends="preside.system.base.AdminHandler" {
 			validationResult.addError( "text_body", "cms:emailcenter.variables.missing.validation.error", [ missingTextParams.toList( ", " ) ] );
 		}
 
-		runEvent(
-			  event          = "admin.DataManager._editRecordAction"
-			, private        = true
-			, prePostExempt  = true
-			, eventArguments = {
-				  object            = "email_template"
-				, errorAction       = "emailCenter.customTemplates.edit"
-				, successUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates" )
-				, redirectOnSuccess = true
-				, audit             = true
-				, auditType         = "customEmailTemplates"
-				, auditAction       = ( saveAction == "publish" ? "publish_record" : "save_draft" )
-				, draftsEnabled     = true
-				, canPublish        = hasCmsPermission( "emailCenter.customTemplates.saveDraft" )
-				, canSaveDraft      = hasCmsPermission( "emailCenter.customTemplates.publish"   )
-				, validationResult  = validationResult
-			}
+		if ( validationResult.validated() ) {
+			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( saveAction=="savedraft" ) );
+
+			messagebox.info( "TODO: success message" );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
+		}
+
+		formData.validationResult = validationResult;
+		messagebox.error( "TODO: error message" );
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.edit", queryString="id=#id#" )
+			, persistStruct = formData
 		);
 	}
 
@@ -192,8 +183,8 @@ component extends="preside.system.base.AdminHandler" {
 				  object       = "email_template"
 				, postAction   = "emailCenter.customTemplates"
 				, audit        = true
-				, auditType    = "customEmailTemplates"
-				, auditAction  = "delete_record"
+				, auditType    = "emailtemplate"
+				, auditAction  = "deleteTemplate"
 			}
 		);
 	}
