@@ -1,11 +1,11 @@
 <cfscript>
 	submenuItems = [];
 
-	if ( hasCmsPermission( "emailcenter.userTemplates.navigate" ) ) {
+	if ( hasCmsPermission( "emailcenter.customTemplates.navigate" ) ) {
 		subMenuItems.append( {
-			  link  = event.buildAdminLink( linkTo="emailcenter.usertemplates" )
-			, title = translateResource( "cms:emailcenter.usertemplates.menu.title" )
-			, active = ReFindNoCase( "^admin\.emailcenter\.usertemplates", event.getCurrentEvent() )
+			  link  = event.buildAdminLink( linkTo="emailcenter.customTemplates" )
+			, title = translateResource( "cms:emailcenter.customTemplates.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.customTemplates", event.getCurrentEvent() )
 		} );
 	}
 

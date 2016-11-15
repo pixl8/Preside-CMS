@@ -167,7 +167,7 @@ component {
 		var userLink   = '<a href="#args.userLink#">#args.known_as#</a>';
 		var recordId   = args.record_id         ?: "";
 		var label      = renderLabel( "email_template", recordId );
-		var type       = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "usertemplates";
+		var type       = systemEmailTemplateService.templateExists( recordId ) ? "systemtemplates" : "customtemplates";
 		var recordUrl  = event.buildAdminLink( linkTo="emailcenter.#type#.template", queryString="template=" & recordId );
 		var recordLink = '<a href="#recordUrl#">#label#</a>';
 
