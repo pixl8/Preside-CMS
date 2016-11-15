@@ -576,6 +576,7 @@ component {
 		var sourceFk       = prop.relationshipIsSource ? prop.relatedViaSourceFk : prop.relatedViaTargetFk;
 		var targetFk       = prop.relationshipIsSource ? prop.relatedViaTargetFk : prop.relatedViaSourceFk;
 		var versionedPivot = poService.getVersionObjectName( pivotTable );
+		var sortOrder      = 0;
 
 		if ( Len( Trim( versionedPivot ) ) and Len( Trim( targetObject ) ) ) {
 			transaction {
@@ -587,6 +588,7 @@ component {
 						, data       = {
 							  "#sourceFk#"    = arguments.sourceObjectId
 							, "#targetFk#"    = targetId
+							, sort_order      = ++sortOrder
 							, _version_number = arguments.versionNumber
 							, _version_author = arguments.versionAuthor
 						}
