@@ -194,7 +194,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var templateId = rc.id ?: "";
 
-		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId );
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
 		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
 			event.notFound();
 		}
