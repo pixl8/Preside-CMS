@@ -198,6 +198,57 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function configureLayout( event, rc, prc ) {
+		_checkPermissions( event=event, key="configurelayout" );
+
+		var templateId = rc.id ?: "";
+
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId );
+		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.configureLayout.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.configureLayout.page.subTitle", data=[ prc.template.name ] );
+
+		prc.configForm = renderViewlet( event="admin.emailCenter.layouts._configForm", args={
+			  layoutId   = prc.template.layout
+			, templateId = templateId
+			, formAction = event.buildAdminLink( linkTo='emailcenter.customTemplates.saveLayoutConfigurationAction' )
+		} );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.configureLayout.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.configureLayout", queryString="id=" & templateId )
+		);
+	}
+
+	public void function saveLayoutConfigurationAction() {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
+			event.adminAccessDenied();
+		}
+
+		runEvent(
+			  event          = "admin.emailCenter.layouts._saveConfiguration"
+			, private        = true
+			, prepostExempt  = true
+			, eventArguments = {
+				  successUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.template", queryString="template=" & templateId )
+				, failureUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
+				, layoutId   = prc.template.layout
+				, templateId = templateId
+			  }
+		);
+	}
+
 	public void function versionHistory( event, rc, prc ) {
 		var id = rc.id ?: "";
 
