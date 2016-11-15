@@ -619,7 +619,7 @@ component singleton=true {
 			case "":
 				return "#_getAppMapping()#/";
 			case "core":
-				return "/preside/";
+				return "/preside/system/";
 			default:
 				return "#_getAppMapping()#/extensions/#arguments.extension#/";
 		}
