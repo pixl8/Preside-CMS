@@ -602,7 +602,7 @@ component singleton=true {
 	}
 
 	private array function _ensureExtensionExists( required string extension ) {
-		if ( !Len( Trim( arguments.extension ) ) ) {
+		if ( !Len( Trim( arguments.extension ) ) || arguments.extension == "core" ) {
 			return [];
 		}
 
@@ -615,7 +615,14 @@ component singleton=true {
 	}
 
 	private string function _getScaffoldRoot( required string extension ) {
-		return Len( Trim( arguments.extension ) ) ? "#_getAppMapping()#/extensions/#arguments.extension#/" : "#_getAppMapping()#/";
+		switch( Trim( arguments.extension ) ) {
+			case "":
+				return "#_getAppMapping()#/";
+			case "core":
+				return "/preside/";
+			default:
+				return "#_getAppMapping()#/extensions/#arguments.extension#/";
+		}
 	}
 
 	private string function _nl() {
