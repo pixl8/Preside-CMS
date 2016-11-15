@@ -1,7 +1,8 @@
 component extends="preside.system.base.AdminHandler" {
 
-	property name="dao"        inject="presidecms:object:email_template";
-	property name="messageBox" inject="coldbox:plugin:messageBox";
+	property name="emailTemplateService" inject="emailTemplateService";
+	property name="dao"                  inject="presidecms:object:email_template";
+	property name="messageBox"           inject="coldbox:plugin:messageBox";
 
 	function prehandler( event, rc, prc ) {
 		super.preHandler( argumentCollection = arguments );
@@ -117,6 +118,25 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
 		}
 
+		var formName         = "preside-objects.email_template.admin.edit";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+		var missingHtmlParams = emailTemplateService.listMissingParams(
+			  template = id
+			, content  = ( formData.html_body ?: "" )
+		);
+		var missingTextParams = emailTemplateService.listMissingParams(
+			  template = id
+			, content  = ( formData.text_body ?: "" )
+		);
+
+		if ( missingHtmlParams.len() ) {
+			validationResult.addError( "html_body", "cms:emailcenter.variables.missing.validation.error", [ missingHtmlParams.toList( ", " ) ] );
+		}
+		if ( missingTextParams.len() ) {
+			validationResult.addError( "text_body", "cms:emailcenter.variables.missing.validation.error", [ missingTextParams.toList( ", " ) ] );
+		}
+
 		runEvent(
 			  event          = "admin.DataManager._editRecordAction"
 			, private        = true
@@ -132,6 +152,7 @@ component extends="preside.system.base.AdminHandler" {
 				, draftsEnabled     = true
 				, canPublish        = hasCmsPermission( "emailCenter.customTemplates.saveDraft" )
 				, canSaveDraft      = hasCmsPermission( "emailCenter.customTemplates.publish"   )
+				, validationResult  = validationResult
 			}
 		);
 	}

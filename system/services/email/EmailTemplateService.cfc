@@ -160,7 +160,7 @@ component {
 		  required string template
 		, required string content
 	) {
-		var messageTemplate = getTemplate( arguments.template );
+		var messageTemplate = getTemplate( id=arguments.template, allowDrafts=true );
 
 		var expectedParams  = [];
 		var missingParams   = [];
@@ -170,7 +170,6 @@ component {
 				expectedParams.append( _getSystemEmailTemplateService().listTemplateParameters( arguments.template ), true );
 			}
 			expectedParams.append( _getEmailRecipientTypeService().listRecipientTypeParameters( messageTemplate.recipient_type ), true );
-
 			for( var param in expectedParams ) {
 				if ( param.required && !arguments.content.findNoCase( "${#param.id#}" ) ) {
 					missingParams.append( "${#param.id#}" );

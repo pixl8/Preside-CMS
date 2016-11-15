@@ -1840,6 +1840,7 @@
 		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
 		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
+		<cfargument name="validationResult"  type="any"     required="false" />
 
 		<cfscript>
 			formName = Len( Trim( mergeWithFormName ) ) ? formsService.getMergedFormName( formName, mergeWithFormName ) : formName;
@@ -1862,7 +1863,7 @@
 			}
 
 			formData.id = id;
-			validationResult = validateForm( formName=formName, formData=formData );
+			validationResult = validateForm( formName=formName, formData=formData, validationResult=( arguments.validationResult ?: NullValue() ) );
 
 			if ( not validationResult.validated() ) {
 				messageBox.error( translateResource( "cms:datamanager.data.validation.error" ) );

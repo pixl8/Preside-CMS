@@ -142,23 +142,25 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate[1] ).toBe( {
 					  id = "t1"
 					, template = {
-						  name           = "Template 1"
-						, layout         = "t1layout"
-						, subject        = "t1subject"
-						, html_body      = "t1html"
-						, text_body      = "t1text"
-						, recipient_type = recipientType
+						  name            = "Template 1"
+						, layout          = "t1layout"
+						, subject         = "t1subject"
+						, html_body       = "t1html"
+						, text_body       = "t1text"
+						, recipient_type  = recipientType
+						, is_system_email = true
 					}
 				} );
 				expect( service.$callLog().saveTemplate[2] ).toBe( {
 					  id = "t3"
 					, template = {
-						  name           = "Template 3"
-						, layout         = "t3layout"
-						, subject        = "t3subject"
-						, html_body      = "t3html"
-						, text_body      = "t3text"
-						, recipient_type = recipientType
+						  name            = "Template 3"
+						, layout          = "t3layout"
+						, subject         = "t3subject"
+						, html_body       = "t3html"
+						, text_body       = "t3text"
+						, recipient_type  = recipientType
+						, is_system_email = true
 					}
 				} );
 			} );
@@ -481,7 +483,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockRecipientTypeParams = [ { id="dummy", required=true }, { id="another", required=false } ];
 				var mockTemplate            = { recipient_type="test" };
 
-				service.$( "getTemplate" ).$args( templateId ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true ).$results( mockTemplate );
 				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( mockTemplate.recipient_type ).$results( mockRecipientTypeParams );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( templateId ).$results( true );
 				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( templateId ).$results( mockTemplateParams );
@@ -497,7 +499,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockRecipientTypeParams = [ { id="dummy", required=true }, { id="another", required=false } ];
 				var mockTemplate            = { recipient_type="test" };
 
-				service.$( "getTemplate" ).$args( templateId ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true ).$results( mockTemplate );
 				mockEmailRecipientTypeService.$( "listRecipientTypeParameters" ).$args( mockTemplate.recipient_type ).$results( mockRecipientTypeParams );
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( templateId ).$results( true );
 				mockSystemEmailTemplateService.$( "listTemplateParameters" ).$args( templateId ).$results( mockTemplateParams );
@@ -511,7 +513,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var templateId              = "mytemplate";
 				var mockTemplate            = {};
 
-				service.$( "getTemplate" ).$args( templateId ).$results( mockTemplate );
+				service.$( "getTemplate" ).$args( id=templateId, allowDrafts=true ).$results( mockTemplate );
 
 				expect( service.listMissingParams( content=content, template=templateId ) ).toBe( [] );
 			} );
