@@ -4,7 +4,7 @@
 		, addRecordAction       = event.buildAdminLink( linkTo='emailCenter.customTemplates.addAction' )
 		, cancelAction          = event.buildAdminLink( linkTo='emailCenter.customTemplates' )
 		, draftsEnabled         = true
-		, canPublish            = IsTrue( prc.canPublish   ?: "" )
+		, canPublish            = false
 		, canSaveDraft          = IsTrue( prc.canSaveDraft ?: "" )
 		, allowAddAnotherSwitch = true
 	} )#
