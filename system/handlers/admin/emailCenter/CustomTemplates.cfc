@@ -224,16 +224,14 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function saveLayoutConfigurationAction() {
+		_checkPermissions( event=event, key="configurelayout" );
+
 		var templateId = rc.template ?: "";
 
 		prc.template = emailTemplateService.getTemplate( id=templateId );
 
-		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
 			event.notFound();
-		}
-
-		if ( !hasCmsPermission( "emailcenter.systemtemplates.configurelayout" ) ) {
-			event.adminAccessDenied();
 		}
 
 		runEvent(
@@ -241,8 +239,8 @@ component extends="preside.system.base.AdminHandler" {
 			, private        = true
 			, prepostExempt  = true
 			, eventArguments = {
-				  successUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.template", queryString="template=" & templateId )
-				, failureUrl = event.buildAdminLink( linkto="emailcenter.systemTemplates.configureLayout", queryString="template=" & templateId )
+				  successUrl = event.buildAdminLink( linkto="emailcenter.customTemplates.preview", queryString="id=" & templateId )
+				, failureUrl = event.buildAdminLink( linkto="emailcenter.customTemplates.configureLayout", queryString="id=" & templateId )
 				, layoutId   = prc.template.layout
 				, templateId = templateId
 			  }
