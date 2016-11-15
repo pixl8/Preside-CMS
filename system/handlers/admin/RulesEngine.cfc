@@ -68,6 +68,7 @@ component extends="preside.system.base.AdminHandler" {
 				, errorAction      = "rulesEngine.addCondition"
 				, viewRecordAction = "rulesEngine.editCondition"
 				, addAnotherAction = "rulesEngine.addCondition"
+				, queryString      = "context=#rc.context#"
 				, successAction    = "rulesEngine"
 				, audit             = true
 				, auditType         = "rulesEngine"
