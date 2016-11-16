@@ -98,6 +98,7 @@ component displayName="RulesEngine Expression Reader Service" {
 
 		var functions   = meta.functions ?: [];
 		var baseId      = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
+		var isFilter    = false;
 		var expressions = {};
 
 		for( var func in functions ) {
@@ -105,8 +106,15 @@ component displayName="RulesEngine Expression Reader Service" {
 				expressions[ baseId ] = {
 					  contexts = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
 					, fields   = getExpressionFieldsFromFunctionDefinition( func )
+					, isFilter = isFilter
 				};
-				break;
+			} else if ( func.name == "prepareFilters" ) {
+				if ( expressions.keyExists( baseId ) ) {
+					expressions[ baseId ].isFilter = true;
+					break;
+				} else {
+					isFilter = true;
+				}
 			}
 		}
 
