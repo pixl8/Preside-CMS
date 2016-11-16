@@ -111,10 +111,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expandedContexts ).toBe( [ "somethingelse", "test", "user", "webrequest" ] );
 			} );
 		} );
+
+		describe( "getFilterObjectForContext()", function(){
+			it( "should return the configured object that filters for the given context will filter against", function(){
+				var service  = _getService();
+
+				expect( service.getFilterObjectForContext( "user" ) ).toBe( "website_user" );
+			} );
+
+			it( "should return an empty string when the context has no configured filterObject", function(){
+				var service  = _getService();
+
+				expect( service.getFilterObjectForContext( "webrequest" ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the context does not exist", function(){
+				var service  = _getService();
+
+				expect( service.getFilterObjectForContext( "blah" ) ).toBe( "" );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
-	private any function _getService( struct contexts=_getDefaultlConfiguredContexts() ) {
+	private any function _getService( struct contexts=_getDefaultConfiguredContexts() ) {
 		var service = createMock( object=new preside.system.services.rulesEngine.RulesEngineContextService(
 			configuredContexts = arguments.contexts
 		) );

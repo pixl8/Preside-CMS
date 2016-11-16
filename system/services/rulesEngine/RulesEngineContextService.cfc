@@ -95,6 +95,18 @@ component displayName="RulesEngine Context Service" {
 		return expanded;
 	}
 
+	/**
+	 * Returns the configured object (ID) that filters for the given context will filter against
+	 *
+	 * @autodoc
+	 * @context.hint The context who's filter object you wish to get
+	 */
+	public string function getFilterObjectForContext( required string context ) {
+		var contexts = _getConfiguredContexts();
+
+		return contexts[ arguments.context ].filterObject ?: "";
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredContexts() {
 		return _configuredContexts;
