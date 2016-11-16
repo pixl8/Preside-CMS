@@ -348,6 +348,92 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.preProcessConfiguredFields( expressionId, configuredFields ) ).toBe( { fielda="processeda", fieldb="processedb", fieldc="processedc" } );
 			} );
 		} );
+
+		describe( "prepareExpressionFilters()", function(){
+			it( "should return result of 'prepareFilters()' method with expression configuration passed as arguments", function(){
+				var service      = _getService();
+				var context      = "request";
+				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
+				var fields       = { _is = false, test=CreateUUId() };
+				var expressionId = "userGroup.user";
+				var eventArgs    = { context = context };
+
+				eventArgs.append( fields );
+
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = "rules.expressions.#expressionId#.prepareFilters"
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = eventArgs
+				).$results( dummyFilters );
+
+				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
+
+				expect( service.prepareExpressionFilters(
+					  expressionId     = expressionId
+					, context          = context
+					, configuredFields = fields
+				) ).toBe( dummyFilters );
+			} );
+
+
+			it( "should throw an informative error when the expression does not exist", function(){
+				var service      = _getService();
+				var expressionId = "non.existant";
+				var errorThrown  = false;
+
+				try {
+					service.prepareExpressionFilters(
+						  expressionId     = expressionId
+						, context          = "whatev"
+						, configuredFields = {}
+					);
+
+				} catch( "preside.rule.expression.not.found" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The expression [#expressionId#] could not be found." );
+
+				} catch( any e ) {
+					fail( "An unexpected error was thrown, rather than a controlled error" );
+				}
+				expect( errorThrown ).toBe( true );
+			} );
+
+			it( "should throw an informative error when the expression does not support the given context", function(){
+				var service      = _getService();
+				var expressionId = "userGroup.event_booking";
+				var errorThrown  = false;
+
+				try {
+					service.prepareExpressionFilters(
+						  expressionId     = expressionId
+						, context          = "whatev"
+						, configuredFields = {}
+					);
+
+				} catch( "preside.rule.expression.invalid.context" e ) {
+					errorThrown = true;
+					expect( e.message ).toBe( "The expression [#expressionId#] cannot be used in the [whatev] context." );
+
+				} catch( any e ) {
+					fail( "An unexpected error was thrown, rather than a controlled error" );
+				}
+				expect( errorThrown ).toBe( true );
+			} );
+
+			it( "should return an empty array when the expression does not support filters", function(){
+				var service      = _getService();
+				var context      = "request";
+				var fields       = { _is = false, test=CreateUUId() };
+				var expressionId = "expression7.context5";
+
+				expect( service.prepareExpressionFilters(
+					  expressionId     = expressionId
+					, context          = context
+					, configuredFields = fields
+				) ).toBe( [] );
+			} );
+		} );
 	}
 
 
@@ -375,13 +461,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultTestExpressions() {
 		return {
-			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ] }
-			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ] }
-			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ] }
-			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ] }
-			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ] }
-			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ] }
-			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ] }
+			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], isFilter=true }
+			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], isFilter=true }
+			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], isFilter=true }
+			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], isFilter=true }
+			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], isFilter=true }
+			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ], isFilter=true }
+			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ], isFilter=false }
 		};
 	}
 

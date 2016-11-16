@@ -172,6 +172,49 @@ component displayName="RulesEngine Expression Service" {
 	}
 
 	/**
+	 * Returns a prepared filter for the given expression, context
+	 * and configured fields.
+	 *
+	 * @autodoc               true
+	 * @expressionId.hint     The ID of the expression who's filters you wish to prepare
+	 * @context.hint          The context in which the expression is being used as a filter. e.g. 'user', or 'page'
+	 * @configuredFields.hint A structure of fields configured for the expression instance who's filter we are preparing
+	 */
+	public array function prepareExpressionFilters(
+		  required string expressionId
+		, required string context
+		, required struct configuredFields
+	) {
+		var expression = _getRawExpression( expressionid );
+		var contexts   = expression.contexts ?: [];
+
+		if ( !contexts.findNoCase( arguments.context ) && !contexts.findNoCase( "global" ) ) {
+			throw(
+				  type    = "preside.rule.expression.invalid.context"
+				, message = "The expression [#arguments.expressionId#] cannot be used in the [#arguments.context#] context."
+			);
+		}
+
+		if ( !expression.isFilter ) {
+			return [];
+		}
+
+		var handlerAction = "rules.expressions." & arguments.expressionId & ".prepareFilters";
+		var eventArgs     = { context=arguments.context };
+
+		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
+
+		var result = $getColdbox().runEvent(
+			  event          = handlerAction
+			, private        = true
+			, prePostExempt  = true
+			, eventArguments = eventArgs
+		);
+
+		return result;
+	}
+
+	/**
 	 * Validates a configured expression for a given context.
 	 * Returns true if valid, false otherwise and sets specific
 	 * error messages using the passed [[api-validationresult]] object.
