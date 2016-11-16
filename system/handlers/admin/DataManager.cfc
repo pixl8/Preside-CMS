@@ -1561,7 +1561,6 @@
 		<cfargument name="draftsEnabled"     type="boolean" required="false" default="false" />
 		<cfargument name="canPublish"        type="boolean" required="false" default="false" />
 		<cfargument name="canSaveDraft"      type="boolean" required="false" default="false" />
-		<cfargument name="queryString"       type="string"  required="false" default="" />
 
 		<cfscript>
 			var formData         = event.getCollectionForForm( arguments.formName );
@@ -1632,9 +1631,6 @@
 
 			if ( Val( event.getValue( name="_addanother", defaultValue=0 ) ) ) {
 				if ( Len( addAnotherAction ?: "" ) ) {
-					if( Len( Trim( arguments.queryString ) ) )
-						setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother", queryString=arguments.queryString );
-
 					setNextEvent( url=event.buildAdminLink( linkTo=addAnotherAction ), persist="_addAnother" );
 				} else {
 					setNextEvent( url=event.buildAdminLink( linkTo="datamanager.addRecord", queryString="object=#object#" ), persist="_addAnother" );
