@@ -6,7 +6,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( _getService({}).listContexts() ).toBe( [] );
 			} );
 
-			it( "should return an array of configured context, each element containing a struct with keys id, title, description and iconClass (the latter three being derived by convention from the ID using i18n properties)", function(){
+			it( "should return an array of configured context, each element containing a struct with keys id, filterObject, title, description and iconClass (the latter three being derived by convention from the ID using i18n properties)", function(){
 				var contexts = _getDefaultConfiguredContexts();
 				var service  = _getService( contexts );
 				var expected = [];
@@ -17,10 +17,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					service.$( "$translateResource" ).$args( "rules.contexts:#id#.iconClass"   ).$results( id & "icon"        );
 
 					expected.append({
-						  id          = id
-						, title       = id & "title"
-						, description = id & "description"
-						, iconClass   = id & "icon"
+						  id           = id
+						, title        = id & "title"
+						, description  = id & "description"
+						, iconClass    = id & "icon"
+						, filterObject = ( contexts[ id ].filterObject ?: "" )
 					});
 				}
 
@@ -29,6 +30,35 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 
 				expect( service.listContexts() ).toBe( expected );
+			} );
+
+			it( "should filter the returned list by matched filter preside object, when an object id is passed", function(){
+				var contexts = _getDefaultConfiguredContexts();
+				var service  = _getService( contexts );
+				var object   = "website_user";
+				var expected = [];
+
+				for( var id in contexts ) {
+					if ( ( contexts[id].filterObject ?: "" ) == object ) {
+						service.$( "$translateResource" ).$args( "rules.contexts:#id#.title"       ).$results( id & "title"       );
+						service.$( "$translateResource" ).$args( "rules.contexts:#id#.description" ).$results( id & "description" );
+						service.$( "$translateResource" ).$args( "rules.contexts:#id#.iconClass"   ).$results( id & "icon"        );
+
+						expected.append({
+							  id           = id
+							, title        = id & "title"
+							, description  = id & "description"
+							, iconClass    = id & "icon"
+							, filterObject = object
+						});
+					}
+				}
+
+				expected.sort( function( a, b ){
+					return a.title > b.title ? 1 : -1;
+				} );
+
+				expect( service.listContexts( filterObject=object ) ).toBe( expected );
 			} );
 		} );
 
@@ -95,8 +125,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getDefaultConfiguredContexts() {
 		return {
 			  webrequest = { subcontexts=[ "user", "page" ] }
-			, user       = {}
-			, page       = {}
+			, user       = { filterObject="website_user" }
+			, page       = { filterObject="page" }
 		};
 	}
 

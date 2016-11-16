@@ -25,19 +25,24 @@ component displayName="RulesEngine Context Service" {
 // PUBLIC API
 	/**
 	 * Returns an array with details of all configured rules engine expression contexts
+	 *
 	 * @autodoc
+	 * @filterObject.hint optionally use this argument to provide an object with which to filter the contexts. Only contexts that can be used as a filter for this object will be returned
 	 */
-	public array function listContexts() {
+	public array function listContexts( string filterObject = "" ) {
 		var contexts = _getConfiguredContexts();
 		var list     = [];
 
 		for( var contextId in contexts ) {
-			list.append({
-				  id          = contextId
-				, title       = $translateResource( "rules.contexts:#contextId#.title"       )
-				, description = $translateResource( "rules.contexts:#contextId#.description" )
-				, iconClass   = $translateResource( "rules.contexts:#contextId#.iconClass"   )
-			});
+			if ( !arguments.filterObject.len() || ( contexts[ contextId ].filterObject ?: "" ) == arguments.filterObject ) {
+				list.append({
+					  id           = contextId
+					, title        = $translateResource( "rules.contexts:#contextId#.title"       )
+					, description  = $translateResource( "rules.contexts:#contextId#.description" )
+					, iconClass    = $translateResource( "rules.contexts:#contextId#.iconClass"   )
+					, filterObject = contexts[ contextId ].filterObject ?: ""
+				});
+			}
 		}
 
 		list.sort( function( a, b ){
