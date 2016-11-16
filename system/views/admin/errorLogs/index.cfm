@@ -21,6 +21,7 @@
 				<tr>
 					<th>#translateResource( "cms:errorLogs.table.header.date" )#</th>
 					<th>#translateResource( "cms:errorLogs.table.header.filename" )#</th>
+					<th>#translateResource( "cms:errorLogs.table.header.message" )#</th>
 					<th>#translateResource( "cms:errorLogs.table.header.actions" )#</th>
 				</tr>
 			</thead>
@@ -32,6 +33,9 @@
 							<a href="#event.buildAdminLink( linkTo='errorLogs.view', queryString='log=' & log.filename )#" data-context-key="v" target="_blank">
 								<i class="fa fa-fw fa-external-link"></i> #log.filename#
 							</a>
+						</td>
+						<td>
+							#left( log.message, "30" )#...<span class="fa fa-caret-down" data-rel="popover" data-trigger="hover" data-placement="left" data-content="<pre>#log.message#</pre>" data-html="true"></span>
 						</td>
 						<td>
 							<div class="action-buttons btn-group">
