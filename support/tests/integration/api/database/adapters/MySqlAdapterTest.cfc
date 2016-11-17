@@ -654,6 +654,23 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test34_getSelectSql_shouldAllowHavingSpecification" returntype="void">
+		<cfscript>
+			var adapter = _getAdapter();
+			var expected = "select `id`, label, Count(*) as counts from `event` where `event_category`.`test` = :event_category__test and `event_date` = :event_date group by `id` having count(1) > 4 order by event_category, sort_order desc";
+			var result = adapter.getSelectSql(
+				  tableName     = "event"
+				, selectColumns = [ "`id`", "label", "Count(*) as counts" ]
+				, filter        = { "event_category.test" = "test", event_date="2012-09-21" }
+				, orderBy       = "event_category, sort_order desc"
+				, groupBy       = "`id`"
+				, having        = "Count(1) > 4"
+			);
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
 <!--- te helpers --->
 	<cffunction name="_getAdapter" access="private" returntype="any" output="false">
 		<cfreturn new preside.system.services.database.adapters.MySqlAdapter( argumentCollection = arguments ) />

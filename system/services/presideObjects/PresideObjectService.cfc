@@ -135,6 +135,7 @@ component displayName="Preside Object Service" {
 	 * @extraFilters.hint       An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
 	 * @orderBy.hint            Plain SQL order by string
 	 * @groupBy.hint            Plain SQL group by string
+	 * @having.hint             Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
 	 * @maxRows.hint            Maximum number of rows to select
 	 * @startRow.hint           Offset the recordset when using maxRows
 	 * @useCache.hint           Whether or not to automatically cache the result internally
@@ -158,6 +159,7 @@ component displayName="Preside Object Service" {
 		,          array   savedFilters       = []
 		,          string  orderBy            = ""
 		,          string  groupBy            = ""
+		,          string  having             = ""
 		,          numeric maxRows            = 0
 		,          numeric startRow           = 1
 		,          boolean useCache           = true
@@ -205,7 +207,6 @@ component displayName="Preside Object Service" {
 		args.joinTargets = _extractForeignObjectsFromArguments( argumentCollection=args );
 		args.joins       = _getJoinsFromJoinTargets( argumentCollection=args );
 
-
 		if ( args.fromVersionTable && objectIsVersioned( args.objectName ) ) {
 			args.result = _selectFromVersionTables(
 				  argumentCollection = args
@@ -220,6 +221,7 @@ component displayName="Preside Object Service" {
 				, tableAlias         = args.objectName
 				, selectColumns      = args.selectFields
 				, filter             = args.preparedFilter.filter
+				, having             = args.preparedFilter.having
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
 			);
 
@@ -230,9 +232,7 @@ component displayName="Preside Object Service" {
 			if ( arguments.recordCountOnly ) {
 				args.result = Val( args.result.record_count ?: "" );
 			}
-
 		}
-
 
 		if ( args.useCache ) {
 			_getDefaultQueryCache().set( args.cacheKey, args.result );
@@ -1550,6 +1550,7 @@ component displayName="Preside Object Service" {
 
 	) {
 		var filter     = arguments.preparedFilter.filter ?: "";
+		var having     = arguments.preparedFilter.having ?: "";
 		var key        = "";
 		var cache      = _getCache();
 		var cacheKey   = "Detected foreign objects for generated SQL. Obj: #arguments.objectName#. Data: #StructKeyList( arguments.data )#. Fields: #ArrayToList( arguments.selectFields )#. Order by: #arguments.orderBy#. Filter: #IsStruct( filter ) ? StructKeyList( filter ) : filter#"
@@ -1601,7 +1602,14 @@ component displayName="Preside Object Service" {
 				}
 			}
 		}
-
+		if ( Len( Trim( having ) ) ) {
+			matches = _reSearch( fieldRegex, having );
+			if ( StructKeyExists( matches, "$2" ) ) {
+				for( match in matches.$2 ){
+					objects[ match ] = 1;
+				}
+			}
+		}
 
 		StructDelete( objects, arguments.objectName );
 		objects = StructKeyArray( objects );
@@ -2009,6 +2017,7 @@ component displayName="Preside Object Service" {
 		, required array  savedFilters
 		, required any    adapter
 		, required struct columnDefinitions
+		,          string having = ""
 		,          string id
 	) {
 		_announceInterception( "prePrepareObjectFilter", arguments );
@@ -2016,8 +2025,8 @@ component displayName="Preside Object Service" {
 		var result = {
 			  filter       = arguments.keyExists( "id" ) ? { id = arguments.id } : arguments.filter
 			, filterParams = arguments.filterParams
+			, having       = arguments.having
 		};
-
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
 			result.filterParams = Duplicate( result.filter );
 		}
@@ -2065,31 +2074,39 @@ component displayName="Preside Object Service" {
 				, data              = result.filter
 				, dbAdapter         = adapter
 			);
-		} else {
+		}
+
+		if ( !IsStruct( result.filter ) || result.having.len() ) {
 			for( var key in result.filterParams ) {
 				var aliasedKey = _autoAliasBareProperty( objectName=arguments.objectName, propertyName=key, dbAdapter=arguments.adapter, escapeEntities=false );
 				if ( aliasedKey != key ) {
 					result.filterParams[ aliasedKey ] = result.filterParams[ key ];
 					result.filterParams.delete( key );
-					result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+					if ( IsSimpleValue( result.filter ) ) {
+						result.filter = result.filter.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
+					}
+					result.having = result.having.reReplaceNoCase( ":#key#(\b)", ":#aliasedKey#\1", "all" );
 				}
 			}
 
 			var objOrPropRegex = "[a-z_\-][a-z0-9_\-]*";
-			result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
-			result.params = _convertUserFilterParamsToQueryParams(
+			if ( IsSimpleValue( result.filter ) ) {
+				result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
+			}
+			result.having = ReReplaceNoCase( result.having, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
+			result.params = result.params ?: [];
+			result.params.append( _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
 				, dbAdapter         = adapter
 				, objectName        = arguments.objectName
-			);
+			), true );
 		}
 
 		var interceptData = arguments;
 		    interceptData.result = result;
 
 		_announceInterception( "postPrepareObjectFilter", interceptData );
-
 		return result;
 	}
 

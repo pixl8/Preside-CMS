@@ -211,6 +211,7 @@ component {
 		  required string  tableName
 		, required array   selectColumns
 		,          any     filter        = {}
+		,          string  having        = ""
 		,          string  orderBy       = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
