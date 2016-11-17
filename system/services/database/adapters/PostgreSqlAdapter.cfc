@@ -283,6 +283,9 @@ component extends="BaseAdapter" {
 			}
 		}
 
+		if ( Len( Trim ( arguments.having ) ) ) {
+			sql &= " having " & arguments.having;
+		}
 
 		if ( Len( Trim ( arguments.orderBy ) ) ) {
 			sql &= " order by " & arguments.orderBy;
