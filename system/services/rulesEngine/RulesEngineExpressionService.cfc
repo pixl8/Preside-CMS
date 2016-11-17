@@ -306,6 +306,30 @@ component displayName="RulesEngine Expression Service" {
 		return configuredFields;
 	}
 
+	/**
+	 * Allows developers to dynamically add a new rules engine condition
+	 *
+	 */
+	public void function addExpression(
+		  required string id
+		, required string expressionHandler
+		,          array  contexts              = []
+		,          struct fields                = {}
+		,          array  filterObjects         = []
+		,          string filterHandler         = ""
+		,          struct expressionHandlerArgs = {}
+		,          struct filterHandlerArgs     = {}
+		,          array  i18nLabelArgs         = []
+		,          array  i18nTextArgs          = []
+	) {
+		var args = Duplicate( arguments );
+		var expressions = _getExpressions();
+
+		args.delete( "id" );
+
+		expressions[ arguments.id ] = args;
+	}
+
 // PRIVATE HELPERS
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();

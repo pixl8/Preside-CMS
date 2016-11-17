@@ -559,6 +559,41 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( errorThrown ).toBe( true );
 			} );
 		} );
+
+		describe( "addExpression()", function(){
+			it( "should result in the added expression (defined by arguments) being available in the expression library", function(){
+				var service      = _getService();
+				var expressionIds = mockExpressions.keyArray();
+				var newExpression = {
+					  id                    = "some.expression"
+					, contexts              = [ "context1" ]
+					, fields                = {}
+					, filterObjects         = [ "object1", "object2" ]
+					, expressionHandler     = "blah"
+					, filterHandler         = "blahblah"
+					, expressionHandlerArgs = {}
+					, filterHandlerArgs     = {}
+					, i18nLabelArgs         = []
+					, i18nTextArgs          = []
+				};
+				expressionIds.append( newExpression.id );
+
+				for( var id in expressionIds ){
+					service.$( "getExpression" ).$args( id ).$results( { id=id, label="whatev", text="whatever", fields={}, contexts=[] } );
+				}
+
+				service.addExpression( argumentCollection=newExpression );
+
+				var expressions = service.listExpressions();
+				var ids         = [];
+
+				for( var expression in expressions ) {
+					ids.append( expression.id );
+				}
+
+				expect( ids.findNoCase( newExpression.id ) > 0 ).toBe( true );
+			} );
+		} );
 	}
 
 
