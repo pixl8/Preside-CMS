@@ -7,6 +7,8 @@
 	defaultValue = args.defaultValue ?: "";
 	maxLength    = Val( args.maxLength ?: 0 );
 	expressions  = args.expressions  ?: [];
+	isFilter     = IsTrue( args.isFilter ?: "" ) ? "true" : "false"; // deliberate stringifying of booleans here
+	object       = args.object ?: "";
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -17,7 +19,7 @@
 </cfscript>
 
 <cfoutput>
-	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="#inputClass# form-control rules-engine-condition-builder" tabindex="#getNextTabIndex()#">#value#</textarea>
+	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="#inputClass# form-control rules-engine-condition-builder" tabindex="#getNextTabIndex()#" data-is-filter="#isFilter#"<cfif isFilter && object.len()> data-object-name="#object#"</cfif>>#value#</textarea>
 	<div class="rules-engine-condition-builder hide">
 		<div class="well">
 			<div class="row">
@@ -47,6 +49,9 @@
 					</div>
 				</div>
 			</div>
+			<cfif isFilter>
+				<p class="grey rules-engine-condition-builder-filter-count">#translateResource( uri="cms:rulesEngine.filter.builder.record.count.message", data=[ '<span class="rules-engine-condition-builder-filter-count-count">0</span>'] )#</p>
+			</cfif>
 		</div>
 	</div>
 </cfoutput>

@@ -3,16 +3,22 @@
 	var expressionLib        = cfrequest.rulesEngineExpressions         || {}
 	  , renderFieldEndpoint  = cfrequest.rulesEngineRenderFieldEndpoint || ""
 	  , editFieldEndpoint    = cfrequest.rulesEngineEditFieldEndpoint   || ""
+	  , filterCountEndpoint  = cfrequest.rulesEngineFilterCountEndpoint || ""
 	  , context              = cfrequest.rulesEngineContext             || "global";
 
 	var RulesEngineCondition = (function() {
-		function RulesEngineCondition( $formControl, expressions, $ruleList ) {
+		function RulesEngineCondition( $formControl, expressions, $ruleList, isFilter, $filterCount, objectName ) {
 			this.$formControl     = $formControl;
 			this.$ruleList        = $ruleList;
 			this.model            = this.deserialize( this.$formControl.val() );
 			this.expressions      = expressions;
 			this.fieldRenderCache = {};
 			this.selectedIndex    = null;
+			this.isFilter         = isFilter;
+			if ( this.isFilter ) {
+				this.$filterCount = $filterCount;
+				this.objectName   = objectName;
+			}
 
 			this.setupBehaviors();
 			this.render();
@@ -55,6 +61,8 @@
 
 		RulesEngineCondition.prototype.render = function() {
 			var lis, $selectedLi, transformExpressionsToHtmlLis, i, rulesEngineCondition=this;
+
+			this.updateFilterCount();
 
 			transformExpressionsToHtmlLis = function( expressions, depth, index ) {
 				var lis             = []
@@ -121,6 +129,19 @@
 			if ( $selectedLi ) {
 				this.selectExpression( $selectedLi );
 			}
+		};
+
+		RulesEngineCondition.prototype.updateFilterCount = function() {
+			if ( !this.isFilter ) { return; }
+
+			var conditionBuilder = this;
+
+			conditionBuilder.$filterCount.html( '' ).addClass( "loading" );
+			$.post(
+				  filterCountEndpoint
+				, { condition:this.serialize(), objectName:this.objectName }
+				, function( data ){ conditionBuilder.$filterCount.html( data ).removeClass( "loading" ); }
+			);
 		};
 
 		RulesEngineCondition.prototype.addExpression = function( expressionId ) {
@@ -587,10 +608,13 @@
 			  , $expressionList   = $builderContainer.find( ".rules-engine-condition-builder-expressions-list" )
 			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
+			  , $filterCount      = $builderContainer.find( ".rules-engine-condition-builder-filter-count-count" )
 			  , $expressions      = $expressionList.find( "> li" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , expressions       = expressionLib[ $formControl.attr( "id" ) ] || []
+			  , isFilter          = $formControl.data( "isFilter" ) || false
+			  , objectName        = $formControl.data( "objectName" )
 			  , $hiddenControl
 			  , condition
 			  , performSearch
@@ -617,7 +641,7 @@
 				$formControl.remove();
 				$hiddenControl.attr( "id", id );
 
-				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList );
+				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList, isFilter, $filterCount, objectName );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
