@@ -146,8 +146,9 @@ component displayName="Preside Object Service" {
 	 * @filter.docdefault       {}
 	 * @filterParams.docdefault {}
 	 * @extraFilters.docdefault []
+	 * @recordCountOnly.hint    If set to true, the method will just return the number of records that the select statement would return
 	 */
-	public query function selectData(
+	public any function selectData(
 		  required string  objectName
 		,          string  id
 		,          array   selectFields       = []
@@ -164,6 +165,7 @@ component displayName="Preside Object Service" {
 		,          numeric specificVersion    = 0
 		,          boolean allowDraftVersions = $getRequestContext().showNonLiveContent()
 		,          string  forceJoins         = ""
+		,          boolean recordCountOnly    = false
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
@@ -221,9 +223,14 @@ component displayName="Preside Object Service" {
 				, joins              = _convertObjectJoinsToTableJoins( argumentCollection=args )
 			);
 
-
-
+			if ( arguments.recordCountOnly ) {
+				sql = args.adapter.getCountSql( sql );
+			}
 			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
+			if ( arguments.recordCountOnly ) {
+				args.result = Val( args.result.record_count ?: "" );
+			}
+
 		}
 
 
