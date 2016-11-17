@@ -211,6 +211,7 @@ component {
 		  required string  tableName
 		, required array   selectColumns
 		,          any     filter        = {}
+		,          string  having        = ""
 		,          string  orderBy       = ""
 		,          string  groupBy       = ""
 		,          string  tableAlias    = ""
@@ -277,7 +278,11 @@ component {
 		var dottedSqlParamRegex = "([$\s]:[a-zA-Z_][a-zA-Z0-9_]*)[\.\$]([a-zA-Z_][a-zA-Z0-9_]*([\s\),]|$))";
 
 		if ( IsSimpleValue( arguments.filter ) ) {
-			return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
+			if ( Len( Trim( arguments.filter ) ) ) {
+				return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
+			}
+
+			return "";
 		}
 
 		filterKeys = StructKeyArray( arguments.filter );
@@ -443,5 +448,9 @@ component {
 
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
+	}
+
+	public string function getCountSql( required string originalStatement ) {
+		return "select count(1) as #EscapeEntity( 'record_count' )# from ( #arguments.originalStatement# ) #EscapeEntity( 'original_statement' )#";
 	}
 }
