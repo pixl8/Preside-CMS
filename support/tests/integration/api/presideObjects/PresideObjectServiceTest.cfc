@@ -2591,7 +2591,26 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test083_selectData_shouldReturnJustARecordCount_whenRecordCountOnlyIsPassedAsTrue" returntype="void">
+		<cfscript>
+			var poService      = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithRelationship/" ] );
+			var result         = "";
+			var expectedFields = ["id", "label" ];
+			var field          = "";
+			var i              = 0;
 
+			poService.dbSync();
+
+			poService.insertData( objectName="object_a", data={ label="label 1" } );
+			poService.insertData( objectName="object_a", data={ label="label 2" } );
+			poService.insertData( objectName="object_a", data={ label="label 3" } );
+			poService.insertData( objectName="object_a", data={ label="label 4" } );
+
+			result = poService.selectData( objectname="object_a", selectFields=expectedFields, recordCountOnly=true );
+
+			super.assertEquals( 4, result );
+		</cfscript>
+	</cffunction>
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
