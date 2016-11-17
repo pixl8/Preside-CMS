@@ -21,7 +21,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 						, title        = id & "title"
 						, description  = id & "description"
 						, iconClass    = id & "icon"
-						, filterObject = ( contexts[ id ].filterObject ?: "" )
 					});
 				}
 
@@ -30,35 +29,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 
 				expect( service.listContexts() ).toBe( expected );
-			} );
-
-			it( "should filter the returned list by matched filter preside object, when an object id is passed", function(){
-				var contexts = _getDefaultConfiguredContexts();
-				var service  = _getService( contexts );
-				var object   = "website_user";
-				var expected = [];
-
-				for( var id in contexts ) {
-					if ( ( contexts[id].filterObject ?: "" ) == object ) {
-						service.$( "$translateResource" ).$args( "rules.contexts:#id#.title"       ).$results( id & "title"       );
-						service.$( "$translateResource" ).$args( "rules.contexts:#id#.description" ).$results( id & "description" );
-						service.$( "$translateResource" ).$args( "rules.contexts:#id#.iconClass"   ).$results( id & "icon"        );
-
-						expected.append({
-							  id           = id
-							, title        = id & "title"
-							, description  = id & "description"
-							, iconClass    = id & "icon"
-							, filterObject = object
-						});
-					}
-				}
-
-				expected.sort( function( a, b ){
-					return a.title > b.title ? 1 : -1;
-				} );
-
-				expect( service.listContexts( filterObject=object ) ).toBe( expected );
 			} );
 		} );
 
@@ -111,26 +81,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expandedContexts ).toBe( [ "somethingelse", "test", "user", "webrequest" ] );
 			} );
 		} );
-
-		describe( "getFilterObjectForContext()", function(){
-			it( "should return the configured object that filters for the given context will filter against", function(){
-				var service  = _getService();
-
-				expect( service.getFilterObjectForContext( "user" ) ).toBe( "website_user" );
-			} );
-
-			it( "should return an empty string when the context has no configured filterObject", function(){
-				var service  = _getService();
-
-				expect( service.getFilterObjectForContext( "webrequest" ) ).toBe( "" );
-			} );
-
-			it( "should return an empty string when the context does not exist", function(){
-				var service  = _getService();
-
-				expect( service.getFilterObjectForContext( "blah" ) ).toBe( "" );
-			} );
-		} );
 	}
 
 // PRIVATE HELPERS
@@ -145,8 +95,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getDefaultConfiguredContexts() {
 		return {
 			  webrequest = { subcontexts=[ "user", "page" ] }
-			, user       = { filterObject="website_user" }
-			, page       = { filterObject="page" }
+			, user       = {}
+			, page       = {}
 		};
 	}
 

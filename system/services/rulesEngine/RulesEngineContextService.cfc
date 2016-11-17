@@ -27,22 +27,18 @@ component displayName="RulesEngine Context Service" {
 	 * Returns an array with details of all configured rules engine expression contexts
 	 *
 	 * @autodoc
-	 * @filterObject.hint optionally use this argument to provide an object with which to filter the contexts. Only contexts that can be used as a filter for this object will be returned
 	 */
-	public array function listContexts( string filterObject = "" ) {
+	public array function listContexts() {
 		var contexts = _getConfiguredContexts();
 		var list     = [];
 
 		for( var contextId in contexts ) {
-			if ( !arguments.filterObject.len() || ( contexts[ contextId ].filterObject ?: "" ) == arguments.filterObject ) {
-				list.append({
-					  id           = contextId
-					, title        = $translateResource( "rules.contexts:#contextId#.title"       )
-					, description  = $translateResource( "rules.contexts:#contextId#.description" )
-					, iconClass    = $translateResource( "rules.contexts:#contextId#.iconClass"   )
-					, filterObject = contexts[ contextId ].filterObject ?: ""
-				});
-			}
+			list.append({
+				  id           = contextId
+				, title        = $translateResource( "rules.contexts:#contextId#.title"       )
+				, description  = $translateResource( "rules.contexts:#contextId#.description" )
+				, iconClass    = $translateResource( "rules.contexts:#contextId#.iconClass"   )
+			});
 		}
 
 		list.sort( function( a, b ){
@@ -93,18 +89,6 @@ component displayName="RulesEngine Context Service" {
 		}
 
 		return expanded;
-	}
-
-	/**
-	 * Returns the configured object (ID) that filters for the given context will filter against
-	 *
-	 * @autodoc
-	 * @context.hint The context who's filter object you wish to get
-	 */
-	public string function getFilterObjectForContext( required string context ) {
-		var contexts = _getConfiguredContexts();
-
-		return contexts[ arguments.context ].filterObject ?: "";
 	}
 
 // GETTERS AND SETTERS
