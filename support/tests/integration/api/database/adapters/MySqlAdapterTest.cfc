@@ -643,6 +643,17 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test33_getCountSql_shouldReturnTheGivenCompleteSqlQueryWrappedInACountStatement" returntype="void">
+		<cfscript>
+			var adapter     = _getAdapter();
+			var originalSql = "select id from sometable";
+			var expected    = "select count(1) as `record_count` from ( select id from sometable ) `original_statement`"
+			var result      = adapter.getCountSql( originalStatement=originalSql );
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
 <!--- te helpers --->
 	<cffunction name="_getAdapter" access="private" returntype="any" output="false">
 		<cfreturn new preside.system.services.database.adapters.MySqlAdapter( argumentCollection = arguments ) />

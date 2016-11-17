@@ -444,4 +444,8 @@ component {
 	public string function getRenameColumnSql( required string tableName, required string oldColumnName, required string newColumnName ) {
 		return "getRenameColumnSql() not implemented. Must be implemented by extended adapters.";
 	}
+
+	public string function getCountSql( required string originalStatement ) {
+		return "select count(1) as #EscapeEntity( 'record_count' )# from ( #arguments.originalStatement# ) #EscapeEntity( 'original_statement' )#";
+	}
 }
