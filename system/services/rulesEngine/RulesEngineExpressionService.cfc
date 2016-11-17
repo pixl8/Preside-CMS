@@ -29,19 +29,26 @@ component displayName="RulesEngine Expression Service" {
 	 * labels and optionally filtered by context
 	 *
 	 * @autodoc
-	 * @context.hint Expression context with which to filter the results
+	 * @context.hint  Expression context with which to filter the results
+	 * @isFilter.hint Filter expressions on whether or not they can be used as query filters
 	 */
-	public array function listExpressions( string context="" ) {
-		var allExpressions  = _getExpressions();
-		var list            = [];
-		var filterOnContext = arguments.context.len() > 0;
+	public array function listExpressions( string context="", boolean isFilter ) {
+		var allExpressions     = _getExpressions();
+		var list               = [];
+		var filterOnContext    = arguments.context.len() > 0;
+		var filterOnFilterable = arguments.keyExists( "isFilter" );
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
 
-			if ( !filterOnContext || contexts.findNoCase( arguments.context ) || contexts.findNoCase( "global" ) ) {
-				list.append( getExpression( expressionId ) );
+			if ( filterOnContext && !( contexts.findNoCase( arguments.context ) || contexts.findNoCase( "global" ) ) ) {
+				continue;
 			}
+			if ( filterOnFilterable && allExpressions[ expressionId ].isFilter != arguments.isFilter ) {
+				continue;
+			}
+
+			list.append( getExpression( expressionId ) );
 		}
 
 		list.sort( function( a, b ){
