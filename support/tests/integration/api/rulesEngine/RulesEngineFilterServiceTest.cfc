@@ -61,6 +61,67 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( result.filter ?: "" ).toBe( expectedSql );
 				expect( result.filterParams ?: {} ).toBe( expectedParams );
 			} );
+
+			it( "should switch to using a having clause if *any* of the genrated expression filters uses a having clause", function(){
+				var service = _getService();
+				var dummyFilters = [
+					  [ { filter=CreateUUId(), filterParams={ param1=CreateUUId() } }, { filter=CreateUUId(), filterParams={ param2=CreateUUId() } } ]
+					, [ { filter=CreateUUId(), filterParams={ param3=CreateUUId() }, having=CreateUUId() } ]
+					, [ { filter=CreateUUId(), filterParams={ param4=CreateUUId() } } ]
+					, [ { filter=CreateUUId(), filterParams={ param5=CreateUUId() } } ]
+				];
+				var dummySqlFilters = [
+					  "filter1"
+					, "filter2"
+					, "filter3"
+					, "filter4"
+					, "filter5"
+				];
+				var expectedSql = "( filter1 and filter2 ) and ( ( filter3 and #dummyFilters[2][1].having# ) or ( filter4 and filter5 ) )";
+				var expectedParams = {
+					  param1 = dummyFilters[1][1].filterParams.param1
+					, param2 = dummyFilters[1][2].filterParams.param2
+					, param3 = dummyFilters[2][1].filterParams.param3
+					, param4 = dummyFilters[3][1].filterParams.param4
+					, param5 = dummyFilters[4][1].filterParams.param5
+				}
+				var dummyCondition = [{
+					  expression = "test.expression"
+					, fields     = { test=CreateUUId(), _is=true }
+				},
+				"and",[{
+						  expression = "another.expression"
+						, fields     = { test=CreateUUId(), _is=true }
+					},"or",[{
+							  expression = "another.expression"
+							, fields     = { test=CreateUUId(), _is=true }
+							},"and",{
+							  expression = "another.expression"
+							, fields     = { test=CreateUUId(), _is=true } }
+							]
+					]
+				];
+
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, objectName=dummyObject, configuredFields = dummyCondition[1].fields ).$results( dummyFilters[1] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][1].fields ).$results( dummyFilters[2] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][1].fields ).$results( dummyFilters[3] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][3].fields ).$results( dummyFilters[4] );
+
+				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[1] );
+				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][2].filter, tableAlias=dummyObject ).$results( dummySqlFilters[2] );
+				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[2][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[3] );
+				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[3][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[4] );
+				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[4][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[5] );
+
+				var result = service.prepareFilter(
+					  objectName      = dummyObject
+					, expressionArray = dummyCondition
+				);
+
+				expect( result.having ?: "" ).toBe( expectedSql );
+				expect( result.filter ?: "" ).toBe( "" );
+				expect( result.filterParams ?: {} ).toBe( expectedParams );
+			} );
 		} );
 
 		describe( "selectData()", function(){
@@ -104,7 +165,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "call selectData with a selectFields value that gets a Count() of records and returns the count", function(){
 				var service               = _getService();
 				var expressionArray       = [ "whatever" ];
-				var dummySelectDataResult = QueryNew( 'record_count', 'int', [[41]] );
+				var dummySelectDataResult = 41;
 
 				service.$( "selectData", dummySelectDataResult );
 
@@ -116,7 +177,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().selectData[1] ).toBe( {
 					  objectName      = dummyObject
 					, expressionArray = expressionArray
-					, selectFields    = [ "Count(1) as record_count" ]
+					, recordCountOnly = true
 				} );
 			} );
 		} );

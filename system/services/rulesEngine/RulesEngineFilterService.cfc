@@ -39,6 +39,7 @@ component displayName="Rules Engine Filter Service" {
 		var join      = "";
 		var sql       = "";
 		var params    = {};
+		var isHaving  = false;
 
 		for( var i=1; i <= expressionArray.len(); i++ ) {
 			var isJoin = !(i mod 2);
@@ -47,7 +48,13 @@ component displayName="Rules Engine Filter Service" {
 			} else if ( IsArray( expressionArray[i] ) ) {
 				var subFilter = prepareFilter( objectName, expressionArray[i] );
 
-				sql &= " #join# ( #subfilter.filter# )";
+				if ( subFilter.keyExists( "having" ) ) {
+					isHaving = true;
+					sql &= " #join# ( #subfilter.having# )";
+				} else {
+					sql &= " #join# ( #subfilter.filter# )";
+				}
+
 				params.append( subFilter.filterParams );
 			} else {
 				var rawFilters = _getExpressionService().prepareExpressionFilters(
@@ -63,10 +70,27 @@ component displayName="Rules Engine Filter Service" {
 					}
 					var delim = "";
 					for( var rawFilter in rawFilters ) {
-						params.append( IsStruct( rawFilter.filter ?: "" ) ? rawFilter.filter : ( rawFilter.filterParams ?: {} ) );
+						params.append( rawFilter.filterParams ?: {} );
+						if ( IsStruct( rawFilter.filter ?: "" ) ){
+							params.append( rawFilter.filter );
+						}
+
 						var rawSql = dbAdapter.getClauseSql( filter=rawFilter.filter ?: "", tableAlias=arguments.objectName );
-						sql &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
-						delim = " and ";
+						var having = rawFilter.having ?: "";
+
+						if ( having.len() ) {
+							isHaving = true;
+							if ( rawSql.len() ) {
+								rawSql = "( #rawSql# and #having# )";
+							} else {
+								rawSql = having;
+							}
+						}
+
+						if ( rawSql.len() ) {
+							sql &= delim & Trim( Trim( rawSql ).reReplace( "^where", "" ) );
+							delim = " and ";
+						}
 					}
 					if ( rawFilters.len() > 1 ) {
 						sql &= " )";
@@ -75,10 +99,14 @@ component displayName="Rules Engine Filter Service" {
 			}
 		}
 
-		return {
-			  filter       = Trim( sql )
-			, filterParams = params
-		};
+		var returnValue = { filterParams=params };
+		if ( isHaving ) {
+			returnValue.having = Trim( sql );
+		} else {
+			returnValue.filter = Trim( sql );
+		}
+
+		return returnValue;
 	}
 
 	/**
@@ -91,7 +119,7 @@ component displayName="Rules Engine Filter Service" {
 	 * @objectName.hint      The name of the object to select data from
 	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
 	 */
-	public query function selectData(
+	public any function selectData(
 		  required string objectName
 		, required array  expressionArray
 	) {
@@ -121,12 +149,7 @@ component displayName="Rules Engine Filter Service" {
 		  required string objectName
 		, required array  expressionArray
 	) {
-		var args = Duplicate( arguments );
-		args.selectFields = [ "Count(1) as record_count" ];
-
-		var result = selectData( argumentCollection=args );
-
-		return Val( result.record_count );
+		return selectData( argumentCollection=arguments, recordCountOnly=true );
 	}
 
 // PRIVATE HELPERS
