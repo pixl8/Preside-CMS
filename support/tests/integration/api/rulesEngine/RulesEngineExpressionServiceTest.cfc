@@ -140,33 +140,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				] );
 			} );
 
-			it( "should filter expressions by context when multiple contexts are supplied as an array", function(){
-				var service = _getService();
-				var context = [ "request", "event_booking" ];
-				var expressionIds = mockExpressions.keyArray();
-
-				for( var id in expressionIds ){
-					service.$( "getExpression" ).$args( id ).$results(
-						{ id=id, label=id, text=id, fields={}, contexts=mockExpressions[id].contexts }
-					);
-				}
-
-				var expressions = service.listExpressions( context=context );
-				var returnedIds = [];
-				for( var expression in expressions ) {
-					returnedIds.append( expression.id );
-				}
-
-				expect( returnedIds ).toBe( [
-					  "expression3.context1"
-					, "expression4.context2"
-					, "expression7.context5"
-					, "userGroup.event_booking"
-					, "userGroup.user"
-				] );
-			} );
-
-			it( "should only return expressions that can be used as filters, when isFilter=true is passed", function(){
+			it( "should only return expressions that can be used as filters for the given object", function(){
 				var service = _getService();
 				var context = "request";
 				var expressionIds = mockExpressions.keyArray();
@@ -177,14 +151,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					);
 				}
 
-				var expressions = service.listExpressions( context=context, isFilter=true );
+				var expressions = service.listExpressions( filterObject="usergroup" );
 				var returnedIds = [];
 				for( var expression in expressions ) {
 					returnedIds.append( expression.id );
 				}
 
 				expect( returnedIds ).toBe( [
-					  "expression3.context1"
+					  "expression6.context4"
 					, "userGroup.event_booking"
 					, "userGroup.user"
 				] );
@@ -402,11 +376,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "prepareExpressionFilters()", function(){
 			it( "should return result of 'prepareFilters()' method with expression configuration passed as arguments", function(){
 				var service      = _getService();
-				var context      = "request";
+				var objectName   = "usergroup";
 				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
 				var fields       = { _is = false, test=CreateUUId() };
 				var expressionId = "userGroup.user";
-				var eventArgs    = { context = context };
+				var eventArgs    = { objectName = objectName };
 
 				eventArgs.append( fields );
 
@@ -421,7 +395,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.prepareExpressionFilters(
 					  expressionId     = expressionId
-					, context          = context
+					, objectName       = objectName
 					, configuredFields = fields
 				) ).toBe( dummyFilters );
 			} );
@@ -435,7 +409,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				try {
 					service.prepareExpressionFilters(
 						  expressionId     = expressionId
-						, context          = "whatev"
+						, objectName       = "whatev"
 						, configuredFields = {}
 					);
 
@@ -449,7 +423,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( errorThrown ).toBe( true );
 			} );
 
-			it( "should throw an informative error when the expression does not support the given context", function(){
+			it( "should throw an informative error when the expression does not support filtering the given object", function(){
 				var service      = _getService();
 				var expressionId = "userGroup.event_booking";
 				var errorThrown  = false;
@@ -457,31 +431,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				try {
 					service.prepareExpressionFilters(
 						  expressionId     = expressionId
-						, context          = "whatev"
+						, objectName       = "whatev"
 						, configuredFields = {}
 					);
 
-				} catch( "preside.rule.expression.invalid.context" e ) {
+				} catch( "preside.rule.expression.invalid.filter.object" e ) {
 					errorThrown = true;
-					expect( e.message ).toBe( "The expression [#expressionId#] cannot be used in the [whatev] context." );
+					expect( e.message ).toBe( "The expression [#expressionId#] cannot be used to filter the [whatev] object." );
 
 				} catch( any e ) {
 					fail( "An unexpected error was thrown, rather than a controlled error" );
 				}
 				expect( errorThrown ).toBe( true );
-			} );
-
-			it( "should return an empty array when the expression does not support filters", function(){
-				var service      = _getService();
-				var context      = "request";
-				var fields       = { _is = false, test=CreateUUId() };
-				var expressionId = "expression7.context5";
-
-				expect( service.prepareExpressionFilters(
-					  expressionId     = expressionId
-					, context          = context
-					, configuredFields = fields
-				) ).toBe( [] );
 			} );
 		} );
 	}
@@ -511,13 +472,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getDefaultTestExpressions() {
 		return {
-			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], isFilter=true }
-			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], isFilter=true }
-			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], isFilter=true }
-			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], isFilter=true }
-			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], isFilter=true }
-			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ], isFilter=true }
-			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ], isFilter=false }
+			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], filterObjects=[ "usergroup" ] }
+			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ] }
+			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], filterObjects=[ "objectx" ] }
+			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], filterObjects=[ "objecty" ] }
+			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], filterObjects=[ "objectx" ] }
+			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ], filterObjects=[ "objectz", "usergroup" ] }
+			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ], filterObjects=[ ] }
 		};
 	}
 

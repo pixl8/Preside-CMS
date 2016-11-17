@@ -23,18 +23,16 @@ component displayName="Rules Engine Filter Service" {
 // PUBLIC API METHODS
 	/**
 	 * Prepares a preside object filter based on the passed
-	 * object name, rules engine context and configured
+	 * object name and configured
 	 * set of rules engine expressions (i.e. a condition)
 	 *
 	 * @autodoc              true
 	 * @objectName.hint      The name of the object that the filter is for
-	 * @context.hint         The context of the rules engine filter
 	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
 	 *
 	 */
 	public struct function prepareFilter(
 		  required string objectName
-		, required string context
 		, required array  expressionArray
 	) {
 		var dbAdapter = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
@@ -47,7 +45,7 @@ component displayName="Rules Engine Filter Service" {
 			if ( isJoin ) {
 				join = expressionArray[i] == "and" ? "and" : "or";
 			} else if ( IsArray( expressionArray[i] ) ) {
-				var subFilter = prepareFilter( objectName, context, expressionArray[i] );
+				var subFilter = prepareFilter( objectName, expressionArray[i] );
 
 				sql &= " #join# ( #subfilter.filter# )";
 				params.append( subFilter.filterParams );
@@ -55,7 +53,7 @@ component displayName="Rules Engine Filter Service" {
 				var rawFilters = _getExpressionService().prepareExpressionFilters(
 					  expressionId     = expressionArray[i].expression ?: ""
 					, configuredFields = expressionArray[i].fields     ?: {}
-					, context          = arguments.context
+					, objectName       = arguments.objectName
 				);
 
 				if ( rawFilters.len() ) {
@@ -85,18 +83,16 @@ component displayName="Rules Engine Filter Service" {
 
 	/**
 	 * Selects data from the given object and filtering
-	 * by the passed context + expression array (rules engine condition).
+	 * by the expression array (rules engine condition).
 	 * All extra arguments will be passed on to the [[api-presideobjectservice]]
 	 * [[presideobjectservice-selectdata]] method.
 	 *
 	 * @autodoc              true
 	 * @objectName.hint      The name of the object to select data from
-	 * @context.hint         The context of the rules engine filter
 	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
 	 */
 	public query function selectData(
 		  required string objectName
-		, required string context
 		, required array  expressionArray
 	) {
 		var args = Duplicate( arguments );
@@ -104,29 +100,25 @@ component displayName="Rules Engine Filter Service" {
 		args.extraFilters = args.extraFilters ?: [];
 		args.extraFilters.append( prepareFilter(
 			  objectName      = arguments.objectName
-			, context         = arguments.context
 			, expressionArray = arguments.expressionArray
 		) );
 		args.groupby = args.groupBy ?: "#objectName#.id";
 
-		args.delete( "context" );
 		args.delete( "expressionArray" );
 
 		return $getPresideObjectService().selectData( argumentCollection=args );
 	}
 
 	/**
-	 * Returns the number of records that match the given context and
-	 * expression array.
+	 * Returns the number of records that match the given
+	 * expression array for the given object
 	 *
 	 * @autodoc              true
 	 * @objectName.hint      The name of the object to get a count of records from
-	 * @context.hint         The context of the rules engine filter
 	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
 	 */
 	public numeric function getMatchingRecordCount(
 		  required string objectName
-		, required string context
 		, required array  expressionArray
 	) {
 		var args = Duplicate( arguments );

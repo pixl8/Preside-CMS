@@ -28,33 +28,23 @@ component displayName="RulesEngine Expression Service" {
 	 * Returns an array of expressions ordered by their translated
 	 * labels and optionally filtered by context
 	 *
-	 * @autodoc
-	 * @context.hint  Expression context with which to filter the results
-	 * @isFilter.hint Filter expressions on whether or not they can be used as query filters
+	 * @autodoc           true
+	 * @context.hint      Expression context with which to filter the results
+	 * @filterObject.hint Filter expressions by those that can be used as a filter for this object (ID)
 	 */
-	public array function listExpressions( any context="", boolean isFilter ) {
+	public array function listExpressions( string context="", string filterObject="" ) {
 		var allExpressions     = _getExpressions();
 		var list               = [];
-		var filterContexts     = IsSimpleValue( arguments.context ) ? arguments.context.listToArray() : arguments.context;
-		var filterOnContext    = filterContexts.len() > 0;
-		var filterOnFilterable = arguments.keyExists( "isFilter" );
+		var filterOnContext    = arguments.context.len() > 0;
+		var filterOnObject     = arguments.filterObject.len();
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
 
-			if ( filterOnContext && !contexts.findNoCase( "global" ) ) {
-				var found = false;
-				for( var i=1; i<=filterContexts.len(); i++ ) {
-					if ( contexts.findNoCase( filterContexts[i] ) ) {
-						found = true;
-						break;
-					}
-				}
-				if ( !found ) {
-					continue;
-				}
+			if ( filterOnContext && !(contexts.findNoCase( "global" ) || contexts.findNoCase( arguments.context ) ) ) {
+				continue;
 			}
-			if ( filterOnFilterable && allExpressions[ expressionId ].isFilter != arguments.isFilter ) {
+			if ( filterOnObject && !( ( allExpressions[ expressionId ].filterObjects ?: [] ).len() && allExpressions[ expressionId ].filterObjects.findNoCase( arguments.filterObject ) ) ) {
 				continue;
 			}
 
@@ -194,30 +184,26 @@ component displayName="RulesEngine Expression Service" {
 	 *
 	 * @autodoc               true
 	 * @expressionId.hint     The ID of the expression who's filters you wish to prepare
-	 * @context.hint          The context in which the expression is being used as a filter. e.g. 'user', or 'page'
+	 * @objectName.hint       The object who's records are to be filtered
 	 * @configuredFields.hint A structure of fields configured for the expression instance who's filter we are preparing
 	 */
 	public array function prepareExpressionFilters(
 		  required string expressionId
-		, required string context
+		, required string objectName
 		, required struct configuredFields
 	) {
-		var expression = _getRawExpression( expressionid );
-		var contexts   = expression.contexts ?: [];
+		var expression    = _getRawExpression( expressionid );
+		var filterObjects = expression.filterObjects ?: [];
 
-		if ( !contexts.findNoCase( arguments.context ) && !contexts.findNoCase( "global" ) ) {
+		if ( !filterObjects.findNoCase( arguments.objectName ) ) {
 			throw(
-				  type    = "preside.rule.expression.invalid.context"
-				, message = "The expression [#arguments.expressionId#] cannot be used in the [#arguments.context#] context."
+				  type    = "preside.rule.expression.invalid.filter.object"
+				, message = "The expression [#arguments.expressionId#] cannot be used to filter the [#arguments.objectName#] object."
 			);
 		}
 
-		if ( !expression.isFilter ) {
-			return [];
-		}
-
 		var handlerAction = "rules.expressions." & arguments.expressionId & ".prepareFilters";
-		var eventArgs     = { context=arguments.context };
+		var eventArgs     = { objectName=arguments.objectName };
 
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 

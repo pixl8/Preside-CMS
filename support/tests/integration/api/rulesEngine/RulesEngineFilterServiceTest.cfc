@@ -4,7 +4,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "prepareFilter()", function(){
 			it( "should amalgamate the generated filters from an expression array into a single plain SQL string filter + set of params", function(){
 				var service = _getService();
-				var context = "testcontext";
 				var dummyFilters = [
 					  [ { filter=CreateUUId(), filterParams={ param1=CreateUUId() } }, { filter=CreateUUId(), filterParams={ param2=CreateUUId() } } ]
 					, [ { filter=CreateUUId(), filterParams={ param3=CreateUUId() } } ]
@@ -43,10 +42,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					]
 				];
 
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, context=context, configuredFields = dummyCondition[1].fields ).$results( dummyFilters[1] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, context=context, configuredFields = dummyCondition[3][1].fields ).$results( dummyFilters[2] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, context=context, configuredFields = dummyCondition[3][3][1].fields ).$results( dummyFilters[3] );
-				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, context=context, configuredFields = dummyCondition[3][3][3].fields ).$results( dummyFilters[4] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[1].expression, objectName=dummyObject, configuredFields = dummyCondition[1].fields ).$results( dummyFilters[1] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][1].fields ).$results( dummyFilters[2] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][1].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][1].fields ).$results( dummyFilters[3] );
+				mockExpressionService.$( "prepareExpressionFilters" ).$args( expressionId=dummyCondition[3][3][3].expression, objectName=dummyObject, configuredFields = dummyCondition[3][3][3].fields ).$results( dummyFilters[4] );
 
 				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][1].filter, tableAlias=dummyObject ).$results( dummySqlFilters[1] );
 				mockDbAdapter.$( "getClauseSql" ).$args( filter=dummyFilters[1][2].filter, tableAlias=dummyObject ).$results( dummySqlFilters[2] );
@@ -57,7 +56,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var result = service.prepareFilter(
 					  objectName      = dummyObject
 					, expressionArray = dummyCondition
-					, context         = context
 				);
 
 				expect( result.filter ?: "" ).toBe( expectedSql );
@@ -68,7 +66,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "selectData()", function(){
 			it( "prepare the filter for the given condition and pass all arguments through to a presideObjectService.selectData() call, returning the result", function(){
 				var service         = _getService();
-				var context         = "somecontext";
 				var expressionArray = [ "whatever" ];
 				var dummyFilter     = { filter="hello!", filterparams={ test=CreateUUId() } };
 				var extraFilters    = [ { filter="blah", filterParams={} } ];
@@ -80,7 +77,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "prepareFilter" ).$args(
 					  objectName      = dummyObject
-					, context         = context
 					, expressionArray = expressionArray
 				).$results( dummyFilter );
 
@@ -89,7 +85,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.selectData(
 					  argumentCollection = randomArgs
 					, objectName         = dummyObject
-					, context            = context
 					, expressionArray    = expressionArray
 					, extraFilters       = extraFilters
 				) ).toBe( dummyResult );
@@ -108,7 +103,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "getMatchingRecordCount()", function(){
 			it( "call selectData with a selectFields value that gets a Count() of records and returns the count", function(){
 				var service               = _getService();
-				var context               = "somecontext";
 				var expressionArray       = [ "whatever" ];
 				var dummySelectDataResult = QueryNew( 'record_count', 'int', [[41]] );
 
@@ -116,13 +110,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.getMatchingRecordCount(
 					  objectName         = dummyObject
-					, context            = context
 					, expressionArray    = expressionArray
 				) ).toBe( 41 );
 				expect( service.$callLog().selectData.len() ).toBe( 1 );
 				expect( service.$callLog().selectData[1] ).toBe( {
 					  objectName      = dummyObject
-					, context         = context
 					, expressionArray = expressionArray
 					, selectFields    = [ "Count(1) as record_count" ]
 				} );
