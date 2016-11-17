@@ -278,7 +278,11 @@ component {
 		var dottedSqlParamRegex = "([$\s]:[a-zA-Z_][a-zA-Z0-9_]*)[\.\$]([a-zA-Z_][a-zA-Z0-9_]*([\s\),]|$))";
 
 		if ( IsSimpleValue( arguments.filter ) ) {
-			return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
+			if ( Len( Trim( arguments.filter ) ) ) {
+				return delim & " " & ReReplace( arguments.filter, dottedSqlParamRegex, "\1__\2", "all" );
+			}
+
+			return "";
 		}
 
 		filterKeys = StructKeyArray( arguments.filter );

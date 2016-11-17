@@ -2641,6 +2641,36 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test084_selectData_shouldMergeHavingClausesFromExtraFilters" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/componentsWithManyToManyRelationship/" ] );
+			var bees      = [];
+
+			poService.dbSync();
+
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 1" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 2" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 3" } ) );
+			bees.append( poService.insertData( objectName="obj_b", data={ label="label 4" } ) );
+
+			poService.insertData( objectName="obj_a", data={ label="label 1", lots_of_bees="" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 2", lots_of_bees="#bees[1]#,#bees[2]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 3", lots_of_bees="#bees[3]#" }, insertManyToManyRecords=true );
+			poService.insertData( objectName="obj_a", data={ label="label 4", lots_of_bees="#bees.toList()#" }, insertManyToManyRecords=true );
+
+			result = poService.selectData(
+				  objectname      = "obj_a"
+				, having          = "Count( lots_of_bees.id ) >= :bees_count"
+				, groupBy         = "obj_a.id"
+				, filterParams    = { bees_count = { type="cf_sql_int", value=2 } }
+				, extraFilters    = [ { filter="", filterParams={ bees_count_2={ type="cf_sql_int", value=4 } }, having="Count( lots_of_bees.id ) = :bees_count_2" } ]
+				, recordCountOnly = true
+			);
+
+			super.assertEquals( 1, result );
+		</cfscript>
+	</cffunction>
+
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">
 		<cfargument name="objectDirectories" type="array"  required="true" />

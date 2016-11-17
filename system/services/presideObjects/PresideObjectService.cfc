@@ -2028,7 +2028,7 @@ component displayName="Preside Object Service" {
 			, having       = arguments.having
 		};
 		if ( IsStruct( result.filter ) && ( arguments.extraFilters.len() || arguments.savedFilters.len() ) ) {
-			result.filterParams = Duplicate( result.filter );
+			result.filterParams.append( Duplicate( result.filter ) );
 		}
 
 		for( var savedFilter in arguments.savedFilters ){
@@ -2036,6 +2036,7 @@ component displayName="Preside Object Service" {
 
 			savedFilter.filter       = savedFilter.filter       ?: {};
 			savedFilter.filterParams = savedFilter.filterParams ?: {};
+			savedFilter.having       = savedFilter.having       ?: "";
 
 			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
 			result.filter = mergeFilters(
@@ -2044,11 +2045,20 @@ component displayName="Preside Object Service" {
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
 			);
+			if ( Len( Trim( savedFilter.having ) ) ) {
+				result.having = mergeFilters(
+					  filter1    = result.having
+					, filter2    = savedFilter.having
+					, dbAdapter  = arguments.adapter
+					, tableAlias = arguments.objectName
+				);
+			}
 		}
 
 		for( var extraFilter in arguments.extraFilters ){
 			extraFilter.filter       = extraFilter.filter       ?: {};
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
+			extraFilter.having       = extraFilter.having       ?: "";
 
 			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
 			result.filter = mergeFilters(
@@ -2057,6 +2067,14 @@ component displayName="Preside Object Service" {
 				, dbAdapter  = arguments.adapter
 				, tableAlias = arguments.objectName
 			);
+			if ( Len( Trim( extraFilter.having ) ) ) {
+				result.having = mergeFilters(
+					  filter1    = result.having
+					, filter2    = extraFilter.having
+					, dbAdapter  = arguments.adapter
+					, tableAlias = arguments.objectName
+				);
+			}
 		}
 
 		if ( IsStruct( result.filter ) ) {
