@@ -104,10 +104,17 @@ component displayName="RulesEngine Expression Reader Service" {
 		for( var func in functions ) {
 			if ( func.name == "evaluateExpression" ) {
 				expressions[ baseId ] = {
-					  contexts      = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
-					, fields        = getExpressionFieldsFromFunctionDefinition( func )
-					, filterObjects = filterObjects
+					  contexts              = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
+					, fields                = getExpressionFieldsFromFunctionDefinition( func )
+					, filterObjects         = filterObjects
+					, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
+					, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
+					, expressionHandlerArgs = {}
+					, filterHandlerArgs     = {}
+					, i18nLabelArgs         = []
+					, i18nTextArgs          = []
 				};
+
 			} else if ( func.name == "prepareFilters" ) {
 				filterObjects = ListToArray( func.objects ?: "" );
 				if ( expressions.keyExists( baseId ) ) {

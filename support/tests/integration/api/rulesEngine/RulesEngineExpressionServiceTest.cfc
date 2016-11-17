@@ -56,10 +56,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "getExpressionLabel()", function(){
 			it( "should return a translated label using a convention based i18n URI based on the expression id", function(){
 				var service      = _getService();
-				var expressionId = "some.expression.here";
+				var expressionId = "expression3.context1";
 				var label        = CreateUUId();
 
-				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:label", defaultValue=expressionId ).$results( label )
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:label", defaultValue=expressionId, data=[] ).$results( label )
+
+				expect( service.getExpressionLabel( expressionId ) ).toBe( label );
+			} );
+
+			it( "should pass any defined translation label data args to the translateResource method", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var expressionId = "expression3.context1";
+
+				expressions[ expressionId ].i18nLabelArgs = [ "some.arg", "another.arg" ];
+
+				var service        = _getService( expressions );
+				var label          = CreateUUId();
+				var translatedArgs = [];
+
+				for( var arg in expressions[ expressionId ].i18nLabelArgs ) {
+					service.$( "$translateResource" ).$args( uri=arg, defaultValue=arg ).$results( "translated #arg#" );
+					translatedArgs.append( "translated #arg#" );
+				}
+
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:label", defaultValue=expressionId, data=translatedArgs ).$results( label );
 
 				expect( service.getExpressionLabel( expressionId ) ).toBe( label );
 			} );
@@ -68,10 +88,30 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "getExpressionText()", function(){
 			it( "should return a translated expression text using a convention based i18n URI based on the expression id", function(){
 				var service      = _getService();
-				var expressionId = "some.expression.here";
+				var expressionId = "expression7.context5";
 				var text        = CreateUUId();
 
-				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:text", defaultValue=expressionId ).$results( text )
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:text", defaultValue=expressionId, data=[] ).$results( text )
+
+				expect( service.getExpressionText( expressionId ) ).toBe( text );
+			} );
+
+			it( "should pass any defined translation text data args to the translateResource method", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var expressionId = "expression3.context1";
+
+				expressions[ expressionId ].i18nTextArgs = [ "some.arg", "another.arg" ];
+
+				var service        = _getService( expressions );
+				var text           = CreateUUId();
+				var translatedArgs = [];
+
+				for( var arg in expressions[ expressionId ].i18nTextArgs ) {
+					service.$( "$translateResource" ).$args( uri=arg, defaultValue=arg ).$results( "translated #arg#" );
+					translatedArgs.append( "translated #arg#" );
+				}
+
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:text", defaultValue=expressionId, data=translatedArgs ).$results( text );
 
 				expect( service.getExpressionText( expressionId ) ).toBe( text );
 			} );
@@ -168,6 +208,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "evaluateExpression()", function(){
 			it( "should return false when the return value of the expression's convention-based coldbox handler is false for the given in context, payload and configured fields", function(){
 				var service      = _getService();
+				var expressions  = _getDefaultTestExpressions();
 				var context      = "request";
 				var fields       = { _is = false, test=CreateUUId() };
 				var payload      = { test=CreateUUId() };
@@ -180,7 +221,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				eventArgs.append( fields );
 
 				mockColdboxController.$( "runEvent" ).$args(
-					  event          = "rules.expressions.#expressionId#.evaluateExpression"
+					  event          = expressions[ expressionId ].expressionHandler
 					, private        = true
 					, prepostExempt  = true
 					, eventArguments = eventArgs
@@ -198,6 +239,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should return true when the return value of the expression's convention-based coldbox handler is true for the given in context, payload and configured fields", function(){
 				var service      = _getService();
+				var expressions  = _getDefaultTestExpressions();
 				var context      = "request";
 				var fields       = { _is = false, test=CreateUUId() };
 				var payload      = { test=CreateUUId() };
@@ -210,7 +252,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				eventArgs.append( fields );
 
 				mockColdboxController.$( "runEvent" ).$args(
-					  event          = "rules.expressions.#expressionId#.evaluateExpression"
+					  event          = expressions[ expressionId ].expressionHandler
 					, private        = true
 					, prepostExempt  = true
 					, eventArguments = eventArgs
@@ -268,6 +310,43 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} catch( any e ) {
 					fail( "An unexpected error was thrown, rather than a controlled error" );
 				}
+			} );
+
+			it( "should append any pre-defined expression arguments for the expression to the arguments passed to the expression handler", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var expressionId = "userGroup.user";
+				expressions[ expressionId ].expressionHandlerArgs = {
+					  test = CreateUUId()
+					, boo  = "hoo"
+				};
+
+				var service      = _getService( expressions );
+				var context      = "request";
+				var fields       = { _is = false, test=CreateUUId() };
+				var payload      = { test=CreateUUId() };
+				var eventArgs    = {
+					  context = context
+					, payload = payload
+				};
+
+				eventArgs.append( expressions[ expressionId ].expressionHandlerArgs );
+				eventArgs.append( fields );
+
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = expressions[ expressionId ].expressionHandler
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = eventArgs
+				).$results( false );
+
+				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
+
+				expect( service.evaluateExpression(
+					  expressionId     = expressionId
+					, context          = context
+					, payload          = payload
+					, configuredFields = fields
+				) ).toBeFalse();
 			} );
 		} );
 
@@ -376,6 +455,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		describe( "prepareExpressionFilters()", function(){
 			it( "should return result of 'prepareFilters()' method with expression configuration passed as arguments", function(){
 				var service      = _getService();
+				var expressions  = _getDefaultTestExpressions();
 				var objectName   = "usergroup";
 				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
 				var fields       = { _is = false, test=CreateUUId() };
@@ -385,7 +465,41 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				eventArgs.append( fields );
 
 				mockColdboxController.$( "runEvent" ).$args(
-					  event          = "rules.expressions.#expressionId#.prepareFilters"
+					  event          = expressions[ expressionId ].filterHandler
+					, private        = true
+					, prepostExempt  = true
+					, eventArguments = eventArgs
+				).$results( dummyFilters );
+
+				service.$( "preProcessConfiguredFields" ).$args( expressionId, fields ).$results( fields );
+
+				expect( service.prepareExpressionFilters(
+					  expressionId     = expressionId
+					, objectName       = objectName
+					, configuredFields = fields
+				) ).toBe( dummyFilters );
+			} );
+
+			it( "should append any defined filter args to the arguments passed to the 'prepareFilters()' handler", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var service      = _getService( expressions );
+				var expressionId = "userGroup.user";
+
+				expressions[ expressionId ].filterHandlerArgs = {
+					  test = CreateUUId()
+					, tea  = Now()
+				};
+
+				var objectName   = "usergroup";
+				var dummyFilters = [ 1, 2, 3, "test", CreateUUId() ];
+				var fields       = { _is = false, test=CreateUUId() };
+				var eventArgs    = { objectName = objectName };
+
+				eventArgs.append( expressions[ expressionId ].filterHandlerArgs );
+				eventArgs.append( fields );
+
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = expressions[ expressionId ].filterHandler
 					, private        = true
 					, prepostExempt  = true
 					, eventArguments = eventArgs
@@ -471,7 +585,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	}
 
 	private struct function _getDefaultTestExpressions() {
-		return {
+		var expressions = {
 			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], filterObjects=[ "usergroup" ] }
 			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ] }
 			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], filterObjects=[ "objectx" ] }
@@ -480,6 +594,19 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ], filterObjects=[ "objectz", "usergroup" ] }
 			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ], filterObjects=[ ] }
 		};
+
+		for( var expressionId in expressions ) {
+			expressions[ expressionId ].append({
+				  expressionHandler     = "blah.blah.#expressionId#.evaluateExpression"
+				, filterHandler         = "blah.blah.#expressionId#.prepareFilters"
+				, expressionHandlerArgs = {}
+				, filterHandlerArgs     = {}
+				, i18nLabelArgs         = []
+				, i18nTextArgs          = []
+			});
+		}
+
+		return expressions;
 	}
 
 	private any function _newValidationResult() {

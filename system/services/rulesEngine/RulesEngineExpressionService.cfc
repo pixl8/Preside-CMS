@@ -97,9 +97,17 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
 	 */
 	public string function getExpressionLabel( required string expressionId ) {
+		var expression      = _getRawExpression( arguments.expressionId );
+		var translationArgs = Duplicate( expression.i18nLabelArgs ?: [] );
+
+		for( var i=1; i<=translationArgs.len(); i++ ) {
+			translationArgs[ i ] = $translateResource( uri=translationArgs[i], defaultValue=translationArgs[i] );
+		}
+
 		return $translateResource(
 			  uri          = "rules.expressions.#arguments.expressionId#:label"
 			, defaultValue = arguments.expressionId
+			, data         = translationArgs
 		);
 	}
 
@@ -114,9 +122,17 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
 	 */
 	public string function getExpressionText( required string expressionId ) {
+		var expression      = _getRawExpression( arguments.expressionId );
+		var translationArgs = Duplicate( expression.i18nTextArgs ?: [] );
+
+		for( var i=1; i<=translationArgs.len(); i++ ) {
+			translationArgs[ i ] = $translateResource( uri=translationArgs[i], defaultValue=translationArgs[i] );
+		}
+
 		return $translateResource(
 			  uri          = "rules.expressions.#arguments.expressionId#:text"
 			, defaultValue = arguments.expressionId
+			, args         = translationArgs
 		);
 	}
 
@@ -163,9 +179,10 @@ component displayName="RulesEngine Expression Service" {
 			);
 		}
 
-		var handlerAction = "rules.expressions." & arguments.expressionId & ".evaluateExpression";
+		var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
 		var eventArgs     = { context=arguments.context, payload=arguments.payload };
 
+		eventArgs.append( expression.expressionHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
 		var result = $getColdbox().runEvent(
@@ -202,9 +219,10 @@ component displayName="RulesEngine Expression Service" {
 			);
 		}
 
-		var handlerAction = "rules.expressions." & arguments.expressionId & ".prepareFilters";
+		var handlerAction = expression.filterHandler ?: "rules.expressions." & arguments.expressionId & ".prepareFilters";
 		var eventArgs     = { objectName=arguments.objectName };
 
+		eventArgs.append( expression.filterHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
 
 		var result = $getColdbox().runEvent(
