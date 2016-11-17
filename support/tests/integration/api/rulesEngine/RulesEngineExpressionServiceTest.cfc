@@ -140,6 +140,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				] );
 			} );
 
+			it( "should filter expressions by context when multiple contexts are supplied as an array", function(){
+				var service = _getService();
+				var context = [ "request", "event_booking" ];
+				var expressionIds = mockExpressions.keyArray();
+
+				for( var id in expressionIds ){
+					service.$( "getExpression" ).$args( id ).$results(
+						{ id=id, label=id, text=id, fields={}, contexts=mockExpressions[id].contexts }
+					);
+				}
+
+				var expressions = service.listExpressions( context=context );
+				var returnedIds = [];
+				for( var expression in expressions ) {
+					returnedIds.append( expression.id );
+				}
+
+				expect( returnedIds ).toBe( [
+					  "expression3.context1"
+					, "expression4.context2"
+					, "expression7.context5"
+					, "userGroup.event_booking"
+					, "userGroup.user"
+				] );
+			} );
+
 			it( "should only return expressions that can be used as filters, when isFilter=true is passed", function(){
 				var service = _getService();
 				var context = "request";

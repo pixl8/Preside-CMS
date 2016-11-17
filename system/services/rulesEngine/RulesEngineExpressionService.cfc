@@ -1,4 +1,4 @@
-/**
+	/**
  * Service that provides logic for dealing with rule engine expressions.
  * See [[rules-engine]] for further details.
  *
@@ -32,17 +32,27 @@ component displayName="RulesEngine Expression Service" {
 	 * @context.hint  Expression context with which to filter the results
 	 * @isFilter.hint Filter expressions on whether or not they can be used as query filters
 	 */
-	public array function listExpressions( string context="", boolean isFilter ) {
+	public array function listExpressions( any context="", boolean isFilter ) {
 		var allExpressions     = _getExpressions();
 		var list               = [];
-		var filterOnContext    = arguments.context.len() > 0;
+		var filterContexts     = IsSimpleValue( arguments.context ) ? arguments.context.listToArray() : arguments.context;
+		var filterOnContext    = filterContexts.len() > 0;
 		var filterOnFilterable = arguments.keyExists( "isFilter" );
 
 		for( var expressionId in allExpressions ) {
 			var contexts = allExpressions[ expressionId ].contexts ?: [];
 
-			if ( filterOnContext && !( contexts.findNoCase( arguments.context ) || contexts.findNoCase( "global" ) ) ) {
-				continue;
+			if ( filterOnContext && !contexts.findNoCase( "global" ) ) {
+				var found = false;
+				for( var i=1; i<=filterContexts.len(); i++ ) {
+					if ( contexts.findNoCase( filterContexts[i] ) ) {
+						found = true;
+						break;
+					}
+				}
+				if ( !found ) {
+					continue;
+				}
 			}
 			if ( filterOnFilterable && allExpressions[ expressionId ].isFilter != arguments.isFilter ) {
 				continue;
