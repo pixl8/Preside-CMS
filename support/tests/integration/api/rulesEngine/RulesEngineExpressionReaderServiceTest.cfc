@@ -71,7 +71,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expressions.count() ).toBe( 0 );
 			} );
 
-			it( "should set an 'isFilter' flag to true when the CFC file has a prepareFilters() method", function(){
+			it( "should set an array of filter objects based on the CFC file having a prepareFilters() method tagged with a @objects attribute", function(){
 				var service  = _getService();
 				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
 				var rootPath = "resources.rulesEngine.expressions";
@@ -82,7 +82,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
 
-				expect( expressions[ "SimpleExpressionHandler" ].isFilter ?: "" ).toBe( true );
+				expect( expressions[ "SimpleExpressionHandler" ].filterObjects ?: [] ).toBe( [ "object1", "object2" ] );
 			} );
 		} );
 

@@ -96,24 +96,23 @@ component displayName="RulesEngine Expression Reader Service" {
 			return {};
 		}
 
-		var functions   = meta.functions ?: [];
-		var baseId      = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
-		var isFilter    = false;
-		var expressions = {};
+		var functions     = meta.functions ?: [];
+		var baseId        = arguments.componentPath.replaceNoCase( rootPath, "" ).reReplace( "^\.", "" );
+		var filterObjects = [];
+		var expressions   = {};
 
 		for( var func in functions ) {
 			if ( func.name == "evaluateExpression" ) {
 				expressions[ baseId ] = {
-					  contexts = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
-					, fields   = getExpressionFieldsFromFunctionDefinition( func )
-					, isFilter = isFilter
+					  contexts      = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
+					, fields        = getExpressionFieldsFromFunctionDefinition( func )
+					, filterObjects = filterObjects
 				};
 			} else if ( func.name == "prepareFilters" ) {
+				filterObjects = ListToArray( func.objects ?: "" );
 				if ( expressions.keyExists( baseId ) ) {
-					expressions[ baseId ].isFilter = true;
+					expressions[ baseId ].filterObjects = filterObjects;
 					break;
-				} else {
-					isFilter = true;
 				}
 			}
 		}

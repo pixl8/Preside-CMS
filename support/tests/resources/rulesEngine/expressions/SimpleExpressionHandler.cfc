@@ -35,6 +35,10 @@ component {
 		return arguments._is ? isMember : !isMember
 	}
 
+	/**
+	 * @objects object1,object2
+	 *
+	 */
 	private array function prepareFilters(
 		 required struct   payload
 		, required any     groups
