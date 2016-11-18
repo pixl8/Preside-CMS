@@ -121,6 +121,7 @@ component displayName="RulesEngine Expression Reader Service" {
 				filterObjects = ListToArray( func.objects ?: "" );
 				if ( expressions.keyExists( baseId ) ) {
 					expressions[ baseId ].filterObjects = filterObjects;
+					expressions[ baseId ].filterHandler = "rules.expressions.#baseId#.prepareFilters";
 					break;
 				}
 			}
