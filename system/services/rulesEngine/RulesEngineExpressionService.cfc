@@ -13,11 +13,18 @@ component displayName="RulesEngine Expression Service" {
 	/**
 	 * @expressionReaderService.inject rulesEngineExpressionReaderService
 	 * @fieldTypeService.inject        rulesEngineFieldTypeService
+	 * @contextService.inject          rulesEngineContextService
 	 * @expressionDirectories.inject   presidecms:directories:/handlers/rules/expressions
 	 *
 	 */
-	public any function init( required any expressionReaderService, required any fieldTypeService, required array expressionDirectories ) {
+	public any function init(
+		  required any   expressionReaderService
+		, required any   fieldTypeService
+		, required any   contextService
+		, required array expressionDirectories
+	) {
 		_setFieldTypeService( fieldTypeService );
+		_setContextService( contextService );
 		_setExpressions( expressionReaderService.getExpressionsFromDirectories( expressionDirectories ) )
 
 		return this;
@@ -48,7 +55,15 @@ component displayName="RulesEngine Expression Service" {
 				continue;
 			}
 
-			list.append( getExpression( expressionId ) );
+			var getExpressionArgs  = { expressionId = expressionId };
+			if ( Len( Trim( arguments.context ) ) ) {
+				getExpressionArgs.context = arguments.context;
+			}
+			if ( Len( Trim( arguments.filterObject ) ) ) {
+				getExpressionArgs.objectName = arguments.filterObject;
+			}
+
+			list.append( getExpression( argumentCollection=getExpressionArgs ) );
 		}
 
 		list.sort( function( a, b ){
@@ -68,15 +83,28 @@ component displayName="RulesEngine Expression Service" {
 	 * * translated label
 	 * * translated expression text
 	 *
-	 * @autodoc
+	 * @autodoc           true
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
+	 * @context.hint      Context in which the expression is being used
 	 */
-	public struct function getExpression( required string expressionId ) {
-		var expression = Duplicate( _getRawExpression( arguments.expressionId ) );
+	public struct function getExpression(
+		  required string expressionId
+		,          string context    = ""
+		,          string objectName = ""
+	) {
+		var expression      = Duplicate( _getRawExpression( arguments.expressionId ) );
+		var translationArgs = { expressionId = arguments.expressionId };
+
+		if ( Len( Trim( arguments.context ) ) ) {
+			translationArgs.context = arguments.context;
+		}
+		if ( Len( Trim( arguments.objectName ) ) ) {
+			translationArgs.objectName = arguments.objectName;
+		}
 
 		expression.id     = expressionId;
-		expression.label  = getExpressionLabel( expressionId );
-		expression.text   = getExpressionText( expressionId );
+		expression.label  = getExpressionLabel( argumentCollection=translationArgs );
+		expression.text   = getExpressionText( argumentCollection=translationArgs );
 		expression.fields = expression.fields ?: {};
 
 		for( var fieldName in expression.fields ) {
@@ -93,18 +121,28 @@ component displayName="RulesEngine Expression Service" {
 	 * \n
 	 * > User is logged in
 	 *
-	 * @autodoc
+	 * @autodoc           true
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
+	 * @context.hint      Optional context in which the expression is being used
+	 * @objectName.hint   Optional object name for which a filter is being applied that uses this expression
 	 */
-	public string function getExpressionLabel( required string expressionId ) {
-		var expression      = _getRawExpression( arguments.expressionId );
+	public string function getExpressionLabel(
+		  required string expressionId
+		,          string context    = ""
+		,          string objectName = _getContextService().getContextObject( arguments.context )
+	) {
+		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.labelHandler ?: "" ) ) {
+			var handlerArgs = Duplicate( expression.labelHandlerArgs ?: {} );
+			handlerArgs.context    = arguments.context;
+			handlerArgs.objectName = arguments.objectName;
+
 			return $getColdbox().runEvent(
 				  event          = expression.labelHandler
 				, private        = true
 				, prePostExempt  = true
-				, eventArguments = expression.labelHandlerArgs ?: {}
+				, eventArguments = handlerArgs
 			);
 		}
 
@@ -123,16 +161,26 @@ component displayName="RulesEngine Expression Service" {
 	 *
 	 * @autodoc
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
+	 * @context.hint      Optional context in which the expression is being used
+	 * @objectName.hint   Optional object name for which a filter is being applied that uses this expression
 	 */
-	public string function getExpressionText( required string expressionId ) {
+	public string function getExpressionText(
+		  required string expressionId
+		,          string context    = ""
+		,          string objectName = _getContextService().getContextObject( arguments.context )
+	) {
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.textHandler ?: "" ) ) {
+			var handlerArgs = Duplicate( expression.textHandlerArgs ?: {} );
+			handlerArgs.context    = arguments.context;
+			handlerArgs.objectName = arguments.objectName;
+
 			return $getColdbox().runEvent(
 				  event          = expression.textHandler
 				, private        = true
 				, prePostExempt  = true
-				, eventArguments = expression.textHandlerArgs ?: {}
+				, eventArguments = handlerArgs
 			);
 		}
 
@@ -186,7 +234,11 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
-		var eventArgs     = { context=arguments.context, payload=arguments.payload };
+		var eventArgs     = {
+			  context    = arguments.context
+			, objectName = _getContextService().getContextObject( arguments.context )
+			, payload    = arguments.payload
+		};
 
 		eventArgs.append( expression.expressionHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );
@@ -372,5 +424,12 @@ component displayName="RulesEngine Expression Service" {
 	}
 	private void function _setFieldTypeService( required any fieldTypeService ) {
 		_fieldTypeService = arguments.fieldTypeService;
+	}
+
+	private any function _getContextService() {
+		return _contextService;
+	}
+	private void function _setContextService( required any contextService ) {
+		_contextService = arguments.contextService;
 	}
 }

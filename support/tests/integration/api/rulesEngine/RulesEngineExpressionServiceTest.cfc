@@ -51,6 +51,42 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.getExpression( expressionId ) ).toBe( expected );
 			} );
+
+			it( "should pass context through to the 'getExpressionLabel' and 'getExpressionText' methods", function(){
+				var service      = _getService();
+				var expressionId = "userGroup.user";
+				var expected     = Duplicate( mockExpressions[ expressionId ] );
+				var context      = "blah";
+
+				expected.label = CreateUUId();
+				expected.text  = CreateUUId();
+				expected.id    = expressionId;
+				expected.fields._is.defaultLabel = CreateUUId();
+
+				service.$( "getExpressionLabel" ).$args( expressionId=expressionId, context=context ).$results( expected.label );
+				service.$( "getExpressionText"  ).$args( expressionId=expressionId, context=context ).$results( expected.text  );
+				service.$( "getDefaultFieldLabel").$args( expressionId, "_is" ).$results( expected.fields._is.defaultLabel );
+
+				expect( service.getExpression( expressionId=expressionId, context=context ) ).toBe( expected );
+			} );
+
+			it( "should pass objectName through to the 'getExpressionLabel' and 'getExpressionText' methods", function(){
+				var service      = _getService();
+				var expressionId = "userGroup.user";
+				var expected     = Duplicate( mockExpressions[ expressionId ] );
+				var objectName   = "blah_blah";
+
+				expected.label = CreateUUId();
+				expected.text  = CreateUUId();
+				expected.id    = expressionId;
+				expected.fields._is.defaultLabel = CreateUUId();
+
+				service.$( "getExpressionLabel" ).$args( expressionId=expressionId, objectName=objectName ).$results( expected.label );
+				service.$( "getExpressionText"  ).$args( expressionId=expressionId, objectName=objectName ).$results( expected.text  );
+				service.$( "getDefaultFieldLabel").$args( expressionId, "_is" ).$results( expected.fields._is.defaultLabel );
+
+				expect( service.getExpression( expressionId=expressionId, objectName=objectName ) ).toBe( expected );
+			} );
 		} );
 
 		describe( "getExpressionLabel()", function(){
@@ -61,16 +97,42 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var label        = CreateUUId();
 
 				expressions[ expressionId ].labelHandlerArgs = { testThis=CreateUUId() };
+				var eventArgs = Duplicate( expressions[ expressionId ].labelHandlerArgs );
+				    eventArgs.append( { objectName="", context="" } );
 
 				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].labelHandler ).$results( true );
 				mockColdboxController.$( "runEvent" ).$args(
 					  event          = expressions[ expressionId ].labelHandler
 					, private        = true
 					, prePostExempt  = true
-					, eventArguments = expressions[ expressionId ].labelHandlerArgs
+					, eventArguments = eventArgs
 				).$results( label );
 
 				expect( service.getExpressionLabel( expressionId ) ).toBe( label );
+			} );
+
+			it( "should pass context + retrieved context object through to label lookup handler", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var service      = _getService( expressions );
+				var expressionId = "expression3.context1";
+				var label        = CreateUUId();
+				var context      = "somecontext";
+				var object       = "an_objectl;"
+
+				expressions[ expressionId ].labelHandlerArgs = { testThis=CreateUUId() };
+				var eventArgs = Duplicate( expressions[ expressionId ].labelHandlerArgs );
+				    eventArgs.append( { objectName=object, context=context } );
+
+				mockContextService.$( "getContextObject" ).$args( context ).$results( object );
+				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].labelHandler ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = expressions[ expressionId ].labelHandler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = eventArgs
+				).$results( label );
+
+				expect( service.getExpressionLabel( expressionId=expressionId, context=context ) ).toBe( label );
 			} );
 
 			it( "should return a translated label using a convention based i18n URI based on the expression id when the label generating handler does not exist", function(){
@@ -94,16 +156,43 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var label        = CreateUUId();
 
 				expressions[ expressionId ].textHandlerArgs = { testThis=CreateUUId() };
+				var eventArgs = Duplicate( expressions[ expressionId ].textHandlerArgs );
+				    eventArgs.append( { objectName="", context="" } );
 
 				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].textHandler ).$results( true );
 				mockColdboxController.$( "runEvent" ).$args(
 					  event          = expressions[ expressionId ].textHandler
 					, private        = true
 					, prePostExempt  = true
-					, eventArguments = expressions[ expressionId ].textHandlerArgs
+					, eventArguments = eventArgs
 				).$results( label );
 
 				expect( service.getExpressionText( expressionId ) ).toBe( label );
+			} );
+
+			it( "should pass context + retrieved context object through to text lookup handler", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var service      = _getService( expressions );
+				var expressionId = "expression3.context1";
+				var label        = CreateUUId();
+				var context      = "mycontext";
+				var object       = "my_object";
+
+				expressions[ expressionId ].textHandlerArgs = { testThis=CreateUUId() };
+				var eventArgs = Duplicate( expressions[ expressionId ].textHandlerArgs );
+				    eventArgs.append( { objectName=object, context=context } );
+
+				mockContextService.$( "getContextObject" ).$args( context ).$results( object );
+				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].textHandler ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = expressions[ expressionId ].textHandler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = eventArgs
+				).$results( label );
+
+				expect( service.getExpressionText( expressionId=expressionId, context=context ) ).toBe( label );
+
 			} );
 
 			it( "should return a translated expression text using a convention based i18n URI based on the expression id when the handler does not exist", function(){
@@ -163,7 +252,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expressionIds = mockExpressions.keyArray();
 
 				for( var id in expressionIds ){
-					service.$( "getExpression" ).$args( id ).$results(
+					service.$( "getExpression" ).$args( expressionId=id, context=context ).$results(
 						{ id=id, label=id, text=id, fields={}, contexts=mockExpressions[id].contexts }
 					);
 				}
@@ -184,16 +273,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 			it( "should only return expressions that can be used as filters for the given object", function(){
 				var service = _getService();
-				var context = "request";
+				var object  = "usergroup";
 				var expressionIds = mockExpressions.keyArray();
 
 				for( var id in expressionIds ){
-					service.$( "getExpression" ).$args( id ).$results(
+					service.$( "getExpression" ).$args( expressionId=id, objectName=object ).$results(
 						{ id=id, label=id, text=id, fields={}, contexts=mockExpressions[id].contexts }
 					);
 				}
 
-				var expressions = service.listExpressions( filterObject="usergroup" );
+				var expressions = service.listExpressions( filterObject=object );
 				var returnedIds = [];
 				for( var expression in expressions ) {
 					returnedIds.append( expression.id );
@@ -216,8 +305,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var payload      = { test=CreateUUId() };
 				var expressionId = "userGroup.user";
 				var eventArgs    = {
-					  context = context
-					, payload = payload
+					  context    = context
+					, payload    = payload
+					, objectName = "request_object"
 				};
 
 				eventArgs.append( fields );
@@ -239,7 +329,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeFalse();
 			} );
 
-			it( "should return true when the return value of the expression's convention-based coldbox handler is true for the given in context, payload and configured fields", function(){
+			it( "should return true when the return value of the expression's convention-based coldbox handler is true for the given context, payload and configured fields", function(){
 				var service      = _getService();
 				var expressions  = _getDefaultTestExpressions();
 				var context      = "request";
@@ -247,8 +337,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var payload      = { test=CreateUUId() };
 				var expressionId = "userGroup.user";
 				var eventArgs    = {
-					  context = context
-					, payload = payload
+					  context    = context
+					, payload    = payload
+					, objectName = "request_object"
 				};
 
 				eventArgs.append( fields );
@@ -327,8 +418,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var fields       = { _is = false, test=CreateUUId() };
 				var payload      = { test=CreateUUId() };
 				var eventArgs    = {
-					  context = context
-					, payload = payload
+					  context    = context
+					, payload    = payload
+					, objectName = "request_object"
 				};
 
 				eventArgs.append( expressions[ expressionId ].expressionHandlerArgs );
@@ -605,6 +697,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private any function _getService( struct expressions=_getDefaultTestExpressions() ) {
 		variables.mockReaderService     = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineExpressionReaderService" );
 		variables.mockFieldTypeService  = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineFieldTypeService" );
+		variables.mockContextService    = CreateEmptyMock( "preside.system.services.rulesEngine.RulesEngineContextService" );
 		variables.mockDirectories       = [ "/dir1/expressions", "/dir2/expressions", "/dir3/expressions" ];
 		variables.mockExpressions       = arguments.expressions;
 		variables.mockColdboxController = CreateStub();
@@ -612,6 +705,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		var service = new preside.system.services.rulesEngine.RulesEngineExpressionService(
 			  expressionReaderService    = mockReaderService
+			, contextService             = mockContextService
 			, fieldTypeService           = mockFieldTypeService
 			, expressionDirectories      = mockDirectories
 		);
@@ -619,6 +713,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service = createMock( object=service );
 
 		service.$( "$getColdbox", mockColdboxController );
+		mockContextService.$( "getContextObject" ).$args( "request" ).$results( "request_object" );
+		mockContextService.$( "getContextObject" ).$args( "" ).$results( "" );
 
 		return service;
 	}
