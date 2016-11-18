@@ -1,0 +1,57 @@
+/**
+ * Dynamic expression handler for checking whether or not a preside object
+ * boolean property's value is true / fase
+ *
+ */
+component {
+
+	property name="presideObjectService" inject="presideObjectService";
+
+	private boolean function evaluateExpression(
+		  required string  objectName
+		, required string  propertyName
+		,          boolean _is = true
+	) {
+		var recordId = payload[ objectName ].id ?: "";
+
+		return presideObjectService.$dataExists(
+			  objectName   = objectName
+			, id           = recordId
+			, extraFilters = prepareFilters( argumentCollection=arguments )
+		);
+	}
+
+	private array function prepareFilters(
+		  required string  objectName
+		, required string  propertyName
+		,          boolean _is = true
+	){
+		var paramName = "booleanPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
+
+		return [ {
+			  filter       = "#objectName#.#propertyName# = :#paramName#"
+			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
+		} ];
+	}
+
+	private string function getLabel(
+		  required string  objectName
+		, required string  propertyName
+	) {
+		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
+		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+
+		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.label", data=[ propNameTranslated ] );
+	}
+
+	private string function getText(
+		  required string objectName
+		, required string propertyName
+	){
+		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
+		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+
+		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.text", data=[ propNameTranslated ] );
+	}
+
+}

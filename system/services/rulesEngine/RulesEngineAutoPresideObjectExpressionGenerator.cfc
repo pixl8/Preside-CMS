@@ -76,6 +76,9 @@ component {
 				case "string":
 					expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name ) );
 				break;
+				case "boolean":
+					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name ) );
+				break;
 			}
 		}
 
@@ -108,7 +111,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_stringmatches_#arguments.propertyName#"
-			, fields            = { _stringOperator={ fieldtype="operator", variety="string", required=false, default="contains" }, value={ fieldtype="text", required=false, default="" } }
+			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
@@ -134,6 +137,21 @@ component {
 		expression.filterHandlerArgs.variety     = "isSet";
 		expression.labelHandlerArgs.variety      = "isSet";
 		expression.textHandlerArgs.variety       = "isSet";
+
+		return expression;
+	}
+
+	private struct function _createBooleanIsTrueExpression( required string objectName, required string propertyName ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+
+		expression.append( {
+			  id                = "presideobject_booleanistrue_#arguments.propertyName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.getText"
+		} );
 
 		return expression;
 	}

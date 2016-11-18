@@ -141,6 +141,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expressions.find( expectedExpr ) > 0 ).toBe( true );
 
 			} );
+
+			it( "should return a configured 'is true' expression for a boolean property", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var propertyDef  = { name="myprop", type="boolean", required=true };
+				var expectedExpr = {
+					  id                    = "presideobject_booleanistrue_#propertyDef.name#"
+					, contexts              = [ "presideobject_" & objectName ]
+					, fields                = { _is={ fieldtype="boolean", variety="isIsNot", required=false, default=true } }
+					, filterObjects         = [ objectName ]
+					, expressionHandler     = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.evaluateExpression"
+					, filterHandler         = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.prepareFilters"
+					, labelHandler          = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.getLabel"
+					, textHandler           = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.getText"
+					, expressionHandlerArgs = { propertyName=propertyDef.name }
+					, filterHandlerArgs     = { propertyName=propertyDef.name }
+					, labelHandlerArgs      = { propertyName=propertyDef.name }
+					, textHandlerArgs       = { propertyName=propertyDef.name }
+				};
+
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = objectName
+					, propertyDefinition = propertyDef
+				);
+
+				expect( expressions.find( expectedExpr ) > 0 ).toBe( true );
+
+			} );
 		} );
 	}
 
