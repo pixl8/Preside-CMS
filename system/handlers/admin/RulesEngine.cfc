@@ -216,7 +216,11 @@ component extends="preside.system.base.AdminHandler" {
 			expressionArray = DeSerializeJson( rc.condition ?: "" );
 		} catch ( any e ) {}
 
-		if ( IsArray( expressionArray ) && objectName.len() ) {
+		if ( !IsArray( expressionArray ) ) {
+			expressionArray = [];
+		}
+
+		if ( objectName.len() ) {
 				var count = rulesEngineFilterService.getMatchingRecordCount(
 					  objectName      = objectName
 					, expressionArray = expressionArray
