@@ -348,8 +348,8 @@ component {
 
 		settings.rulesEngine = { contexts={} };
 		settings.rulesEngine.contexts.webrequest = { subcontexts=[ "user", "page" ] };
-		settings.rulesEngine.contexts.page       = {};
-		settings.rulesEngine.contexts.user       = {};
+		settings.rulesEngine.contexts.page       = { object="page" };
+		settings.rulesEngine.contexts.user       = { object="website_user" };
 
 		_loadConfigurationFromExtensions();
 
