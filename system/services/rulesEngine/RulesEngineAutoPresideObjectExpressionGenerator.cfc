@@ -26,6 +26,7 @@ component {
 	}
 
 
+// PUBLIC API
 	public void function generateAndRegisterAutoExpressions() {
 		var objects = $getPresideObjectService().listObjects();
 
@@ -46,7 +47,6 @@ component {
 		}
 	}
 
-// PUBLIC API
 	/**
 	 * Generates all the expressions for a given property (does the hard work)
 	 *
@@ -68,6 +68,14 @@ component {
 				break;
 				default:
 					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name ) );
+			}
+		}
+
+		if ( !relationship contains "many" ) {
+			switch( propType ) {
+				case "string":
+					expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name ) );
+				break;
 			}
 		}
 
@@ -95,6 +103,21 @@ component {
 		return expression;
 	}
 
+	private struct function _createStringMatchExpression( required string objectName, required string propertyName ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+
+		expression.append( {
+			  id                = "presideobject_stringmatches_#arguments.propertyName#"
+			, fields            = { _stringOperator={ fieldtype="operator", variety="string", required=false, default="contains" }, value={ fieldtype="text", required=false, default="" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
 	private struct function _createIsSetExpression( required string objectName, required string propertyName ) {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
@@ -116,8 +139,6 @@ component {
 	}
 
 	private struct function _getCommonExpressionDefinition( required string objectName, required string propertyName ){
-		var i18nBaseUri = $getPresideObjectService().getResourceBundleUriRoot( objectName );
-
 		return {
 			  contexts              = [ "presideobject_" & objectName ]
 			, filterObjects         = [ objectName ]

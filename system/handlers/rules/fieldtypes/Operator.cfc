@@ -5,7 +5,7 @@
 component {
 
 	_varietyMappings = {};
-	_varietyMappings[ "string"  ] = [ "eq", "neq", "contains", "startswith", "endswith" ];
+	_varietyMappings[ "string"  ] = [ "eq", "neq", "contains", "notcontains", "startswith", "notstartswith", "endswith", "notendswith" ];
 	_varietyMappings[ "numeric" ] = [ "eq", "neq", "gt", "gte", "lt", "lte" ];
 	_varietyMappings[ "date"    ] = [ "eq", "neq", "gt", "gte", "lt", "lte" ];
 	_varietyMappings[ "period"  ] = [ "eq", "gt", "gte", "lt", "lte" ];

@@ -15,6 +15,7 @@ component displayName="RulesEngine Expression Reader Service" {
 		, _did      = "didDidNot"
 		, _was      = "wasWasNot"
 		, _are      = "areAreNot"
+		, _does     = "doesDoesNot"
 		, _will     = "willWillNot"
 		, _ever     = "everNever"
 		, _all      = "allAny"

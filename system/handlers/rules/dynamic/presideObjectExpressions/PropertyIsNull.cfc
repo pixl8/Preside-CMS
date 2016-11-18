@@ -1,11 +1,6 @@
-/*
-evaluateExpression
-prepareFilters
-getLabel
-getText
-*/
 /**
- * Expression handler for "User is / is not IP Logbook candidate"
+ * Dynamic expression handler for checking whether or not a preside object
+ * property value is null
  *
  */
 component {

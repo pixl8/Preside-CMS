@@ -6,7 +6,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var builder      = _getBuilder();
 				var objectName   = "some_object";
 				var propertyDef  = { name="myprop", type="string", required=false };
-				var baseI18n     = "whatever:";
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsEmpty_#propertyDef.name#"
 					, contexts              = [ "presideobject_" & objectName ]
@@ -21,8 +20,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, labelHandlerArgs      = { propertyName=propertyDef.name, variety="isEmpty" }
 					, textHandlerArgs       = { propertyName=propertyDef.name, variety="isEmpty" }
 				};
-
-				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );
 
 				var expressions = builder.generateExpressionsForProperty(
 					  objectName         = objectName
@@ -37,7 +34,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var builder      = _getBuilder();
 				var objectName   = "my_obj";
 				var propertyDef  = { name="myprop", type="string", required=true };
-				var baseI18n     = "whatever:";
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsEmpty_#propertyDef.name#"
 					, contexts              = [ "presideobject_" & objectName ]
@@ -52,8 +48,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, labelHandlerArgs      = { propertyName=propertyDef.name, variety="isEmpty" }
 					, textHandlerArgs       = { propertyName=propertyDef.name, variety="isEmpty" }
 				};
-
-				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );
 
 				var expressions = builder.generateExpressionsForProperty(
 					  objectName         = objectName
@@ -68,7 +62,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var builder      = _getBuilder();
 				var objectName   = "some_object";
 				var propertyDef  = { name="myprop", type="numeric", required=false };
-				var baseI18n     = "whatever:";
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsEmpty_#propertyDef.name#"
 					, contexts              = [ "presideobject_" & objectName ]
@@ -84,8 +77,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, textHandlerArgs       = { propertyName=propertyDef.name, variety="isEmpty" }
 				};
 
-				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );
-
 				var expressions = builder.generateExpressionsForProperty(
 					  objectName         = objectName
 					, propertyDefinition = propertyDef
@@ -99,7 +90,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var builder      = _getBuilder();
 				var objectName   = "some_object";
 				var propertyDef  = { name="myprop", type="boolean", required=false };
-				var baseI18n     = "whatever:";
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsSet_#propertyDef.name#"
 					, contexts              = [ "presideobject_" & objectName ]
@@ -115,7 +105,33 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, textHandlerArgs       = { propertyName=propertyDef.name, variety="isSet" }
 				};
 
-				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = objectName
+					, propertyDefinition = propertyDef
+				);
+
+				expect( expressions.find( expectedExpr ) > 0 ).toBe( true );
+
+			} );
+
+			it( "should return a configured 'string matches' expression for a string property", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var propertyDef  = { name="myprop", type="string", required=true };
+				var expectedExpr = {
+					  id                    = "presideobject_stringmatches_#propertyDef.name#"
+					, contexts              = [ "presideobject_" & objectName ]
+					, fields                = { _stringOperator={ fieldtype="operator", variety="string", required=false, default="contains" }, value={ fieldtype="text", required=false, default="" } }
+					, filterObjects         = [ objectName ]
+					, expressionHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
+					, filterHandler         = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
+					, labelHandler          = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
+					, textHandler           = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getText"
+					, expressionHandlerArgs = { propertyName=propertyDef.name }
+					, filterHandlerArgs     = { propertyName=propertyDef.name }
+					, labelHandlerArgs      = { propertyName=propertyDef.name }
+					, textHandlerArgs       = { propertyName=propertyDef.name }
+				};
 
 				var expressions = builder.generateExpressionsForProperty(
 					  objectName         = objectName
