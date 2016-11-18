@@ -330,12 +330,18 @@ component displayName="RulesEngine Expression Service" {
 		,          struct labelHandlerArgs      = {}
 		,          struct textHandlerArgs       = {}
 	) {
-		var args = Duplicate( arguments );
 		var expressions = _getExpressions();
 
-		args.delete( "id" );
 
-		expressions[ arguments.id ] = args;
+		if ( expressions.keyExists( arguments.id ) ) {
+			expressions[ arguments.id ].contexts.append( arguments.contexts, true );
+			expressions[ arguments.id ].filterObjects.append( arguments.filterObjects, true );
+		} else {
+			var args = Duplicate( arguments );
+			args.delete( "id" );
+			expressions[ arguments.id ] = args;
+		}
+
 	}
 
 // PRIVATE HELPERS
