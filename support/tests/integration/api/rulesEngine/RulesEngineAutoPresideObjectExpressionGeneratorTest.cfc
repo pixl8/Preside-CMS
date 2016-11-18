@@ -16,10 +16,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filterHandler         = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
 					, labelHandler          = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getLabel"
 					, textHandler           = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getText"
-					, expressionHandlerArgs = { objectName=objectName, propertyName=propertyDef.name }
+					, expressionHandlerArgs = { propertyName=propertyDef.name }
 					, filterHandlerArgs     = { propertyName=propertyDef.name }
-					, labelHandlerArgs      = { objectName=objectName, propertyName=propertyDef.name }
-					, textHandlerArgs       = { objectName=objectName, propertyName=propertyDef.name }
+					, labelHandlerArgs      = { propertyName=propertyDef.name }
+					, textHandlerArgs       = { propertyName=propertyDef.name }
 				};
 
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );
@@ -47,10 +47,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filterHandler         = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
 					, labelHandler          = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getLabel"
 					, textHandler           = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getText"
-					, expressionHandlerArgs = { objectName=objectName, propertyName=propertyDef.name }
+					, expressionHandlerArgs = { propertyName=propertyDef.name }
 					, filterHandlerArgs     = { propertyName=propertyDef.name }
-					, labelHandlerArgs      = { objectName=objectName, propertyName=propertyDef.name }
-					, textHandlerArgs       = { objectName=objectName, propertyName=propertyDef.name }
+					, labelHandlerArgs      = { propertyName=propertyDef.name }
+					, textHandlerArgs       = { propertyName=propertyDef.name }
 				};
 
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );

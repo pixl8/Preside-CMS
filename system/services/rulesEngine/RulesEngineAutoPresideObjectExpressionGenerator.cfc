@@ -58,10 +58,10 @@ component {
 		return {
 			  contexts              = [ "presideobject_" & objectName ]
 			, filterObjects         = [ objectName ]
-			, expressionHandlerArgs = { propertyName=propertyName, objectName=objectName }
+			, expressionHandlerArgs = { propertyName=propertyName }
 			, filterHandlerArgs     = { propertyName=propertyName }
-			, labelHandlerArgs      = { propertyName=propertyName, objectName=objectName }
-			, textHandlerArgs       = { propertyName=propertyName, objectName=objectName }
+			, labelHandlerArgs      = { propertyName=propertyName }
+			, textHandlerArgs       = { propertyName=propertyName }
 		};
 	}
 
