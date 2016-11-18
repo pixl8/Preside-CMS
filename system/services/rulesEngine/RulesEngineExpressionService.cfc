@@ -396,6 +396,17 @@ component displayName="RulesEngine Expression Service" {
 
 	}
 
+	/**
+	 * Returns an array of configured objects that can be filtered by this expression
+	 *
+	 * @autodoc true
+	 * @expressionId.hint ID of the expression who's filterable objects you wish to retrieve
+	 */
+	public array function getFilterObjectsForExpression( required string expressionId ) {
+		var expression = _getRawExpression( expressionId, false );
+		return expression.filterObjects ?: [];
+	}
+
 // PRIVATE HELPERS
 	private struct function _getRawExpression( required string expressionid, boolean throwOnMissing=true ) {
 		var expressions = _getExpressions();

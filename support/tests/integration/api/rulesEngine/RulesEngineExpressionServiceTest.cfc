@@ -690,6 +690,14 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( ids.findNoCase( newExpression.id ) > 0 ).toBe( true );
 			} );
 		} );
+
+		describe( "getFilterObjectsForExpression()", function(){
+			it( "should return the array of configured filter objects for the given expression", function(){
+				var service = _getService();
+
+				expect( service.getFilterObjectsForExpression( "expression6.context4" ) ).toBe( [ "objectz", "usergroup" ] );
+			} );
+		} );
 	}
 
 
