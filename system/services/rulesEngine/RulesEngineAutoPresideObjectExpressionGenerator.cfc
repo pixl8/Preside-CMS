@@ -41,10 +41,12 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_textPropertyIsNull"
+			  id                = "presideobject_textPropertyIsNull_#arguments.propertyName#"
 			, fields            = { _is={ fieldtype="boolean", variety="isIsNot" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
-			, filterHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getText"
 		} );
 
 		return expression;
@@ -56,10 +58,10 @@ component {
 		return {
 			  contexts              = [ "presideobject_" & objectName ]
 			, filterObjects         = [ objectName ]
-			, expressionHandlerArgs = { objectName=objectName, propertyName=propertyName }
-			, filterHandlerArgs     = { objectName=objectName, propertyName=propertyName }
-			, i18nLabelArgs         = [ i18nBaseUri & "title.singular", i18nBaseUri & "field.#propertyName#.title" ]
-			, i18nTextArgs          = [ i18nBaseUri & "title.singular", i18nBaseUri & "field.#propertyName#.title" ]
+			, expressionHandlerArgs = { propertyName=propertyName, objectName=objectName }
+			, filterHandlerArgs     = { propertyName=propertyName }
+			, labelHandlerArgs      = { propertyName=propertyName, objectName=objectName }
+			, textHandlerArgs       = { propertyName=propertyName, objectName=objectName }
 		};
 	}
 

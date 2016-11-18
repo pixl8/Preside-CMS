@@ -54,64 +54,66 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "getExpressionLabel()", function(){
-			it( "should return a translated label using a convention based i18n URI based on the expression id", function(){
-				var service      = _getService();
+			it( "should return a translated label using the configured label handler action and defined args", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var service      = _getService( expressions );
 				var expressionId = "expression3.context1";
 				var label        = CreateUUId();
 
-				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:label", defaultValue=expressionId, data=[] ).$results( label )
+				expressions[ expressionId ].labelHandlerArgs = { testThis=CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].labelHandler ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = expressions[ expressionId ].labelHandler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = expressions[ expressionId ].labelHandlerArgs
+				).$results( label );
 
 				expect( service.getExpressionLabel( expressionId ) ).toBe( label );
 			} );
 
-			it( "should pass any defined translation label data args to the translateResource method", function(){
-				var expressions  = _getDefaultTestExpressions();
+			it( "should return a translated label using a convention based i18n URI based on the expression id when the label generating handler does not exist", function(){
+				var service      = _getService();
 				var expressionId = "expression3.context1";
+				var label        = CreateUUId();
 
-				expressions[ expressionId ].i18nLabelArgs = [ "some.arg", "another.arg" ];
+				mockColdboxController.$( "handlerExists" ).$args( "blah.blah.#expressionId#.getLabel" ).$results( false );
 
-				var service        = _getService( expressions );
-				var label          = CreateUUId();
-				var translatedArgs = [];
-
-				for( var arg in expressions[ expressionId ].i18nLabelArgs ) {
-					service.$( "$translateResource" ).$args( uri=arg, defaultValue=arg ).$results( "translated #arg#" );
-					translatedArgs.append( "translated #arg#" );
-				}
-
-				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:label", defaultValue=expressionId, data=translatedArgs ).$results( label );
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:label", defaultValue=expressionId ).$results( label )
 
 				expect( service.getExpressionLabel( expressionId ) ).toBe( label );
 			} );
 		} );
 
 		describe( "getExpressionText()", function(){
-			it( "should return a translated expression text using a convention based i18n URI based on the expression id", function(){
+			it( "should return a translated text using the configured text handler action and defined args", function(){
+				var expressions  = _getDefaultTestExpressions();
+				var service      = _getService( expressions );
+				var expressionId = "expression3.context1";
+				var label        = CreateUUId();
+
+				expressions[ expressionId ].textHandlerArgs = { testThis=CreateUUId() };
+
+				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].textHandler ).$results( true );
+				mockColdboxController.$( "runEvent" ).$args(
+					  event          = expressions[ expressionId ].textHandler
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = expressions[ expressionId ].textHandlerArgs
+				).$results( label );
+
+				expect( service.getExpressionText( expressionId ) ).toBe( label );
+			} );
+
+			it( "should return a translated expression text using a convention based i18n URI based on the expression id when the handler does not exist", function(){
 				var service      = _getService();
 				var expressionId = "expression7.context5";
 				var text        = CreateUUId();
 
-				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:text", defaultValue=expressionId, data=[] ).$results( text )
+				mockColdboxController.$( "handlerExists" ).$args( "blah.blah.#expressionId#.getText" ).$results( false );
 
-				expect( service.getExpressionText( expressionId ) ).toBe( text );
-			} );
-
-			it( "should pass any defined translation text data args to the translateResource method", function(){
-				var expressions  = _getDefaultTestExpressions();
-				var expressionId = "expression3.context1";
-
-				expressions[ expressionId ].i18nTextArgs = [ "some.arg", "another.arg" ];
-
-				var service        = _getService( expressions );
-				var text           = CreateUUId();
-				var translatedArgs = [];
-
-				for( var arg in expressions[ expressionId ].i18nTextArgs ) {
-					service.$( "$translateResource" ).$args( uri=arg, defaultValue=arg ).$results( "translated #arg#" );
-					translatedArgs.append( "translated #arg#" );
-				}
-
-				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:text", defaultValue=expressionId, data=translatedArgs ).$results( text );
+				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:text", defaultValue=expressionId ).$results( text )
 
 				expect( service.getExpressionText( expressionId ) ).toBe( text );
 			} );
@@ -571,10 +573,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, filterObjects         = [ "object1", "object2" ]
 					, expressionHandler     = "blah"
 					, filterHandler         = "blahblah"
+					, labelHandler          = "blahblahblah"
+					, textHandler           = "blahblahblahblah"
 					, expressionHandlerArgs = {}
 					, filterHandlerArgs     = {}
-					, i18nLabelArgs         = []
-					, i18nTextArgs          = []
+					, labelHandlerArgs      = {}
+					, textHandlerArgs       = {}
 				};
 				expressionIds.append( newExpression.id );
 
@@ -634,10 +638,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			expressions[ expressionId ].append({
 				  expressionHandler     = "blah.blah.#expressionId#.evaluateExpression"
 				, filterHandler         = "blah.blah.#expressionId#.prepareFilters"
+				, labelHandler          = "blah.blah.#expressionId#.getLabel"
+				, textHandler           = "blah.blah.#expressionId#.getText"
 				, expressionHandlerArgs = {}
 				, filterHandlerArgs     = {}
-				, i18nLabelArgs         = []
-				, i18nTextArgs          = []
+				, i18nLabelArgs         = {}
+				, i18nTextArgs          = {}
 			});
 		}
 

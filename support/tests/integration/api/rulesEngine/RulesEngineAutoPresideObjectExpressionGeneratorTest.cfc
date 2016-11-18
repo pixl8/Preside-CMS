@@ -8,16 +8,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var propertyDef  = { name="myprop", type="string", required=false };
 				var baseI18n     = "whatever:";
 				var expectedExpr = {
-					  id                    = "presideobject_textPropertyIsNull"
+					  id                    = "presideobject_textPropertyIsNull_#propertyDef.name#"
 					, contexts              = [ "presideobject_" & objectName ]
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot" } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
-					, filterHandler         = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
+					, filterHandler         = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
+					, labelHandler          = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getLabel"
+					, textHandler           = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getText"
 					, expressionHandlerArgs = { objectName=objectName, propertyName=propertyDef.name }
-					, filterHandlerArgs     = { objectName=objectName, propertyName=propertyDef.name }
-					, i18nLabelArgs         = [ basei18n & "title.singular", basei18n & "field.#propertyDef.name#.title" ]
-					, i18nTextArgs          = [ basei18n & "title.singular", basei18n & "field.#propertyDef.name#.title" ]
+					, filterHandlerArgs     = { propertyName=propertyDef.name }
+					, labelHandlerArgs      = { objectName=objectName, propertyName=propertyDef.name }
+					, textHandlerArgs       = { objectName=objectName, propertyName=propertyDef.name }
 				};
 
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );
@@ -37,16 +39,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var propertyDef  = { name="myprop", type="string", required=true };
 				var baseI18n     = "whatever:";
 				var expectedExpr = {
-					  id                    = "presideobject_textPropertyIsNull"
+					  id                    = "presideobject_textPropertyIsNull_#propertyDef.name#"
 					, contexts              = [ "presideobject_" & objectName ]
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot" } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
-					, filterHandler         = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
+					, filterHandler         = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
+					, labelHandler          = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getLabel"
+					, textHandler           = "rules.dynamic.presideObjectExpressions.PropertyIsNull.getText"
 					, expressionHandlerArgs = { objectName=objectName, propertyName=propertyDef.name }
-					, filterHandlerArgs     = { objectName=objectName, propertyName=propertyDef.name }
-					, i18nLabelArgs         = [ basei18n & "title.singular", basei18n & "field.#propertyDef.name#.title" ]
-					, i18nTextArgs          = [ basei18n & "title.singular", basei18n & "field.#propertyDef.name#.title" ]
+					, filterHandlerArgs     = { propertyName=propertyDef.name }
+					, labelHandlerArgs      = { objectName=objectName, propertyName=propertyDef.name }
+					, textHandlerArgs       = { objectName=objectName, propertyName=propertyDef.name }
 				};
 
 				mockPresideObjectService.$( "getResourceBundleUriRoot" ).$args( objectName ).$results( basei18n );

@@ -109,10 +109,12 @@ component displayName="RulesEngine Expression Reader Service" {
 					, filterObjects         = filterObjects
 					, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
 					, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
+					, labelHandler          = "rules.expressions.#baseId#.getLabel"
+					, textHandler           = "rules.expressions.#baseId#.getText"
 					, expressionHandlerArgs = {}
 					, filterHandlerArgs     = {}
-					, i18nLabelArgs         = []
-					, i18nTextArgs          = []
+					, labelHandlerArgs      = {}
+					, textHandlerArgs       = {}
 				};
 
 			} else if ( func.name == "prepareFilters" ) {

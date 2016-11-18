@@ -98,16 +98,19 @@ component displayName="RulesEngine Expression Service" {
 	 */
 	public string function getExpressionLabel( required string expressionId ) {
 		var expression      = _getRawExpression( arguments.expressionId );
-		var translationArgs = Duplicate( expression.i18nLabelArgs ?: [] );
 
-		for( var i=1; i<=translationArgs.len(); i++ ) {
-			translationArgs[ i ] = $translateResource( uri=translationArgs[i], defaultValue=translationArgs[i] );
+		if ( $getColdbox().handlerExists( expression.labelHandler ?: "" ) ) {
+			return $getColdbox().runEvent(
+				  event          = expression.labelHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = expression.labelHandlerArgs ?: {}
+			);
 		}
 
 		return $translateResource(
 			  uri          = "rules.expressions.#arguments.expressionId#:label"
 			, defaultValue = arguments.expressionId
-			, data         = translationArgs
 		);
 	}
 
@@ -122,17 +125,20 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint ID of the expression, e.g. "loggedIn.global"
 	 */
 	public string function getExpressionText( required string expressionId ) {
-		var expression      = _getRawExpression( arguments.expressionId );
-		var translationArgs = Duplicate( expression.i18nTextArgs ?: [] );
+		var expression = _getRawExpression( arguments.expressionId );
 
-		for( var i=1; i<=translationArgs.len(); i++ ) {
-			translationArgs[ i ] = $translateResource( uri=translationArgs[i], defaultValue=translationArgs[i] );
+		if ( $getColdbox().handlerExists( expression.textHandler ?: "" ) ) {
+			return $getColdbox().runEvent(
+				  event          = expression.textHandler
+				, private        = true
+				, prePostExempt  = true
+				, eventArguments = expression.textHandlerArgs ?: {}
+			);
 		}
 
 		return $translateResource(
 			  uri          = "rules.expressions.#arguments.expressionId#:text"
 			, defaultValue = arguments.expressionId
-			, args         = translationArgs
 		);
 	}
 
@@ -317,10 +323,12 @@ component displayName="RulesEngine Expression Service" {
 		,          struct fields                = {}
 		,          array  filterObjects         = []
 		,          string filterHandler         = ""
+		,          string labelHandler          = ""
+		,          string textHandler           = ""
 		,          struct expressionHandlerArgs = {}
 		,          struct filterHandlerArgs     = {}
-		,          array  i18nLabelArgs         = []
-		,          array  i18nTextArgs          = []
+		,          struct labelHandlerArgs      = {}
+		,          struct textHandlerArgs       = {}
 	) {
 		var args = Duplicate( arguments );
 		var expressions = _getExpressions();
