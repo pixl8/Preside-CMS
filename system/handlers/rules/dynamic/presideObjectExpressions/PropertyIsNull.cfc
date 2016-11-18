@@ -39,10 +39,10 @@ component {
 		, required string  propertyName
 		,          string  variety = "isEmpty"
 	) {
-		var objectBaseUri = presideObjectService.getResourceBundleUriRoot( objectName );
-		var properyName   = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
+		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 
-		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.label", data=[ propertyName ] );
+		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
@@ -50,10 +50,9 @@ component {
 		, required string propertyName
 		,          string variety = "isEmpty"
 	){
-		var objectBaseUri = presideObjectService.getResourceBundleUriRoot( objectName );
-		var properyName   = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
+		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 
-		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.text", data=[ propertyName ] );
+		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.text", data=[ propNameTranslated ] );
 	}
-
 }

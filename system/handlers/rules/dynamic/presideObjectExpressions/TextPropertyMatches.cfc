@@ -72,20 +72,20 @@ component {
 		  required string  objectName
 		, required string  propertyName
 	) {
-		var objectBaseUri = presideObjectService.getResourceBundleUriRoot( objectName );
-		var properyName   = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
+		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 
-		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.label", data=[ propertyName ] );
+		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.label", data=[ propNameTranslated ] );
 	}
 
 	private string function getText(
 		  required string objectName
 		, required string propertyName
 	){
-		var objectBaseUri = presideObjectService.getResourceBundleUriRoot( objectName );
-		var properyName   = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
+		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 
-		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.text", data=[ propertyName ] );
+		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.text", data=[ propNameTranslated ] );
 	}
 
 }
