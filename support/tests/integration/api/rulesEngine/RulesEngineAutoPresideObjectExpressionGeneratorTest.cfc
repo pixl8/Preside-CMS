@@ -169,6 +169,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( expressions.find( expectedExpr ) > 0 ).toBe( true );
 
 			} );
+
+			it( "should return a configured 'date range' expression for a date property", function(){
+				var builder      = _getBuilder();
+				var objectName   = "some_object";
+				var propertyDef  = { name="myprop", type="date", required=true };
+				var expectedExpr = {
+					  id                    = "presideobject_dateinrange_#propertyDef.name#"
+					, contexts              = [ "presideobject_" & objectName ]
+					, fields                = { _time={ fieldtype="timeperiod", type="alltime", required=false } }
+					, filterObjects         = [ objectName ]
+					, expressionHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.evaluateExpression"
+					, filterHandler         = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
+					, labelHandler          = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getLabel"
+					, textHandler           = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getText"
+					, expressionHandlerArgs = { propertyName=propertyDef.name }
+					, filterHandlerArgs     = { propertyName=propertyDef.name }
+					, labelHandlerArgs      = { propertyName=propertyDef.name }
+					, textHandlerArgs       = { propertyName=propertyDef.name }
+				};
+
+				var expressions = builder.generateExpressionsForProperty(
+					  objectName         = objectName
+					, propertyDefinition = propertyDef
+				);
+				expect( expressions.findNoCase( expectedExpr ) > 0 ).toBe( true );
+			} );
 		} );
 	}
 

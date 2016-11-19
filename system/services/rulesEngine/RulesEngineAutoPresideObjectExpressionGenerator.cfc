@@ -79,6 +79,9 @@ component {
 				case "boolean":
 					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name ) );
 				break;
+				case "date":
+					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name ) );
+				break;
 			}
 		}
 
@@ -156,6 +159,21 @@ component {
 		return expression;
 	}
 
+	private struct function _createDateInRangeExpression( required string objectName, required string propertyName ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+
+		expression.append( {
+			  id                = "presideobject_dateinrange_#arguments.propertyName#"
+			, fields            = { _time={ fieldtype="timePeriod", type="alltime", required=false, default="" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getText"
+		} );
+
+		return expression;
+	}
+
 	private struct function _getCommonExpressionDefinition( required string objectName, required string propertyName ){
 		return {
 			  contexts              = [ "presideobject_" & objectName ]
@@ -166,6 +184,8 @@ component {
 			, textHandlerArgs       = { propertyName=propertyName }
 		};
 	}
+
+
 
 // GETTERS AND SETTERS
 	private any function _getRulesEngineExpressionService() {
