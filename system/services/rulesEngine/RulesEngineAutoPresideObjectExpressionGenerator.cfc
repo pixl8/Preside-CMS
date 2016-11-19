@@ -82,6 +82,9 @@ component {
 				case "date":
 					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name ) );
 				break;
+				case "numeric":
+					expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name ) );
+				break;
 			}
 		}
 
@@ -169,6 +172,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createNumericComparisonExpression( required string objectName, required string propertyName ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+
+		expression.append( {
+			  id                = "presideobject_numbercompares_#arguments.propertyName#"
+			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getText"
 		} );
 
 		return expression;
