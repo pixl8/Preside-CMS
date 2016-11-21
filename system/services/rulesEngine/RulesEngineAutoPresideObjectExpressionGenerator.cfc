@@ -39,7 +39,7 @@ component {
 						_getRulesEngineExpressionService().addExpression( argumentCollection=expression );
 					}
 					if ( expressions.len() ) {
-						_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName );
+						_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName, visible=false );
 					}
 				}
 			}
