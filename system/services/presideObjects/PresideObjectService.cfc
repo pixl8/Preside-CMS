@@ -127,47 +127,49 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
-	 * @objectName.hint         Name of the object from which to select data
-	 * @id.hint                 ID of a record to select
-	 * @selectFields.hint       Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
-	 * @filter.hint             Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @filterParams.hint       Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
-	 * @extraFilters.hint       An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
-	 * @orderBy.hint            Plain SQL order by string
-	 * @groupBy.hint            Plain SQL group by string
-	 * @having.hint             Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
-	 * @maxRows.hint            Maximum number of rows to select
-	 * @startRow.hint           Offset the recordset when using maxRows
-	 * @useCache.hint           Whether or not to automatically cache the result internally
-	 * @fromVersionTable.hint   Whether or not to select the data from the version history table for the object
-	 * @specificVersion.hint    Can be used to select a specific version when selecting from the version table
-	 * @allowDraftVersions.hint Choose whether or not to allow selecting from draft records and/or versions
-	 * @forceJoins.hint         Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
-	 * @selectFields.docdefault []
-	 * @filter.docdefault       {}
-	 * @filterParams.docdefault {}
-	 * @extraFilters.docdefault []
-	 * @recordCountOnly.hint    If set to true, the method will just return the number of records that the select statement would return
+	 * @objectName.hint          Name of the object from which to select data
+	 * @id.hint                  ID of a record to select
+	 * @selectFields.hint        Array of field names to select. Can include relationships, e.g. ['tags.label as tag']
+	 * @filter.hint              Filter the records returned, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @filterParams.hint        Filter params for plain SQL filter, see :ref:`preside-objects-filtering-data` in :doc:`/devguides/presideobjects`
+	 * @extraFilters.hint        An array of extra sets of filters. Each array should contain a structure with :code:`filter` and optional `code:`filterParams` keys.
+	 * @orderBy.hint             Plain SQL order by string
+	 * @groupBy.hint             Plain SQL group by string
+	 * @having.hint              Plain SQL HAVING clause, can contain params that should be present in `filterParams` argument
+	 * @maxRows.hint             Maximum number of rows to select
+	 * @startRow.hint            Offset the recordset when using maxRows
+	 * @useCache.hint            Whether or not to automatically cache the result internally
+	 * @fromVersionTable.hint    Whether or not to select the data from the version history table for the object
+	 * @specificVersion.hint     Can be used to select a specific version when selecting from the version table
+	 * @allowDraftVersions.hint  Choose whether or not to allow selecting from draft records and/or versions
+	 * @forceJoins.hint          Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @selectFields.docdefault  []
+	 * @filter.docdefault        {}
+	 * @filterParams.docdefault  {}
+	 * @extraFilters.docdefault  []
+	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
+	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
 	 */
 	public any function selectData(
 		  required string  objectName
 		,          string  id
-		,          array   selectFields       = []
-		,          any     filter             = {}
-		,          struct  filterParams       = {}
-		,          array   extraFilters       = []
-		,          array   savedFilters       = []
-		,          string  orderBy            = ""
-		,          string  groupBy            = ""
-		,          string  having             = ""
-		,          numeric maxRows            = 0
-		,          numeric startRow           = 1
-		,          boolean useCache           = true
-		,          boolean fromVersionTable   = false
-		,          numeric specificVersion    = 0
-		,          boolean allowDraftVersions = $getRequestContext().showNonLiveContent()
-		,          string  forceJoins         = ""
-		,          boolean recordCountOnly    = false
+		,          array   selectFields        = []
+		,          any     filter              = {}
+		,          struct  filterParams        = {}
+		,          array   extraFilters        = []
+		,          array   savedFilters        = []
+		,          string  orderBy             = ""
+		,          string  groupBy             = ""
+		,          string  having              = ""
+		,          numeric maxRows             = 0
+		,          numeric startRow            = 1
+		,          boolean useCache            = true
+		,          boolean fromVersionTable    = false
+		,          numeric specificVersion     = 0
+		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
+		,          string  forceJoins          = ""
+		,          boolean recordCountOnly     = false
+		,          boolean getSqlAndParamsOnly = false
 
 	) autodoc=true {
 		var args    = Duplicate( arguments );
@@ -227,6 +229,12 @@ component displayName="Preside Object Service" {
 
 			if ( arguments.recordCountOnly ) {
 				sql = args.adapter.getCountSql( sql );
+			}
+			if ( arguments.getSqlAndParamsOnly ) {
+				return {
+					  sql    = sql
+					, params = args.preparedFilter.params
+				};
 			}
 			args.result = _runSql( sql=sql, dsn=args.objMeta.dsn, params=args.preparedFilter.params );
 			if ( arguments.recordCountOnly ) {
