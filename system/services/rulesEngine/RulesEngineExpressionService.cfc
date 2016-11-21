@@ -202,6 +202,13 @@ component displayName="RulesEngine Expression Service" {
 	 * @fieldName.hint    Name of the field
 	 */
 	public string function getDefaultFieldLabel( required string expressionId, required string fieldName ) {
+		var rawDefinition     = _getRawExpression( arguments.expressionId );
+
+		if ( Len( Trim( rawDefinition.fields[ arguments.fieldName ].defaultLabel ?: "" ) ) ) {
+			var labelUri = rawDefinition.fields[ arguments.fieldName ].defaultLabel;
+			return $translateResource( uri=labelUri, defaultValue=labelUri );
+		}
+
 		var defaultFieldLabel = $translateResource( uri="rules.fields:#arguments.fieldName#.label", defaultValue=arguments.fieldName );
 
 		return $translateResource( uri="rules.expressions.#arguments.expressionId#:field.#arguments.fieldName#.label", defaultValue=defaultFieldLabel );

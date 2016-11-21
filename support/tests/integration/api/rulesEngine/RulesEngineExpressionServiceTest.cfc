@@ -215,9 +215,24 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var fieldName    = "myfield";
 				var label        = CreateUUId();
 				var defaultLabel = CreateUUId();
+				var dummyExpressionDefinition = { fields={ "#fieldName#" = {} } };
 
+				service.$( "_getRawExpression" ).$args( expressionId ).$results( dummyExpressionDefinition );
 				service.$( "$translateResource" ).$args( uri="rules.fields:#fieldName#.label", defaultValue=fieldName ).$results( defaultLabel );
 				service.$( "$translateResource" ).$args( uri="rules.expressions.#expressionId#:field.#fieldName#.label", defaultValue=defaultLabel ).$results( label );
+
+				expect( service.getDefaultFieldLabel( expressionId, fieldName ) ).toBe( label );
+			} );
+
+			it( "should return a translated field label using a configured based i18n URI when field definition includes a defined defaultLabel", function(){
+				var service                   = _getService();
+				var expressionId              = "some.expression.here";
+				var fieldName                 = "myfield";
+				var label                     = CreateUUId();
+				var dummyExpressionDefinition = { fields={ "#fieldName#" = { defaultLabel="blah:blah.blah" } } };
+
+				service.$( "_getRawExpression" ).$args( expressionId ).$results( dummyExpressionDefinition );
+				service.$( "$translateResource" ).$args( uri="blah:blah.blah", defaultValue="blah:blah.blah" ).$results( label );
 
 				expect( service.getDefaultFieldLabel( expressionId, fieldName ) ).toBe( label );
 			} );

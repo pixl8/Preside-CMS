@@ -88,6 +88,12 @@ component {
 			}
 		}
 
+		switch( relationship ) {
+			case "many-to-one":
+				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition ) );
+			break;
+		}
+
 		return expressions;
 	}
 
@@ -188,6 +194,25 @@ component {
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.getText"
 		} );
+
+		return expression;
+	}
+
+	private struct function _createManyToOneMatchExpression( required string objectName, required struct propertyDefinition ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+
+		expression.append( {
+			  id                              = "presideobject_stringmatches_#arguments.propertyDefinition.name#"
+			, fields                          = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToOneMatch.value.default.label" } }
+			, expressionHandler               = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.evaluateExpression"
+			, filterHandler                   = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.prepareFilters"
+			, labelHandler                    = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.getLabel"
+			, textHandler                     = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.getText"
+		} );
+		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
 
 		return expression;
 	}
