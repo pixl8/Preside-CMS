@@ -143,12 +143,14 @@ component displayName="Preside Object Service" {
 	 * @specificVersion.hint     Can be used to select a specific version when selecting from the version table
 	 * @allowDraftVersions.hint  Choose whether or not to allow selecting from draft records and/or versions
 	 * @forceJoins.hint          Can be set to "inner" / "left" to force *all* joins in the query to a particular join type
+	 * @extraJoins.hint          An array of explicit joins to add to the query (can define subquery joins this way)
+	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
+	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
 	 * @selectFields.docdefault  []
 	 * @filter.docdefault        {}
 	 * @filterParams.docdefault  {}
 	 * @extraFilters.docdefault  []
-	 * @recordCountOnly.hint     If set to true, the method will just return the number of records that the select statement would return
-	 * @getSqlAndParamsOnly.hint If set to true, the method will not execute any query. Instead it will just return a struct with a `sql` key containing the plain string SQL that would have been executed and a `params` key with an array of params that would be included
+	 * @extraJoins.docdefault    []
 	 */
 	public any function selectData(
 		  required string  objectName
@@ -168,6 +170,7 @@ component displayName="Preside Object Service" {
 		,          numeric specificVersion     = 0
 		,          boolean allowDraftVersions  = $getRequestContext().showNonLiveContent()
 		,          string  forceJoins          = ""
+		,          array   extraJoins          = []
 		,          boolean recordCountOnly     = false
 		,          boolean getSqlAndParamsOnly = false
 
@@ -1651,7 +1654,7 @@ component displayName="Preside Object Service" {
 		return joins;
 	}
 
-	private array function _convertObjectJoinsToTableJoins( required array joins ) {
+	private array function _convertObjectJoinsToTableJoins( required array joins, array extraJoins=[], array extraFilters=[], array savedFilters=[] ) {
 		var tableJoins = [];
 		var objJoin    = "";
 		var objects    = _getObjects();
@@ -1672,6 +1675,22 @@ component displayName="Preside Object Service" {
 			}
 
 			tableJoins.append( join );
+		}
+
+		tableJoins.append( arguments.extraJoins, true );
+
+		for( var savedFilter in arguments.savedFilters ){
+			savedFilter = _getFilterService().getFilter( savedFilter );
+
+			if ( IsArray( savedFilter.extraJoins ?: "" ) ) {
+				tableJoins.append( savedFilter.extraJoins, true );
+			}
+		}
+
+		for( var extraFilter in arguments.extraFilters ){
+			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
+				tableJoins.append( extraFilter.extraJoins, true );
+			}
 		}
 
 		var interceptArguments = arguments;

@@ -35,11 +35,12 @@ component displayName="Rules Engine Filter Service" {
 		  required string objectName
 		, required array  expressionArray
 	) {
-		var dbAdapter = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
-		var join      = "";
-		var sql       = "";
-		var params    = {};
-		var isHaving  = false;
+		var dbAdapter  = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
+		var join       = "";
+		var sql        = "";
+		var params     = {};
+		var extraJoins = [];
+		var isHaving   = false;
 
 		for( var i=1; i <= expressionArray.len(); i++ ) {
 			var isJoin = !(i mod 2);
@@ -70,6 +71,7 @@ component displayName="Rules Engine Filter Service" {
 					}
 					var delim = "";
 					for( var rawFilter in rawFilters ) {
+						extraJoins.append( rawFilter.extraJoins ?: [], true );
 						params.append( rawFilter.filterParams ?: {} );
 						if ( IsStruct( rawFilter.filter ?: "" ) ){
 							params.append( rawFilter.filter );
@@ -99,7 +101,7 @@ component displayName="Rules Engine Filter Service" {
 			}
 		}
 
-		var returnValue = { filterParams=params };
+		var returnValue = { filterParams=params, extraJoins=extraJoins };
 		if ( isHaving ) {
 			returnValue.having = Trim( sql );
 		} else {

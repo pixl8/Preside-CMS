@@ -28,7 +28,7 @@ component {
 		,          boolean _is   = true
 		,          string  value = ""
 	){
-		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
+		var paramName = "manyToOneMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var operator  = _is ? "in" : "not in";
 		var filterSql = "#propertyName#.id #operator# (:#paramName#)";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };

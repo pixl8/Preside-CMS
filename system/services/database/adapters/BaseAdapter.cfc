@@ -234,7 +234,16 @@ component {
 		for( join in arguments.joins ){
 			param name="join.tableAlias" default="";
 
-			for( requiredCol in ["tableName","tableColumn","joinToTable","joinToColumn"] ) {
+			if ( Len( join.subQuery ?: "" ) ) {
+				join.escapedJoinTable = "( " & join.subQuery & " )";
+				join.tableName   = join.subQuery;
+				join.tableAlias  = join.subQueryAlias ?: NullValue();
+				join.tableColumn = join.subQueryColumn ?: NullValue();
+			} else {
+				join.escapedJoinTable = escapeEntity( join.tableName ?: "" );
+			}
+
+			for( requiredCol in [ "tableName","tableColumn","joinToTable","joinToColumn" ] ) {
 				if ( not StructKeyExists( join, requiredCol ) ){
 					throw( type="MySqlAdapter.missingJoinParams", detail="[#requiredCol#] was not supplied", message="Missing param in supplied join. Required params are [tableName], [tableColumn], [joinToTable] and [joinToColumn]" );
 				}
@@ -247,7 +256,7 @@ component {
 
 		}
 		for( join in arguments.joins ){
-			sql &= " " & ( join.type eq "left" ? "left" : "inner" ) & " join " & escapeEntity( join.tableName );
+			sql &= " " & ( join.type eq "left" ? "left" : "inner" ) & " join " & join.escapedJoinTable;
 			if ( Len( join.tableAlias ) ) {
 				sql &= " " & escapeEntity( join.tableAlias );
 				sql &= " on (" & escapeEntity( join.tableAlias ) & "." & escapeEntity( join.tableColumn );

@@ -28,9 +28,17 @@ component {
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
-		var paramName = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "Count( #propertyName#.id ) ${operator} :#paramName#";
-		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
+		var propDef       = presideObjectService.getObjectProperty( objectName, propertyName );
+		var subQuery      = presideObjectService.selectData(
+			  objectName          = arguments.objectName
+			, selectFields        = [ "Count( #propertyName#.id ) manytomany_count", "#objectName#.id" ]
+			, groupBy             = "#objectName#.id"
+			, getSqlAndParamsOnly = true
+		).sql;
+		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
+		var paramName     = subQueryAlias;
+		var filterSql     = "#subQueryAlias#.manytomany_count ${operator} :#paramName#";
+		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
 		switch ( _numericOperator ) {
 			case "eq":
@@ -53,7 +61,14 @@ component {
 			break;
 		}
 
-		return [ { having=filterSql, filterParams=params } ];
+		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
+			  type           = "left"
+			, subQuery       = subQuery
+			, subQueryAlias  = subQueryAlias
+			, subQueryColumn = "id"
+			, joinToTable    = arguments.objectName
+			, joinToColumn   = "id"
+		} ] } ];
 	}
 
 	private string function getLabel(
