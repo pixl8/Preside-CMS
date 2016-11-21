@@ -28,8 +28,7 @@ component {
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
-		var propDef       = presideObjectService.getObjectProperty( objectName, propertyName );
-		var subQuery      = presideObjectService.selectData(
+		var subQuery = presideObjectService.selectData(
 			  objectName          = arguments.objectName
 			, selectFields        = [ "Count( #propertyName#.id ) manytomany_count", "#objectName#.id" ]
 			, groupBy             = "#objectName#.id"

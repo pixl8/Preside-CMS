@@ -96,6 +96,9 @@ component {
 				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition ) );
 				expressions.append( _createManyToManyCountExpression( objectName, propertyDefinition ) );
 			break;
+			case "one-to-many":
+				expressions.append( _createOneToManyMatchExpression( objectName, propertyDefinition ) );
+			break;
 		}
 
 		return expressions;
@@ -236,6 +239,29 @@ component {
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
 		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
 		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+
+		return expression;
+	}
+
+	private struct function _createOneToManyMatchExpression( required string objectName, required struct propertyDefinition ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_onetomanymatch_#arguments.propertyDefinition.name#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:oneToManyMatch.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyMatch.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyMatch.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyMatch.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.OneToManyMatch.getText"
+		} );
+		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo             = propertyDefinition.relatedTo;
+		expression.expressionHandlerArgs.relationshipKey = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.filterHandlerArgs.relationshipKey     = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.labelHandlerArgs.relationshipKey      = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.textHandlerArgs.relationshipKey       = ( propertyDefinition.relationshipKey ?: arguments.objectName );
 
 		return expression;
 	}
