@@ -62,6 +62,12 @@
   width: 400px;
   border: 2px dashed #dddddd;
 }
+.presidecms .rules-engine-condition-builder.compact .rules-engine-condition-builder-expressions-list {
+  height: 200px;
+}
+.presidecms .rules-engine-condition-builder.compact .rules-engine-condition-builder-condition-pane {
+  height: 239px;
+}
 .presidecms .form-group.has-error .rules-engine-condition-builder-expression-search,
 .presidecms .form-group.has-error .rules-engine-condition-builder-expressions-list {
   border-color: #d5d5d5;

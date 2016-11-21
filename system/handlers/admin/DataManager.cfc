@@ -7,6 +7,7 @@
 	<cfproperty name="validationEngine"                 inject="validationEngine"                 />
 	<cfproperty name="siteService"                      inject="siteService"                      />
 	<cfproperty name="versioningService"                inject="versioningService"                />
+	<cfproperty name="rulesEngineFilterService"         inject="rulesEngineFilterService"         />
 	<cfproperty name="messageBox"                       inject="coldbox:plugin:messageBox"        />
 
 	<cffunction name="preHandler" access="public" returntype="void" output="false">
@@ -1325,6 +1326,17 @@
 			var translateUrlBase    = "";
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var sortOrder           = dtHelper.getSortOrder();
+			var expressionFilter    = rc.sFilterExpression ?: "";
+			var extraFilters        = [];
+
+			try {
+				extraFilters.append( rulesEngineFilterService.prepareFilter(
+					  objectName = object
+					, expressionArray = DeSerializeJson( expressionFilter )
+				) );
+			} catch( any e ){}
+
+
 
 			if ( IsEmpty( sortOrder ) ) {
 				sortOrder = dataManagerService.getDefaultSortOrderForDataGrid( object );
@@ -1339,6 +1351,7 @@
 				, orderBy       = sortOrder
 				, searchQuery   = dtHelper.getSearchQuery()
 				, draftsEnabled = arguments.draftsEnabled
+				, extraFilters = extraFilters
 			);
 			var records = Duplicate( results.records );
 			for( var record in records ){

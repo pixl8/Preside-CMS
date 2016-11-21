@@ -3,6 +3,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="rulesEngineContextService"   inject="rulesEngineContextService";
 	property name="rulesEngineConditionService" inject="rulesEngineConditionService";
 	property name="rulesEngineFieldTypeService" inject="rulesEngineFieldTypeService";
+	property name="rulesEngineFilterService"    inject="rulesEngineFilterService";
 	property name="dataManagerService"          inject="dataManagerService";
 
 	function preHandler() {
@@ -204,6 +205,31 @@ component extends="preside.system.base.AdminHandler" {
 		);
 
 		event.renderData( type="json", data=records );
+	}
+
+	public void function getFilterCount( event, rc, prc ) {
+		var objectName      = rc.objectName ?: "";
+		var expressionArray = "";
+		var count           = 0;
+
+		try {
+			expressionArray = DeSerializeJson( rc.condition ?: "" );
+		} catch ( any e ) {}
+
+		if ( !IsArray( expressionArray ) ) {
+			expressionArray = [];
+		}
+
+		if ( objectName.len() ) {
+				var count = rulesEngineFilterService.getMatchingRecordCount(
+					  objectName      = objectName
+					, expressionArray = expressionArray
+				);
+			try {
+			} catch ( any e ) {}
+		}
+
+		event.renderData( data=count, type="text" );
 	}
 
 // PRIVATE HELPERS

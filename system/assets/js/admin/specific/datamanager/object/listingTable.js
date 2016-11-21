@@ -8,6 +8,8 @@
 		return this.each( function(){
 			var $listingTable  = $( this )
 			  , tableSettings  = $listingTable.data()
+			  , tableId        = $listingTable.attr( "id" )
+			  , datatable
 			  , searchDelay    = 400
 			  , setupDatatable
 			  , setupCheckboxBehaviour
@@ -19,8 +21,10 @@
 			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
 			  , objectTitle         = tableSettings.objectTitle    || cfrequest.objectTitle    || i18n.translateResource( "preside-objects." + object + ":title" ).toLowerCase()
 			  , allowSearch         = tableSettings.allowSearch    || cfrequest.allowSearch
+			  , allowFilter         = tableSettings.allowFilter    || cfrequest.allowFilter
 			  , clickableRows       = typeof tableSettings.clickableRows   === "undefined" ? ( typeof cfrequest.clickableRows   === "undefined" ? true : cfrequest.clickableRows   ) : tableSettings.clickableRows
 			  , useMultiActions     = typeof tableSettings.useMultiActions === "undefined" ? ( typeof cfrequest.useMultiActions === "undefined" ? true : cfrequest.useMultiActions ) : tableSettings.useMultiActions
+			  , $filterDiv          = $( '#' + tableId + '-filter' )
 			  , enabledContextHotkeys;
 
 			setupDatatable = function(){
@@ -89,7 +93,7 @@
 					}
 				}
 
-				$listingTable.dataTable( {
+				datatable = $listingTable.dataTable( {
 					aoColumns     : colConfig,
 					aaSorting     : defaultSort,
 					bServerSide   : true,
@@ -98,7 +102,7 @@
 					bFilter       : allowSearch,
 					bAutoWidth    : false,
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
-					sDom          : "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+					sDom          : "<'row'<'well'<'col-sm-6'l><'col-sm-6'f><'clearfix'>>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
 					sAjaxSource   : datasourceUrl,
 					fnRowCallback : function( row ){
 						$row = $( row );
@@ -128,6 +132,22 @@
 								}
 							} );
 						}
+
+						if ( allowFilter ) {
+							var $searchContainer = $( settings.aanFeatures.f[0] )
+							  , $filterLink      = $( '<a href="#" data-target="#' + tableId + '-filter" data-toggle="collapse" class="collapsed"><i class="fa fa-fw fa-filter"></i></a>' );
+
+							$searchContainer.append( $filterLink ).parent().after( $filterDiv );
+
+							$filterDiv.removeClass( "hide" ).addClass( "collapse" ).find( ".well" ).removeClass( "well" );
+							$filterLink.on( "click", function(e){
+								e.preventDefault();
+							} );
+
+							$filterDiv.on( "change", function( e ){
+								datatable.fnDraw();
+							} );
+						}
 					},
 					oLanguage : {
 		      			oAria : {
@@ -152,6 +172,11 @@
 						sSearch : '',
 						sUrl : '',
 						sInfoPostFix : ''
+		    		},
+		    		fnServerParams : function( aoData ) {
+		    			if ( allowFilter ) {
+		    				aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
+		    			}
 		    		}
 				} ).fnSetFilteringDelay( searchDelay );
 			};

@@ -29965,8 +29965,9 @@ fieldset[disabled] .presidecms .btn {
   line-height: 16px;
   margin-left: 3px;
 }
-.presidecms .dataTables_wrapper > .row:first-child {
+.presidecms .dataTables_wrapper .row:first-child {
   background: none;
+  background-color: transparent !important;
 }
 .presidecms .dataTables_wrapper .row:first-child + .dataTable {
   border-top: none !important;

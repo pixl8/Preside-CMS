@@ -70,6 +70,20 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( expressions.count() ).toBe( 0 );
 			} );
+
+			it( "should set an array of filter objects based on the CFC file having a prepareFilters() method tagged with a @objects attribute", function(){
+				var service  = _getService();
+				var cfc      = "resources.rulesEngine.expressions.SimpleExpressionHandler";
+				var rootPath = "resources.rulesEngine.expressions";
+				var meta     = GetComponentMetadata( cfc );
+				var dummyDefs = { test=CreateUUId() };
+
+				service.$( "getExpressionFieldsFromFunctionDefinition" ).$args( meta.functions[1] ).$results( dummyDefs );
+
+				var expressions = service.getExpressionsFromCfc( componentPath=cfc, rootPath=rootPath );
+
+				expect( expressions[ "SimpleExpressionHandler" ].filterObjects ?: [] ).toBe( [ "object1", "object2" ] );
+			} );
 		} );
 
 		describe( "getExpressionFieldsFromFunctionDefinition()", function(){
