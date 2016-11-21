@@ -94,6 +94,7 @@ component {
 			break;
 			case "many-to-many":
 				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition ) );
+				expressions.append( _createManyToManyCountExpression( objectName, propertyDefinition ) );
 			break;
 		}
 
@@ -230,6 +231,25 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getText"
+		} );
+		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+
+		return expression;
+	}
+
+	private struct function _createManyToManyCountExpression( required string objectName, required struct propertyDefinition ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_manytomanycount_#arguments.propertyDefinition.name#"
+			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyCount.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyCount.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyCount.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToManyCount.getText"
 		} );
 		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;

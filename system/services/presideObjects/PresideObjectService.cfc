@@ -2038,7 +2038,10 @@ component displayName="Preside Object Service" {
 			savedFilter.filterParams = savedFilter.filterParams ?: {};
 			savedFilter.having       = savedFilter.having       ?: "";
 
-			result.filterParams.append( IsStruct( savedFilter.filter ) ? savedFilter.filter : savedFilter.filterParams );
+			result.filterParams.append( savedFilter.filterParams ?: {} );
+			if ( IsStruct( savedFilter.filter ) ) {
+				result.filterParams.append( savedFilter.filter );
+			}
 			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = savedFilter.filter
@@ -2060,7 +2063,10 @@ component displayName="Preside Object Service" {
 			extraFilter.filterParams = extraFilter.filterParams ?: {};
 			extraFilter.having       = extraFilter.having       ?: "";
 
-			result.filterParams.append( IsStruct( extraFilter.filter ) ? extraFilter.filter : extraFilter.filterParams );
+			result.filterParams.append( extraFilter.filterParams ?: {} );
+			if ( IsStruct( extraFilter.filter ) ) {
+				result.filterParams.append( extraFilter.filter );
+			}
 			result.filter = mergeFilters(
 				  filter1    = result.filter
 				, filter2    = extraFilter.filter
