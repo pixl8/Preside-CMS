@@ -26,6 +26,7 @@
 
 		RulesEngineCondition.prototype.persistToHiddenField = function() {
 			this.$formControl.val( this.serialize() );
+			this.notifyChange();
 		};
 
 		RulesEngineCondition.prototype.serialize = function() {
@@ -129,6 +130,10 @@
 			if ( $selectedLi ) {
 				this.selectExpression( $selectedLi );
 			}
+		};
+
+		RulesEngineCondition.prototype.notifyChange = function(){
+			this.$formControl.trigger( "change" );
 		};
 
 		RulesEngineCondition.prototype.updateFilterCount = function() {

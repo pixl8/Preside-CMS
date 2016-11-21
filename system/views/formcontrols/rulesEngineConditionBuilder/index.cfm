@@ -9,6 +9,7 @@
 	expressions  = args.expressions  ?: [];
 	isFilter     = IsTrue( args.isFilter ?: "" ) ? "true" : "false"; // deliberate stringifying of booleans here
 	object       = args.object ?: "";
+	compact      = IsTrue( args.compact ?: "" );
 
 	value  = event.getValue( name=inputName, defaultValue=defaultValue );
 	if ( !IsSimpleValue( value ) ) {
@@ -28,7 +29,7 @@
 
 <cfoutput>
 	<textarea id="#inputId#" placeholder="#placeholder#" name="#inputName#" class="#inputClass# form-control rules-engine-condition-builder" tabindex="#getNextTabIndex()#" data-is-filter="#isFilter#"<cfif isFilter && object.len()> data-object-name="#object#"</cfif>>#value#</textarea>
-	<div class="rules-engine-condition-builder hide">
+	<div class="rules-engine-condition-builder hide<cfif compact> compact</cfif>">
 		<div class="well">
 			<div class="row">
 				<div class="col-md-6">

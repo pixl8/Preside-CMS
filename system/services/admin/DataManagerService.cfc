@@ -189,6 +189,7 @@ component {
 		,          string  searchQuery  = ""
 		,          any     filter       = {}
 		,          struct  filterParams = {}
+		,          array   extraFilters = []
 
 	) {
 
@@ -202,7 +203,7 @@ component {
 			, filter             = arguments.filter
 			, filterParams       = arguments.filterParams
 			, allowDraftVersions = true
-			, extraFilters       = []
+			, extraFilters       = arguments.extraFilters
 		};
 
 		if ( Len( Trim( arguments.searchQuery ) ) ) {
@@ -217,13 +218,7 @@ component {
 		if ( arguments.startRow eq 1 and result.records.recordCount lt arguments.maxRows ) {
 			result.totalRecords = result.records.recordCount;
 		} else {
-			result.totalRecords = _getPresideObjectService().selectData(
-				  objectName         = arguments.objectName
-				, selectFields       = [ "count( * ) as nRows" ]
-				, filter             = arguments.filter
-				, filterParams       = arguments.filterParams
-				, allowDraftVersions = true
-			).nRows;
+			result.totalRecords = _getPresideObjectService().selectData( argumentCollection=args, recordCountOnly=true, maxRows=0 );
 		}
 
 		return result;
