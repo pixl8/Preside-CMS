@@ -98,6 +98,7 @@ component {
 			break;
 			case "one-to-many":
 				expressions.append( _createOneToManyMatchExpression( objectName, propertyDefinition ) );
+				expressions.append( _createOneToManyCountExpression( objectName, propertyDefinition ) );
 			break;
 		}
 
@@ -285,6 +286,30 @@ component {
 		return expression;
 	}
 
+	private struct function _createOneToManyCountExpression( required string objectName, required struct propertyDefinition ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_onetomanycount_#arguments.propertyDefinition.name#"
+			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyCount.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyCount.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.OneToManyCount.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.OneToManyCount.getText"
+		} );
+		expression.expressionHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo           = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo            = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo             = propertyDefinition.relatedTo;
+		expression.expressionHandlerArgs.relationshipKey = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.filterHandlerArgs.relationshipKey     = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.labelHandlerArgs.relationshipKey      = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+		expression.textHandlerArgs.relationshipKey       = ( propertyDefinition.relationshipKey ?: arguments.objectName );
+
+		return expression;
+	}
+
+
 	private struct function _getCommonExpressionDefinition( required string objectName, required string propertyName ){
 		return {
 			  contexts              = [ "presideobject_" & objectName ]
@@ -295,6 +320,8 @@ component {
 			, textHandlerArgs       = { propertyName=propertyName }
 		};
 	}
+
+
 
 
 
