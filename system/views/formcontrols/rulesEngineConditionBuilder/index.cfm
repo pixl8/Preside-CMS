@@ -16,6 +16,14 @@
 	}
 
 	value = HtmlEditFormat( value );
+
+	if ( isFilter ) {
+		conditionPaneTitle     = translateResource( "cms:rulesEngine.filter.builder.condition.pane.title" );
+		expressionLibraryTitle = translateResource( "cms:rulesEngine.filter.builder.expressions.pane.title" );
+	} else {
+		conditionPaneTitle     = translateResource( "cms:rulesEngine.condition.builder.condition.pane.title" );
+		expressionLibraryTitle = translateResource( "cms:rulesEngine.condition.builder.expressions.pane.title" );
+	}
 </cfscript>
 
 <cfoutput>
@@ -24,7 +32,7 @@
 		<div class="well">
 			<div class="row">
 				<div class="col-md-6">
-					<h4 class="blue">Edit condition</h4>
+					<h4 class="blue">#conditionPaneTitle#</h4>
 					<div class="rules-engine-condition-builder-condition-pane form-control">
 						<ul class="list-unstyled rules-engine-condition-builder-rule-list">
 
@@ -32,7 +40,7 @@
 					</div>
 				</div>
 				<div class="col-md-6">
-					<h4 class="blue">Expression library (drag and drop to add)</h4>
+					<h4 class="blue">#expressionLibraryTitle#</h4>
 					<div class="rules-engine-condition-builder-expressions-pane">
 						<label class="block clearfix">
 							<span class="block input-icon input-icon-right">
