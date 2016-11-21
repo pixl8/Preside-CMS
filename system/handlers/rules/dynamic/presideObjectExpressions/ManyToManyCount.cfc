@@ -76,12 +76,12 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 	) {
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var objectName          = translateResource( objectBaseUri & "title.singular", objectName );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
+		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
+		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
 
-		return translateResource( uri="rules.dynamicExpressions:manyToManyCount.label", data=[ objectName, relatedToTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:manyToManyCount.label", data=[ objectNameTranslated, relatedToTranslated ] );
 	}
 
 	private string function getText(
@@ -89,12 +89,12 @@ component {
 		, required string propertyName
 		, required string relatedTo
 	){
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var objectName          = translateResource( objectBaseUri & "title.singular", objectName );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
+		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
+		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
 
-		return translateResource( uri="rules.dynamicExpressions:manyToManyCount.text", data=[ objectName, relatedToTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:manyToManyCount.text", data=[ objectNameTranslated, relatedToTranslated ] );
 	}
 
 }

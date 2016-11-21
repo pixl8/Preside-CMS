@@ -226,7 +226,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_manytomanymatch_#arguments.propertyDefinition.name#"
-			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyMatch.value.default.label" } }
+			, fields            = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getLabel"

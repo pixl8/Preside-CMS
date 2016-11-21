@@ -10,8 +10,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          boolean _is   = true
-		,          string  value = ""
+		,          boolean _possesses = true
+		,          string  value      = ""
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
@@ -25,11 +25,11 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
-		,          boolean _is   = true
-		,          string  value = ""
+		,          boolean _possesses = true
+		,          string  value      = ""
 	){
 		var paramName = "manyToOneMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var operator  = _is ? "in" : "not in";
+		var operator  = _possesses ? "in" : "not in";
 		var filterSql = "#propertyName#.id #operator# (:#paramName#)";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
@@ -41,12 +41,12 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 	) {
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var propNameTranslated  = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
+		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
+		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
 
-		return translateResource( uri="rules.dynamicExpressions:manyToManyMatch.label", data=[ propNameTranslated, relatedToTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:manyToManyMatch.label", data=[ objectNameTranslated, relatedToTranslated ] );
 	}
 
 	private string function getText(
@@ -54,12 +54,12 @@ component {
 		, required string propertyName
 		, required string relatedTo
 	){
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
-		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var propNameTranslated  = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
-		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
+		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
+		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
 
-		return translateResource( uri="rules.dynamicExpressions:manyToManyMatch.text", data=[ propNameTranslated, relatedToTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:manyToManyMatch.text", data=[ objectNameTranslated, relatedToTranslated ] );
 	}
 
 }
