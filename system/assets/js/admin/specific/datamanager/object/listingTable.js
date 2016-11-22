@@ -320,6 +320,9 @@
 
 				if ( loaded ) {
 					showFilters();
+					if ( !filter || !filter.length ) {
+						$filterDiv.find( ".quick-filter-toggler" ).click();
+					}
 				}
 			}
 
