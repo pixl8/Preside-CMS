@@ -29965,13 +29965,13 @@ fieldset[disabled] .presidecms .btn {
   display: block;
 }
 .presidecms .dataTables_wrapper .dataTables_filter .input-icon .data-table-search {
-  border: 1px solid #ffffff;
-  width: calc(100% - 20em);
+  width: calc(100% - 32px);
   border-radius: 4px !important;
   font-size: 14px;
   color: #666666;
   padding-left: 25px;
-  height: 20px;
+  height: 30px;
+  margin: 0;
 }
 .presidecms .dataTables_wrapper .dataTables_filter .input-icon .data-table-search-icon {
   font-size: 14px;

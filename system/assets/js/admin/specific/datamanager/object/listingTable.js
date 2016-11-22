@@ -261,8 +261,10 @@
 			setupFilters = function( settings ){
 				// setup DOM
 				var $searchContainer = $( settings.aanFeatures.f[0] )
+				  , $searchTitle     = $( '<h4 class="blue">' + i18n.translateResource( "cms:datatables.simple.search.title" ) + '</h4>' )
 				  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
 
+				$searchContainer.prepend( $searchTitle );
 				$searchContainer.prepend( $filterLink );
 				$searchContainer.parent().append( $filterDiv );
 
@@ -329,10 +331,10 @@
 			showFilters = function( e ){
 				e && e.preventDefault();
 				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
-				$searchContainer.fadeOut( 200, function(){
+				$searchContainer.fadeOut( 100, function(){
 					$searchContainer.find( "input.data-table-search" ).val( "" );
 					datatable.fnFilter("");
-					$filterDiv.fadeIn( 200 );
+					$filterDiv.fadeIn( 100 );
 				} );
 			};
 
@@ -340,11 +342,11 @@
 				e && e.preventDefault();
 				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
 
-				$filterDiv.fadeOut( 200, function(){
+				$filterDiv.fadeOut( 100, function(){
 					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
 					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
 					datatable.fnDraw();
-					$searchContainer.fadeIn( 200 );
+					$searchContainer.fadeIn( 100 );
 				} );
 			};
 
