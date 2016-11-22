@@ -567,8 +567,8 @@ component {
 		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
 
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
-		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
-		var filterParams = {};
+		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' ) and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )";
+		var filterParams = { "now" = { type="cf_sql_date", value=Now() } };
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
 		}
