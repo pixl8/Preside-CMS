@@ -927,6 +927,15 @@
 			}
 		};
 
+		UberSelect.prototype.clear = function() {
+			var uberSelect = this;
+
+			uberSelect.clear_suggestions();
+			uberSelect.search_choices.find( ".search-choice" ).each( function(){
+				uberSelect.choice_destroy( $( this ) );
+			} );
+		};
+
 		UberSelect.prototype.choice_destroy = function(link) {
 			var $li = link.closest( "li.search-choice" )
 			  , item = $li.data( "item" );
