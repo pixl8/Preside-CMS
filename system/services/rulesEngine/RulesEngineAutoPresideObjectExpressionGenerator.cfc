@@ -33,14 +33,12 @@ component {
 		for( var objectName in objects ) {
 			var properties = $getPresideObjectService().getObjectProperties( objectName );
 			for( var propName in properties ) {
-				if ( !propName.startsWith( "_" ) ) {
-					var expressions = generateExpressionsForProperty( objectName, properties[ propName ] );
-					for( var expression in expressions ) {
-						_getRulesEngineExpressionService().addExpression( argumentCollection=expression );
-					}
-					if ( expressions.len() ) {
-						_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName, visible=false );
-					}
+				var expressions = generateExpressionsForProperty( objectName, properties[ propName ] );
+				for( var expression in expressions ) {
+					_getRulesEngineExpressionService().addExpression( argumentCollection=expression );
+				}
+				if ( expressions.len() ) {
+					_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName, visible=false );
 				}
 			}
 
@@ -55,6 +53,10 @@ component {
 		  required string objectName
 		, required struct propertyDefinition
 	) {
+		if ( IsBoolean( propertyDefinition.autofilter ?: "" ) && !propertyDefinition.autofilter ) {
+			return [];
+		}
+
 		var isRequired   = IsBoolean( propertyDefinition.required ?: "" ) && propertyDefinition.required;
 		var propType     = propertyDefinition.type ?: "string";
 		var relationship = propertyDefinition.relationship ?: "";
