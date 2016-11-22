@@ -506,6 +506,7 @@ component {
 				, filter             = filter
 				, filterParams       = filterParams
 				, extraFilters       = extraFilters
+				, savedFilters       = savedFilters
 				, orderBy            = "sort_order"
 				, allowDraftVersions = args.allowDrafts
 			);
@@ -567,8 +568,10 @@ component {
 		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
 
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
-		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' ) and ( page.embargo_date is null or :now > page.embargo_date ) and ( page.expiry_date is null or :now < page.expiry_date )";
-		var filterParams = { "now" = { type="cf_sql_date", value=Now() } };
+		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
+		var filterParams = {};
+		var savedFilters = !arguments.includeInactive ? [ "livePages" ] : [];
+
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
 		}
