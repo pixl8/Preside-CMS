@@ -21,6 +21,13 @@
 	event.include( "/css/admin/specific/datamanager/object/");
 
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
+
+	if ( args.allowFilter ) {
+		saveFilterFormEndpoint = event.buildAdminLink(
+			  linkTo      = "datamanager.quickAddForm"
+			, querystring = "object=rules_engine_filter&object_name=#args.objectName#&multiple=false&expressions="
+		);
+	}
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
@@ -46,7 +53,6 @@
 							, context      = "admin"
 							, filterObject = args.objectName
 							, multiple     = true
-							, quickadd     = true
 							, quickedit    = true
 							, label        = ""
 							, layout       = ""
@@ -73,14 +79,14 @@
 						, showCount = false
 					)#
 
-				<!--- 	<div class="form-actions">
+					<div class="form-actions">
 						<div class="pull-right">
-							<button class="btn btn-info save-filter-form" tabindex="#getNextTabIndex()#">
+							<button class="btn btn-info save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#">
 								<i class="fa fa-fw fa-save"></i>
-								Save filter...
+								#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
 							</button>
 						</div>
-					</div> --->
+					</div>
 				</div>
 			</div>
 		</cfif>

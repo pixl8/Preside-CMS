@@ -39,7 +39,7 @@
 						sClass    : "center",
 						bSortable : false,
 						mData     : "_checkbox",
-			 			sWidth    : "5em"
+						sWidth    : "5em"
 					} );
 				}
 
@@ -157,14 +157,78 @@
 									$searchContainer.fadeIn( 200 );
 								} );
 							} );
+							$filterDiv.on( "click", ".save-filter-btn", function( e ){
+								e.preventDefault();
+
+								var iframemodal, rawIframe, dummyPresideObjectPicker
+								  , iframeSrc           = $( this ).data( "saveFormEndpoint" ) + encodeURIComponent( $filterDiv.find( "[name=filter]" ).val() )
+								  , modalTitle          = "Save filter"
+								  , modalOptions        = {
+										title     : modalTitle,
+										className : "full-screen-dialog",
+										buttons   : {
+											cancel : {
+												  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+												, className : "btn-default"
+											},
+											add : {
+												  label     : '<i class="fa fa-plus"></i> ' + i18n.translateResource( "cms:save.btn" )
+												, className : "btn-primary"
+												, callback  : function(){
+													if ( typeof rawIframe.quickAdd !== "undefined" ) {
+														rawIframe.quickAdd.submitForm();
+
+														return false;
+													}
+													return true;
+												 }
+											}
+										}
+									}
+								  , callbacks = {
+									  	onLoad : function( iframe ) {
+									  		iframe.presideObjectPicker = dummyPresideObjectPicker;
+											rawIframe = iframe;
+										},
+										onShow : function( modal, iframe ){
+											if ( typeof iframe !== "undefined" && typeof iframe.quickAdd !== "undefined" ) {
+												iframe.quickAdd.focusForm();
+
+												return false;
+											}
+
+											modal.on('hidden.bs.modal', function (e) {
+												modal.remove();
+											} );
+										}
+									};
+
+								dummyPresideObjectPicker = {
+									  addRecordToControl  : function(){}
+									, closeQuickAddDialog : function(){
+									  	iframemodal.close();
+									  	$.gritter.add({
+											  title      : "Wohooo!"
+											, text       : "We did it!"
+											, class_name : 'gritter-success'
+											, sticky     : false
+										});
+									  }
+								};
+
+								iframemodal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+								iframemodal.open();
+							} );
 
 							$filterDiv.on( "change", function( e ){
 								datatable.fnDraw();
+
+								$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
 							} );
 						}
 					},
 					oLanguage : {
-		      			oAria : {
+						oAria : {
 							sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
 							sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
 						},
@@ -186,19 +250,19 @@
 						sSearch : '',
 						sUrl : '',
 						sInfoPostFix : ''
-		    		},
-		    		fnServerParams : function( aoData ) {
-		    			if ( allowFilter ) {
-		    				aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
-		    				aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
-		    			}
-		    		}
+					},
+					fnServerParams : function( aoData ) {
+						if ( allowFilter ) {
+							aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
+							aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
+						}
+					}
 				} ).fnSetFilteringDelay( searchDelay );
 			};
 
 			setupCheckboxBehaviour = function(){
-			  	var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
-			  	  , $multiActionBtns = $( "#multi-action-buttons" );
+				var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
+				  , $multiActionBtns = $( "#multi-action-buttons" );
 
 				$selectAllCBox.on( 'click' , function(){
 					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );

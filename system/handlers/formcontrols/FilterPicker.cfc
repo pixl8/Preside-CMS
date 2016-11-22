@@ -24,7 +24,7 @@ component  {
 		if ( IsTrue( args.quickEdit ?: "" ) ) {
 			args.quickEditUrl = event.buildAdminLink(
 				  linkTo      = "datamanager.quickEditForm"
-				, querystring = "object=rules_engine_filter&object_name=#filterObject#&multiple=#multiple#"
+				, querystring = "object=rules_engine_filter&object_name=#filterObject#&multiple=#multiple#&id="
 			);
 		}
 
