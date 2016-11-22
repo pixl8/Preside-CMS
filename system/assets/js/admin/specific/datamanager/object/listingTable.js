@@ -162,7 +162,7 @@
 
 								var iframemodal, rawIframe, dummyPresideObjectPicker
 								  , iframeSrc           = $( this ).data( "saveFormEndpoint" ) + encodeURIComponent( $filterDiv.find( "[name=filter]" ).val() )
-								  , modalTitle          = "Save filter"
+								  , modalTitle          = i18n.translateResource( "cms:rulesEngine.save.filter.modal" )
 								  , modalOptions        = {
 										title     : modalTitle,
 										className : "full-screen-dialog",
@@ -208,8 +208,8 @@
 									, closeQuickAddDialog : function(){
 									  	iframemodal.close();
 									  	$.gritter.add({
-											  title      : "Wohooo!"
-											, text       : "We did it!"
+											  title      : i18n.translateResource( "cms:info.notification.title" )
+											, text       : i18n.translateResource( "cms:rulesEngine.save.filter.confirmation.message" )
 											, class_name : 'gritter-success'
 											, sticky     : false
 										});
