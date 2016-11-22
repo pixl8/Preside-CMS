@@ -60,13 +60,13 @@
 							, showCount    = false
 						)#
 						<br><br>
-						<a href="##" data-toggle="collapse" data-target="##quick-filter-form" class="collapsed quick-filter-toggler">
-							<i class="fa fa-fw fa-caret-right"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
+						<a href="##" data-toggle="collapse" data-target="##quick-filter-form" class="quick-filter-toggler">
+							<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
 						</a>
 					</div>
 				</div>
 
-				<div class="collapse" id="quick-filter-form">
+				<div id="quick-filter-form" class="in">
 					#renderFormControl(
 						  name      = "filter"
 						, id        = "filter"

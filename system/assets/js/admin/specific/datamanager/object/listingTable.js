@@ -16,6 +16,10 @@
 			  , setupTableRowFocusBehaviour
 			  , setupFilters
 			  , setupQuickSaveFilterIframeModal
+			  , prePopulateFilter
+			  , showFilters
+			  , showSimpleSearch
+			  , dtSettings
 			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
 			  , datasourceUrl       = tableSettings.datasourceUrl  || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 			  , isMultilingual      = tableSettings.isMultilingual || cfrequest.isMultilingual || false
@@ -115,6 +119,8 @@
 						}
 					},
 					fnInitComplete : function( settings ){
+						dtSettings = settings;
+
 						if ( allowSearch ) {
 							var $searchContainer = $( settings.aanFeatures.f[0] )
 							  , $input           = $searchContainer.find( "input" ).first();
@@ -168,6 +174,16 @@
 							aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
 							aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
 						}
+					},
+					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
+						if ( allowFilter ) {
+							oData.oFilter = {
+								  filter  : $filterDiv.find( "[name=filter]" ).val()
+								, filters : $filterDiv.find( "[name=filters]" ).val()
+							};
+						}
+
+						return sName + "="+JSON.stringify(oData)+"; expires=" + sExpires +"; path=" + sPath;
 					}
 				} ).fnSetFilteringDelay( searchDelay );
 			};
@@ -253,23 +269,8 @@
 				$filterDiv.hide().removeClass( "hide" ).find( ".well" ).removeClass( "well" );
 
 				// toggles between filter mode + basic search mode
-				$filterLink.on( "click", function(e){
-					$searchContainer.fadeOut( 200, function(){
-						$searchContainer.find( "input.data-table-search" ).val( "" );
-						datatable.fnFilter("");
-						$filterDiv.fadeIn( 200 );
-					} );
-					e.preventDefault();
-				} );
-				$filterDiv.on( "click", ".back-to-basic-search", function( e ){
-					e.preventDefault();
-					$filterDiv.fadeOut( 200, function(){
-						$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
-					  	$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
-					  	datatable.fnDraw();
-						$searchContainer.fadeIn( 200 );
-					} );
-				} );
+				$filterLink.on( "click", showFilters );
+				$filterDiv.on( "click", ".back-to-basic-search", showSimpleSearch );
 
 				// toggle for showing / hiding filter builder
 				$filterDiv.on( "click", ".quick-filter-toggler", function( e ){
@@ -277,7 +278,7 @@
 					$( this ).find( ".fa:first" ).toggleClass( "fa-caret-right fa-caret-down" );
 				} );
 
-				// refetch table data when filters change
+				// filter change listener
 				$filterDiv.on( "change", function( e ){
 					datatable.fnDraw();
 
@@ -285,6 +286,63 @@
 				} );
 
 				setupQuickSaveFilterIframeModal( $filterDiv );
+
+				if ( typeof settings.oLoadedState.oFilter !== "undefined" ) {
+					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
+						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
+					}
+				}
+			};
+
+			prePopulateFilter = function( filters, filter ) {
+				var loaded = false;
+
+				if ( filters && filters.length ) {
+					loaded = true;
+
+					var filterArray   = filters.split(",")
+					  , filtersSelect = $filterDiv.find( "[name=filters]" ).data( "uberSelect")
+					  , i;
+
+					for( i=0; i<filterArray.length; i++ ) {
+						if ( filterArray[i].length ) {
+							filtersSelect.select( filterArray[i] )
+						}
+					}
+
+				}
+
+				if ( filter && filter.length ) {
+					loaded = true;
+					var conditionBuilder = $filterDiv.find( "[name=filter]" ).data( "conditionBuilder" )
+					conditionBuilder.load( filter );
+				}
+
+				if ( loaded ) {
+					showFilters();
+				}
+			}
+
+			showFilters = function( e ){
+				e && e.preventDefault();
+				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
+				$searchContainer.fadeOut( 200, function(){
+					$searchContainer.find( "input.data-table-search" ).val( "" );
+					datatable.fnFilter("");
+					$filterDiv.fadeIn( 200 );
+				} );
+			};
+
+			showSimpleSearch = function( e ){
+				e && e.preventDefault();
+				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
+
+				$filterDiv.fadeOut( 200, function(){
+					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
+					datatable.fnDraw();
+					$searchContainer.fadeIn( 200 );
+				} );
 			};
 
 			setupQuickSaveFilterIframeModal = function( $filterDiv ) {
@@ -317,8 +375,8 @@
 							}
 						}
 					  , callbacks = {
-						  	onLoad : function( iframe ) {
-						  		iframe.presideObjectPicker = dummyPresideObjectPicker;
+							onLoad : function( iframe ) {
+								iframe.presideObjectPicker = dummyPresideObjectPicker;
 								rawIframe = iframe;
 							},
 							onShow : function( modal, iframe ){
@@ -336,14 +394,14 @@
 
 					dummyPresideObjectPicker = {
 						  addRecordToControl  : function( recordId ){
-						  	$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
-						  	$filterDiv.find( "[name=filters]" ).data( "uberSelect").select( recordId );
-						  	$filterDiv.find( ".quick-filter-toggler" ).click();
-						  	datatable.fnDraw();
+							$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+							$filterDiv.find( "[name=filters]" ).data( "uberSelect").select( recordId );
+							$filterDiv.find( ".quick-filter-toggler" ).click();
+							datatable.fnDraw();
 						  }
 						, closeQuickAddDialog : function(){
-						  	iframemodal.close();
-						  	$.gritter.add({
+							iframemodal.close();
+							$.gritter.add({
 								  title      : i18n.translateResource( "cms:info.notification.title" )
 								, text       : i18n.translateResource( "cms:rulesEngine.save.filter.confirmation.message" )
 								, class_name : 'gritter-success'

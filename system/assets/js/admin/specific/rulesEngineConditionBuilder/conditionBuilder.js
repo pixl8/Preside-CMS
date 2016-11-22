@@ -47,6 +47,12 @@
 			return [];
 		};
 
+		RulesEngineCondition.prototype.loadFromStringValue = function( initialConditionValue ) {
+			this.model = this.deserialize( initialConditionValue );
+			this.persistToHiddenField();
+			this.render();
+		};
+
 		RulesEngineCondition.prototype.isValidSerializedCondition = function( serializedCondition ) {
 			if ( typeof serializedCondition !== "string" ) {
 				return false;
@@ -653,11 +659,16 @@
 
 				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList, isFilter, $filterCount, objectName );
 
-				$hiddenControl.data( "conditionBuilder", { clear : function(){
-					$searchInput.val( "" );
-					performSearch();
-					condition.clear();
-				} } );
+				$hiddenControl.data( "conditionBuilder", {
+					clear : function(){
+						$searchInput.val( "" );
+						performSearch();
+						condition.clear();
+					},
+					load : function( value ){
+						condition.loadFromStringValue( value );
+					}
+				} );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
