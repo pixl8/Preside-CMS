@@ -38,6 +38,7 @@
 				  , colConfig            = []
 				  , defaultSort          = []
 				  , dynamicHeadersOffset = 1
+				  , sDom
 				  , i, $header;
 
 				if ( useMultiActions ) {
@@ -99,6 +100,12 @@
 					}
 				}
 
+				if ( allowFilter ) {
+					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+				} else {
+					sDom = "r<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
+				}
+
 				datatable = $listingTable.dataTable( {
 					aoColumns     : colConfig,
 					aaSorting     : defaultSort,
@@ -108,7 +115,7 @@
 					bFilter       : allowSearch,
 					bAutoWidth    : false,
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
-					sDom          : "<'well'fr<'clearfix'>><'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>>",
+					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
 					fnRowCallback : function( row ){
 						$row = $( row );

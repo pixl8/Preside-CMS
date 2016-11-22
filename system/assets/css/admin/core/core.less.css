@@ -29991,6 +29991,9 @@ fieldset[disabled] .presidecms .btn {
 .presidecms .dataTables_wrapper .dataTables_pagination.bottom {
   margin-top: 2em;
 }
+.presidecms .dataTables_wrapper .dataTables_pagination.top {
+  margin-top: 1em;
+}
 .presidecms .dataTables_wrapper .row:first-child,
 .presidecms .dataTables_wrapper .row:last-child {
   background: none;
