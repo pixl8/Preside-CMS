@@ -366,7 +366,7 @@
 					  , modalTitle          = i18n.translateResource( "cms:rulesEngine.save.filter.modal" )
 					  , modalOptions        = {
 							title     : modalTitle,
-							className : "full-screen-dialog",
+							className : "",
 							buttons   : {
 								cancel : {
 									  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )

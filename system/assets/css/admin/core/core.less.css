@@ -31085,6 +31085,9 @@ fieldset[disabled] .presidecms .btn {
 .presidecms .bootstrap-datetimepicker-widget.dropdown-menu.usetwentyfour.timepicker-sbs .timepicker {
   margin-left: -19px;
 }
+.modal-dialog-layout-container {
+  padding-bottom: 0 !important;
+}
 .modal-dialog-layout-container .main-content {
   margin-left: 0;
 }
@@ -31182,6 +31185,12 @@ fieldset[disabled] .presidecms .btn {
   max-width: 1200px;
   max-height: 800px;
 }
+.full-screen-dialog.limited-size .modal-dialog .modal-content .modal-body {
+  overflow: auto;
+}
+.full-screen-dialog.limited-size .modal-dialog .modal-content .modal-body .bootbox-body iframe {
+  height: 99%;
+}
 .presidecms.iframe .page-content {
   padding-left: 0;
   padding-right: 0;
@@ -31194,4 +31203,11 @@ fieldset[disabled] .presidecms .btn {
 }
 .presidecms.iframe .modal-padding-horizontal {
   padding: 0 20px;
+}
+.presidecms.iframe .modal-dialog-less-padding {
+  padding: 0;
+}
+.presidecms.iframe .modal-dialog-less-padding .modal-padding {
+  padding-top: 0px;
+  padding-bottom: 0px;
 }

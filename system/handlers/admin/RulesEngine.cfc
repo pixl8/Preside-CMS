@@ -246,6 +246,12 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( data=NumberFormat( count ), type="text" );
 	}
 
+	public void function superQuickAddFilterForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.setView( view="/admin/rulesEngine/superQuickAddFilterForm", layout="adminModalDialog" );
+	}
+
 // PRIVATE HELPERS
 	private void function _checkPermissions( event, rc, prc, required string key ) {
 		var permKey = "rulesEngine." & arguments.key;

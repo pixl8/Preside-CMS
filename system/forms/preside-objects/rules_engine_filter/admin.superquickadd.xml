@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--#!autodoc
-Rules engine filter: quick add form
+Rules engine filter: SUPER quick add form
 
-This form is used for creating a new rules engine filter through the quick add interface
+This form is used for creating a new rules engine filter through the inline filter dialog in datatables
 -->
 <form>
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
 			<field binding="rules_engine_filter.object_name" control="hidden" />
-			<field binding="rules_engine_filter.expressions" control="rulesEngineFilterBuilder" />
+			<field binding="rules_engine_filter.expressions" control="hidden" />
 			<field binding="rules_engine_filter.filter_name" control="textinput" />
 		</fieldset>
 	</tab>
