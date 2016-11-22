@@ -29951,23 +29951,54 @@ fieldset[disabled] .presidecms .btn {
   clip: rect(0, 0, 0, 0);
   border: 0;
 }
+.presidecms .dataTables_wrapper {
+  margin-top: 0.5em;
+}
+.presidecms .dataTables_wrapper > .well {
+  border: none;
+}
+.presidecms .dataTables_wrapper .dataTables_filter {
+  text-align: left;
+}
+.presidecms .dataTables_wrapper .dataTables_filter > label {
+  display: block;
+}
 .presidecms .dataTables_wrapper .dataTables_filter .input-icon .data-table-search {
-  border: 1px solid #6fb3e0;
-  width: 300px;
+  border: 1px solid #ffffff;
+  width: calc(100% - 13em);
   border-radius: 4px !important;
-  font-size: 13px;
+  font-size: 14px;
   color: #666666;
   padding-left: 25px;
+  height: 20px;
 }
 .presidecms .dataTables_wrapper .dataTables_filter .input-icon .data-table-search-icon {
-  color: #6fb3e0 !important;
   font-size: 14px;
   line-height: 16px;
   margin-left: 3px;
 }
-.presidecms .dataTables_wrapper .row:first-child {
+.presidecms .dataTables_wrapper .dataTables_length {
+  margin-top: -3px;
+  margin-left: 0.5em;
+}
+.presidecms .dataTables_wrapper .dataTables_length label {
+  font-size: 13px;
+}
+.presidecms .dataTables_wrapper .dataTables_info {
+  font-size: 13px;
+}
+.presidecms .dataTables_wrapper .dataTables_pagination.bottom {
+  margin-top: 2em;
+}
+.presidecms .dataTables_wrapper .row:first-child,
+.presidecms .dataTables_wrapper .row:last-child {
   background: none;
   background-color: transparent !important;
+}
+.presidecms .dataTables_wrapper .row:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
 }
 .presidecms .dataTables_wrapper .row:first-child + .dataTable {
   border-top: none !important;

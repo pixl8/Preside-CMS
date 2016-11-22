@@ -59,7 +59,11 @@
 				</div>
 			</div>
 			<cfif isFilter>
-				<p class="grey rules-engine-condition-builder-filter-count">#translateResource( uri="cms:rulesEngine.filter.builder.record.count.message", data=[ '<span class="rules-engine-condition-builder-filter-count-count">0</span>'] )#</p>
+				<div class="row">
+					<div class="col-md-12">
+						<p class="grey rules-engine-condition-builder-filter-count">#translateResource( uri="cms:rulesEngine.filter.builder.record.count.message", data=[ '<span class="rules-engine-condition-builder-filter-count-count">0</span>'] )#</p>
+					</div>
+				</div>
 			</cfif>
 		</div>
 	</div>

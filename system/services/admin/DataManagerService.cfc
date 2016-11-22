@@ -202,6 +202,7 @@ component {
 			, orderBy            = arguments.orderBy
 			, filter             = arguments.filter
 			, filterParams       = arguments.filterParams
+			, groupBy            = "#arguments.objectName#.id"
 			, allowDraftVersions = true
 			, extraFilters       = arguments.extraFilters
 		};

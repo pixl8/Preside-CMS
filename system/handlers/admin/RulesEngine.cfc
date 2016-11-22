@@ -207,6 +207,20 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data=records );
 	}
 
+	public void function getFiltersForAjaxSelectControl() {
+		var object        = rc.object ?: "";
+		var records       = dataManagerService.getRecordsForAjaxSelect(
+			  objectName   = "rules_engine_filter"
+			, maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, extraFilters = [ { filter={ "rules_engine_filter.object_name" = object } } ]
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
+	}
+
+
 	public void function getFilterCount( event, rc, prc ) {
 		var objectName      = rc.objectName ?: "";
 		var expressionArray = "";
@@ -229,7 +243,7 @@ component extends="preside.system.base.AdminHandler" {
 			} catch ( any e ) {}
 		}
 
-		event.renderData( data=count, type="text" );
+		event.renderData( data=NumberFormat( count ), type="text" );
 	}
 
 // PRIVATE HELPERS

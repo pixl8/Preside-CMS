@@ -102,7 +102,7 @@
 					bFilter       : allowSearch,
 					bAutoWidth    : false,
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
-					sDom          : "<'row'<'well'<'col-sm-6'l><'col-sm-6'f><'clearfix'>>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+					sDom          : "<'well'fr<'clearfix'>><'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>>",
 					sAjaxSource   : datasourceUrl,
 					fnRowCallback : function( row ){
 						$row = $( row );
@@ -135,12 +135,16 @@
 
 						if ( allowFilter ) {
 							var $searchContainer = $( settings.aanFeatures.f[0] )
-							  , $filterLink      = $( '<a href="#" data-target="#' + tableId + '-filter" data-toggle="collapse" class="collapsed"><i class="fa fa-fw fa-filter"></i></a>' );
+							  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> Advanced filter</a>' );
 
-							$searchContainer.append( $filterLink ).parent().after( $filterDiv );
+							$searchContainer.prepend( $filterLink );
+							$searchContainer.parent().append( $filterDiv );
 
-							$filterDiv.removeClass( "hide" ).addClass( "collapse" ).find( ".well" ).removeClass( "well" );
+							$filterDiv.hide().removeClass( "hide" ).find( ".well" ).removeClass( "well" );
 							$filterLink.on( "click", function(e){
+								$searchContainer.fadeOut( 200, function(){
+									$filterDiv.fadeIn( 200 );
+								} );
 								e.preventDefault();
 							} );
 
