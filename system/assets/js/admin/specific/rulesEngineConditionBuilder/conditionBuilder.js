@@ -583,7 +583,6 @@
 			insertAtPosition   = listPosition ? ( parentPosition + 1 ) : parentPosition;
 
 			for( i=removeFromPosition; i<parentLength; i++ ) {
-				console.log( parentList[i] );
 				grandParentList.splice( insertAtPosition, 0, parentList[i] );
 				insertAtPosition++;
 				if ( !listPosition ) {
@@ -598,6 +597,12 @@
 				grandParentList.splice( parentPosition, 1 );
 			}
 
+			this.persistToHiddenField();
+			this.render();
+		};
+
+		RulesEngineCondition.prototype.clear = function(){
+			this.model = [];
 			this.persistToHiddenField();
 			this.render();
 		};
@@ -647,6 +652,12 @@
 				$hiddenControl.attr( "id", id );
 
 				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList, isFilter, $filterCount, objectName );
+
+				$hiddenControl.data( "conditionBuilder", { clear : function(){
+					$searchInput.val( "" );
+					performSearch();
+					condition.clear();
+				} } );
 
 				prepareSearchEngine();
 				prepareDragAndDrop();

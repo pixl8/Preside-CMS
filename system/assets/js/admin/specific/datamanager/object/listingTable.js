@@ -204,7 +204,12 @@
 									};
 
 								dummyPresideObjectPicker = {
-									  addRecordToControl  : function(){}
+									  addRecordToControl  : function( recordId ){
+									  	$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+									  	$filterDiv.find( "[name=filters]" ).data( "uberSelect").select( recordId );
+									  	$filterDiv.find( ".quick-filter-toggler" ).click();
+									  	datatable.fnDraw();
+									  }
 									, closeQuickAddDialog : function(){
 									  	iframemodal.close();
 									  	$.gritter.add({
