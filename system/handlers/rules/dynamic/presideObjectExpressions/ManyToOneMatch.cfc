@@ -41,10 +41,9 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 	) {
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var propNameTranslated  = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.label", data=[ propNameTranslated, relatedToTranslated ] );
 	}
@@ -54,10 +53,9 @@ component {
 		, required string propertyName
 		, required string relatedTo
 	){
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var propNameTranslated  = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.text", data=[ propNameTranslated, relatedToTranslated ] );
 	}

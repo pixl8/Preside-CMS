@@ -39,8 +39,7 @@ component {
 		, required string  propertyName
 		,          string  variety = "isEmpty"
 	) {
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.label", data=[ propNameTranslated ] );
 	}
@@ -50,8 +49,7 @@ component {
 		, required string propertyName
 		,          string variety = "isEmpty"
 	){
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.text", data=[ propNameTranslated ] );
 	}

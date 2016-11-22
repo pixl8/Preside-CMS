@@ -55,8 +55,7 @@ component {
 		  required string  objectName
 		, required string  propertyName
 	) {
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:datePropertyInRange.label", data=[ propNameTranslated ] );
 	}
@@ -65,8 +64,7 @@ component {
 		  required string objectName
 		, required string propertyName
 	){
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:datePropertyInRange.text", data=[ propNameTranslated ] );
 	}

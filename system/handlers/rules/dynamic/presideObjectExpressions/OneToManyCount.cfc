@@ -76,9 +76,9 @@ component {
 		, required string  relatedTo
 		, required string  relationshipKey
 	) {
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedPropertyTranslated = translateResource( relatedToBaseUri & "field.#relationshipKey#.title", relationshipKey );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.label", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}
@@ -90,8 +90,8 @@ component {
 		, required string relationshipKey
 	){
 		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedPropertyTranslated = translateResource( relatedToBaseUri & "field.#relationshipKey#.title", relationshipKey );
 		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.text", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}
