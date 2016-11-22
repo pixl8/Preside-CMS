@@ -296,7 +296,7 @@
 
 				setupQuickSaveFilterIframeModal( $filterDiv );
 
-				if ( typeof settings.oLoadedState.oFilter !== "undefined" ) {
+				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
 					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
 						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
 					}
