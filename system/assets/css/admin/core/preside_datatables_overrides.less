@@ -8,6 +8,8 @@
 
 	.dataTables_filter {
 		text-align : left;
+		padding    : 12px 15px;
+
 		> label {
 			display: block;
 		}
@@ -15,7 +17,7 @@
 		.input-icon {
 			.data-table-search {
 				border        : 1px solid @white;
-				width         : calc(~"100% - 13em");
+				width         : calc(~"100% - 20em");
 				border-radius : 4px !important;
 				font-size     : 14px;
 				color         : @default-input-font-colour;
@@ -24,7 +26,6 @@
 			}
 
 			.data-table-search-icon {
-				// color        : @default-selected-input-border-colour !important;
 				font-size    : 14px;
 				line-height  : 16px;
 				margin-left  : 3px;
@@ -100,6 +101,10 @@
 			background    : none;
 			border-bottom : none;
 		}
+	}
+
+	.object-listing-table-filter .form-actions {
+		display : block;
 	}
 }
 

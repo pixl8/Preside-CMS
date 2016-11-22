@@ -135,7 +135,7 @@
 
 						if ( allowFilter ) {
 							var $searchContainer = $( settings.aanFeatures.f[0] )
-							  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> Advanced filter</a>' );
+							  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
 
 							$searchContainer.prepend( $filterLink );
 							$searchContainer.parent().append( $filterDiv );
@@ -146,6 +146,16 @@
 									$filterDiv.fadeIn( 200 );
 								} );
 								e.preventDefault();
+							} );
+							$filterDiv.on( "click", ".quick-filter-toggler", function( e ){
+								e.preventDefault();
+								$( this ).find( ".fa:first" ).toggleClass( "fa-caret-right fa-caret-down" );
+							} );
+							$filterDiv.on( "click", ".back-to-basic-search", function( e ){
+								e.preventDefault();
+								$filterDiv.fadeOut( 200, function(){
+									$searchContainer.fadeIn( 200 );
+								} );
 							} );
 
 							$filterDiv.on( "change", function( e ){
@@ -180,6 +190,7 @@
 		    		fnServerParams : function( aoData ) {
 		    			if ( allowFilter ) {
 		    				aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
+		    				aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
 		    			}
 		    		}
 				} ).fnSetFilteringDelay( searchDelay );

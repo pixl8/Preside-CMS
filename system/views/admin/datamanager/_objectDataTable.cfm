@@ -31,16 +31,57 @@
 
 		<cfif args.allowFilter>
 			<div class="object-listing-table-filter hide" id="#tableId#-filter">
-				#renderFormControl(
-					  name    = "filter"
-					, id      = "filter"
-					, type    = "rulesEngineFilterBuilder"
-					, label   = "Filter"
-					, context = "admin"
-					, object  = args.objectName
-					, layout  = ""
-					, compact = true
-				)#
+				<div class="row">
+					<div class="col-md-12">
+						<a class="pull-right back-to-basic-search" href="##">
+							<i class="fa fa-fw fa-reply"></i>
+							#translateResource( "cms:datatables.show.basic.search" )#
+						</a>
+						<h4 class="blue">#translateResource( "cms:rulesEngine.saved.filters" )#</h4>
+						<p class="grey"><i class="fa fa-fw fa-info-circle"></i> <em>#translateResource( "cms:rulesEngine.saved.filters.help" )#</em></p>
+						#renderFormControl(
+							  name         = "filters"
+							, id           = "filters"
+							, type         = "filterPicker"
+							, context      = "admin"
+							, filterObject = args.objectName
+							, multiple     = true
+							, quickadd     = true
+							, quickedit    = true
+							, label        = ""
+							, layout       = ""
+							, compact      = true
+							, showCount    = false
+						)#
+						<br><br>
+						<a href="##" data-toggle="collapse" data-target="##quick-filter-form" class="collapsed quick-filter-toggler">
+							<i class="fa fa-fw fa-caret-right"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
+						</a>
+					</div>
+				</div>
+
+				<div class="collapse" id="quick-filter-form">
+					#renderFormControl(
+						  name      = "filter"
+						, id        = "filter"
+						, type      = "rulesEngineFilterBuilder"
+						, context   = "admin"
+						, object    = args.objectName
+						, label     = ""
+						, layout    = ""
+						, compact   = true
+						, showCount = false
+					)#
+
+				<!--- 	<div class="form-actions">
+						<div class="pull-right">
+							<button class="btn btn-info save-filter-form" tabindex="#getNextTabIndex()#">
+								<i class="fa fa-fw fa-save"></i>
+								Save filter...
+							</button>
+						</div>
+					</div> --->
+				</div>
 			</div>
 		</cfif>
 

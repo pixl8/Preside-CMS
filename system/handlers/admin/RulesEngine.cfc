@@ -208,12 +208,12 @@ component extends="preside.system.base.AdminHandler" {
 	}
 
 	public void function getFiltersForAjaxSelectControl() {
-		var object        = rc.object ?: "";
+		var filterObject  = rc.filterObject ?: "";
 		var records       = dataManagerService.getRecordsForAjaxSelect(
 			  objectName   = "rules_engine_filter"
 			, maxRows      = rc.maxRows ?: 1000
 			, searchQuery  = rc.q       ?: ""
-			, extraFilters = [ { filter={ "rules_engine_filter.object_name" = object } } ]
+			, extraFilters = [ { filter={ "rules_engine_filter.object_name" = filterObject } } ]
 			, ids          = ListToArray( rc.values ?: "" )
 		);
 

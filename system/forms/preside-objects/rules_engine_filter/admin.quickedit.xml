@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--#!autodoc
+Rules engine filter: quick edit form
+
+This form is used for editing a rules engine filter through the quick edit interface
+-->
+<form>
+	<tab id="default">
+		<fieldset id="default" sortorder="10">
+			<field binding="rules_engine_filter.filter_name" control="textinput" />
+			<field binding="rules_engine_filter.expressions" control="rulesEngineFilterBuilder" />
+		</fieldset>
+	</tab>
+</form>

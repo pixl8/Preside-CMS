@@ -29959,13 +29959,14 @@ fieldset[disabled] .presidecms .btn {
 }
 .presidecms .dataTables_wrapper .dataTables_filter {
   text-align: left;
+  padding: 12px 15px;
 }
 .presidecms .dataTables_wrapper .dataTables_filter > label {
   display: block;
 }
 .presidecms .dataTables_wrapper .dataTables_filter .input-icon .data-table-search {
   border: 1px solid #ffffff;
-  width: calc(100% - 13em);
+  width: calc(100% - 20em);
   border-radius: 4px !important;
   font-size: 14px;
   color: #666666;
@@ -30025,6 +30026,9 @@ fieldset[disabled] .presidecms .btn {
 .presidecms .dataTables_wrapper .dataTable + .row {
   background: none;
   border-bottom: none;
+}
+.presidecms .dataTables_wrapper .object-listing-table-filter .form-actions {
+  display: block;
 }
 .presidecms .table thead tr {
   background-image: none !important;

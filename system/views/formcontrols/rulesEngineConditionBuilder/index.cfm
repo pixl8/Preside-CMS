@@ -8,6 +8,7 @@
 	maxLength    = Val( args.maxLength ?: 0 );
 	expressions  = args.expressions  ?: [];
 	isFilter     = IsTrue( args.isFilter ?: "" ) ? "true" : "false"; // deliberate stringifying of booleans here
+	showCount    = IsTrue( args.showCount ?: isFilter );
 	object       = args.object ?: "";
 	compact      = IsTrue( args.compact ?: "" );
 
@@ -58,7 +59,7 @@
 					</div>
 				</div>
 			</div>
-			<cfif isFilter>
+			<cfif showCount>
 				<div class="row">
 					<div class="col-md-12">
 						<p class="grey rules-engine-condition-builder-filter-count">#translateResource( uri="cms:rulesEngine.filter.builder.record.count.message", data=[ '<span class="rules-engine-condition-builder-filter-count-count">0</span>'] )#</p>

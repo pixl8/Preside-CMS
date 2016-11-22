@@ -2,7 +2,7 @@ component {
 	property name="expressionService" inject="rulesEngineExpressionService";
 
 	private string function index( event, rc, prc, args={} ) {
-		args.object      = args.object ?: "";
+		args.object      = args.object ?: ( rc.object_name ?: "" );
 		args.expressions = Len( Trim( args.object ) ) ? expressionService.listExpressions( filterObject=args.object ) : [];
 		args.isFilter    = true;
 

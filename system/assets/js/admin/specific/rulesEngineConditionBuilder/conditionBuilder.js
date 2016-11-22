@@ -137,7 +137,7 @@
 		};
 
 		RulesEngineCondition.prototype.updateFilterCount = function() {
-			if ( !this.isFilter ) { return; }
+			if ( !this.isFilter || !this.$filterCount.length ) { return; }
 
 			var conditionBuilder = this;
 
