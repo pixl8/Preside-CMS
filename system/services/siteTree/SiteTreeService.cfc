@@ -506,6 +506,7 @@ component {
 				, filter             = filter
 				, filterParams       = filterParams
 				, extraFilters       = extraFilters
+				, savedFilters       = savedFilters
 				, orderBy            = "sort_order"
 				, allowDraftVersions = args.allowDrafts
 			);
@@ -563,14 +564,17 @@ component {
 			return [];
 		}
 
-		var maxDepth = Val( page._hierarchy_depth ) + ( arguments.depth < 1 ? 1 : arguments.depth );
+		var maxDepth            = Val( page._hierarchy_depth ) + ( arguments.depth < 1 ? 1 : arguments.depth );
 		var disallowedPageTypes = getManagedChildTypesForParentType( page.page_type );
 
 		var exclusionField = ( arguments.isSubMenu ? "exclude_from_sub_navigation" : "exclude_from_navigation" );
-		var filter = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
-		var filterParams = {};
+		var filter         = "parent_page = :parent_page and trashed = '0' and ( #exclusionField# is null or #exclusionField# = '0' )";
+		var filterParams   = {};
+		var savedFilters   = [];
+
 		if ( !arguments.includeInactive ) {
 			filter &= " and active = '1'";
+			ArrayAppend( savedFilters, "livePages" );
 		}
 
 		return getNavChildren( rootPage, Val( page._hierarchy_depth )+1, disallowedPageTypes );
