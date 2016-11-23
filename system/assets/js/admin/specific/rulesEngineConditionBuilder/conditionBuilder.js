@@ -713,8 +713,13 @@
 
 					if ( !query.length ) {
 						$parentLi.show();
-						$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
-						$categoryUl.collapse( "hide" );
+						if ( $categoryLists.length == 1 ) {
+							$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+							$categoryUl.collapse( "show" );
+						} else {
+							$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+							$categoryUl.collapse( "hide" );
+						}
 					} else if ( $categoryUl.find( "> li:not(.hide)" ).length ) {
 						$parentLi.show();
 						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
@@ -741,6 +746,17 @@
 					e.preventDefault();
 					$( this ).find( ".fa:first" ).toggleClass( "fa-plus-square-o fa-minus-square-o" );
 				} );
+
+				if ( $categoryLists.length == 1 ) {
+					$categoryLists.each( function(){
+						var $categoryUl = $( this )
+						  , $parentLi   = $categoryUl.parents( "li:first" );
+
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "show" );
+					} );
+				}
 			};
 
 			addExpression = function( event, ui ){
