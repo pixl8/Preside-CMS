@@ -2,6 +2,7 @@
  * Expression handler for "Current page is/is not available to public search engines"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

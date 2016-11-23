@@ -2,6 +2,7 @@
  * Expression handler for "Current page is/is not a descendant of any of the following pages:"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 
