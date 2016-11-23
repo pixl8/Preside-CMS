@@ -98,7 +98,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expressions[ expressionId ].labelHandlerArgs = { testThis=CreateUUId() };
 				var eventArgs = Duplicate( expressions[ expressionId ].labelHandlerArgs );
-				    eventArgs.append( { objectName="", context="" } );
+				    eventArgs.append( { context="" } );
 
 				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].labelHandler ).$results( true );
 				mockColdboxController.$( "runEvent" ).$args(
@@ -109,30 +109,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( label );
 
 				expect( service.getExpressionLabel( expressionId ) ).toBe( label );
-			} );
-
-			it( "should pass context + retrieved context object through to label lookup handler", function(){
-				var expressions  = _getDefaultTestExpressions();
-				var service      = _getService( expressions );
-				var expressionId = "expression3.context1";
-				var label        = CreateUUId();
-				var context      = "somecontext";
-				var object       = "an_objectl;"
-
-				expressions[ expressionId ].labelHandlerArgs = { testThis=CreateUUId() };
-				var eventArgs = Duplicate( expressions[ expressionId ].labelHandlerArgs );
-				    eventArgs.append( { objectName=object, context=context } );
-
-				mockContextService.$( "getContextObject" ).$args( context ).$results( object );
-				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].labelHandler ).$results( true );
-				mockColdboxController.$( "runEvent" ).$args(
-					  event          = expressions[ expressionId ].labelHandler
-					, private        = true
-					, prePostExempt  = true
-					, eventArguments = eventArgs
-				).$results( label );
-
-				expect( service.getExpressionLabel( expressionId=expressionId, context=context ) ).toBe( label );
 			} );
 
 			it( "should return a translated label using a convention based i18n URI based on the expression id when the label generating handler does not exist", function(){
@@ -157,7 +133,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expressions[ expressionId ].textHandlerArgs = { testThis=CreateUUId() };
 				var eventArgs = Duplicate( expressions[ expressionId ].textHandlerArgs );
-				    eventArgs.append( { objectName="", context="" } );
+				    eventArgs.append( { context="" } );
 
 				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].textHandler ).$results( true );
 				mockColdboxController.$( "runEvent" ).$args(
@@ -168,31 +144,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				).$results( label );
 
 				expect( service.getExpressionText( expressionId ) ).toBe( label );
-			} );
-
-			it( "should pass context + retrieved context object through to text lookup handler", function(){
-				var expressions  = _getDefaultTestExpressions();
-				var service      = _getService( expressions );
-				var expressionId = "expression3.context1";
-				var label        = CreateUUId();
-				var context      = "mycontext";
-				var object       = "my_object";
-
-				expressions[ expressionId ].textHandlerArgs = { testThis=CreateUUId() };
-				var eventArgs = Duplicate( expressions[ expressionId ].textHandlerArgs );
-				    eventArgs.append( { objectName=object, context=context } );
-
-				mockContextService.$( "getContextObject" ).$args( context ).$results( object );
-				mockColdboxController.$( "handlerExists" ).$args( expressions[ expressionId ].textHandler ).$results( true );
-				mockColdboxController.$( "runEvent" ).$args(
-					  event          = expressions[ expressionId ].textHandler
-					, private        = true
-					, prePostExempt  = true
-					, eventArguments = eventArgs
-				).$results( label );
-
-				expect( service.getExpressionText( expressionId=expressionId, context=context ) ).toBe( label );
-
 			} );
 
 			it( "should return a translated expression text using a convention based i18n URI based on the expression id when the handler does not exist", function(){
@@ -322,7 +273,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventArgs    = {
 					  context    = context
 					, payload    = payload
-					, objectName = "request_object"
 				};
 
 				eventArgs.append( fields );
@@ -354,7 +304,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventArgs    = {
 					  context    = context
 					, payload    = payload
-					, objectName = "request_object"
 				};
 
 				eventArgs.append( fields );
@@ -435,7 +384,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var eventArgs    = {
 					  context    = context
 					, payload    = payload
-					, objectName = "request_object"
 				};
 
 				eventArgs.append( expressions[ expressionId ].expressionHandlerArgs );

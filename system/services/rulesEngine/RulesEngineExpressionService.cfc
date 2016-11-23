@@ -129,14 +129,12 @@ component displayName="RulesEngine Expression Service" {
 	public string function getExpressionLabel(
 		  required string expressionId
 		,          string context    = ""
-		,          string objectName = _getContextService().getContextObject( arguments.context )
 	) {
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.labelHandler ?: "" ) ) {
 			var handlerArgs = Duplicate( expression.labelHandlerArgs ?: {} );
 			handlerArgs.context    = arguments.context;
-			handlerArgs.objectName = arguments.objectName;
 
 			return $getColdbox().runEvent(
 				  event          = expression.labelHandler
@@ -167,14 +165,12 @@ component displayName="RulesEngine Expression Service" {
 	public string function getExpressionText(
 		  required string expressionId
 		,          string context    = ""
-		,          string objectName = _getContextService().getContextObject( arguments.context )
 	) {
 		var expression = _getRawExpression( arguments.expressionId );
 
 		if ( $getColdbox().handlerExists( expression.textHandler ?: "" ) ) {
 			var handlerArgs = Duplicate( expression.textHandlerArgs ?: {} );
 			handlerArgs.context    = arguments.context;
-			handlerArgs.objectName = arguments.objectName;
 
 			return $getColdbox().runEvent(
 				  event          = expression.textHandler
@@ -242,9 +238,8 @@ component displayName="RulesEngine Expression Service" {
 
 		var handlerAction = expression.expressionhandler ?: "rules.expressions." & arguments.expressionId & ".evaluateExpression";
 		var eventArgs     = {
-			  context    = arguments.context
-			, objectName = _getContextService().getContextObject( arguments.context )
-			, payload    = arguments.payload
+			  context = arguments.context
+			, payload = arguments.payload
 		};
 
 		eventArgs.append( expression.expressionHandlerArgs ?: {} );

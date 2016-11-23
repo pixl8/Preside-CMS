@@ -16,7 +16,7 @@ component {
 		var recordId = payload[ objectName ].id ?: "";
 		var isIsNot  = ( _is && variety == "isEmpty" ) ? "is" : "is not";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, filter       = "#objectname#.id = :id and #objectName#.#propertyName# #isIsNot# null"
 			, filterParams = { id=recordId }

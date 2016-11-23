@@ -108,6 +108,25 @@ component displayName="RulesEngine Context Service" {
 	}
 
 	/**
+	 * Returns an array of context ids for the given object
+	 *
+	 * @autodoc true
+	 * @objectName.hint Object who's contexts you wish to get
+	 */
+	public array function getObjectContexts( required string objectName ) {
+		var contexts = _getConfiguredContexts();
+		var objectContexts = [];
+
+		for( var contextId in contexts ) {
+			if ( getContextObject( contextId ) == arguments.objectName ) {
+				objectContexts.append( contextId );
+			}
+		}
+
+		return expandContexts( objectContexts );
+	}
+
+	/**
 	 * Dynamically registers a new context with the given
 	 * ID. Any extra arguments are added to the context
 	 * definition.
