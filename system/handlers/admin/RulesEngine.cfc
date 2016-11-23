@@ -235,11 +235,11 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( objectName.len() ) {
+			try {
 				var count = rulesEngineFilterService.getMatchingRecordCount(
 					  objectName      = objectName
 					, expressionArray = expressionArray
 				);
-			try {
 			} catch ( any e ) {}
 		}
 
