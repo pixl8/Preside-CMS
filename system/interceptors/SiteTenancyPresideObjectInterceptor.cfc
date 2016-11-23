@@ -59,7 +59,7 @@ component extends="coldbox.system.Interceptor" {
 	}
 
 	private void function _injectSiteTenancyFields( required struct meta ) {
-		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none" };
+		var defaultConfiguration = { relationship="many-to-one", relatedto="site", required=false, ondelete="cascade", onupdate="cascade", generator="none", indexes="_site", uniqueindexes="", control="none", autofilter=false };
 		var indexNames           = [];
 
 		for( var prop in arguments.meta.properties ){
