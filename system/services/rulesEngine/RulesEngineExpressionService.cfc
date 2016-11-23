@@ -268,11 +268,13 @@ component displayName="RulesEngine Expression Service" {
 	 * @expressionId.hint     The ID of the expression who's filters you wish to prepare
 	 * @objectName.hint       The object who's records are to be filtered
 	 * @configuredFields.hint A structure of fields configured for the expression instance who's filter we are preparing
+	 * @filterPrefix.hint     An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 */
 	public array function prepareExpressionFilters(
 		  required string expressionId
 		, required string objectName
 		, required struct configuredFields
+		,          string filterPrefix = ""
 	) {
 		var expression    = _getRawExpression( expressionid );
 		var filterObjects = expression.filterObjects ?: [];
@@ -285,7 +287,7 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		var handlerAction = expression.filterHandler ?: "rules.expressions." & arguments.expressionId & ".prepareFilters";
-		var eventArgs     = { objectName=arguments.objectName };
+		var eventArgs     = { objectName=arguments.objectName, filterPrefix=arguments.filterPrefix };
 
 		eventArgs.append( expression.filterHandlerArgs ?: {} );
 		eventArgs.append( preProcessConfiguredFields( arguments.expressionId, arguments.configuredFields ) );

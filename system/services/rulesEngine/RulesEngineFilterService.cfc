@@ -28,12 +28,14 @@ component displayName="Rules Engine Filter Service" {
 	 *
 	 * @autodoc              true
 	 * @objectName.hint      The name of the object that the filter is for
-	 * @expressionArray.hint Cofigured expression array of the condition to prepare a filter for
+	 * @expressionArray.hint Configured expression array of the condition to prepare a filter for
+	 * @filterPrefix.hint    An optional prefix to prepend to any property filters. This is useful when you are traversing the relationship tree and building filters within filters!
 	 *
 	 */
 	public struct function prepareFilter(
 		  required string objectName
 		, required array  expressionArray
+		,          string filterPrefix = ""
 	) {
 		var dbAdapter  = $getPresideObjectService().getDbAdapterForObject( arguments.objectName );
 		var join       = "";
@@ -47,13 +49,13 @@ component displayName="Rules Engine Filter Service" {
 			if ( isJoin ) {
 				join = expressionArray[i] == "and" ? "and" : "or";
 			} else if ( IsArray( expressionArray[i] ) ) {
-				var subFilter = prepareFilter( objectName, expressionArray[i] );
+				var subFilter = prepareFilter( objectName, expressionArray[i], arguments.filterPrefix );
 
 				if ( subFilter.keyExists( "having" ) ) {
 					isHaving = true;
-					sql &= " #join# ( #subfilter.having# )";
+					sql &= " #join# #subfilter.having#";
 				} else {
-					sql &= " #join# ( #subfilter.filter# )";
+					sql &= " #join# #subfilter.filter#";
 				}
 
 				params.append( subFilter.filterParams );
@@ -62,6 +64,7 @@ component displayName="Rules Engine Filter Service" {
 					  expressionId     = expressionArray[i].expression ?: ""
 					, configuredFields = expressionArray[i].fields     ?: {}
 					, objectName       = arguments.objectName
+					, filterPrefix     = arguments.filterPrefix
 				);
 
 				if ( rawFilters.len() ) {
@@ -99,6 +102,10 @@ component displayName="Rules Engine Filter Service" {
 					}
 				}
 			}
+		}
+
+		if ( sql.trim().len() ) {
+			sql = "( #sql.trim()# )";
 		}
 
 		var returnValue = { filterParams=params, extraJoins=extraJoins };
@@ -152,6 +159,25 @@ component displayName="Rules Engine Filter Service" {
 		, required array  expressionArray
 	) {
 		return selectData( argumentCollection=arguments, recordCountOnly=true );
+	}
+
+	/**
+	 * Returns an expression array for a saved filter id
+	 *
+	 * @autodoc
+	 * @filterId.hint ID of the saved filter
+	 */
+	public array function getExpressionArrayForSavedFilter( required string filterId ) {
+		var filterRecord = $getPresideObject( "rules_engine_filter" ).selectData(
+			  id           = arguments.filterId
+			, selectFields = [ "expressions" ]
+		);
+
+		try {
+			return DeSerializeJson( filterRecord.expressions );
+		} catch ( any e ) {}
+
+		return [];
 	}
 
 // PRIVATE HELPERS

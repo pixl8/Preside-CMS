@@ -24,11 +24,13 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          struct  _time = {}
 	){
 		var params      = {};
 		var sql         = "";
-		var propertySql = "#objectName#.#propertyName#";
+		var prefix      = filterPrefix.len() ? filterPrefix : objectName;
+		var propertySql = "#prefix#.#propertyName#";
 		var delim       = "";
 
 		if ( IsDate( _time.from ?: "" ) ) {

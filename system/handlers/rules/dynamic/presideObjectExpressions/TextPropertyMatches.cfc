@@ -25,11 +25,13 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
+		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
 		var paramName = "textPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "#objectName#.#propertyName# ${operator} :#paramName#";
+		var filterSql = "#prefix#.#propertyName# ${operator} :#paramName#";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
 
 		switch ( _stringOperator ) {

@@ -25,6 +25,7 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
@@ -60,12 +61,14 @@ component {
 			break;
 		}
 
+		var prefix = filterPrefix.len() ? filterPrefix : objectName;
+
 		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
 			  type           = "left"
 			, subQuery       = subQuery
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = arguments.objectName
+			, joinToTable    = prefix
 			, joinToColumn   = "id"
 		} ] } ];
 	}

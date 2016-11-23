@@ -29,15 +29,17 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
+		,          string  filterPrefix = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	){
+		var prefix = filterPrefix.len() ? filterPrefix : propertyName;
 		var paramName = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
 		if ( _is ) {
 			return [ {
-				  filter       = "#propertyName#.id in (:#paramName#)"
+				  filter       = "#prefix#.id in (:#paramName#)"
 				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
 			} ];
 		}
@@ -56,6 +58,8 @@ component {
 			params[ param.name ].delete( "name" );
 		}
 
+		prefix = filterPrefix.len() ? filterPrefix : objectName;
+
 		return [ {
 			  filter = "#subQueryAlias#.id is null"
 			, filterParams = params
@@ -64,7 +68,7 @@ component {
 				, subQuery       = subQuery.sql
 				, subQueryAlias  = subQueryAlias
 				, subQueryColumn = "id"
-				, joinToTable    = arguments.objectName
+				, joinToTable    = prefix
 				, joinToColumn   = "id"
 			} ]
 		}];

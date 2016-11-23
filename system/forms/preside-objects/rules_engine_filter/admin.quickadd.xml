@@ -8,8 +8,8 @@ This form is used for creating a new rules engine filter through the quick add i
 	<tab id="default">
 		<fieldset id="default" sortorder="10">
 			<field binding="rules_engine_filter.object_name" control="hidden" />
-			<field binding="rules_engine_filter.expressions" control="rulesEngineFilterBuilder" />
 			<field binding="rules_engine_filter.filter_name" control="textinput" />
+			<field binding="rules_engine_filter.expressions" control="rulesEngineFilterBuilder" />
 		</fieldset>
 	</tab>
 </form>

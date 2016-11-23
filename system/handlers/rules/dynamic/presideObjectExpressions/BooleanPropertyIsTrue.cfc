@@ -24,12 +24,14 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          boolean _is = true
 	){
 		var paramName = "booleanPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
+		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
 
 		return [ {
-			  filter       = "#objectName#.#propertyName# = :#paramName#"
+			  filter       = "#prefix#.#propertyName# = :#paramName#"
 			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
 		} ];
 	}

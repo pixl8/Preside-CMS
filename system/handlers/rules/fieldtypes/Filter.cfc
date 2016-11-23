@@ -1,5 +1,5 @@
 /**
- * Handler for rules engine 'condition' type
+ * Handler for rules engine 'filter' type
  *
  */
 component {
@@ -15,11 +15,11 @@ component {
 		}
 
 		if ( ids.len() == 1 ) {
-			return renderLabel( objectName="rules_engine_condition", recordId=ids[1] );
+			return renderLabel( objectName="rules_engine_filter", recordId=ids[1] );
 		}
 
 		var records = presideObjectService.selectData(
-			  objectName   = "rules_engine_condition"
+			  objectName   = "rules_engine_filter"
 			, selectFields = [ "${labelfield} as label" ]
 			, filter       = { id=ids }
 		);
@@ -27,16 +27,20 @@ component {
 	}
 
 	private string function renderConfigScreen( string value="", struct config={} ) {
-		var multiple = IsTrue( config.multiple ?: true );
-		var sortable = IsTrue( config.sortable ?: true );
+		var multiple  = IsTrue( config.multiple  ?: true );
+		var sortable  = IsTrue( config.sortable  ?: true );
+		var quickadd  = IsTrue( config.quickAdd  ?: true );
+		var quickEdit = IsTrue( config.quickEdit ?: true );
 
 		return renderFormControl(
 			  name         = "value"
-			, type         = "conditionPicker"
+			, type         = "filterPicker"
 			, multiple     = multiple
 			, sortable     = sortable
-			, ruleContext  = rc.context ?: "global"
-			, label        = translateResource( "cms:rulesEngine.fieldtype.condition.config.label" )
+			, quickadd     = true//quickadd
+			, quickEdit    = true//quickEdit
+			, filterObject = rc.object ?: "global"
+			, label        = translateResource( "cms:rulesEngine.fieldtype.filter.config.label" )
 			, savedValue   = arguments.value
 			, defaultValue = arguments.value
 			, required     = true

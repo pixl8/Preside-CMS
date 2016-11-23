@@ -93,6 +93,7 @@ component {
 		switch( relationship ) {
 			case "many-to-one":
 				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition ) );
+				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition ) );
 			break;
 			case "many-to-many":
 				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition ) );
@@ -218,6 +219,25 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.getText"
+		} );
+		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+
+		return expression;
+	}
+
+	private struct function _createManyToOneFilterExpression( required string objectName, required struct propertyDefinition ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_manytoonefilter_#arguments.propertyDefinition.name#"
+			, fields            = { value={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToOneFilter.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.getText"
 		} );
 		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
 		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;

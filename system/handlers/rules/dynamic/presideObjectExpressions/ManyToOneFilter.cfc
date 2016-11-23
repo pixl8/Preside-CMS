@@ -6,11 +6,11 @@
 component {
 
 	property name="presideObjectService" inject="presideObjectService";
+	property name="filterService"        inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
-		,          boolean _is   = true
 		,          string  value = ""
 	) {
 		var recordId = payload[ objectName ].id ?: "";
@@ -25,17 +25,20 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		, required string  relatedTo
 		,          string  filterPrefix = ""
-		,          boolean _is   = true
-		,          string  value = ""
+		,          string  value        = ""
 	){
-		var paramName = "manyToOneMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var operator  = _is ? "in" : "not in";
-		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
-		var filterSql = "#prefix#.#propertyName# #operator# (:#paramName#)";
-		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+		var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.value );
+		if ( !expressionArray.len() ) {
+			return [];
+		}
 
-		return [ { filter=filterSql, filterParams=params } ];
+		return [ filterService.prepareFilter(
+			  objectName      = arguments.relatedTo
+			, expressionArray = expressionArray
+			, filterPrefix    = filterPrefix.listAppend( arguments.propertyName, "$" )
+		) ];
 	}
 
 	private string function getLabel(
@@ -47,7 +50,7 @@ component {
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
-		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.label", data=[ propNameTranslated, relatedToTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:manyToOneFilter.label", data=[ propNameTranslated, relatedToTranslated ] );
 	}
 
 	private string function getText(
@@ -59,7 +62,7 @@ component {
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
-		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.text", data=[ propNameTranslated, relatedToTranslated ] );
+		return translateResource( uri="rules.dynamicExpressions:manyToOneFilter.text", data=[ propNameTranslated, relatedToTranslated ] );
 	}
 
 }
