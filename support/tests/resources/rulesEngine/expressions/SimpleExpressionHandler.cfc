@@ -4,6 +4,7 @@
  *
  * @feature myfeature
  * @expressionContexts user,marketing
+ * @expressionCategory testCategory
  */
 component {
 

@@ -2,15 +2,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	function run() {
 		describe( "getExpression()", function(){
-			it( "should return a structure representing the expression including translated label and expression text", function(){
+			it( "should return a structure representing the expression including translated category, label and expression text", function(){
 				var service      = _getService();
 				var expressionId = "userGroup.event_booking";
 				var expected     = Duplicate( mockExpressions[ expressionId ] );
 
-				expected.label = CreateUUId();
-				expected.text  = CreateUUId();
-				expected.id    = expressionId;
+				expected.label    = CreateUUId();
+				expected.text     = CreateUUId();
+				expected.id       = expressionId;
+				expected.category = CreateUUId();
 
+				service.$( "translateExpressionCategory" ).$args( mockExpressions[ expressionId ].category ).$results( expected.category );
 				service.$( "getExpressionLabel" ).$args( expressionId ).$results( expected.label );
 				service.$( "getExpressionText"  ).$args( expressionId ).$results( expected.text  );
 
@@ -40,9 +42,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expressionId = "userGroup.user";
 				var expected     = Duplicate( mockExpressions[ expressionId ] );
 
-				expected.label = CreateUUId();
-				expected.text  = CreateUUId();
-				expected.id    = expressionId;
+				expected.label                   = CreateUUId();
+				expected.text                    = CreateUUId();
+				expected.id                      = expressionId;
+				expected.category                = "default";
 				expected.fields._is.defaultLabel = CreateUUId();
 
 				service.$( "getExpressionLabel" ).$args( expressionId ).$results( expected.label );
@@ -58,9 +61,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expected     = Duplicate( mockExpressions[ expressionId ] );
 				var context      = "blah";
 
-				expected.label = CreateUUId();
-				expected.text  = CreateUUId();
-				expected.id    = expressionId;
+				expected.label                   = CreateUUId();
+				expected.text                    = CreateUUId();
+				expected.id                      = expressionId;
+				expected.category                = "default";
 				expected.fields._is.defaultLabel = CreateUUId();
 
 				service.$( "getExpressionLabel" ).$args( expressionId=expressionId, context=context ).$results( expected.label );
@@ -76,9 +80,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expected     = Duplicate( mockExpressions[ expressionId ] );
 				var objectName   = "blah_blah";
 
-				expected.label = CreateUUId();
-				expected.text  = CreateUUId();
-				expected.id    = expressionId;
+				expected.label    = CreateUUId();
+				expected.text     = CreateUUId();
+				expected.id       = expressionId;
+				expected.category = "default";
 				expected.fields._is.defaultLabel = CreateUUId();
 
 				service.$( "getExpressionLabel" ).$args( expressionId=expressionId, objectName=objectName ).$results( expected.label );
@@ -190,7 +195,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "listExpressions()", function(){
-			it( "should return an array of all expressions, ordered by translated expression label", function(){
+			it( "should return an array of all expressions, ordered by translated category and expression label", function(){
 				var service = _getService();
 				var expressionIds = mockExpressions.keyArray();
 				var labels = [];
@@ -723,19 +728,20 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getColdbox", mockColdboxController );
 		mockContextService.$( "getContextObject" ).$args( "request" ).$results( "request_object" );
 		mockContextService.$( "getContextObject" ).$args( "" ).$results( "" );
+		service.$( "translateExpressionCategory", "default" );
 
 		return service;
 	}
 
 	private struct function _getDefaultTestExpressions() {
 		var expressions = {
-			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], filterObjects=[ "usergroup" ] }
-			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ] }
-			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], filterObjects=[ "objectx" ] }
-			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], filterObjects=[ "objecty" ] }
-			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], filterObjects=[ "objectx" ] }
-			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ], filterObjects=[ "objectz", "usergroup" ] }
-			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ], filterObjects=[ ] }
+			  "userGroup.user"          = { fields={ "_is"={ expressionType="boolean", variation="isIsNot" } }, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah" }
+			, "userGroup.event_booking" = { fields={}, contexts=[ "request" ], filterObjects=[ "usergroup" ], category="blah" }
+			, "expression3.context1"    = { fields={ text={ required=true } }, contexts=[ "global" ], filterObjects=[ "objectx" ], category="blah" }
+			, "expression4.context2"    = { fields={}, contexts=[ "event_booking" ], filterObjects=[ "objecty" ], category="blah" }
+			, "expression5.context3"    = { fields={}, contexts=[ "marketing" ], filterObjects=[ "objectx" ], category="blah" }
+			, "expression6.context4"    = { fields={}, contexts=[ "workflow" ], filterObjects=[ "objectz", "usergroup" ], category="blah" }
+			, "expression7.context5"    = { fields={}, contexts=[ "workflow", "test", "request" ], filterObjects=[ ], category="blah" }
 		};
 
 		for( var expressionId in expressions ) {

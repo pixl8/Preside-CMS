@@ -92,6 +92,7 @@ component displayName="RulesEngine Expression Reader Service" {
 	public struct function getExpressionsFromCfc( required string componentPath, required string rootPath ) {
 		var meta        = getComponentMetadata( arguments.componentPath );
 		var feature     = meta.feature ?: "";
+		var category    = meta.expressionCategory ?: "default";
 
 		if ( Len( Trim( feature ) ) && !$isFeatureEnabled( feature ) ) {
 			return {};
@@ -108,6 +109,7 @@ component displayName="RulesEngine Expression Reader Service" {
 					  contexts              = _getContextService().expandContexts( ListToArray( meta.expressionContexts ?: "global" ) )
 					, fields                = getExpressionFieldsFromFunctionDefinition( func )
 					, filterObjects         = filterObjects
+					, category              = category
 					, expressionHandler     = "rules.expressions.#baseId#.evaluateExpression"
 					, filterHandler         = filterObjects.len() ? "rules.expressions.#baseId#.prepareFilters" : ""
 					, labelHandler          = "rules.expressions.#baseId#.getLabel"

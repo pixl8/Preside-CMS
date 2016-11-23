@@ -625,7 +625,8 @@
 			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
 			  , $filterCount      = $builderContainer.find( ".rules-engine-condition-builder-filter-count-count" )
-			  , $expressions      = $expressionList.find( "> li" )
+			  , $expressions      = $expressionList.find( "> li > ul > li.expression" )
+			  , $categoryLists    = $expressionList.find( ".category-expressions" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , expressions       = expressionLib[ $formControl.attr( "id" ) ] || []
@@ -637,6 +638,7 @@
 			  , initializeBuilder
 			  , prepareSearchEngine
 			  , prepareDragAndDrop
+			  , prepareCategoryAccordion
 			  , addExpression
 			  , sortableStop;
 
@@ -672,6 +674,7 @@
 
 				prepareSearchEngine();
 				prepareDragAndDrop();
+				prepareCategoryAccordion();
 			};
 
 			prepareSearchEngine = function(){
@@ -704,6 +707,24 @@
 					}
 				} );
 
+				$categoryLists.each( function(){
+					var $categoryUl = $( this )
+					  , $parentLi   = $categoryUl.parents( "li:first" );
+
+					if ( !query.length ) {
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "hide" );
+					} else if ( $categoryUl.find( "> li:not(.hide)" ).length ) {
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "show" );
+					} else {
+						$parentLi.hide();
+						$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "hide" );
+					}
+				} );
 			};
 
 			prepareDragAndDrop = function() {
@@ -713,6 +734,13 @@
 		        	, drop       : addExpression
 		        	, hoverClass : "ui-droppable-hover"
 				});
+			};
+
+			prepareCategoryAccordion = function(){
+				$expressionList.on( "click", ".category-link", function( e ){
+					e.preventDefault();
+					$( this ).find( ".fa:first" ).toggleClass( "fa-plus-square-o fa-minus-square-o" );
+				} );
 			};
 
 			addExpression = function( event, ui ){

@@ -9,6 +9,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsEmpty_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot", default=true, required=false } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
@@ -37,6 +38,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsEmpty_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot", default=true, required=false } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
@@ -65,6 +67,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsEmpty_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot", default=true, required=false } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
@@ -93,6 +96,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_propertyIsSet_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot", default=true, required=false } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
@@ -121,6 +125,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_stringmatches_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _stringOperator={ fieldtype="operator", variety="string", required=false, default="contains" }, value={ fieldtype="text", required=false, default="" } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
@@ -149,6 +154,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_booleanistrue_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _is={ fieldtype="boolean", variety="isIsNot", required=false, default=true } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.evaluateExpression"
@@ -177,6 +183,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_dateinrange_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _time={ fieldtype="timeperiod", type="alltime", required=false, default="" } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.evaluateExpression"
@@ -204,6 +211,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expectedExpr = {
 					  id                    = "presideobject_numbercompares_#objectName#.#propertyDef.name#"
 					, contexts              = _mockContexts( objectName )
+					, category              = objectName
 					, fields                = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
 					, filterObjects         = [ objectName ]
 					, expressionHandler     = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.evaluateExpression"

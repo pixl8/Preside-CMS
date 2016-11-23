@@ -340,6 +340,7 @@ component {
 			, filterHandlerArgs     = { propertyName=propertyName, objectName=objectName }
 			, labelHandlerArgs      = { propertyName=propertyName, objectName=objectName }
 			, textHandlerArgs       = { propertyName=propertyName, objectName=objectName }
+			, category              = arguments.objectName
 		};
 	}
 

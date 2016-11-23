@@ -67,7 +67,13 @@ component displayName="RulesEngine Expression Service" {
 		}
 
 		list.sort( function( a, b ){
-			return a.label > b.label ? 1 : -1;
+			var aCategory = a.category ?: "";
+			var bCategory = b.category ?: "";
+
+			if ( aCategory == bCategory ) {
+				return a.label > b.label ? 1 : -1;
+			}
+			return aCategory > bCategory ? 1 : -1;
 		} );
 
 		return list;
@@ -102,10 +108,11 @@ component displayName="RulesEngine Expression Service" {
 			translationArgs.objectName = arguments.objectName;
 		}
 
-		expression.id     = expressionId;
-		expression.label  = getExpressionLabel( argumentCollection=translationArgs );
-		expression.text   = getExpressionText( argumentCollection=translationArgs );
-		expression.fields = expression.fields ?: {};
+		expression.id       = expressionId;
+		expression.label    = getExpressionLabel( argumentCollection=translationArgs );
+		expression.text     = getExpressionText( argumentCollection=translationArgs );
+		expression.fields   = expression.fields ?: {};
+		expression.category = translateExpressionCategory( expression.category ?: "default" );
 
 		for( var fieldName in expression.fields ) {
 			expression.fields[ fieldName ].defaultLabel = getDefaultFieldLabel( expressionId, fieldName );
@@ -409,6 +416,28 @@ component displayName="RulesEngine Expression Service" {
 	public array function getFilterObjectsForExpression( required string expressionId ) {
 		var expression = _getRawExpression( expressionId, false );
 		return expression.filterObjects ?: [];
+	}
+
+	public string function translateExpressionCategory( required string category ){
+		var defaultTranslation = $translateResource( "rules.categories:#arguments.category#", "" );
+
+		if ( defaultTranslation.len() ) {
+			return defaultTranslation;
+		}
+
+		var poService = $getPresideObjectService();
+		if ( poService.objectExists( arguments.category ) ) {
+			var baseUri       = poService.getResourceBundleUriRoot( arguments.category );
+			var objectNameKey = poService.isPageType( arguments.category ) ? "name" : "title.singular";
+
+			return $translateResource(
+				  uri          = "rules.categories:object.category"
+				, data         = [ $translateResource( baseUri & objectNameKey, arguments.category ) ]
+				, defaultValue = arguments.category
+			);
+		}
+
+		return arguments.category;
 	}
 
 // PRIVATE HELPERS
