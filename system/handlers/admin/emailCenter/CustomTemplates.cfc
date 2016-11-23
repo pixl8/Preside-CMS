@@ -238,6 +238,26 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function sendoptions( event, rc, prc ) {
+		_checkPermissions( event=event, key="editSendOptions" );
+
+		var templateId = rc.id ?: "";
+
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.subTitle", data=[ prc.template.name ] );
+
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=" & templateId )
+		);
+	}
+
 	public void function versionHistory( event, rc, prc ) {
 		var id = rc.id ?: "";
 
@@ -309,13 +329,14 @@ component extends="preside.system.base.AdminHandler" {
 
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
-		var template     = prc.record ?: {};
-		var layout       = emailLayoutService.getLayout( template.layout ?: "" );
-		var canSaveDraft = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
-		var canPublish   = hasCmsPermission( "emailcenter.customtemplates.publish"   );
+		var template           = prc.record ?: {};
+		var layout             = emailLayoutService.getLayout( template.layout ?: "" );
+		var canSaveDraft       = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
+		var canPublish         = hasCmsPermission( "emailcenter.customtemplates.publish"   );
 
 		args.canEdit            = canSaveDraft || canPublish;
 		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.customtemplates.configureLayout" );
+		args.canEditSendOptions = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
 
 		return renderView( view="/admin/emailCenter/customTemplates/_customTemplateTabs", args=args );
 	}

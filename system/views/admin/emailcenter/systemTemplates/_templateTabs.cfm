@@ -29,7 +29,7 @@
 	if ( args.canConfigureLayout ) {
 		tabs.append({
 			  id     = "layout"
-			, icon   = "fa-cogs grey"
+			, icon   = "fa-code grey"
 			, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.layout" )
 			, active = ( args.tab == "layout" )
 			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.configurelayout", queryString="template=" & templateId )

@@ -2,6 +2,7 @@
 <cfparam name="args.tab"                               default="preview" />
 <cfparam name="args.canEdit"            type="boolean" default="false" />
 <cfparam name="args.canConfigureLayout" type="boolean" default="false" />
+<cfparam name="args.canEditSendOptions" type="boolean" default="false" />
 
 <cfscript>
 	templateId = rc.id      ?: "";
@@ -29,12 +30,24 @@
 	if ( args.canConfigureLayout ) {
 		tabs.append({
 			  id     = "layout"
-			, icon   = "fa-cogs grey"
+			, icon   = "fa-code grey"
 			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.layout" )
 			, active = ( args.tab == "layout" )
 			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.configurelayout", queryString="id=" & templateId )
 		});
 	}
+
+	if ( args.canEditSendOptions ) {
+		tabs.append({
+			  id     = "sendoptions"
+			, icon   = "fa-envelope orange"
+			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.sendOptions" )
+			, active = ( args.tab == "sendoptions" )
+			, link   = ( args.tab == "sendoptions" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=#templateId#" )
+		});
+	}
+
+
 </cfscript>
 
 <cfoutput>
