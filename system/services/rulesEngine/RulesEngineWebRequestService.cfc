@@ -37,9 +37,11 @@ component displayName="RulesEngine Web Request Service" {
 	public boolean function evaluateCondition( required string conditionId ) {
 		var event   = $getRequestContext();
 		var payload = {
-			  page = event.getValue( name="presidePage", defaultValue={}, private=true )
-			, user = _getWebsiteLoginService().getLoggedInUserDetails()
+			  page         = event.getValue( name="presidePage", defaultValue={}, private=true )
+			, website_user = _getWebsiteLoginService().getLoggedInUserDetails()
 		};
+
+		payload.user = payload.website_user; // backward compat hack
 
 		return _getConditionService().evaluateCondition(
 			  conditionId = arguments.conditionId

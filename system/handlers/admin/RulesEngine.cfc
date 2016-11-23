@@ -207,6 +207,20 @@ component extends="preside.system.base.AdminHandler" {
 		event.renderData( type="json", data=records );
 	}
 
+	public void function getFiltersForAjaxSelectControl() {
+		var filterObject  = rc.filterObject ?: "";
+		var records       = dataManagerService.getRecordsForAjaxSelect(
+			  objectName   = "rules_engine_filter"
+			, maxRows      = rc.maxRows ?: 1000
+			, searchQuery  = rc.q       ?: ""
+			, extraFilters = [ { filter={ "rules_engine_filter.object_name" = filterObject } } ]
+			, ids          = ListToArray( rc.values ?: "" )
+		);
+
+		event.renderData( type="json", data=records );
+	}
+
+
 	public void function getFilterCount( event, rc, prc ) {
 		var objectName      = rc.objectName ?: "";
 		var expressionArray = "";
@@ -221,15 +235,21 @@ component extends="preside.system.base.AdminHandler" {
 		}
 
 		if ( objectName.len() ) {
+			try {
 				var count = rulesEngineFilterService.getMatchingRecordCount(
 					  objectName      = objectName
 					, expressionArray = expressionArray
 				);
-			try {
 			} catch ( any e ) {}
 		}
 
-		event.renderData( data=count, type="text" );
+		event.renderData( data=NumberFormat( count ), type="text" );
+	}
+
+	public void function superQuickAddFilterForm( event, rc, prc ) {
+		prc.modalClasses = "modal-dialog-less-padding";
+		event.include( "/js/admin/specific/datamanager/quickAddForm/" );
+		event.setView( view="/admin/rulesEngine/superQuickAddFilterForm", layout="adminModalDialog" );
 	}
 
 // PRIVATE HELPERS

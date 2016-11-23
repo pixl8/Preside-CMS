@@ -15,7 +15,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -25,6 +25,7 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
@@ -60,12 +61,14 @@ component {
 			break;
 		}
 
+		var prefix = filterPrefix.len() ? filterPrefix : objectName;
+
 		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
 			  type           = "left"
 			, subQuery       = subQuery
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = arguments.objectName
+			, joinToTable    = prefix
 			, joinToColumn   = "id"
 		} ] } ];
 	}
@@ -76,9 +79,9 @@ component {
 		, required string  relatedTo
 		, required string  relationshipKey
 	) {
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedPropertyTranslated = translateResource( relatedToBaseUri & "field.#relationshipKey#.title", relationshipKey );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.label", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}
@@ -90,8 +93,8 @@ component {
 		, required string relationshipKey
 	){
 		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedPropertyTranslated = translateResource( relatedToBaseUri & "field.#relationshipKey#.title", relationshipKey );
 		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyCount.text", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}

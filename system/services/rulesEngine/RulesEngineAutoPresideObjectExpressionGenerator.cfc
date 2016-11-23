@@ -33,14 +33,12 @@ component {
 		for( var objectName in objects ) {
 			var properties = $getPresideObjectService().getObjectProperties( objectName );
 			for( var propName in properties ) {
-				if ( !propName.startsWith( "_" ) ) {
-					var expressions = generateExpressionsForProperty( objectName, properties[ propName ] );
-					for( var expression in expressions ) {
-						_getRulesEngineExpressionService().addExpression( argumentCollection=expression );
-					}
-					if ( expressions.len() ) {
-						_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName, visible=false );
-					}
+				var expressions = generateExpressionsForProperty( objectName, properties[ propName ] );
+				for( var expression in expressions ) {
+					_getRulesEngineExpressionService().addExpression( argumentCollection=expression );
+				}
+				if ( expressions.len() ) {
+					_getRulesEngineContextService().addContext( id="presideobject_" & objectName, object=objectName, visible=false );
 				}
 			}
 
@@ -55,6 +53,10 @@ component {
 		  required string objectName
 		, required struct propertyDefinition
 	) {
+		if ( IsBoolean( propertyDefinition.autofilter ?: "" ) && !propertyDefinition.autofilter ) {
+			return [];
+		}
+
 		var isRequired   = IsBoolean( propertyDefinition.required ?: "" ) && propertyDefinition.required;
 		var propType     = propertyDefinition.type ?: "string";
 		var relationship = propertyDefinition.relationship ?: "";
@@ -91,6 +93,7 @@ component {
 		switch( relationship ) {
 			case "many-to-one":
 				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition ) );
+				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition ) );
 			break;
 			case "many-to-many":
 				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition ) );
@@ -110,7 +113,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_propertyIsEmpty_#arguments.propertyName#"
+			  id                = "presideobject_propertyIsEmpty_#arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
@@ -130,7 +133,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_stringmatches_#arguments.propertyName#"
+			  id                = "presideobject_stringmatches_#arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
@@ -145,7 +148,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_propertyIsSet_#arguments.propertyName#"
+			  id                = "presideobject_propertyIsSet_#arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
@@ -165,7 +168,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_booleanistrue_#arguments.propertyName#"
+			  id                = "presideobject_booleanistrue_#arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.prepareFilters"
@@ -180,7 +183,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_dateinrange_#arguments.propertyName#"
+			  id                = "presideobject_dateinrange_#arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _time={ fieldtype="timePeriod", type="alltime", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
@@ -195,7 +198,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
 
 		expression.append( {
-			  id                = "presideobject_numbercompares_#arguments.propertyName#"
+			  id                = "presideobject_numbercompares_#arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.prepareFilters"
@@ -210,7 +213,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytoonematch_#arguments.propertyDefinition.name#"
+			  id                = "presideobject_manytoonematch_#arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToOneMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.prepareFilters"
@@ -225,11 +228,30 @@ component {
 		return expression;
 	}
 
+	private struct function _createManyToOneFilterExpression( required string objectName, required struct propertyDefinition ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+
+		expression.append( {
+			  id                = "presideobject_manytoonefilter_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { value={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToOneFilter.value.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.getText"
+		} );
+		expression.expressionHandlerArgs.relatedTo = propertyDefinition.relatedTo;
+		expression.filterHandlerArgs.relatedTo     = propertyDefinition.relatedTo;
+		expression.labelHandlerArgs.relatedTo      = propertyDefinition.relatedTo;
+		expression.textHandlerArgs.relatedTo       = propertyDefinition.relatedTo;
+
+		return expression;
+	}
+
 	private struct function _createManyToManyMatchExpression( required string objectName, required struct propertyDefinition ) {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytomanymatch_#arguments.propertyDefinition.name#"
+			  id                = "presideobject_manytomanymatch_#arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.prepareFilters"
@@ -248,7 +270,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_onetomanymatch_#arguments.propertyDefinition.name#"
+			  id                = "presideobject_onetomanymatch_#arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:oneToManyMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyMatch.prepareFilters"
@@ -271,8 +293,8 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytomanycount_#arguments.propertyDefinition.name#"
-			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 } }
+			  id                = "presideobject_manytomanycount_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyCount.savedFilter.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyCount.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyCount.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyCount.getLabel"
@@ -290,7 +312,7 @@ component {
 		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_onetomanycount_#arguments.propertyDefinition.name#"
+			  id                = "presideobject_onetomanycount_#arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyCount.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyCount.prepareFilters"
@@ -312,12 +334,13 @@ component {
 
 	private struct function _getCommonExpressionDefinition( required string objectName, required string propertyName ){
 		return {
-			  contexts              = [ "presideobject_" & objectName ]
+			  contexts              = _getRulesEngineContextService().getObjectContexts( objectName )
 			, filterObjects         = [ objectName ]
-			, expressionHandlerArgs = { propertyName=propertyName }
-			, filterHandlerArgs     = { propertyName=propertyName }
-			, labelHandlerArgs      = { propertyName=propertyName }
-			, textHandlerArgs       = { propertyName=propertyName }
+			, expressionHandlerArgs = { propertyName=propertyName, objectName=objectName }
+			, filterHandlerArgs     = { propertyName=propertyName, objectName=objectName }
+			, labelHandlerArgs      = { propertyName=propertyName, objectName=objectName }
+			, textHandlerArgs       = { propertyName=propertyName, objectName=objectName }
+			, category              = arguments.objectName
 		};
 	}
 

@@ -15,7 +15,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -25,11 +25,13 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
 		var paramName = "numericPropertyCompares" & CreateUUId().lCase().replace( "-", "", "all" );
-		var filterSql = "#objectName#.#propertyName# ${operator} :#paramName#";
+		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
+		var filterSql = "#prefix#.#propertyName# ${operator} :#paramName#";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
 		switch ( _numericOperator ) {
@@ -60,8 +62,7 @@ component {
 		  required string  objectName
 		, required string  propertyName
 	) {
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:numericPropertyCompares.label", data=[ propNameTranslated ] );
 	}
@@ -70,8 +71,7 @@ component {
 		  required string objectName
 		, required string propertyName
 	){
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:numericPropertyCompares.text", data=[ propNameTranslated ] );
 	}

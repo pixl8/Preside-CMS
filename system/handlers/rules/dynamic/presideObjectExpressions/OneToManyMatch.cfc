@@ -17,7 +17,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -29,15 +29,17 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
+		,          string  filterPrefix = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	){
+		var prefix = filterPrefix.len() ? filterPrefix : propertyName;
 		var paramName = "oneToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
 		if ( _is ) {
 			return [ {
-				  filter       = "#propertyName#.id in (:#paramName#)"
+				  filter       = "#prefix#.id in (:#paramName#)"
 				, filterParams = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } }
 			} ];
 		}
@@ -56,6 +58,8 @@ component {
 			params[ param.name ].delete( "name" );
 		}
 
+		prefix = filterPrefix.len() ? filterPrefix : objectName;
+
 		return [ {
 			  filter = "#subQueryAlias#.id is null"
 			, filterParams = params
@@ -64,7 +68,7 @@ component {
 				, subQuery       = subQuery.sql
 				, subQueryAlias  = subQueryAlias
 				, subQueryColumn = "id"
-				, joinToTable    = arguments.objectName
+				, joinToTable    = prefix
 				, joinToColumn   = "id"
 			} ]
 		}];
@@ -76,9 +80,9 @@ component {
 		, required string  relatedTo
 		, required string  relationshipKey
 	) {
-		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedPropertyTranslated = translateResource( relatedToBaseUri & "field.#relationshipKey#.title", relationshipKey );
-		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
+		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyMatch.label", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}
@@ -90,8 +94,8 @@ component {
 		, required string relationshipKey
 	){
 		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var relatedPropertyTranslated = translateResource( relatedToBaseUri & "field.#relationshipKey#.title", relationshipKey );
 		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
+		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyMatch.text", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}

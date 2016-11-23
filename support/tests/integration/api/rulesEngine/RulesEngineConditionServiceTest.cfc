@@ -862,52 +862,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				) ).toBeFalse();
 			} );
 		} );
-
-		describe( "listObjectsFilterableByCondition()", function(){
-			it( "should return an array of objects that are commonly applicable amongst all the expressions in the given condition", function(){
-				var service = _getService();
-				var condition   = [{
-					  expression = "test.expression"
-					, fields     = { test=CreateUUId(), _is=true }
-				},
-				"and",{
-					  expression = "another.expression"
-					, fields     = { test=CreateUUId(), _is=true }
-				},
-				"and",{
-					  expression = "final.expression"
-					, fields     = { test=CreateUUId(), _is=true }
-				}];
-
-				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "test.expression"    ).$results( [ "object_a", "object_d", "object_b" ] );
-				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "another.expression" ).$results( [ "object_a", "object_c", "object_d" ] );
-				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "final.expression"   ).$results( [ "object_a", "object_b", "object_c", "object_d" ] );
-
-				expect( service.listObjectsFilterableByCondition( condition ) ).toBe( [ "object_a", "object_d" ] );
-			} );
-
-			it( "should return an empty array when no objects are commonly shared amongst all the expressions", function(){
-				var service = _getService();
-				var condition   = [{
-					  expression = "test.expression"
-					, fields     = { test=CreateUUId(), _is=true }
-				},
-				"and",{
-					  expression = "another.expression"
-					, fields     = { test=CreateUUId(), _is=true }
-				},
-				"and",{
-					  expression = "final.expression"
-					, fields     = { test=CreateUUId(), _is=true }
-				}];
-
-				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "test.expression"    ).$results( [ "object_a", "object_d", "object_b" ] );
-				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "another.expression" ).$results( [ "object_e" ] );
-				mockExpressionService.$( "getFilterObjectsForExpression" ).$args( "final.expression"   ).$results( [ "object_a", "object_b", "object_c", "object_d" ] );
-
-				expect( service.listObjectsFilterableByCondition( condition ) ).toBe( [] );
-			} );
-		} );
 	}
 
 // PRIVATE HELPERS

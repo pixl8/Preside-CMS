@@ -3,6 +3,7 @@
  *
  * @feature websiteUsers
  * @expressionContexts webrequest
+ * @expressionCategory website_user
  */
 component {
 

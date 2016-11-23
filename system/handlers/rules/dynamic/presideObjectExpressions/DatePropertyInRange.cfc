@@ -14,7 +14,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -24,11 +24,13 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          struct  _time = {}
 	){
 		var params      = {};
 		var sql         = "";
-		var propertySql = "#objectName#.#propertyName#";
+		var prefix      = filterPrefix.len() ? filterPrefix : objectName;
+		var propertySql = "#prefix#.#propertyName#";
 		var delim       = "";
 
 		if ( IsDate( _time.from ?: "" ) ) {
@@ -55,8 +57,7 @@ component {
 		  required string  objectName
 		, required string  propertyName
 	) {
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:datePropertyInRange.label", data=[ propNameTranslated ] );
 	}
@@ -65,8 +66,7 @@ component {
 		  required string objectName
 		, required string propertyName
 	){
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:datePropertyInRange.text", data=[ propNameTranslated ] );
 	}

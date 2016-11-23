@@ -1327,6 +1327,7 @@
 			var dtHelper            = getMyPlugin( "JQueryDatatablesHelpers" );
 			var sortOrder           = dtHelper.getSortOrder();
 			var expressionFilter    = rc.sFilterExpression ?: "";
+			var savedFilters        = ListToArray( rc.sSavedFilterExpressions ?: "" );
 			var extraFilters        = [];
 
 			try {
@@ -1335,6 +1336,20 @@
 					, expressionArray = DeSerializeJson( expressionFilter )
 				) );
 			} catch( any e ){}
+
+			var savedFilters = presideObjectService.selectData(
+				  objectName = "rules_engine_filter"
+				, selectFields = [ "expressions" ]
+				, filter = { id=savedFilters }
+			);
+			for( var filter in savedFilters ) {
+				try {
+					extraFilters.append( rulesEngineFilterService.prepareFilter(
+						  objectName = object
+						, expressionArray = DeSerializeJson( filter.expressions )
+					) );
+				} catch( any e ){}
+			}
 
 
 

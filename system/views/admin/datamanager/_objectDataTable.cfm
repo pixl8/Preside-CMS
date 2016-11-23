@@ -21,6 +21,13 @@
 	event.include( "/css/admin/specific/datamanager/object/");
 
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
+
+	if ( args.allowFilter ) {
+		saveFilterFormEndpoint = event.buildAdminLink(
+			  linkTo      = "rulesEngine.superQuickAddFilterForm"
+			, querystring = "object_name=#args.objectName#&multiple=false&expressions="
+		);
+	}
 </cfscript>
 <cfoutput>
 	<div class="table-responsive">
@@ -31,16 +38,56 @@
 
 		<cfif args.allowFilter>
 			<div class="object-listing-table-filter hide" id="#tableId#-filter">
-				#renderFormControl(
-					  name    = "filter"
-					, id      = "filter"
-					, type    = "rulesEngineFilterBuilder"
-					, label   = "Filter"
-					, context = "admin"
-					, object  = args.objectName
-					, layout  = ""
-					, compact = true
-				)#
+				<div class="row">
+					<div class="col-md-12">
+						<a class="pull-right back-to-basic-search" href="##">
+							<i class="fa fa-fw fa-reply"></i>
+							#translateResource( "cms:datatables.show.basic.search" )#
+						</a>
+						<h4 class="blue">#translateResource( "cms:rulesEngine.saved.filters" )#</h4>
+						<p class="grey"><i class="fa fa-fw fa-info-circle"></i> <em>#translateResource( "cms:rulesEngine.saved.filters.help" )#</em></p>
+						#renderFormControl(
+							  name         = "filters"
+							, id           = "filters"
+							, type         = "filterPicker"
+							, context      = "admin"
+							, filterObject = args.objectName
+							, multiple     = true
+							, quickedit    = true
+							, label        = ""
+							, layout       = ""
+							, compact      = true
+							, showCount    = false
+						)#
+						<br><br>
+						<a href="##" data-toggle="collapse" data-target="##quick-filter-form" class="quick-filter-toggler">
+							<i class="fa fa-fw fa-caret-down"></i>#translateResource( "cms:rulesEngine.show.quick.filter" )#
+						</a>
+					</div>
+				</div>
+
+				<div id="quick-filter-form" class="in">
+					#renderFormControl(
+						  name      = "filter"
+						, id        = "filter"
+						, type      = "rulesEngineFilterBuilder"
+						, context   = "admin"
+						, object    = args.objectName
+						, label     = ""
+						, layout    = ""
+						, compact   = true
+						, showCount = false
+					)#
+
+					<div class="form-actions">
+						<div class="pull-right">
+							<button class="btn btn-info btn-sm save-filter-btn" tabindex="#getNextTabIndex()#" disabled data-save-form-endpoint="#saveFilterFormEndpoint#">
+								<i class="fa fa-fw fa-save"></i>
+								#translateResource( "cms:rulesEngine.quick.filter.save.btn" )#
+							</button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</cfif>
 

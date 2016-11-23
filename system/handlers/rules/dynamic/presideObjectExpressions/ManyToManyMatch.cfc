@@ -15,7 +15,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -25,12 +25,14 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          boolean _possesses = true
 		,          string  value      = ""
 	){
 		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var operator  = _possesses ? "in" : "not in";
-		var filterSql = "#propertyName#.id #operator# (:#paramName#)";
+		var prefix    = filterPrefix.len() ? filterPrefix : propertyName;
+		var filterSql = "#prefix#.id #operator# (:#paramName#)";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
 		return [ { filter=filterSql, filterParams=params } ];

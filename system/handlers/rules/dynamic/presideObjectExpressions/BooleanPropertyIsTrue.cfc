@@ -14,7 +14,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -24,12 +24,14 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          boolean _is = true
 	){
 		var paramName = "booleanPropertyIsTrue" & CreateUUId().lCase().replace( "-", "", "all" );
+		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
 
 		return [ {
-			  filter       = "#objectName#.#propertyName# = :#paramName#"
+			  filter       = "#prefix#.#propertyName# = :#paramName#"
 			, filterParams = { "#paramName#" = { value=arguments._is, type="cf_sql_boolean" } }
 		} ];
 	}
@@ -38,8 +40,7 @@ component {
 		  required string  objectName
 		, required string  propertyName
 	) {
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.label", data=[ propNameTranslated ] );
 	}
@@ -48,8 +49,7 @@ component {
 		  required string objectName
 		, required string propertyName
 	){
-		var objectBaseUri      = presideObjectService.getResourceBundleUriRoot( objectName );
-		var propNameTranslated = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:booleanPropertyIsTrue.text", data=[ propNameTranslated ] );
 	}

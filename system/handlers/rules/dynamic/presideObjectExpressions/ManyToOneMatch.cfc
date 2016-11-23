@@ -15,7 +15,7 @@ component {
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -25,12 +25,14 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	){
 		var paramName = "manyToOneMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var operator  = _is ? "in" : "not in";
-		var filterSql = "#objectName#.#propertyName# #operator# (:#paramName#)";
+		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
+		var filterSql = "#prefix#.#propertyName# #operator# (:#paramName#)";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
 		return [ { filter=filterSql, filterParams=params } ];
@@ -41,10 +43,9 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 	) {
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var propNameTranslated  = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.label", data=[ propNameTranslated, relatedToTranslated ] );
 	}
@@ -54,10 +55,9 @@ component {
 		, required string propertyName
 		, required string relatedTo
 	){
-		var objectBaseUri       = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
-		var propNameTranslated  = translateResource( objectBaseUri & "field.#propertyName#.title", propertyName );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
+		var propNameTranslated = translateObjectProperty( objectName, propertyName );
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.text", data=[ propNameTranslated, relatedToTranslated ] );
 	}

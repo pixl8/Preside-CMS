@@ -2,6 +2,7 @@
  * Expression handler for "Current page is/is not excluded from menus"
  *
  * @expressionContexts page
+ * @expressionCategory page
  */
 component {
 

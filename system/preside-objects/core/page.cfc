@@ -12,7 +12,7 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="slug"         type="string"  dbtype="varchar"  maxLength="50"  required=false uniqueindexes="slug|2" format="slug";
 	property name="page_type"    type="string"  dbtype="varchar"  maxLength="100" required=true                                             control="pageTypePicker" indexes="pagetype";
 	property name="layout"       type="string"  dbtype="varchar"  maxLength="100" required=false                                            control="pageLayoutPicker";
-	property name="sort_order"   type="numeric" dbtype="int"                      required=true                                             control="none";
+	property name="sort_order"   type="numeric" dbtype="int"                      required=true                                             control="none" autofilter=false;
 	property name="active"       type="boolean" dbtype="boolean"                  required=false default=true;
 	property name="trashed"      type="boolean" dbtype="boolean"                  required=false default=false control="none";
 	property name="old_slug"     type="string"  dbtype="varchar" maxLength="50"   required=false;
@@ -41,12 +41,12 @@ component extends="preside.system.base.SystemPresideObject" labelfield="title" o
 	property name="exclude_from_sitemap"                    type="boolean" dbtype="boolean"                  required=false default=false;
 	property name="navigation_title"                        type="string"  dbtype="varchar" maxLength="200"  required=false;
 
-	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId";
-	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder";
-	property name="_hierarchy_lineage"               type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="lineage";
-	property name="_hierarchy_child_selector"        type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none";
+	property name="_hierarchy_id"                    type="numeric" dbtype="int"     maxLength="0"    required=true                                                            uniqueindexes="hierarchyId" autofilter=false;
+	property name="_hierarchy_sort_order"            type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="sortOrder"         autofilter=false;
+	property name="_hierarchy_lineage"               type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none" indexes="lineage"           autofilter=false;
+	property name="_hierarchy_child_selector"        type="string"  dbtype="varchar" maxLength="200"  required=true                                             control="none"                             autofilter=false;
 	property name="_hierarchy_depth"                 type="numeric" dbtype="int"                      required=true                                             control="none" indexes="depth";
-	property name="_hierarchy_slug"                  type="string"  dbtype="varchar" maxLength="2000" required=true                                             control="none";
+	property name="_hierarchy_slug"                  type="string"  dbtype="varchar" maxLength="2000" required=true                                             control="none"                             autofilter=false;
 
 
 	property name="child_pages" relationship="one-to-many" relatedTo="page" relationshipKey="parent_page";

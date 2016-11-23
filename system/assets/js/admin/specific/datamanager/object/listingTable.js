@@ -14,6 +14,12 @@
 			  , setupDatatable
 			  , setupCheckboxBehaviour
 			  , setupTableRowFocusBehaviour
+			  , setupFilters
+			  , setupQuickSaveFilterIframeModal
+			  , prePopulateFilter
+			  , showFilters
+			  , showSimpleSearch
+			  , dtSettings
 			  , object              = tableSettings.objectName     || cfrequest.objectName     || ""
 			  , datasourceUrl       = tableSettings.datasourceUrl  || cfrequest.datasourceUrl  || buildAjaxLink( "dataManager.getObjectRecordsForAjaxDataTables", { id : object } )
 			  , isMultilingual      = tableSettings.isMultilingual || cfrequest.isMultilingual || false
@@ -32,6 +38,7 @@
 				  , colConfig            = []
 				  , defaultSort          = []
 				  , dynamicHeadersOffset = 1
+				  , sDom
 				  , i, $header;
 
 				if ( useMultiActions ) {
@@ -39,7 +46,7 @@
 						sClass    : "center",
 						bSortable : false,
 						mData     : "_checkbox",
-			 			sWidth    : "5em"
+						sWidth    : "5em"
 					} );
 				}
 
@@ -93,6 +100,12 @@
 					}
 				}
 
+				if ( allowFilter ) {
+					sDom = "<'well'fr<'clearfix'>><'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p>><'clearfix'>";
+				} else {
+					sDom = "r<'dataTables_pagination top'<'pull-left'i><'pull-left'l><'pull-right'p>>t<'dataTables_pagination bottom'<'pull-left'i><'pull-left'l><'pull-right'p><'clearfix'>";
+				}
+
 				datatable = $listingTable.dataTable( {
 					aoColumns     : colConfig,
 					aaSorting     : defaultSort,
@@ -102,7 +115,7 @@
 					bFilter       : allowSearch,
 					bAutoWidth    : false,
 					aLengthMenu   : [ 5, 10, 25, 50, 100 ],
-					sDom          : "<'row'<'well'<'col-sm-6'l><'col-sm-6'f><'clearfix'>>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+					sDom          : sDom,
 					sAjaxSource   : datasourceUrl,
 					fnRowCallback : function( row ){
 						$row = $( row );
@@ -113,6 +126,8 @@
 						}
 					},
 					fnInitComplete : function( settings ){
+						dtSettings = settings;
+
 						if ( allowSearch ) {
 							var $searchContainer = $( settings.aanFeatures.f[0] )
 							  , $input           = $searchContainer.find( "input" ).first();
@@ -134,23 +149,11 @@
 						}
 
 						if ( allowFilter ) {
-							var $searchContainer = $( settings.aanFeatures.f[0] )
-							  , $filterLink      = $( '<a href="#" data-target="#' + tableId + '-filter" data-toggle="collapse" class="collapsed"><i class="fa fa-fw fa-filter"></i></a>' );
-
-							$searchContainer.append( $filterLink ).parent().after( $filterDiv );
-
-							$filterDiv.removeClass( "hide" ).addClass( "collapse" ).find( ".well" ).removeClass( "well" );
-							$filterLink.on( "click", function(e){
-								e.preventDefault();
-							} );
-
-							$filterDiv.on( "change", function( e ){
-								datatable.fnDraw();
-							} );
+							setupFilters( settings );
 						}
 					},
 					oLanguage : {
-		      			oAria : {
+						oAria : {
 							sSortAscending : i18n.translateResource( "cms:datatables.sortAscending", {} ),
 							sSortDescending : i18n.translateResource( "cms:datatables.sortDescending", {} )
 						},
@@ -172,18 +175,29 @@
 						sSearch : '',
 						sUrl : '',
 						sInfoPostFix : ''
-		    		},
-		    		fnServerParams : function( aoData ) {
-		    			if ( allowFilter ) {
-		    				aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
-		    			}
-		    		}
+					},
+					fnServerParams : function( aoData ) {
+						if ( allowFilter ) {
+							aoData.push( { "name": "sFilterExpression", "value": $filterDiv.find( "[name=filter]" ).val() } );
+							aoData.push( { "name": "sSavedFilterExpressions", "value": $filterDiv.find( "[name=filters]" ).val() } );
+						}
+					},
+					fnCookieCallback: function( sName, oData, sExpires, sPath ) {
+						if ( allowFilter ) {
+							oData.oFilter = {
+								  filter  : $filterDiv.find( "[name=filter]" ).val()
+								, filters : $filterDiv.find( "[name=filters]" ).val()
+							};
+						}
+
+						return sName + "="+JSON.stringify(oData)+"; expires=" + sExpires +"; path=" + sPath;
+					}
 				} ).fnSetFilteringDelay( searchDelay );
 			};
 
 			setupCheckboxBehaviour = function(){
-			  	var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
-			  	  , $multiActionBtns = $( "#multi-action-buttons" );
+				var $selectAllCBox   = $listingTable.find( "th input:checkbox" )
+				  , $multiActionBtns = $( "#multi-action-buttons" );
 
 				$selectAllCBox.on( 'click' , function(){
 					var $allCBoxes = $listingTable.find( 'tr > td:first-child input:checkbox' );
@@ -248,6 +262,168 @@
 				$listingTable.on( 'click', 'tbody :checkbox', function(){
 					var $cbox = $( this );
 					$cbox.closest( 'tr' ).toggleClass( 'selected', $cbox.is( ':checked' ) );
+				} );
+			};
+
+			setupFilters = function( settings ){
+				// setup DOM
+				var $searchContainer = $( settings.aanFeatures.f[0] )
+				  , $searchTitle     = $( '<h4 class="blue">' + i18n.translateResource( "cms:datatables.simple.search.title" ) + '</h4>' )
+				  , $filterLink      = $( '<a href="#" class="pull-right"><i class="fa fa-fw fa-filter"></i> ' + i18n.translateResource( "cms:datatables.show.advanced.filters" ) + '</a>' );
+
+				$searchContainer.prepend( $searchTitle );
+				$searchContainer.prepend( $filterLink );
+				$searchContainer.parent().append( $filterDiv );
+
+				$filterDiv.hide().removeClass( "hide" ).find( ".well" ).removeClass( "well" );
+
+				// toggles between filter mode + basic search mode
+				$filterLink.on( "click", showFilters );
+				$filterDiv.on( "click", ".back-to-basic-search", showSimpleSearch );
+
+				// toggle for showing / hiding filter builder
+				$filterDiv.on( "click", ".quick-filter-toggler", function( e ){
+					e.preventDefault();
+					$( this ).find( ".fa:first" ).toggleClass( "fa-caret-right fa-caret-down" );
+				} );
+
+				// filter change listener
+				$filterDiv.on( "change", function( e ){
+					datatable.fnDraw();
+
+					$filterDiv.find( ".save-filter-btn" ).prop( "disabled", !$filterDiv.find( "[name=filter]" ).val().length );
+				} );
+
+				setupQuickSaveFilterIframeModal( $filterDiv );
+
+				if ( settings.oLoadedState !== null && typeof settings.oLoadedState.oFilter !== "undefined" ) {
+					if ( settings.oLoadedState.oFilter.filters.length || settings.oLoadedState.oFilter.filter.length ) {
+						prePopulateFilter( settings.oLoadedState.oFilter.filters, settings.oLoadedState.oFilter.filter );
+					}
+				}
+			};
+
+			prePopulateFilter = function( filters, filter ) {
+				var loaded = false;
+
+				if ( filters && filters.length ) {
+					loaded = true;
+
+					var filterArray   = filters.split(",")
+					  , filtersSelect = $filterDiv.find( "[name=filters]" ).data( "uberSelect")
+					  , i;
+
+					for( i=0; i<filterArray.length; i++ ) {
+						if ( filterArray[i].length ) {
+							filtersSelect.select( filterArray[i] )
+						}
+					}
+
+				}
+
+				if ( filter && filter.length ) {
+					loaded = true;
+					var conditionBuilder = $filterDiv.find( "[name=filter]" ).data( "conditionBuilder" )
+					conditionBuilder.load( filter );
+				}
+
+				if ( loaded ) {
+					showFilters();
+					if ( !filter || !filter.length ) {
+						$filterDiv.find( ".quick-filter-toggler" ).click();
+					}
+				}
+			}
+
+			showFilters = function( e ){
+				e && e.preventDefault();
+				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
+				$searchContainer.fadeOut( 100, function(){
+					$searchContainer.find( "input.data-table-search" ).val( "" );
+					datatable.fnFilter("");
+					$filterDiv.fadeIn( 100 );
+				} );
+			};
+
+			showSimpleSearch = function( e ){
+				e && e.preventDefault();
+				var $searchContainer = $( dtSettings.aanFeatures.f[0] );
+
+				$filterDiv.fadeOut( 100, function(){
+					$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+					$filterDiv.find( "[name=filters]" ).data( "uberSelect").clear();
+					datatable.fnDraw();
+					$searchContainer.fadeIn( 100 );
+				} );
+			};
+
+			setupQuickSaveFilterIframeModal = function( $filterDiv ) {
+				$filterDiv.on( "click", ".save-filter-btn", function( e ){
+					e.preventDefault();
+
+					var iframemodal, rawIframe, dummyPresideObjectPicker
+					  , iframeSrc           = $( this ).data( "saveFormEndpoint" ) + encodeURIComponent( $filterDiv.find( "[name=filter]" ).val() )
+					  , modalTitle          = i18n.translateResource( "cms:rulesEngine.save.filter.modal" )
+					  , modalOptions        = {
+							title     : modalTitle,
+							className : "",
+							buttons   : {
+								cancel : {
+									  label     : '<i class="fa fa-reply"></i> ' + i18n.translateResource( "cms:cancel.btn" )
+									, className : "btn-default"
+								},
+								add : {
+									  label     : '<i class="fa fa-plus"></i> ' + i18n.translateResource( "cms:save.btn" )
+									, className : "btn-primary"
+									, callback  : function(){
+										if ( typeof rawIframe.quickAdd !== "undefined" ) {
+											rawIframe.quickAdd.submitForm();
+
+											return false;
+										}
+										return true;
+									 }
+								}
+							}
+						}
+					  , callbacks = {
+							onLoad : function( iframe ) {
+								iframe.presideObjectPicker = dummyPresideObjectPicker;
+								rawIframe = iframe;
+							},
+							onShow : function( modal, iframe ){
+								if ( typeof iframe !== "undefined" && typeof iframe.quickAdd !== "undefined" ) {
+									iframe.quickAdd.focusForm();
+
+									return false;
+								}
+
+								modal.on('hidden.bs.modal', function (e) {
+									modal.remove();
+								} );
+							}
+						};
+
+					dummyPresideObjectPicker = {
+						  addRecordToControl  : function( recordId ){
+							$filterDiv.find( "[name=filter]" ).data( "conditionBuilder" ).clear();
+							$filterDiv.find( "[name=filters]" ).data( "uberSelect").select( recordId );
+							$filterDiv.find( ".quick-filter-toggler" ).click();
+							datatable.fnDraw();
+						  }
+						, closeQuickAddDialog : function(){
+							iframemodal.close();
+							$.gritter.add({
+								  title      : i18n.translateResource( "cms:info.notification.title" )
+								, text       : i18n.translateResource( "cms:rulesEngine.save.filter.confirmation.message" )
+								, class_name : 'gritter-success'
+								, sticky     : false
+							});
+						  }
+					};
+
+					iframemodal = new PresideIframeModal( iframeSrc, "100%", "100%", callbacks, modalOptions );
+					iframemodal.open();
 				} );
 			};
 

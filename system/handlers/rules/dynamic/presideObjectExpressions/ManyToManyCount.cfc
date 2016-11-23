@@ -6,16 +6,18 @@
 component {
 
 	property name="presideObjectService" inject="presideObjectService";
+	property name="filterService"        inject="rulesEngineFilterService";
 
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
 		,          string  _numericOperator = "eq"
+		,          string  savedFilter      = ""
 		,          numeric value            = 0
 	) {
 		var recordId = payload[ objectName ].id ?: "";
 
-		return presideObjectService.$dataExists(
+		return presideObjectService.dataExists(
 			  objectName   = objectName
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
@@ -25,19 +27,42 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
+		,          string  savedFilter      = ""
 		,          numeric value            = 0
 	){
+		var subQueryExtraFilters = [];
+		if ( Len( Trim( arguments.savedFilter ) ) ) {
+			var expressionArray = filterService.getExpressionArrayForSavedFilter( arguments.savedFilter );
+			if ( expressionArray.len() ) {
+				subQueryExtraFilters.append(
+					filterService.prepareFilter(
+						  objectName      = arguments.relatedTo
+						, expressionArray = expressionArray
+						, filterPrefix    = arguments.propertyName
+					)
+				);
+			}
+		}
+
 		var subQuery = presideObjectService.selectData(
 			  objectName          = arguments.objectName
 			, selectFields        = [ "Count( #propertyName#.id ) manytomany_count", "#objectName#.id" ]
 			, groupBy             = "#objectName#.id"
+			, extraFilters        = subQueryExtraFilters
 			, getSqlAndParamsOnly = true
-		).sql;
+		);
+
 		var subQueryAlias = "manyToManyCount" & CreateUUId().lCase().replace( "-", "", "all" );
 		var paramName     = subQueryAlias;
 		var filterSql     = "#subQueryAlias#.manytomany_count ${operator} :#paramName#";
 		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
+
+		for( var param in subQuery.params ) {
+			params[ param.name ] = param;
+			params[ param.name ].delete( "name" );
+		}
 
 		switch ( _numericOperator ) {
 			case "eq":
@@ -60,12 +85,14 @@ component {
 			break;
 		}
 
+		var prefix = filterPrefix.len() ? filterPrefix : objectName;
+
 		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
 			  type           = "left"
-			, subQuery       = subQuery
+			, subQuery       = subQuery.sql
 			, subQueryAlias  = subQueryAlias
 			, subQueryColumn = "id"
-			, joinToTable    = arguments.objectName
+			, joinToTable    = prefix
 			, joinToColumn   = "id"
 		} ] } ];
 	}

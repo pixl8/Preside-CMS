@@ -117,47 +117,6 @@ component displayName="RulesEngine Condition Service" {
 		return $getPresideObject( "rules_engine_condition" ).selectData( id=arguments.conditionId );
 	}
 
-	/**
-	 * Returns an array of objects (names) that
-	 * can be filtered by the given condition (expression array)
-	 *
-	 * @autodoc true
-	 * @expressionArray.hint Raw condition to evaluate
-	 */
-	public array function listObjectsFilterableByCondition( required array expressionArray ) {
-		var filterableObjects = [];
-
-		for( var i=1; i<=arguments.expressionArray.len(); i++ ) {
-			var item     = arguments.expressionArray[i];
-			var isOddRow = ( i mod 2 == 1 );
-
-			if ( isOddRow ) {
-				if ( IsArray( item ) ) {
-					objects = listObjectsFilterableByCondition( expressionArray = item );
-				} else {
-					objects = _getExpressionService().getFilterObjectsForExpression( item.expression );
-				}
-
-				if ( i==1 ) {
-					filterableObjects = objects;
-				} else {
-					for( var n=filterableObjects.len(); n>0; n-- ) {
-						if ( !objects.findNoCase( filterableObjects[n] ) ) {
-							filterableObjects.deleteAt( n );
-						}
-					}
-				}
-
-				if ( !filterableObjects.len() ) {
-					break;
-				}
-			}
-		}
-
-		return filterableObjects;
-
-	}
-
 // VALIDATOR METHODS
 	/**
 	 * Validator for the preside validation service

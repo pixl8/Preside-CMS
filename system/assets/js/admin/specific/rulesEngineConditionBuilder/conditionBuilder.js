@@ -47,6 +47,12 @@
 			return [];
 		};
 
+		RulesEngineCondition.prototype.loadFromStringValue = function( initialConditionValue ) {
+			this.model = this.deserialize( initialConditionValue );
+			this.persistToHiddenField();
+			this.render();
+		};
+
 		RulesEngineCondition.prototype.isValidSerializedCondition = function( serializedCondition ) {
 			if ( typeof serializedCondition !== "string" ) {
 				return false;
@@ -137,7 +143,7 @@
 		};
 
 		RulesEngineCondition.prototype.updateFilterCount = function() {
-			if ( !this.isFilter ) { return; }
+			if ( !this.isFilter || !this.$filterCount.length ) { return; }
 
 			var conditionBuilder = this;
 
@@ -583,7 +589,6 @@
 			insertAtPosition   = listPosition ? ( parentPosition + 1 ) : parentPosition;
 
 			for( i=removeFromPosition; i<parentLength; i++ ) {
-				console.log( parentList[i] );
 				grandParentList.splice( insertAtPosition, 0, parentList[i] );
 				insertAtPosition++;
 				if ( !listPosition ) {
@@ -602,6 +607,12 @@
 			this.render();
 		};
 
+		RulesEngineCondition.prototype.clear = function(){
+			this.model = [];
+			this.persistToHiddenField();
+			this.render();
+		};
+
 		return RulesEngineCondition;
 	})();
 
@@ -614,7 +625,8 @@
 			  , $conditionPanel   = $builderContainer.find( ".rules-engine-condition-builder-condition-pane" )
 			  , $ruleList         = $builderContainer.find( ".rules-engine-condition-builder-rule-list" )
 			  , $filterCount      = $builderContainer.find( ".rules-engine-condition-builder-filter-count-count" )
-			  , $expressions      = $expressionList.find( "> li" )
+			  , $expressions      = $expressionList.find( "> li > ul > li.expression" )
+			  , $categoryLists    = $expressionList.find( ".category-expressions" )
 			  , tabIndex          = $formControl.attr( "tabindex" )
 			  , savedCondition    = $formControl.val()
 			  , expressions       = expressionLib[ $formControl.attr( "id" ) ] || []
@@ -626,6 +638,7 @@
 			  , initializeBuilder
 			  , prepareSearchEngine
 			  , prepareDragAndDrop
+			  , prepareCategoryAccordion
 			  , addExpression
 			  , sortableStop;
 
@@ -648,8 +661,20 @@
 
 				condition = new RulesEngineCondition( $hiddenControl, expressions, $ruleList, isFilter, $filterCount, objectName );
 
+				$hiddenControl.data( "conditionBuilder", {
+					clear : function(){
+						$searchInput.val( "" );
+						performSearch();
+						condition.clear();
+					},
+					load : function( value ){
+						condition.loadFromStringValue( value );
+					}
+				} );
+
 				prepareSearchEngine();
 				prepareDragAndDrop();
+				prepareCategoryAccordion();
 			};
 
 			prepareSearchEngine = function(){
@@ -682,6 +707,29 @@
 					}
 				} );
 
+				$categoryLists.each( function(){
+					var $categoryUl = $( this )
+					  , $parentLi   = $categoryUl.parents( "li:first" );
+
+					if ( !query.length ) {
+						$parentLi.show();
+						if ( $categoryLists.length == 1 ) {
+							$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+							$categoryUl.collapse( "show" );
+						} else {
+							$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+							$categoryUl.collapse( "hide" );
+						}
+					} else if ( $categoryUl.find( "> li:not(.hide)" ).length ) {
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "show" );
+					} else {
+						$parentLi.hide();
+						$parentLi.find( ".fa:first" ).removeClass( "fa-minus-square-o" ).addClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "hide" );
+					}
+				} );
 			};
 
 			prepareDragAndDrop = function() {
@@ -691,6 +739,24 @@
 		        	, drop       : addExpression
 		        	, hoverClass : "ui-droppable-hover"
 				});
+			};
+
+			prepareCategoryAccordion = function(){
+				$expressionList.on( "click", ".category-link", function( e ){
+					e.preventDefault();
+					$( this ).find( ".fa:first" ).toggleClass( "fa-plus-square-o fa-minus-square-o" );
+				} );
+
+				if ( $categoryLists.length == 1 ) {
+					$categoryLists.each( function(){
+						var $categoryUl = $( this )
+						  , $parentLi   = $categoryUl.parents( "li:first" );
+
+						$parentLi.show();
+						$parentLi.find( ".fa:first" ).addClass( "fa-minus-square-o" ).removeClass( "fa-plus-square-o" );
+						$categoryUl.collapse( "show" );
+					} );
+				}
 			};
 
 			addExpression = function( event, ui ){
