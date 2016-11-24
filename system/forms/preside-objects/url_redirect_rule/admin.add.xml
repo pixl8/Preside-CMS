@@ -5,7 +5,7 @@
 			<field binding="url_redirect_rule.label"              control="textinput"   />
 			<field binding="url_redirect_rule.source_url_pattern" control="textinput"   />
 			<field binding="url_redirect_rule.redirect_to_link"   control="linkpicker"  />
-			<field binding="url_redirect_rule.redirect_type"      control="select"       values="301,302" labels="301 Moved Permanently,302 Found (Temporary redirect)" />
+			<field binding="url_redirect_rule.redirect_type" />
 			<field binding="url_redirect_rule.exact_match_only"   control="yesNoSwitch" />
 		</fieldset>
 	</tab>

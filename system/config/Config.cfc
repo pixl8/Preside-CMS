@@ -316,7 +316,10 @@ component {
 			, activeFormbuilderForms = { filter = { "formbuilder_form.active" = true } }
 		};
 
-		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService" ];
+		settings.enum = {};
+		settings.enum.redirectType = [ "301", "302" ];
+
+		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
 		settings.antiSamy = {
 			  enabled                 = true
