@@ -638,8 +638,8 @@ component {
 			, "site_url"
 		] };
 
-		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ] };
-		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ] };
+		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ], filterObject="security_user" };
+		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ], filterObject="website_user"  };
 		recipientTypes.anonymous   = {};
 
 		return {
