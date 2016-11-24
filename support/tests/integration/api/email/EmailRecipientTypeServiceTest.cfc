@@ -193,6 +193,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( _getService().listRecipientTypeParameters( CreateUUId() )  ).toBe( [] );
 			} );
 		} );
+
+		describe( "getFilterObjectForRecipientType()", function(){
+			it( "should return the configured object for the given type", function(){
+				var service = _getService();
+
+				expect( service.getFilterObjectForRecipientType( "adminUser" ) ).toBe( "security_user" );
+			} );
+
+			it( "should return an empty string when the type does not have a configured filter object", function(){
+				var service = _getService();
+
+				expect( service.getFilterObjectForRecipientType( "anonymous" ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the type does not exist", function(){
+				var service = _getService();
+
+				expect( service.getFilterObjectForRecipientType( CreateUUId() ) ).toBe( "" );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -220,8 +240,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getTestRecipientTypes() {
 		return {
-			  websiteUser = { feature="websiteUsers", parameters=[ { id="known_as", required=true }, "login_id" ] }
-			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ] }
+			  websiteUser = { feature="websiteUsers", parameters=[ { id="known_as", required=true }, "login_id" ], filterObject="website_user" }
+			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ], filterObject="security_user" }
 			, anonymous   = {}
 		};
 	}

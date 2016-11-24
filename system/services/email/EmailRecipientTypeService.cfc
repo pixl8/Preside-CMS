@@ -174,6 +174,18 @@ component displayName="Email Recipient Type Service" {
 		return "";
 	}
 
+	/**
+	 * Returns the configured filter object for the given recipient type
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type who's filter object we are to get
+	 */
+	public string function getFilterObjectForRecipientType( required string recipientType ) {
+		var types = _getConfiguredRecipientTypes();
+
+		return types[ arguments.recipientType ].filterObject ?: "";
+	}
+
 // GETTERS AND SETTERS
 	private any function _getConfiguredRecipientTypes() {
 		return _configuredRecipientTypes;
