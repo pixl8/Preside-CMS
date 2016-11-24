@@ -323,7 +323,16 @@ component {
 		};
 
 		settings.enum = {};
-		settings.enum.redirectType = [ "301", "302" ];
+		settings.enum.redirectType                = [ "301", "302" ];
+		settings.enum.pageAccessRestriction       = [ "inherit", "none", "full", "partial" ];
+		settings.enum.pageIframeAccessRestriction = [ "inherit", "block", "sameorigin", "allow" ];
+		settings.enum.internalSearchAccess        = [ "inherit", "allow", "block" ];
+		settings.enum.searchAccess                = [ "inherit", "allow", "block" ];
+		settings.enum.assetAccessRestriction      = [ "inherit", "none", "full" ];
+		settings.enum.linkType                    = [ "email", "url", "sitetreelink", "asset" ];
+		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
+		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
+		settings.enum.siteProtocol                = [ "http", "https" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
