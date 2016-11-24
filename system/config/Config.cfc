@@ -333,6 +333,10 @@ component {
 		settings.enum.linkTarget                  = [ "_blank", "_self", "_parent", "_top" ];
 		settings.enum.linkProtocol                = [ "http://", "https://", "ftp://", "news://" ];
 		settings.enum.siteProtocol                = [ "http", "https" ];
+		settings.enum.emailSendingMethod          = [ "auto", "manual", "scheduled" ];
+		settings.enum.emailSendingLimit           = [ "none", "once", "limited" ];
+		settings.enum.timeMeasure                 = [ "second", "minute", "hour", "day", "week", "month", "quarter", "year" ];
+		settings.enum.emailSendingScheduleType    = [ "fixeddate", "repeat" ];
 
 		settings.validationProviders = [ "presideObjectValidators", "passwordPolicyValidator", "rulesEngineConditionService", "enumService" ];
 
