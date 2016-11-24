@@ -76,7 +76,9 @@ component {
 		if ( !relationship contains "many" ) {
 			switch( propType ) {
 				case "string":
-					expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name ) );
+					if ( !Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
+						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name ) );
+					}
 				break;
 				case "boolean":
 					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name ) );
@@ -104,6 +106,11 @@ component {
 				expressions.append( _createOneToManyCountExpression( objectName, propertyDefinition ) );
 			break;
 		}
+
+		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
+			expressions.append( _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum ) );
+		}
+
 
 		return expressions;
 	}
@@ -139,6 +146,21 @@ component {
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getLabel"
 			, textHandler       = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.getText"
+		} );
+
+		return expression;
+	}
+
+	private struct function _createEnumMatchesExpression( required string objectName, required string propertyName, required string enum ) {
+		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+
+		expression.append( {
+			  id                = "presideobject_enumMatches_#arguments.objectName#.#arguments.propertyName#"
+			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true }, enumValue={ fieldType="enum", enum=arguments.enum, required=false, default="", defaultLabel="rules.dynamicExpressions:enumPropertyMatches.enumValue.default.label" } }
+			, expressionHandler = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.evaluateExpression"
+			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.prepareFilters"
+			, labelHandler      = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getLabel"
+			, textHandler       = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.getText"
 		} );
 
 		return expression;
@@ -252,7 +274,7 @@ component {
 
 		expression.append( {
 			  id                = "presideobject_manytomanymatch_#arguments.objectName#.#arguments.propertyDefinition.name#"
-			, fields            = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyMatch.value.default.label" } }
+			, fields            = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=false, default="", defaultLabel="rules.dynamicExpressions:manyToManyMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.prepareFilters"
 			, labelHandler      = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.getLabel"
