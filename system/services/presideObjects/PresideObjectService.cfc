@@ -1257,7 +1257,14 @@ component displayName="Preside Object Service" {
 		return totalDeleted;
 	}
 
-	public string function getDefaultFormControlForPropertyAttributes( string type="string", string dbType="varchar", string relationship="none", string relatedTo="", numeric maxLength=0 ) {
+	public string function getDefaultFormControlForPropertyAttributes(
+		  string  type         = "string"
+		, string  dbType       = "varchar"
+		, string  relationship = "none"
+		, string  relatedTo    = ""
+		, string  enum         = ""
+		, numeric maxLength    = 0
+	) {
 		switch( arguments.relationship ){
 			case "many-to-one" :
 				switch( arguments.relatedTo ) {
@@ -1282,6 +1289,10 @@ component displayName="Preside Object Service" {
 				return "spinner";
 			case "boolean":
 				return "yesNoSwitch";
+		}
+
+		if ( arguments.enum.len() ) {
+			return "enumSelect";
 		}
 
 		switch( arguments.dbType ){
