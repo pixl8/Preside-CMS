@@ -32,4 +32,8 @@ component {
 
 		return user.email_address ?: "";
 	}
+
+	private string function getRecipientId( event, rc, prc, args={} ) {
+		return args.userId ?: "";
+	}
 }

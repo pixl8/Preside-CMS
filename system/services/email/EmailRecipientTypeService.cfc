@@ -175,6 +175,33 @@ component displayName="Email Recipient Type Service" {
 	}
 
 	/**
+	 * Returns the recipient ID for the given recipient type and message
+	 * args.
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type who's ID we are to get
+	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to get the ID
+	 */
+	public string function getRecipientId(
+		  required string recipientType
+		,          struct args = {}
+	) {
+		var handlerAction = "email.recipientType.#recipientType#.getRecipientId";
+
+		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
+			return $getColdbox().runEvent(
+				  event          = handlerAction
+				, eventArguments = { args=arguments.args }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return "";
+	}
+
+
+	/**
 	 * Returns the configured filter object for the given recipient type
 	 *
 	 * @autodoc            true
