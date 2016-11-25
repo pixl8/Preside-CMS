@@ -31,7 +31,7 @@
 	if ( args.canConfigureLayout ) {
 		tabs.append({
 			  id     = "layout"
-			, icon   = "fa-code grey"
+			, icon   = "fa-code"
 			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.layout" )
 			, active = ( args.tab == "layout" )
 			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.configurelayout", queryString="id=" & templateId )
@@ -51,14 +51,20 @@
 	if ( args.canConfigureRecipients ) {
 		tabs.append({
 			  id     = "recipients"
-			, icon   = "fa-users blue"
+			, icon   = "fa-users red"
 			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.recipients" )
 			, active = ( args.tab == "recipients" )
 			, link   = ( args.tab == "recipients" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=#templateId#" )
 		});
 	}
 
-
+	tabs.append({
+		  id     = "log"
+		, icon   = "fa-list-alt light-grey"
+		, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.log" )
+		, active = ( args.tab == "log" )
+		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.log", queryString="id=#templateId#" )
+	});
 </cfscript>
 
 <cfoutput>

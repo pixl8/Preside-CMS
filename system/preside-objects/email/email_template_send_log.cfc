@@ -15,10 +15,10 @@ component extends="preside.system.base.SystemPresideObject" {
 	property name="subject"   type="string" dbtype="varchar" maxlength=255;
 
 	property name="sent"           type="boolean" dbtype="boolean" default=false;
-	property name="delivered"      type="boolean" dbtype="boolean" default=false;
-	property name="opened"         type="boolean" dbtype="boolean" default=false;
-	property name="marked_as_spam" type="boolean" dbtype="boolean" default=false;
-	property name="unsubscribed"   type="boolean" dbtype="boolean" default=false;
+	property name="delivered"      type="boolean" dbtype="boolean";
+	property name="opened"         type="boolean" dbtype="boolean";
+	property name="marked_as_spam" type="boolean" dbtype="boolean";
+	property name="unsubscribed"   type="boolean" dbtype="boolean";
 
 	property name="sent_date"           type="date" dbtype="datetime";
 	property name="delivered_date"      type="date" dbtype="datetime";

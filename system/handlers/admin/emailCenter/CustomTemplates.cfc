@@ -411,6 +411,40 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function log( event, rc, prc ) {
+		var id = rc.id ?: "";
+
+		prc.record = prc.template = emailTemplateService.getTemplate( id=id, allowDrafts=true );
+		if ( !prc.record.count() || systemEmailTemplateService.templateExists( id ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.log.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.log.page.subtitle", data=[ prc.record.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.log.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.log", queryString="id=#id#" )
+		);
+	}
+
+	//
+	public void function getLogsForAjaxDataTables( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object        = "email_template"
+				, gridFields    = "recipient,sender,subject,sent_date,sent,delivered,opened"
+				, actionsView   = "admin.emailCenter.customTemplates._logGridActions"
+				, filter        = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
+				, draftsEnabled = true
+			}
+		);
+	}
+
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
 		var template        = prc.record ?: {};
