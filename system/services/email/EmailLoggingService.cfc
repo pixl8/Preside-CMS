@@ -10,12 +10,10 @@ component {
 // CONSTRUCTOR
 	/**
 	 * @recipientTypeService.inject emailRecipientTypeService
-	 * @emailTemplateService.inject emailTemplateService
 	 *
 	 */
-	public any function init( required any recipientTypeService, required any emailTemplateService ) {
+	public any function init( required any recipientTypeService ) {
 		_setRecipientTypeService( arguments.recipientTypeService );
-		_setEmailTemplateService( arguments.emailTemplateService );
 
 		return this;
 	}
@@ -25,15 +23,17 @@ component {
 	 * Creates an email log entry and returns its ID (useful for future
 	 * status updates to email delivery)
 	 *
-	 * @autodoc        true
-	 * @template.hint  ID of the email template that is being sent
-	 * @recipient.hint email address of the recipient
-	 * @sender.hint    email address of the sender
-	 * @subject.hint   Subject line of the email
-	 * @sendArgs.hint  Structure of args that were original sent to the email send() method
+	 * @autodoc            true
+	 * @template.hint      ID of the email template that is being sent
+	 * @recipientType.hint ID of the recipient type configured for the template
+	 * @recipient.hint     email address of the recipient
+	 * @sender.hint        email address of the sender
+	 * @subject.hint       Subject line of the email
+	 * @sendArgs.hint      Structure of args that were original sent to the email send() method
 	 */
 	public string function createEmailLog(
 		  required string template
+		, required string recipientType
 		, required string recipient
 		, required string sender
 		, required string subject
@@ -46,17 +46,14 @@ component {
 			, subject        = arguments.subject
 		};
 
-		data.append( _getAdditionalDataForTemplate( arguments.template, arguments.sendArgs ) );
+		data.append( _getAdditionalDataForRecipientType( arguments.recipientType, arguments.sendArgs ) );
 
 		return $getPresideObject( "email_template_send_log" ).insertData( data );
 	}
 
 
 // PRIVATE HELPERS
-	private struct function _getAdditionalDataForTemplate( required string template, required struct sendArgs ) {
-		var templateConfig = _getEmailTemplateService().getTemplate( template );
-		var recipientType  = templateConfig.recipient_type ?: "";
-
+	private struct function _getAdditionalDataForRecipientType( required string recipientType, required struct sendArgs ) {
 		if ( !recipientType.len() ) {
 			return {};
 		}
@@ -67,7 +64,7 @@ component {
 			return {};
 		}
 
-		var recipientId = _getRecipientTypeService().getRecipientId( recipientType, arguments.sendArgs );
+		var recipientId = _getRecipientTypeService().getRecipientId( recipientType, sendArgs );
 
 		if ( !recipientId.len() ) {
 			return {};
@@ -82,13 +79,6 @@ component {
 	}
 	private void function _setRecipientTypeService( required any recipientTypeService ) {
 		_recipientTypeService = arguments.recipientTypeService;
-	}
-
-	private any function _getEmailTemplateService() {
-		return _emailTemplateService;
-	}
-	private void function _setEmailTemplateService( required any emailTemplateService ) {
-		_emailTemplateService = arguments.emailTemplateService;
 	}
 
 }

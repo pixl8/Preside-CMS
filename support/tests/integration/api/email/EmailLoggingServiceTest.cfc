@@ -6,10 +6,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var dummyId = CreateUUId();
 				var args    = {
-					  template = "sometemplate"
-					, recipient = CreateUUId() & "@test.com"
-					, sender    = CreateUUId() & "@test.com"
-					, subject   = "Some subject " & CreateUUId()
+					  template      = "sometemplate"
+					, recipientType = "blah"
+					, recipient     = CreateUUId() & "@test.com"
+					, sender        = CreateUUId() & "@test.com"
+					, subject       = "Some subject " & CreateUUId()
 				};
 
 				mockLogDao.$( "insertData" ).$args( {
@@ -22,24 +23,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
 			} );
 
-			it( "should lookup foreign key field and value from the given email template and send 'args' struct", function(){
+			it( "should lookup foreign key field and value from the given recipientType and send 'args' struct", function(){
 				var service   = _getService();
 				var dummyId   = CreateUUId();
 				var dummyFkId = CreateUUId();
 				var args      = {
-					  template = "sometemplate"
-					, recipient = CreateUUId() & "@test.com"
-					, sender    = CreateUUId() & "@test.com"
-					, subject   = "Some subject " & CreateUUId()
-					, sendArgs  = { test=CreateUUId() }
+					  template      = "sometemplate"
+					, recipientType = "sometype"
+					, recipient     = CreateUUId() & "@test.com"
+					, sender        = CreateUUId() & "@test.com"
+					, subject       = "Some subject " & CreateUUId()
+					, sendArgs      = { test=CreateUUId() }
 				};
-				var dummyTemplate = { recipient_type="sometype" };
 
-				mockEmailTemplateService.$( "getTemplate" ).$args( args.template ).$results( dummyTemplate );
-				mockRecipientTypeService.$( "getRecipientId" ).$args( dummyTemplate.recipient_type, args.sendArgs ).$results( dummyFkId );
-				mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType" ).$args( dummyTemplate.recipient_type ).$results( "dummyFk" );
-
-
+				mockRecipientTypeService.$( "getRecipientId" ).$args( args.recipientType, args.sendArgs ).$results( dummyFkId );
+				mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType" ).$args( args.recipientType ).$results( "dummyFk" );
 
 				mockLogDao.$( "insertData" ).$args( {
 					  email_template = args.template
@@ -56,15 +54,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private any function _getService(){
 		mockRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
-		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
 		mockLogDao = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailLoggingService(
-			  recipientTypeService = mockRecipientTypeService
-			, emailTemplateService = mockEmailTemplateService
+			recipientTypeService = mockRecipientTypeService
 		) );
 
-		mockEmailTemplateService.$( "getTemplate", { recipient_type="test" } );
 		mockRecipientTypeService.$( "getRecipientId", "" );
 		mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType", "" );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
