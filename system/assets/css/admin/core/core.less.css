@@ -31025,6 +31025,13 @@ fieldset[disabled] .presidecms .btn {
   min-width: auto;
   width: auto;
 }
+.presidecms .sub-fieldset .header {
+  font-size: 16px;
+}
+.presidecms .time-unit-and-measure .chosen-container {
+  width: auto !important;
+  min-width: 200px;
+}
 .presidecms .role-picker-checkbox,
 .presidecms .role-picker-radio {
   padding-bottom: 4px;

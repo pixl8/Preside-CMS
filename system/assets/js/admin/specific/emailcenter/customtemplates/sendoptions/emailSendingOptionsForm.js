@@ -34,6 +34,7 @@
 
 			switch( sendingMethod ) {
 				case "manual":
+				case "auto":
 					$scheduleFieldset.hide();
 					$scheduleFixedFieldset.hide();
 					$scheduleRepeatFieldset.hide();
@@ -47,7 +48,6 @@
 					enableFieldsetsBasedOnScheduleType();
 					enableFieldsetsBasedOnLimitType();
 				break;
-				case "auto":
 				default:
 					$scheduleFieldset.hide();
 					$scheduleFixedFieldset.hide();

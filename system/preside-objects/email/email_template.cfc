@@ -21,15 +21,15 @@ component extends="preside.system.base.SystemPresideObject" displayname="Email t
 	property name="sending_method" type="string" dbtype="varchar" maxlength=20 required=false default="auto" enum="emailSendingMethod";
 
 	property name="sending_limit"         type="string"  dbtype="varchar" maxlength=20 required=false default="none" enum="emailSendingLimit";
-	property name="sending_limit_measure" type="string"  dbtype="varchar" maxlength=20 required=false enum="timeMeasure";
-	property name="sending_limit_unit"    type="numeric" dbtype="int" required=false;
+	property name="sending_limit_unit"    type="string"  dbtype="varchar" maxlength=20 required=false enum="timeUnit";
+	property name="sending_limit_measure" type="numeric" dbtype="int" required=false;
 
 	property name="schedule_type"       type="string"  dbtype="varchar" maxlength=20 required=false default="none" enum="emailSendingScheduleType";
 	property name="schedule_date"       type="date"    dbtype="datetime"             required=false;
 	property name="schedule_start_date" type="date"    dbtype="datetime"             required=false;
 	property name="schedule_end_date"   type="date"    dbtype="datetime"             required=false;
-	property name="schedule_measure"    type="string"  dbtype="varchar" maxlength=20 required=false enum="timeMeasure";
-	property name="schedule_unit"       type="numeric" dbtype="int"                  required=false;
+	property name="schedule_unit"       type="string"  dbtype="varchar" maxlength=20 required=false enum="timeUnit";
+	property name="schedule_measure"    type="numeric" dbtype="int"                  required=false;
 
 
 }
