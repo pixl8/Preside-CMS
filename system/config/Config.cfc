@@ -651,8 +651,8 @@ component {
 			, "site_url"
 		] };
 
-		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ], filterObject="security_user", recipientIdLogProperty="website_user_recipient"  };
-		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ], filterObject="website_user" , recipientIdLogProperty="security_user_recipient" };
+		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ], filterObject="security_user", recipientIdLogProperty="security_user_recipient" };
+		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ], filterObject="website_user" , recipientIdLogProperty="website_user_recipient" };
 		recipientTypes.anonymous   = {};
 
 		return {

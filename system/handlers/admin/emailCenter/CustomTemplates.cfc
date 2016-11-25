@@ -435,7 +435,7 @@ component extends="preside.system.base.AdminHandler" {
 			, prePostExempt  = true
 			, private        = true
 			, eventArguments = {
-				  object        = "email_template"
+				  object        = "email_template_send_log"
 				, gridFields    = "recipient,sender,subject,sent_date,sent,delivered,opened"
 				, actionsView   = "admin.emailCenter.customTemplates._logGridActions"
 				, filter        = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
