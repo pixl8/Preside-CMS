@@ -10,16 +10,19 @@ component {
 	 * @systemEmailTemplateService.inject systemEmailTemplateService
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
 	 * @emailLayoutService.inject         emailLayoutService
+	 * @emailLoggingService.inject        emailLoggingService
 	 *
 	 */
 	public any function init(
 		  required any systemEmailTemplateService
 		, required any emailRecipientTypeService
 		, required any emailLayoutService
+		, required any emailLoggingService
 	) {
 		_setSystemEmailTemplateService( arguments.systemEmailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_setEmailLayoutService( arguments.emailLayoutService );
+		_setEmailLoggingService( arguments.emailLoggingService );
 
 		_ensureSystemTemplatesHaveDbEntries();
 
@@ -103,6 +106,15 @@ component {
 			, type          = "html"
 			, subject       = message.subject
 			, body          = replaceParameterTokens( messageTemplate.html_body, params, "html" )
+		);
+
+		message.messageId = _getEmailLoggingService().createEmailLog(
+			  template      = arguments.template
+			, recipientType = messageTemplate.recipient_type
+			, recipient     = message.to[ 1 ]
+			, sender        = message.from
+			, subject       = message.subject
+			, sendArgs      = arguments.args
 		);
 
 		return message;
@@ -386,5 +398,12 @@ component {
 	}
 	private void function _setEmailLayoutService( required any emailLayoutService ) {
 		_emailLayoutService = arguments.emailLayoutService;
+	}
+
+	private any function _getEmailLoggingService() {
+		return _emailLoggingService;
+	}
+	private void function _setEmailLoggingService( required any emailLoggingService ) {
+		_emailLoggingService = arguments.emailLoggingService;
 	}
 }

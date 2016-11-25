@@ -136,6 +136,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  systemEmailTemplateService = mockSystemEmailTemplateService
 					, emailRecipientTypeService  = mockEmailRecipientTypeService
 					, emailLayoutService         = mockEmailLayoutService
+					, emailLoggingService        = mockEmailLoggingService
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );
@@ -283,6 +284,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service                = _getService();
 				var template               = "mytemplate";
 				var mockSubject            = CreateUUId();
+				var mockMessageId          = CreateUUId();
 				var mockTo                 = CreateUUId();
 				var mockTextBody           = CreateUUId();
 				var mockHtmlBody           = CreateUUId();
@@ -327,15 +329,25 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, args=mockArgs ).$results( mockTo );
 
+				mockEmailLoggingService.$( "createEmailLog" ).$args(
+					  template      = template
+					, recipientType = mockTemplate.recipient_type
+					, recipient     = mockTo
+					, sender        = mockTemplate.from_address
+					, subject       = mockSubject
+					, sendArgs      = mockArgs
+				).$results( mockMessageId );
+
 				expect( service.prepareMessage( template=template, args=mockArgs ) ).toBe( {
-					  subject  = mockSubject
-					, from     = mockTemplate.from_address
-					, to       = [ mockTo ]
-					, textBody = mockTextBodyWithLayout
-					, htmlBody = mockHtmlBodyWithLayout
-					, cc       = []
-					, bcc      = []
-					, params   = {}
+					  subject   = mockSubject
+					, from      = mockTemplate.from_address
+					, to        = [ mockTo ]
+					, textBody  = mockTextBodyWithLayout
+					, htmlBody  = mockHtmlBodyWithLayout
+					, cc        = []
+					, bcc       = []
+					, params    = {}
+					, messageId = mockMessageId
 				} );
 			} );
 
@@ -398,6 +410,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, cc       = []
 					, bcc      = []
 					, params   = {}
+					, messageId = "testMessageId"
 				} );
 			} );
 
@@ -530,14 +543,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockSystemEmailTemplateService = createEmptyMock( "preside.system.services.email.SystemEmailTemplateService" );
 		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService" );
 		mockEmailLayoutService = createEmptyMock( "preside.system.services.email.EmailLayoutService" );
+		mockEmailLoggingService = createEmptyMock( "preside.system.services.email.EmailLoggingService" );
+
 		mockSystemEmailTemplateService.$( "templateExists", false );
+		mockEmailLoggingService.$( "createEmailLog", "testMessageId" );
 
 		if ( arguments.initialize ) {
 			service.$( "_ensureSystemTemplatesHaveDbEntries" );
 			service.init(
 				  systemEmailTemplateService = mockSystemEmailTemplateService
 				, emailRecipientTypeService  = mockEmailRecipientTypeService
-				, emailLayoutService  = mockEmailLayoutService
+				, emailLayoutService         = mockEmailLayoutService
+				, emailLoggingService        = mockEmailLoggingService
 			);
 		}
 
