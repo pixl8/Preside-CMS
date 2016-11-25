@@ -248,13 +248,14 @@ component {
 	 */
 	public struct function getTemplate(
 		  required string  id
-		,          boolean allowDrafts = false
-		,          numeric version     = 0
+		,          boolean allowDrafts      = false
+		,          numeric version          = 0
+		,          boolean fromVersionTable = ( arguments.allowDrafts || arguments.varsion )
 	){
 		var template = $getPresideObject( "email_template" ).selectData(
 			  id                 = arguments.id
 			, allowDraftVersions = arguments.allowDrafts
-			, fromversionTable   = arguments.allowDrafts || arguments.version
+			, fromversionTable   = arguments.fromVersionTable
 			, specificVersion    = arguments.version
 		);
 

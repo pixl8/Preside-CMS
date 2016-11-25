@@ -59,12 +59,12 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() ) {
 			var id=emailTemplateService.saveTemplate( template=formData, isDraft=( saveAction=="savedraft" ) );
 
-			messagebox.info( "TODO: success message" );
+			messagebox.info( translateResource( "cms:emailcenter.customTemplates.template.added.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.edit", queryString="id=#id#" ) );
 		}
 
 		formData.validationResult = validationResult;
-		messagebox.error( "TODO: error message" );
+		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 		setNextEvent(
 			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.add" )
 			, persistStruct = formData
@@ -160,12 +160,12 @@ component extends="preside.system.base.AdminHandler" {
 		if ( validationResult.validated() ) {
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=( saveAction=="savedraft" ) );
 
-			messagebox.info( "TODO: success message" );
+			messagebox.info( translateResource( "cms:emailcenter.customTemplates.template.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
 		}
 
 		formData.validationResult = validationResult;
-		messagebox.error( "TODO: error message" );
+		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
 		setNextEvent(
 			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.edit", queryString="id=#id#" )
 			, persistStruct = formData
@@ -243,7 +243,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		var templateId = rc.id ?: "";
 
-		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true );
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, fromversionTable=false );
 		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
 			event.notFound();
 		}
@@ -251,10 +251,39 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.subTitle", data=[ prc.template.name ] );
 
-
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=" & templateId )
+		);
+	}
+
+	public void function saveSendOptionsAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="editSendOptions" );
+
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( filter={ id=id } );
+		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
+		var formName         = "preside-objects.email_template.configure.send";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
+
+			messagebox.info( translateResource( "cms:emailcenter.customTemplates.send.options.saved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
+		}
+
+		formData.validationResult = validationResult;
+		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=#id#" )
+			, persistStruct = formData
 		);
 	}
 
