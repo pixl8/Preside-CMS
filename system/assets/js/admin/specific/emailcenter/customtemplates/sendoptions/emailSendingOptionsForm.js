@@ -6,7 +6,6 @@
 		var $scheduleFieldset       = $form.find( "#fieldset-schedule" )
 		  , $scheduleFixedFieldset  = $form.find( "#fieldset-schedule_fixed" )
 		  , $scheduleRepeatFieldset = $form.find( "#fieldset-schedule_repeat" )
-		  , $limitFieldset          = $form.find( "#fieldset-limit" )
 		  , $limitDeetsFieldset     = $form.find( "#fieldset-limit_details" )
 		  , getRadioValue
 		  , getSendMethod
@@ -38,13 +37,11 @@
 					$scheduleFieldset.hide();
 					$scheduleFixedFieldset.hide();
 					$scheduleRepeatFieldset.hide();
-					$limitFieldset.show();
 					enableFieldsetsBasedOnLimitType();
 
 				break;
 				case "scheduled":
 					$scheduleFieldset.show();
-					$limitFieldset.show();
 					enableFieldsetsBasedOnScheduleType();
 					enableFieldsetsBasedOnLimitType();
 				break;
@@ -52,7 +49,6 @@
 					$scheduleFieldset.hide();
 					$scheduleFixedFieldset.hide();
 					$scheduleRepeatFieldset.hide();
-					$limitFieldset.hide();
 					$limitDeetsFieldset.hide();
 			}
 		};
