@@ -2,6 +2,7 @@ component extends="preside.system.base.AdminHandler" {
 
 	property name="emailTemplateService"       inject="emailTemplateService";
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
+	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
 	property name="emailLayoutService"         inject="emailLayoutService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
@@ -356,16 +357,43 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function recipients( event, rc, prc ) {
+		_checkPermissions( event=event, key="editRecipientFilter" );
+
+		var templateId = rc.id ?: "";
+
+		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, fromversionTable=false );
+		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
+		if ( !prc.filterObject.len() ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", querystring="id=" & templateId ) );
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.recipients.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.recipients.page.subTitle", data=[ prc.template.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.recipients.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=" & templateId )
+		);
+
+	}
+
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
-		var template           = prc.record ?: {};
-		var layout             = emailLayoutService.getLayout( template.layout ?: "" );
-		var canSaveDraft       = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
-		var canPublish         = hasCmsPermission( "emailcenter.customtemplates.publish"   );
+		var template        = prc.record ?: {};
+		var layout          = emailLayoutService.getLayout( template.layout ?: "" );
+		var recipientObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type ?: "" );
+		var canSaveDraft    = hasCmsPermission( "emailcenter.customtemplates.savedraft" );
+		var canPublish      = hasCmsPermission( "emailcenter.customtemplates.publish"   );
 
-		args.canEdit            = canSaveDraft || canPublish;
-		args.canConfigureLayout = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.customtemplates.configureLayout" );
-		args.canEditSendOptions = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
+		args.canEdit                = canSaveDraft || canPublish;
+		args.canConfigureLayout     = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.customtemplates.configureLayout" );
+		args.canEditSendOptions     = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
+		args.canConfigureRecipients = recipientObject.len() && hasCmsPermission( "emailcenter.customtemplates.editRecipientFilter" );
 
 		return renderView( view="/admin/emailCenter/customTemplates/_customTemplateTabs", args=args );
 	}

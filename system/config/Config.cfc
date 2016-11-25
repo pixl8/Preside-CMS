@@ -240,7 +240,7 @@ component {
 			, rulesEngine            = [ "navigate", "read", "edit", "add", "delete" ]
 			, emailCenter            = {
 				  layouts         = [ "navigate", "configure" ]
-				, customTemplates = [ "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions" ]
+				, customTemplates = [ "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "editRecipientFilter" ]
 				, systemTemplates = [ "navigate", "savedraft", "publish", "configurelayout" ]
 			  }
 			, presideobject          = {
