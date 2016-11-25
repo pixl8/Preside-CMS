@@ -1,17 +1,17 @@
 <cfscript>
-	var id = rc.id ?: "";
-	var formId = createUUID();
+	var basedOnFormId    = rc.id ?: "";
+	var validationResult = rc.validationResult ?: "";
 </cfscript>
 
 <cfoutput>
-	<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#event.buildAdminLink( linkTo='formbuilder.cloneFormAction' )#">
-		<input type="hidden" name="basedOnFormId" value="#id#" />
+	<form id="formbuilder-clone-form" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal" method="post" action="#event.buildAdminLink( linkTo='formbuilder.cloneFormAction' )#">
+		<input type="hidden" name="basedOnFormId" value="#basedOnFormId#" />
 
 		#renderForm(
 			  formName          = "preside-objects.formbuilder_form.admin.cloneForm"
 			, context           = "admin"
-			, formId            = formId
-			, validationResult  = ( rc.validationResult ?: "" )
+			, formId            = "formbuilder-clone-form"
+			, validationResult  = validationResult
 		)#
 
 		<div class="form-actions row">

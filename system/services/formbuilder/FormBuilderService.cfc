@@ -965,15 +965,11 @@ component {
 		, required string description
 	) {
 		var originalFormData = getForm( id=arguments.basedOnFormId );
-		var cloneFormData = structNew();
+		var cloneFormData    = { name=arguments.name, description=arguments.description };
 
 		for( var column in originalFormData.columnList ) {
-			if( !listFindNoCase( "id,datecreated,datemodified,_version_is_draft,_version_has_drafts", column ) ) {
-				if( listFindNoCase( "name,description", column ) ) {
-					cloneFormData[ "#column#" ] = arguments[ "#column#" ];
-				} else {
-					cloneFormData[ "#column#" ] = originalFormData[ "#column#" ];
-				}
+			if( !listFindNoCase( "id,name,description,datecreated,datemodified,_version_is_draft,_version_has_drafts", column ) ) {
+				cloneFormData[ column ] = originalFormData[ column ];
 			}
 		}
 
