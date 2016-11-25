@@ -429,7 +429,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	//
 	public void function getLogsForAjaxDataTables( event, rc, prc ) {
 		runEvent(
 			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
@@ -440,7 +439,6 @@ component extends="preside.system.base.AdminHandler" {
 				, gridFields    = "recipient,sender,subject,sent_date,sent,delivered,opened"
 				, actionsView   = "admin.emailCenter.customTemplates._logGridActions"
 				, filter        = { "email_template_send_log.email_template" = ( rc.id ?: "" ) }
-				, draftsEnabled = true
 			}
 		);
 	}

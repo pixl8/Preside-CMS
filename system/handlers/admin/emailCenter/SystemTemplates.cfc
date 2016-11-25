@@ -217,6 +217,38 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function log( event, rc, prc ) {
+		var templateId = rc.template ?: "";
+
+		prc.template = emailTemplateService.getTemplate( id=templateId );
+
+		if ( !prc.template.count() || !systemEmailTemplateService.templateExists( templateId ) ) {
+			event.notFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.systemTemplates.log.page.title"   , data=[ prc.template.name ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.systemTemplates.log.page.subTitle", data=[ prc.template.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.systemTemplates.log.breadcrumb.title"  , data=[ prc.template.name ] )
+			, link  = event.buildAdminLink( linkTo="emailcenter.systemTemplates.log", queryString="template=" & templateId )
+		);
+	}
+
+	public void function getLogsForAjaxDataTables( event, rc, prc ) {
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object        = "email_template"
+				, gridFields    = "recipient,sender,subject,sent_date,sent,delivered,opened"
+				, actionsView   = "admin.emailCenter.systemTemplates._logGridActions"
+				, filter        = { "email_template_send_log.email_template" = ( rc.template ?: "" ) }
+			}
+		);
+	}
+
 // VIEWLETS AND HELPERS
 	private string function _templateTabs( event, rc, prc, args={} ) {
 		var template     = prc.template ?: {};

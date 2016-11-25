@@ -29,12 +29,20 @@
 	if ( args.canConfigureLayout ) {
 		tabs.append({
 			  id     = "layout"
-			, icon   = "fa-code grey"
+			, icon   = "fa-code orange"
 			, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.layout" )
 			, active = ( args.tab == "layout" )
 			, link   = ( args.tab == "layout" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.configurelayout", queryString="template=" & templateId )
 		});
 	}
+
+	tabs.append({
+		  id     = "log"
+		, icon   = "fa-list-alt light-grey"
+		, title  = translateResource( "cms:emailcenter.systemTemplates.template.tab.log" )
+		, active = ( args.tab == "log" )
+		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.systemTemplates.log", queryString="template=#templateId#" )
+	});
 </cfscript>
 
 <cfoutput>
