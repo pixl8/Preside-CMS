@@ -367,7 +367,7 @@ component extends="preside.system.base.AdminHandler" {
 			event.notFound();
 		}
 
-		prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
+		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
 		if ( !prc.filterObject.len() ) {
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", querystring="id=" & templateId ) );
 		}
@@ -379,7 +379,36 @@ component extends="preside.system.base.AdminHandler" {
 			  title = translateResource( uri="cms:emailcenter.customTemplates.recipients.breadcrumb.title"  , data=[ prc.template.name ] )
 			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=" & templateId )
 		);
+	}
 
+	public void function saveRecipientsAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="editRecipientFilter" );
+
+		var id = rc.id ?: "";
+
+		prc.record = dao.selectData( filter={ id=id } );
+		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
+		var formName         = "preside-objects.email_template.configure.recipients";
+		var formData         = event.getCollectionForForm( formName );
+		var validationResult = validateForm( formName, formData );
+
+		if ( validationResult.validated() ) {
+			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
+
+			messagebox.info( translateResource( "cms:emailcenter.customTemplates.recipients.filter.saved.confirmation" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
+		}
+
+		formData.validationResult = validationResult;
+		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
+		setNextEvent(
+			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=#id#" )
+			, persistStruct = formData
+		);
 	}
 
 // VIEWLETS
