@@ -213,6 +213,19 @@ component displayName="Email Recipient Type Service" {
 		return types[ arguments.recipientType ].filterObject ?: "";
 	}
 
+	/**
+	 * Returns the configured foreign key property name on the email log table that
+	 * corresponds to this recipient type
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type who's log property name we are to get
+	 */
+	public string function getRecipientIdLogPropertyForRecipientType( required string recipientType ) {
+		var types = _getConfiguredRecipientTypes();
+
+		return types[ arguments.recipientType ].recipientIdLogProperty ?: "";
+	}
+
 // GETTERS AND SETTERS
 	private any function _getConfiguredRecipientTypes() {
 		return _configuredRecipientTypes;

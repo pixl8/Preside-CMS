@@ -252,6 +252,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getFilterObjectForRecipientType( CreateUUId() ) ).toBe( "" );
 			} );
 		} );
+
+		describe( "getRecipientIdLogPropertyForRecipientType()", function(){
+			it( "should return the configured object for the given type", function(){
+				var service = _getService();
+
+				expect( service.getRecipientIdLogPropertyForRecipientType( "adminUser" ) ).toBe( "security_user_recipient" );
+			} );
+
+			it( "should return an empty string when the type does not have a configured filter object", function(){
+				var service = _getService();
+
+				expect( service.getRecipientIdLogPropertyForRecipientType( "anonymous" ) ).toBe( "" );
+			} );
+
+			it( "should return an empty string when the type does not exist", function(){
+				var service = _getService();
+
+				expect( service.getRecipientIdLogPropertyForRecipientType( CreateUUId() ) ).toBe( "" );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -279,8 +299,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 	private struct function _getTestRecipientTypes() {
 		return {
-			  websiteUser = { feature="websiteUsers", parameters=[ { id="known_as", required=true }, "login_id" ], filterObject="website_user" }
-			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ], filterObject="security_user" }
+			  websiteUser = { feature="websiteUsers", parameters=[ { id="known_as", required=true }, "login_id" ], filterObject="website_user", recipientIdLogProperty="website_user_recipient" }
+			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ], filterObject="security_user", recipientIdLogProperty="security_user_recipient" }
 			, anonymous   = {}
 		};
 	}
