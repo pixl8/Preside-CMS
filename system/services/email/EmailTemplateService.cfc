@@ -250,7 +250,7 @@ component {
 		  required string  id
 		,          boolean allowDrafts      = false
 		,          numeric version          = 0
-		,          boolean fromVersionTable = ( arguments.allowDrafts || arguments.varsion )
+		,          boolean fromVersionTable = ( arguments.allowDrafts || arguments.version )
 	){
 		var template = $getPresideObject( "email_template" ).selectData(
 			  id                 = arguments.id
