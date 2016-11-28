@@ -47,7 +47,7 @@ component {
 		sendArgs.messageId = sendArgs.messageId ?: CreateUUId();
 
 		m.addParam( name="X-Mailer", value="PresideCMS" );
-		m.addParam( name="Message-ID", value=sendArgs.messageId );
+		m.addParam( name="X-Message-ID", value=sendArgs.messageId );
 		m.send();
 
 		return true;
