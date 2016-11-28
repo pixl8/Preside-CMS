@@ -159,6 +159,7 @@ component {
 	public boolean function sendWithProvider( required string provider, required struct sendArgs ) {
 		var sendAction = getProviderSendAction( arguments.provider );
 		var settings   = getProviderSettings( arguments.provider );
+		var result     = false;
 
 		if ( !$getColdbox().handlerExists( sendAction ) ) {
 			throw(
@@ -170,27 +171,31 @@ component {
 		sendArgs.messageId = _logMessage( arguments.sendArgs );
 
 		try {
-			var result = $getColdbox().runEvent(
+			result = $getColdbox().runEvent(
 				  event          = sendAction
 				, eventArguments = { sendArgs=arguments.sendArgs, settings=settings }
 				, private        = true
 				, prePostExempt  = true
 			);
 
-			if ( IsBoolean( result ) ) {
-				return result;
+			if ( !IsBoolean( result ) ) {
+				throw(
+					  type    = "preside.emailservice.provider.invalid.send.action.return.value"
+					, message = "The email service provider send action, [#sendAction#], for the provider, [#arguments.provider#], did not return a boolean value to indicate success/failure of email sending."
+					, detail  = "The system has return false to indicate a failure and has logged this error silently as a warning."
+				);
 			}
-
-			throw(
-				  type    = "preside.emailservice.provider.invalid.send.action.return.value"
-				, message = "The email service provider send action, [#sendAction#], for the provider, [#arguments.provider#], did not return a boolean value to indicate success/failure of email sending."
-				, detail  = "The system has return false to indicate a failure and has logged this error silently as a warning."
-			);
 
 		} catch ( any e ) {
 			$raiseError( e );
-			return false;
+			result = false;
 		}
+
+		if ( result ) {
+			_getEmailLoggingService().markAsSent( sendArgs.messageId );
+		}
+
+		return result;
 	}
 
 	/**

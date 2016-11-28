@@ -136,7 +136,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					  systemEmailTemplateService = mockSystemEmailTemplateService
 					, emailRecipientTypeService  = mockEmailRecipientTypeService
 					, emailLayoutService         = mockEmailLayoutService
-					, emailLoggingService        = mockEmailLoggingService
 				);
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 2 );

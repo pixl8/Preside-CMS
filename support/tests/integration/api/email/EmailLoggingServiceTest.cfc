@@ -50,6 +50,23 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.createEmailLog( argumentCollection=args ) ).toBe( dummyId );
 			} );
 		} );
+
+		describe( "markAsSent()", function(){
+			it( "should update the log record by setting sent = true + sent_date to now(ish)", function(){
+				var service = _getService();
+				var logId   = CreateUUId();
+
+				mockLogDao.$( "updateData" );
+
+				service.markAsSent( logId );
+
+				expect( mockLogDao.$callLog().updateData.len() ).toBe( 1 );
+				expect( mockLogDao.$callLog().updateData[ 1 ] ).toBe( {
+					  id   = logId
+					, data = { sent=true, sent_date=nowish }
+				} );
+			} );
+		} );
 	}
 
 	private any function _getService(){
@@ -63,6 +80,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockRecipientTypeService.$( "getRecipientId", "" );
 		mockRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType", "" );
 		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
+
+		nowish  = Now();
+		service.$( "_getNow", nowish );
 
 		return service;
 	}

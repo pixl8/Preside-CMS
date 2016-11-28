@@ -382,6 +382,28 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 
 			} );
+
+			it( "should mark email log record as 'sent' when send action returns true", function(){
+				var service    = _getService();
+				var provider   = "smtp";
+				var sendAction = "blah.blah";
+				var messageId  = CreateUUId();
+
+				service.$( "_logMessage", messageId );
+				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( {} );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs={ messageId=messageId }, settings={} }
+				).$results( true );
+
+				service.sendWithProvider( provider, {} );
+
+				expect( mockEmailLoggingService.$callLog().markAsSent.len() ).toBe( 1 );
+				expect( mockEmailLoggingService.$callLog().markAsSent[ 1 ] ).toBe( [ messageId ] );
+			} );
 		} );
 
 		describe( "saveSettings()", function(){
@@ -486,6 +508,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		service.$( "$getPresideCategorySettings", {} );
 		service.$( "$getColdbox", mockColdbox );
 		mockColdbox.$( "handlerExists", true );
+		mockEmailLoggingService.$( "markAsSent", 1 );
 
 		return service;
 	}

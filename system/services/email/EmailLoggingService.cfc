@@ -53,6 +53,20 @@ component {
 		return $getPresideObject( "email_template_send_log" ).insertData( data );
 	}
 
+	/**
+	 * Marks the given email as sent
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the email to mark as sent
+	 *
+	 */
+	public void function markAsSent( required string id ) {
+		$getPresideObject( "email_template_send_log" ).updateData( id=arguments.id, data={
+			  sent      = true
+			, sent_date = _getNow()
+		} );
+	}
+
 
 // PRIVATE HELPERS
 	private struct function _getAdditionalDataForRecipientType( required string recipientType, required struct sendArgs ) {
@@ -73,6 +87,10 @@ component {
 		}
 
 		return { "#fkColumn#" = recipientId };
+	}
+
+	private date function _getNow() {
+		return Now(); // abstracting this makes testing easier
 	}
 
 // GETTERS AND SETTERS
