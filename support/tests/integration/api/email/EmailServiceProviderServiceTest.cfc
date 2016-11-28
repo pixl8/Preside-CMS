@@ -94,6 +94,23 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getDefaultProvider() ).toBe( "" );
 			} );
 		} );
+
+		describe( "getProviderConfigFormName()", function(){
+			it( "should return the configured config form name for the provider", function(){
+				var service   = _getService();
+				var providers = _getDefaultTestProviders();
+				var provider  = "mailchimp";
+
+				expect( service.getProviderConfigFormName( provider ) ).toBe( providers[ provider ].configForm );
+			} );
+
+			it( "should return a convention based form name when no specific form configured", function(){
+				var service   = _getService();
+				var provider  = "smtp";
+
+				expect( service.getProviderConfigFormName( provider ) ).toBe( "email.serviceProvider.smtp" );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -111,7 +128,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		return {
 			  smtp      = {}
 			, mailgun   = {}
-			, mailchimp = {}
+			, mailchimp = { configForm="blah.blah.mailchimp.blah" }
 		};
 	}
 }

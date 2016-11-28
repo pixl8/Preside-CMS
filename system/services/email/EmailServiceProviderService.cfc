@@ -68,6 +68,19 @@ component {
 		return providers[1].id ?: "";
 	}
 
+	/**
+	 * Returns the configuration form name for
+	 * the given provider.
+	 *
+	 * @autodoc       true
+	 * @provider.hint ID of the provider who's config form name you wish to get
+	 */
+	public string function getProviderConfigFormName( required string provider ) {
+		var rawProviders = _getConfiguredProviders();
+
+		return rawProviders[ arguments.provider ].configForm ?: ( "email.serviceProvider." & arguments.provider );
+	}
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
