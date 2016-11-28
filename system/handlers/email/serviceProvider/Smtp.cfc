@@ -3,6 +3,7 @@
  *
  */
 component {
+	property name="emailService" inject="emailService";
 
 	private boolean function send( struct sendArgs={}, struct settings={} ) {
 		var m          = new Mail();
@@ -53,4 +54,22 @@ component {
 		return true;
 	}
 
+	private any function validateSettings( required struct settings, required any validationResult ) {
+		var errorMessage = emailService.validateConnectionSettings(
+			  host     = arguments.settings.server    ?: ""
+			, port     = Val( arguments.settings.port ?: "" )
+			, username = arguments.settings.username  ?: ""
+			, password = arguments.settings.password  ?: ""
+		);
+
+		if ( Len( Trim( errorMessage ) ) ) {
+			if ( errorMessage == "authentication failure" ) {
+				validationResult.addError( "username", "email.serviceProvider.smtp:validation.server.authentication.failure" );
+			} else {
+				validationResult.addError( "server", "email.serviceProvider.smtp:validation.server.details.invalid", [ errorMessage ] );
+			}
+		}
+
+		return validationResult;
+	}
 }

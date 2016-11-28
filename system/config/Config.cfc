@@ -51,7 +51,6 @@ component {
 			{ class="preside.system.interceptors.SiteTenancyPresideObjectInterceptor" , properties={} },
 			{ class="preside.system.interceptors.MultiLingualPresideObjectInterceptor", properties={} },
 			{ class="preside.system.interceptors.ValidationProviderSetupInterceptor"  , properties={} },
-			{ class="preside.system.interceptors.EmailConfigurationSaveInterceptor"   , properties={} },
 			{ class="preside.system.interceptors.SES"                                 , properties={ configFile = "/preside/system/config/Routes.cfm" } }
 		];
 		interceptorSettings = {

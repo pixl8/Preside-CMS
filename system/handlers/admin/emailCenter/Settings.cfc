@@ -166,9 +166,17 @@ component extends="preside.system.base.AdminHandler" {
 			, formData      = formData
 			, ignoreMissing = Len( Trim( siteId ) )
 		);
+
+		var validationData = Duplicate( formData );
+		if ( siteId.len() ) {
+			validationData.append( emailServiceProviderService.getProviderSettings(
+				  provider           = providerId
+				, globalDefaultsOnly = true
+			), false );
+		}
 		emailServiceProviderService.validateSettings(
 			    provider         = providerId
-			  , settings         = formData
+			  , settings         = validationData
 			  , validationResult = validationResult
 		);
 
