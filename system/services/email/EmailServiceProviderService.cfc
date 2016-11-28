@@ -113,6 +113,18 @@ component {
 	}
 
 	/**
+	 * Returns configured settings structure for the given provider
+	 *
+	 * @autodoc       true
+	 * @provider.hint ID of the provider who's settings you wish to get
+	 */
+	public struct function getProviderSettings( required string provider ) {
+		var categoryName = _getProviderSettingsCategory( arguments.provider );
+
+		return $getPresideCategorySettings( categoryName );
+	}
+
+	/**
 	 * Sends an email through the given provider's send action.
 	 * Returns true to indicate that the email was sent successfully, false
 	 * otherwise.
@@ -123,6 +135,7 @@ component {
 	 */
 	public boolean function sendWithProvider( required string provider, required struct sendArgs ) {
 		var sendAction = getProviderSendAction( arguments.provider );
+		var settings   = getProviderSettings( arguments.provider );
 
 		if ( !$getColdbox().handlerExists( sendAction ) ) {
 			throw(
@@ -134,7 +147,7 @@ component {
 		try {
 			var result = $getColdbox().runEvent(
 				  event          = sendAction
-				, eventArguments = { sendArgs=arguments.sendArgs }
+				, eventArguments = { sendArgs=arguments.sendArgs, settings=settings }
 				, private        = true
 				, prePostExempt  = true
 			);
@@ -156,6 +169,9 @@ component {
 	}
 
 // PRIVATE HELPERS
+	private string function _getProviderSettingsCategory( required string provider ) {
+		return "email.serviceProvider.#provider#";
+	}
 
 // GETTERS AND SETTERS
 	private struct function _getConfiguredProviders() {
