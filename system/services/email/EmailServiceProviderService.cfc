@@ -82,6 +82,19 @@ component {
 	}
 
 	/**
+	 * Returns the configured/convention based send action for the
+	 * given provider
+	 *
+	 * @autodoc       true
+	 * @provider.hint ID of the provider who's send action you wish to get
+	 */
+	public string function getProviderSendAction( required string provider ) {
+		var rawProviders = _getConfiguredProviders();
+
+		return rawProviders[ arguments.provider ].sendAction ?: ( "email.serviceProvider." & arguments.provider & ".send" );
+	}
+
+	/**
 	 * Returns whether or not the given provider is enabled.
 	 *
 	 * @autodoc true
@@ -97,6 +110,49 @@ component {
 		var configuredProviders = _getConfiguredProviders();
 
 		return configuredProviders.keyExists( arguments.provider );
+	}
+
+	/**
+	 * Sends an email through the given provider's send action.
+	 * Returns true to indicate that the email was sent successfully, false
+	 * otherwise.
+	 *
+	 * @autodoc true
+	 * @provider.hint ID of the provider through which to send the email
+	 * @sendArgs.hint Structure of arguments to send to the provider's send handler action
+	 */
+	public boolean function sendWithProvider( required string provider, required struct sendArgs ) {
+		var sendAction = getProviderSendAction( arguments.provider );
+
+		if ( !$getColdbox().handlerExists( sendAction ) ) {
+			throw(
+				  type    = "preside.emailservice.provider.missing.send.action"
+				, message = "The email service provider, [#arguments.provider#], has not implemented a send action handler. Missing handler: [#sendAction#]."
+			);
+		}
+
+		try {
+			var result = $getColdbox().runEvent(
+				  event          = sendAction
+				, eventArguments = { sendArgs=arguments.sendArgs }
+				, private        = true
+				, prePostExempt  = true
+			);
+
+			if ( IsBoolean( result ) ) {
+				return result;
+			}
+
+			throw(
+				  type    = "preside.emailservice.provider.invalid.send.action.return.value"
+				, message = "The email service provider send action, [#sendAction#], for the provider, [#arguments.provider#], did not return a boolean value to indicate success/failure of email sending."
+				, detail  = "The system has return false to indicate a failure and has logged this error silently as a warning."
+			);
+
+		} catch ( any e ) {
+			$raiseError( e );
+			return false;
+		}
 	}
 
 // PRIVATE HELPERS
