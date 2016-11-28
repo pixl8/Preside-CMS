@@ -242,8 +242,8 @@ component {
 				  layouts          = [ "navigate", "configure" ]
 				, customTemplates  = [ "view", "add", "edit", "delete", "publish", "savedraft", "configureLayout", "editSendOptions", "editRecipientFilter" ]
 				, systemTemplates  = [ "navigate", "savedraft", "publish", "configurelayout" ]
-				, serviceProviders = [ "navigate", "manage" ]
-				, settings         = [ "navigate", "manage" ]
+				, serviceProviders = [ "manage" ]
+				, settings         = [ "manage" ]
 			  }
 			, presideobject          = {
 				  security_user  = [ "read", "add", "edit", "delete", "viewversions" ]

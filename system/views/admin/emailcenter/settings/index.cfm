@@ -1,6 +1,6 @@
 <cfscript>
 	formId       = "email-general-settings";
-	formAction   = event.buildAdminLink( linkto="emailventer.settings.saveGeneralSettingsAction" );
+	formAction   = event.buildAdminLink( linkto="emailcenter.settings.saveGeneralSettingsAction" );
 	site         = rc.site ?: "";
 	isSiteConfig = Len( Trim( site ) );
 	savedData    = prc.savedData ?: {};
@@ -33,6 +33,9 @@
 		</cfif>
 
 		<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
+			<cfif isSiteConfig>
+				<input name="site" type="hidden" value="#site#">
+			</cfif>
 
 			#renderForm(
 				  formName          = "email.settings.general"

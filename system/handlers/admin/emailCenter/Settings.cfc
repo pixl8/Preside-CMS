@@ -8,7 +8,7 @@ component extends="preside.system.base.AdminHandler" {
 	public void function preHandler( event, action, eventArguments ) {
 		super.preHandler( argumentCollection=arguments );
 
-		if ( !hasCmsPermission( "emailcenter.settings.navigate" ) ) {
+		if ( !hasCmsPermission( "emailcenter.settings.manage" ) ) {
 			event.adminAccessDenied();
 		}
 
@@ -44,20 +44,70 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:emailcenter.settings.page.subTitle" );
 	}
 
+	public void function saveGeneralSettingsAction( event, rc, prc ) {
+		var categoryId = "email";
+		var siteId     = rc.site ?: "";
+
+		var formName = "email.settings.general";
+		var formData = event.getCollectionForForm( formName );
+
+		if ( Len( Trim( siteId ) ) ) {
+			for( var setting in formData ){
+				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
+					formData.delete( setting );
+					systemConfigurationService.deleteSetting(
+						  category = categoryId
+						, setting  = setting
+						, siteId   = siteId
+					);
+				}
+			}
+		}
+
+		var validationResult = validateForm(
+			  formName      = formName
+			, formData      = formData
+			, ignoreMissing = Len( Trim( siteId ) )
+		);
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( uri="cms:sysconfig.validation.failed" ) );
+			var persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent(
+				  url           = event.buildAdminLink(linkTo="emailcenter.settings" )
+				, persistStruct = persist
+			);
+		}
+
+		for( var setting in formData ){
+			systemConfigurationService.saveSetting(
+				  category = categoryId
+				, setting  = setting
+				, value    = formData[ setting ]
+				, siteId   = siteId
+			);
+		}
+
+		event.audit(
+			  action   = "save_sysconfig_category"
+			, type     = "sysconfig"
+			, recordId = categoryId
+			, detail   = formData
+		);
+
+		messageBox.info( translateResource( uri="cms:emailcenter.settings.saved.message" ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.settings" ) );
+	}
+
 
 // VIEWLETS, ETC
 	private string function _generalSettingsTabs( event, rc, prc, args={} ) {
-		if ( hasCmsPermission( "emailCenter.serviceProviders.navigate" ) ) {
+		if ( hasCmsPermission( "emailCenter.serviceProviders.manage" ) ) {
 			args.providers = emailServiceProviderService.listProviders();
 		}
 
 		return renderView( view="/admin/emailCenter/settings/_generalSettingsTabs", args=args );
-	}
-
-// HELPERS
-	private void function _checkPermissions( required any event, required string key ) {
-		if ( !hasCmsPermission( "emailCenter.settings." & arguments.key ) ) {
-			event.adminAccessDenied();
-		}
 	}
 }
