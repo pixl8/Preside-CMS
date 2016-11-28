@@ -26,6 +26,14 @@
 		} );
 	}
 
+	if ( hasCmsPermission( "emailcenter.settings.navigate" ) ) {
+		subMenuItems.append(  {
+			  link  = event.buildAdminLink( linkTo="emailcenter.settings" )
+			, title = translateResource( "cms:emailcenter.settings.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.settings", event.getCurrentEvent() )
+		} );
+	}
+
 	if ( subMenuItems.len() ) {
 		WriteOutput( renderView(
 			  view = "/admin/layout/sidebar/_menuItem"
