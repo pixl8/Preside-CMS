@@ -111,6 +111,32 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getProviderConfigFormName( provider ) ).toBe( "email.serviceProvider.smtp" );
 			} );
 		} );
+
+		describe( "isProviderEnabled()", function(){
+			it( "should return false when the provider is in the list of configured disabled providers", function(){
+				var service   = _getService();
+				var excluded  = "mailgun,smtp";
+
+				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "disabledProviders" ).$results( excluded );
+
+				expect( service.isProviderEnabled( "smtp" ) ).toBe( false );
+			} );
+
+			it( "should return false when the provider does not exist", function(){
+				var service   = _getService();
+
+				expect( service.isProviderEnabled( CreateUUId() ) ).toBe( false );
+			} );
+
+			it( "should return true when the provider is not in the disabled providers list + exists in the configured providers struct", function(){
+				var service   = _getService();
+				var excluded  = "mailgun,mailchimp";
+
+				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "disabledProviders" ).$results( excluded );
+
+				expect( service.isProviderEnabled( "smtp" ) ).toBe( true );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

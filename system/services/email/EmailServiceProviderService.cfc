@@ -81,6 +81,24 @@ component {
 		return rawProviders[ arguments.provider ].configForm ?: ( "email.serviceProvider." & arguments.provider );
 	}
 
+	/**
+	 * Returns whether or not the given provider is enabled.
+	 *
+	 * @autodoc true
+	 * @provider.hint ID of the provider who's enabled/disabled status you wish to check
+	 */
+	public boolean function isProviderEnabled( required string provider ) {
+		var disabledProviders = $getPresideSetting( "email.serviceProviders", "disabledProviders" ).listToArray();
+
+		if ( disabledProviders.findNoCase( arguments.provider ) ) {
+			return false;
+		}
+
+		var configuredProviders = _getConfiguredProviders();
+
+		return configuredProviders.keyExists( arguments.provider );
+	}
+
 // PRIVATE HELPERS
 
 // GETTERS AND SETTERS
