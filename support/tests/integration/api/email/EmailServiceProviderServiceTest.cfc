@@ -63,6 +63,38 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.listProviders() ).toBe( expected ); ;
 			} );
+
+			it( "should not exclude services when they have been disabled through preside system settings but includeDisabled is passed as true", function(){
+				var service   = _getService();
+				var providers = _getDefaultTestProviders();
+				var expected  = [];
+				var excluded  = "mailgun,smtp";
+
+				service.$( "$getPresideSetting" ).$args( "email", "disabledProviders" ).$results( excluded );
+
+				for( var providerId in providers ) {
+					var provider = {
+						  id          = providerId
+						, title       = providerId & CreateUUId()
+						, description = providerId & CreateUUId()
+						, iconClass   = providerId & CreateUUId()
+					};
+
+					expected.append( provider );
+					service.$( "$translateResource" ).$args( uri="email.serviceProvider.#providerId#:title"      , defaultValue=providerId ).$results( provider.title       );
+					service.$( "$translateResource" ).$args( uri="email.serviceProvider.#providerId#:description", defaultValue=""         ).$results( provider.description );
+					service.$( "$translateResource" ).$args( uri="email.serviceProvider.#providerId#:iconClass"  , defaultValue=""         ).$results( provider.iconClass   );
+				}
+
+				expected.sort( function( a, b ){
+					return a.title > b.title ? 1 : -1;
+				} );
+
+
+				expect( service.listProviders( includeDisabled=true ) ).toBe( expected ); ;
+			} );
+
+
 		} );
 
 		describe( "getProvider()", function(){

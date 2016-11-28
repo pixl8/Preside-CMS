@@ -34,15 +34,16 @@ component {
 	 * ordered by transated title.
 	 *
 	 * @autodoc true
+	 * @includeDisabled.hint Whether or not to include disabled providers (default is false)
 	 */
-	public array function listProviders() {
+	public array function listProviders( boolean includeDisabled=false ) {
 		var rawProviders      = _getConfiguredProviders();
 		var providers         = [];
 		var disabledProviders = $getPresideSetting( "email", "disabledProviders" ).listToArray();
 
 		for( var providerId in rawProviders ) {
-			if ( !disabledProviders.findNoCase( providerId ) ) {
-				providers.append( getProvider( providerId ) );
+			if ( arguments.includeDisabled || !disabledProviders.findNoCase( providerId ) ) {
+				providers.append( getProvider( providerId, arguments.includeDisabled ) );
 			}
 		}
 
@@ -61,8 +62,8 @@ component {
 	 * @autodoc true
 	 * @provider.hint ID of the provider to get
 	 */
-	public struct function getProvider( required string provider ) {
-		if ( isProviderEnabled( arguments.provider ) ) {
+	public struct function getProvider( required string provider, boolean includeDisabled=false ) {
+		if ( arguments.includeDisabled || isProviderEnabled( arguments.provider ) ) {
 			var uriRoot = "email.serviceProvider.#arguments.provider#:";
 
 			return {

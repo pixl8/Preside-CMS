@@ -10,8 +10,8 @@ This form is used for configuring general email settings
 			<field sortorder="10" name="default_from_address" control="textinput" required="false" />
 		</fieldset>
 		<fieldset id="providers" sortorder="20">
-			<field sortorder="10" name="defaultProvider"   control="emailServiceProviderPicker" addDefaultProvider="false" required="false" />
-			<field sortorder="20" name="disabledProviders" control="emailServiceProviderPicker" addDefaultProvider="false" required="false" multiple="true" />
+			<field sortorder="10" name="defaultProvider"   control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" />
+			<field sortorder="20" name="disabledProviders" control="emailServiceProviderPicker" addDefaultProvider="false" includeDisabledProviders="true" required="false" multiple="true" />
 		</fieldset>
 	</tab>
 </form>
