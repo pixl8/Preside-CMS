@@ -373,7 +373,7 @@ component {
 		settings.rulesEngine.contexts.page       = { object="page" };
 		settings.rulesEngine.contexts.user       = { object="website_user" };
 
-		settings.email = _getEmailTemplatingSettings();
+		settings.email = _getEmailSettings();
 
 		_loadConfigurationFromExtensions();
 
@@ -618,9 +618,10 @@ component {
 		return fbSettings;
 	}
 
-	private struct function _getEmailTemplatingSettings() {
-		var templates      = {};
-		var recipientTypes = {};
+	private struct function _getEmailSettings() {
+		var templates        = {};
+		var recipientTypes   = {};
+		var serviceProviders = {};
 
 		templates.cmsWelcome = { feature="cms", recipientType="adminUser", parameters=[
 			  { id="reset_password_link", required=true }
@@ -655,9 +656,12 @@ component {
 		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ], filterObject="website_user" , recipientIdLogProperty="website_user_recipient" };
 		recipientTypes.anonymous   = {};
 
+		serviceProviders.smtp = {};
+
 		return {
-			  templates      = templates
-			, recipientTypes = recipientTypes
+			  templates        = templates
+			, recipientTypes   = recipientTypes
+			, serviceProviders = serviceProviders
 		};
 	}
 }
