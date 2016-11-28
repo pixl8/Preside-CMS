@@ -266,6 +266,47 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( errorRaised.detail  ?: "" ).toBe( "The system has return false to indicate a failure and has logged this error silently as a warning." );
 			} );
 		} );
+
+		describe( "saveSettings()", function(){
+			it( "should proxy to the preside system configuration service, calculating the category name by convention", function(){
+				var service           = _getService();
+				var mockConfigService = createEmptyMock( "preside.system.services.configuration.SystemConfigurationService" );
+				var settings          = StructNew( "linked" );
+				var site              = CreateUUId();
+				var provider          = "mailgun";
+				var settingsCategory  = "email.serviceProvider.#provider#";
+
+				settings.test = "setting";
+				settings.blah = CreateUUId();
+
+				service.$( "$getSystemConfigurationService", mockConfigService );
+				for( var settingid in settings ) {
+					mockConfigService.$( "saveSetting" ).$args(
+						  category = settingsCategory
+						, setting  = settingId
+						, value    = settings[ settingId ]
+						, siteId   = site
+					).$results( 1 );
+				}
+
+				service.saveSettings(
+					  provider = provider
+					, settings = settings
+					, site     = site
+				);
+
+				expect( mockConfigService.$callLog().saveSetting.len() ).toBe( settings.count() );
+				var i=0;
+				for( var settingid in settings ) {
+					expect( mockConfigService.$callLog().saveSetting[ ++i ] ).toBe( {
+						  category = settingsCategory
+						, setting  = settingId
+						, value    = settings[ settingId ]
+						, siteId   = site
+					} );
+				}
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

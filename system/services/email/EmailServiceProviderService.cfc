@@ -168,6 +168,34 @@ component {
 		}
 	}
 
+	/**
+	 * Saves the settings for a particular service provider and optional site
+	 *
+	 * @autodoc       true
+	 * @provider.hint ID of the provider who's settings you want to save
+	 * @settings.hint Structure of settings to save
+	 * @site.hint     Optional ID of preside site to save the settings against
+	 */
+	public void function saveSettings(
+		  required string provider
+		, required struct settings
+		,          string site = ""
+	) {
+		var settingsCategory = _getProviderSettingsCategory( arguments.provider );
+		var configService    = $getSystemConfigurationService();
+
+		for( var key in arguments.settings ) {
+			configService.saveSetting(
+				  category = settingsCategory
+				, setting  = key
+				, value    = arguments.settings[ key ]
+				, siteId   = arguments.site
+			);
+		}
+
+		return;
+	}
+
 // PRIVATE HELPERS
 	private string function _getProviderSettingsCategory( required string provider ) {
 		return "email.serviceProvider.#provider#";
