@@ -179,9 +179,19 @@ component {
 	 * @provider.hint ID of the provider who's settings you wish to get
 	 */
 	public struct function getProviderSettings( required string provider ) {
-		var categoryName = _getProviderSettingsCategory( arguments.provider );
+		var categoryName = getProviderSettingsCategory( arguments.provider );
 
 		return $getPresideCategorySettings( argumentCollection=arguments, category=categoryName );
+	}
+
+	/**
+	 * Returns the system config category for the given provider
+	 *
+	 * @autodoc       true
+	 * @provider.hint ID of the provider who's settings category you wish to get
+	 */
+	public string function getProviderSettingsCategory( required string provider ) {
+		return "email.serviceProvider.#provider#";
 	}
 
 	/**
@@ -277,7 +287,7 @@ component {
 		, required struct settings
 		,          string site = ""
 	) {
-		var settingsCategory = _getProviderSettingsCategory( arguments.provider );
+		var settingsCategory = getProviderSettingsCategory( arguments.provider );
 		var configService    = $getSystemConfigurationService();
 
 		for( var key in arguments.settings ) {
@@ -293,10 +303,6 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private string function _getProviderSettingsCategory( required string provider ) {
-		return "email.serviceProvider.#provider#";
-	}
-
 	private string function _logMessage( required struct sendArgs ) {
 		var templateId    = sendArgs.args.template ?: "";
 		var recipientType = "";

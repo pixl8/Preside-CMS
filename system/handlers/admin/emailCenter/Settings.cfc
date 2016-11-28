@@ -136,6 +136,66 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function saveProviderSettingsAction( event, rc, prc ) {
+		var providerId = rc.id ?: "";
+		var siteId     = rc.site ?: "";
+		var provider   = emailServiceProviderService.getProvider( providerId );
+
+		if ( provider.isEmpty() ) {
+			event.notFound();
+		}
+		var categoryId = emailServiceProviderService.getProviderSettingsCategory( providerId );
+		var formName = emailServiceProviderService.getProviderConfigFormName( providerId );
+		var formData = event.getCollectionForForm( formName );
+
+		if ( Len( Trim( siteId ) ) ) {
+			for( var setting in formData ){
+				if ( IsFalse( rc[ "_override_" & setting ] ?: "" ) ) {
+					formData.delete( setting );
+					systemConfigurationService.deleteSetting(
+						  category = categoryId
+						, setting  = setting
+						, siteId   = siteId
+					);
+				}
+			}
+		}
+
+		var validationResult = validateForm(
+			  formName      = formName
+			, formData      = formData
+			, ignoreMissing = Len( Trim( siteId ) )
+		);
+		emailServiceProviderService.validateSettings(
+			    provider         = providerId
+			  , settings         = formData
+			  , validationResult = validationResult
+		);
+
+
+		if ( !validationResult.validated() ) {
+			messageBox.error( translateResource( uri="cms:sysconfig.validation.failed" ) );
+			var persist = formData;
+			persist.validationResult = validationResult;
+
+			setNextEvent(
+				  url           = event.buildAdminLink(linkTo="emailcenter.settings.provider", queryString="id=#providerId#&site=#siteId#" )
+				, persistStruct = persist
+			);
+		}
+
+		emailServiceProviderService.saveSettings(
+			  provider = providerId
+			, settings = formData
+			, site     = siteId
+		);
+
+		// TODO audit!
+
+		messageBox.info( translateResource( uri="cms:emailcenter.settings.provider.saved.message", data=[ provider.title ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.settings" ) );
+	}
+
 
 // VIEWLETS, ETC
 	private string function _generalSettingsTabs( event, rc, prc, args={} ) {

@@ -35,6 +35,7 @@
 		</cfif>
 
 		<form id="#formId#" data-auto-focus-form="true" data-dirty-form="protect" class="form-horizontal edit-object-form" method="post" action="#formAction#">
+			<input name="id" type="hidden" value="#providerId#">
 			<cfif isSiteConfig>
 				<input name="site" type="hidden" value="#site#">
 			</cfif>
