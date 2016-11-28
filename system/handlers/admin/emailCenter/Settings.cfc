@@ -103,10 +103,28 @@ component extends="preside.system.base.AdminHandler" {
 
 	public void function provider( event, rc, prc ) {
 		var providerId = rc.id ?: "";
-		prc.provider = emailServiceProviderService.getProvider( providerId );
+		var siteId     = rc.site ?: "";
 
+		prc.provider = emailServiceProviderService.getProvider( providerId );
 		if ( prc.provider.isEmpty() ) {
 			event.notFound();
+		}
+
+		prc.sites    = siteService.listSites();
+		prc.formName = emailServiceProviderService.getProviderConfigFormName( providerId );
+
+		var isSiteConfig = prc.sites.recordCount > 1 && siteId.len();
+		if ( isSiteConfig ) {
+			prc.savedData = emailServiceProviderService.getProviderSettings(
+				  provider        = providerId
+				, includeDefaults = false
+				, siteId          = siteId
+			);
+		} else {
+			prc.savedData = emailServiceProviderService.getProviderSettings(
+				  provider           = providerId
+				, globalDefaultsOnly = true
+			);
 		}
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.provider.page.title", data=[ prc.provider.title ] );

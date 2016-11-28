@@ -181,7 +181,7 @@ component {
 	public struct function getProviderSettings( required string provider ) {
 		var categoryName = _getProviderSettingsCategory( arguments.provider );
 
-		return $getPresideCategorySettings( categoryName );
+		return $getPresideCategorySettings( argumentCollection=arguments, category=categoryName );
 	}
 
 	/**
