@@ -46,7 +46,9 @@ component {
 			, subject        = arguments.subject
 		};
 
-		data.append( _getAdditionalDataForRecipientType( arguments.recipientType, arguments.sendArgs ) );
+		if ( Len( Trim( arguments.recipientType ) ) ) {
+			data.append( _getAdditionalDataForRecipientType( arguments.recipientType, arguments.sendArgs ) );
+		}
 
 		return $getPresideObject( "email_template_send_log" ).insertData( data );
 	}

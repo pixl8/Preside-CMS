@@ -179,9 +179,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var providers     = _getDefaultTestProviders();
 				var provider      = "mailgun";
 				var sendAction    = CreateUUId() & ".send";
-				var dummyArgs     = { test=CreateUUId(), fu="bar" };
+				var dummyArgs     = { test=CreateUUId(), fu="bar", messageId=CreateUUId() };
 				var dummySettings = { server=CreateUUId(), fu="bar", password=CreateUUId() };
 
+				service.$( "_logMessage", dummyArgs.messageId );
 				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "runEvent" ).$args(
@@ -207,9 +208,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var result        = false;
 				var provider      = "mailgun";
 				var sendAction    = CreateUUId() & ".send";
-				var dummyArgs     = { test=CreateUUId(), fu="bar" };
+				var dummyArgs     = { test=CreateUUId(), fu="bar", messageId=CreateUUId() };
 				var dummySettings = { what="ever" };
 
+				service.$( "_logMessage", dummyArgs.messageId );
 				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
 
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
@@ -229,6 +231,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var provider  = "mailgun";
 				var sendAction = CreateUUId() & ".send";
 
+				service.$( "_logMessage", CreateUUId() );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( method="runEvent", throwException=true, throwType="blah.blah", throwMessage="Blah blah blah" );
 				service.$( "$raiseError" );
@@ -243,7 +246,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var sendAction  = CreateUUId() & ".send";
 				var errorThrown = false;
 
-
+				service.$( "_logMessage", CreateUUId() );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "handlerExists" ).$args( sendAction ).$results( false );
 
@@ -261,8 +264,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service   = _getService();
 				var provider  = "mailgun";
 				var sendAction = CreateUUId() & ".send";
-				var dummyArgs = { test=CreateUUId(), fu="bar" };
+				var dummyArgs = { test=CreateUUId(), fu="bar", messageId=CreateUUId() };
 
+				service.$( "_logMessage", dummyArgs.messageId );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( {} );
 				mockColdbox.$( "runEvent" ).$args(
@@ -281,6 +285,102 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( errorRaised.type    ?: "" ).toBe( "preside.emailservice.provider.invalid.send.action.return.value" );
 				expect( errorRaised.message ?: "" ).toBe( "The email service provider send action, [#sendAction#], for the provider, [#provider#], did not return a boolean value to indicate success/failure of email sending." );
 				expect( errorRaised.detail  ?: "" ).toBe( "The system has return false to indicate a failure and has logged this error silently as a warning." );
+			} );
+
+			it( "should create a log record for the send", function(){
+				var service   = _getService();
+				var dummyArgs = {
+					  to       = [ "somebody@tolove.com" ]
+					, from     = "me@me.com"
+					, subject  = "blah"
+					, htmlBody = "Blah blah"
+					, textBody = "plain blah"
+					, args     = { test=CreateUUId() }
+				};
+				var provider      = "mailgun";
+				var sendAction    = CreateUUId() & ".send";
+				var dummySettings = { server=CreateUUId(), fu="bar", password=CreateUUId() };
+
+				var expectedArgs = Duplicate( dummyArgs );
+
+				expectedArgs.messageId = CreateUUId();
+				mockEmailLoggingService.$( "createEmailLog" ).$args(
+					  template      = ""
+					, recipientType = ""
+					, recipient     = dummyArgs.to[ 1 ]
+					, sender        = dummyArgs.from
+					, subject       = dummyArgs.subject
+					, sendArgs      = dummyArgs.args
+				).$results( expectedArgs.messageId );
+
+				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs=expectedArgs, settings=dummySettings }
+				).$results( true );
+
+				expect( service.sendWithProvider( provider, dummyArgs ) ).toBe( true );
+
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 1 );
+				expect( mockColdbox.$callLog().runEvent[ 1 ] ).toBe( {
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs=expectedArgs, settings=dummySettings }
+				} );
+
+			} );
+
+			it( "should create a log record with sender details for the send", function(){
+				var service   = _getService();
+				var template  = CreateUUId();
+				var dummyArgs = {
+					  to       = [ "somebody@tolove.com" ]
+					, from     = "me@me.com"
+					, subject  = "blah"
+					, htmlBody = "Blah blah"
+					, textBody = "plain blah"
+					, args     = { test=CreateUUId(), template=template }
+				};
+				var provider      = "mailgun";
+				var sendAction    = CreateUUId() & ".send";
+				var dummySettings = { server=CreateUUId(), fu="bar", password=CreateUUId() };
+				var dummyTemplate = { recipient_type=CreateUUId() };
+				var expectedArgs  = Duplicate( dummyArgs );
+
+				mockEmailTemplateService.$( "getTemplate" ).$args( template ).$results( dummyTemplate );
+				expectedArgs.messageId = CreateUUId();
+				mockEmailLoggingService.$( "createEmailLog" ).$args(
+					  template      = template
+					, recipientType = dummyTemplate.recipient_type
+					, recipient     = dummyArgs.to[ 1 ]
+					, sender        = dummyArgs.from
+					, subject       = dummyArgs.subject
+					, sendArgs      = dummyArgs.args
+				).$results( expectedArgs.messageId );
+
+				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
+				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
+				mockColdbox.$( "runEvent" ).$args(
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs=expectedArgs, settings=dummySettings }
+				).$results( true );
+
+				expect( service.sendWithProvider( provider, dummyArgs ) ).toBe( true );
+
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 1 );
+				expect( mockColdbox.$callLog().runEvent[ 1 ] ).toBe( {
+					  event          = sendAction
+					, private        = true
+					, prePostExempt  = true
+					, eventArguments = { sendArgs=expectedArgs, settings=dummySettings }
+				} );
+
 			} );
 		} );
 
@@ -371,8 +471,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 // PRIVATE HELPERS
 	private any function _getService( struct configuredProviders=_getDefaultTestProviders() ) {
+		mockEmailLoggingService  = createEmptyMock( "preside.system.services.email.EmailLoggingService" );
+		mockEmailTemplateService = createEmptyMock( "preside.system.services.email.EmailTemplateService" );
+
 		var service = createMock( object=new preside.system.services.email.EmailServiceProviderService(
-			configuredProviders = arguments.configuredProviders
+			  configuredProviders  = arguments.configuredProviders
+			, emailLoggingService  = mockEmailLoggingService
+			, emailTemplateService = mockEmailTemplateService
 		) );
 
 		mockColdbox = createEmptyMock( "preside.system.coldboxModifications.Controller" );

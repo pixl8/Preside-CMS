@@ -10,11 +10,19 @@ component {
 
 // CONSTRUCTOR
 	/**
-	 * @configuredProviders.inject coldbox:setting:email.serviceProviders
+	 * @configuredProviders.inject  coldbox:setting:email.serviceProviders
+	 * @emailLoggingService.inject  emailLoggingService
+	 * @emailTemplateService.inject emailTemplateService
 	 *
 	 */
-	public any function init( required struct configuredProviders ) {
+	public any function init(
+		  required struct configuredProviders
+		, required any    emailLoggingService
+		, required any    emailTemplateService
+	) {
 		_setConfiguredProviders( arguments.configuredProviders );
+		_setEmailLoggingService( arguments.emailLoggingService );
+		_setEmailTemplateService( arguments.emailTemplateService );
 
 		return this;
 	}
@@ -159,6 +167,8 @@ component {
 			);
 		}
 
+		sendArgs.messageId = _logMessage( arguments.sendArgs );
+
 		try {
 			var result = $getColdbox().runEvent(
 				  event          = sendAction
@@ -245,11 +255,45 @@ component {
 		return "email.serviceProvider.#provider#";
 	}
 
+	private string function _logMessage( required struct sendArgs ) {
+		var templateId    = sendArgs.args.template ?: "";
+		var recipientType = "";
+
+		if ( templateId.len() ) {
+			var template = _getEmailTemplateService().getTemplate( templateId );
+
+			recipientType = template.recipient_type ?: "";
+		}
+
+		return _getEmailLoggingService().createEmailLog(
+			  template      = templateId
+			, recipientType = recipientType
+			, recipient     = ( sendArgs.to[ 1 ] ?: "" )
+			, sender        = ( sendArgs.from    ?: "" )
+			, subject       = ( sendArgs.subject ?: "" )
+			, sendArgs      = ( sendArgs.args    ?: {} )
+		);
+	}
+
 // GETTERS AND SETTERS
 	private struct function _getConfiguredProviders() {
 		return _configuredProviders;
 	}
 	private void function _setConfiguredProviders( required struct configuredProviders ) {
 		_configuredProviders = arguments.configuredProviders;
+	}
+
+	private any function _getEmailLoggingService() {
+		return _emailLoggingService;
+	}
+	private void function _setEmailLoggingService( required any emailLoggingService ) {
+		_emailLoggingService = arguments.emailLoggingService;
+	}
+
+	private any function _getEmailTemplateService() {
+		return _emailTemplateService;
+	}
+	private void function _setEmailTemplateService( required any emailTemplateService ) {
+		_emailTemplateService = arguments.emailTemplateService;
 	}
 }
