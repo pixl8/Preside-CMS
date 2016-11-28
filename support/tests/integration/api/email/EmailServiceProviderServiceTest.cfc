@@ -27,7 +27,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} );
 
 
-				expect( service.listProviders() ).toBe( expected ); ;
+				expect( service.listProviders() ).toBe( expected );
 			} );
 
 			it( "should exclude services when they have been disabled through preside system settings", function(){
@@ -62,6 +62,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 
 				expect( service.listProviders() ).toBe( expected ); ;
+			} );
+		} );
+
+		describe( "getProvider()", function(){
+			it( "should return the provider with translated title, description and icon class", function(){
+				var service    = _getService();
+				var providerId = "smtp";
+				var provider   = {
+					  id          = providerId
+					, title       = providerId & CreateUUId()
+					, description = providerId & CreateUUId()
+					, iconClass   = providerId & CreateUUId()
+				};
+
+				service.$( "$translateResource" ).$args( uri="email.serviceProvider.#providerId#:title"      , defaultValue=providerId ).$results( provider.title       );
+				service.$( "$translateResource" ).$args( uri="email.serviceProvider.#providerId#:description", defaultValue=""         ).$results( provider.description );
+				service.$( "$translateResource" ).$args( uri="email.serviceProvider.#providerId#:iconClass"  , defaultValue=""         ).$results( provider.iconClass   );
+
+				expect( service.getProvider( providerId ) ).toBe( provider );
+			} );
+
+			it( "should return an empty struct when the provider is not enabled", function(){
+				var service    = _getService();
+				var providerId = "smtp";
+
+				service.$( "isProviderEnabled" ).$args( providerId ).$results( false );
+
+				expect( service.getProvider( providerId ) ).toBe( {} );
 			} );
 		} );
 

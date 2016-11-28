@@ -101,6 +101,23 @@ component extends="preside.system.base.AdminHandler" {
 		setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.settings" ) );
 	}
 
+	public void function provider( event, rc, prc ) {
+		var providerId = rc.id ?: "";
+		prc.provider = emailServiceProviderService.getProvider( providerId );
+
+		if ( prc.provider.isEmpty() ) {
+			event.notFound();
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.provider.page.title", data=[ prc.provider.title ] );
+		prc.pageSubTitle = translateResource( uri="cms:emailcenter.provider.page.subTitle", data=[ prc.provider.description ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.provider.breadcrumb.title", data=[ prc.provider.title ]  )
+			, link  = event.buildAdminLink( linkTo="emailcenter.settings.provider", queryString="id=" & providerId )
+		);
+	}
+
 
 // VIEWLETS, ETC
 	private string function _generalSettingsTabs( event, rc, prc, args={} ) {

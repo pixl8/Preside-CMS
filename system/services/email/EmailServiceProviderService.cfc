@@ -42,13 +42,7 @@ component {
 
 		for( var providerId in rawProviders ) {
 			if ( !disabledProviders.findNoCase( providerId ) ) {
-				var uriRoot = "email.serviceProvider.#providerId#:";
-				providers.append( {
-					  id          = providerId
-					, title       = $translateResource( uri=uriRoot & "title"      , defaultValue=providerId )
-					, description = $translateResource( uri=uriRoot & "description", defaultValue="" )
-					, iconClass   = $translateResource( uri=uriRoot & "iconClass"  , defaultValue="" )
-				} );
+				providers.append( getProvider( providerId ) );
 			}
 		}
 
@@ -57,6 +51,29 @@ component {
 		} );
 
 		return providers;
+	}
+
+	/**
+	 * Returns a struct with info about the given provider.
+	 * Keys are id, title, description and iconClass. The
+	 * latter three are translated dynamically at runtime.
+	 *
+	 * @autodoc true
+	 * @provider.hint ID of the provider to get
+	 */
+	public struct function getProvider( required string provider ) {
+		if ( isProviderEnabled( arguments.provider ) ) {
+			var uriRoot = "email.serviceProvider.#arguments.provider#:";
+
+			return {
+				  id          = arguments.provider
+				, title       = $translateResource( uri=uriRoot & "title"      , defaultValue=arguments.provider )
+				, description = $translateResource( uri=uriRoot & "description", defaultValue="" )
+				, iconClass   = $translateResource( uri=uriRoot & "iconClass"  , defaultValue="" )
+			};
+		}
+
+		return {};
 	}
 
 	/**
