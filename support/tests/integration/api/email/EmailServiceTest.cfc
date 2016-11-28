@@ -11,10 +11,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "send()", function(){
-			it( "should run template handler to mixin variables that are then forwarded to the cfmail call", function(){
+			it( "should run template handler to mixin variables that are then forwarded to the email provider send call", function(){
 				var emailService      = _getEmailService();
 				var testToAddresses   = [ "dominic.watson@test.com", "another.test.com" ];
-				var testArgs          = { some="test", data=true };
+				var testArgs          = { some="test", data=true, template="notification" };
 				var testHandlerResult = { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 				var expectedSendArgs  = {
 					  from     = ""
@@ -25,12 +25,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, htmlBody = ""
 					, textBody = ""
 					, params   = {}
+					, template = "notification"
+					, args     = testArgs
 				};
 
 				expectedSendArgs.append( testHandlerResult );
-
-
-				emailService.$( "_send", true );
 
 				mockColdBox.$( "runEvent" ).$results( testHandlerResult );
 
@@ -40,13 +39,16 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, args     = testArgs
 				);
 
-				expect( emailService.$callLog()._send.len() ).toBe( 1 );
-				expect( emailService.$callLog()._send[1] ).toBe( expectedSendArgs );
+				expect( mockServiceProviderService.$callLog().sendWithProvider.len() ).toBe( 1 );
+				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
+					  provider = defaultProvider
+					, sendArgs = expectedSendArgs
+				} );
 			} );
 
 			it( "should use new (as of 10.8.0) email template service to prepare message data when the template is registered with the new service", function(){
 				var emailService        = _getEmailService();
-				var testArgs            = { some="test", data=true };
+				var testArgs            = { some="test", data=true, template="notification" };
 				var testPreparedMessage = { from="someone@test.com", to="to@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject", textBody="text only body" };
 				var expectedSendArgs  = {
 					  from     = ""
@@ -57,6 +59,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, htmlBody = ""
 					, textBody = ""
 					, params   = {}
+					, template = "notification"
+					, args     = testArgs
 				};
 				expectedPrepArgs = {
 					template = "notification"
@@ -73,7 +77,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expectedSendArgs.append( testPreparedMessage );
 
-				emailService.$( "_send", true );
 				mockEmailTemplateService.$( "templateExists" ).$args( "notification" ).$results( true );
 				mockEmailTemplateService.$( "prepareMessage" ).$args( argumentCollection=expectedPrepArgs ).$results( testPreparedMessage );
 
@@ -82,14 +85,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, args     = testArgs
 				);
 
-				expect( emailService.$callLog()._send.len() ).toBe( 1 );
-				expect( emailService.$callLog()._send[1] ).toBe( expectedSendArgs );
+				expect( mockServiceProviderService.$callLog().sendWithProvider.len() ).toBe( 1 );
+				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
+					  provider = defaultProvider
+					, sendArgs = expectedSendArgs
+				} );
 			} );
 
 			it( "should use default from email setting when no from address is returned from the template handler", function(){
 				var emailService      = _getEmailService();
 				var testToAddresses   = [ "dominic.watson@test.com", "another@test.com" ];
-				var testArgs          = { some="test", data=true };
+				var testArgs          = { some="test", data=true, template="notification" };
 				var testHandlerResult = { cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 				var testDefaultFrom   = "default@test.com";
 				var expectedSendArgs  = {
@@ -101,11 +107,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, htmlBody = ""
 					, textBody = ""
 					, params   = {}
+					, args     = testArgs
+					, template = "notification"
 				};
 
 				expectedSendArgs.append( testHandlerResult );
 
-				emailService.$( "_send", true );
 				mockColdBox.$( "runEvent" ).$results( testHandlerResult );
 				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( testDefaultFrom );
 
@@ -115,8 +122,11 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, args     = testArgs
 				);
 
-				expect( emailService.$callLog()._send.len() ).toBe( 1 );
-				expect( emailService.$callLog()._send[1] ).toBe( expectedSendArgs );
+				expect( mockServiceProviderService.$callLog().sendWithProvider.len() ).toBe( 1 );
+				expect( mockServiceProviderService.$callLog().sendWithProvider[1] ).toBe( {
+					  provider = defaultProvider
+					, sendArgs = expectedSendArgs
+				} );
 			} );
 
 			it( "should throw an informative error when the passed template does not exist", function(){
@@ -140,7 +150,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var emailService = _getEmailService();
 				var errorThrown  = false;
 
-				emailService.$( "_send", true );
 				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
@@ -160,7 +169,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var emailService = _getEmailService();
 				var errorThrown  = false;
 
-				emailService.$( "_send", true );
 				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
@@ -179,7 +187,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var emailService = _getEmailService();
 				var errorThrown  = false;
 
-				emailService.$( "_send", true );
 				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
@@ -198,7 +205,6 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var emailService = _getEmailService();
 				var errorThrown  = false;
 
-				emailService.$( "_send", true );
 				emailService.$( "$getPresideSetting" ).$args( "email", "default_from_address" ).$results( "" );
 
 				try {
@@ -218,17 +224,24 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 
 	private any function _getEmailService() output=false {
-		templateDirs             = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
-		mockColdBox              = createMock( "preside.system.coldboxModifications.Controller" );
-		mockEmailTemplateService = createMock( "preside.system.services.email.EmailTemplateService" );
+		templateDirs               = [ "/tests/resources/emailService/folder1", "/tests/resources/emailService/folder2", "/tests/resources/emailService/folder3" ]
+		mockColdBox                = createMock( "preside.system.coldboxModifications.Controller" );
+		mockEmailTemplateService   = createMock( "preside.system.services.email.EmailTemplateService" );
+		mockServiceProviderService = createMock( "preside.system.services.email.EmailServiceProviderService" );
 
 		var service = createMock( object=new preside.system.services.email.EmailService(
-			  emailTemplateDirectories = templateDirs
-			, emailTemplateService     = mockEmailTemplateService
+			  emailTemplateDirectories    = templateDirs
+			, emailTemplateService        = mockEmailTemplateService
+			, emailServiceProviderService = mockServiceProviderService
 		) );
 
 		service.$( "$getColdbox", mockColdbox );
 		mockEmailTemplateService.$( "templateExists", false );
+
+
+		defaultProvider = CreateUUId();
+		mockServiceProviderService.$( "getProviderForTemplate", defaultProvider );
+		mockServiceProviderService.$( "sendWithProvider", true );
 
 		return service;
 	}

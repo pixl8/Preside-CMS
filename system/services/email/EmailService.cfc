@@ -9,8 +9,9 @@ component displayName="Email service" {
 
 // CONSTRUCTOR
 	/**
-	 * @emailTemplateDirectories.inject presidecms:directories:handlers/emailTemplates
-	 * @emailTemplateService.inject     delayedInjector:emailTemplateService
+	 * @emailTemplateDirectories.inject    presidecms:directories:handlers/emailTemplates
+	 * @emailTemplateService.inject        delayedInjector:emailTemplateService
+	 * @emailServiceProviderService.inject delayedInjector:emailServiceProviderService
 	 */
 	public any function init(
 		  required array emailTemplateDirectories
@@ -18,6 +19,7 @@ component displayName="Email service" {
 	) {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
 		_setEmailTemplateService( arguments.emailTemplateService );
+		_setEmailServiceProviderService( arguments.emailServiceProviderService );
 
 		_loadTemplates();
 
@@ -58,9 +60,13 @@ component displayName="Email service" {
 
 		_validateArguments( sendArgs );
 
-		_send( argumentCollection = sendArgs );
+		sendArgs.args = arguments.args;
+		sendArgs.args.template = sendArgs.template = arguments.template;
 
-		return true;
+		return _getEmailServiceProviderService().sendWithProvider(
+			  provider = _getEmailServiceProviderService().getProviderForTemplate( arguments.template )
+			, sendArgs = sendArgs
+		);
 	}
 
 	/**
@@ -129,62 +135,6 @@ component displayName="Email service" {
 		templates.sort( "textnocase" );
 
 		_setTemplates( templates );
-	}
-
-	private boolean function _send(
-		  required string from
-		, required array  to
-		, required string subject
-		,          array  cc       = []
-		,          array  bcc      = []
-		,          string htmlBody = ""
-		,          string textBody = ""
-		,          struct params   = {}
-	) {
-		var m          = new Mail();
-		var settings   = $getPresideCategorySettings( "email" );
-		var mailServer = settings.server   ?: "";
-		var port       = settings.port     ?: "";
-		var username   = settings.username ?: "";
-		var password   = settings.password ?: "";
-
-		m.setTo( arguments.to.toList( ";" ) );
-		m.setFrom( arguments.from );
-		m.setSubject( arguments.subject );
-
-		if ( arguments.cc.len()  ) {
-			m.setCc( arguments.cc.toList( ";" ) );
-		}
-		if ( arguments.bcc.len() ) {
-			m.setBCc( arguments.bcc.toList( ";" ) );
-		}
-		if ( Len( Trim( arguments.textBody ) ) ) {
-			m.addPart( type='text', body=Trim( arguments.textBody ) );
-		}
-		if ( Len( Trim( arguments.htmlBody ) ) ) {
-			m.addPart( type='html', body=Trim( arguments.htmlBody ) );
-		}
-		if ( Len( Trim( mailServer ) ) ) {
-			m.setServer( mailServer );
-		}
-		if ( Len( Trim( port ) ) ) {
-			m.setPort( port );
-		}
-		if ( Len( Trim( username ) ) ) {
-			m.setUsername( username );
-		}
-		if ( Len( Trim( password ) ) ) {
-			m.setPassword( password );
-		}
-
-		for( var param in arguments.params ){
-			m.addParam( argumentCollection=arguments.params[ param ] );
-		}
-
-		m.addParam( name="X-Mailer", value="PresideCMS" );
-		m.send();
-
-		return true;
 	}
 
 	private struct function _mergeArgumentsWithTemplateHandlerResult( required string template, required struct args ) {
@@ -282,5 +232,12 @@ component displayName="Email service" {
 	}
 	private void function _setEmailTemplateService( required any emailTemplateService ) {
 		_emailTemplateService = arguments.emailTemplateService;
+	}
+
+	private any function _getEmailServiceProviderService() {
+		return _emailServiceProviderService;
+	}
+	private void function _setEmailServiceProviderService( required any emailServiceProviderService ) {
+		_emailServiceProviderService = arguments.emailServiceProviderService;
 	}
 }
