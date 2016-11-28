@@ -2780,6 +2780,33 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test088_insertDataFromSelect_should_enable_selecting_data_from_one_object_and_inserting_into_another_with_a_single_db_call" returntype="void">
+		<cfscript>
+			var poService = _getService( objectDirectories=[ "/tests/resources/PresideObjectService/twoLookups/" ] );
+
+			poService.dbSync();
+
+			var obja = poService.getObject( "lookup_a" );
+			var objb = poService.getObject( "lookup_b" );
+
+			obja.insertData( data={ label="Hello world 1" } );
+			obja.insertData( data={ label="Hello world 2" } );
+			obja.insertData( data={ label="Hello world 3" } );
+			obja.insertData( data={ label="Hello world 4" } );
+
+			super.assertEquals( 4, obja.selectData().recordCount );
+			super.assertEquals( 0, objb.selectData().recordCount );
+
+			var insertedCount = objb.insertDataFromSelect( fieldList=[ "id", "label", "datecreated", "datemodified" ], selectDataArgs={
+				  objectName   = "lookup_a"
+				, selectFields = [ "id", "label", "Now()", "Now()" ]
+			} );
+
+			super.assertEquals( 4, insertedCount);
+			super.assertEquals( 4, objb.selectData().recordCount );
+		</cfscript>
+	</cffunction>
+
 
 <!--- private helpers --->
 	<cffunction name="_getService" access="private" returntype="any" output="false">

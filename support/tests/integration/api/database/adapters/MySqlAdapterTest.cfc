@@ -400,6 +400,21 @@
 		</cfscript>
 	</cffunction>
 
+	<cffunction name="test23a_getInsertSql_shouldReturnInsertSqlWithSelectData_whenSelectStatementProvided" returntype="void">
+		<cfscript>
+			var adapter   = _getAdapter();
+			var selectSql = "select col_a, col_b, col_c from blah where foo = :bar";
+			var expected  = [ "insert into `event_category` ( `col_a`, `col_b`, `col_c` ) #selectSql#" ];
+			var result    = adapter.getInsertSql(
+				  tableName     = "event_category"
+				, insertColumns = [ "col_a", "col_b", "col_c" ]
+				, selectStatement = selectSql
+			);
+
+			super.assertEquals( expected, result );
+		</cfscript>
+	</cffunction>
+
 	<cffunction name="test24_getSelectSql_shouldReturnSimpleSelectSql" returntype="void">
 		<cfscript>
 			var adapter = _getAdapter();

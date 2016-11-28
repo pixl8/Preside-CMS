@@ -173,7 +173,7 @@ component {
 		return "getDeleteSql() not implemented. Must be implemented by extended adapters.";
 	}
 
-	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1 ) {
+	public array function getInsertSql( required string tableName, required array insertColumns, numeric noOfRows=1, string selectStatement="" ) {
 		var sql          = "insert into #escapeEntity( arguments.tableName )# (";
 		var delim        = " ";
 		var rowdelim     = " (";
@@ -186,23 +186,29 @@ component {
 			delim = ", ";
 		}
 
-		sql &= " ) values";
+		sql &= " ) ";
 
-		for( i=1; i lte arguments.noOfRows; i++ ){
-			sql &= rowDelim;
-			rowDelim = " ), (";
-			if ( arguments.noOfRows gt 1 ){
-				paramPostFix = "_" & i;
+		if ( Len( Trim( arguments.selectStatement ) ) ) {
+			sql &= arguments.selectStatement;
+		} else {
+			sql &= "values";
+
+			for( i=1; i lte arguments.noOfRows; i++ ){
+				sql &= rowDelim;
+				rowDelim = " ), (";
+				if ( arguments.noOfRows gt 1 ){
+					paramPostFix = "_" & i;
+				}
+
+				delim = " ";
+				for( col in arguments.insertColumns ){
+					sql &= delim & ":" & col & paramPostFix;
+					delim = ", ";
+				}
 			}
 
-			delim = " ";
-			for( col in arguments.insertColumns ){
-				sql &= delim & ":" & col & paramPostFix;
-				delim = ", ";
-			}
+			sql &= " )";
 		}
-
-		sql &= " )";
 
 		return [ sql ];
 	}

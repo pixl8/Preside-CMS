@@ -275,6 +275,7 @@ component displayName="Preside Object Service" {
 	 * );
 	 * ```
 	 *
+	 * @autodoc                      true
 	 * @objectName.hint              Name of the object in which to to insert a record
 	 * @data.hint                    Structure of data who's keys map to the properties that are defined on the object
 	 * @insertManyToManyRecords.hint Whether or not to insert multiple relationship records for properties that have a many-to-many relationship
@@ -402,6 +403,47 @@ component displayName="Preside Object Service" {
 		_announceInterception( "postInsertObjectData", interceptionArgs );
 
 		return newId;
+	}
+
+
+	/**
+	 * Inserts records into a database based on a selectData() set of arguments and provided
+	 * fieldlist.
+	 *
+	 * @autodoc             true
+	 * @objectName.hint     Name of the object in which to to insert records
+	 * @selectDataArgs.hint Struct of arguments that are valid to pass to the [[presideobjectservice-selectdata]] method
+	 * @fieldList.hint      Array of table field names that the select fields in the select statement should map to for the insert
+	 */
+	public numeric function insertDataFromSelect(
+		  required string objectName
+		, required struct selectDataArgs
+		, required array  fieldList
+	) {
+		var obj       = _getObject( arguments.objectName ).meta;
+		var adapter   = _getAdapter( obj.dsn );
+		var selectSql = selectData( argumentCollection=arguments.selectDataArgs, getSqlAndParamsOnly=true );
+		var insertSql = adapter.getInsertSql(
+			  tableName     = obj.tableName
+			, insertColumns = arguments.fieldList
+			, selectStatement = selectSql.sql
+		);
+
+		var result = _runSql(
+			  sql        = insertSql[ 1 ]
+			, dsn        = obj.dsn
+			, params     = selectSql.params
+			, returnType = "info"
+		);
+
+		clearRelatedCaches(
+			  objectName              = arguments.objectName
+			, filter                  = ""
+			, filterParams            = {}
+			, clearSingleRecordCaches = false
+		);
+
+		return Val( result.recordCount );
 	}
 
 	/**
