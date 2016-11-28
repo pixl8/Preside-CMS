@@ -129,6 +129,23 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getProviderValidateSettingsAction()", function(){
+			it( "should return the configured validateSettings action for the provider", function(){
+				var service   = _getService();
+				var providers = _getDefaultTestProviders();
+				var provider  = "mailgun";
+
+				expect( service.getProviderValidateSettingsAction( provider ) ).toBe( providers[ provider ].validateSettingsAction );
+			} );
+
+			it( "should return a convention based action when no specific action configured", function(){
+				var service   = _getService();
+				var provider  = "smtp";
+
+				expect( service.getProviderValidateSettingsAction( provider ) ).toBe( "email.serviceProvider.smtp.validateSettings" );
+			} );
+		} );
+
 		describe( "isProviderEnabled()", function(){
 			it( "should return false when the provider is in the list of configured disabled providers", function(){
 				var service   = _getService();
@@ -307,6 +324,49 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 			} );
 		} );
+
+		describe( "validateSettings()", function(){
+			it( "should call the provider's configured validateSettings action, passing the settings + validation result arguments", function(){
+				var service              = _getService();
+				var provider             = "testprovider";
+				var mockValidationResult = { thisIsDummy=CreateUUId() };
+				var validateAction       = "test." & CreateUUId();
+				var settings             = { test=CreateUUId(), password="pass" };
+
+				service.$( "$newValidationResult", mockValidationResult );
+				service.$( "getProviderValidateSettingsAction" ).$args( provider ).$results( validateAction );
+
+				mockColdbox.$( "runEvent" );
+
+				expect( service.validateSettings( provider, settings ) ).toBe( mockValidationResult );
+
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 1 );
+				expect( mockColdbox.$callLog().runEvent[ 1 ] ).toBe( {
+					  event          = validateAction
+					, eventArguments = { settings=settings, validationResult=mockValidationResult }
+					, private        = true
+					, prePostExempt  = true
+				} );
+			} );
+
+			it( "should do nothing when the handler action does not exist", function(){
+				var service              = _getService();
+				var provider             = "testprovider";
+				var mockValidationResult = { thisIsDummy=CreateUUId() };
+				var validateAction       = "test." & CreateUUId();
+				var settings             = { test=CreateUUId(), password="pass" };
+
+				service.$( "$newValidationResult", mockValidationResult );
+				service.$( "getProviderValidateSettingsAction" ).$args( provider ).$results( validateAction );
+
+				mockColdbox.$( "handlerExists" ).$args( validateAction ).$results( false );
+				mockColdbox.$( "runEvent" );
+
+				expect( service.validateSettings( provider, settings ) ).toBe( mockValidationResult );
+
+				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
@@ -328,7 +388,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getDefaultTestProviders() {
 		return {
 			  smtp      = {}
-			, mailgun   = { sendAction="whatev.send" }
+			, mailgun   = { sendAction="whatev.send", validateSettingsAction="whatev.validate" }
 			, mailchimp = { configForm="blah.blah.mailchimp.blah" }
 		};
 	}

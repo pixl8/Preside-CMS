@@ -22,6 +22,7 @@ component displayName="Preside Super Class" {
 	 * @auditService.inject               delayedInjector:auditService
 	 * @contentRendererService.inject     delayedInjector:contentRendererService
 	 * @taskmanagerService.inject         delayedInjector:taskmanagerService
+	 * @validationEngine.inject           delayedInjector:validationEngine
 	 * @coldbox.inject                    delayedInjector:coldbox
 	 *
 	 */
@@ -40,6 +41,7 @@ component displayName="Preside Super Class" {
 		, required any auditService
 		, required any contentRendererService
 		, required any taskmanagerService
+		, required any validationEngine
 		, required any coldbox
 	) {
 		$presideObjectService       = arguments.presideObjectService;
@@ -56,6 +58,7 @@ component displayName="Preside Super Class" {
 		$auditService               = arguments.auditService;
 		$contentRendererService     = arguments.contentRendererService;
 		$taskmanagerService         = arguments.taskmanagerService;
+		$validationEngine           = arguments.validationEngine;
 		$coldbox                    = arguments.coldbox;
 
 		return this;
@@ -636,6 +639,24 @@ component displayName="Preside Super Class" {
 	 */
 	public any function $runTask() {
 		return $getTaskmanagerService().runTask( argumentCollection=arguments );
+	}
+
+	/**
+	 * Returns an instance of the preside validation engine (see [[validation-framework]] for more details)
+	 *
+	 * @autodoc
+	 */
+	public any function $getValidationEngine() {
+		return $validationEngine;
+	}
+
+	/**
+	 * Returns a new validation result (see [[validation-framework]] for more details)
+	 *
+	 * @autodoc
+	 */
+	public any function $newValidationResult() {
+		return $getValidationEngine().newValidationResult();
 	}
 
 	/**

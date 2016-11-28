@@ -94,6 +94,21 @@ component {
 		return rawProviders[ arguments.provider ].sendAction ?: ( "email.serviceProvider." & arguments.provider & ".send" );
 	}
 
+
+	/**
+	 * Returns the configured/convention based validate settings action for the
+	 * given provider
+	 *
+	 * @autodoc       true
+	 * @provider.hint ID of the provider who's validate settings action you wish to get
+	 */
+	public string function getProviderValidateSettingsAction( required string provider ) {
+		var rawProviders = _getConfiguredProviders();
+
+		return rawProviders[ arguments.provider ].validateSettingsAction ?: ( "email.serviceProvider." & arguments.provider & ".validateSettings" );
+	}
+
+
 	/**
 	 * Returns whether or not the given provider is enabled.
 	 *
@@ -166,6 +181,35 @@ component {
 			$raiseError( e );
 			return false;
 		}
+	}
+
+	/**
+	 * Validates the provided settings. Returns a [[validation-framework]] validationResult
+	 * object with any validation errors.
+	 *
+	 * @autodoc true
+	 * @provider.hint         Provider who's settings we are to validate
+	 * @settings.hint         Struct of settings to validate
+	 * @validationResult.hint Pre-initialized validationResult object - any validation results will be added to this object and returned
+	 *
+	 */
+	public any function validateSettings(
+		  required string provider
+		, required struct settings
+		,          any    validationResult = $newValidationResult()
+	) {
+		var validateAction = getProviderValidateSettingsAction( provider );
+
+		if ( $getColdbox().handlerExists( validateAction ) ) {
+			$getColdbox().runEvent(
+				  event          = validateAction
+				, eventArguments = { settings=arguments.settings, validationResult=arguments.validationResult }
+				, private        = true
+				, prePostExempt  = true
+			);
+		}
+
+		return arguments.validationResult;
 	}
 
 	/**
