@@ -23,4 +23,20 @@ component extends="preside.system.base.AdminHandler" {
 		prc.pageSubTitle = translateResource( "cms:emailcenter.settings.page.subTitle" );
 	}
 
+
+// VIEWLETS, ETC
+	private string function _generalSettingsTabs( event, rc, prc, args={} ) {
+		if ( hasCmsPermission( "emailCenter.serviceProviders.navigate" ) ) {
+			args.providers = emailServiceProviderService.listProviders();
+		}
+
+		return renderView( view="/admin/emailCenter/settings/_generalSettingsTabs", args=args );
+	}
+
+// HELPERS
+	private void function _checkPermissions( required any event, required string key ) {
+		if ( !hasCmsPermission( "emailCenter.settings." & arguments.key ) ) {
+			event.adminAccessDenied();
+		}
+	}
 }
