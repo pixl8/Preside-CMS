@@ -38,7 +38,7 @@ component {
 	public array function listProviders() {
 		var rawProviders      = _getConfiguredProviders();
 		var providers         = [];
-		var disabledProviders = $getPresideSetting( "email.serviceProviders", "disabledProviders" ).listToArray();
+		var disabledProviders = $getPresideSetting( "email", "disabledProviders" ).listToArray();
 
 		for( var providerId in rawProviders ) {
 			if ( !disabledProviders.findNoCase( providerId ) ) {
@@ -82,7 +82,7 @@ component {
 	 * @autodoc true
 	 */
 	public string function getDefaultProvider() {
-		var provider = $getPresideSetting( "email.serviceProviders", "defaultProvider" );
+		var provider = $getPresideSetting( "email", "defaultProvider" );
 
 		if ( provider.len() ) {
 			return provider;
@@ -161,7 +161,7 @@ component {
 	 * @provider.hint ID of the provider who's enabled/disabled status you wish to check
 	 */
 	public boolean function isProviderEnabled( required string provider ) {
-		var disabledProviders = $getPresideSetting( "email.serviceProviders", "disabledProviders" ).listToArray();
+		var disabledProviders = $getPresideSetting( "email", "disabledProviders" ).listToArray();
 
 		if ( disabledProviders.findNoCase( arguments.provider ) ) {
 			return false;
@@ -191,7 +191,7 @@ component {
 	 * @provider.hint ID of the provider who's settings category you wish to get
 	 */
 	public string function getProviderSettingsCategory( required string provider ) {
-		return "email.serviceProvider.#provider#";
+		return "emailServiceProvider#arguments.provider#";
 	}
 
 	/**

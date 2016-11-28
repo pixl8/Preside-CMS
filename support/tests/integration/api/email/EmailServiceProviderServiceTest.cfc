@@ -36,7 +36,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var expected  = [];
 				var excluded  = "mailgun,smtp";
 
-				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "disabledProviders" ).$results( excluded );
+				service.$( "$getPresideSetting" ).$args( "email", "disabledProviders" ).$results( excluded );
 
 				for( var providerId in providers ) {
 					if ( ListFindNoCase( excluded, providerId ) ) {
@@ -98,7 +98,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var defaultProvider = "smtp";
 
-				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "defaultProvider" ).$results( defaultProvider );
+				service.$( "$getPresideSetting" ).$args( "email", "defaultProvider" ).$results( defaultProvider );
 
 				expect( service.getDefaultProvider() ).toBe( defaultProvider );
 			} );
@@ -107,7 +107,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service = _getService();
 				var defaultProvider = CreateUUId();
 
-				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "defaultProvider" ).$results( "" );
+				service.$( "$getPresideSetting" ).$args( "email", "defaultProvider" ).$results( "" );
 				service.$( "listProviders", [ { id=defaultProvider } ] )
 
 				expect( service.getDefaultProvider() ).toBe( defaultProvider );
@@ -116,7 +116,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should return an empty string when no default configured and no providers listed", function(){
 				var service = _getService();
 
-				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "defaultProvider" ).$results( "" );
+				service.$( "$getPresideSetting" ).$args( "email", "defaultProvider" ).$results( "" );
 				service.$( "listProviders", [] )
 
 				expect( service.getDefaultProvider() ).toBe( "" );
@@ -179,7 +179,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service   = _getService();
 				var excluded  = "mailgun,smtp";
 
-				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "disabledProviders" ).$results( excluded );
+				service.$( "$getPresideSetting" ).$args( "email", "disabledProviders" ).$results( excluded );
 
 				expect( service.isProviderEnabled( "smtp" ) ).toBe( false );
 			} );
@@ -194,7 +194,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var service   = _getService();
 				var excluded  = "mailgun,mailchimp";
 
-				service.$( "$getPresideSetting" ).$args( "email.serviceProviders", "disabledProviders" ).$results( excluded );
+				service.$( "$getPresideSetting" ).$args( "email", "disabledProviders" ).$results( excluded );
 
 				expect( service.isProviderEnabled( "smtp" ) ).toBe( true );
 			} );
@@ -211,7 +211,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummySettings = { server=CreateUUId(), fu="bar", password=CreateUUId() };
 
 				service.$( "_logMessage", dummyArgs.messageId );
-				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( dummySettings );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
@@ -240,7 +240,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var dummySettings = { what="ever" };
 
 				service.$( "_logMessage", dummyArgs.messageId );
-				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( dummySettings );
 
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "runEvent" ).$args(
@@ -296,7 +296,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				service.$( "_logMessage", dummyArgs.messageId );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
-				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( {} );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
 					, private        = true
@@ -341,7 +341,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sendArgs      = dummyArgs.args
 				).$results( expectedArgs.messageId );
 
-				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( dummySettings );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
@@ -390,7 +390,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sendArgs      = dummyArgs.args
 				).$results( expectedArgs.messageId );
 
-				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( dummySettings );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( dummySettings );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
@@ -418,7 +418,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var messageId  = CreateUUId();
 
 				service.$( "_logMessage", messageId );
-				service.$( "$getPresideCategorySettings" ).$args( "email.serviceProvider.#provider#" ).$results( {} );
+				service.$( "$getPresideCategorySettings" ).$args( category="emailServiceProvider#provider#", provider=provider ).$results( {} );
 				service.$( "getProviderSendAction" ).$args( provider ).$results( sendAction );
 				mockColdbox.$( "runEvent" ).$args(
 					  event          = sendAction
@@ -441,7 +441,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var settings          = StructNew( "linked" );
 				var site              = CreateUUId();
 				var provider          = "mailgun";
-				var settingsCategory  = "email.serviceProvider.#provider#";
+				var settingsCategory  = "emailServiceProvider#provider#";
 
 				settings.test = "setting";
 				settings.blah = CreateUUId();
