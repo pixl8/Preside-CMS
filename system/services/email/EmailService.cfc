@@ -16,6 +16,7 @@ component displayName="Email service" {
 	public any function init(
 		  required array emailTemplateDirectories
 		, required any   emailTemplateService
+		, required any   emailServiceProviderService
 	) {
 		_setEmailTemplateDirectories( arguments.emailTemplateDirectories );
 		_setEmailTemplateService( arguments.emailTemplateService );
