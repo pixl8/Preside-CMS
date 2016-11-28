@@ -77,6 +77,26 @@ component {
 	}
 
 	/**
+	 * Returns the configured provider for a given template, or
+	 * if no provider configured, the default provider.
+	 *
+	 * @autodoc         true
+	 * @templateId.hint ID of the template who's provider we are to get
+	 *
+	 */
+	public string function getProviderForTemplate( required string templateId ) {
+		if ( Len( Trim( templateId ) ) ) {
+			var template = _getEmailTemplateService().getTemplate( templateId );
+
+			if ( ( template.service_provider ?: "" ).len() && isProviderEnabled( template.service_provider ) ) {
+				return template.service_provider;
+			}
+		}
+
+		return getDefaultProvider();
+	}
+
+	/**
 	 * Returns the configuration form name for
 	 * the given provider.
 	 *

@@ -489,6 +489,55 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( mockColdbox.$callLog().runEvent.len() ).toBe( 0 );
 			} );
 		} );
+
+		describe( "getProviderForTemplate()", function(){
+			it( "should return the default provider when the template ID is empty", function(){
+				var service = _getService();
+				var defaultProvider = "whatev";
+
+				service.$( "getDefaultProvider", defaultProvider );
+
+				expect( service.getProviderForTemplate( "" ) ).toBe( defaultProvider );
+			} );
+
+			it( "should return the configured provider for the template (as saved in db)", function(){
+				var service       = _getService();
+				var savedTemplate = { service_provider="smtp" };
+				var templateId    = CreateUUId();
+
+				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( savedTemplate );
+				service.$( "isProviderEnabled" ).$args( savedTemplate.service_provider ).$results( true );
+
+				expect( service.getProviderForTemplate( templateId ) ).toBe( savedTemplate.service_provider );
+			} );
+
+			it( "should return the default provider when the configured template does not have a service provider set", function(){
+				var service         = _getService();
+				var defaultProvider = "whatev";
+				var savedTemplate   = { service_provider="" };
+				var templateId      = CreateUUId();
+
+				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( savedTemplate );
+
+				service.$( "getDefaultProvider", defaultProvider );
+
+				expect( service.getProviderForTemplate( templateId ) ).toBe( defaultProvider );
+			} );
+
+			it( "should return the default provider when the configured template's service provider is not enabled", function(){
+				var service         = _getService();
+				var defaultProvider = "whatev";
+				var savedTemplate   = { service_provider="yaddayadda!" };
+				var templateId      = CreateUUId();
+
+				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( savedTemplate );
+				service.$( "isProviderEnabled" ).$args( savedTemplate.service_provider ).$results( false );
+
+				service.$( "getDefaultProvider", defaultProvider );
+
+				expect( service.getProviderForTemplate( templateId ) ).toBe( defaultProvider );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
