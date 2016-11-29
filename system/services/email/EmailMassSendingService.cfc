@@ -113,6 +113,16 @@ component {
 	}
 
 	/**
+	 * Removes the given queued email (by id) from the queue.
+	 *
+	 * @autodoc true
+	 * @id.hint ID of the queued email
+	 */
+	public numeric function removeFromQueue( required string id ) {
+		return $getPresideObject( "email_mass_send_queue" ).deleteData( id=arguments.id );
+	}
+
+	/**
 	 * Returns an array of prepared filters for the given
 	 * templates recipient type + sending limits.
 	 *

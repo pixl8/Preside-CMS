@@ -282,6 +282,18 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.getNextQueuedEmail() ).toBe( {} );
 			} );
 		} );
+
+		describe( "removeFromQueue()", function(){
+			it( "should delete the given queue record", function(){
+				var service      = _getService();
+				var queueId      = CreateUUId();
+				var randomNumber = Round( Rand() * 1000 );
+
+				mockQueueDao.$( "deleteData" ).$args( id=queueId ).$results( randomNumber );
+
+				expect( service.removeFromQueue( queueId ) ).toBe( randomNumber );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
