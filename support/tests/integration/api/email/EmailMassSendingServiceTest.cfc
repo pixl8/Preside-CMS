@@ -294,10 +294,82 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.removeFromQueue( queueId ) ).toBe( randomNumber );
 			} );
 		} );
+
+		describe( "processQueue()", function(){
+			it( "should repeatedly retrieve emails from the queue and send them, stopping when the rate limit is reached", function(){
+				var service   = _getService();
+				var rateLimit = Round( rand() * 100 ) + 1;
+				var emails    = [];
+
+				for( var i=1; i<=rateLimit; i++ ) {
+					emails.append({
+						  id        = CreateUUId()
+						, template  = CreateUUId()
+						, recipient = CreateUUId()
+					});
+				}
+
+				service.$( "$getPresideSetting" ).$args( "email", "ratelimit", 100 ).$results( rateLimit );
+
+				var resultsList = "";
+				for( var i=1; i<=rateLimit; i++ ){
+					resultsList = resultsList.listAppend( "emails[#i#]" );
+				}
+				Evaluate( "service.$( ""getNextQueuedEmail"" ).$results( #resultsList# )" );
+
+				mockEmailService.$( "send", true );
+				service.$( "removeFromQueue", 1 );
+
+				service.processQueue();
+
+				expect( mockEmailService.$callLog().send.len() ).toBe( rateLimit );
+				expect( service.$callLog().removeFromQueue.len() ).toBe( rateLimit );
+				for( var i=1; i<=rateLimit; i++ ){
+					expect( mockEmailService.$callLog().send[i] ).toBe( { template=emails[i].template, recipientId=emails[i].recipient } );
+					expect( service.$callLog().removeFromQueue[i] ).toBe( [ emails[i].id ] );
+				}
+			} );
+
+			it( "should stop processing before the rate limit if an empty struct is returned from getNextQueuedEmail()", function(){
+				var service   = _getService();
+				var rateLimit = 10;
+				var emails    = [];
+
+				for( var i=1; i<=3; i++ ) {
+					emails.append({
+						  id        = CreateUUId()
+						, template  = CreateUUId()
+						, recipient = CreateUUId()
+					});
+				}
+				emails.append({});
+
+				service.$( "$getPresideSetting" ).$args( "email", "ratelimit", 100 ).$results( rateLimit );
+
+				var resultsList = "";
+				for( var i=1; i<=emails.len(); i++ ){
+					resultsList = resultsList.listAppend( "emails[#i#]" );
+				}
+				Evaluate( "service.$( ""getNextQueuedEmail"" ).$results( #resultsList# )" );
+
+				mockEmailService.$( "send", true );
+				service.$( "removeFromQueue", 1 );
+
+				service.processQueue();
+
+				expect( mockEmailService.$callLog().send.len() ).toBe( emails.len()-1 );
+				expect( service.$callLog().removeFromQueue.len() ).toBe( emails.len()-1 );
+				for( var i=1; i<=emails.len()-1; i++ ){
+					expect( mockEmailService.$callLog().send[i] ).toBe( { template=emails[i].template, recipientId=emails[i].recipient } );
+					expect( service.$callLog().removeFromQueue[i] ).toBe( [ emails[i].id ] );
+				}
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS
 	private any function _getService() {
+		mockEmailService              = createEmptyMock( "preside.system.services.email.EmailService"                   );
 		mockEmailTemplateService      = createEmptyMock( "preside.system.services.email.EmailTemplateService"           );
 		mockEmailRecipientTypeService = createEmptyMock( "preside.system.services.email.EmailRecipientTypeService"      );
 		mockRulesEngineFilterService  = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineFilterService" );
@@ -309,6 +381,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		var service = createMock( object=new preside.system.services.email.EmailMassSendingService(
 			  emailTemplateService      = mockEmailTemplateService
 			, emailRecipientTypeService = mockEmailRecipientTypeService
+			, emailService              = mockEmailService
 			, rulesEngineFilterService  = mockRulesEngineFilterService
 		) );
 

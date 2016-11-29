@@ -23,22 +23,54 @@ component {
 	/**
 	 * @emailTemplateService.inject      emailTemplateService
 	 * @emailRecipientTypeService.inject emailRecipientTypeService
+	 * @emailService.inject              emailService
 	 * @rulesEngineFilterService.inject  rulesEngineFilterService
 	 *
 	 */
 	public any function init(
 		  required any emailTemplateService
 		, required any emailRecipientTypeService
+		, required any emailService
 		, required any rulesEngineFilterService
 	) {
 		_setEmailTemplateService( arguments.emailTemplateService );
 		_setEmailRecipientTypeService( arguments.emailRecipientTypeService );
 		_setRulesEngineFilterService( arguments.rulesEngineFilterService );
+		_setEmailService( arguments.emailService );
 
 		return this;
 	}
 
 // PUBLIC API METHODS
+	/**
+	 * Processes the queue by sending out emails from the queue. Processes
+	 * up to a maximum number of emails as set in email center general settings
+	 * (preside system setting `email.ratelimit`).
+	 *
+	 * @autodoc true
+	 */
+	public void function processQueue() {
+		var rateLimit      = Val( $getPresideSetting( "email", "ratelimit", 100 ) );
+		var processedCount = 0;
+		var queuedEmail    = "";
+		var emailService   = _getEmailService();
+
+		do {
+			queuedEmail = getNextQueuedEmail();
+
+			if ( !queuedEmail.count() ) {
+				break;
+			}
+
+			emailService.send(
+				  template    = queuedEmail.template
+				, recipientId = queuedEmail.recipient
+			);
+
+			removeFromQueue( queuedEmail.id );
+		} while( ++processedCount < rateLimit )
+	}
+
 	/**
 	 * Takes a template and queues it for send-out based
 	 * on the template's, recipient type, filters + sending
@@ -176,6 +208,7 @@ component {
 
 	}
 
+
 // PRIVATE HELPERS
 	private date function _getLimitDate( required string unit, required numeric measure ) {
 		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
@@ -218,6 +251,13 @@ component {
 	}
 	private void function _setEmailRecipientTypeService( required any emailRecipientTypeService ) {
 		_emailRecipientTypeService = arguments.emailRecipientTypeService;
+	}
+
+	private any function _getEmailService() {
+		return _emailService;
+	}
+	private void function _setEmailService( required any emailService ) {
+		_emailService = arguments.emailService;
 	}
 
 	private any function _getRulesEngineFilterService() {
