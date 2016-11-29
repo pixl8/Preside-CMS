@@ -9,20 +9,19 @@
 		} );
 	}
 
-	if ( hasCmsPermission( "emailcenter.systemTemplates.navigate" ) ) {
-		subMenuItems.append( {
-			  link  = event.buildAdminLink( linkTo="emailcenter.systemtemplates" )
-			, title = translateResource( "cms:emailcenter.systemtemplates.menu.title" )
-			, active = ReFindNoCase( "^admin\.emailcenter\.systemtemplates", event.getCurrentEvent() )
-		} );
-	}
-
-
 	if ( hasCmsPermission( "emailcenter.layouts.navigate" ) ) {
 		subMenuItems.append(  {
 			  link  = event.buildAdminLink( linkTo="emailcenter.layouts" )
 			, title = translateResource( "cms:emailcenter.layouts.menu.title" )
 			, active = ReFindNoCase( "^admin\.emailcenter\.layouts", event.getCurrentEvent() )
+		} );
+	}
+
+	if ( hasCmsPermission( "emailcenter.systemTemplates.navigate" ) ) {
+		subMenuItems.append( {
+			  link  = event.buildAdminLink( linkTo="emailcenter.systemtemplates" )
+			, title = translateResource( "cms:emailcenter.systemtemplates.menu.title" )
+			, active = ReFindNoCase( "^admin\.emailcenter\.systemtemplates", event.getCurrentEvent() )
 		} );
 	}
 
