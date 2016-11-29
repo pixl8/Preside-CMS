@@ -2198,7 +2198,9 @@ component displayName="Preside Object Service" {
 				result.filter = ReReplaceNoCase( result.filter, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
 			}
 			result.having = ReReplaceNoCase( result.having, "(:#objOrPropRegex#)[\.\$](#objOrPropRegex#)", "\1__\2", "all" );
-			result.params = result.params ?: [];
+		}
+		result.params = result.params ?: [];
+		if ( result.filterParams.count() ) {
 			result.params.append( _convertUserFilterParamsToQueryParams(
 				  columnDefinitions = arguments.columnDefinitions
 				, params            = result.filterParams
