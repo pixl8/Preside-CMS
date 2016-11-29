@@ -49,18 +49,23 @@ component {
 	 *
 	 * @autodoc true
 	 */
-	public void function processQueue() {
+	public boolean function processQueue( any logger ) {
 		var rateLimit      = Val( $getPresideSetting( "email", "ratelimit", 100 ) );
 		var processedCount = 0;
 		var queuedEmail    = "";
 		var emailService   = _getEmailService();
+		var canLog         = arguments.keyExists( "logger" );
+		var canInfo        = canLog && logger.canInfo();
 
 		do {
 			queuedEmail = getNextQueuedEmail();
 
 			if ( !queuedEmail.count() ) {
+				if ( canInfo ) { logger.info( "The batch sending queue is empty!" ); }
 				break;
 			}
+
+			if ( canInfo ) { logger.info( "Sending email template, [#queuedEmail.template#], to recipient, [#queuedEmail.recipient#]" ); }
 
 			emailService.send(
 				  template    = queuedEmail.template
@@ -68,7 +73,11 @@ component {
 			);
 
 			removeFromQueue( queuedEmail.id );
-		} while( ++processedCount < rateLimit )
+		} while( ++processedCount < rateLimit );
+
+		if ( canInfo ) { logger.info( "Done. Processed [#NumberFormat( processedCount )#] queued emails." ); }
+
+		return true;
 	}
 
 	/**
