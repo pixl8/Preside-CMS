@@ -18,6 +18,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sending_limit_unit    = ""
 					, sending_limit_measure = ""
 				};
+				var dupeCheckFilter = _getDuplicateCheckFilter( recipientObject );
 
 				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( template );
 				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( recipientObject );
@@ -31,10 +32,10 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, selectDataArgs = {
 						  selectFields = [ "`#recipientObject#`.`id`", ":template", "nowwweee()", "nowwweee()" ]
 						, objectName   = recipientObject
-						, extraFilters = [ preparedFilter ]
+						, extraFilters = [ preparedFilter, dupeCheckFilter ]
 						, filterParams = { template = { type="cf_sql_varchar", value=templateId } }
 					}
-				).$results( queuedCount )
+				).$results( queuedCount );
 
 				expect( service.queueSendout( templateId ) ).toBe( queuedCount );
 			} );
@@ -92,6 +93,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sending_limit_unit    = ""
 					, sending_limit_measure = ""
 				};
+				var dupeCheckFilter = _getDuplicateCheckFilter( recipientObject );
 
 				service.$( "getFiltersForSendLimits", [] );
 				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( template );
@@ -106,7 +108,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, selectDataArgs = {
 						  selectFields = [ "`#recipientObject#`.`id`", ":template", "nowwweee()", "nowwweee()" ]
 						, objectName   = recipientObject
-						, extraFilters = []
+						, extraFilters = [ dupeCheckFilter ]
 						, filterParams = { template = { type="cf_sql_varchar", value=templateId } }
 					}
 				).$results( queuedCount )
@@ -132,9 +134,13 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sending_limit_measure = "days"
 				};
 				var limitFilters = [ { blah=CreateUUId() }, { test=CreateUUId() } ];
+				var extraFilters = Duplicate( limitFilters );
+
+				extraFilters.append( _getDuplicateCheckFilter( recipientObject ) );
 
 				service.$( "getFiltersForSendLimits" ).$args(
-					  recipientType = recipientType
+					  templateId    = templateId
+					, recipientType = recipientType
 					, sendLimit     = template.sending_limit
 					, unit          = template.sending_limit_unit
 					, measure       = template.sending_limit_measure
@@ -149,12 +155,100 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, selectDataArgs = {
 						  selectFields = [ "`#recipientObject#`.`id`", ":template", "nowwweee()", "nowwweee()" ]
 						, objectName   = recipientObject
-						, extraFilters = limitFilters
+						, extraFilters = extraFilters
 						, filterParams = { template = { type="cf_sql_varchar", value=templateId } }
 					}
 				).$results( queuedCount )
 
 				expect( service.queueSendout( templateId ) ).toBe( queuedCount );
+			} );
+		} );
+
+		describe( "getFiltersForSendLimits()", function(){
+			it( "should return an empty array when limit = 'none'", function(){
+				var service = _getService();
+
+				expect( service.getFiltersForSendLimits(
+					  templateId    = CreateUUId()
+					, recipientType = "whatever"
+					, sendLimit     = "none"
+					, unit          = ""
+					, measure       = ""
+				) ).toBe( [] );
+			} );
+
+			it( "should return a filter using a subquery join on the email log table to rule out previous recipients, when sendLimit = 'once'", function(){
+				var service         = _getService();
+				var templateId      = CreateUUId();
+				var recipientType   = "whatever";
+				var recipientObject = "whatever_test";
+				var recipientFk     = "blah";
+				var subquery        = "select * from blah";
+
+				mockLogDao.$( "selectData" ).$args(
+					  selectFields        = [ "Max( `sent_date` ) as sent_date", "`#recipientFk#` as recipient" ]
+					, groupBy             = "`#recipientFk#`"
+					, filter              = { email_template=templateId }
+					, getSqlAndParamsOnly = true
+				).$results( { sql=subquery, params=[ { name="email_template", type="cf_sql_varchar", value=templateId } ] } );
+
+				mockDbAdapter.$( "escapeEntity" ).$args( recipientFk ).$results( "`#recipientFk#`" );
+				mockDbAdapter.$( "escapeEntity" ).$args( "sent_date" ).$results( "`sent_date`" );
+
+				mockEmailRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType" ).$args( recipientType ).$results( recipientFk );
+				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( recipientObject );
+				expect( service.getFiltersForSendLimits(
+					  templateId    = templateId
+					, recipientType = recipientType
+					, sendLimit     = "once"
+					, unit          = ""
+					, measure       = ""
+				) ).toBe( [ { filter="send_limit_check.recipient is null", filterParams={ email_template={ type="cf_sql_varchar", value=templateId } }, extraJoins=[ {
+					  type           = "left"
+					, subQuery       = subquery
+					, subQueryAlias  = "send_limit_check"
+					, subQueryColumn = "recipient"
+					, joinToTable    = recipientObject
+					, joinToColumn   = "id"
+				} ] } ] );
+			} );
+
+			it( "should return a filter using a subquery join on the email log table to rule out recent previous recipients, when sendLimit = 'limited'", function(){
+				var service         = _getService();
+				var templateId      = CreateUUId();
+				var recipientType   = "whatever";
+				var recipientObject = "whatever_test";
+				var recipientFk     = "blah";
+				var subquery        = "select * from blah";
+				var someDate        = Now();
+
+				service.$( "_getLimitDate" ).$args( unit="week", measure=3 ).$results( someDate );
+				mockLogDao.$( "selectData" ).$args(
+					  selectFields        = [ "Max( `sent_date` ) as sent_date", "`#recipientFk#` as recipient" ]
+					, groupBy             = "`#recipientFk#`"
+					, filter              = { email_template=templateId }
+					, getSqlAndParamsOnly = true
+				).$results( { sql=subquery, params=[ { name="email_template", type="cf_sql_varchar", value=templateId } ] } );
+
+				mockDbAdapter.$( "escapeEntity" ).$args( recipientFk ).$results( "`#recipientFk#`" );
+				mockDbAdapter.$( "escapeEntity" ).$args( "sent_date" ).$results( "`sent_date`" );
+
+				mockEmailRecipientTypeService.$( "getRecipientIdLogPropertyForRecipientType" ).$args( recipientType ).$results( recipientFk );
+				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( recipientObject );
+				expect( service.getFiltersForSendLimits(
+					  templateId    = templateId
+					, recipientType = recipientType
+					, sendLimit     = "limited"
+					, unit          = "week"
+					, measure       = 3
+				) ).toBe( [ { filter="( send_limit_check.recipient is null or send_limit_check.sent_date < :send_limit_check_date )", filterParams={ email_template={ type="cf_sql_varchar", value=templateId }, send_limit_check_date={ type="cf_sql_timestamp", value=someDate } }, extraJoins=[ {
+					  type           = "left"
+					, subQuery       = subquery
+					, subQueryAlias  = "send_limit_check"
+					, subQueryColumn = "recipient"
+					, joinToTable    = recipientObject
+					, joinToColumn   = "id"
+				} ] } ] );
 			} );
 		} );
 	}
@@ -166,6 +260,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		mockRulesEngineFilterService  = createEmptyMock( "preside.system.services.rulesEngine.RulesEngineFilterService" );
 		mockPresideObjectService      = createEmptyMock( "preside.system.services.presideObjects.PresideObjectService"  );
 		mockQueueDao                  = CreateStub();
+		mockLogDao                    = CreateStub();
 		mockDbAdapter                 = CreateStub();
 
 		var service = createMock( object=new preside.system.services.email.EmailMassSendingService(
@@ -174,13 +269,35 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			, rulesEngineFilterService  = mockRulesEngineFilterService
 		) );
 
-
 		service.$( "$getPresideObject" ).$args( "email_mass_send_queue" ).$results( mockQueueDao );
+		service.$( "$getPresideObject" ).$args( "email_template_send_log" ).$results( mockLogDao );
 		service.$( "$getPresideObjectService", mockPresideObjectService );
 		mockPresideObjectService.$( "getDbAdapterForObject", mockDbAdapter );
 
 		mockDbAdapter.$( "getNowFunctionSql", "nowwweee()" );
 
 		return service;
+	}
+
+	private struct function _getDuplicateCheckFilter( required string recipientObject ) {
+		var filter = { filter="already_queued_check.recipient is null", filterParams={} };
+		var dummySubQuery = "select stuff from stuffz where stuff = 'stuffz'";
+
+		mockQueueDao.$( "selectData" ).$args(
+			  selectFields        = [ "recipient", "template" ]
+			, getSqlAndParamsOnly = true
+		).$results( { sql=dummySubQuery } );
+
+		filter.extraJoins = [{
+			  type              = "left"
+			, subQuery          = dummySubQuery
+			, subQueryAlias     = "already_queued_check"
+			, subQueryColumn    = "recipient"
+			, joinToTable       = arguments.recipientObject
+			, joinToColumn      = "id"
+			, additionalClauses = "template = :template"
+		} ];
+
+		return filter;
 	}
 }

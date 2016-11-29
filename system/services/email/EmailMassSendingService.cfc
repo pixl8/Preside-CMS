@@ -8,6 +8,17 @@
  */
 component {
 
+	_timeUnitToCfMapping = {
+		  second  = "s"
+		, minute  = "n"
+		, hour    = "h"
+		, day     = "d"
+		, week    = "ww"
+		, month   = "m"
+		, quarter = "q"
+		, year    = "yyyy"
+	};
+
 // CONSTRUCTOR
 	/**
 	 * @emailTemplateService.inject      emailTemplateService
@@ -54,7 +65,8 @@ component {
 		var nowFunction  = dbAdapter.getNowFunctionSql();
 
 		var extraFilters = getFiltersForSendLimits(
-			  recipientType = template.recipient_type
+			  templateId    = arguments.templateId
+			, recipientType = template.recipient_type
 			, sendLimit     = template.sending_limit
 			, unit          = template.sending_limit_unit
 			, measure       = template.sending_limit_measure
@@ -67,6 +79,8 @@ component {
 			);
 			extraFilters.append( recipientFilter );
 		}
+
+		extraFilters.append( _getDuplicateCheckFilter( recipientObject, dbAdapter ) );
 
 		return $getPresideObject( "email_mass_send_queue" ).insertDataFromSelect(
 			  fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
@@ -84,12 +98,83 @@ component {
 	 * templates recipient type + sending limits.
 	 *
 	 */
-	public array function getFiltersForSendLimits() {
-		// stubbed
-		return [];
+	public array function getFiltersForSendLimits(
+		  required string templateId
+		, required string recipientType
+		, required string sendLimit
+		,          string unit
+		,          string measure
+	) {
+		if ( sendLimit == "none" ) {
+			return [];
+		}
+
+		var recipientObject  = _getEmailRecipientTypeService().getFilterObjectForRecipientType( arguments.recipientType );
+		var dbAdapter        = $getPresideObjectService().getDbAdapterForObject( "email_template_send_log" );
+		var recipientLogFk   = dbAdapter.escapeEntity( _getEmailRecipientTypeService().getRecipientIdLogPropertyForRecipientType( arguments.recipientType ) );
+		var lastSentSubquery = $getPresideObject( "email_template_send_log" ).selectData(
+			  selectFields        = [ "Max( #dbAdapter.escapeEntity( 'sent_date' )# ) as sent_date", "#recipientLogFk# as recipient" ]
+			, groupBy             = recipientLogFk
+			, filter              = { email_template=arguments.templateId }
+			, getSqlAndParamsOnly = true
+		);
+		var filter = {
+			  filter = "send_limit_check.recipient is null"
+			, filterParams = {}
+			, extraJoins = []
+		};
+
+		filter.extraJoins.append({
+			  type           = "left"
+			, subQuery       = lastSentSubquery.sql
+			, subQueryAlias  = "send_limit_check"
+			, subQueryColumn = "recipient"
+			, joinToTable    = recipientObject
+			, joinToColumn   = "id"
+		});
+
+		for( var param in lastSentSubquery.params ) {
+			filter.filterParams[ param.name ] = Duplicate( param );
+			filter.filterParams[ param.name ].delete( "name" );
+		}
+
+		if ( sendLimit == "limited" ) {
+			filter.filter = "( #filter.filter# or send_limit_check.sent_date < :send_limit_check_date )";
+			filter.filterParams.send_limit_check_date = { type="cf_sql_timestamp", value=_getLimitDate( unit=arguments.unit, measure=Val( arguments.measure ) ) };
+		}
+
+		return [ filter ];
+
 	}
 
 // PRIVATE HELPERS
+	private date function _getLimitDate( required string unit, required numeric measure ) {
+		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
+			return '1900-01-01';
+		}
+
+		return DateAdd( _timeUnitToCfMapping[ arguments.unit ], 0-arguments.measure, Now() );
+	}
+
+	private struct function _getDuplicateCheckFilter( required string recipientObject, required any dbAdapter ) {
+		var filter = { filter="already_queued_check.recipient is null", filterParams={} };
+		var subQuery = $getPresideObject( "email_mass_send_queue" ).selectData(
+			  selectFields        = [ "recipient", "template" ]
+			, getSqlAndParamsOnly = true
+		).sql;
+
+		filter.extraJoins = [{
+			  type              = "left"
+			, subQuery          = subQuery
+			, subQueryAlias     = "already_queued_check"
+			, subQueryColumn    = "recipient"
+			, joinToTable       = arguments.recipientObject
+			, joinToColumn      = "id"
+			, additionalClauses = "template = :template"
+		} ];
+
+		return filter;
+	}
 
 // GETTERS AND SETTERS
 	private any function _getEmailTemplateService() {
