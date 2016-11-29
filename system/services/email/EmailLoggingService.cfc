@@ -34,6 +34,7 @@ component {
 	public string function createEmailLog(
 		  required string template
 		, required string recipientType
+		, required string recipientId
 		, required string recipient
 		, required string sender
 		, required string subject
@@ -47,7 +48,7 @@ component {
 		};
 
 		if ( Len( Trim( arguments.recipientType ) ) ) {
-			data.append( _getAdditionalDataForRecipientType( arguments.recipientType, arguments.sendArgs ) );
+			data.append( _getAdditionalDataForRecipientType( arguments.recipientType, arguments.recipientId, arguments.sendArgs ) );
 		}
 
 		return $getPresideObject( "email_template_send_log" ).insertData( data );
@@ -69,7 +70,7 @@ component {
 
 
 // PRIVATE HELPERS
-	private struct function _getAdditionalDataForRecipientType( required string recipientType, required struct sendArgs ) {
+	private struct function _getAdditionalDataForRecipientType( required string recipientType, required string recipientId, required struct sendArgs ) {
 		if ( !recipientType.len() ) {
 			return {};
 		}
@@ -80,13 +81,7 @@ component {
 			return {};
 		}
 
-		var recipientId = _getRecipientTypeService().getRecipientId( recipientType, sendArgs );
-
-		if ( !recipientId.len() ) {
-			return {};
-		}
-
-		return { "#fkColumn#" = recipientId };
+		return { "#fkColumn#" = arguments.recipientId };
 	}
 
 	private date function _getNow() {

@@ -317,6 +317,7 @@ component {
 		return _getEmailLoggingService().createEmailLog(
 			  template      = templateId
 			, recipientType = recipientType
+			, recipientId   = sendArgs.recipientId ?: ""
 			, recipient     = ( sendArgs.to[ 1 ] ?: "" )
 			, sender        = ( sendArgs.from    ?: "" )
 			, subject       = ( sendArgs.subject ?: "" )
