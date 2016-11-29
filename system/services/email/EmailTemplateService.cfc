@@ -371,14 +371,23 @@ component {
 	 */
 	public string function updateScheduledSendFields( required string templateId ) {
 		var template    = getTemplate( arguments.templateId );
-		var updatedData = {};
+		var updatedData = {
+			schedule_next_send_date = ""
+		};
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
-				var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit );
+				var nowish = _getNow();
+				var expired = ( IsDate( template.schedule_start_date ) && template.schedule_start_date > nowish ) || ( IsDate( template.schedule_end_date ) && template.schedule_end_date < nowish );
 
-				if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date < Now() || template.schedule_next_send_date > newSendDate ) {
-					updatedData.schedule_next_send_date = newSendDate;
+				if ( !expired ) {
+					var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit );
+
+					if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date < nowish || template.schedule_next_send_date > newSendDate ) {
+						updatedData.schedule_next_send_date = newSendDate;
+					} else {
+						updatedData.delete( "schedule_next_send_date" );
+					}
 				}
 			}
 		}
