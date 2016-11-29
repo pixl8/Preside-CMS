@@ -194,11 +194,14 @@
 
 			_checkPermission( argumentCollection=arguments, key="read", object=objectName );
 
+			var extraFilters = !isEmpty( rc.extraFilters ?: "" ) ? deserializeJSON( urlDecode( rc.extraFilters ?: "" ) ) : [];
+
 			var records = dataManagerService.getRecordsForAjaxSelect(
 				  objectName   = rc.object  ?: ""
 				, maxRows      = rc.maxRows ?: 1000
 				, searchQuery  = rc.q       ?: ""
 				, savedFilters = ListToArray( rc.savedFilters ?: "" )
+				, extraFilters = extraFilters
 				, ids          = ListToArray( rc.values ?: "" )
 			);
 
