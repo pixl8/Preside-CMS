@@ -6,6 +6,17 @@
  */
 component {
 
+	_timeUnitToCfMapping = {
+		  second  = "s"
+		, minute  = "n"
+		, hour    = "h"
+		, day     = "d"
+		, week    = "ww"
+		, month   = "m"
+		, quarter = "q"
+		, year    = "yyyy"
+	};
+
 	/**
 	 * @systemEmailTemplateService.inject systemEmailTemplateService
 	 * @emailRecipientTypeService.inject  emailRecipientTypeService
@@ -352,6 +363,29 @@ component {
 		return params;
 	}
 
+	/**
+	 * Updates fields related to scheduled sending to maintain schedules
+	 *
+	 * @autodoc         true
+	 * @templateId.hint ID of the template to update
+	 */
+	public string function updateScheduledSendFields( required string templateId ) {
+		var template    = getTemplate( arguments.templateId );
+		var updatedData = {};
+
+		if ( template.sending_method == "scheduled" ) {
+			if ( template.schedule_type == "repeat" ) {
+				var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit );
+
+				if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date < Now() || template.schedule_next_send_date > newSendDate ) {
+					updatedData.schedule_next_send_date = newSendDate;
+				}
+			}
+		}
+
+		return saveTemplate( id=arguments.templateId, template=updatedData );
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
@@ -370,6 +404,18 @@ component {
 				} );
 			}
 		}
+	}
+
+	private date function _getNow() {
+		return Now(); // abstraction to make testing easier
+	}
+
+	private any function _calculateNextSendDate( required numeric measure, required string unit ) {
+		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
+			return "";
+		}
+
+		return DateAdd( _timeUnitToCfMapping[ arguments.unit ], arguments.measure, _getNow() );
 	}
 
 // GETTERS AND SETTERS

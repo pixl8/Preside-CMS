@@ -115,6 +115,116 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		} );
 
+		describe( "updateScheduledSendFields()", function(){
+			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date is empty", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "ww", 1, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 1
+					, schedule_unit           = "week"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( nextSendDate );
+
+			} );
+
+			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date is in the past", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "d", 2, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 2
+					, schedule_unit           = "day"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = DateAdd( "ww", -1, nowish )
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( nextSendDate );
+
+			} );
+
+			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date later than newly calculated send date", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "d", 3, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 3
+					, schedule_unit           = "day"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = DateAdd( "ww", 4, nowish )
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( nextSendDate );
+
+			} );
+
+			it( "should not set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date is in the future and earlier than newly calculated send date", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "d", 3, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 3
+					, schedule_unit           = "day"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = DateAdd( "d", 2, nowish )
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_next_send_date" ) ).toBe( false );
+
+			} );
+		} );
+
 		describe( "init()", function(){
 			it( "should populate template records for any system email templates that do not already have a record in the DB", function(){
 				var service = _getService( initialize=false );
