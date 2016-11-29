@@ -237,8 +237,9 @@ component displayName="Website login service" {
 			} );
 
 			_getEmailService().send(
-				  template = "websiteWelcome"
-				, args     = { resetToken = "#resetToken#-#resetKey#", userId=arguments.userId }
+				  template    = "websiteWelcome"
+				, recipientId = arguments.userId
+				, args        = { resetToken = "#resetToken#-#resetKey#" }
 			);
 
 			return true;
@@ -268,11 +269,9 @@ component displayName="Website login service" {
 			} );
 
 			_getEmailService().send(
-				  template = "resetWebsitePassword"
-				, args     = {
-					  resetToken = "#resetToken#-#resetKey#"
-					, userId     = userRecord.id
-				  }
+				  template    = "resetWebsitePassword"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#resetToken#-#resetKey#" }
 			);
 
 			$recordWebsiteUserAction(

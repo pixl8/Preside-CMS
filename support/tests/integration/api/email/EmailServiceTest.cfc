@@ -17,16 +17,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var testArgs          = { some="test", data=true, template="notification" };
 				var testHandlerResult = { from="someone@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 				var expectedSendArgs  = {
-					  from     = ""
-					, subject  = ""
-					, to       = testToAddresses
-					, cc       = []
-					, bcc      = []
-					, htmlBody = ""
-					, textBody = ""
-					, params   = {}
-					, template = "notification"
-					, args     = testArgs
+					  from        = ""
+					, recipientId = ""
+					, subject     = ""
+					, to          = testToAddresses
+					, cc          = []
+					, bcc         = []
+					, htmlBody    = ""
+					, textBody    = ""
+					, params      = {}
+					, template    = "notification"
+					, args        = testArgs
 				};
 
 				expectedSendArgs.append( testHandlerResult );
@@ -49,6 +50,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			it( "should use new (as of 10.8.0) email template service to prepare message data when the template is registered with the new service", function(){
 				var emailService        = _getEmailService();
 				var testArgs            = { some="test", data=true, template="notification" };
+				var recipientId         = CreateUUId();
 				var testPreparedMessage = { from="someone@test.com", to="to@test.com", cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject", textBody="text only body" };
 				var expectedSendArgs  = {
 					  from     = ""
@@ -60,19 +62,21 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, textBody = ""
 					, params   = {}
 					, template = "notification"
+					, recipientId = recipientId
 					, args     = testArgs
 				};
 				expectedPrepArgs = {
-					template = "notification"
-				  , args     = testArgs
-				  , to       = []
-				  , from     = ""
-				  , subject  = ""
-				  , cc       = []
-				  , bcc      = []
-				  , htmlBody = ""
-				  , textBody = ""
-				  , params   = {}
+					  template    = "notification"
+					, recipientId = recipientId
+					, args        = testArgs
+					, to          = []
+					, from        = ""
+					, subject     = ""
+					, cc          = []
+					, bcc         = []
+					, htmlBody    = ""
+					, textBody    = ""
+					, params      = {}
 				};
 
 				expectedSendArgs.append( testPreparedMessage );
@@ -81,8 +85,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				mockEmailTemplateService.$( "prepareMessage" ).$args( argumentCollection=expectedPrepArgs ).$results( testPreparedMessage );
 
 				emailService.send(
-					  template = "notification"
-					, args     = testArgs
+					  template    = "notification"
+					, recipientId = recipientId
+					, args        = testArgs
 				);
 
 				expect( mockServiceProviderService.$callLog().sendWithProvider.len() ).toBe( 1 );
@@ -99,16 +104,17 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var testHandlerResult = { cc="someoneelse@test.com", htmlBody="test body", subject="This is a subject" };
 				var testDefaultFrom   = "default@test.com";
 				var expectedSendArgs  = {
-					  from     = testDefaultFrom
-					, subject  = ""
-					, to       = testToAddresses
-					, cc       = []
-					, bcc      = []
-					, htmlBody = ""
-					, textBody = ""
-					, params   = {}
-					, args     = testArgs
-					, template = "notification"
+					  from        = testDefaultFrom
+					, recipientId = ""
+					, subject     = ""
+					, to          = testToAddresses
+					, cc          = []
+					, bcc         = []
+					, htmlBody    = ""
+					, textBody    = ""
+					, params      = {}
+					, args        = testArgs
+					, template    = "notification"
 				};
 
 				expectedSendArgs.append( testHandlerResult );

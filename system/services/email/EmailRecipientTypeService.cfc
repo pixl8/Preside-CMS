@@ -107,10 +107,12 @@ component displayName="Email Recipient Type Service" {
 	 *
 	 * @autodoc            true
 	 * @recipientType.hint The ID of the recipient type who's params we are to prepare
+	 * @recipientId.hint   The ID of the recipient
 	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to prepare the params. e.g. { userId=idofUserToSendEmailTo }.
 	 */
 	public struct function prepareParameters(
 		  required string recipientType
+		, required string recipientId
 		,          struct args = {}
 	) {
 		var handlerAction = "email.recipientType.#recipientType#.prepareParameters";
@@ -118,7 +120,7 @@ component displayName="Email Recipient Type Service" {
 		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
 				  event          = handlerAction
-				, eventArguments = { args=arguments.args }
+				, eventArguments = { args=arguments.args, recipientId=arguments.recipientId }
 				, private        = true
 				, prePostExempt  = true
 			);
@@ -154,18 +156,18 @@ component displayName="Email Recipient Type Service" {
 	 *
 	 * @autodoc            true
 	 * @recipientType.hint The ID of the recipient type who's to address we are to get
-	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to get the address. e.g. { userId=idofUserToSendEmailTo }.
+	 * @recipientId.hint   ID of the recipient of the email
 	 */
 	public string function getToAddress(
 		  required string recipientType
-		,          struct args = {}
+		, required string recipientId
 	) {
 		var handlerAction = "email.recipientType.#recipientType#.getToAddress";
 
 		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
 			return $getColdbox().runEvent(
 				  event          = handlerAction
-				, eventArguments = { args=arguments.args }
+				, eventArguments = { recipientId=arguments.recipientId }
 				, private        = true
 				, prePostExempt  = true
 			);
@@ -173,33 +175,6 @@ component displayName="Email Recipient Type Service" {
 
 		return "";
 	}
-
-	/**
-	 * Returns the recipient ID for the given recipient type and message
-	 * args.
-	 *
-	 * @autodoc            true
-	 * @recipientType.hint The ID of the recipient type who's ID we are to get
-	 * @args.hint          Structure of variables sent to the sendEmail() method, should contain enough data to inform the method how to get the ID
-	 */
-	public string function getRecipientId(
-		  required string recipientType
-		,          struct args = {}
-	) {
-		var handlerAction = "email.recipientType.#recipientType#.getRecipientId";
-
-		if ( recipientTypeExists( arguments.recipientType ) && $getColdbox().handlerExists( handlerAction ) ) {
-			return $getColdbox().runEvent(
-				  event          = handlerAction
-				, eventArguments = { args=arguments.args }
-				, private        = true
-				, prePostExempt  = true
-			);
-		}
-
-		return "";
-	}
-
 
 	/**
 	 * Returns the configured filter object for the given recipient type

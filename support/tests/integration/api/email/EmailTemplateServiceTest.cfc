@@ -234,11 +234,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 		describe( "prepareParameters()", function(){
 			it( "should combine prepared parameters from system email template + recipient type (when template is system type)", function(){
-				var service        = _getService();
-				var template       = "eventBookingConfirmation";
-				var recipientType  = "websiteUser";
-				var mockArgs       = { userId=CreateUUId(), bookingId=CreateUUId() };
-				var sysEmailParams = { eventName="My event", bookingSummary=CreateUUId() };
+				var service             = _getService();
+				var template            = "eventBookingConfirmation";
+				var recipientType       = "websiteUser";
+				var recipientId         = CreateUUId();
+				var mockArgs            = { userId=CreateUUId(), bookingId=CreateUUId() };
+				var sysEmailParams      = { eventName="My event", bookingSummary=CreateUUId() };
 				var recipientTypeParams = { known_as="Harry" };
 				var finalParams         = Duplicate( sysEmailParams );
 
@@ -246,11 +247,12 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				mockSystemEmailTemplateService.$( "templateExists" ).$args( template ).$results( true );
 				mockSystemEmailTemplateService.$( "prepareParameters" ).$args( template=template, args=mockArgs ).$results( sysEmailParams );
-				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, args=mockArgs ).$results( recipientTypeParams );
+				mockEmailRecipientTypeService.$( "prepareParameters" ).$args( recipientType=recipientType, recipientId=recipientId, args=mockArgs ).$results( recipientTypeParams );
 
 				expect( service.prepareParameters(
 					  template      = template
 					, recipientType = recipientType
+					, recipientId   = recipientId
 					, args          = mockArgs
 				) ).toBe( finalParams );
 			} );
@@ -288,7 +290,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockHtmlBody           = CreateUUId();
 				var mockTextBodyWithLayout = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
-				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
+				var mockRecipientId        = CreateUUId();
+				var mockArgs               = { bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var mockTemplate           = {
 					  layout         = "testLayout"
@@ -303,6 +306,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "prepareParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
+					, recipientId   = mockRecipientId
 					, args          = mockArgs
 				).$results( mockParams );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
@@ -325,9 +329,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, body          = mockHtmlBody
 				).$results( mockHtmlBodyWithLayout );
 
-				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, args=mockArgs ).$results( mockTo );
+				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
-				expect( service.prepareMessage( template=template, args=mockArgs ) ).toBe( {
+				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
 					  subject   = mockSubject
 					, from      = mockTemplate.from_address
 					, to        = [ mockTo ]
@@ -349,7 +353,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var mockHtmlBody           = CreateUUId();
 				var mockTextBodyWithLayout = CreateUUId();
 				var mockHtmlBodyWithLayout = CreateUUId();
-				var mockArgs               = { userId = CreateUUId(), bookingId = CreateUUId() };
+				var mockRecipientId        = CreateUUId();
+				var mockArgs               = { bookingId = CreateUUId() };
 				var mockParams             = { test=CreateUUId(), params=Now() };
 				var mockTemplate           = {
 					  layout         = "testLayout"
@@ -365,6 +370,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				service.$( "prepareParameters" ).$args(
 					  template      = template
 					, recipientType = mockTemplate.recipient_type
+					, recipientId   = mockRecipientId
 					, args          = mockArgs
 				).$results( mockParams );
 				service.$( "replaceParameterTokens" ).$args( mockTemplate.subject, mockParams, "text" ).$results( mockSubject );
@@ -387,9 +393,9 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, body          = mockHtmlBody
 				).$results( mockHtmlBodyWithLayout );
 
-				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, args=mockArgs ).$results( mockTo );
+				mockEmailRecipientTypeService.$( "getToAddress" ).$args( recipientType=mockTemplate.recipient_type, recipientId=mockRecipientId ).$results( mockTo );
 
-				expect( service.prepareMessage( template=template, args=mockArgs ) ).toBe( {
+				expect( service.prepareMessage( template=template, recipientId=mockRecipientId, args=mockArgs ) ).toBe( {
 					  subject  = mockSubject
 					, from     = mockFrom
 					, to       = [ mockTo ]

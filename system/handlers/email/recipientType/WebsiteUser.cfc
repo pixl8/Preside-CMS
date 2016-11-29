@@ -5,8 +5,8 @@
 component {
 	property name="websiteUserDao" inject="presidecms:object:website_user";
 
-	private struct function prepareParameters( event, rc, prc, args={} ) {
-		var user = websiteUserDao.selectData( id=args.userId ?: "" );
+	private struct function prepareParameters( event, rc, prc, args={}, recipientId="" ) {
+		var user = websiteUserDao.selectData( id=arguments.recipientId );
 
 		for( var u in user ) {
 			return u;
@@ -27,13 +27,9 @@ component {
 		};
 	}
 
-	private string function getToAddress( event, rc, prc, args={} ) {
-		var user = websiteUserDao.selectData( id=args.userId ?: "" );
+	private string function getToAddress( required string recipientId ) {
+		var user = websiteUserDao.selectData( id=arguments.recipientId );
 
 		return user.email_address ?: "";
-	}
-
-	private string function getRecipientId( event, rc, prc, args={} ) {
-		return args.userId ?: "";
 	}
 }

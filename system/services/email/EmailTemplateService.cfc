@@ -34,6 +34,7 @@ component {
 	 * @autodoc true
 	 * @template.hint       The ID of the template to send
 	 * @args.hint           Structure of args to provide email specific information about the send (i.e. userId of web user to send to, etc.)
+	 * @recipientId.hint    ID of the recipient to send the email to
 	 * @to.hint             Optional array of addresses to send the email to (leave empty should the recipient type for the template be able to calculate this for you)
 	 * @cc.hint             Optional array of addresses to cc in to the email
 	 * @bcc.hint            Optional array of addresses to bcc in to the email
@@ -43,6 +44,7 @@ component {
 	public struct function prepareMessage(
 		  required string template
 		, required struct args
+		,          string recipientId    = ""
 		,          array  to             = []
 		,          array  cc             = []
 		,          array  bcc            = []
@@ -60,6 +62,7 @@ component {
 		params.append( prepareParameters(
 			  template      = arguments.template
 			, recipientType = messageTemplate.recipient_type
+			, recipientId   = arguments.recipientId
 			, args          = arguments.args
 		) );
 
@@ -73,7 +76,7 @@ component {
 		};
 
 		if ( !message.to.len() ) {
-			message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, args=arguments.args ) ];
+			message.to = [ _getEmailRecipientTypeService().getToAddress( recipientType=messageTemplate.recipient_type, recipientId=arguments.recipientId ) ];
 		}
 
 		if ( !message.from.len() ) {
@@ -301,15 +304,18 @@ component {
 	 * @autodoc       true
 	 * @template      ID of the template of the email that is being prepared
 	 * @recipientType ID of the recipient type of the email that is being prepared
+	 * @recipientId   ID of the recipient
 	 * @args          Structure of variables that are being used to send / prepare the email
 	 */
 	public struct function prepareParameters(
 		  required string template
 		, required string recipientType
+		, required string recipientId
 		, required struct args
 	) {
 		var params = _getEmailRecipientTypeService().prepareParameters(
 			  recipientType = arguments.recipientType
+			, recipientId   = arguments.recipientId
 			, args          = arguments.args
 		);
 		if ( _getSystemEmailTemplateService().templateExists( arguments.template ) ) {

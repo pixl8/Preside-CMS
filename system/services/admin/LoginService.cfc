@@ -263,9 +263,9 @@ component displayName="Admin login service" {
 			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
-				  template = "resetCMSPassword"
-				, to       = [ userRecord.email_address ]
-				, args     = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#", expires=tokenInfo.resetExpiry, username=userRecord.known_as }
+				  template    = "resetCMSPassword"
+				, recipientId = userRecord.id
+				, args        = { resetToken = "#tokenInfo.resetToken#-#tokenInfo.resetKey#" }
 			);
 
 			$audit(
@@ -295,11 +295,11 @@ component displayName="Admin login service" {
 			var tokenInfo = createLoginResetToken( userRecord.id );
 
 			_getEmailService().send(
-				  template = "cmsWelcome"
-				, args     = {
+				  template    = "cmsWelcome"
+				, recipientId = arguments.userId
+				, args        = {
 					  resetToken     = "#tokenInfo.resetToken#-#tokenInfo.resetKey#"
 					, expires        = tokenInfo.resetExpiry
-					, userId         = arguments.userId
 					, welcomeMessage = arguments.welcomeMessage
 					, createdBy      = arguments.createdBy
 				}
