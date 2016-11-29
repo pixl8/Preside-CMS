@@ -251,6 +251,37 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				} ] } ] );
 			} );
 		} );
+
+		describe( "getNextQueuedEmail()", function(){
+			it( "should return the first queued email from the email queue table", function(){
+				var service     = _getService();
+				var id          = 49;
+				var recipientId = CreateUUId();
+				var templateId  = CreateUUId()
+				var dummyRecord = QueryNew( "id,recipient,template", "int,varchar,varchar", [ [ id, recipientId, templateId ] ] );
+
+				mockQueueDao.$( "selectData" ).$args(
+					  selectFields = [ "id", "recipient", "template" ]
+					, orderBy      = "id"
+					, maxRows      = 1
+				).$results( dummyRecord );
+
+				expect( service.getNextQueuedEmail() ).toBe( { id=id, recipient=recipientId, template=templateId } );
+			} );
+
+			it( "should return an empty struct when no record is returned", function(){
+				var service     = _getService();
+				var dummyRecord = QueryNew( "id,recipient,template" );
+
+				mockQueueDao.$( "selectData" ).$args(
+					  selectFields = [ "id", "recipient", "template" ]
+					, orderBy      = "id"
+					, maxRows      = 1
+				).$results( dummyRecord );
+
+				expect( service.getNextQueuedEmail() ).toBe( {} );
+			} );
+		} );
 	}
 
 // PRIVATE HELPERS

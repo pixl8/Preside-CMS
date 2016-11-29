@@ -94,6 +94,25 @@ component {
 	}
 
 	/**
+	 * Returns the next queued email ready for sending.
+	 *
+	 * @autodoc true
+	 */
+	public struct function getNextQueuedEmail() {
+		var queuedEmail = $getPresideObject( "email_mass_send_queue" ).selectData(
+			  selectFields = [ "id", "recipient", "template" ]
+			, orderby      = "id"
+			, maxRows      = 1
+		);
+
+		for( var q in queuedEmail ) {
+			return q;
+		}
+
+		return {};
+	}
+
+	/**
 	 * Returns an array of prepared filters for the given
 	 * templates recipient type + sending limits.
 	 *
