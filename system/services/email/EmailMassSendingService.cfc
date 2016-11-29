@@ -37,15 +37,36 @@ component {
 	 * @templateId.hint ID of the template to queue
 	 */
 	public numeric function queueSendout( required string templateId ) {
-		var template        = _getEmailTemplateService().getTemplate( arguments.templateId );
+		var template = _getEmailTemplateService().getTemplate( arguments.templateId );
+		if ( template.isEmpty() ) {
+			return 0;
+		}
+
 		var recipientObject = _getEmailRecipientTypeService().getFilterObjectForRecipientType( template.recipient_type );
-		var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
-		var dbAdapter        = $getPresideObjectService().getDbAdapterForObject( "email_mass_send_queue" );
-		var nowFunction      = dbAdapter.getNowFunctionSql();
-		var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
-			  objectName      = recipientObject
-			, expressionArray = filterExpression
+		if ( !recipientObject.len() ) {
+			throw(
+				  type    = "preside.mass.email.invalid.recipient.type"
+				, message = "The template, [#arguments.templateId#], cannot be queued for mass sending because it's recipient type, [#template.recipient_type#], does not cite a filter object from which to draw the recipients"
+			);
+		}
+
+		var dbAdapter    = $getPresideObjectService().getDbAdapterForObject( "email_mass_send_queue" );
+		var nowFunction  = dbAdapter.getNowFunctionSql();
+
+		var extraFilters = getFiltersForSendLimits(
+			  recipientType = template.recipient_type
+			, sendLimit     = template.sending_limit
+			, unit          = template.sending_limit_unit
+			, measure       = template.sending_limit_measure
 		);
+		if ( template.recipient_filter.len() ) {
+			var filterExpression = _getRulesEngineFilterService().getExpressionArrayForSavedFilter( template.recipient_filter );
+			var recipientFilter  = _getRulesEngineFilterService().prepareFilter(
+				  objectName      = recipientObject
+				, expressionArray = filterExpression
+			);
+			extraFilters.append( recipientFilter );
+		}
 
 		return $getPresideObject( "email_mass_send_queue" ).insertDataFromSelect(
 			  fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
@@ -53,9 +74,19 @@ component {
 				  objectName   = recipientObject
 				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
 				, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-				, extraFilters = [ recipientFilter ]
+				, extraFilters = extraFilters
 			  }
 		);
+	}
+
+	/**
+	 * Returns an array of prepared filters for the given
+	 * templates recipient type + sending limits.
+	 *
+	 */
+	public array function getFiltersForSendLimits() {
+		// stubbed
+		return [];
 	}
 
 // PRIVATE HELPERS

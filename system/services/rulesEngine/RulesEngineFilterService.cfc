@@ -174,7 +174,10 @@ component displayName="Rules Engine Filter Service" {
 		);
 
 		try {
-			return DeSerializeJson( filterRecord.expressions );
+			var expressionArray = DeSerializeJson( filterRecord.expressions );
+			if ( IsArray( expressionArray ) ) {
+				return expressionArray;
+			}
 		} catch ( any e ) {}
 
 		return [];
