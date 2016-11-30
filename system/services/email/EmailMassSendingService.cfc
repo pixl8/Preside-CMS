@@ -155,7 +155,7 @@ component {
 				logger.info( "Queueing [#oneTimeTemplates.len()#] one time scheduled email template(s) for sending..." );
 			}
 			if ( repeatedTemplates.len() ) {
-				logger.info( "Queueing [#oneTimeTemplates.len()#] repeat scheduled email template(s) for sending..." );
+				logger.info( "Queueing [#repeatedTemplates.len()#] repeat scheduled email template(s) for sending..." );
 			}
 		}
 
