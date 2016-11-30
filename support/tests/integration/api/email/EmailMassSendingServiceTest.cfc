@@ -18,7 +18,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sending_limit_unit    = ""
 					, sending_limit_measure = ""
 				};
-				var dupeCheckFilter = _getDuplicateCheckFilter( recipientObject );
+				var dupeCheckFilter = _getDuplicateCheckFilter( recipientObject, templateId );
 
 				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( template );
 				mockEmailRecipientTypeService.$( "getFilterObjectForRecipientType" ).$args( recipientType ).$results( recipientObject );
@@ -93,7 +93,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					, sending_limit_unit    = ""
 					, sending_limit_measure = ""
 				};
-				var dupeCheckFilter = _getDuplicateCheckFilter( recipientObject );
+				var dupeCheckFilter = _getDuplicateCheckFilter( recipientObject, templateId );
 
 				service.$( "getFiltersForSendLimits", [] );
 				mockEmailTemplateService.$( "getTemplate" ).$args( templateId ).$results( template );
@@ -136,7 +136,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				var limitFilters = [ { blah=CreateUUId() }, { test=CreateUUId() } ];
 				var extraFilters = Duplicate( limitFilters );
 
-				extraFilters.append( _getDuplicateCheckFilter( recipientObject ) );
+				extraFilters.append( _getDuplicateCheckFilter( recipientObject, templateId ) );
 
 				service.$( "getFiltersForSendLimits" ).$args(
 					  templateId    = templateId
@@ -480,8 +480,8 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		return service;
 	}
 
-	private struct function _getDuplicateCheckFilter( required string recipientObject ) {
-		var filter = { filter="already_queued_check.recipient is null", filterParams={} };
+	private struct function _getDuplicateCheckFilter( required string recipientObject, required string templateId ) {
+		var filter = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=arguments.templateId } } };
 		var dummySubQuery = "select stuff from stuffz where stuff = 'stuffz'";
 
 		mockQueueDao.$( "selectData" ).$args(

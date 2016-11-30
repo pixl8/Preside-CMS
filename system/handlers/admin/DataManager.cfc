@@ -1313,6 +1313,7 @@
 		<cfargument name="useMultiActions"     type="boolean" required="false" default="true" />
 		<cfargument name="isMultilingual"      type="boolean" required="false" default="false" />
 		<cfargument name="draftsEnabled"       type="boolean" required="false" default="false" />
+		<cfargument name="extraFilters"        type="array"   required="false" />
 
 		<cfscript>
 			gridFields = ListToArray( gridFields );
@@ -1328,7 +1329,7 @@
 			var sortOrder           = dtHelper.getSortOrder();
 			var expressionFilter    = rc.sFilterExpression ?: "";
 			var savedFilters        = ListToArray( rc.sSavedFilterExpressions ?: "" );
-			var extraFilters        = [];
+			var extraFilters        = arguments.extraFilters ?: [];
 
 			try {
 				extraFilters.append( rulesEngineFilterService.prepareFilter(

@@ -106,7 +106,36 @@ component {
 
 		var dbAdapter    = $getPresideObjectService().getDbAdapterForObject( "email_mass_send_queue" );
 		var nowFunction  = dbAdapter.getNowFunctionSql();
+		var extraFilters = getTemplateRecipientFilters( arguments.templateId );
 
+		return $getPresideObject( "email_mass_send_queue" ).insertDataFromSelect(
+			  fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
+			, selectDataArgs = {
+				  objectName   = recipientObject
+				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
+				, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
+				, extraFilters = extraFilters
+			  }
+		);
+	}
+
+	/**
+	 * Returns an array of filters to be used when queueing or displaying
+	 * the recipients for mass sending an email
+	 *
+	 * @autodoc         true
+	 * @templateId.hint ID of the template who's filters you are to get
+	 */
+	public array function getTemplateRecipientFilters( required string templateId ) {
+		var template = _getEmailTemplateService().getTemplate( arguments.templateId );
+		if ( template.isEmpty() ) {
+			return [];
+		}
+
+		var recipientObject = _getEmailRecipientTypeService().getFilterObjectForRecipientType( template.recipient_type );
+		if ( !recipientObject.len() ) {
+			return [];
+		}
 		var extraFilters = getFiltersForSendLimits(
 			  templateId    = arguments.templateId
 			, recipientType = template.recipient_type
@@ -123,16 +152,32 @@ component {
 			extraFilters.append( recipientFilter );
 		}
 
-		extraFilters.append( _getDuplicateCheckFilter( recipientObject, dbAdapter ) );
+		extraFilters.append( _getDuplicateCheckFilter( recipientObject, arguments.templateId ) );
 
-		return $getPresideObject( "email_mass_send_queue" ).insertDataFromSelect(
-			  fieldList = [ "recipient", "template", "datecreated", "datemodified" ]
-			, selectDataArgs = {
-				  objectName   = recipientObject
-				, selectFields = [ dbAdapter.escapeEntity( "#recipientObject#.id" ), ":template", nowFunction, nowFunction ]
-				, filterParams = { template = { type="cf_sql_varchar", value=arguments.templateId } }
-				, extraFilters = extraFilters
-			  }
+		return extraFilters;
+	}
+
+	/**
+	 * Gets a count of recipients that would be queued should the send be initiated now
+	 *
+	 * @autodoc         true
+	 * @templateId.hint ID of the template who's filters you are to get
+	 */
+	public numeric function getTemplateRecipientCount( required string templateId ) {
+		var template = _getEmailTemplateService().getTemplate( arguments.templateId );
+		if ( template.isEmpty() ) {
+			return 0;
+		}
+
+		var recipientObject = _getEmailRecipientTypeService().getFilterObjectForRecipientType( template.recipient_type );
+		if ( !recipientObject.len() ) {
+			return 0;
+		}
+
+		return $getPresideObject( recipientObject ).selectData(
+			  selectFields    = [ "id" ]
+			, extraFilters    = getTemplateRecipientFilters( arguments.templateId )
+			, recordCountOnly = true
 		);
 	}
 
@@ -256,7 +301,6 @@ component {
 		}
 
 		return [ filter ];
-
 	}
 
 
@@ -269,8 +313,8 @@ component {
 		return DateAdd( _timeUnitToCfMapping[ arguments.unit ], 0-arguments.measure, Now() );
 	}
 
-	private struct function _getDuplicateCheckFilter( required string recipientObject, required any dbAdapter ) {
-		var filter = { filter="already_queued_check.recipient is null", filterParams={} };
+	private struct function _getDuplicateCheckFilter( required string recipientObject, required string templateId ) {
+		var filter = { filter="already_queued_check.recipient is null", filterParams={ template={ type="cf_sql_varchar", value=templateId } } };
 		var subQuery = $getPresideObject( "email_mass_send_queue" ).selectData(
 			  selectFields        = [ "recipient", "template" ]
 			, getSqlAndParamsOnly = true

@@ -54,6 +54,16 @@
 		, active = ( args.tab == "log" )
 		, link   = ( args.tab == "log" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.log", queryString="id=#templateId#" )
 	});
+
+	if ( args.tab == "send" ) {
+		tabs.append({
+			  id     = "send"
+			, icon   = "fa-share red"
+			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.send" )
+			, active = true
+			, link   = ""
+		});
+	}
 </cfscript>
 
 <cfoutput>

@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
 	property name="emailLayoutService"         inject="emailLayoutService";
+	property name="emailMassSendingService"    inject="emailMassSendingService";
 	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
@@ -428,12 +429,47 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
 		}
 
+		prc.recipientCount = emailMassSendingService.getTemplateRecipientCount( templateId );
+
+		if ( prc.recipientCount ) {
+			prc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type );
+			prc.gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( prc.template.recipient_type );
+		}
+
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.send.page.title", data=[ prc.record.name ] );
 		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.send.page.subtitle", data=[ prc.record.name ] );
 
 		event.addAdminBreadCrumb(
 			  title = translateResource( uri="cms:emailcenter.customTemplates.send.page.breadcrumb", data=[ prc.record.name ] )
 			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.send", queryString="id=#templateId#" )
+		);
+	}
+
+	public void function getRecipientListForAjaxDataTables( event, rc, prc ) {
+		_checkPermissions( event=event, key="read" );
+
+		var templateId   = rc.id ?: "";
+		var template     = emailTemplateService.getTemplate( templateId );
+
+		if ( !template.count() ) {
+			event.notFound();
+		}
+
+		var extraFilters = emailMassSendingService.getTemplateRecipientFilters( templateId );
+		var filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( template.recipient_type );
+		var gridFields   = emailRecipientTypeService.getGridFieldsForRecipientType( template.recipient_type );
+
+		runEvent(
+			  event          = "admin.DataManager._getObjectRecordsForAjaxDataTables"
+			, prePostExempt  = true
+			, private        = true
+			, eventArguments = {
+				  object        = filterObject
+				, gridFields    = gridFields.toList()
+				, actionsView   = "admin.emailCenter.customTemplates._noActions"
+				, draftsEnabled = false
+				, extraFilters  = extraFilters
+			}
 		);
 	}
 
