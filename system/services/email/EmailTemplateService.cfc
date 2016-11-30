@@ -368,12 +368,11 @@ component {
 	 *
 	 * @autodoc         true
 	 * @templateId.hint ID of the template to update
+	 * @markAsSent.hint Whether or not to mark a 'fixedschedule' template as sent
 	 */
-	public string function updateScheduledSendFields( required string templateId ) {
+	public string function updateScheduledSendFields( required string templateId, boolean markAsSent=false ) {
 		var template    = getTemplate( arguments.templateId );
-		var updatedData = {
-			schedule_next_send_date = ""
-		};
+		var updatedData = { schedule_next_send_date = "" };
 
 		if ( template.sending_method == "scheduled" ) {
 			if ( template.schedule_type == "repeat" ) {
@@ -389,7 +388,30 @@ component {
 						updatedData.delete( "schedule_next_send_date" );
 					}
 				}
+
+				updatedData.schedule_date = "";
+				updatedData.schedule_sent = "";
+			} else {
+				updatedData.schedule_start_date = "";
+				updatedData.schedule_end_date   = "";
+				updatedData.schedule_unit       = "";
+				updatedData.schedule_measure    = "";
+
+				if ( arguments.markAsSent ) {
+					updatedData.schedule_sent = true;
+				}
 			}
+		} else {
+			updatedData = {
+				  schedule_type           = ""
+				, schedule_date           = ""
+				, schedule_start_date     = ""
+				, schedule_end_date       = ""
+				, schedule_unit           = ""
+				, schedule_measure        = ""
+				, schedule_sent           = ""
+				, schedule_next_send_date = ""
+			};
 		}
 
 		return saveTemplate( id=arguments.templateId, template=updatedData );

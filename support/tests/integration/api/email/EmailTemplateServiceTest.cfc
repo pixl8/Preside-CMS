@@ -116,6 +116,63 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 		} );
 
 		describe( "updateScheduledSendFields()", function(){
+			it( "should empty the 'schedule_date' and 'schedule_sent' field when the schedule type is 'repeat'", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "ww", 1, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 1
+					, schedule_unit           = "week"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_date ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template.schedule_sent ).toBe( "" );
+			} );
+
+			it( "should not touch the repeating schedule fields when schedule type is repeat", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var nextSendDate = DateAdd( "ww", 1, nowish );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 1
+					, schedule_unit           = "week"
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_type" ) ).toBe( false );
+				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_measure" ) ).toBe( false );
+				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_unit" ) ).toBe( false );
+				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_start_date" ) ).toBe( false );
+				expect( service.$callLog().saveTemplate[1].template.keyExists( "schedule_end_date" ) ).toBe( false );
+			} );
+
 			it( "should set the schedule_next_send_date field when the schedule type is 'repeat' and next_send_date is empty", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
@@ -303,7 +360,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( "" );
 			} );
 
-			it( "should set the schedule_next_send_date to empty when method is not 'scheduled", function(){
+			it( "should set all schedule fields to empty when method is not 'scheduled", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
 				var nowish       = Now();
@@ -327,7 +384,72 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 
 				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
 				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
-				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template ).toBe( {
+					  schedule_type           = ""
+					, schedule_date           = ""
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_unit           = ""
+					, schedule_measure        = ""
+					, schedule_sent           = ""
+					, schedule_next_send_date = ""
+				} );
+			} );
+
+			it( "should clear all the repeating schedule fields when the schedule type is 'fixeddate'", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "fixeddate"
+					, schedule_measure        = ""
+					, schedule_date           = DateAdd( "ww", 1, nowish )
+					, schedule_unit           = ""
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_start_date ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template.schedule_end_date ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template.schedule_unit ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template.schedule_measure ).toBe( "" );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ).toBe( "" );
+			} );
+
+			it( "it should mark as sent, when type is fixeddate and markAsSent passed as true", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "fixeddate"
+					, schedule_measure        = ""
+					, schedule_date           = DateAdd( "ww", 1, nowish )
+					, schedule_unit           = ""
+					, schedule_start_date     = ""
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId=templateId, markAsSent=true );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_sent ).toBe( true );
 			} );
 		} );
 
