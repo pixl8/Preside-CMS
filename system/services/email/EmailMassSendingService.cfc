@@ -50,6 +50,8 @@ component {
 	 * @autodoc true
 	 */
 	public boolean function processQueue( any logger ) {
+		autoQueueScheduledSendouts( logger ?: NullValue() )
+
 		var rateLimit      = Val( $getPresideSetting( "email", "ratelimit", 100 ) );
 		var processedCount = 0;
 		var queuedEmail    = "";
@@ -132,6 +134,46 @@ component {
 				, extraFilters = extraFilters
 			  }
 		);
+	}
+
+	/**
+	 * Automatically queues any scheduled templates that are due
+	 * for sending.
+	 *
+	 * @autodoc true
+	 */
+	public numeric function autoQueueScheduledSendouts( any logger ) {
+		var templateService   = _getEmailTemplateService();
+		var oneTimeTemplates  = templateService.listDueOneTimeScheduleTemplates();
+		var repeatedTemplates = templateService.listDueRepeatedScheduleTemplates();
+		var totalQueued       = 0;
+		var canLog            = arguments.keyExists( "logger" );
+		var canInfo           = canLog && logger.canInfo();
+
+		if ( canInfo ) {
+			if ( oneTimeTemplates.len() ) {
+				logger.info( "Queueing [#oneTimeTemplates.len()#] one time scheduled email template(s) for sending..." );
+			}
+			if ( repeatedTemplates.len() ) {
+				logger.info( "Queueing [#oneTimeTemplates.len()#] repeat scheduled email template(s) for sending..." );
+			}
+		}
+
+		for( var oneTimeTemplate in oneTimeTemplates ){
+			totalQueued += queueSendout( oneTimeTemplate );
+			templateService.updateScheduledSendFields( templateId=oneTimeTemplate, markAsSent=true );
+		}
+
+		for( var repeatedTemplate in repeatedTemplates ){
+			totalQueued += queueSendout( repeatedTemplate );
+			templateService.updateScheduledSendFields( templateId=repeatedTemplate );
+		}
+
+		if ( canInfo && ( oneTimeTemplates.len() + repeatedTemplates.len() ) ) {
+			logger.info( "[#NumberFormat( totalQueued )#] emails were queued to send" );
+		}
+
+		return totalQueued;
 	}
 
 	/**

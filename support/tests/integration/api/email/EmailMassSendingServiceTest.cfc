@@ -310,6 +310,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				}
 
 				service.$( "$getPresideSetting" ).$args( "email", "ratelimit", 100 ).$results( rateLimit );
+				service.$( "autoQueueScheduledSendouts", 345 );
 
 				var resultsList = "";
 				for( var i=1; i<=rateLimit; i++ ){
@@ -345,6 +346,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				emails.append({});
 
 				service.$( "$getPresideSetting" ).$args( "email", "ratelimit", 100 ).$results( rateLimit );
+				service.$( "autoQueueScheduledSendouts", 345 );
 
 				var resultsList = "";
 				for( var i=1; i<=emails.len(); i++ ){
@@ -363,6 +365,89 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 					expect( mockEmailService.$callLog().send[i] ).toBe( { template=emails[i].template, recipientId=emails[i].recipient } );
 					expect( service.$callLog().removeFromQueue[i] ).toBe( [ emails[i].id ] );
 				}
+			} );
+		} );
+
+		describe( "autoQueueScheduledSendouts()", function(){
+			it( "should fetch any unsent one-time emails and add them to the queue", function(){
+				var service = _getService();
+				var templates = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockEmailTemplateService.$( "listDueOneTimeScheduleTemplates", templates );
+				mockEmailTemplateService.$( "listDueRepeatedScheduleTemplates", [] );
+				mockEmailTemplateService.$( "updateScheduledSendFields", 1 );
+				service.$( "queueSendout", 1 );
+
+				service.autoQueueScheduledSendouts();
+
+				expect( service.$callLog().queueSendout.len() ).toBe( templates.len() );
+				for( var i=1; i<=templates.len(); i++ ) {
+					expect( service.$callLog().queueSendout[i] ).toBe( [ templates[i] ] );
+				}
+			} );
+
+			it( "should mark one-time emails as sent, once added to the queue", function(){
+				var service = _getService();
+				var templates = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockEmailTemplateService.$( "listDueOneTimeScheduleTemplates", templates );
+				mockEmailTemplateService.$( "listDueRepeatedScheduleTemplates", [] );
+				mockEmailTemplateService.$( "updateScheduledSendFields", 1 );
+				service.$( "queueSendout", 1 );
+
+				service.autoQueueScheduledSendouts();
+
+				expect( mockEmailTemplateService.$callLog().updateScheduledSendFields.len() ).toBe( templates.len() );
+				for( var i=1; i<=templates.len(); i++ ) {
+					expect( mockEmailTemplateService.$callLog().updateScheduledSendFields[i] ).toBe( { templateId=templates[i], markAsSent=true } );
+				}
+			} );
+
+			it( "should fetch any unsent repeated emails and add them to the queue", function(){
+				var service = _getService();
+				var templates = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockEmailTemplateService.$( "listDueOneTimeScheduleTemplates", [] );
+				mockEmailTemplateService.$( "listDueRepeatedScheduleTemplates", templates );
+				mockEmailTemplateService.$( "updateScheduledSendFields", 1 );
+				service.$( "queueSendout", 1 );
+
+				service.autoQueueScheduledSendouts();
+
+				expect( service.$callLog().queueSendout.len() ).toBe( templates.len() );
+				for( var i=1; i<=templates.len(); i++ ) {
+					expect( service.$callLog().queueSendout[i] ).toBe( [ templates[i] ] );
+				}
+			} );
+
+			it( "should update schedule for each repeated schedule email, once added to the queue", function(){
+				var service = _getService();
+				var templates = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+
+				mockEmailTemplateService.$( "listDueOneTimeScheduleTemplates", [] );
+				mockEmailTemplateService.$( "listDueRepeatedScheduleTemplates", templates );
+				mockEmailTemplateService.$( "updateScheduledSendFields", 1 );
+				service.$( "queueSendout", 1 );
+
+				service.autoQueueScheduledSendouts();
+
+				expect( mockEmailTemplateService.$callLog().updateScheduledSendFields.len() ).toBe( templates.len() );
+				for( var i=1; i<=templates.len(); i++ ) {
+					expect( mockEmailTemplateService.$callLog().updateScheduledSendFields[i] ).toBe( { templateId=templates[i] } );
+				}
+			} );
+
+			it( "should return the total number of queued emails", function(){
+				var service           = _getService();
+				var oneTimeTemplates  = [ CreateUUId(), CreateUUId(), CreateUUId() ];
+				var repeatedTemplates = [ CreateUUId(), CreateUUId() ];
+
+				mockEmailTemplateService.$( "listDueOneTimeScheduleTemplates", oneTimeTemplates );
+				mockEmailTemplateService.$( "listDueRepeatedScheduleTemplates", repeatedTemplates );
+				mockEmailTemplateService.$( "updateScheduledSendFields", 1 );
+				service.$( "queueSendout" ).$results( 234, 34, 56, 0, 3462 );
+
+				expect( service.autoQueueScheduledSendouts()  ).toBe( 234 + 34 + 56 + 3462 );
 			} );
 		} );
 	}

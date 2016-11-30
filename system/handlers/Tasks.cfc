@@ -7,15 +7,15 @@ component {
 	property name="emailMassSendingService" inject="emailMassSendingService";
 
 	/**
-	 * Sends out any queued batch emails.
+	 * Process batched emails
 	 *
 	 * @priority     5
 	 * @schedule     0 *\/2 * * * *
 	 * @timeout      1200
-	 * @displayName  Send queued batch email
+	 * @displayName  Process batch email
 	 * @displayGroup Email
 	 */
-	private boolean function sendQueuedEmails( logger ) {
+	private boolean function processBatchedEmails( logger ) {
 		return emailMassSendingService.processQueue( arguments.logger ?: NullValue() );
 	}
 }
