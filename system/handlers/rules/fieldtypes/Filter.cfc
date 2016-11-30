@@ -15,11 +15,11 @@ component {
 		}
 
 		if ( ids.len() == 1 ) {
-			return renderLabel( objectName="rules_engine_filter", recordId=ids[1] );
+			return renderLabel( objectName="rules_engine_condition", recordId=ids[1] );
 		}
 
 		var records = presideObjectService.selectData(
-			  objectName   = "rules_engine_filter"
+			  objectName   = "rules_engine_condition"
 			, selectFields = [ "${labelfield} as label" ]
 			, filter       = { id=ids }
 		);
