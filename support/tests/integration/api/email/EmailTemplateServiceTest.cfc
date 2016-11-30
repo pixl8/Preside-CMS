@@ -863,6 +863,42 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "listDueOneTimeScheduleTemplates()", function(){
+			it( "should fetch all the templates using 'fixeddate' schedule who have not been sent and who's send date is in the past", function(){
+				var service = _getService();
+				var templateRecords = QueryNew( 'id', 'varchar', [[CreateUUId()], [CreateUUId()]] );
+				var nowish = Now();
+
+				service.$( "_getNow", nowish );
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "id" ]
+					, filter       = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
+					, extraFilters = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=nowish } } ]
+					, orderby      = "schedule_date"
+				).$results( templateRecords );
+
+				expect( service.listDueOneTimeScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );
+			} );
+		} );
+
+		describe( "listDueRepeatedScheduleTemplates()", function(){
+			it( "should fetch all the templates using 'repeat' schedule who's next send date is in the past and when current date is between start and end date", function(){
+				var service = _getService();
+				var templateRecords = QueryNew( 'id', 'varchar', [[CreateUUId()], [CreateUUId()]] );
+				var nowish = Now();
+
+				service.$( "_getNow", nowish );
+				mockTemplateDao.$( "selectData" ).$args(
+					  selectFields = [ "id" ]
+					, filter       = { sending_method="scheduled", schedule_type="repeat" }
+					, extraFilters = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=nowish } } ]
+					, orderby      = "schedule_next_send_date"
+				).$results( templateRecords );
+
+				expect( service.listDueRepeatedScheduleTemplates() ).toBe( ValueArray( templateRecords.id ) );
+			} );
+		} );
+
 	}
 
 	private any function _getService( boolean initialize=true ) {

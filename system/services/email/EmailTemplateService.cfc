@@ -417,6 +417,40 @@ component {
 		return saveTemplate( id=arguments.templateId, template=updatedData );
 	}
 
+	/**
+	 * Returns an array of template IDs of templates
+	 * using a fixed date schedule who are due to send
+	 *
+	 * @autodoc true
+	 */
+	public array function listDueOneTimeScheduleTemplates() {
+		var records = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = { sending_method="scheduled", schedule_type="fixeddate", schedule_sent=false }
+			, extraFilters = [ { filter="schedule_date <= :schedule_date", filterParams={ schedule_date=_getNow() } } ]
+			, orderBy      = "schedule_date"
+		);
+
+		return records.recordCount ? ValueArray( records.id ) : [];
+	}
+
+	/**
+	 * Returns an array of template IDs of templates
+	 * using a repeated schedule who are due to send
+	 *
+	 * @autodoc true
+	 */
+	public array function listDueRepeatedScheduleTemplates() {
+		var records = $getPresideObject( "email_template" ).selectData(
+			  selectFields = [ "id" ]
+			, filter       = { sending_method="scheduled", schedule_type="repeat" }
+			, extraFilters = [ { filter="schedule_next_send_date <= :schedule_next_send_date", filterParams={ schedule_next_send_date=_getNow() } } ]
+			, orderBy      = "schedule_next_send_date"
+		);
+
+		return records.recordCount ? ValueArray( records.id ) : [];
+	}
+
 // PRIVATE HELPERS
 	private void function _ensureSystemTemplatesHaveDbEntries() {
 		var sysTemplateService = _getSystemEmailTemplateService();
