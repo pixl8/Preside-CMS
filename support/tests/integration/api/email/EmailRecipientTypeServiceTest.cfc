@@ -216,6 +216,26 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 			} );
 		} );
 
+		describe( "getGridFieldsForRecipientType()", function(){
+			it( "should return the configured grid fields for the given type", function(){
+				var service = _getService();
+
+				expect( service.getGridFieldsForRecipientType( "adminUser" ) ).toBe( [ "known_as", "email_address" ] );
+			} );
+
+			it( "should return an empty array when the type does not have a configured grid fields", function(){
+				var service = _getService();
+
+				expect( service.getGridFieldsForRecipientType( "anonymous" ) ).toBe( [] );
+			} );
+
+			it( "should return an empty array when the type does not exist", function(){
+				var service = _getService();
+
+				expect( service.getGridFieldsForRecipientType( CreateUUId() ) ).toBe( [] );
+			} );
+		} );
+
 		describe( "getRecipientIdLogPropertyForRecipientType()", function(){
 			it( "should return the configured object for the given type", function(){
 				var service = _getService();
@@ -263,7 +283,7 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 	private struct function _getTestRecipientTypes() {
 		return {
 			  websiteUser = { feature="websiteUsers", parameters=[ { id="known_as", required=true }, "login_id" ], filterObject="website_user", recipientIdLogProperty="website_user_recipient" }
-			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ], filterObject="security_user", recipientIdLogProperty="security_user_recipient" }
+			, adminUser   = { feature="cms", parameters=[ "display_name", "login_id" ], filterObject="security_user", recipientIdLogProperty="security_user_recipient", gridFields=[ "known_as", "email_address" ] }
 			, anonymous   = {}
 		};
 	}

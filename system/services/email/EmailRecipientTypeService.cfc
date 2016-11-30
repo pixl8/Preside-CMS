@@ -201,6 +201,24 @@ component displayName="Email Recipient Type Service" {
 		return types[ arguments.recipientType ].recipientIdLogProperty ?: "";
 	}
 
+
+	/**
+	 * Returns the configured grid fields for showing recipients of this type
+	 *
+	 * @autodoc            true
+	 * @recipientType.hint The ID of the recipient type who's grid fields we are to get
+	 */
+	public array function getGridFieldsForRecipientType( required string recipientType ) {
+		var types = _getConfiguredRecipientTypes();
+		var gridFields = types[ arguments.recipientType ].gridFields ?: [];
+
+		if ( IsArray( gridFields ) ) {
+			return gridFields;
+		}
+
+		return [];
+	}
+
 // GETTERS AND SETTERS
 	private any function _getConfiguredRecipientTypes() {
 		return _configuredRecipientTypes;

@@ -653,9 +653,19 @@ component {
 			, "site_url"
 		] };
 
-		recipientTypes.adminUser   = { parameters=[ "known_as"    , "login_id", "email_address" ], filterObject="security_user", recipientIdLogProperty="security_user_recipient" };
-		recipientTypes.websiteUser = { parameters=[ "display_name", "login_id", "email_address" ], filterObject="website_user" , recipientIdLogProperty="website_user_recipient" };
 		recipientTypes.anonymous   = {};
+		recipientTypes.adminUser   = {
+			  parameters             = [ "known_as", "login_id", "email_address" ]
+			, filterObject           = "security_user"
+			, gridFields             = [ "known_as", "email_address" ]
+			, recipientIdLogProperty = "security_user_recipient"
+		};
+		recipientTypes.websiteUser = {
+			  parameters             = [ "display_name", "login_id", "email_address" ]
+			, filterObject           = "website_user"
+			, gridFields             = [ "display_name", "email_address" ]
+			, recipientIdLogProperty = "website_user_recipient"
+		};
 
 		serviceProviders.smtp = {};
 
