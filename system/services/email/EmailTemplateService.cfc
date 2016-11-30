@@ -380,7 +380,7 @@ component {
 				var expired = ( IsDate( template.schedule_start_date ) && template.schedule_start_date > nowish ) || ( IsDate( template.schedule_end_date ) && template.schedule_end_date < nowish );
 
 				if ( !expired ) {
-					var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit );
+					var newSendDate = _calculateNextSendDate( template.schedule_measure, template.schedule_unit, template.schedule_start_date );
 
 					if ( !IsDate( template.schedule_next_send_date ) || template.schedule_next_send_date < nowish || template.schedule_next_send_date > newSendDate ) {
 						updatedData.schedule_next_send_date = newSendDate;
@@ -475,12 +475,30 @@ component {
 		return Now(); // abstraction to make testing easier
 	}
 
-	private any function _calculateNextSendDate( required numeric measure, required string unit ) {
+	private any function _calculateNextSendDate(
+		  required numeric measure
+		, required string  unit
+		, required any     startDate
+	) {
 		if ( !_timeUnitToCfMapping.keyExists( arguments.unit ) ) {
 			return "";
 		}
 
-		return DateAdd( _timeUnitToCfMapping[ arguments.unit ], arguments.measure, _getNow() );
+		var nowish = _getNow();
+		var cfunit = _timeUnitToCfMapping[ arguments.unit ];
+
+		if ( IsDate( arguments.startDate ) ) {
+			var measureFromStart = DateDiff( cfunit, arguments.startDate, nowish ) + arguments.measure;
+			var nextDate         = DateAdd( cfunit, measureFromStart, arguments.startDate );
+
+			while( nextDate < Now() ) {
+				nextDate = DateAdd( cfunit, 1, nextDate );
+			}
+
+			return nextDate;
+		}
+
+		return DateAdd( cfunit, arguments.measure, nowish );
 	}
 
 // GETTERS AND SETTERS

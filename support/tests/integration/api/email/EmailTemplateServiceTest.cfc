@@ -360,6 +360,34 @@ component extends="resources.HelperObjects.PresideBddTestCase" {
 				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( "" );
 			} );
 
+			it( "should set the schedule_next_send_date field relative to the schedule_start_date", function(){
+				var service      = _getService();
+				var templateId   = CreateUUId();
+				var nowish       = Now();
+				var startDate    = "1900-01-01 09:00";
+				var nextSendDate = DateAdd( "d", DateDiff( "d", startDate, nowish )+1, startDate );
+				var template = {
+					  sending_method          = "scheduled"
+					, schedule_type           = "repeat"
+					, schedule_measure        = 1
+					, schedule_unit           = "day"
+					, schedule_start_date     = startDate
+					, schedule_end_date       = ""
+					, schedule_next_send_date = ""
+				};
+
+				service.$( "getTemplate" ).$args( templateId ).$results( template );
+				service.$( "saveTemplate", templateId );
+				service.$( "_getNow", nowish );
+
+				service.updateScheduledSendFields( templateId );
+
+				expect( service.$callLog().saveTemplate.len() ).toBe( 1 );
+				expect( service.$callLog().saveTemplate[1].id ?: "" ).toBe( templateId );
+				expect( service.$callLog().saveTemplate[1].template.schedule_next_send_date ?: "" ).toBe( nextSendDate );
+
+			} );
+
 			it( "should set all schedule fields to empty when method is not 'scheduled", function(){
 				var service      = _getService();
 				var templateId   = CreateUUId();
