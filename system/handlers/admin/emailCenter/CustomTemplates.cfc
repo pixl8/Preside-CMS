@@ -473,6 +473,28 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function sendAction( event, rc, prc ) {
+		_checkPermissions( event=event, key="send" );
+
+		var templateId = rc.id ?: "";
+
+		prc.record = prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
+
+		if ( !prc.record.count() || systemEmailTemplateService.templateExists( templateId ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
+		if ( prc.record.sending_method != "manual" ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
+		}
+
+		var queuedCount = emailMassSendingService.queueSendout( templateId );
+		messageBox.info( translateResource( uri="cms:emailcenter.customTemplates.send.success", data=[ NumberFormat( queuedCount ) ] ) );
+		setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
+
+	}
+
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
 		var template        = prc.record ?: {};
