@@ -275,6 +275,7 @@ component extends="preside.system.base.AdminHandler" {
 
 		if ( validationResult.validated() ) {
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
+			emailTemplateService.updateScheduledSendFields( templateId=id );
 
 			messagebox.info( translateResource( "cms:emailcenter.customTemplates.send.options.saved.confirmation" ) );
 			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
