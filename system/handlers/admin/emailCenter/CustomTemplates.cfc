@@ -141,6 +141,8 @@ component extends="preside.system.base.AdminHandler" {
 
 		var formName         = "preside-objects.email_template.admin.edit";
 		var formData         = event.getCollectionForForm( formName );
+		    formData.id = id;
+
 		var validationResult = validateForm( formName, formData );
 		var missingHtmlParams = emailTemplateService.listMissingParams(
 			  template = id
