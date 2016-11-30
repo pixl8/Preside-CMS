@@ -14,10 +14,11 @@ component {
 		,          string  parentPropertyName = ""
 		,          boolean _is = true
 	) {
-		var recordId = payload[ objectName ].id ?: "";
+		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
+		var recordId     = payload[ sourceObject ].id ?: "";
 
 		return presideObjectService.dataExists(
-			  objectName   = objectName
+			  objectName   = sourceObject
 			, id           = recordId
 			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);

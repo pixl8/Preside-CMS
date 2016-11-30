@@ -15,13 +15,13 @@ component {
 		,          boolean _is     = true
 		,          string  variety = "isEmpty"
 	) {
-		var recordId = payload[ objectName ].id ?: "";
-		var isIsNot  = ( _is && variety == "isEmpty" ) ? "is" : "is not";
+		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
+		var recordId     = payload[ sourceObject ].id ?: "";
 
 		return presideObjectService.dataExists(
-			  objectName   = objectName
-			, filter       = "#objectname#.id = :id and #objectName#.#propertyName# #isIsNot# null"
-			, filterParams = { id=recordId }
+			  objectName   = sourceObject
+			, id           = recordId
+			, extraFilters = prepareFilters( argumentCollection=arguments )
 		);
 	}
 

@@ -1339,7 +1339,7 @@
 			} catch( any e ){}
 
 			var savedFilters = presideObjectService.selectData(
-				  objectName = "rules_engine_filter"
+				  objectName = "rules_engine_condition"
 				, selectFields = [ "expressions" ]
 				, filter = { id=savedFilters }
 			);
@@ -1963,9 +1963,9 @@
 		<cfargument name="rc"                type="struct"  required="true" />
 		<cfargument name="prc"               type="struct"  required="true" />
 		<cfargument name="object"            type="string"  required="false" default="#( rc.object ?: '' )#" />
+		<cfargument name="formName"          type="string"  required="false" default="preside-objects.#arguments.object#.admin.quickedit" />
 
 		<cfscript>
-			var formName         = "preside-objects.#object#.admin.quickedit";
 			var id               = rc.id      ?: "";
 			var formData         = event.getCollectionForForm( formName );
 			var validationResult = "";

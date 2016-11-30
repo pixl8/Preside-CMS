@@ -25,7 +25,7 @@
 	if ( args.allowFilter ) {
 		saveFilterFormEndpoint = event.buildAdminLink(
 			  linkTo      = "rulesEngine.superQuickAddFilterForm"
-			, querystring = "object_name=#args.objectName#&multiple=false&expressions="
+			, querystring = "filter_object=#args.objectName#&multiple=false&expressions="
 		);
 	}
 </cfscript>

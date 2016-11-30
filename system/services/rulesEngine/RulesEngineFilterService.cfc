@@ -168,7 +168,7 @@ component displayName="Rules Engine Filter Service" {
 	 * @filterId.hint ID of the saved filter
 	 */
 	public array function getExpressionArrayForSavedFilter( required string filterId ) {
-		var filterRecord = $getPresideObject( "rules_engine_filter" ).selectData(
+		var filterRecord = $getPresideObject( "rules_engine_condition" ).selectData(
 			  id           = arguments.filterId
 			, selectFields = [ "expressions" ]
 		);
