@@ -5,6 +5,15 @@
 
 <cfoutput>
 	<cfsavecontent variable="body">
+		#renderViewlet( event='admin.datamanager.versionNavigator', args={
+			  object         = "email_template"
+			, id             = recordId
+			, version        = version
+			, isDraft        = IsTrue( prc.record._version_is_draft ?: "" )
+			, baseUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates.edit", queryString="id=#recordId#&version=" )
+			, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.customTemplates.versionHistory", queryString="id=#recordId#" )
+		} )#
+
 		<div class="row">
 			<div class="col-md-8 col-lg-7 col-sm-12">
 				#renderView( view="/admin/datamanager/_editRecordForm", args={
@@ -26,15 +35,6 @@
 			</div>
 		</div>
 	</cfsavecontent>
-
-	#renderViewlet( event='admin.datamanager.versionNavigator', args={
-		  object         = "email_template"
-		, id             = recordId
-		, version        = version
-		, isDraft        = IsTrue( prc.record._version_is_draft ?: "" )
-		, baseUrl        = event.buildAdminLink( linkto="emailCenter.customTemplates.edit", queryString="id=#recordId#&version=" )
-		, allVersionsUrl = event.buildAdminLink( linkto="emailCenter.customTemplates.versionHistory", queryString="id=#recordId#" )
-	} )#
 
 	#renderViewlet( event="admin.emailcenter.customtemplates._customTemplateTabs", args={ body=body, tab="edit" } )#
 </cfoutput>
