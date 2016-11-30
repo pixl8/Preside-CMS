@@ -22,6 +22,8 @@
 
 	tableId = args.id ?: "object-listing-table-#LCase( args.objectName )#";
 
+	args.allowFilter = args.allowFilter && isFeatureEnabled( "rulesengine" );
+
 	if ( args.allowFilter ) {
 		saveFilterFormEndpoint = event.buildAdminLink(
 			  linkTo      = "rulesEngine.superQuickAddFilterForm"
