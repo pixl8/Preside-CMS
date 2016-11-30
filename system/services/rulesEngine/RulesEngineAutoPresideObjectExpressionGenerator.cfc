@@ -52,6 +52,8 @@ component {
 	public array function generateExpressionsForProperty(
 		  required string objectName
 		, required struct propertyDefinition
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	) {
 		if ( IsBoolean( propertyDefinition.autofilter ?: "" ) && !propertyDefinition.autofilter ) {
 			return [];
@@ -66,10 +68,10 @@ component {
 			switch( propType ) {
 				case "string":
 				case "numeric":
-					expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name ) );
+					expressions.append( _createIsEmptyExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 				break;
 				default:
-					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name ) );
+					expressions.append( _createIsSetExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 			}
 		}
 
@@ -77,38 +79,48 @@ component {
 			switch( propType ) {
 				case "string":
 					if ( !Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
-						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name ) );
+						expressions.append( _createStringMatchExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 					}
 				break;
 				case "boolean":
-					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name ) );
+					expressions.append( _createBooleanIsTrueExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 				break;
 				case "date":
-					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name ) );
+					expressions.append( _createDateInRangeExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 				break;
 				case "numeric":
-					expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name ) );
+					expressions.append( _createNumericComparisonExpression( objectName, propertyDefinition.name, parentObjectName, parentPropertyName ) );
 				break;
 			}
 		}
 
 		switch( relationship ) {
 			case "many-to-one":
-				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition ) );
-				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition ) );
+				expressions.append( _createManyToOneMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				expressions.append( _createManyToOneFilterExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+
+				if ( !arguments.parentObjectName.len() ) {
+					var uniqueIndexes = ListToArray( propertyDefinition.uniqueIndexes ?: "" );
+					for( var ux in uniqueIndexes ) {
+						if ( ListLen( ux, "|" ) == 1 ) {
+							expressions.append( _createExpressionsForOneToOneRelationship( objectName, propertyDefinition ), true );
+							break;
+						}
+					}
+				}
 			break;
 			case "many-to-many":
-				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition ) );
-				expressions.append( _createManyToManyCountExpression( objectName, propertyDefinition ) );
+				expressions.append( _createManyToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				expressions.append( _createManyToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 			break;
 			case "one-to-many":
-				expressions.append( _createOneToManyMatchExpression( objectName, propertyDefinition ) );
-				expressions.append( _createOneToManyCountExpression( objectName, propertyDefinition ) );
+				expressions.append( _createOneToManyMatchExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
+				expressions.append( _createOneToManyCountExpression( objectName, propertyDefinition, parentObjectName, parentPropertyName ) );
 			break;
 		}
 
 		if ( Len( Trim( propertyDefinition.enum ?: "" ) ) ) {
-			expressions.append( _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum ) );
+			expressions.append( _createEnumMatchesExpression( objectName, propertyDefinition.name, propertyDefinition.enum, parentObjectName, parentPropertyName ) );
 		}
 
 
@@ -116,11 +128,11 @@ component {
 	}
 
 // PRIVATE HELPERS
-	private struct function _createIsEmptyExpression( required string objectName, required string propertyName ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createIsEmptyExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_propertyIsEmpty_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_propertyIsEmpty_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
@@ -136,11 +148,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createStringMatchExpression( required string objectName, required string propertyName ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createStringMatchExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_stringmatches_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_stringmatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _stringOperator={ fieldType="operator", variety="string", required=false, default="contains" }, value={ fieldType="text", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.TextPropertyMatches.prepareFilters"
@@ -151,11 +163,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createEnumMatchesExpression( required string objectName, required string propertyName, required string enum ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createEnumMatchesExpression( required string objectName, required string propertyName, required string enum, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_enumMatches_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_enumMatches_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true }, enumValue={ fieldType="enum", enum=arguments.enum, required=false, default="", defaultLabel="rules.dynamicExpressions:enumPropertyMatches.enumValue.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.EnumPropertyMatches.prepareFilters"
@@ -166,11 +178,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createIsSetExpression( required string objectName, required string propertyName ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createIsSetExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_propertyIsSet_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_propertyIsSet_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.PropertyIsNull.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.PropertyIsNull.prepareFilters"
@@ -186,11 +198,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createBooleanIsTrueExpression( required string objectName, required string propertyName ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createBooleanIsTrueExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_booleanistrue_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_booleanistrue_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", required=false, default=true } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.BooleanPropertyIsTrue.prepareFilters"
@@ -201,11 +213,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createDateInRangeExpression( required string objectName, required string propertyName ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createDateInRangeExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_dateinrange_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_dateinrange_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _time={ fieldtype="timePeriod", type="alltime", required=false, default="" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.DatePropertyInRange.prepareFilters"
@@ -216,11 +228,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createNumericComparisonExpression( required string objectName, required string propertyName ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyName );
+	private struct function _createNumericComparisonExpression( required string objectName, required string propertyName, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments );
 
 		expression.append( {
-			  id                = "presideobject_numbercompares_#arguments.objectName#.#arguments.propertyName#"
+			  id                = "presideobject_numbercompares_#arguments.parentObjectname##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyName#"
 			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldtype="number", required=false, default=0 } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.NumericPropertyCompares.prepareFilters"
@@ -231,11 +243,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createManyToOneMatchExpression( required string objectName, required struct propertyDefinition ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+	private struct function _createManyToOneMatchExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytoonematch_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			  id                = "presideobject_manytoonematch_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToOneMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneMatch.prepareFilters"
@@ -250,11 +262,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createManyToOneFilterExpression( required string objectName, required struct propertyDefinition ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+	private struct function _createManyToOneFilterExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytoonefilter_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			  id                = "presideobject_manytoonefilter_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { value={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToOneFilter.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToOneFilter.prepareFilters"
@@ -269,11 +281,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createManyToManyMatchExpression( required string objectName, required struct propertyDefinition ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+	private struct function _createManyToManyMatchExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytomanymatch_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			  id                = "presideobject_manytomanymatch_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _possesses={ fieldType="boolean", variety="hasDoesNotHave", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=false, default="", defaultLabel="rules.dynamicExpressions:manyToManyMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyMatch.prepareFilters"
@@ -288,11 +300,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createOneToManyMatchExpression( required string objectName, required struct propertyDefinition ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+	private struct function _createOneToManyMatchExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_onetomanymatch_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			  id                = "presideobject_onetomanymatch_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _is={ fieldType="boolean", variety="isIsNot", default=true, required=false }, value={ fieldType="object", object=propertyDefinition.relatedTo, multiple=true, required=true, default="", defaultLabel="rules.dynamicExpressions:oneToManyMatch.value.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyMatch.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyMatch.prepareFilters"
@@ -311,11 +323,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createManyToManyCountExpression( required string objectName, required struct propertyDefinition ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+	private struct function _createManyToManyCountExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_manytomanycount_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			  id                = "presideobject_manytomanycount_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 }, savedFilter={ fieldType="filter", object=propertyDefinition.relatedTo, multiple=false, quickadd=true, quickedit=true, required=true, default="", defaultLabel="rules.dynamicExpressions:manyToManyCount.savedFilter.default.label" } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.ManyToManyCount.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.ManyToManyCount.prepareFilters"
@@ -330,11 +342,11 @@ component {
 		return expression;
 	}
 
-	private struct function _createOneToManyCountExpression( required string objectName, required struct propertyDefinition ) {
-		var expression  = _getCommonExpressionDefinition( objectName, propertyDefinition.name );
+	private struct function _createOneToManyCountExpression( required string objectName, required struct propertyDefinition, required string parentObjectName, required string parentPropertyName  ) {
+		var expression  = _getCommonExpressionDefinition( argumentCollection=arguments, propertyName=propertyDefinition.name );
 
 		expression.append( {
-			  id                = "presideobject_onetomanycount_#arguments.objectName#.#arguments.propertyDefinition.name#"
+			  id                = "presideobject_onetomanycount_#arguments.parentObjectName##arguments.parentPropertyName##arguments.objectName#.#arguments.propertyDefinition.name#"
 			, fields            = { _numericOperator={ fieldtype="operator", variety="numeric", required=false, default="eq" }, value={ fieldType="number", required=false, default=0 } }
 			, expressionHandler = "rules.dynamic.presideObjectExpressions.OneToManyCount.evaluateExpression"
 			, filterHandler     = "rules.dynamic.presideObjectExpressions.OneToManyCount.prepareFilters"
@@ -354,19 +366,54 @@ component {
 	}
 
 
-	private struct function _getCommonExpressionDefinition( required string objectName, required string propertyName ){
+	private struct function _getCommonExpressionDefinition(
+		  required string objectName
+		, required string propertyName
+		, required string parentObjectName
+		, required string parentPropertyName
+	){
+		var sourceObject = parentObjectName.len() ? parentObjectName : objectName;
+		var commonArgs   = {
+			  propertyName = propertyName
+			, objectName   = objectName
+		};
+
+		if ( parentPropertyName.len() ) {
+			commonArgs.parentPropertyName = parentPropertyName;
+			commonArgs.parentObjectName   = parentObjectName;
+		}
+
 		return {
-			  contexts              = _getRulesEngineContextService().getObjectContexts( objectName )
-			, filterObjects         = [ objectName ]
-			, expressionHandlerArgs = { propertyName=propertyName, objectName=objectName }
-			, filterHandlerArgs     = { propertyName=propertyName, objectName=objectName }
-			, labelHandlerArgs      = { propertyName=propertyName, objectName=objectName }
-			, textHandlerArgs       = { propertyName=propertyName, objectName=objectName }
-			, category              = arguments.objectName
+			  contexts              = _getRulesEngineContextService().getObjectContexts( sourceObject )
+			, filterObjects         = [ sourceObject ]
+			, expressionHandlerArgs = commonArgs
+			, filterHandlerArgs     = commonArgs
+			, labelHandlerArgs      = commonArgs
+			, textHandlerArgs       = commonArgs
+			, category              = objectName
 		};
 	}
 
+	private array function _createExpressionsForOneToOneRelationship(
+		  required string objectName
+		, required struct propertyDefinition
+	) {
+		var childObjectName    = propertyDefinition.relatedTo ?: "";
+		var parentPropertyName = propertyDefinition.name ?: "";
+		var expressions        = [];
+		var properties         = $getPresideObjectService().getObjectProperties( childObjectName );
 
+		for( var propName in properties ) {
+			expressions.append( generateExpressionsForProperty(
+				  objectName         = childObjectName
+				, propertyDefinition = properties[ propName ]
+				, parentObjectName   = objectName
+				, parentPropertyName = parentPropertyName
+			), true );
+		}
+
+		return expressions;
+	}
 
 
 

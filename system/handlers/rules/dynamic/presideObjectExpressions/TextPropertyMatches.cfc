@@ -10,6 +10,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	) {
@@ -25,11 +27,13 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          string  _stringOperator = "contains"
 		,          string  value           = ""
 	){
-		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
+		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var paramName = "textPropertyMatches" & CreateUUId().lCase().replace( "-", "", "all" );
 		var filterSql = "#prefix#.#propertyName# ${operator} :#paramName#";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar" } };
@@ -73,8 +77,15 @@ component {
 	private string function getLabel(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.textPropertyMatches.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.label", data=[ propNameTranslated ] );
 	}
@@ -82,8 +93,16 @@ component {
 	private string function getText(
 		  required string objectName
 		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+
+			return translateResource( uri="rules.dynamicExpressions:related.textPropertyMatches.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:textPropertyMatches.text", data=[ propNameTranslated ] );
 	}

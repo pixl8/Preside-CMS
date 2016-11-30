@@ -10,6 +10,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	) {
@@ -25,12 +27,14 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
 		,          numeric value            = 0
 	){
 		var paramName = "numericPropertyCompares" & CreateUUId().lCase().replace( "-", "", "all" );
-		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
+		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var filterSql = "#prefix#.#propertyName# ${operator} :#paramName#";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_number" } };
 
@@ -61,8 +65,15 @@ component {
 	private string function getLabel(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.numericPropertyCompares.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:numericPropertyCompares.label", data=[ propNameTranslated ] );
 	}
@@ -70,8 +81,15 @@ component {
 	private string function getText(
 		  required string objectName
 		, required string propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	){
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.numericPropertyCompares.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:numericPropertyCompares.text", data=[ propNameTranslated ] );
 	}

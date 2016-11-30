@@ -12,6 +12,8 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	) {
@@ -29,6 +31,8 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          boolean _is   = true
 		,          string  value = ""
@@ -58,7 +62,7 @@ component {
 			params[ param.name ].delete( "name" );
 		}
 
-		prefix = filterPrefix.len() ? filterPrefix : objectName;
+		prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
 		return [ {
 			  filter = "#subQueryAlias#.id is null"
@@ -79,10 +83,17 @@ component {
 		, required string  propertyName
 		, required string  relatedTo
 		, required string  relationshipKey
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
 		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.oneToManyMatch.label", data=[ relatedToTranslated, relatedPropertyTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyMatch.label", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}
@@ -92,10 +103,17 @@ component {
 		, required string propertyName
 		, required string relatedTo
 		, required string relationshipKey
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	){
 		var relatedToBaseUri          = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated       = translateResource( relatedToBaseUri & "title", relatedTo );
 		var relatedPropertyTranslated = translateObjectProperty( relatedTo, relationshipKey );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.oneToManyMatch.text", data=[ relatedToTranslated, relatedPropertyTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:oneToManyMatch.text", data=[ relatedToTranslated, relatedPropertyTranslated ] );
 	}
