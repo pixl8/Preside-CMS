@@ -514,12 +514,14 @@ component extends="preside.system.base.AdminHandler" {
 		var templateId = rc.id ?: "";
 		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
 
-		args.canSend       = template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
-		args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
-		args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
+		if ( template.count() ) {
+			args.canSend       = template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+			args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
+			args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
 
-		if ( args.canSend || args.canDelete || args.canToggleLock ) {
-			return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
+			if ( args.canSend || args.canDelete || args.canToggleLock ) {
+				return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
+			}
 		}
 
 		return "";
