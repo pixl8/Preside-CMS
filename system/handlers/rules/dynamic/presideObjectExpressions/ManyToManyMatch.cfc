@@ -34,11 +34,12 @@ component {
 		,          boolean _possesses = true
 		,          string  value      = ""
 	){
-		var paramName = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
-		var operator  = _possesses ? "in" : "not in";
-		var prefix    = filterPrefix.len() ? filterPrefix : propertyName;
-		var filterSql = "#prefix#.id #operator# (:#paramName#)";
-		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
+		var paramName     = "manyToManyMatch" & CreateUUId().lCase().replace( "-", "", "all" );
+		var operator      = _possesses ? "in" : "not in";
+		var defaultPrefix = parentPropertyName.len() ? "#parentPropertyName#$#propertyName#" : propertyName;
+		var prefix        = filterPrefix.len() ? filterPrefix : defaultPrefix;
+		var filterSql     = "#prefix#.id #operator# (:#paramName#)";
+		var params        = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
 		return [ { filter=filterSql, filterParams=params } ];
 	}
