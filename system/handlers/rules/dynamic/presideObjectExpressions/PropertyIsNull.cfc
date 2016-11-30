@@ -10,6 +10,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          boolean _is     = true
 		,          string  variety = "isEmpty"
 	) {
@@ -26,11 +28,13 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          boolean _is     = true
 		,          string  variety = "isEmpty"
 	){
-		var prefix = filterPrefix.len() ? filterPrefix : objectName;
+		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var isIsNot  = ( _is == ( variety == "isEmpty" ) ) ? "is" : "is not";
 
 		return [ { filter="#prefix#.#propertyName# #isIsNot# null" } ];
@@ -39,9 +43,16 @@ component {
 	private string function getLabel(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  variety = "isEmpty"
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.propertyIsNull.#variety#.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.label", data=[ propNameTranslated ] );
 	}
@@ -49,9 +60,17 @@ component {
 	private string function getText(
 		  required string objectName
 		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 		,          string variety = "isEmpty"
 	){
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+
+			return translateResource( uri="rules.dynamicExpressions:related.propertyIsNull.#variety#.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:propertyIsNull.#variety#.text", data=[ propNameTranslated ] );
 	}

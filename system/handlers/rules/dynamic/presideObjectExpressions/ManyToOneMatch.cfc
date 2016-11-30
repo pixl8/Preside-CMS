@@ -10,6 +10,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	) {
@@ -25,13 +27,15 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          boolean _is   = true
 		,          string  value = ""
 	){
 		var paramName = "manyToOneMatch" & CreateUUId().lCase().replace( "-", "", "all" );
 		var operator  = _is ? "in" : "not in";
-		var prefix    = filterPrefix.len() ? filterPrefix : objectName;
+		var prefix    = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var filterSql = "#prefix#.#propertyName# #operator# (:#paramName#)";
 		var params    = { "#paramName#" = { value=arguments.value, type="cf_sql_varchar", list=true } };
 
@@ -42,10 +46,17 @@ component {
 		  required string  objectName
 		, required string  propertyName
 		, required string  relatedTo
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.manyToOneMatch.label", data=[ propNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.label", data=[ propNameTranslated, relatedToTranslated ] );
 	}
@@ -54,10 +65,17 @@ component {
 		  required string objectName
 		, required string propertyName
 		, required string relatedTo
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.manyToOneMatch.text", data=[ propNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneMatch.text", data=[ propNameTranslated, relatedToTranslated ] );
 	}

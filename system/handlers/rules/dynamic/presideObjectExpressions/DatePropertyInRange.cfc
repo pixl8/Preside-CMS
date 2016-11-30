@@ -10,6 +10,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          struct  _time
 	) {
 		var recordId = payload[ objectName ].id ?: "";
@@ -24,12 +26,14 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          struct  _time = {}
 	){
 		var params      = {};
 		var sql         = "";
-		var prefix      = filterPrefix.len() ? filterPrefix : objectName;
+		var prefix      = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 		var propertySql = "#prefix#.#propertyName#";
 		var delim       = "";
 
@@ -56,8 +60,15 @@ component {
 	private string function getLabel(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.datePropertyInRange.label", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:datePropertyInRange.label", data=[ propNameTranslated ] );
 	}
@@ -65,8 +76,15 @@ component {
 	private string function getText(
 		  required string objectName
 		, required string propertyName
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.datePropertyInRange.text", data=[ propNameTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:datePropertyInRange.text", data=[ propNameTranslated ] );
 	}

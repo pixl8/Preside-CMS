@@ -11,6 +11,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  _numericOperator = "eq"
 		,          string  savedFilter      = ""
 		,          numeric value            = 0
@@ -27,6 +29,8 @@ component {
 	private array function prepareFilters(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          string  _numericOperator = "eq"
 		,          string  savedFilter      = ""
@@ -85,7 +89,7 @@ component {
 			break;
 		}
 
-		var prefix = filterPrefix.len() ? filterPrefix : objectName;
+		var prefix = filterPrefix.len() ? filterPrefix : ( parentPropertyName.len() ? parentPropertyName : objectName );
 
 		return [ { filter=filterSql, filterParams=params, extraJoins=[ {
 			  type           = "left"
@@ -101,11 +105,18 @@ component {
 		  required string  objectName
 		, required string  propertyName
 		, required string  relatedTo
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
 		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.manyToManyCount.label", data=[ objectNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:manyToManyCount.label", data=[ objectNameTranslated, relatedToTranslated ] );
 	}
@@ -114,11 +125,18 @@ component {
 		  required string objectName
 		, required string propertyName
 		, required string relatedTo
+		,          string parentObjectName   = ""
+		,          string parentPropertyName = ""
 	){
 		var objectBaseUri        = presideObjectService.getResourceBundleUriRoot( objectName );
 		var relatedToBaseUri     = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var objectNameTranslated = translateResource( objectBaseUri & "title.singular", objectName );
 		var relatedToTranslated  = translateResource( relatedToBaseUri & "title", relatedTo );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.manyToManyCount.text", data=[ objectNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:manyToManyCount.text", data=[ objectNameTranslated, relatedToTranslated ] );
 	}

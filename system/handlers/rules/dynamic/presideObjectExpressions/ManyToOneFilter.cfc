@@ -11,6 +11,8 @@ component {
 	private boolean function evaluateExpression(
 		  required string  objectName
 		, required string  propertyName
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  value = ""
 	) {
 		var recordId = payload[ objectName ].id ?: "";
@@ -26,6 +28,8 @@ component {
 		  required string  objectName
 		, required string  propertyName
 		, required string  relatedTo
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 		,          string  filterPrefix = ""
 		,          string  value        = ""
 	){
@@ -45,10 +49,17 @@ component {
 		  required string  objectName
 		, required string  propertyName
 		, required string  relatedTo
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	) {
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.manyToOneFilter.label", data=[ propNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneFilter.label", data=[ propNameTranslated, relatedToTranslated ] );
 	}
@@ -57,10 +68,17 @@ component {
 		  required string objectName
 		, required string propertyName
 		, required string relatedTo
+		,          string  parentObjectName   = ""
+		,          string  parentPropertyName = ""
 	){
 		var relatedToBaseUri    = presideObjectService.getResourceBundleUriRoot( relatedTo );
 		var relatedToTranslated = translateResource( relatedToBaseUri & "title", relatedTo );
 		var propNameTranslated = translateObjectProperty( objectName, propertyName );
+
+		if ( Len( Trim( parentPropertyName ) ) ) {
+			var parentPropNameTranslated = translateObjectProperty( parentObjectName, parentPropertyName, translateObjectName( objectName ) );
+			return translateResource( uri="rules.dynamicExpressions:related.manyToOneFilter.text", data=[ propNameTranslated, relatedToTranslated, parentPropNameTranslated ] );
+		}
 
 		return translateResource( uri="rules.dynamicExpressions:manyToOneFilter.text", data=[ propNameTranslated, relatedToTranslated ] );
 	}
