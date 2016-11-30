@@ -1,6 +1,7 @@
 <cfscript>
 	templateId   = rc.id ?: "";
 	formId       = "email-send-options";
+	formName     = prc.formName ?: "";
 	saveAction   = event.buildAdminLink( linkto="emailcenter.customTemplates.saveSendOptionsAction" );
 	cancelAction = event.buildAdminLink( linkto="emailcenter.customTemplates.preview", queryString="id=" & templateId );
 
@@ -12,7 +13,7 @@
 			<input type="hidden" name="id" value="#templateId#" />
 
 			#renderForm(
-				  formName          = "preside-objects.email_template.configure.send"
+				  formName          = formName
 				, context           = "admin"
 				, formId            = formId
 				, savedData         = prc.template ?: {}

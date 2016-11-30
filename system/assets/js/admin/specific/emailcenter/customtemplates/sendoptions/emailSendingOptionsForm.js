@@ -7,6 +7,7 @@
 		  , $scheduleFixedFieldset  = $form.find( "#fieldset-schedule_fixed" )
 		  , $scheduleRepeatFieldset = $form.find( "#fieldset-schedule_repeat" )
 		  , $limitDeetsFieldset     = $form.find( "#fieldset-limit_details" )
+		  , $filterFieldset         = $form.find( "#fieldset-filter" )
 		  , getRadioValue
 		  , getSendMethod
 		  , getScheduleType
@@ -33,7 +34,14 @@
 
 			switch( sendingMethod ) {
 				case "manual":
+					$filterFieldset.show();
+					$scheduleFieldset.hide();
+					$scheduleFixedFieldset.hide();
+					$scheduleRepeatFieldset.hide();
+					enableFieldsetsBasedOnLimitType();
+				break;
 				case "auto":
+					$filterFieldset.hide();
 					$scheduleFieldset.hide();
 					$scheduleFixedFieldset.hide();
 					$scheduleRepeatFieldset.hide();
@@ -41,11 +49,13 @@
 
 				break;
 				case "scheduled":
+					$filterFieldset.show();
 					$scheduleFieldset.show();
 					enableFieldsetsBasedOnScheduleType();
 					enableFieldsetsBasedOnLimitType();
 				break;
 				default:
+					$filterFieldset.hide();
 					$scheduleFieldset.hide();
 					$scheduleFixedFieldset.hide();
 					$scheduleRepeatFieldset.hide();
@@ -84,6 +94,7 @@
 		$form.on( "click", "[name=sending_limit]" , enableFieldsetsBasedOnLimitType    );
 
 		enableFieldsetsBasedOnSendType();
+		enableFieldsetsBasedOnLimitType();
 	}
 
 } )( presideJQuery );

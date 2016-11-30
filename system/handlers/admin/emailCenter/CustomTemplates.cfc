@@ -4,6 +4,7 @@ component extends="preside.system.base.AdminHandler" {
 	property name="systemEmailTemplateService" inject="systemEmailTemplateService";
 	property name="emailRecipientTypeService"  inject="emailRecipientTypeService";
 	property name="emailLayoutService"         inject="emailLayoutService";
+	property name="formsService"               inject="formsService";
 	property name="dao"                        inject="presidecms:object:email_template";
 	property name="messageBox"                 inject="coldbox:plugin:messageBox";
 
@@ -250,6 +251,14 @@ component extends="preside.system.base.AdminHandler" {
 		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
 			event.notFound();
 		}
+		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
+		prc.anonymousOnly = !prc.filterObject.len();
+
+		if ( prc.anonymousOnly ) {
+			prc.formName = "preside-objects.email_template.configure.send";
+		} else {
+			prc.formName = formsService.getMergedFormName( "preside-objects.email_template.configure.send", "preside-objects.email_template.configure.send.methods" );
+		}
 
 		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.title"   , data=[ prc.template.name ] );
 		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.sendoptions.page.subTitle", data=[ prc.template.name ] );
@@ -271,9 +280,20 @@ component extends="preside.system.base.AdminHandler" {
 			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
 		}
 
-		var formName         = "preside-objects.email_template.configure.send";
+		var filterObject  = emailRecipientTypeService.getFilterObjectForRecipientType( prc.record.recipient_type ?: "" );
+		var anonymousOnly = !filterObject.len();
+		var formName      = "preside-objects.email_template.configure.send";
+
+		if ( !anonymousOnly ) {
+			formName = formsService.getMergedFormName( "preside-objects.email_template.configure.send", "preside-objects.email_template.configure.send.methods" );
+		}
+
 		var formData         = event.getCollectionForForm( formName );
 		var validationResult = validateForm( formName, formData );
+
+		if ( anonymousOnly ) {
+			formData.sending_method = "auto";
+		}
 
 		if ( validationResult.validated() ) {
 			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
@@ -360,60 +380,6 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
-	public void function recipients( event, rc, prc ) {
-		_checkPermissions( event=event, key="editRecipientFilter" );
-
-		var templateId = rc.id ?: "";
-
-		prc.template = prc.record = emailTemplateService.getTemplate( id=templateId, allowDrafts=true, fromversionTable=false );
-		if ( !prc.template.count() || systemEmailTemplateService.templateExists( templateId ) ) {
-			event.notFound();
-		}
-
-		prc.filterObject = rc.filterObject = emailRecipientTypeService.getFilterObjectForRecipientType( prc.template.recipient_type ?: "" );
-		if ( !prc.filterObject.len() ) {
-			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", querystring="id=" & templateId ) );
-		}
-
-		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.recipients.page.title"   , data=[ prc.template.name ] );
-		prc.pageSubTitle = translateResource( uri="cms:emailcenter.customTemplates.recipients.page.subTitle", data=[ prc.template.name ] );
-
-		event.addAdminBreadCrumb(
-			  title = translateResource( uri="cms:emailcenter.customTemplates.recipients.breadcrumb.title"  , data=[ prc.template.name ] )
-			, link  = event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=" & templateId )
-		);
-	}
-
-	public void function saveRecipientsAction( event, rc, prc ) {
-		_checkPermissions( event=event, key="editRecipientFilter" );
-
-		var id = rc.id ?: "";
-
-		prc.record = dao.selectData( filter={ id=id } );
-		if ( !prc.record.recordCount || systemEmailTemplateService.templateExists( id ) ) {
-			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
-		}
-
-		var formName         = "preside-objects.email_template.configure.recipients";
-		var formData         = event.getCollectionForForm( formName );
-		var validationResult = validateForm( formName, formData );
-
-		if ( validationResult.validated() ) {
-			emailTemplateService.saveTemplate( id=id, template=formData, isDraft=false );
-
-			messagebox.info( translateResource( "cms:emailcenter.customTemplates.recipients.filter.saved.confirmation" ) );
-			setNextEvent( url=event.buildAdminLink( linkTo="emailcenter.customTemplates.preview", queryString="id=#id#" ) );
-		}
-
-		formData.validationResult = validationResult;
-		messagebox.error( translateResource( "cms:datamanager.data.validation.error" ) );
-		setNextEvent(
-			  url           = event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=#id#" )
-			, persistStruct = formData
-		);
-	}
-
 	public void function log( event, rc, prc ) {
 		var id = rc.id ?: "";
 
@@ -457,7 +423,6 @@ component extends="preside.system.base.AdminHandler" {
 		args.canEdit                = canSaveDraft || canPublish;
 		args.canConfigureLayout     = IsTrue( layout.configurable ?: "" ) && hasCmsPermission( "emailcenter.customtemplates.configureLayout" );
 		args.canEditSendOptions     = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
-		args.canConfigureRecipients = recipientObject.len() && hasCmsPermission( "emailcenter.customtemplates.editRecipientFilter" );
 
 		return renderView( view="/admin/emailCenter/customTemplates/_customTemplateTabs", args=args );
 	}

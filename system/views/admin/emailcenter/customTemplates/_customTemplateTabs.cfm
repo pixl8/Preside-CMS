@@ -3,7 +3,6 @@
 <cfparam name="args.canEdit"                type="boolean" default="false" />
 <cfparam name="args.canConfigureLayout"     type="boolean" default="false" />
 <cfparam name="args.canEditSendOptions"     type="boolean" default="false" />
-<cfparam name="args.canConfigureRecipients" type="boolean" default="false" />
 
 <cfscript>
 	templateId = rc.id      ?: "";
@@ -45,16 +44,6 @@
 			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.sendOptions" )
 			, active = ( args.tab == "sendoptions" )
 			, link   = ( args.tab == "sendoptions" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.sendoptions", queryString="id=#templateId#" )
-		});
-	}
-
-	if ( args.canConfigureRecipients ) {
-		tabs.append({
-			  id     = "recipients"
-			, icon   = "fa-users red"
-			, title  = translateResource( "cms:emailcenter.customTemplates.template.tab.recipients" )
-			, active = ( args.tab == "recipients" )
-			, link   = ( args.tab == "recipients" ) ? "" : event.buildAdminLink( linkTo="emailcenter.customTemplates.recipients", queryString="id=#templateId#" )
 		});
 	}
 
