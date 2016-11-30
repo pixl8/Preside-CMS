@@ -57,6 +57,8 @@
 </cfscript>
 
 <cfoutput>
+	#renderViewlet( "admin.emailcenter.customtemplates._customTemplateActions" )#
+
 	<div class="tabbable">
 		<ul class="nav nav-tabs">
 			<cfloop array="#tabs#" index="i" item="tab">

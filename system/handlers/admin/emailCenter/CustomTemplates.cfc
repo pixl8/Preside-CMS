@@ -412,6 +412,31 @@ component extends="preside.system.base.AdminHandler" {
 		);
 	}
 
+	public void function send( event, rc, prc ) {
+		_checkPermissions( event=event, key="send" );
+
+		var templateId = rc.id ?: "";
+
+		prc.record = prc.template = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
+
+		if ( !prc.record.count() || systemEmailTemplateService.templateExists( templateId ) ) {
+			messageBox.error( translateResource( uri="cms:emailcenter.customTemplates.record.not.found.error" ) );
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates" ) );
+		}
+
+		if ( prc.record.sending_method != "manual" ) {
+			setNextEvent( url=event.buildAdminLink( linkTo="emailCenter.customTemplates.preview", queryString="id=" & templateId ) );
+		}
+
+		prc.pageTitle    = translateResource( uri="cms:emailcenter.customTemplates.send.page.title", data=[ prc.record.name ] );
+		prc.pageSubtitle = translateResource( uri="cms:emailcenter.customTemplates.send.page.subtitle", data=[ prc.record.name ] );
+
+		event.addAdminBreadCrumb(
+			  title = translateResource( uri="cms:emailcenter.customTemplates.send.page.breadcrumb", data=[ prc.record.name ] )
+			, link  = event.buildAdminLink( linkTo="emailCenter.customTemplates.send", queryString="id=#templateId#" )
+		);
+	}
+
 // VIEWLETS
 	private string function _customTemplateTabs( event, rc, prc, args={} ) {
 		var template        = prc.record ?: {};
@@ -425,6 +450,21 @@ component extends="preside.system.base.AdminHandler" {
 		args.canEditSendOptions     = hasCmsPermission( "emailcenter.customtemplates.editSendOptions" );
 
 		return renderView( view="/admin/emailCenter/customTemplates/_customTemplateTabs", args=args );
+	}
+
+	private string function _customTemplateActions( event, rc, prc, args={} ) {
+		var templateId = rc.id ?: "";
+		var template   = emailTemplateService.getTemplate( id=templateId, allowDrafts=false );
+
+		args.canSend       = template.sending_method == "manual" && hasCmsPermission( "emailcenter.customtemplates.send" );
+		args.canDelete     = hasCmsPermission( "emailcenter.customtemplates.delete" );
+		args.canToggleLock = hasCmsPermission( "emailcenter.customtemplates.lock" );
+
+		if ( args.canSend || args.canDelete || args.canToggleLock ) {
+			return renderView( view="/admin/emailCenter/customTemplates/_customTemplateActions", args=args );
+		}
+
+		return "";
 	}
 
 // private utility
