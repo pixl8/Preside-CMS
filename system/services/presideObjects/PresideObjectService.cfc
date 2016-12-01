@@ -1663,6 +1663,8 @@ component displayName="Preside Object Service" {
 		,          struct data           = {}
 		,          array  selectFields   = []
 		,          string orderBy        = ""
+		,          array  extraJoins     = []
+		,          array  extraFilters   = []
 
 	) {
 		var filter     = arguments.preparedFilter.filter ?: "";
@@ -1724,6 +1726,28 @@ component displayName="Preside Object Service" {
 				for( match in matches.$2 ){
 					objects[ match ] = 1;
 				}
+			}
+		}
+
+		for( var join in extraJoins ) {
+			matches = _reSearch( fieldRegex, "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
+			if ( StructKeyExists( matches, "$2" ) ) {
+				for( match in matches.$2 ){
+					objects[ match ] = 1;
+				}
+			}
+		}
+		for( var extraFilter in extraFilters ) {
+			if ( IsArray( extraFilter.extraJoins ?: "" ) ) {
+				for( var join in extraFilter.extraJoins ) {
+					matches = _reSearch( fieldRegex, "#( join.joinToTable ?: '' )#.#( join.joinToColumn ?: '' )#" );
+					if ( StructKeyExists( matches, "$2" ) ) {
+						for( match in matches.$2 ){
+							objects[ match ] = 1;
+						}
+					}
+				}
+
 			}
 		}
 
