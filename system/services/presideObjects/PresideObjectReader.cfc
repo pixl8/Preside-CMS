@@ -76,6 +76,9 @@ component {
 		meta.properties    = meta.properties    ?: {};
 
 
+		_defineIdField( meta );
+		_defineCreatedField( meta );
+		_defineModifiedField( meta );
 		_defineLabelField( meta );
 		_addDefaultsToProperties( meta.properties );
 		_mergeSystemPropertyDefaults( meta );
@@ -252,6 +255,10 @@ component {
 	private void function _mergeSystemPropertyDefaults( required struct meta ) {
 		param name="arguments.meta.propertyNames" default=ArrayNew(1);
 
+		var idField           = arguments.meta.idField           ?: "id";
+		var dateCreatedField  = arguments.meta.dateCreatedField  ?: "datecreated";
+		var dateModifiedField = arguments.meta.dateModifiedField ?: "datemodified";
+
 		var defaults = {
 			  id            = { type="string", dbtype="varchar" , control="none"     , maxLength="35", relationship="none", relatedto="none", generator="UUID", required="true", pk="true" }
 			, label         = { type="string", dbtype="varchar" , control="textinput", maxLength="250", relationship="none", relatedto="none", generator="none", required="true" }
@@ -266,26 +273,33 @@ component {
 			ArrayPrepend( arguments.meta.propertyNames, "label" );
 		}
 
-		if ( arguments.meta.propertyNames.find( "id" ) ) {
-			StructAppend( arguments.meta.properties.id, defaults.id, false );
+		if ( arguments.meta.propertyNames.find( idField ) ) {
+			if ( idField == "id" ) {
+				StructAppend( arguments.meta.properties.id, defaults.id, false );
+			}
 		} else {
-			arguments.meta.properties[ "id" ] = defaults[ "id" ];
-			ArrayPrepend( arguments.meta.propertyNames, "id" );
+			arguments.meta.properties[ idField ] = defaults[ "id" ];
+			ArrayPrepend( arguments.meta.propertyNames, idField );
 		}
 
-		if ( arguments.meta.propertyNames.find( "datecreated" ) ) {
-			StructAppend( arguments.meta.properties.datecreated, defaults.datecreated, false );
+		if ( arguments.meta.propertyNames.find( dateCreatedField ) ) {
+			if ( dateCreatedField == "dateCreated" ) {
+				StructAppend( arguments.meta.properties.dateCreated, defaults.dateCreated, false );
+			}
 		} else {
-			arguments.meta.properties[ "datecreated" ] = defaults[ "datecreated" ];
-			ArrayAppend( arguments.meta.propertyNames, "datecreated" );
+			arguments.meta.properties[ dateCreatedField ] = defaults[ "dateCreated" ];
+			ArrayPrepend( arguments.meta.propertyNames, dateCreatedField );
 		}
 
-		if ( arguments.meta.propertyNames.find( "datemodified" ) ) {
-			StructAppend( arguments.meta.properties.datemodified, defaults.datemodified, false );
+		if ( arguments.meta.propertyNames.find( dateModifiedField ) ) {
+			if ( dateModifiedField == "datemodified" ) {
+				StructAppend( arguments.meta.properties.datemodified, defaults.datemodified, false );
+			}
 		} else {
-			arguments.meta.properties[ "datemodified" ] = defaults[ "datemodified" ];
-			ArrayAppend( arguments.meta.propertyNames, "datemodified" );
+			arguments.meta.properties[ dateModifiedField ] = defaults[ "datemodified" ];
+			ArrayPrepend( arguments.meta.propertyNames, dateModifiedField );
 		}
+
 	}
 
 	private void function _deletePropertiesMarkedForDeletion( required struct meta ) {
@@ -385,10 +399,19 @@ component {
 		return final;
 	}
 
+	private void function _defineIdField( required struct objectMeta ) {
+		arguments.objectMeta.idField = arguments.objectMeta.idField ?: "id";
+	}
+
+	private void function _defineCreatedField( required struct objectMeta ) {
+		arguments.objectMeta.dateCreatedField = arguments.objectMeta.dateCreatedField ?: "datecreated";
+	}
+
+	private void function _defineModifiedField( required struct objectMeta ) {
+		arguments.objectMeta.dateModifiedField = arguments.objectMeta.dateModifiedField ?: "datemodified";
+	}
+
 	private void function _defineLabelField( required struct objectMeta ) {
-		// if ( arguments.objectMeta.isPageType ) {
-		// 	arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "page.title";
-		// }
 		if ( IsBoolean ( arguments.objectMeta.nolabel ?: "" ) && arguments.objectMeta.nolabel ) {
 			arguments.objectMeta.labelfield = arguments.objectMeta.labelfield ?: "";
 		} else {

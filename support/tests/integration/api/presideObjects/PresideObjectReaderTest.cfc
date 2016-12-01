@@ -137,6 +137,214 @@ component extends="tests.resources.HelperObjects.PresideBddTestCase" {
 				expect( expectedResult ).toBe( autoObject );
 			} );
 		} );
+
+		describe( "finalizeMergedObject()", function(){
+			it( "should add an ID field to an object that does not have one", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "id" ) ).toBeTrue();
+				expect( dummyObj.meta.properties.id ).toBe( {
+					  name         = "id"
+					, type         = "string"
+					, pk           = true
+					, generator    = "UUID"
+					, dbtype       = "varchar"
+					, control      = "none"
+					, maxLength    = 35
+					, relationship = "none"
+					, relatedto    = "none"
+					, required     = true
+				} );
+			} );
+
+			it( "should NOT add an ID field to an object that specifies an alternative ID field", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", idField="mytestobject_id", properties={
+						mytestobject_id = { name="mytestobject_id" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "id" ) ).toBeFalse( "ID field was created when it should not have been!" );
+			} );
+
+			it( "should create ID field with system defaults when IDField is not 'id' and the alternative does not already exist", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", idField="mytestobject_id", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.mytestobject_id ?: "" ).toBe( {
+					  name         = "mytestobject_id"
+					, type         = "string"
+					, pk           = true
+					, generator    = "UUID"
+					, dbtype       = "varchar"
+					, control      = "none"
+					, maxLength    = 35
+					, relationship = "none"
+					, relatedto    = "none"
+					, required     = true
+				} );
+			} );
+
+			it( "should leave the alternative ID field alone when it is predefined in the object", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", idField="mytestobject_id", propertyNames=["mytestobject_id"], properties={
+						mytestobject_id = { name="mytestobject_id", pk=true, generator="none" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.mytestobject_id.generator ?: "" ).toBe( "none" );
+			} );
+
+			it( "should add a DateModified field to an object that does not have one", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeTrue();
+				expect( dummyObj.meta.properties.datemodified ).toBe( {
+					  name         = "datemodified"
+					, type         = "date"
+					, dbtype       = "datetime"
+					, control      = "none"
+					, maxLength    = 0
+					, relationship = "none"
+					, relatedto    = "none"
+					, generator    = "none"
+					, required     = true
+				} );
+			} );
+
+			it( "should NOT add a DateModified field to an object that specifies an alternative DateModified field", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", datemodifiedField="lastDateModified", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datemodified" ) ).toBeFalse( "DateModified field was created when it should not have been!" );
+			} );
+
+			it( "should create DateModified field with system defaults when DateModifiedField is not 'DateModified' and the alternative does not already exist", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", datemodifiedField="lastDateModified", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.lastDateModified ?: "" ).toBe( {
+					  name         = "lastDateModified"
+					, type         = "date"
+					, dbtype       = "datetime"
+					, control      = "none"
+					, maxLength    = 0
+					, relationship = "none"
+					, relatedto    = "none"
+					, generator    = "none"
+					, required     = true
+				} );
+			} );
+
+			it( "should leave the alternative DateModified field alone when it is predefined in the object", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", datemodifiedField="lastDateModified", propertyNames=["lastDateModified"], properties={
+						lastDateModified = { name="lastDateModified", type="numeric", dbtype="bigint" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.lastDateModified.dbtype ?: "" ).toBe( "bigint" );
+			} );
+
+			it( "should add a dateCreated field to an object that does not have one", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datecreated" ) ).toBeTrue();
+				expect( dummyObj.meta.properties.datecreated ).toBe( {
+					  name         = "datecreated"
+					, type         = "date"
+					, dbtype       = "datetime"
+					, control      = "none"
+					, maxLength    = 0
+					, relationship = "none"
+					, relatedto    = "none"
+					, generator    = "none"
+					, required     = true
+				} );
+			} );
+
+			it( "should NOT add a dateCreated field to an object that specifies an alternative dateCreated field", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", dateCreatedField="creation_date", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.keyExists( "datecreated" ) ).toBeFalse( "dateCreated field was created when it should not have been!" );
+			} );
+
+			it( "should create dateCreated field with system defaults when DateModifiedField is not 'dateCreated' and the alternative does not already exist", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", dateCreatedField="creation_date", properties={} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.creation_date ?: "" ).toBe( {
+					  name         = "creation_date"
+					, type         = "date"
+					, dbtype       = "datetime"
+					, control      = "none"
+					, maxLength    = 0
+					, relationship = "none"
+					, relatedto    = "none"
+					, generator    = "none"
+					, required     = true
+				} );
+			} );
+
+			it( "should leave the alternative dateCreated field alone when it is predefined in the object", function(){
+				var reader = getReader();
+				var dummyObj = {
+					meta = { name="mytestobject", dateCreatedField="creation_date", propertyNames=["creation_date"], properties={
+						creation_date = { name="creation_date", type="numeric", dbtype="bigint" }
+					} }
+				};
+
+				reader.finalizeMergedObject( dummyObj );
+
+				expect( dummyObj.meta.properties.creation_date.dbtype ?: "" ).toBe( "bigint" );
+			} );
+
+		} );
 	}
 
 // PRIVATE HELPERS
