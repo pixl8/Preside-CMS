@@ -466,6 +466,7 @@ component displayName="Preside Object Service" {
 		var key                = "";
 		var requiresVersioning = arguments.useVersioning && objectIsVersioned( arguments.objectName );
 		var preparedFilter     = "";
+		var idField            = getIdField( arguments.objectName );
 		var dateModifiedField  = getDateModifiedField( arguments.objectName );
 
 		for( key in cleanedData ){
@@ -551,7 +552,7 @@ component displayName="Preside Object Service" {
 				} else {
 					updatedRecords = selectData(
 						  objectName   = arguments.objectName
-						, selectFields = [ "id" ]
+						, selectFields = [ "#adapter.escapeEntity( idField )# as id" ]
 						, filter       = preparedFilter.filter
 						, filterParams = preparedFilter.filterParams
 					);
