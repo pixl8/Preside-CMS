@@ -282,6 +282,9 @@ component displayName="Preside Object Service" {
 
 		var obj                = _getObject( arguments.objectName ).meta;
 		var adapter            = _getAdapter( obj.dsn );
+		var dateCreatedField   = getDateCreatedField( arguments.objectName );
+		var dateModifiedField  = getDateModifiedField( arguments.objectName );
+		var idField            = getIdField( arguments.objectName );
 		var sql                = "";
 		var key                = "";
 		var params             = "";
@@ -301,20 +304,20 @@ component displayName="Preside Object Service" {
 			}
 		}
 
-		if ( StructKeyExists( obj.properties, "datecreated" ) and not StructKeyExists( cleanedData, "datecreated" ) ) {
-			cleanedData.datecreated = rightNow;
+		if ( StructKeyExists( obj.properties, dateCreatedField ) and not StructKeyExists( cleanedData, dateCreatedField ) ) {
+			cleanedData[ dateCreatedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, "datemodified" ) and not StructKeyExists( cleanedData, "datemodified" ) ) {
-			cleanedData.datemodified = rightNow;
+		if ( StructKeyExists( obj.properties, dateModifiedField ) and not StructKeyExists( cleanedData, dateModifiedField ) ) {
+			cleanedData[ dateModifiedField ] = rightNow;
 		}
-		if ( StructKeyExists( obj.properties, "id" ) ) {
-			if ( not StructKeyExists( cleanedData, "id" ) or not Len( Trim( cleanedData.id ) ) ) {
-				newId = _generateNewIdWhenNecessary( generator=( obj.properties.id.generator ?: "UUID" ) );
+		if ( StructKeyExists( obj.properties, idField ) ) {
+			if ( not StructKeyExists( cleanedData, idField ) or not Len( Trim( cleanedData[ idField ] ) ) ) {
+				newId = _generateNewIdWhenNecessary( generator=( obj.properties[ idField ].generator ?: "UUID" ) );
 				if ( Len( Trim( newId ) ) ) {
-					cleanedData.id = newId;
+					cleanedData[ idField ] = newId;
 				}
 			} else {
-				newId = cleanedData.id;
+				newId = cleanedData[ idField ];
 			}
 		}
 		if ( objectIsVersioned( arguments.objectName ) ) {
